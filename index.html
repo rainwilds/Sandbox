@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Photography Services Form</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Photography Services</h1>
+    <form id="serviceForm">
+        <h2>Choose a Package</h2>
+        <label>
+            <input type="checkbox" name="service" value="basic"> 
+            Basic Package (Max 20 photos)
+        </label>
+        <div class="photo-input hidden" data-service="basic">
+            Number of Photos: <input type="number" name="photos_basic" min="1" max="20" value="1">
+        </div><br>
+
+        <label>
+            <input type="checkbox" name="service" value="wedding"> 
+            Wedding Package (Max 50 photos)
+        </label>
+        <div class="photo-input hidden" data-service="wedding">
+            Number of Photos: <input type="number" name="photos_wedding" min="1" max="50" value="1">
+        </div><br>
+
+        <label>
+            <input type="checkbox" name="service" value="portrait"> 
+            Portrait Session (Max 15 photos)
+        </label>
+        <div class="photo-input hidden" data-service="portrait">
+            Number of Photos: <input type="number" name="photos_portrait" min="1" max="15" value="1">
+        </div><br>
+
+        <!-- Conditional Options for Wedding Package -->
+        <div id="weddingOptions" class="hidden">
+            <h3>Wedding Add-ons</h3>
+            <label><input type="checkbox" name="addon" value="album" data-price="200"> Photo Album ($200)</label><br>
+            <label><input type="checkbox" name="addon" value="video" data-price="300"> Video Recording ($300)</label><br>
+        </div>
+
+        <h3>Total Price: $<span id="totalPrice">0</span></h3>
+    </form>
+    <script src="script.js"></script>
+</body>
+</html>
