@@ -73,19 +73,23 @@
 header {
     border: 2px solid darkred;
     background-color: lightcoral;
+    grid-area: header;
 }
 
 aside {
     border: 2px solid darkcyan;
     background-color: lightcyan;
+    grid-area: sidebar;
 }
 
 main {
     border: 2px solid darkmagenta;
     background-color: lightseagreen;
+    grid-area: content;
 }
 
 footer {
     border: 2px solid darkgoldenrod;
     background-color: lightgoldenrodyellow;
+    grid-area: footer;
 }
