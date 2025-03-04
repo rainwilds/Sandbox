@@ -55,10 +55,19 @@
 
 }
 
+/* ****************************************** */
+
 .container {
     border: 2px solid #555;
     padding: 8px;
     min-height: 100vh;
+    display: grid;
+    grid-template-areas:
+        "header header header header"
+        "sidebar content content content"
+        "sidebar content content content"
+        "footer footer footer footer"
+        ;
 }
 
 header {
