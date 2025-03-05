@@ -457,12 +457,11 @@
 
     nav {
 
-        grid-area: footer;
         grid-row-start: 1;
-        align-self: end;
-        grid-column-start: 5;
-        grid-column-end: -1;
-        justify-self: end;
+
+        header & {
+            grid-area: header;
+        }
 
         >ul {
 
