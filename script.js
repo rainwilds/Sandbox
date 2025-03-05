@@ -1,126 +1,45 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('serviceForm');
-    const weddingOptions = document.getElementById('weddingOptions');
-    const totalPriceSpan = document.getElementById('totalPrice');
-    const weddingCheckbox = form.querySelector('input[value="wedding"]');
-    const addons = form.querySelectorAll('input[name="addon"]');
-    const photoInputs = form.querySelectorAll('.photo-input input[type="number"]');
+const PH_RE_Int_Ext_Daylight = {
+    1: 65, 2: 76, 3: 88, 4: 99, 5: 111, 6: 122, 7: 134, 8: 145, 
+    9: 168, 10: 190, 11: 213, 12: 235, 13: 240, 14: 245, 15: 250, 
+    16: 255, 17: 261, 18: 268, 19: 274, 20: 280, 21: 288, 22: 296, 
+    23: 304, 24: 312, 25: 320, 26: 328, 27: 336, 28: 344, 29: 352, 
+    30: 360, 31: 366, 32: 374, 33: 381, 34: 389, 35: 397, 36: 404, 
+    37: 412, 38: 419, 39: 427, 40: 435, 41: 442, 42: 450, 43: 458, 
+    44: 465, 45: 473, 46: 480, 47: 488, 48: 496, 49: 503, 50: 511, 
+    51: 519, 52: 526, 53: 534, 54: 541, 55: 549, 56: 557, 57: 564, 
+    58: 572, 59: 579, 60: 587, 61: 595, 62: 602, 63: 610, 64: 618, 
+    65: 625, 66: 633, 67: 640, 68: 648, 69: 656, 70: 663, 71: 671, 
+    72: 678, 73: 686, 74: 694, 75: 701, 76: 709, 77: 717, 78: 724, 
+    79: 732, 80: 739, 81: 747, 82: 755, 83: 762, 84: 770, 85: 778, 
+    86: 785, 87: 793, 88: 800, 89: 808, 90: 816, 91: 823, 92: 831, 
+    93: 838, 94: 846, 95: 854, 96: 861, 97: 869, 98: 877, 99: 884, 
+    100: 892
+};
 
-    // Price per photo for each service (logarithmic-like decrease)
-    const pricePerPhoto = {
-        basic: {
-            1: 20, 2: 18, 3: 16, 4: 14, 5: 13, 6: 12, 7: 11, 8: 10, 9: 9.5, 
-            10: 9, 11: 8.5, 12: 8, 13: 7.5, 14: 7, 15: 6.5, 16: 6, 17: 5.5, 
-            18: 5, 19: 4.5, 20: 4
-        },
-        wedding: {
-            1: 50, 2: 45, 3: 40, 4: 35, 5: 32, 6: 30, 7: 28, 8: 26, 9: 24, 
-            10: 22, 11: 20, 12: 19, 13: 18, 14: 17, 15: 16, 16: 15, 17: 14, 
-            18: 13, 19: 12, 20: 11, 21: 10.5, 22: 10, 23: 9.5, 24: 9, 
-            25: 8.5, 26: 8, 27: 7.5, 28: 7, 29: 6.5, 30: 6, 31: 5.8, 
-            32: 5.6, 33: 5.4, 34: 5.2, 35: 5, 36: 4.8, 37: 4.6, 38: 4.4, 
-            39: 4.2, 40: 4, 41: 3.9, 42: 3.8, 43: 3.7, 44: 3.6, 45: 3.5, 
-            46: 3.4, 47: 3.3, 48: 3.2, 49: 3.1, 50: 3
-        },
-        portrait: {
-            1: 25, 2: 22, 3: 20, 4: 18, 5: 16, 6: 14, 7: 12, 8: 10, 9: 9, 
-            10: 8, 11: 7, 12: 6, 13: 5.5, 14: 5, 15: 4.5
-        }
-    };
+const PH_RE_Exterior_Twilight = {
+    1: 95, 2: 114, 3: 132, 4: 151, 5: 169, 6: 169, 7: 188, 8: 225, 
+    9: 244, 10: 263, 11: 281, 12: 300, 13: 306, 14: 313, 15: 319, 
+    16: 325, 17: 329, 18: 333, 19: 336, 20: 340, 21: 346, 22: 351, 
+    23: 357, 24: 362, 25: 368, 26: 373, 27: 379, 28: 384, 29: 390, 
+    30: 395, 31: 401, 32: 406, 33: 412, 34: 417, 35: 423, 36: 428, 
+    37: 434, 38: 439, 39: 445, 40: 450
+};
 
-    // Maximum photo limits for each service
-    const maxPhotos = {
-        basic: 20,
-        wedding: 50,
-        portrait: 15
-    };
+const PH_RE_Drone_Daylight = {
+    1: 110, 2: 130, 3: 150, 4: 170, 5: 190, 6: 210, 7: 230, 8: 250, 
+    9: 270, 10: 290, 11: 310, 12: 330, 13: 350, 14: 370, 15: 390
+};
 
-    // Function to get total price for a service based on number of photos
-    function getServicePrice(service, numPhotos) {
-        const prices = pricePerPhoto[service];
-        if (!prices || numPhotos < 1) return 0;
+const PH_RE_Drone_Sunrise_Sunset = {
+    1: 155, 2: 180, 3: 210, 4: 240, 5: 265, 6: 295, 7: 320, 8: 350, 
+    9: 377, 10: 405, 11: 433, 12: 461, 13: 489, 14: 517, 15: 545
+};
 
-        const maxPhotosForService = maxPhotos[service];
-        const cappedPhotos = Math.min(numPhotos, maxPhotosForService);
-        const pricePer = prices[cappedPhotos] || prices[maxPhotosForService];
-        return pricePer * cappedPhotos;
-    }
-
-    // Function to calculate total price
-    function calculateTotal() {
-        let total = 0;
-        const checkedServices = form.querySelectorAll('input[name="service"]:checked');
-        const checkedAddons = form.querySelectorAll('input[name="addon"]:checked');
-
-        checkedServices.forEach(service => {
-            const photoInput = form.querySelector(`input[name="photos_${service.value}"]`);
-            const numPhotos = photoInput ? parseInt(photoInput.value) || 1 : 1;
-            total += getServicePrice(service.value, numPhotos);
-        });
-
-        if (weddingCheckbox.checked) {
-            checkedAddons.forEach(addon => {
-                total += parseInt(addon.getAttribute('data-price')) || 0;
-            });
-        }
-
-        totalPriceSpan.textContent = Math.round(total * 100) / 100;
-    }
-
-    // Event listener for form changes
-    form.addEventListener('change', (event) => {
-        const target = event.target;
-
-        if (target.name === 'service') {
-            const photoInputDiv = form.querySelector(`.photo-input[data-service="${target.value}"]`);
-            if (target.checked) {
-                photoInputDiv.classList.remove('hidden');
-            } else {
-                photoInputDiv.classList.add('hidden');
-                const photoInput = photoInputDiv.querySelector('input');
-                photoInput.value = 1; // Reset to 1 when unchecked
-            }
-
-            if (target.value === 'wedding') {
-                weddingOptions.classList.toggle('hidden', !target.checked);
-                if (!target.checked) {
-                    addons.forEach(addon => {
-                        addon.checked = false;
-                    });
-                }
-            }
-        }
-
-        calculateTotal();
-    });
-
-    // Event listener for photo number inputs
-    photoInputs.forEach(input => {
-        input.addEventListener('input', (event) => {
-            const service = input.name.replace('photos_', '');
-            const max = maxPhotos[service];
-            let value = event.target.value;
-
-            // Remove non-numeric characters
-            value = value.replace(/[^0-9]/g, '');
-
-            // Enforce minimum and maximum
-            if (value === '' || parseInt(value) < 1) {
-                value = '1';
-            } else if (parseInt(value) > max) {
-                value = max.toString();
-            }
-
-            event.target.value = value; // Update input field
-            calculateTotal(); // Recalculate total
-        });
-
-        // Prevent letters via keypress (additional layer of protection)
-        input.addEventListener('keypress', (event) => {
-            const charCode = event.charCode;
-            if (charCode < 48 || charCode > 57) { // Allow only 0-9
-                event.preventDefault();
-            }
-        });
-    });
-});
+const PH_RE_Lifestyle = {
+    1: 65, 2: 76, 3: 88, 4: 99, 5: 111, 6: 122, 7: 134, 8: 145, 
+    9: 168, 10: 190, 11: 213, 12: 235, 13: 240, 14: 245, 15: 250, 
+    16: 255, 17: 261, 18: 268, 19: 274, 20: 280, 21: 288, 22: 296, 
+    23: 304, 24: 312, 25: 320, 26: 328, 27: 336, 28: 344, 29: 352, 
+    30: 360, 31: 368, 32: 376, 33: 384, 34: 392, 35: 400, 36: 408, 
+    37: 416, 38: 424, 39: 432, 40: 440
+};
