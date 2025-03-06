@@ -475,6 +475,9 @@
         border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
         background-color: khaki;
 
+        >hgroup {
+            margin-bottom: var(--space-tiny);
+        }
     }
 
 }
