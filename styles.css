@@ -457,7 +457,7 @@
 
     nav {
 
-        grid-column-start: 2;
+        grid-column: 2 / -2;
         height: fit-content;
 
         header & {
@@ -486,37 +486,7 @@ header {
     grid-template-columns: subgrid;
     grid-template-rows: subgrid;
     grid-area: header / gutter-left / header / gutter-right;
-    color: light-dark(var(--color-accent-opaque-dark-secondary), var(--color-accent-light-secondary));
-    margin: 5vw;
-
-    >div {
-        grid-area: header / gutter-left / header / gutter-right;
-        background-color: light-dark(var(--color-static-light-2), var(--color-static-dark-4));
-        border: solid 20px light-dark(var(--color-accent-light-primary), var(--color-accent-dark-primary));
-        border-left-color: light-dark(var(--color-accent-light-primary), var(--color-accent-dark-primary));
-        border-left-style: solid;
-        z-index: 1;
-        animation: 2.5s ease-out 0s forwards image-reveal;
-    }
-
-    >picture {
-
-        grid-area: header / gutter-left / header / gutter-right;
-
-    }
-
-    >h1 {
-
-        z-index: 3;
-        align-self: end;
-        max-width: 40vw;
-        font-size: clamp(3rem, 8vh, 10vh);
-        padding: var(--space-medium);
-        line-height: 0.85;
-        margin-bottom: 0;
-        grid-column-start: 1;
-
-    }
+    margin-top: var(--space-tiny);
 
 }
 
@@ -527,7 +497,6 @@ main {
     grid-area: main / gutter-left / main / gutter-right;
     row-gap: var(--space-huge);
     margin: var(--space-medium) 0 var(--space-huge) 0;
-    overflow-x: hidden;
 
 }
 
