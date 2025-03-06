@@ -469,6 +469,7 @@
     div.card {
 
             display: flex;
+            flex-direction: column;
             padding: var(--space-small);
             border: solid var(--border-size-small);
             border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
@@ -490,19 +491,19 @@ body>* {
 
     }
 
-    header {
+    >header {
 
         background-color: darkgoldenrod;
 
     }
 
-    main {
+    >main {
 
         row-gap: var(--space-medium);
 
     }
 
-    footer {
+    >footer {
 
         @media (max-width: 1199px) {
 
