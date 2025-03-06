@@ -460,13 +460,11 @@
         grid-column: 2 / -2;
         height: fit-content;
 
-        header & {
-            background: red;
+        /* header & {
         }
 
         footer & {
-            background: blue;
-        }
+        } */
 
         >ul {
 
@@ -484,9 +482,7 @@ header {
 
     display: grid;
     grid-template-columns: subgrid;
-    grid-template-rows: subgrid;
     grid-area: header / gutter-left / header / gutter-right;
-    margin-top: var(--space-tiny);
 
 }
 
@@ -505,7 +501,6 @@ footer {
     display: grid;
     grid-template-columns: subgrid;
     grid-area: footer / gutter-left / footer / gutter-right;
-    margin-bottom: var(--space-tiny);
 
     @media (max-width: 1199px) {
 
