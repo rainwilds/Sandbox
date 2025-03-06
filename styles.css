@@ -482,17 +482,15 @@ body>* {
     grid-template-columns: subgrid;
     grid-column: gutter-left / gutter-right;
 
-    header {}
+    >* {
+
+        grid-column: main;
+
+    }
 
     main { 
 
         row-gap: var(--space-medium);
-
-        >section {
-
-            grid-column: main;
-
-        }
 
     }
 
