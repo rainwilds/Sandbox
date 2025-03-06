@@ -482,7 +482,7 @@ header {
 
     display: grid;
     grid-template-columns: subgrid;
-    grid-area: header / gutter-left / header / gutter-right;
+    grid-column: gutter-left / gutter-right;
 
 }
 
@@ -490,11 +490,8 @@ main {
 
     display: grid;
     grid-template-columns: subgrid;
-    /* grid-area: main / gutter-left / main / gutter-right; */
     grid-column: gutter-left / gutter-right;
-    grid-auto-rows: auto;
-    row-gap: var(--space-huge);
-    margin: var(--space-medium) 0 var(--space-huge) 0;
+    row-gap: var(--space-medium);
 
 }
 
