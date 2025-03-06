@@ -505,6 +505,7 @@ header {
 main {
 
     row-gap: var(--space-medium);
+    margin: var(--space-medium) 0 var(--space-medium) 0;
 
 }
 
