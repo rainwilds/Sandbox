@@ -477,39 +477,37 @@
 
 }
 
-
-header {
-
-    display: grid;
-    grid-template-columns: subgrid;
-    grid-column: gutter-left / gutter-right;
-
-}
-
-main {
+body > * {
 
     display: grid;
     grid-template-columns: subgrid;
     grid-column: gutter-left / gutter-right;
-    row-gap: var(--space-medium);
 
-}
-
-footer {
-
-    display: grid;
-    grid-template-columns: subgrid;
-    grid-area: footer / gutter-left / footer / gutter-right;
-
-    @media (max-width: 1199px) {
-
-        >nav {
-            display: none;
+    header {
+    
+    }
+    
+    main {
+    
+        row-gap: var(--space-medium);
+    
+    }
+    
+    footer {
+    
+        @media (max-width: 1199px) {
+    
+            >nav {
+                display: none;
+            }
+    
         }
-
+    
     }
 
 }
+
+
 
 /* header:not(:has(i))>picture {
 
