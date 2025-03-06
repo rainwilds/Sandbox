@@ -485,9 +485,14 @@ body>* {
     grid-template-columns: subgrid;
     grid-column: gutter-left / gutter-right;
 
+    
+
     >* {
 
         grid-column: 2 / -2;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-small);
 
     }
 
