@@ -353,7 +353,7 @@
 
                 &:not(div[id^="gallery-item-"] picture, div[id^="gallery-item-"] img) {
 
-                    filter: opacity(0.9) saturate(0.8);
+                    /* filter: opacity(0.9) saturate(0.8); */
 
                 }
             }
