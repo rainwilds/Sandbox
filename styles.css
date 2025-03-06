@@ -469,15 +469,10 @@
     div.card {
 
             display: flex;
-            /* flex-direction: column; */
-            /* justify-content: space-between; */
-            /* align-items: center; */
             padding: var(--space-small);
-            /* text-align: center; */
             border: solid var(--border-size-small);
             border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
-            /* background-color: transparent; */
-            height: 100%;
+            background-color: khaki;
 
     }
 
