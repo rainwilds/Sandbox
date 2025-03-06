@@ -134,9 +134,9 @@
         --font-2-weight-light: 300;
         /* --font-2-weight-medium: 400 PLACEHOLDER; */
         /* --font-2-weight-heavy: 600 PLACEHOLDER; */
-        --font-2-size-small: 23px;
-        --font-2-size-medium: 25px;
-        --font-2-size-large: 27px;
+        --font-2-size-small: 16px;
+        --font-2-size-medium: 20px;
+        --font-2-size-large: 24px;
 
         font-family: var(--font-2-family);
         font-size: var(--font-2-size-medium);
