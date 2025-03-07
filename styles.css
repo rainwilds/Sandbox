@@ -497,11 +497,6 @@ body>* {
 
     }
 
-    >picture {
-        grid-row: header;
-        grid-column: gutter-left / gutter-right;
-    }
-
 }
 
 header {
@@ -510,6 +505,12 @@ header {
 
     >* {
         grid-area: header;
+        height: min-content;
+    }
+
+    >picture {
+        grid-row: header;
+        grid-column: gutter-left / gutter-right;
     }
 
 }
