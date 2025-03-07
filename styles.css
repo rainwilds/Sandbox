@@ -514,16 +514,21 @@ header {
         height: auto;
     }
 
-    >nav {
-        justify-self: center;
-        padding: var(--space-tiny);
+    >div {
+
         background: black;
         grid-column: gutter-left / gutter-right;
         grid-template-columns: inherit;
 
-        >ul {
-            grid-column: header;
+        >nav {
+
+            padding: var(--space-tiny);
+
+            >ul {
+                grid-column: header;
+            }
         }
+
     }
 
     >section {
