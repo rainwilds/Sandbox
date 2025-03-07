@@ -516,9 +516,14 @@ header {
 
     >nav {
         justify-self: center;
-        backdrop-filter: var(--blur-medium);
-        margin-top: var(--space-tiny);
         padding: var(--space-tiny);
+        background: black;
+        grid-column: gutter-left / gutter-right;
+        grid-template-columns: inherit;
+
+        >ul {
+            grid-column: header;
+        }
     }
 
     >section {
