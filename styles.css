@@ -511,6 +511,20 @@ header {
     >picture {
         grid-row: header;
         grid-column: gutter-left / gutter-right;
+        height: auto;
+    }
+
+    >nav {
+        justify-self: center;
+        backdrop-filter: var(--blur-medium);
+        margin-top: var(--space-tiny);
+        padding: var(--space-tiny);
+    }
+
+    >section {
+        justify-items: center;
+        text-align: center;
+        align-self: center;
     }
 
 }
