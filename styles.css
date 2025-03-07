@@ -512,13 +512,15 @@ header {
         grid-row: header;
         grid-column: gutter-left / gutter-right;
         height: auto;
+        width: max-content;
     }
 
     >div {
 
         background: black;
+        display: grid;
         grid-column: gutter-left / gutter-right;
-        grid-template-columns: inherit;
+        grid-template-columns: repeat(2, min-content);
 
         >nav {
 
