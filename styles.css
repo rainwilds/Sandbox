@@ -512,19 +512,22 @@ header {
         grid-row: header;
         grid-column: gutter-left / gutter-right;
         height: auto;
-        width: max-content;
     }
 
     >div {
 
         background: black;
-        display: grid;
+        display: flex;
         grid-column: gutter-left / gutter-right;
-        grid-template-columns: repeat(2, min-content);
+
+        >picture {
+            width: max-content;
+        }
 
         >nav {
 
             padding: var(--space-tiny);
+            align-self: center;
 
             >ul {
                 grid-column: header;
