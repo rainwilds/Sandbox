@@ -497,11 +497,20 @@ body>* {
 
     }
 
+    >picture {
+        grid-row: header;
+        grid-column: gutter-left / gutter-right;
+    }
+
 }
 
 header {
 
     background-color: darkgoldenrod;
+
+    >* {
+        grid-area: header;
+    }
 
 }
 
