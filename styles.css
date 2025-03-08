@@ -418,7 +418,7 @@
             @media (min-width: 1920px) {
 
                 & {
-                    grid-template: 100vh / 10vw repeat(12, 1fr) 10vw;
+                    grid-template: 100vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
                     grid-template-areas:
                         "gutter-left header header header header header header header header header header header header gutter-right"
                         "gutter-left main main main main main main main main main main main main gutter-right"
