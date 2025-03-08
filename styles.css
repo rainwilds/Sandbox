@@ -95,6 +95,8 @@
         --space-large: 7rem;
         --space-huge: 10rem;
 
+        --side-gutter: 5vw;
+
         --max-width: 60vw;
 
         --color-background-light: #faf9f3;
@@ -368,7 +370,7 @@
             @media (min-width: 550px) and (max-width: 980px) and (orientation: landscape) {
 
                 & {
-                    grid-template: min-content / 5vw repeat(12, 1fr) 5vw !important;
+                    grid-template: min-content / var(--side-gutter) repeat(12, 1fr) var(--side-gutter) !important;
                     grid-template-areas:
                         "gutter-left header header header header header header header header header header header header gutter-right"
                         "gutter-left main main main main main main main main main main main main gutter-right"
@@ -380,7 +382,7 @@
             @media (max-width: 768px) {
 
                 & {
-                    grid-template: 100svh / 5vw repeat(12, 1fr) 5vw !important;
+                    grid-template: 100svh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter) !important;
                     grid-template-areas:
                         "gutter-left header header header header header header header header header header header header gutter-right"
                         "gutter-left main main main main main main main main main main main main gutter-right"
@@ -392,7 +394,7 @@
             @media (max-width: 1200px) {
 
                 & {
-                    grid-template: 100svh / 5vw repeat(12, 1fr) 5vw;
+                    grid-template: 100svh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
                     grid-template-areas:
                         "gutter-left header header header header header header header header header header header header gutter-right"
                         "gutter-left main main main main main main main main main main main main gutter-right"
@@ -404,7 +406,7 @@
             @media (min-width: 1201px) and (max-width: 1919px) {
 
                 & {
-                    grid-template: 100vh / 5vw repeat(12, 1fr) 5vw;
+                    grid-template: 100vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
                     grid-template-areas:
                         "gutter-left header header header header header header header header header header header header gutter-right"
                         "gutter-left main main main main main main main main main main main main gutter-right"
@@ -542,7 +544,9 @@ header {
         grid-column: gutter-left / gutter-right;
 
         >picture {
-            width: max-content;
+            width: clamp(10vw, 150px, 30vw);
+            margin-left: var(--side-gutter);
+            align-self: center;
         }
 
         >nav {
