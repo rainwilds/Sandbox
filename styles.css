@@ -377,10 +377,22 @@
 
             }
 
+            @media (max-width: 768px) {
+
+                & {
+                    grid-template: 100svh / 0 repeat(6, 1fr) 0;
+                    grid-template-areas:
+                        "gutter-left header header header header header header header header header header header header gutter-right"
+                        "gutter-left main main main main main main main main main main main main gutter-right"
+                        "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
+                }
+
+            }
+
             @media (max-width: 1200px) {
 
                 & {
-                    grid-template: 100dvh / 0 repeat(6, 1fr) 0;
+                    grid-template: 100svh / 2vw repeat(12, 1fr) 2vw;
                     grid-template-areas:
                         "gutter-left header header header header header header header header header header header header gutter-right"
                         "gutter-left main main main main main main main main main main main main gutter-right"
