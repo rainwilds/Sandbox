@@ -380,7 +380,7 @@
             @media (max-width: 1200px) {
 
                 & {
-                    grid-template: 100dvp / 0 repeat(12, 1fr) 0;
+                    grid-template: 100dvh / 0 repeat(12, 1fr) 0;
                     grid-template-areas:
                         "gutter-left header header header header header header header header header header header header gutter-right"
                         "gutter-left main main main main main main main main main main main main gutter-right"
