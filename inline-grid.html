@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    .grid {
+      display: grid;
+      grid-template-columns: 100px 100px;
+      background-color: lightblue;
+    }
+    .inline-grid {
+      display: inline-grid;
+      grid-template-columns: 100px 100px;
+      background-color: lightgreen;
+    }
+  </style>
+</head>
+<body>
+  <p>Text before block grid</p>
+  <div class="grid">
+    <div>1</div>
+    <div>2</div>
+  </div>
+  <p>Text after block grid</p>
+
+  <p>Text before inline grid <span class="inline-grid">
+    <div>1</div>
+    <div>2</div>
+  </span> Text after inline grid</p>
+</body>
+</html>
