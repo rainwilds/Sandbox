@@ -541,6 +541,7 @@ header {
 
         background: black;
         display: inline-grid;
+        grid-template-columns: repeat(2, min-content);
         grid-column: gutter-left / gutter-right;
 
         >picture {
