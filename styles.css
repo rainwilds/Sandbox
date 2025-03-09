@@ -540,7 +540,7 @@ header {
     >div {
 
         background: black;
-        display: flex;
+        display: inline-grid;
         grid-column: gutter-left / gutter-right;
 
         >picture {
