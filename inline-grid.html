@@ -13,7 +13,7 @@
       color: white;
     }
 
-    /* Block-level grid */
+    /* Block-level grid (unchanged for comparison) */
     .grid-container {
       display: grid;
       grid-template-columns: repeat(2, 150px);
@@ -23,10 +23,10 @@
       margin-bottom: 20px;
     }
 
-    /* Inline-level grid */
+    /* Inline-level grid with all items in one row */
     .inline-grid-container {
       display: inline-grid;
-      grid-template-columns: repeat(2, 150px);
+      grid-template-columns: 150px 150px 150px 150px; /* One column per item */
       gap: 10px;
       background-color: #f0f0f0;
       padding: 10px;
@@ -40,7 +40,7 @@
   </style>
 </head>
 <body>
-  <h3>Block Grid Example</h3>
+  <h3>Block Grid Example (2x2)</h3>
   <p>Text before block grid</p>
   <div class="grid-container">
     <div class="item item1">Item 1</div>
@@ -50,7 +50,7 @@
   </div>
   <p>Text after block grid</p>
 
-  <h3>Inline Grid Example</h3>
+  <h3>Inline Grid Example (1x4)</h3>
   <p>
     Text before inline grid 
     <span class="inline-grid-container">
