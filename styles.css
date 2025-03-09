@@ -535,6 +535,8 @@ header {
         grid-row: header;
         grid-column: gutter-left / gutter-right;
         height: auto;
+        justify-self: center;
+        align-self: center;
     }
 
     >div {
