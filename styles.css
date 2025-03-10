@@ -564,6 +564,10 @@
             margin-top: var(--space-tiny);
         }
 
+        &>div:not(div[class*="background-overlay"]):has(p) {
+            z-index: 2;
+        }
+
         &>div[class*="background-overlay"] {
 
             background-color: light-dark(var(--color-static-light-2), var(--color-static-dark-4));
