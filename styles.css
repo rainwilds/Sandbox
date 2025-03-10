@@ -502,6 +502,18 @@
             padding: var(--space-small);
         }
 
+        &.space-between {
+            justify-content: space-between;
+        }
+
+        &.vertical-align-center {
+            justify-content: center;
+        }
+
+        &.vertical-align-end {
+            justify-content: end;
+        }
+
         &.background-color-1 {
             background-color: khaki;
         }
@@ -509,6 +521,16 @@
         &.border-1 {
             border: solid var(--border-size-small);
             border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+        }
+
+        &.centered {
+            text-align: center;
+        }
+        &.left {
+            text-align: left;
+        }
+        &.right {
+            text-align: right;
         }
     }
 
