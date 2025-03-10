@@ -204,6 +204,30 @@
             animation: fadeIn 3s forwards;
         }
 
+        .space-between {
+            justify-content: space-between;
+        }
+
+        .h-center {
+            text-align: center;
+        }
+
+        .h-left {
+            text-align: left;
+        }
+
+        .h-right {
+            text-align: right;
+        }
+
+        .v-center {
+            justify-content: center;
+        }
+
+        .v-bottom {
+            justify-content: end;
+        }
+
         a:any-link {
 
             color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-secondary));
@@ -502,18 +526,6 @@
             padding: var(--space-small);
         }
 
-        &.space-between {
-            justify-content: space-between;
-        }
-
-        &.vertical-align-center {
-            justify-content: center;
-        }
-
-        &.vertical-align-end {
-            justify-content: end;
-        }
-
         &.background-color-1 {
             background-color: khaki;
         }
@@ -523,15 +535,7 @@
             border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
         }
 
-        &.centered {
-            text-align: center;
-        }
-        &.left {
-            text-align: left;
-        }
-        &.right {
-            text-align: right;
-        }
+
     }
 
 }
