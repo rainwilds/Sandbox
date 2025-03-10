@@ -537,11 +537,11 @@
 
         display: grid;
 
-        &.background-image {
-            >* {
+        &.background-image >* {
+
                 grid-row: 1;
                 grid-column: 1;
-            }
+                
         }
 
         &.background-color-1 {
