@@ -527,16 +527,18 @@ header {
     background-color: darkgoldenrod;
 
     >* {
+
         grid-area: header;
         height: min-content;
+
     }
 
     >picture {
+
         grid-row: header;
         grid-column: gutter-left / gutter-right;
         height: auto;
-        justify-self: center;
-        align-self: center;
+
     }
 
     >div {
@@ -565,9 +567,11 @@ header {
     }
 
     >section {
+
         justify-items: center;
         text-align: center;
         align-self: center;
+        
     }
 
 }
