@@ -559,7 +559,7 @@ header {
 
         >nav {
 
-            padding: var(--space-tiny);
+            padding: var(--space-tiny) 0 var(--space-tiny) 0;
             align-self: center;
 
             >ul {
