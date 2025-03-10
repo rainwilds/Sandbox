@@ -494,12 +494,18 @@
         display: flex;
         flex-direction: column;
         padding: var(--space-small);
-        border: solid var(--border-size-small);
-        border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
-        background-color: khaki;
 
         >hgroup {
             margin-bottom: var(--space-tiny);
+        }
+
+        &.background-color {
+            background-color: khaki;
+        }
+
+        &.border {
+            border: solid var(--border-size-small);
+            border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
         }
     }
 
