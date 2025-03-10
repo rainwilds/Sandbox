@@ -537,10 +537,6 @@
 
         display: grid;
 
-        &>a {
-            margin-top: var(--space-tiny);
-        }
-
         &.background-image>* {
 
             grid-row: 1;
@@ -557,15 +553,20 @@
             background-color: khaki;
         }
 
-        &.background-overlay-1 {
-            background-color: light-dark(var(--color-static-light-2), var(--color-static-dark-4));
-        }
-
         &.border-1 {
             border: solid var(--border-size-small);
             border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
         }
 
+        &>a {
+            margin-top: var(--space-tiny);
+        }
+
+        &>div[class*="background-overlay"] {
+
+            background-color: light-dark(var(--color-static-light-2), var(--color-static-dark-4));
+
+        }
 
     }
 
