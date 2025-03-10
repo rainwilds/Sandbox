@@ -574,6 +574,12 @@ header {
         justify-items: center;
         text-align: center;
         align-self: center;
+
+        >button {
+
+            margin-top: var(--space-medium);
+
+        }
         
     }
 
