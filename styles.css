@@ -493,17 +493,20 @@
 
         display: flex;
         flex-direction: column;
-        padding: var(--space-small);
 
         >hgroup {
             margin-bottom: var(--space-tiny);
         }
 
-        &.background-color {
+        &.padding-1 {
+            padding: var(--space-small);
+        }
+
+        &.background-color-1 {
             background-color: khaki;
         }
 
-        &.border {
+        &.border-1 {
             border: solid var(--border-size-small);
             border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
         }
