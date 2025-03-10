@@ -571,17 +571,13 @@ header {
 
     >section {
 
-        >div {
+        justify-items: center;
+        text-align: center;
+        align-self: center;
 
-            justify-items: center;
-            text-align: center;
-            align-self: center;
+        button {
 
-            >button {
-
-                margin-top: var(--space-medium);
-
-            }
+            margin-top: var(--space-medium);
 
         }
 
