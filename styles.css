@@ -601,8 +601,8 @@ main {
 
     >section {
         &.border-1 {
-            border: 20px;
-            border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+            border: 10px solid;
+            border-color: black;
         }
     }
 
