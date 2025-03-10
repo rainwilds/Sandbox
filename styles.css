@@ -535,11 +535,11 @@
 
     div.card {
 
-        display: flex;
-        flex-direction: column;
+        display: grid;
 
-        >hgroup {
-            margin-bottom: var(--space-tiny);
+        >* {
+            grid-row: 1;
+            grid-column: 1;
         }
 
         &.background-color-1 {
@@ -586,9 +586,8 @@ header {
 
     >picture {
 
-        grid-row: header;
         grid-column: gutter-left / gutter-right;
-        height: auto;
+        height: initial;
 
     }
 
