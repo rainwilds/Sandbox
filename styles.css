@@ -548,10 +548,13 @@ header {
         grid-template-columns: repeat(2, min-content);
         grid-column: gutter-left / gutter-right;
         padding: 0 var(--side-gutter) 0 var(--side-gutter);
+        justify-content: space-between;
 
         >picture {
+
             width: clamp(10vw, 150px, 30vw);
             align-self: center;
+
         }
 
         >nav {
