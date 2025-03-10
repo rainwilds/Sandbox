@@ -574,6 +574,10 @@
 
         }
 
+        &>div[class*="background-overlay"]:has(.backdrop-blur-small) {
+            backdrop-filter: var(--blur-small);
+        }
+
     }
 
 }
