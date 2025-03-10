@@ -204,6 +204,26 @@
             animation: fadeIn 3s forwards;
         }
 
+        .padding-tiny {
+            padding: var(--space-tiny);
+        }
+
+        .padding-small {
+            padding: var(--space-small);
+        }
+
+        .padding-medium {
+            padding: var(--space-medium);
+        }
+
+        .padding-large {
+            padding: var(--space-large);
+        }
+
+        .padding-huge {
+            padding: var(--space-huge);
+        }
+
         .space-between {
             justify-content: space-between;
         }
@@ -522,10 +542,6 @@
             margin-bottom: var(--space-tiny);
         }
 
-        &.padding-1 {
-            padding: var(--space-small);
-        }
-
         &.background-color-1 {
             background-color: khaki;
         }
@@ -624,13 +640,6 @@ main {
 
     row-gap: var(--space-medium);
     margin: var(--space-medium) 0 var(--space-medium) 0;
-
-    >section {
-        &.border-1 {
-            border: 10px solid;
-            border-color: black;
-        }
-    }
 
 }
 
