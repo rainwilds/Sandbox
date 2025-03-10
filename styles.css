@@ -242,10 +242,12 @@
 
         .v-center {
             justify-content: center;
+            align-content: center;
         }
 
         .v-bottom {
             justify-content: end;
+            align-content: end;
         }
 
         a:any-link {
