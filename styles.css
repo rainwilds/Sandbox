@@ -599,6 +599,13 @@ main {
     row-gap: var(--space-medium);
     margin: var(--space-medium) 0 var(--space-medium) 0;
 
+    >section {
+        &.border-1 {
+            border: 20px;
+            border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+        }
+    }
+
 }
 
 
