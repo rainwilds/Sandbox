@@ -603,7 +603,9 @@
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: var(--space-tiny);
-        
+        grid-auto-flow: dense;
+        grid-auto-rows: minmax(200px, 300px);
+
     }
 
 }
