@@ -484,6 +484,18 @@
 
             }
 
+            @media (min-width: 2560px) {
+
+                & {
+                    grid-template: 100vh / calc(var(--side-gutter)*2) repeat(12, 1fr) calc(var(--side-gutter)*2);
+                    grid-template-areas:
+                        "gutter-left header header header header header header header header header header header header gutter-right"
+                        "gutter-left main main main main main main main main main main main main gutter-right"
+                        "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
+                }
+
+            }
+
         }
 
         @media (max-width: 768px) {
