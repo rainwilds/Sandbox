@@ -614,9 +614,9 @@ header {
 
     >* {
 
-        grid-area: header;
+        grid-row: header;
+        grid-column: gutter-left;
         height: min-content;
-        grid-column: gutter-left / gutter-right;
 
     }
 
@@ -627,7 +627,7 @@ header {
     }
 
     >video {
-        height: 100vh;
+        height: 100%;
     }
 
     >div:first-of-type {
