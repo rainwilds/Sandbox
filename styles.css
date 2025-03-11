@@ -599,14 +599,6 @@
             backdrop-filter: var(--blur-small);
         }
 
-        @media (max-width: 1500px) {
-
-            &:nth-child(4) {
-              grid-column-end: -1;
-            }
-
-    }
-
 }
 
 body>* {
