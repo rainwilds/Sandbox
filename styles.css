@@ -636,6 +636,7 @@ header {
 
         height: 100%;
         z-index: 1;
+        background: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
 
     }
 
@@ -643,7 +644,6 @@ header {
         /* navigation bar */
 
         background: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
-        ;
         backdrop-filter: var(--blur-large);
         display: inline-grid;
         grid-template-columns: repeat(2, min-content);
