@@ -556,7 +556,7 @@
 
         display: grid;
 
-        
+
 
         &.background-image>* {
 
@@ -596,6 +596,15 @@
         &>div[class*="background-overlay"]:has(.backdrop-blur-small) {
             backdrop-filter: var(--blur-small);
         }
+    }
+
+    div.gallery-large {
+
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--space-tiny);
+        
+    }
 
 }
 
