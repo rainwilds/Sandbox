@@ -558,6 +558,8 @@
 
         display: grid;
 
+        
+
         &.background-image>* {
 
             grid-row: 1;
@@ -596,6 +598,12 @@
         &>div[class*="background-overlay"]:has(.backdrop-blur-small) {
             backdrop-filter: var(--blur-small);
         }
+
+        @media (max-width: 1500px) {
+
+            &:nth-child(4) {
+              grid-column-end: -1;
+            }
 
     }
 
