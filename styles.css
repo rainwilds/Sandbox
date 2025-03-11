@@ -626,14 +626,21 @@ header {
 
     }
 
-    >div:first-of-type { /* background-overlay */
+    >video {
+        height: 100vh;
+    }
+
+    >div:first-of-type {
+        /* background-overlay */
+
 
         height: 100%;
         z-index: 1;
 
     }
 
-    >div:has(nav) { /* navigation bar */
+    >div:has(nav) {
+        /* navigation bar */
 
         background: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
         ;
@@ -663,7 +670,8 @@ header {
 
     }
 
-    >section { /* heading and paragraph */
+    >section {
+        /* heading and paragraph */
 
         justify-items: center;
         text-align: center;
