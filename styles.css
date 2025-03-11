@@ -619,18 +619,6 @@ header {
 
     }
 
-    /* >picture {
-
-        height: initial;
-
-    } */
-
-    /* >video {
-
-        height: 100%;
-
-    } */
-
     >div:first-of-type {
         /* background-overlay */
 
@@ -643,13 +631,14 @@ header {
         /* navigation bar */
 
         height: min-content;
-        background: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
-        backdrop-filter: var(--blur-large);
+        /* background: light-dark(var(--color-static-dark-2), var(--color-static-light-2));X */
+        /* backdrop-filter: var(--blur-large); X*/
         display: inline-grid;
         grid-template-columns: repeat(2, min-content);
         grid-column: gutter-left / gutter-right;
         padding: 0 var(--side-gutter) 0 var(--side-gutter);
         justify-content: space-between;
+        z-index: 2;
 
         >picture {
 
