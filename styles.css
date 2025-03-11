@@ -638,7 +638,7 @@ header {
         grid-column: gutter-left / gutter-right;
         padding: 0 var(--side-gutter) 0 var(--side-gutter);
         justify-content: space-between;
-        z-index: 2;
+        z-index: 3;
 
         >picture {
 
@@ -663,14 +663,24 @@ header {
         /* heading and paragraph */
 
         justify-items: center;
-        text-align: center;
+        /* text-align: center;X */
         align-self: center;
         z-index: 2;
+        max-width: var(--max-width);
+        height: 100%;
 
         button {
 
             margin-top: var(--space-small);
 
+        }
+
+        >div {
+
+            background: #79554899;
+            align-content: end;
+            padding: var(--side-gutter);
+            
         }
 
     }
