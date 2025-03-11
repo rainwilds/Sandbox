@@ -611,16 +611,27 @@ header {
 
     }
 
+    >picture,
+    >video {
+        grid-column: gutter-left / gutter-right;
+    }
+
     >picture {
 
-        grid-column: gutter-left / gutter-right;
         height: initial;
 
     }
 
+    >video {
+        width: 100%;
+        min-height: 100%;
+        object-fit: cover;
+    }
+
     >div {
 
-        background: light-dark(var(--color-static-dark-2), var(--color-static-light-2));;
+        background: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
+        ;
         backdrop-filter: var(--blur-large);
         display: inline-grid;
         grid-template-columns: repeat(2, min-content);
