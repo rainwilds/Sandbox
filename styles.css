@@ -106,7 +106,9 @@
 
         --side-gutter: 5vw;
 
-        --max-width: 60vw;
+        --max-width-small: 30vw;
+        --max-width-medium: 60vw;
+        --max-width-large: 60vw;
 
         --color-background-light: #faf9f3;
         --color-background-dark: #141b32;
@@ -666,7 +668,7 @@ header {
         /* text-align: center;X */
         align-self: center;
         z-index: 2;
-        max-width: var(--max-width);
+        max-width: var(--max-width-medium);
         height: 100%;
 
         button {
@@ -680,7 +682,7 @@ header {
             background: #79554899;
             align-content: end;
             padding: var(--side-gutter);
-            
+
         }
 
     }
