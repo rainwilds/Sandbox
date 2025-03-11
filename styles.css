@@ -602,6 +602,7 @@ body>* {
 header {
 
     background-color: darkgoldenrod;
+    overflow-y: hidden;
 
     >* {
 
@@ -619,7 +620,8 @@ header {
 
     >div {
 
-        background: black;
+        background: light-dark(var(--color-static-dark-2), var(--color-static-light-2));;
+        backdrop-filter: var(--blur-large);
         display: inline-grid;
         grid-template-columns: repeat(2, min-content);
         grid-column: gutter-left / gutter-right;
