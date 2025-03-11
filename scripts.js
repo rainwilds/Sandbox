@@ -52,9 +52,23 @@ function getRandomSpan() {
     return Math.random() < 0.3 ? 2 : 1; // 30% chance of spanning 2, 70% chance of 1
 }
 
-const galleryItems = document.querySelectorAll('div[class*="gallery"] > picture');
+function getColumnCount() {
+    // Dynamically determine the number of columns based on current media query
+    const gallery = document.querySelector('.gallery-large');
+    const computedStyle = window.getComputedStyle(gallery);
+    const gridColumns = computedStyle.gridTemplateColumns.split(' ').length;
+    return gridColumns;
+}
 
-galleryItems.forEach(item => {
+const galleryItems = document.querySelectorAll('div[class*="gallery"] > picture');
+const columns = getColumnCount();
+const totalItems = galleryItems.length;
+const completeRows = Math.floor(totalItems / columns);
+const maxItems = completeRows * columns;
+const lastRowItems = totalItems - maxItems;
+
+// Apply random spanning to each item
+galleryItems.forEach((item, index) => {
     let spanCols = 1; // Default to 1 column
     const spanRows = getRandomSpan(); // Can be 1 or 2 rows
 
@@ -66,4 +80,9 @@ galleryItems.forEach(item => {
     // Apply the grid spanning
     item.style.gridColumn = `span ${spanCols}`;
     item.style.gridRow = `span ${spanRows}`;
+
+    // Remove orphan picture if last row has only 1 item
+    if (index >= maxItems && lastRowItems === 1) {
+        item.classList.add('hidden');
+    }
 });
