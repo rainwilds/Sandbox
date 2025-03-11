@@ -608,12 +608,14 @@ header {
 
         grid-area: header;
         height: min-content;
+        grid-column: gutter-left / gutter-right;
 
     }
 
-    >picture,
-    >video {
-        grid-column: gutter-left / gutter-right;
+    div:not(div[class*="background-overlay"]) {
+
+        height: 100%;
+        
     }
 
     >picture {
@@ -623,12 +625,14 @@ header {
     }
 
     >video {
+
         width: 100%;
         min-height: 100%;
         object-fit: cover;
+
     }
 
-    >div {
+    >div:has(nav) {
 
         background: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
         ;
