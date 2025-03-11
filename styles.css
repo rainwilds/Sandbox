@@ -610,12 +610,11 @@ body>* {
 header {
 
     background-color: darkgoldenrod;
-    overflow-y: hidden;
 
     >* {
 
         grid-row: header;
-        grid-column: gutter-left;
+        grid-column: ggutter-left / gutter-right;
         height: min-content;
 
     }
