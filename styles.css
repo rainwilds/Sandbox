@@ -612,10 +612,10 @@ header {
 
     }
 
-    div:not(div[class*="background-overlay"]) {
+    >div:first-of-type {
 
         height: 100%;
-        
+
     }
 
     >picture {
