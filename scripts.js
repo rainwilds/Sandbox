@@ -55,12 +55,12 @@ function getRandomSpan() {
 const galleryItems = document.querySelectorAll('div[class*="gallery"] > picture');
 
 galleryItems.forEach(item => {
-    const spanCols = getRandomSpan();
-    let spanRows = 1; // Default to 1 row
+    let spanCols = 1; // Default to 1 column
+    const spanRows = getRandomSpan(); // Can be 1 or 2 rows
 
-    // If spanning 2 columns, decide if it should also span 2 rows
-    if (spanCols === 2) {
-        spanRows = Math.random() < 0.5 ? 2 : 1; // 50% chance of 2x2, 50% chance of 2x1
+    // If spanning 2 rows, decide if it should also span 2 columns
+    if (spanRows === 2) {
+        spanCols = Math.random() < 0.5 ? 2 : 1; // 50% chance of 2x2, 50% chance of 1x2
     }
 
     // Apply the grid spanning
