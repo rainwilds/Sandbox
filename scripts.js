@@ -49,26 +49,21 @@
 // code for galleries
 
 function getRandomSpan() {
-    return Math.random() < 0.3 ? 2 : 1;
+    return Math.random() < 0.3 ? 2 : 1; // 30% chance of spanning 2, 70% chance of 1
 }
 
 const galleryItems = document.querySelectorAll('div[class*="gallery"] > picture');
-const totalItems = galleryItems.length;
-const columns = 4; // Number of columns in the grid
-const completeRows = Math.floor(totalItems / columns);
-const maxItems = completeRows * columns;
 
-// Apply random spanning to each item
-galleryItems.forEach((item, index) => {
+galleryItems.forEach(item => {
     const spanCols = getRandomSpan();
-    const spanRows = getRandomSpan();
+    let spanRows = 1; // Default to 1 row
+
+    // If spanning 2 columns, decide if it should also span 2 rows
+    if (spanCols === 2) {
+        spanRows = Math.random() < 0.5 ? 2 : 1; // 50% chance of 2x2, 50% chance of 2x1
+    }
 
     // Apply the grid spanning
     item.style.gridColumn = `span ${spanCols}`;
     item.style.gridRow = `span ${spanRows}`;
-
-    // Hide items that would appear in an incomplete last row
-    if (index >= maxItems) {
-        item.classList.add('hidden');
-    }
 });
