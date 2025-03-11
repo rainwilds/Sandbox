@@ -615,27 +615,24 @@ header {
 
         grid-row: header;
         grid-column: gutter-left / gutter-right;
-        height: min-content;
 
     }
 
-    >picture {
+    /* >picture {
 
         height: initial;
 
-    }
+    } */
 
-    >video {
+    /* >video {
 
         height: 100%;
-        
-    }
+
+    } */
 
     >div:first-of-type {
         /* background-overlay */
 
-
-        height: 100%;
         z-index: 1;
         background: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
 
@@ -644,6 +641,7 @@ header {
     >div:has(nav) {
         /* navigation bar */
 
+        height: min-content;
         background: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
         backdrop-filter: var(--blur-large);
         display: inline-grid;
