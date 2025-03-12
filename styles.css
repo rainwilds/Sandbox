@@ -842,7 +842,7 @@ main {
 }
 
 footer {
-    background: background: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
+    background: #79554899;
 }
 
 
