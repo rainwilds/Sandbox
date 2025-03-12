@@ -621,7 +621,7 @@
     }
 
 
-    .scroll {
+    div.scroll {
         width: 100%;
         overflow-x: auto;
         overflow-y: hidden;
@@ -679,7 +679,7 @@ body>* {
 
         grid-column: 2 / -2;
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
         gap: var(--space-small);
 
     }
