@@ -637,7 +637,7 @@
         /* Inner content wrapper */
         > div {
             display: flex;
-            gap: var(--space-small);
+            gap: var(--space-tiny);
             min-width: max-content;
 
             > * {
@@ -679,7 +679,7 @@ body>* {
 
         grid-column: 2 / -2;
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
         gap: var(--space-small);
 
     }
