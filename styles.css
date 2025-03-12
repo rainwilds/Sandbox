@@ -622,29 +622,17 @@
 
 
     .scroll-container {
+        /* Default styles without scrolling */
         width: 100%;
-        overflow-x: auto;
-        overflow-y: hidden;
-        padding: 20px 0;
-        -webkit-overflow-scrolling: touch;
-
-        /* Hide scrollbar for all browsers */
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-        &::-webkit-scrollbar {
-            display: none;
-        }
 
         /* Inner content wrapper */
         > div {
-            display: flex;
+            display: grid; /* Default to grid instead of flex */
             gap: 20px;
-            padding: 0 20px;
-            min-width: max-content;
+            grid-template-columns: inherit; /* Inherit from parent */
 
             > * {
-                flex: 0 0 auto;
-                width: 300px;
+                width: 100%; /* Full width by default */
                 height: 200px;
                 background-color: #f0f0f0;
                 border-radius: 8px;
@@ -655,18 +643,45 @@
             }
         }
 
-        @supports (scroll-snap-align: start) {
-            scroll-snap-type: x mandatory;
+        /* Apply scrolling styles only when parent has < 4 columns */
+        @media (max-width: 1039px) { /* 3 × 330px + gaps ≈ 1039px */
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 20px 0;
+            -webkit-overflow-scrolling: touch;
 
-            > div > * {
-                scroll-snap-align: start;
+            /* Hide scrollbar */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            &::-webkit-scrollbar {
+                display: none;
+            }
+
+            > div {
+                display: flex; /* Switch to flex for scrolling */
+                padding: 0 20px;
+                min-width: max-content;
+
+                > * {
+                    flex: 0 0 auto;
+                    width: 330px; /* Match your min grid width */
+                }
+            }
+
+            @supports (scroll-snap-align: start) {
+                scroll-snap-type: x mandatory;
+
+                > div > * {
+                    scroll-snap-align: start;
+                }
             }
         }
     }
 
+    /* Mobile optimization for scrolling mode */
     @media (max-width: 768px) {
         .scroll-container > div > * {
-            width: 250px;
+            width: 300px; /* Slightly smaller for mobile */
             height: 150px;
         }
     }
