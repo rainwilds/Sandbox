@@ -53,7 +53,7 @@ function getRandomSpan() {
 }
 
 const galleryItems = document.querySelectorAll('div[class*="gallery"] > picture');
-const columns = 4; // Fixed for this example, adjust dynamically if needed
+const columns = 4; // This will be overridden by CSS media queries, but kept for reference
 const totalItems = galleryItems.length;
 const completeRows = Math.floor(totalItems / columns);
 const maxItems = completeRows * columns;

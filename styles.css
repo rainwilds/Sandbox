@@ -606,6 +606,18 @@
         grid-auto-flow: dense;
         grid-auto-rows: 250px;
 
+        @media (min-width: 1201px) and (max-width: 1919px) {
+            & {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            & {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
     }
 
 }
