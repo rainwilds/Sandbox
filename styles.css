@@ -273,6 +273,18 @@
             max-width: var(--max-width-large);
         }
 
+        .height-quater {
+            height: 25vh;
+        }
+
+        .height-third {
+            height: 33vh;
+        }
+
+        .height-half {
+            height: 50vh;
+        }
+
         a:any-link {
 
             color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-secondary));
