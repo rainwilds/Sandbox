@@ -259,15 +259,15 @@
             place-content: end;
         }
 
-        .max-wdith-small {
+        .max-width-small {
             max-width: var(--max-width-small);
         }
 
-        .max-wdith-medium {
+        .max-width-medium {
             max-width: var(--max-width-medium);
         }
 
-        .max-wdith-large {
+        .max-width-large {
             max-width: var(--max-width-large);
         }
 
@@ -769,6 +769,7 @@ header {
 
             background: #79554899;
             align-content: end;
+            justify-self: baseline;
             padding: var(--side-gutter);
 
         }
