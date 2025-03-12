@@ -236,7 +236,7 @@
         }
 
         .space-between {
-            justify-content: space-between;
+            place-content: space-between;
         }
 
         .text-center {
