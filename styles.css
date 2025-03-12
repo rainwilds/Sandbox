@@ -259,6 +259,18 @@
             place-content: end;
         }
 
+        .max-wdith-small {
+            max-width: var(--max-width-small);
+        }
+
+        .max-wdith-medium {
+            max-width: var(--max-width-medium);
+        }
+
+        .max-wdith-large {
+            max-width: var(--max-width-large);
+        }
+
         a:any-link {
 
             color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-secondary));
