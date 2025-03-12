@@ -239,23 +239,23 @@
             justify-content: space-between;
         }
 
-        .h-center {
+        .text-center {
             text-align: center;
         }
 
-        .h-left {
+        .text-left {
             text-align: left;
         }
 
-        .h-right {
+        .text-right {
             text-align: right;
         }
 
-        .v-center {
+        .center {
             place-content: center;
         }
 
-        .v-bottom {
+        .bottom {
             place-content: end;
         }
 
