@@ -52,27 +52,23 @@ function getRandomSpan() {
     return Math.random() < 0.3 ? 2 : 1; // 30% chance of spanning 2, 70% chance of 1
 }
 
-function getColumnCount() {
-    // Dynamically determine the number of columns based on current media query
-    const gallery = document.querySelector('.gallery-large');
-    const computedStyle = window.getComputedStyle(gallery);
-    const gridColumns = computedStyle.gridTemplateColumns.split(' ').length;
-    return gridColumns;
-}
-
 const galleryItems = document.querySelectorAll('div[class*="gallery"] > picture');
-const columns = getColumnCount();
+const columns = 4; // Fixed for this example, adjust dynamically if needed
 const totalItems = galleryItems.length;
 const completeRows = Math.floor(totalItems / columns);
 const maxItems = completeRows * columns;
-const lastRowItems = totalItems - maxItems;
+const lastRowStart = maxItems;
 
-// Apply random spanning to each item
 galleryItems.forEach((item, index) => {
     let spanCols = 1; // Default to 1 column
-    const spanRows = getRandomSpan(); // Can be 1 or 2 rows
+    let spanRows = getRandomSpan(); // Can be 1 or 2 rows
 
-    // If spanning 2 rows, decide if it should also span 2 columns
+    // Limit row spanning for items in the last row to prevent protrusion
+    if (index >= lastRowStart) {
+        spanRows = 1; // Force 1 row for last row items
+    }
+
+    // If spanning 2 rows, decide if it should also span 2 columns (only for non-last-row items)
     if (spanRows === 2) {
         spanCols = Math.random() < 0.5 ? 2 : 1; // 50% chance of 2x2, 50% chance of 1x2
     }
@@ -80,9 +76,4 @@ galleryItems.forEach((item, index) => {
     // Apply the grid spanning
     item.style.gridColumn = `span ${spanCols}`;
     item.style.gridRow = `span ${spanRows}`;
-
-    // Remove orphan picture if last row has only 1 item
-    if (index >= maxItems && lastRowItems === 1) {
-        item.classList.add('hidden');
-    }
 });
