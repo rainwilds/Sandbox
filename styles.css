@@ -234,6 +234,7 @@
         .padding-huge {
             padding: var(--space-huge);
         }
+        
 
         .space-between {
             place-content: space-between;
@@ -654,6 +655,14 @@
 
         a {
             margin-top: var(--space-tiny);
+        }
+
+        >picture:first-child {
+            margin-bottom: var(--space-small);
+        }
+
+        >picture:last-child {
+            margin-top: var(--space-small);
         }
     }
 
