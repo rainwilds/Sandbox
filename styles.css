@@ -627,51 +627,19 @@
         overflow-y: hidden;
         padding: 20px 0;
         -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
-        scrollbar-color: #888 #f1f1f1;
-        position: relative; /* Added for arrow positioning */
 
-        /* Arrow styles */
-        &::before,
-        &::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            width: 30px;
-            height: 30px;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 1;
-            border-radius: 50%;
-            transform: translateY(-50%);
-            font-size: 18px;
-            transition: background-color 0.3s;
-        }
-
-        &::before {
-            content: '◄';
-            left: 10px;
-        }
-
-        &::after {
-            content: '►';
-            right: 10px;
-        }
-
-        &:hover::before,
-        &:hover::after {
-            background-color: rgba(0, 0, 0, 0.7);
+        /* Hide scrollbar for all browsers */
+        -ms-overflow-style: none; /* IE and Edge */
+        scrollbar-width: none; /* Firefox */
+        &::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
         }
 
         /* Inner content wrapper */
         > div {
             display: flex;
             gap: 20px;
-            padding: 0 40px; /* Increased padding to accommodate arrows */
+            padding: 0 20px;
             min-width: max-content;
 
             > * {
@@ -684,24 +652,6 @@
                 align-items: center;
                 justify-content: center;
                 user-select: none;
-            }
-        }
-
-        &::-webkit-scrollbar {
-            height: 8px;
-        }
-
-        &::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 4px;
-        }
-
-        &::-webkit-scrollbar-thumb {
-            background: #888;
-            border-radius: 4px;
-
-            &:hover {
-                background: #555;
             }
         }
 

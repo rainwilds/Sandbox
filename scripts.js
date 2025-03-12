@@ -82,63 +82,41 @@ galleryItems.forEach((item, index) => {
 // code for scrolling sections
 
 const scrollContainer = document.querySelector('.scroll-container');
-        let isDown = false;
-        let startX;
-        let scrollLeft;
+let isDown = false;
+let startX;
+let scrollLeft;
 
-        // Mouse drag scrolling
-        scrollContainer.addEventListener('mousedown', (e) => {
-            if (e.target === scrollContainer) {
-                isDown = true;
-                startX = e.pageX - scrollContainer.offsetLeft;
-                scrollLeft = scrollContainer.scrollLeft;
-                scrollContainer.style.cursor = 'grabbing';
-            }
-        });
+// Mouse drag scrolling
+scrollContainer.addEventListener('mousedown', (e) => {
+    if (e.target === scrollContainer) {
+        isDown = true;
+        startX = e.pageX - scrollContainer.offsetLeft;
+        scrollLeft = scrollContainer.scrollLeft;
+        scrollContainer.style.cursor = 'grabbing';
+    }
+});
 
-        scrollContainer.addEventListener('mouseleave', () => {
-            isDown = false;
-            scrollContainer.style.cursor = 'grab';
-        });
+scrollContainer.addEventListener('mouseleave', () => {
+    isDown = false;
+    scrollContainer.style.cursor = 'grab';
+});
 
-        scrollContainer.addEventListener('mouseup', () => {
-            isDown = false;
-            scrollContainer.style.cursor = 'grab';
-        });
+scrollContainer.addEventListener('mouseup', () => {
+    isDown = false;
+    scrollContainer.style.cursor = 'grab';
+});
 
-        scrollContainer.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - scrollContainer.offsetLeft;
-            const walk = (x - startX) * 2;
-            scrollContainer.scrollLeft = scrollLeft - walk;
-        });
+scrollContainer.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - scrollContainer.offsetLeft;
+    const walk = (x - startX) * 2;
+    scrollContainer.scrollLeft = scrollLeft - walk;
+});
 
-        // Touch handling
-        scrollContainer.addEventListener('touchmove', (e) => {
-            if (scrollContainer.scrollWidth > scrollContainer.clientWidth) {
-                e.stopPropagation();
-            }
-        }, { passive: false });
-
-        // Arrow click handling
-        const scrollAmount = 300;
-        scrollContainer.addEventListener('click', (e) => {
-            if (e.target === scrollContainer) {
-                const rect = scrollContainer.getBoundingClientRect();
-                const clickX = e.clientX - rect.left;
-                
-                if (clickX < 40) { // Left arrow area
-                    scrollContainer.scrollBy({ 
-                        left: -scrollAmount, 
-                        behavior: 'smooth' 
-                    });
-                } else if (clickX > rect.width - 40) { // Right arrow area
-                    scrollContainer.scrollBy({ 
-                        left: scrollAmount, 
-                        behavior: 'smooth' 
-                    });
-                }
-            }
-        });
-    </script>
+// Touch handling
+scrollContainer.addEventListener('touchmove', (e) => {
+    if (scrollContainer.scrollWidth > scrollContainer.clientWidth) {
+        e.stopPropagation();
+    }
+}, { passive: false });
