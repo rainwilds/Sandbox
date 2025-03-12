@@ -661,7 +661,7 @@
             margin-top: var(--space-small);
         }
 
-        >picture:last-child + * {
+        >picture:not(:first-child) + * {
             margin-bottom: var(--space-small);
         }
     }
