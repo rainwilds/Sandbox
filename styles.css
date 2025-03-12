@@ -658,11 +658,11 @@
         }
 
         >picture:first-child + * {
-            margin-bottom: var(--space-small);
+            margin-top: var(--space-small);
         }
 
         >picture:last-child + * {
-            margin-top: var(--space-small);
+            margin-bottom: var(--space-small);
         }
     }
 
