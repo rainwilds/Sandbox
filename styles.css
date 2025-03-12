@@ -293,6 +293,18 @@
             height: 100vh;
         }
 
+        .backdrop-blur-small {
+            backdrop-filter: var(--blur-small);
+        }
+
+        .backdrop-blur-medium {
+            backdrop-filter: var(--blur-medium);
+        }
+
+        .backdrop-blur-large {
+            backdrop-filter: var(--blur-large);
+        }
+
         a:any-link {
 
             color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-secondary));
@@ -618,10 +630,6 @@
 
             background-color: light-dark(var(--color-static-light-2), var(--color-static-dark-4));
 
-        }
-
-        &>div[class*="background-overlay"]:has(.backdrop-blur-small) {
-            backdrop-filter: var(--blur-small);
         }
 
         a {
