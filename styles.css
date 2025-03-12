@@ -285,6 +285,14 @@
             height: 50vh;
         }
 
+        .height-two-thirds {
+            height: 66vh;
+        }
+
+        .height-viewport {
+            height: 100vh;
+        }
+
         a:any-link {
 
             color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-secondary));
