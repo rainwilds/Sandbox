@@ -610,10 +610,6 @@
             border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
         }
 
-        &>a {
-            margin-top: var(--space-tiny);
-        }
-
         &>div:not(div[class*="background-overlay"]):has(p) {
             z-index: 2;
         }
@@ -626,6 +622,10 @@
 
         &>div[class*="background-overlay"]:has(.backdrop-blur-small) {
             backdrop-filter: var(--blur-small);
+        }
+
+        a {
+            margin-top: var(--space-tiny);
         }
     }
 
