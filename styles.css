@@ -234,7 +234,7 @@
         .padding-huge {
             padding: var(--space-huge);
         }
-        
+
 
         .space-between {
             place-content: space-between;
@@ -657,11 +657,11 @@
             margin-top: var(--space-tiny);
         }
 
-        >picture:first-child + * {
+        >picture:first-child+* {
             margin-top: var(--space-small);
         }
 
-        >picture:not(:first-child) + * {
+        &:first-child:not(picture)+* {
             margin-bottom: var(--space-small);
         }
     }
@@ -698,17 +698,18 @@
         /* Hide scrollbar for all browsers */
         -ms-overflow-style: none;
         scrollbar-width: none;
+
         &::-webkit-scrollbar {
             display: none;
         }
 
         /* Inner content wrapper */
-        > div {
+        >div {
             display: flex;
             gap: var(--space-tiny);
             min-width: max-content;
 
-            > * {
+            >* {
                 /* flex: 0 0 auto; */
                 width: 300px;
                 height: 200px;
@@ -721,14 +722,14 @@
         @supports (scroll-snap-align: start) {
             scroll-snap-type: x mandatory;
 
-            > div > * {
+            >div>* {
                 scroll-snap-align: start;
             }
         }
     }
 
     @media (max-width: 768px) {
-        .scroll > div > * {
+        .scroll>div>* {
             width: 65vw;
         }
     }
