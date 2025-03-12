@@ -567,14 +567,11 @@
     div.card {
 
         display: grid;
-
-
+        grid-auto-rows: min-content;
 
         &.background-image>* {
-
             grid-row: 1;
             grid-column: 1;
-
         }
 
         &.background-image>*:not(picture) {
