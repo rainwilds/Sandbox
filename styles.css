@@ -661,7 +661,7 @@
 
     @media (max-width: 768px) {
         .scroll > div > * {
-            width: 80vw;
+            width: 65vw;
         }
     }
 
