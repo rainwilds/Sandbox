@@ -293,6 +293,26 @@
             height: 100vh;
         }
 
+        .min-height-quater {
+            min-height: 25vh;
+        }
+
+        .min-height-third {
+            min-height: 33vh;
+        }
+
+        .min-height-half {
+            min-height: 50vh;
+        }
+
+        .min-height-two-thirds {
+            min-height: 66vh;
+        }
+
+        .min-height-viewport {
+            min-height: 100vh;
+        }
+
         .backdrop-blur-small {
             backdrop-filter: var(--blur-small);
         }
