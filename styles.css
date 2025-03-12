@@ -147,9 +147,9 @@
         --font-2-weight-light: 300;
         /* --font-2-weight-medium: 400 PLACEHOLDER; */
         /* --font-2-weight-heavy: 600 PLACEHOLDER; */
-        --font-2-size-small: 16px;
-        --font-2-size-medium: 20px;
-        --font-2-size-large: 24px;
+        --font-2-size-small: 17px;
+        --font-2-size-medium: 21px;
+        --font-2-size-large: 25px;
 
         font-family: var(--font-2-family);
         font-size: var(--font-2-size-medium);
@@ -253,10 +253,12 @@
 
         .center {
             place-content: center;
+            place-self: center;
         }
 
         .bottom {
             place-content: end;
+            place-self: end;
         }
 
         .max-width-small {
@@ -358,19 +360,19 @@
         }
 
         h1 {
-            font-size: 1.5rem;
+            font-size: 3rem;
         }
 
         h2 {
-            font-size: 1.3rem;
+            font-size: 1.5rem;
         }
 
         h3 {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
         }
 
         h4 {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
         }
 
         h5 {
