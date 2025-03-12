@@ -657,11 +657,11 @@
             margin-top: var(--space-tiny);
         }
 
-        >picture:first-child {
+        >picture:first-child + * {
             margin-bottom: var(--space-small);
         }
 
-        >picture:last-child {
+        >picture:last-child + * {
             margin-top: var(--space-small);
         }
     }
