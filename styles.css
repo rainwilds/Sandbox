@@ -621,7 +621,7 @@
     }
 
 
-    .scroll-container {
+    .scroll {
         width: 100%;
         overflow-x: auto;
         overflow-y: hidden;
@@ -660,7 +660,7 @@
     }
 
     @media (max-width: 768px) {
-        .scroll-container > div > * {
+        .scroll > div > * {
             width: 80vw;
         }
     }

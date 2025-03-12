@@ -81,50 +81,51 @@ galleryItems.forEach((item, index) => {
 
 // code for scrolling sections
 
-const scrollContainer = document.querySelector('.scroll-container');
-        let isDown = false;
-        let startX;
-        let scrollLeft;
+document.querySelectorAll('.scroll').forEach(scroll => {
+    let isDown = false;
+    let startX;
+    let scrollLeft;
 
-        // Mouse drag scrolling - capture clicks anywhere in container
-        scrollContainer.addEventListener('mousedown', (e) => {
-            isDown = true;
-            scrollContainer.style.cursor = 'grabbing';
-            startX = e.pageX - scrollContainer.offsetLeft;
-            scrollLeft = scrollContainer.scrollLeft;
-            e.preventDefault(); // Prevent text selection
-        });
+    // Mouse drag scrolling
+    scroll.addEventListener('mousedown', (e) => {
+        isDown = true;
+        scroll.style.cursor = 'grabbing';
+        startX = e.pageX - scroll.offsetLeft;
+        scrollLeft = scroll.scrollLeft;
+        e.preventDefault(); // Prevent text selection
+    });
 
-        scrollContainer.addEventListener('mouseleave', () => {
-            isDown = false;
-            scrollContainer.style.cursor = 'grab';
-        });
+    scroll.addEventListener('mouseleave', () => {
+        isDown = false;
+        scroll.style.cursor = 'grab';
+    });
 
-        scrollContainer.addEventListener('mouseup', () => {
-            isDown = false;
-            scrollContainer.style.cursor = 'grab';
-        });
+    scroll.addEventListener('mouseup', () => {
+        isDown = false;
+        scroll.style.cursor = 'grab';
+    });
 
-        scrollContainer.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - scrollContainer.offsetLeft;
-            const walk = (x - startX) * 2; // Adjust multiplier for scroll speed
-            scrollContainer.scrollLeft = scrollLeft - walk;
-        });
+    scroll.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - scroll.offsetLeft;
+        const walk = (x - startX) * 2; // Adjust multiplier for scroll speed
+        scroll.scrollLeft = scrollLeft - walk;
+    });
 
-        // Touch handling
-        scrollContainer.addEventListener('touchstart', (e) => {
-            const touch = e.touches[0];
-            startX = touch.pageX - scrollContainer.offsetLeft;
-            scrollLeft = scrollContainer.scrollLeft;
-        });
+    // Touch handling
+    scroll.addEventListener('touchstart', (e) => {
+        const touch = e.touches[0];
+        startX = touch.pageX - scroll.offsetLeft;
+        scrollLeft = scroll.scrollLeft;
+    });
 
-        scrollContainer.addEventListener('touchmove', (e) => {
-            if (scrollContainer.scrollWidth <= scrollContainer.clientWidth) return;
-            const touch = e.touches[0];
-            const x = touch.pageX - scrollContainer.offsetLeft;
-            const walk = (x - startX) * 2;
-            scrollContainer.scrollLeft = scrollLeft - walk;
-            e.stopPropagation();
-        }, { passive: false });
+    scroll.addEventListener('touchmove', (e) => {
+        if (scroll.scrollWidth <= scroll.clientWidth) return;
+        const touch = e.touches[0];
+        const x = touch.pageX - scroll.offsetLeft;
+        const walk = (x - startX) * 2;
+        scroll.scrollLeft = scrollLeft - walk;
+        e.stopPropagation();
+    }, { passive: false });
+});
