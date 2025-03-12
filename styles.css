@@ -629,10 +629,10 @@
         -webkit-overflow-scrolling: touch;
 
         /* Hide scrollbar for all browsers */
-        -ms-overflow-style: none; /* IE and Edge */
-        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none;
+        scrollbar-width: none;
         &::-webkit-scrollbar {
-            display: none; /* Chrome, Safari, Opera */
+            display: none;
         }
 
         /* Inner content wrapper */
