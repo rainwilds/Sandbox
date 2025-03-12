@@ -812,92 +812,10 @@ main {
 
 }
 
-
-
-
-
-/* header:not(:has(i))>picture {
-
-    @media (prefers-color-scheme: dark) {
-
-        & {
-
-            filter: initial;
-
-        }
-    }
+footer {
+    background: background: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
 }
 
-header:has(i)>div {
-    display: none;
-} */
-
-/* div[id^="gallery-item-"] {
-
-    padding: var(--space-small);
-    width: auto;
-
-    >div {
-
-        @supports selector(backdrop-filter) {
-            backdrop-filter: blur(10px);
-        }
-
-        -webkit-backdrop-filter: blur(10px);
-
-        padding: var(--space-small);
-        border-radius: var(--border-radius-small);
-        background-image: var(--background-noise);
-        box-shadow: 10px 10px 50px -1px var(--color-static-dark-1);
-        border: solid var(--border-size-small);
-        border-color: var(--color-static-light-1);
-        background-color: var(--color-static-light-1);
-        height: calc(100vh - (var(--space-small)*2));
-        display: grid;
-
-        >button {
-            grid-area: 1/1/2/-1;
-            height: fit-content;
-            width: fit-content;
-            margin: var(--space-small);
-            display: flex;
-            justify-self: flex-end;
-            z-index: 1;
-
-        }
-
-        >picture {
-            grid-area: 1/1/2/-1;
-            max-height: calc(100vh - (4*var(--space-small)));
-            max-width: max-content;
-            display: flex;
-            justify-self: center;
-            align-self: center;
-
-            >img {
-                margin-top: 0;
-                border-radius: var(--border-radius-small);
-                object-fit: cover;
-            }
-
-            @media (max-width: 980px) {
-
-                & {
-                    object-fit: contain;
-                    height: fit-content;
-                }
-
-            }
-
-        }
-
-        @media (max-width: 980px) {
-            padding: 0;
-        }
-
-    }
-
-} */
 
 
 
