@@ -179,7 +179,7 @@ function createPictureTagString(id, imageUrl) {
 async function insertGallery(selector) {
     const container = document.querySelector(selector);
     const domain = window.location.origin; // Gets the current domain (e.g., "https://sample.com")
-    const galleryPath = `${domain}/img/gallery/`;
+    const galleryPath = `${domain}/img/`;
 
     try {
         // Fetch the list of image filenames from the server endpoint
