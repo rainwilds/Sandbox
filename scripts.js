@@ -178,28 +178,38 @@ function createPictureTagString(id, imageUrl) {
 
 async function insertGallery(selector) {
     const container = document.querySelector(selector);
-    const domain = window.location.origin; // Gets the current domain (e.g., "https://sample.com")
-    const galleryPath = `${domain}/img/`;
+    const domain = window.location.origin; // e.g., "https://rainwilds.github.io"
+    const repoOwner = 'rainwilds'; // Your GitHub username
+    const repoName = 'rainwilds.github.io'; // Your repository name
+    const directoryPath = 'img/gallery'; // Path in the repo
+    const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${directoryPath}`;
 
     try {
-        // Fetch the list of image filenames from the server endpoint
-        const response = await fetch('/get-images');
-        const imageFiles = await response.json();
+        // Fetch the directory contents from GitHub API
+        const response = await fetch(apiUrl);
+        const files = await response.json();
 
-        imageFiles.forEach((filename) => {
-            // Construct the full URL and ID from the filename
-            const imageUrl = `${galleryPath}${filename}`;
-            const id = filename.replace(/\.[^/.]+$/, ''); // Remove file extension (works for .jpg, .png, etc.)
-            const pictureTagString = createPictureTagString(id, imageUrl);
-            container.insertAdjacentHTML('beforeend', pictureTagString);
-        });
+        if (!Array.isArray(files)) {
+            throw new Error('GitHub API response is not an array. Check repo details or directory path.');
+        }
+
+        // Filter for image files and process them
+        files
+            .filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file.name)) // Filter image files
+            .forEach((file) => {
+                // Use the raw GitHub URL for the image
+                const imageUrl = `${domain}/${directoryPath}/${file.name}`;
+                const id = file.name.replace(/\.[^/.]+$/, ''); // Remove file extension
+                const pictureTagString = createPictureTagString(id, imageUrl);
+                container.insertAdjacentHTML('beforeend', pictureTagString);
+            });
     } catch (error) {
-        console.error('Error fetching images:', error);
+        console.error('Error fetching images from GitHub:', error);
     }
 }
 
 // Call the function for the main gallery
-insertGallery('main > section:last-child');
+insertGallery('footer > div:last-of-type');
 
 // Uncomment to add a side gallery
 // insertGallery('aside');
