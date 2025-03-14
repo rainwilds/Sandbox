@@ -179,16 +179,15 @@ function createPictureTagString(id, imageUrl) {
 const galleryImages = [
     { url: '/img/gallery/gallery-item-1.jpg' },
     { url: '/img/gallery/gallery-item-2.jpg' },
-    { url: '/img/gallery/gallery-item-7.jpg' }
+    { url: '/img/gallery/gallery-item-3.jpg' }
 ];
 
 function insertGallery(selector) {
     const container = document.querySelector(selector);
-    const domain = window.location.origin; // e.g., "https://rainwilds.github.io"
 
     galleryImages.forEach((image) => {
-        // Construct the full URL using the domain
-        const imageUrl = `${domain}${image.url}`;
+        // Use the relative URL directly
+        const imageUrl = image.url;
         // Extract the filename without path and extension for the ID
         const id = image.url.split('/').pop().replace(/\.[^/.]+$/, '');
         const pictureTagString = createPictureTagString(id, imageUrl);
@@ -197,7 +196,7 @@ function insertGallery(selector) {
 }
 
 // Call the function for the main gallery
-insertGallery('main > section:last-child');
+insertGallery('main>section:last-child');
 
 // Uncomment to add a side gallery if needed
 // insertGallery('aside');
