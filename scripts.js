@@ -45,6 +45,84 @@
 // };
 
 
+// code for gallery generation
+
+function createPictureTagString(id, imageUrl) {
+    return `
+        <picture>
+            <!-- light -->
+            <source srcset="${imageUrl}"
+                    media="(max-width: 767px) and (resolution < 1.5dppx) and (prefers-color-scheme: light)" />
+            <source srcset="${imageUrl}"
+                    media="(max-width: 767px) and (resolution >= 1.5dppx) and (prefers-color-scheme: light)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 768px) and (max-width: 1366px) and (resolution < 1.5dppx) and (prefers-color-scheme: light)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 1.5dppx) and (resolution < 2dppx) and (prefers-color-scheme: light)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 2dppx) and (prefers-color-scheme: light)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 1367px) and (resolution < 1.2dppx) and (prefers-color-scheme: light)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 1367px) and (resolution >= 1.2dppx) and (resolution < 2dppx) and (prefers-color-scheme: light)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 1367px) and (resolution >= 2dppx) and (prefers-color-scheme: light)" />
+            <!-- dark -->
+            <source srcset="${imageUrl}"
+                    media="(max-width: 767px) and (resolution < 1.5dppx) and (prefers-color-scheme: dark)" />
+            <source srcset="${imageUrl}"
+                    media="(max-width: 767px) and (resolution >= 1.5dppx) and (prefers-color-scheme: dark)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 768px) and (max-width: 1366px) and (resolution < 1.5dppx) and (prefers-color-scheme: dark)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 1.5dppx) and (resolution < 2dppx) and (prefers-color-scheme: dark)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 2dppx) and (prefers-color-scheme: dark)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 1367px) and (resolution < 1.2dppx) and (prefers-color-scheme: dark)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 1367px) and (resolution >= 1.2dppx) and (resolution < 2dppx) and (prefers-color-scheme: dark)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 1367px) and (resolution >= 2dppx) and (prefers-color-scheme: dark)" />
+            <img width="100%" src="${imageUrl}" alt="Alt title" title="Image title" loading="lazy"
+                 id="${id}" />
+        </picture>
+    `;
+}
+
+const galleryImages = [
+    { url: '/Sandbox/img/gallery/gallery-item-1.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-2.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-3.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-4.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-5.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-6.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-7.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-8.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-9.jpg' }
+];
+
+function insertGallery(selector) {
+    const container = document.querySelector(selector);
+
+    galleryImages.forEach((image) => {
+        // Use the relative URL directly
+        const imageUrl = image.url;
+        // Extract the filename without path and extension for the ID
+        const id = image.url.split('/').pop().replace(/\.[^/.]+$/, '');
+        const pictureTagString = createPictureTagString(id, imageUrl);
+        container.insertAdjacentHTML('beforeend', pictureTagString);
+    });
+}
+
+// Call the function for the main gallery
+// insertGallery('main>section:last-child');
+insertGallery('div[class*="gallery"] > picture');
+
+// Uncomment to add a side gallery if needed
+// insertGallery('aside');
+
+
 
 // code for galleries
 
@@ -131,78 +209,3 @@ document.querySelectorAll('.scroll').forEach(scroll => {
 });
 
 
-// code for gallery generation
-
-function createPictureTagString(id, imageUrl) {
-    return `
-        <picture>
-            <!-- light -->
-            <source srcset="${imageUrl}"
-                    media="(max-width: 767px) and (resolution < 1.5dppx) and (prefers-color-scheme: light)" />
-            <source srcset="${imageUrl}"
-                    media="(max-width: 767px) and (resolution >= 1.5dppx) and (prefers-color-scheme: light)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 768px) and (max-width: 1366px) and (resolution < 1.5dppx) and (prefers-color-scheme: light)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 1.5dppx) and (resolution < 2dppx) and (prefers-color-scheme: light)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 2dppx) and (prefers-color-scheme: light)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 1367px) and (resolution < 1.2dppx) and (prefers-color-scheme: light)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 1367px) and (resolution >= 1.2dppx) and (resolution < 2dppx) and (prefers-color-scheme: light)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 1367px) and (resolution >= 2dppx) and (prefers-color-scheme: light)" />
-            <!-- dark -->
-            <source srcset="${imageUrl}"
-                    media="(max-width: 767px) and (resolution < 1.5dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="${imageUrl}"
-                    media="(max-width: 767px) and (resolution >= 1.5dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 768px) and (max-width: 1366px) and (resolution < 1.5dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 1.5dppx) and (resolution < 2dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 2dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 1367px) and (resolution < 1.2dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 1367px) and (resolution >= 1.2dppx) and (resolution < 2dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 1367px) and (resolution >= 2dppx) and (prefers-color-scheme: dark)" />
-            <img width="100%" src="${imageUrl}" alt="Alt title" title="Image title" loading="lazy"
-                 id="${id}" />
-        </picture>
-    `;
-}
-
-const galleryImages = [
-    { url: '/Sandbox/img/gallery/gallery-item-1.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-2.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-3.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-4.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-5.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-6.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-7.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-8.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-9.jpg' }
-];
-
-function insertGallery(selector) {
-    const container = document.querySelector(selector);
-
-    galleryImages.forEach((image) => {
-        // Use the relative URL directly
-        const imageUrl = image.url;
-        // Extract the filename without path and extension for the ID
-        const id = image.url.split('/').pop().replace(/\.[^/.]+$/, '');
-        const pictureTagString = createPictureTagString(id, imageUrl);
-        container.insertAdjacentHTML('beforeend', pictureTagString);
-    });
-}
-
-// Call the function for the main gallery
-insertGallery('main>section:last-child');
-
-// Uncomment to add a side gallery if needed
-// insertGallery('aside');
