@@ -44,6 +44,7 @@
 //     37: 416, 38: 424, 39: 432, 40: 440
 // };
 
+
 // Function to create picture tag string (unchanged)
 function createPictureTagString(id, imageUrl) {
     return `
@@ -155,9 +156,9 @@ function styleGallery(galleryContainer) {
 // Call the combined function for all elements with class containing "gallery"
 insertAndStyleGallery('div[class*="gallery"]');
 
-// Optional: Add scrolling functionality if desired
+// Add scrolling functionality for elements with class "scroll"
 function addScrollFunctionality() {
-    document.querySelectorAll('.gallery-scroll').forEach(scroll => {
+    document.querySelectorAll('.scroll').forEach(scroll => {
         let isDown = false;
         let startX;
         let scrollLeft;
@@ -184,7 +185,7 @@ function addScrollFunctionality() {
             if (!isDown) return;
             e.preventDefault();
             const x = e.pageX - scroll.offsetLeft;
-            const walk = (x - startX) * 2;
+            const walk = (x - startX) * 2; // Adjust multiplier for scroll speed
             scroll.scrollLeft = scrollLeft - walk;
         });
 
@@ -205,6 +206,6 @@ function addScrollFunctionality() {
     });
 }
 
-// Uncomment to enable scrolling
+// Enable scrolling
 addScrollFunctionality();
 
