@@ -121,24 +121,27 @@ function insertAndStyleGallery(selector) {
 
 function styleGallery(galleryContainer) {
     const galleryItems = galleryContainer.querySelectorAll('picture');
-    const columns = 4;
+    const columns = 4; // Number of columns in the grid
     const totalItems = galleryItems.length;
-    const completeRows = Math.floor(totalItems / columns);
-    const maxItems = completeRows * columns;
-    const lastRowStart = maxItems;
+    const completeRows = Math.floor(totalItems / columns); // Number of complete rows
+    const itemsInLastRow = totalItems % columns || columns; // Items in the last row
+    const lastRowStart = totalItems - itemsInLastRow; // Starting index of the last row
 
     galleryItems.forEach((item, index) => {
         let spanCols = 1;
-        let spanRows = Math.random() < 0.3 ? 2 : 1;
+        let spanRows = 1; // Default to 1 row
 
-        if (index >= lastRowStart) {
-            spanRows = 1;
+        // Only apply random row spanning if the item is not in the last row
+        if (index < lastRowStart) {
+            spanRows = Math.random() < 0.3 ? 2 : 1; // 30% chance of spanning 2 rows
+
+            // If spanning 2 rows, decide column spanning
+            if (spanRows === 2) {
+                spanCols = Math.random() < 0.5 ? 2 : 1; // 50% chance of spanning 2 columns
+            }
         }
 
-        if (spanRows === 2) {
-            spanCols = Math.random() < 0.5 ? 2 : 1;
-        }
-
+        // Apply the grid spanning
         item.style.gridColumn = `span ${spanCols}`;
         item.style.gridRow = `span ${spanRows}`;
     });
