@@ -67,10 +67,10 @@ function createPictureTagString(id, imageUrl) {
 // Define multiple gallery arrays with type support
 const gallery_1_Images = [
     { type: 'image', url: '/Sandbox/img/gallery/gallery-item-1.jpg' },
-    { type: 'video', url: '/video/video1.mp4', poster: '/Sandbox/img/gallery/gallery-item-2.jpg' },
+    { type: 'video', url: '/Sandbox/video/video1.mp4', poster: '/Sandbox/img/gallery/gallery-item-2.jpg' },
     { type: 'image', url: '/Sandbox/img/gallery/gallery-item-3.jpg' },
     { type: 'image', url: '/Sandbox/img/gallery/gallery-item-4.jpg' },
-    { type: 'video', url: '/video/video2.mp4', poster: '/Sandbox/img/gallery/gallery-item-5.jpg' },
+    { type: 'video', url: '/Sandbox/video/video2.mp4', poster: '/Sandbox/img/gallery/gallery-item-5.jpg' },
     { type: 'image', url: '/Sandbox/img/gallery/gallery-item-6.jpg' },
     { type: 'image', url: '/Sandbox/img/gallery/gallery-item-7.jpg' },
     { type: 'image', url: '/Sandbox/img/gallery/gallery-item-8.jpg' },
@@ -80,11 +80,11 @@ const gallery_1_Images = [
 const gallery_2_Images = [
     { type: 'image', url: '/Sandbox/img/gallery/gallery-item-1.jpg' },
     { type: 'image', url: '/Sandbox/img/gallery/gallery-item-2.jpg' },
-    { type: 'video', url: '/video/video1.mp4', poster: '/Sandbox/img/gallery/gallery-item-3.jpg' },
+    { type: 'video', url: '/Sandbox/video/video1.mp4', poster: '/Sandbox/img/gallery/gallery-item-3.jpg' },
     { type: 'image', url: '/Sandbox/img/gallery/gallery-item-4.jpg' },
     { type: 'image', url: '/Sandbox/img/gallery/gallery-item-5.jpg' },
     { type: 'image', url: '/Sandbox/img/gallery/gallery-item-6.jpg' },
-    { type: 'video', url: '/video/video2.mp4', poster: '/Sandbox/img/gallery/gallery-item-7.jpg' },
+    { type: 'video', url: '/Sandbox/video/video2.mp4', poster: '/Sandbox/img/gallery/gallery-item-7.jpg' },
     { type: 'image', url: '/Sandbox/img/gallery/gallery-item-8.jpg' },
     { type: 'image', url: '/Sandbox/img/gallery/gallery-item-9.jpg' }
 ];
