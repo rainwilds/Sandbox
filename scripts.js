@@ -181,7 +181,7 @@ async function insertGallery(selector) {
     const domain = window.location.origin; // e.g., "https://rainwilds.github.io"
     const repoOwner = 'rainwilds'; // Your GitHub username
     const repoName = 'rainwilds.github.io'; // Your repository name
-    const directoryPath = 'img/gallery'; // Path in the repo
+    const directoryPath = 'img'; // Path in the repo
     const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${directoryPath}`;
 
     try {
@@ -209,7 +209,7 @@ async function insertGallery(selector) {
 }
 
 // Call the function for the main gallery
-insertGallery('footer > div:last-of-type');
+insertGallery('main > section:last-child');
 
 // Uncomment to add a side gallery
 // insertGallery('aside');
