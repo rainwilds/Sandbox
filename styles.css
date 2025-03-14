@@ -721,6 +721,10 @@
             gap: var(--space-tiny);
             min-width: max-content;
 
+            >* {
+                user-select: none;
+            }
+
         }
 
         >div[class*="gallery"] {
@@ -729,21 +733,17 @@
                 width: 300px;
                 height: 200px;
                 display: flex;
-                user-select: none;
             }
         }
 
         >div:not([class*="gallery"]) {
 
             >* {
-
                 display: grid;
                 gap: var(--space-tiny);
                 background-color: lightslategray;
                 padding: var(--space-tiny);
                 grid-template-columns: minmax(300px, 25vw);
-                user-select: none;
-
             }
         }
 
