@@ -637,6 +637,7 @@
         grid-auto-rows: min-content;
 
         &.background-image>* {
+            display: grid;
             grid-row: 1 / span 2;
             grid-column: 1;
 
@@ -665,7 +666,8 @@
 
         &>div[class*="background-overlay"] {
 
-            background-color: light-dark(var(--color-static-light-2), var(--color-static-dark-4));
+            background-color: light-dark(var(--color-static-dark-2), var(--color-static-light-4));
+            margin: 0 !important;
 
         }
 
