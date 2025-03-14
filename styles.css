@@ -744,7 +744,7 @@
                 background-color: lightslategray;
                 grid-template-columns: minmax(200px, 15vw);
 
-                >hgroup {
+                >div {
                     padding: var(--space-tiny);
                 }
 
