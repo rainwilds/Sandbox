@@ -727,7 +727,7 @@
                 user-select: none;
             }
 
-            >div:not([class*="gallery"]) * & {
+            >* div:not([class*="gallery"]) & {
 
                 display: grid;
                 gap: var(--space-tiny);
