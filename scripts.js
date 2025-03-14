@@ -89,8 +89,8 @@ function createPictureTagString(id, imageUrl) {
     `;
 }
 
-// Gallery images array (unchanged)
-const galleryImages = [
+// Define multiple gallery arrays
+const gallery_1_Images = [
     { url: '/Sandbox/img/gallery/gallery-item-1.jpg' },
     { url: '/Sandbox/img/gallery/gallery-item-2.jpg' },
     { url: '/Sandbox/img/gallery/gallery-item-3.jpg' },
@@ -102,17 +102,49 @@ const galleryImages = [
     { url: '/Sandbox/img/gallery/gallery-item-9.jpg' }
 ];
 
+const gallery_2_Images = [
+    { url: '/Sandbox/img/gallery/gallery-item-1.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-2.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-3.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-4.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-5.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-6.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-7.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-8.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-9.jpg' }
+];
+
+// Mapping of selectors to gallery arrays
+const galleryMap = {
+    'gallery-main': gallery_1_Images,
+    'gallery-scroll': gallery_2_Images
+};
+
 function insertAndStyleGallery(selector) {
     const containers = document.querySelectorAll(selector); // Select all matching containers
 
     containers.forEach((container) => {
+        // Determine which gallery array to use based on the container's class
+        let galleryArray = null;
+        for (const [className, images] of Object.entries(galleryMap)) {
+            if (container.classList.contains(className)) {
+                galleryArray = images;
+                break;
+            }
+        }
+
+        // If no specific gallery array is found, use gallery_1_Images as default
+        if (!galleryArray) {
+            galleryArray = gallery_1_Images;
+        }
+
         // Add gallery class to container if it doesn't have it
-        // if (!container.classList.contains('gallery')) {
-        //     container.classList.add('gallery');
-        // }
+        if (!container.classList.contains('gallery')) {
+            container.classList.add('gallery');
+        }
 
         // Insert images
-        galleryImages.forEach((image) => {
+        galleryArray.forEach((image) => {
             const imageUrl = image.url;
             const id = image.url.split('/').pop().replace(/\.[^/.]+$/, '');
             const pictureTagString = createPictureTagString(id, imageUrl);
@@ -208,4 +240,3 @@ function addScrollFunctionality() {
 
 // Enable scrolling
 addScrollFunctionality();
-
