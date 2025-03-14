@@ -742,7 +742,7 @@
                 display: grid;
                 gap: var(--space-tiny);
                 background-color: lightslategray;
-                padding: var(--space-tiny);
+                /* padding: var(--space-tiny); */
                 grid-template-columns: minmax(300px, 25vw);
             }
         }
