@@ -666,7 +666,7 @@
         }
     }
 
-    div.gallery-1 {
+    div[class*="gallery-main"] {
 
         display: grid;
         grid-template-columns: repeat(4, 1fr);
