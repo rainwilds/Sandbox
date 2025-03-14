@@ -639,6 +639,10 @@
         &.background-image>* {
             grid-row: 1 / span 2;
             grid-column: 1;
+
+            >div {
+                margin: 0;
+            }
         }
 
         &.background-image>*:not(picture) {
