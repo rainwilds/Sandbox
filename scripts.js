@@ -179,7 +179,13 @@ function createPictureTagString(id, imageUrl) {
 const galleryImages = [
     { url: '/Sandbox/img/gallery/gallery-item-1.jpg' },
     { url: '/Sandbox/img/gallery/gallery-item-2.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-3.jpg' }
+    { url: '/Sandbox/img/gallery/gallery-item-3.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-4.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-5.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-6.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-7.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-8.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-9.jpg' }
 ];
 
 function insertGallery(selector) {
