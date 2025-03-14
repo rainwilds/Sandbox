@@ -102,51 +102,109 @@ const galleryImages = [
 ];
 
 function insertAndStyleGallery(selector) {
-    const container = document.querySelector(selector);
-    
-    // Add gallery class to container if it doesn't have it
-    container.classList.add('gallery');
-    
-    // Insert images
-    galleryImages.forEach((image) => {
-        const imageUrl = image.url;
-        const id = image.url.split('/').pop().replace(/\.[^/.]+$/, '');
-        const pictureTagString = createPictureTagString(id, imageUrl);
-        container.insertAdjacentHTML('beforeend', pictureTagString);
-    });
+    const containers = document.querySelectorAll(selector); // Select all matching containers
 
-    // Apply grid styling after images are inserted
-    styleGallery(container);
+    containers.forEach((container) => {
+        // Add gallery class to container if it doesn't have it
+        if (!container.classList.contains('gallery')) {
+            container.classList.add('gallery');
+        }
+
+        // Insert images
+        galleryImages.forEach((image) => {
+            const imageUrl = image.url;
+            const id = image.url.split('/').pop().replace(/\.[^/.]+$/, '');
+            const pictureTagString = createPictureTagString(id, imageUrl);
+            container.insertAdjacentHTML('beforeend', pictureTagString);
+        });
+
+        // Check if the container has the "gallery-scroll" class
+        const hasScrollClass = container.classList.contains('gallery-scroll');
+
+        // Only apply styleGallery if the container does NOT have "gallery-scroll" class
+        if (!hasScrollClass) {
+            styleGallery(container);
+        }
+    });
 }
 
 function styleGallery(galleryContainer) {
     const galleryItems = galleryContainer.querySelectorAll('picture');
-    const columns = 4; // Number of columns in the grid
+    const columns = 4;
     const totalItems = galleryItems.length;
-    const completeRows = Math.floor(totalItems / columns); // Number of complete rows
-    const itemsInLastRow = totalItems % columns || columns; // Items in the last row
-    const lastRowStart = totalItems - itemsInLastRow; // Starting index of the last row
+    const completeRows = Math.floor(totalItems / columns);
+    const itemsInLastRow = totalItems % columns || columns;
+    const lastRowStart = totalItems - itemsInLastRow;
 
     galleryItems.forEach((item, index) => {
         let spanCols = 1;
-        let spanRows = 1; // Default to 1 row
+        let spanRows = 1;
 
-        // Only apply random row spanning if the item is not in the last row
         if (index < lastRowStart) {
-            spanRows = Math.random() < 0.3 ? 2 : 1; // 30% chance of spanning 2 rows
-
-            // If spanning 2 rows, decide column spanning
+            spanRows = Math.random() < 0.3 ? 2 : 1;
             if (spanRows === 2) {
-                spanCols = Math.random() < 0.5 ? 2 : 1; // 50% chance of spanning 2 columns
+                spanCols = Math.random() < 0.5 ? 2 : 1;
             }
         }
 
-        // Apply the grid spanning
         item.style.gridColumn = `span ${spanCols}`;
         item.style.gridRow = `span ${spanRows}`;
     });
 }
 
-// Call the combined function
+// Call the combined function for all elements with class containing "gallery"
 insertAndStyleGallery('div[class*="gallery"]');
+
+// Optional: Add scrolling functionality if desired
+function addScrollFunctionality() {
+    document.querySelectorAll('.gallery-scroll').forEach(scroll => {
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        scroll.addEventListener('mousedown', (e) => {
+            isDown = true;
+            scroll.style.cursor = 'grabbing';
+            startX = e.pageX - scroll.offsetLeft;
+            scrollLeft = scroll.scrollLeft;
+            e.preventDefault();
+        });
+
+        scroll.addEventListener('mouseleave', () => {
+            isDown = false;
+            scroll.style.cursor = 'grab';
+        });
+
+        scroll.addEventListener('mouseup', () => {
+            isDown = false;
+            scroll.style.cursor = 'grab';
+        });
+
+        scroll.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - scroll.offsetLeft;
+            const walk = (x - startX) * 2;
+            scroll.scrollLeft = scrollLeft - walk;
+        });
+
+        scroll.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            startX = touch.pageX - scroll.offsetLeft;
+            scrollLeft = scroll.scrollLeft;
+        });
+
+        scroll.addEventListener('touchmove', (e) => {
+            if (scroll.scrollWidth <= scroll.clientWidth) return;
+            const touch = e.touches[0];
+            const x = touch.pageX - scroll.offsetLeft;
+            const walk = (x - startX) * 2;
+            scroll.scrollLeft = scrollLeft - walk;
+            e.stopPropagation();
+        }, { passive: false });
+    });
+}
+
+// Uncomment to enable scrolling
+addScrollFunctionality();
 
