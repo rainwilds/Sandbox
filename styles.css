@@ -715,19 +715,30 @@
             display: none;
         }
 
-        /* Inner content wrapper */
-        >div {
+        >div[class*="gallery"] {
             display: flex;
             gap: var(--space-tiny);
             min-width: max-content;
 
             >* {
-                /* flex: 0 0 auto; */
                 width: 300px;
                 height: 200px;
-                /* background-color: #f0f0f0; */
                 display: flex;
                 user-select: none;
+            }
+        }
+
+        >div:not([class*="gallery"]) {
+
+            >* {
+
+                display: grid;
+                gap: var(--space-tiny);
+                background-color: lightslategray;
+                padding: var(--space-tiny);
+                grid-template-columns: minmax(300px, 25vw);
+                user-select: none;
+
             }
         }
 
