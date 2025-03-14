@@ -686,6 +686,14 @@
         grid-auto-flow: dense;
         grid-auto-rows: 20vmax;
 
+        >picture {
+            overflow: hidden;
+
+            &:hover {
+                transform: scale(1.1);
+            }
+        }
+
         @media (min-width: 1201px) and (max-width: 1919px) {
             & {
                 grid-template-columns: repeat(3, 1fr);
