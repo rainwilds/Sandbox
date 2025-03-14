@@ -129,3 +129,77 @@ document.querySelectorAll('.scroll').forEach(scroll => {
         e.stopPropagation();
     }, { passive: false });
 });
+
+
+// code for gallery generation
+
+function createPictureTagString(id, imageUrl) {
+    return `
+        <picture>
+            <!-- light -->
+            <source srcset="${imageUrl}"
+                    media="(max-width: 767px) and (resolution < 1.5dppx) and (prefers-color-scheme: light)" />
+            <source srcset="${imageUrl}"
+                    media="(max-width: 767px) and (resolution >= 1.5dppx) and (prefers-color-scheme: light)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 768px) and (max-width: 1366px) and (resolution < 1.5dppx) and (prefers-color-scheme: light)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 1.5dppx) and (resolution < 2dppx) and (prefers-color-scheme: light)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 2dppx) and (prefers-color-scheme: light)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 1367px) and (resolution < 1.2dppx) and (prefers-color-scheme: light)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 1367px) and (resolution >= 1.2dppx) and (resolution < 2dppx) and (prefers-color-scheme: light)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 1367px) and (resolution >= 2dppx) and (prefers-color-scheme: light)" />
+            <!-- dark -->
+            <source srcset="${imageUrl}"
+                    media="(max-width: 767px) and (resolution < 1.5dppx) and (prefers-color-scheme: dark)" />
+            <source srcset="${imageUrl}"
+                    media="(max-width: 767px) and (resolution >= 1.5dppx) and (prefers-color-scheme: dark)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 768px) and (max-width: 1366px) and (resolution < 1.5dppx) and (prefers-color-scheme: dark)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 1.5dppx) and (resolution < 2dppx) and (prefers-color-scheme: dark)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 2dppx) and (prefers-color-scheme: dark)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 1367px) and (resolution < 1.2dppx) and (prefers-color-scheme: dark)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 1367px) and (resolution >= 1.2dppx) and (resolution < 2dppx) and (prefers-color-scheme: dark)" />
+            <source srcset="${imageUrl}"
+                    media="(min-width: 1367px) and (resolution >= 2dppx) and (prefers-color-scheme: dark)" />
+            <img width="100%" src="${imageUrl}" alt="Alt title" title="Image title" loading="lazy"
+                 id="${id}" />
+        </picture>
+    `;
+}
+
+async function insertGallery(selector) {
+    const container = document.querySelector(selector);
+    const domain = window.location.origin; // Gets the current domain (e.g., "https://sample.com")
+    const galleryPath = `${domain}/img/gallery/`;
+
+    try {
+        // Fetch the list of image filenames from the server endpoint
+        const response = await fetch('/get-images');
+        const imageFiles = await response.json();
+
+        imageFiles.forEach((filename) => {
+            // Construct the full URL and ID from the filename
+            const imageUrl = `${galleryPath}${filename}`;
+            const id = filename.replace(/\.[^/.]+$/, ''); // Remove file extension (works for .jpg, .png, etc.)
+            const pictureTagString = createPictureTagString(id, imageUrl);
+            container.insertAdjacentHTML('beforeend', pictureTagString);
+        });
+    } catch (error) {
+        console.error('Error fetching images:', error);
+    }
+}
+
+// Call the function for the main gallery
+insertGallery('main > section:last-child');
+
+// Uncomment to add a side gallery
+// insertGallery('aside');
