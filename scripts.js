@@ -106,9 +106,9 @@ function insertAndStyleGallery(selector) {
 
     containers.forEach((container) => {
         // Add gallery class to container if it doesn't have it
-        if (!container.classList.contains('gallery')) {
-            container.classList.add('gallery');
-        }
+        // if (!container.classList.contains('gallery')) {
+        //     container.classList.add('gallery');
+        // }
 
         // Insert images
         galleryImages.forEach((image) => {
