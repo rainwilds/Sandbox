@@ -689,8 +689,13 @@
         >picture {
             overflow: hidden;
 
-            &:hover {
-                transform: scale(1.1);
+            > img {
+
+                transition: transform 0.3s ease; /* Smooth transition for scaling */
+    
+                &:hover {
+                    transform: scale(1.1); 
+                }
             }
         }
 
