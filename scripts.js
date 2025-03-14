@@ -176,40 +176,28 @@ function createPictureTagString(id, imageUrl) {
     `;
 }
 
-async function insertGallery(selector) {
+const galleryImages = [
+    { url: '/img/gallery/gallery-item-1.jpg' },
+    { url: '/img/gallery/gallery-item-2.jpg' },
+    { url: '/img/gallery/gallery-item-7.jpg' }
+];
+
+function insertGallery(selector) {
     const container = document.querySelector(selector);
     const domain = window.location.origin; // e.g., "https://rainwilds.github.io"
-    const repoOwner = 'rainwilds'; // Your GitHub username
-    const repoName = 'rainwilds.github.io'; // Your repository name
-    const directoryPath = 'img'; // Path in the repo
-    const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${directoryPath}`;
 
-    try {
-        // Fetch the directory contents from GitHub API
-        const response = await fetch(apiUrl);
-        const files = await response.json();
-
-        if (!Array.isArray(files)) {
-            throw new Error('GitHub API response is not an array. Check repo details or directory path.');
-        }
-
-        // Filter for image files and process them
-        files
-            .filter(file => /\.(jpg|jpeg|png|gif)$/i.test(file.name)) // Filter image files
-            .forEach((file) => {
-                // Use the raw GitHub URL for the image
-                const imageUrl = `${domain}/${directoryPath}/${file.name}`;
-                const id = file.name.replace(/\.[^/.]+$/, ''); // Remove file extension
-                const pictureTagString = createPictureTagString(id, imageUrl);
-                container.insertAdjacentHTML('beforeend', pictureTagString);
-            });
-    } catch (error) {
-        console.error('Error fetching images from GitHub:', error);
-    }
+    galleryImages.forEach((image) => {
+        // Construct the full URL using the domain
+        const imageUrl = `${domain}${image.url}`;
+        // Extract the filename without path and extension for the ID
+        const id = image.url.split('/').pop().replace(/\.[^/.]+$/, '');
+        const pictureTagString = createPictureTagString(id, imageUrl);
+        container.insertAdjacentHTML('beforeend', pictureTagString);
+    });
 }
 
 // Call the function for the main gallery
 insertGallery('main > section:last-child');
 
-// Uncomment to add a side gallery
+// Uncomment to add a side gallery if needed
 // insertGallery('aside');
