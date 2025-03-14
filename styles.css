@@ -740,7 +740,6 @@
 
             >* {
                 display: grid;
-                gap: var(--space-tiny);
                 background-color: lightslategray;
                 grid-template-columns: minmax(200px, 15vw);
 
