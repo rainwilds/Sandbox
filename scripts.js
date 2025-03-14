@@ -177,9 +177,9 @@ function createPictureTagString(id, imageUrl) {
 }
 
 const galleryImages = [
-    { url: '/img/gallery/gallery-item-1.jpg' },
-    { url: '/img/gallery/gallery-item-2.jpg' },
-    { url: '/img/gallery/gallery-item-3.jpg' }
+    { url: '/Sandbox/img/gallery/gallery-item-1.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-2.jpg' },
+    { url: '/Sandbox/img/gallery/gallery-item-3.jpg' }
 ];
 
 function insertGallery(selector) {
