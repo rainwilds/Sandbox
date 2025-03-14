@@ -742,8 +742,12 @@
                 display: grid;
                 gap: var(--space-tiny);
                 background-color: lightslategray;
-                /* padding: var(--space-tiny); */
-                grid-template-columns: minmax(300px, 25vw);
+                grid-template-columns: minmax(200px, 15vw);
+
+                >hgroup {
+                    padding: var(--space-tiny);
+                }
+
             }
         }
 
