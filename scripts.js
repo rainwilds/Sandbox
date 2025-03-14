@@ -44,73 +44,49 @@
 //     37: 416, 38: 424, 39: 432, 40: 440
 // };
 
-// Function to create picture tag string (unchanged)
+
+// Function to create video tag string
+function createVideoTagString(id, videoUrl, posterUrl) {
+    return `
+        <video autoplay muted loop disablepictureinpicture playsinline poster="${posterUrl}">
+            <source src="${videoUrl}" type="video/mp4">
+            <source src="${videoUrl.replace('.mp4', '.webm')}" type="video/webm">
+        </video>
+    `;
+}
+
+// Updated function to create picture tag string (simplified for brevity)
 function createPictureTagString(id, imageUrl) {
     return `
         <picture>
-            <!-- light -->
-            <source srcset="${imageUrl}"
-                    media="(max-width: 767px) and (resolution < 1.5dppx) and (prefers-color-scheme: light)" />
-            <source srcset="${imageUrl}"
-                    media="(max-width: 767px) and (resolution >= 1.5dppx) and (prefers-color-scheme: light)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 768px) and (max-width: 1366px) and (resolution < 1.5dppx) and (prefers-color-scheme: light)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 1.5dppx) and (resolution < 2dppx) and (prefers-color-scheme: light)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 2dppx) and (prefers-color-scheme: light)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 1367px) and (resolution < 1.2dppx) and (prefers-color-scheme: light)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 1367px) and (resolution >= 1.2dppx) and (resolution < 2dppx) and (prefers-color-scheme: light)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 1367px) and (resolution >= 2dppx) and (prefers-color-scheme: light)" />
-            <!-- dark -->
-            <source srcset="${imageUrl}"
-                    media="(max-width: 767px) and (resolution < 1.5dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="${imageUrl}"
-                    media="(max-width: 767px) and (resolution >= 1.5dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 768px) and (max-width: 1366px) and (resolution < 1.5dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 1.5dppx) and (resolution < 2dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 2dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 1367px) and (resolution < 1.2dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 1367px) and (resolution >= 1.2dppx) and (resolution < 2dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="${imageUrl}"
-                    media="(min-width: 1367px) and (resolution >= 2dppx) and (prefers-color-scheme: dark)" />
-            <img width="100%" src="${imageUrl}" alt="Alt title" title="Image title" loading="lazy"
-                 id="${id}" />
+            <img width="100%" src="${imageUrl}" alt="Alt title" title="Image title" loading="lazy" id="${id}" />
         </picture>
     `;
 }
 
-// Define multiple gallery arrays
+// Define multiple gallery arrays with type support
 const gallery_1_Images = [
-    { url: '/Sandbox/img/gallery/gallery-item-1.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-2.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-3.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-4.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-5.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-6.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-7.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-8.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-9.jpg' }
+    { type: 'image', url: '/Sandbox/img/gallery/gallery-item-1.jpg' },
+    { type: 'video', url: '/video/video1.mp4', poster: '/Sandbox/img/gallery/gallery-item-2.jpg' },
+    { type: 'image', url: '/Sandbox/img/gallery/gallery-item-3.jpg' },
+    { type: 'image', url: '/Sandbox/img/gallery/gallery-item-4.jpg' },
+    { type: 'video', url: '/video/video2.mp4', poster: '/Sandbox/img/gallery/gallery-item-5.jpg' },
+    { type: 'image', url: '/Sandbox/img/gallery/gallery-item-6.jpg' },
+    { type: 'image', url: '/Sandbox/img/gallery/gallery-item-7.jpg' },
+    { type: 'image', url: '/Sandbox/img/gallery/gallery-item-8.jpg' },
+    { type: 'image', url: '/Sandbox/img/gallery/gallery-item-9.jpg' }
 ];
 
 const gallery_2_Images = [
-    { url: '/Sandbox/img/gallery/gallery-item-1.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-2.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-3.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-4.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-5.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-6.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-7.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-8.jpg' },
-    { url: '/Sandbox/img/gallery/gallery-item-9.jpg' }
+    { type: 'image', url: '/Sandbox/img/gallery/gallery-item-1.jpg' },
+    { type: 'image', url: '/Sandbox/img/gallery/gallery-item-2.jpg' },
+    { type: 'video', url: '/video/video1.mp4', poster: '/Sandbox/img/gallery/gallery-item-3.jpg' },
+    { type: 'image', url: '/Sandbox/img/gallery/gallery-item-4.jpg' },
+    { type: 'image', url: '/Sandbox/img/gallery/gallery-item-5.jpg' },
+    { type: 'image', url: '/Sandbox/img/gallery/gallery-item-6.jpg' },
+    { type: 'video', url: '/video/video2.mp4', poster: '/Sandbox/img/gallery/gallery-item-7.jpg' },
+    { type: 'image', url: '/Sandbox/img/gallery/gallery-item-8.jpg' },
+    { type: 'image', url: '/Sandbox/img/gallery/gallery-item-9.jpg' }
 ];
 
 // Mapping of selectors to gallery arrays
@@ -119,44 +95,42 @@ const galleryMap = {
     'gallery-scroll': gallery_2_Images
 };
 
+// Updated insertAndStyleGallery function
 function insertAndStyleGallery(selector) {
-    const containers = document.querySelectorAll(selector); // Select all matching containers
+    const containers = document.querySelectorAll(selector);
 
     containers.forEach((container) => {
-        // Determine which gallery array to use based on the container's class
         let galleryArray = null;
         let matchedClass = null;
-        for (const [className, images] of Object.entries(galleryMap)) {
+        for (const [className, items] of Object.entries(galleryMap)) {
             if (container.classList.contains(className)) {
-                galleryArray = images;
+                galleryArray = items;
                 matchedClass = className;
                 break;
             }
         }
 
-        // Only proceed if a specific gallery type is matched
-        if (!matchedClass) {
-            return; // Skip this container if it doesn't match a specific gallery type
-        }
+        if (!matchedClass) return;
 
-        // Add gallery class to container if it doesn't have it
         if (!container.classList.contains('gallery')) {
             container.classList.add('gallery');
         }
 
-        // Insert images
-        galleryArray.forEach((image) => {
-            const imageUrl = image.url;
-            const id = image.url.split('/').pop().replace(/\.[^/.]+$/, '');
-            const pictureTagString = createPictureTagString(id, imageUrl);
-            container.insertAdjacentHTML('beforeend', pictureTagString);
+        // Insert media items
+        galleryArray.forEach((item) => {
+            const id = item.url.split('/').pop().replace(/\.[^/.]+$/, '');
+            let mediaString;
+            
+            if (item.type === 'video') {
+                mediaString = createVideoTagString(id, item.url, item.poster);
+            } else {
+                mediaString = createPictureTagString(id, item.url);
+            }
+            
+            container.insertAdjacentHTML('beforeend', mediaString);
         });
 
-        // Check if the container has the "gallery-scroll" class
-        const hasScrollClass = container.classList.contains('gallery-scroll');
-
-        // Only apply styleGallery if the container does NOT have "gallery-scroll" class
-        if (!hasScrollClass) {
+        if (!container.classList.contains('gallery-scroll')) {
             styleGallery(container);
         }
     });

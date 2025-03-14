@@ -883,6 +883,7 @@ header {
         >div {
 
             background: #79554899;
+            /*clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%); creates shape */
             align-content: end;
             justify-self: baseline;
             padding: var(--side-gutter);
