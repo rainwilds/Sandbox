@@ -788,7 +788,7 @@ body>* {
         grid-column: 2 / -2;
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-        gap: var(--space-small);
+        gap: var(--space-medium);
 
     }
 
@@ -876,7 +876,7 @@ header {
 
 main {
 
-    row-gap: var(--space-medium);
+    row-gap: var(--space-large);
     margin: var(--space-medium) 0 var(--space-medium) 0;
 
 }
