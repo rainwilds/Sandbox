@@ -44,9 +44,7 @@
 //     37: 416, 38: 424, 39: 432, 40: 440
 // };
 
-
-// code for gallery generation
-
+// Function to create picture tag string (unchanged)
 function createPictureTagString(id, imageUrl) {
     return `
         <picture>
@@ -90,6 +88,7 @@ function createPictureTagString(id, imageUrl) {
     `;
 }
 
+// Gallery images array (unchanged)
 const galleryImages = [
     { url: '/Sandbox/img/gallery/gallery-item-1.jpg' },
     { url: '/Sandbox/img/gallery/gallery-item-2.jpg' },
@@ -102,110 +101,49 @@ const galleryImages = [
     { url: '/Sandbox/img/gallery/gallery-item-9.jpg' }
 ];
 
-function insertGallery(selector) {
+function insertAndStyleGallery(selector) {
     const container = document.querySelector(selector);
-
+    
+    // Add gallery class to container if it doesn't have it
+    container.classList.add('gallery');
+    
+    // Insert images
     galleryImages.forEach((image) => {
-        // Use the relative URL directly
         const imageUrl = image.url;
-        // Extract the filename without path and extension for the ID
         const id = image.url.split('/').pop().replace(/\.[^/.]+$/, '');
         const pictureTagString = createPictureTagString(id, imageUrl);
         container.insertAdjacentHTML('beforeend', pictureTagString);
     });
+
+    // Apply grid styling after images are inserted
+    styleGallery(container);
 }
 
-// Call the function for the main gallery
-// insertGallery('main>section:last-child');
-insertGallery('div[class*="gallery"] > picture');
+function styleGallery(galleryContainer) {
+    const galleryItems = galleryContainer.querySelectorAll('picture');
+    const columns = 4;
+    const totalItems = galleryItems.length;
+    const completeRows = Math.floor(totalItems / columns);
+    const maxItems = completeRows * columns;
+    const lastRowStart = maxItems;
 
-// Uncomment to add a side gallery if needed
-// insertGallery('aside');
+    galleryItems.forEach((item, index) => {
+        let spanCols = 1;
+        let spanRows = Math.random() < 0.3 ? 2 : 1;
 
+        if (index >= lastRowStart) {
+            spanRows = 1;
+        }
 
+        if (spanRows === 2) {
+            spanCols = Math.random() < 0.5 ? 2 : 1;
+        }
 
-// code for galleries
-
-function getRandomSpan() {
-    return Math.random() < 0.3 ? 2 : 1; // 30% chance of spanning 2, 70% chance of 1
+        item.style.gridColumn = `span ${spanCols}`;
+        item.style.gridRow = `span ${spanRows}`;
+    });
 }
 
-const galleryItems = document.querySelectorAll('div[class*="gallery"] > picture');
-const columns = 4; // This will be overridden by CSS media queries, but kept for reference
-const totalItems = galleryItems.length;
-const completeRows = Math.floor(totalItems / columns);
-const maxItems = completeRows * columns;
-const lastRowStart = maxItems;
-
-galleryItems.forEach((item, index) => {
-    let spanCols = 1; // Default to 1 column
-    let spanRows = getRandomSpan(); // Can be 1 or 2 rows
-
-    // Limit row spanning for items in the last row to prevent protrusion
-    if (index >= lastRowStart) {
-        spanRows = 1; // Force 1 row for last row items
-    }
-
-    // If spanning 2 rows, decide if it should also span 2 columns (only for non-last-row items)
-    if (spanRows === 2) {
-        spanCols = Math.random() < 0.5 ? 2 : 1; // 50% chance of 2x2, 50% chance of 1x2
-    }
-
-    // Apply the grid spanning
-    item.style.gridColumn = `span ${spanCols}`;
-    item.style.gridRow = `span ${spanRows}`;
-});
-
-
-// code for scrolling sections
-
-document.querySelectorAll('.scroll').forEach(scroll => {
-    let isDown = false;
-    let startX;
-    let scrollLeft;
-
-    // Mouse drag scrolling
-    scroll.addEventListener('mousedown', (e) => {
-        isDown = true;
-        scroll.style.cursor = 'grabbing';
-        startX = e.pageX - scroll.offsetLeft;
-        scrollLeft = scroll.scrollLeft;
-        e.preventDefault(); // Prevent text selection
-    });
-
-    scroll.addEventListener('mouseleave', () => {
-        isDown = false;
-        scroll.style.cursor = 'grab';
-    });
-
-    scroll.addEventListener('mouseup', () => {
-        isDown = false;
-        scroll.style.cursor = 'grab';
-    });
-
-    scroll.addEventListener('mousemove', (e) => {
-        if (!isDown) return;
-        e.preventDefault();
-        const x = e.pageX - scroll.offsetLeft;
-        const walk = (x - startX) * 2; // Adjust multiplier for scroll speed
-        scroll.scrollLeft = scrollLeft - walk;
-    });
-
-    // Touch handling
-    scroll.addEventListener('touchstart', (e) => {
-        const touch = e.touches[0];
-        startX = touch.pageX - scroll.offsetLeft;
-        scrollLeft = scroll.scrollLeft;
-    });
-
-    scroll.addEventListener('touchmove', (e) => {
-        if (scroll.scrollWidth <= scroll.clientWidth) return;
-        const touch = e.touches[0];
-        const x = touch.pageX - scroll.offsetLeft;
-        const walk = (x - startX) * 2;
-        scroll.scrollLeft = scrollLeft - walk;
-        e.stopPropagation();
-    }, { passive: false });
-});
-
+// Call the combined function
+insertAndStyleGallery('div[class*="gallery"]');
 
