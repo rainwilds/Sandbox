@@ -44,7 +44,6 @@
 //     37: 416, 38: 424, 39: 432, 40: 440
 // };
 
-
 // Function to create picture tag string (unchanged)
 function createPictureTagString(id, imageUrl) {
     return `
@@ -126,16 +125,18 @@ function insertAndStyleGallery(selector) {
     containers.forEach((container) => {
         // Determine which gallery array to use based on the container's class
         let galleryArray = null;
+        let matchedClass = null;
         for (const [className, images] of Object.entries(galleryMap)) {
             if (container.classList.contains(className)) {
                 galleryArray = images;
+                matchedClass = className;
                 break;
             }
         }
 
-        // If no specific gallery array is found, use gallery_1_Images as default
-        if (!galleryArray) {
-            galleryArray = gallery_1_Images;
+        // Only proceed if a specific gallery type is matched
+        if (!matchedClass) {
+            return; // Skip this container if it doesn't match a specific gallery type
         }
 
         // Add gallery class to container if it doesn't have it
