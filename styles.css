@@ -257,6 +257,18 @@
             place-self: center;
         }
 
+        .font-size-small {
+            font-size: 0.8rem;
+        }
+
+        .font-size-medium {
+            font-size: 1.3rem;
+        }
+
+        .font-size-large {
+            font-size: 1.8rem;
+        }
+
         .bottom {
             place-content: end;
             place-self: end;
