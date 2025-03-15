@@ -46,6 +46,15 @@
 
 
 
+// Function to shuffle an array (Fisher-Yates shuffle)
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+    }
+    return array;
+}
+
 // Function to create video tag string
 function createVideoTagString(id, videoUrl, posterUrl) {
     return `
@@ -95,7 +104,7 @@ const galleryMap = {
     'gallery-scroll': gallery_2_Images
 };
 
-// Updated insertAndStyleGallery function with lightbox initialization
+// Updated insertAndStyleGallery function with randomization
 function insertAndStyleGallery(selector) {
     const containers = document.querySelectorAll(selector);
 
@@ -112,8 +121,11 @@ function insertAndStyleGallery(selector) {
 
         if (!matchedClass) return;
 
-        // Insert media items
-        galleryArray.forEach((item) => {
+        // Create a copy of the galleryArray and shuffle it
+        const shuffledGalleryArray = shuffleArray([...galleryArray]);
+
+        // Insert media items from the shuffled array
+        shuffledGalleryArray.forEach((item) => {
             const id = item.url.split('/').pop().replace(/\.[^/.]+$/, '');
             let mediaString;
             if (item.type === 'video') {
@@ -134,7 +146,7 @@ function insertAndStyleGallery(selector) {
 }
 
 function styleGallery(galleryContainer) {
-    const galleryItems = galleryContainer.querySelectorAll('picture');
+    const galleryItems = galleryContainer.querySelectorAll('picture, video'); // Include video elements
     const columns = 4;
     const totalItems = galleryItems.length;
     const completeRows = Math.floor(totalItems / columns);
@@ -157,7 +169,7 @@ function styleGallery(galleryContainer) {
     });
 }
 
-// Lightbox initialization
+// Lightbox initialization (unchanged)
 function initLightbox() {
     const galleryItems = document.querySelectorAll('.gallery-item');
     const lightbox = document.getElementById('lightbox');
@@ -170,11 +182,9 @@ function initLightbox() {
     let touchStartX = 0;
     let touchEndX = 0;
 
-    // Create a <style> element to manage :root styles dynamically
     const styleSheet = document.createElement('style');
     document.head.appendChild(styleSheet);
 
-    // Define the CSS to hide scrollbars on :root
     const hideScrollbarsCSS = `
         :root.lightbox-active {
             @supports selector(scrollbar-width) {
@@ -185,41 +195,34 @@ function initLightbox() {
             }
         }
     `;
-
-    // Add the CSS to the stylesheet
     styleSheet.textContent = hideScrollbarsCSS;
 
-    // Function to toggle :root class
     function toggleRootScrollbars(active) {
         document.documentElement.classList.toggle('lightbox-active', active);
     }
 
-    // Open lightbox on item click
     galleryItems.forEach((item, index) => {
         item.addEventListener('click', () => {
             currentIndex = index;
             updateLightboxContent(item);
             lightbox.classList.add('active');
-            toggleRootScrollbars(true); // Hide scrollbars
-            lightbox.focus(); // Focus for keyboard accessibility
+            toggleRootScrollbars(true);
+            lightbox.focus();
         });
     });
 
-    // Close lightbox
     closeBtn.addEventListener('click', () => {
         lightbox.classList.remove('active');
-        toggleRootScrollbars(false); // Show scrollbars
+        toggleRootScrollbars(false);
     });
 
-    // Click outside to close
     lightbox.addEventListener('click', (e) => {
         if (e.target === lightbox) {
             lightbox.classList.remove('active');
-            toggleRootScrollbars(false); // Show scrollbars
+            toggleRootScrollbars(false);
         }
     });
 
-    // Next/Prev buttons
     nextBtn.addEventListener('click', () => {
         currentIndex = (currentIndex + 1) % galleryItems.length;
         updateLightboxContent(galleryItems[currentIndex]);
@@ -230,7 +233,6 @@ function initLightbox() {
         updateLightboxContent(galleryItems[currentIndex]);
     });
 
-    // Swipe support
     lightboxContent.addEventListener('touchstart', (e) => {
         touchStartX = e.changedTouches[0].screenX;
     });
@@ -240,7 +242,6 @@ function initLightbox() {
         handleSwipe();
     });
 
-    // Keyboard navigation
     lightbox.addEventListener('keydown', (e) => {
         if (!lightbox.classList.contains('active')) return;
 
@@ -258,12 +259,11 @@ function initLightbox() {
             case 'Escape':
                 e.preventDefault();
                 lightbox.classList.remove('active');
-                toggleRootScrollbars(false); // Show scrollbars
+                toggleRootScrollbars(false);
                 break;
         }
     });
 
-    // Ensure lightbox is focusable for keyboard events
     lightbox.setAttribute('tabindex', '0');
 
     function handleSwipe() {
@@ -277,10 +277,9 @@ function initLightbox() {
         }
     }
 
-    // Update lightbox content (image or video)
     function updateLightboxContent(item) {
         const fullUrl = item.dataset.full;
-        lightboxContent.innerHTML = ''; // Clear previous content
+        lightboxContent.innerHTML = '';
         if (item.tagName === 'VIDEO') {
             lightboxContent.innerHTML = `
                 <video autoplay muted loop disablepictureinpicture playsinline src="${fullUrl}">
@@ -289,7 +288,6 @@ function initLightbox() {
                 </video>
             `;
         } else {
-            // Extract the base filename from fullUrl (e.g., "gallery-item-1" from "/Sandbox/img/gallery/gallery-item-1.jpg")
             const baseName = fullUrl.split('/').pop().replace(/\.[^/.]+$/, '');
             const resolutions = [768, 980, 1366, 1920, 2560, 3840];
             const sizes = `(max-width: 768px) 100vw,
@@ -300,7 +298,6 @@ function initLightbox() {
                            (max-width: 3840px) 100vw,
                            3840px`;
 
-            // Generate source elements for avif, webp, and jpg with updated paths
             const avifSources = resolutions.map(res => `./img/gallery/${baseName}-${res}.avif ${res}w`).join(', ');
             const webpSources = resolutions.map(res => `./img/gallery/${baseName}-${res}.webp ${res}w`).join(', ');
             const jpgSources = resolutions.map(res => `./img/gallery/${baseName}-${res}.jpg ${res}w`).join(', ');
