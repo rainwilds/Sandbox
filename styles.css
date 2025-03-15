@@ -738,6 +738,14 @@
         &.active {
             display: grid;
             /* Show as grid when active */
+
+            /* Hide scrollbar for all browsers */
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+
+            &::-webkit-scrollbar {
+                display: none;
+            }
         }
 
         /* Rest of your styles for .close, .prev, .next, .lightbox-content remain unchanged */
@@ -753,6 +761,9 @@
             align-self: start;
             line-height: 0.6;
             padding: var(--space-tiny);
+            background: black;
+            padding: var(--space-tiny);
+            margin: var(--space-small);
 
             &:hover {
                 color: var(--color-accent-light-primary);
@@ -762,13 +773,15 @@
 
         &>.prev,
         &>.next {
-            background: none;
             border: none;
             color: white;
             font-size: 2rem;
             cursor: pointer;
             z-index: 1001;
             align-self: center;
+            background: black;
+            padding: var(--space-tiny);
+            margin: var(--space-small);
 
             &:hover {
                 background: rgba(255, 255, 255, 0.4);
@@ -778,10 +791,12 @@
 
         &>.prev {
             grid-area: content;
+            justify-self: left;
         }
 
         &>.next {
             grid-area: content;
+            justify-self: right;
         }
 
         &>.lightbox-content {
