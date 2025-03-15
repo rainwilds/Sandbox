@@ -293,12 +293,12 @@ function initLightbox() {
             const baseName = fullUrl.split('/').pop().replace(/\.[^/.]+$/, '');
             const resolutions = [768, 980, 1366, 1920, 2560, 3840];
             const sizes = `(max-width: 768px) 100vw,
-                           (max-width: 980px) 60vw,
-                           (max-width: 1366px) 75vw,
-                           (max-width: 1920px) 75vw,
-                           (max-width: 2560px) 75vw,
-                           (max-width: 3840px) 75vw,
-                           1920px`;
+                           (max-width: 980px) 100vw,
+                           (max-width: 1366px) 100vw,
+                           (max-width: 1920px) 100vw,
+                           (max-width: 2560px) 100vw,
+                           (max-width: 3840px) 100vw,
+                           3840px`;
 
             // Generate source elements for avif, webp, and jpg with updated paths
             const avifSources = resolutions.map(res => `./img/gallery/${baseName}-${res}.avif ${res}w`).join(', ');
