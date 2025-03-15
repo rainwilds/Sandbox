@@ -745,6 +745,11 @@
         &.active {
             display: grid;
             /* Show as grid when active */
+
+        }
+
+        >* {
+            grid-area: content;
         }
 
         /* Rest of your styles for .close, .prev, .next, .lightbox-content remain unchanged */
@@ -789,17 +794,14 @@
         }
 
         &>.prev {
-            grid-area: content;
             justify-self: left;
         }
 
         &>.next {
-            grid-area: content;
             justify-self: right;
         }
 
         &>.lightbox-content {
-            grid-area: content;
             max-height: 100vh;
 
 
