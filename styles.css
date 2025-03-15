@@ -793,6 +793,7 @@
 
         &>.lightbox-content {
             grid-area: content;
+            max-height: 100vh;
         }
     }
 
