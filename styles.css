@@ -733,11 +733,7 @@
 
         /* Grid layout defined but only applied when active */
         grid-template-columns: min-content 1fr min-content;
-        grid-template-rows: 20px 1fr 20px;
-        grid-template-areas:
-            ". . close"
-            "prev content next"
-            ". . .";
+        grid-template-areas: "prev content next";
 
         &.active {
             display: grid;
@@ -746,7 +742,9 @@
 
         /* Rest of your styles for .close, .prev, .next, .lightbox-content remain unchanged */
         &>.close {
-            grid-area: close;
+            position: absolute;
+            top: 0;
+            right: 0;
             color: white;
             font-size: 2rem;
             cursor: pointer;
