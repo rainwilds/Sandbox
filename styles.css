@@ -721,8 +721,6 @@
 
     }
 
-
-
     div#lightbox {
         display: none;
         position: fixed;
@@ -797,8 +795,6 @@
         }
     }
 
-
-
     div.scroll {
         width: 100%;
         overflow-x: auto;
@@ -821,6 +817,12 @@
 
             >* {
                 user-select: none;
+            }
+
+            >*:has(h2,h3,h4,h5) {
+                max-width: 250px;
+                display: grid;
+                gap: var(--space-tiny);
             }
 
         }
