@@ -46,7 +46,7 @@
 
 
 
-// Function to create video tag string (unchanged)
+// Function to create video tag string
 function createVideoTagString(id, videoUrl, posterUrl) {
     return `
         <video autoplay muted loop disablepictureinpicture playsinline poster="${posterUrl}" data-full="${videoUrl}" class="gallery-item">
@@ -56,7 +56,7 @@ function createVideoTagString(id, videoUrl, posterUrl) {
     `;
 }
 
-// Function to create picture tag string (unchanged)
+// Updated function to create picture tag string
 function createPictureTagString(id, imageUrl) {
     return `
         <picture>
@@ -65,7 +65,7 @@ function createPictureTagString(id, imageUrl) {
     `;
 }
 
-// Gallery arrays and galleryMap (unchanged)
+// Define gallery arrays (unchanged)
 const gallery_1_Images = [
     { type: 'image', url: '/Sandbox/img/gallery/gallery-item-1.jpg' },
     { type: 'video', url: '/Sandbox/video/video1.mp4', poster: '/Sandbox/img/gallery/gallery-item-2.jpg' },
@@ -95,7 +95,7 @@ const galleryMap = {
     'gallery-scroll': gallery_2_Images
 };
 
-// Insert and style gallery (unchanged except for lightbox init)
+// Updated insertAndStyleGallery function with lightbox initialization
 function insertAndStyleGallery(selector) {
     const containers = document.querySelectorAll(selector);
 
@@ -116,6 +116,7 @@ function insertAndStyleGallery(selector) {
             container.classList.add('gallery');
         }
 
+        // Insert media items
         galleryArray.forEach((item) => {
             const id = item.url.split('/').pop().replace(/\.[^/.]+$/, '');
             let mediaString;
@@ -132,10 +133,10 @@ function insertAndStyleGallery(selector) {
         }
     });
 
+    // Initialize lightbox after gallery is populated
     initLightbox();
 }
 
-// Style gallery (unchanged)
 function styleGallery(galleryContainer) {
     const galleryItems = galleryContainer.querySelectorAll('picture');
     const columns = 4;
@@ -160,11 +161,12 @@ function styleGallery(galleryContainer) {
     });
 }
 
-// Updated lightbox initialization with Popover API
+// Lightbox initialization
 function initLightbox() {
     const galleryItems = document.querySelectorAll('.gallery-item');
     const lightbox = document.getElementById('lightbox');
     const lightboxContent = document.querySelector('.lightbox-content');
+    const closeBtn = document.querySelector('.close');
     const prevBtn = document.querySelector('.prev');
     const nextBtn = document.querySelector('.next');
 
@@ -177,8 +179,18 @@ function initLightbox() {
         item.addEventListener('click', () => {
             currentIndex = index;
             updateLightboxContent(item);
-            lightbox.showPopover(); // Show the popover
+            lightbox.classList.add('active');
         });
+    });
+
+    // Close lightbox
+    closeBtn.addEventListener('click', () => {
+        lightbox.classList.remove('active');
+    });
+
+    // Click outside to close
+    lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) lightbox.classList.remove('active');
     });
 
     // Next/Prev buttons
@@ -216,7 +228,7 @@ function initLightbox() {
     // Update lightbox content (image or video)
     function updateLightboxContent(item) {
         const fullUrl = item.dataset.full;
-        lightboxContent.innerHTML = '';
+        lightboxContent.innerHTML = ''; // Clear previous content
         if (item.tagName === 'VIDEO') {
             lightboxContent.innerHTML = `
                 <video autoplay muted loop disablepictureinpicture playsinline src="${fullUrl}">
@@ -232,6 +244,7 @@ function initLightbox() {
 
 // Call the function
 insertAndStyleGallery('div[class*="gallery"]');
+
 
 // Add scrolling functionality for elements with class "scroll"
 function addScrollFunctionality() {
