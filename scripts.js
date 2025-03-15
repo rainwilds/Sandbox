@@ -310,7 +310,7 @@ function initLightbox() {
                     <source srcset="${avifSources}" sizes="${sizes}" type="image/avif">
                     <source srcset="${webpSources}" sizes="${sizes}" type="image/webp">
                     <source srcset="${jpgSources}" sizes="${sizes}" type="image/jpeg">
-                    <img src="./img/gallery/${baseName}-3840.jpg" alt="" loading="lazy">
+                    <img src="./img/gallery/${baseName}-3840.jpg" alt="">
                 </picture>
             `;
         }
