@@ -760,15 +760,13 @@
 
         &>.prev,
         &>.next {
-            background: rgba(255, 255, 255, 0.2);
+            background: none;
             border: none;
             color: white;
             font-size: 2rem;
-            padding: 10px 20px;
             cursor: pointer;
             z-index: 1001;
             align-self: center;
-            padding: var(--space-small);
 
             &:hover {
                 background: rgba(255, 255, 255, 0.4);
