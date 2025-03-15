@@ -803,57 +803,55 @@
             max-height: 100vh;
 
 
-            &> {
-
-                img,
-                picture,
-                video {
-                    object-fit: contain;
-                }
-
+            &>img,
+            picture,
+            video {
+                object-fit: contain;
             }
+
         }
     }
+}
 
-    div.scroll {
-        width: 100%;
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
+div.scroll {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
 
-        @supports selector(scrollbar-width) {
-            scrollbar-width: none;
+    @supports selector(scrollbar-width) {
+        scrollbar-width: none;
+    }
+
+    ::-webkit-scrollbar {
+        display: none;
+    }
+
+
+    >div {
+
+        display: flex;
+        /* required to make it flow into a single row */
+        gap: var(--space-tiny);
+        min-width: max-content;
+        /* renders the entire row */
+
+        >* {
+            user-select: none;
+            max-width: 300px;
         }
 
-        ::-webkit-scrollbar {
-            display: none;
-        }
-
-
-        >div {
-
-            display: flex;
-            /* required to make it flow into a single row */
+        >*:has(h2, h3, h4, h5) {
+            max-width: 250px;
+            display: grid;
             gap: var(--space-tiny);
-            min-width: max-content;
-            /* renders the entire row */
-
-            >* {
-                user-select: none;
-                max-width: 300px;
-            }
-
-            >*:has(h2, h3, h4, h5) {
-                max-width: 250px;
-                display: grid;
-                gap: var(--space-tiny);
-                max-width: 250px;
-                background: beige;
-            }
-
+            max-width: 250px;
+            background: beige;
         }
 
-        /* >div[class*="gallery"] {
+    }
+
+    /* >div[class*="gallery"] {
 
             >* {
                 width: 300px;
@@ -862,21 +860,21 @@
             }
         } */
 
-        @supports (scroll-snap-align: start) {
-            scroll-snap-type: x mandatory;
+    @supports (scroll-snap-align: start) {
+        scroll-snap-type: x mandatory;
 
-            >div>* {
-                scroll-snap-align: start;
-            }
+        >div>* {
+            scroll-snap-align: start;
         }
-
-        @media (max-width: 768px) {
-            .scroll>div>* {
-                width: 65vw;
-            }
-        }
-
     }
+
+    @media (max-width: 768px) {
+        .scroll>div>* {
+            width: 65vw;
+        }
+    }
+
+}
 
 }
 
