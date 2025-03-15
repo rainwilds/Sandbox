@@ -577,7 +577,11 @@
                 --font-2-size-medium: 20px;
                 --font-2-size-large: 22px;
 
+                --space-tiny: 0.25rem;
+                --space-small: 1rem;
                 --space-medium: 1.5rem;
+                --space-large: 3.5rem;
+                --space-huge: 5rem;
             }
 
         }
