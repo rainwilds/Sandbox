@@ -48,23 +48,23 @@
 // Function to create video tag string
 function createVideoTagString(id, videoUrl, posterUrl) {
     return `
-        <video autoplay muted loop disablepictureinpicture playsinline poster="${posterUrl}">
+        <video autoplay muted loop disablepictureinpicture playsinline poster="${posterUrl}" data-full="${videoUrl}" class="gallery-item">
             <source src="${videoUrl}" type="video/mp4">
             <source src="${videoUrl.replace('.mp4', '.webm')}" type="video/webm">
         </video>
     `;
 }
 
-// Updated function to create picture tag string (simplified for brevity)
+// Updated function to create picture tag string
 function createPictureTagString(id, imageUrl) {
     return `
         <picture>
-            <img width="100%" src="${imageUrl}" alt="Alt title" title="Image title" loading="lazy" id="${id}" />
+            <img width="100%" src="${imageUrl}" data-full="${imageUrl}" alt="Alt title" title="Image title" loading="lazy" id="${id}" class="gallery-item" />
         </picture>
     `;
 }
 
-// Define multiple gallery arrays with type support
+// Define gallery arrays (unchanged)
 const gallery_1_Images = [
     { type: 'image', url: '/Sandbox/img/gallery/gallery-item-1.jpg' },
     { type: 'video', url: '/Sandbox/video/video1.mp4', poster: '/Sandbox/img/gallery/gallery-item-2.jpg' },
@@ -89,13 +89,12 @@ const gallery_2_Images = [
     { type: 'image', url: '/Sandbox/img/gallery/gallery-item-9.jpg' }
 ];
 
-// Mapping of selectors to gallery arrays
 const galleryMap = {
     'gallery-main': gallery_1_Images,
     'gallery-scroll': gallery_2_Images
 };
 
-// Updated insertAndStyleGallery function
+// Updated insertAndStyleGallery function with lightbox initialization
 function insertAndStyleGallery(selector) {
     const containers = document.querySelectorAll(selector);
 
@@ -120,13 +119,11 @@ function insertAndStyleGallery(selector) {
         galleryArray.forEach((item) => {
             const id = item.url.split('/').pop().replace(/\.[^/.]+$/, '');
             let mediaString;
-            
             if (item.type === 'video') {
                 mediaString = createVideoTagString(id, item.url, item.poster);
             } else {
                 mediaString = createPictureTagString(id, item.url);
             }
-            
             container.insertAdjacentHTML('beforeend', mediaString);
         });
 
@@ -134,6 +131,9 @@ function insertAndStyleGallery(selector) {
             styleGallery(container);
         }
     });
+
+    // Initialize lightbox after gallery is populated
+    initLightbox();
 }
 
 function styleGallery(galleryContainer) {
@@ -160,7 +160,88 @@ function styleGallery(galleryContainer) {
     });
 }
 
-// Call the combined function for all elements with class containing "gallery"
+// Lightbox initialization
+function initLightbox() {
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    const lightbox = document.getElementById('lightbox');
+    const lightboxContent = document.querySelector('.lightbox-content');
+    const closeBtn = document.querySelector('.close');
+    const prevBtn = document.querySelector('.prev');
+    const nextBtn = document.querySelector('.next');
+
+    let currentIndex = 0;
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    // Open lightbox on item click
+    galleryItems.forEach((item, index) => {
+        item.addEventListener('click', () => {
+            currentIndex = index;
+            updateLightboxContent(item);
+            lightbox.classList.add('active');
+        });
+    });
+
+    // Close lightbox
+    closeBtn.addEventListener('click', () => {
+        lightbox.classList.remove('active');
+    });
+
+    // Click outside to close
+    lightbox.addEventListener('click', (e) => {
+        if (e.target === lightbox) lightbox.classList.remove('active');
+    });
+
+    // Next/Prev buttons
+    nextBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex + 1) % galleryItems.length;
+        updateLightboxContent(galleryItems[currentIndex]);
+    });
+
+    prevBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex - 1 + galleryItems.length) % galleryItems.length;
+        updateLightboxContent(galleryItems[currentIndex]);
+    });
+
+    // Swipe support
+    lightboxContent.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+    });
+
+    lightboxContent.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+    });
+
+    function handleSwipe() {
+        const swipeThreshold = 50;
+        if (touchStartX - touchEndX > swipeThreshold) {
+            currentIndex = (currentIndex + 1) % galleryItems.length;
+            updateLightboxContent(galleryItems[currentIndex]);
+        } else if (touchEndX - touchStartX > swipeThreshold) {
+            currentIndex = (currentIndex - 1 + galleryItems.length) % galleryItems.length;
+            updateLightboxContent(galleryItems[currentIndex]);
+        }
+    }
+
+    // Update lightbox content (image or video)
+    function updateLightboxContent(item) {
+        const fullUrl = item.dataset.full;
+        lightboxContent.innerHTML = ''; // Clear previous content
+        if (item.tagName === 'VIDEO') {
+            lightboxContent.innerHTML = `
+                <video autoplay muted loop disablepictureinpicture playsinline src="${fullUrl}">
+                    <source src="${fullUrl}" type="video/mp4">
+                    <source src="${fullUrl.replace('.mp4', '.webm')}" type="video/webm">
+                </video>
+            `;
+        } else {
+            lightboxContent.innerHTML = `<img src="${fullUrl}" alt="Full size image">`;
+        }
+    }
+}
+
+// Call the function
 insertAndStyleGallery('div[class*="gallery"]');
 
 // Add scrolling functionality for elements with class "scroll"
