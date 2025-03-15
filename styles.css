@@ -723,7 +723,6 @@
 
     div#lightbox {
         display: none;
-        /* Hidden by default */
         position: fixed;
         top: 0;
         left: 0;
@@ -733,12 +732,12 @@
         z-index: 1000;
 
         /* Grid layout defined but only applied when active */
-        grid-template-columns: minmax(20px, 1fr) minmax(0, 90vw) minmax(20px, 1fr);
-        grid-template-rows: 20px minmax(0, 90vh) minmax(20px, 1fr);
+        grid-template-columns: min-content 1fr min-content;
+        grid-template-rows: 20px 1fr 20px;
         grid-template-areas:
-            "close close close"
+            ". . close"
             "prev content next"
-            ". content .";
+            ". . .";
 
         &.active {
             display: grid;
@@ -771,6 +770,7 @@
             cursor: pointer;
             z-index: 1001;
             align-self: center;
+            padding: var(--space-small);
 
             &:hover {
                 background: rgba(255, 255, 255, 0.4);
@@ -780,26 +780,26 @@
 
         &>.prev {
             grid-area: prev;
-            justify-self: start;
+            /* justify-self: start; */
         }
 
         &>.next {
             grid-area: next;
-            justify-self: end;
+            /* justify-self: end; */
         }
 
         &>.lightbox-content {
             grid-area: content;
-            max-width: 90vw;
+            /* max-width: 90vw;
             max-height: 90vh;
             display: flex;
             align-items: center;
-            justify-content: center;
+            justify-content: center; */
 
-            &>img,
+            /* &>img,
             &>video {
                 object-fit: contain;
-            }
+            } */
         }
     }
 
