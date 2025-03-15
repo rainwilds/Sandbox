@@ -738,12 +738,6 @@
         &.active {
             display: grid;
             /* Show as grid when active */
-
-            @supports selector(scrollbar-width) {
-                scrollbar-width: none;
-            }
-    
-            ::-webkit-scrollbar: 0;
         }
 
         /* Rest of your styles for .close, .prev, .next, .lightbox-content remain unchanged */
@@ -812,7 +806,9 @@
             scrollbar-width: none;
         }
 
-        ::-webkit-scrollbar: 0;
+        ::-webkit-scrollbar {
+            display: none;
+        }
     }
 
         >div {
