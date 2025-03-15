@@ -189,14 +189,21 @@
             scrollbar-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-secondary)) light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-primary));
         }
 
-        ::-webkit-scrollbar-track: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-secondary));
-        ::-webkit-scrollbar-thumb: light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-primary));
+        ::-webkit-scrollbar-track {
+            background: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-secondary));
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-primary));
+        }
 
         @supports selector(scrollbar-width) {
             scrollbar-width: thin;
         }
 
-        ::-webkit-scrollbar: 8px;
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
 
         @supports selector(scrollbar-gutter) {
             scrollbar-gutter: stable;
@@ -810,7 +817,7 @@
         ::-webkit-scrollbar {
             display: none;
         }
-    
+
 
         >div {
 
