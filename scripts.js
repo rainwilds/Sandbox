@@ -301,16 +301,16 @@ function initLightbox() {
                            1920px`;
 
             // Generate source elements for avif, webp, and jpg with updated paths
-            const avifSources = resolutions.map(res => `./Sandbox/img/gallery/${baseName}-${res}.avif ${res}w`).join(', ');
-            const webpSources = resolutions.map(res => `./Sandbox/img/gallery/${baseName}-${res}.webp ${res}w`).join(', ');
-            const jpgSources = resolutions.map(res => `./Sandbox/img/gallery/${baseName}-${res}.jpg ${res}w`).join(', ');
+            const avifSources = resolutions.map(res => `./img/gallery/${baseName}-${res}.avif ${res}w`).join(', ');
+            const webpSources = resolutions.map(res => `./img/gallery/${baseName}-${res}.webp ${res}w`).join(', ');
+            const jpgSources = resolutions.map(res => `./img/gallery/${baseName}-${res}.jpg ${res}w`).join(', ');
 
             lightboxContent.innerHTML = `
                 <picture class="animate animate-fade-in">
                     <source srcset="${avifSources}" sizes="${sizes}" type="image/avif">
                     <source srcset="${webpSources}" sizes="${sizes}" type="image/webp">
                     <source srcset="${jpgSources}" sizes="${sizes}" type="image/jpeg">
-                    <img src="./Sandbox/img/gallery/${baseName}-3840.jpg" alt="" loading="lazy">
+                    <img src="./img/gallery/${baseName}-3840.jpg" alt="" loading="lazy">
                 </picture>
             `;
         }
