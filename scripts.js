@@ -112,11 +112,6 @@ function insertAndStyleGallery(selector) {
 
         if (!matchedClass) return;
 
-        // Removed the gallery class addition
-        // if (!container.classList.contains('gallery')) {
-        //     container.classList.add('gallery');
-        // }
-
         // Insert media items
         galleryArray.forEach((item) => {
             const id = item.url.split('/').pop().replace(/\.[^/.]+$/, '');
@@ -163,7 +158,6 @@ function styleGallery(galleryContainer) {
 }
 
 // Lightbox initialization
-// Lightbox initialization
 function initLightbox() {
     const galleryItems = document.querySelectorAll('.gallery-item');
     const lightbox = document.getElementById('lightbox');
@@ -176,25 +170,53 @@ function initLightbox() {
     let touchStartX = 0;
     let touchEndX = 0;
 
+    // Create a <style> element to manage body styles dynamically
+    const styleSheet = document.createElement('style');
+    document.head.appendChild(styleSheet);
+
+    // Define the CSS to hide scrollbars
+    const hideScrollbarsCSS = `
+        body.lightbox-active {
+            @supports selector(scrollbar-width) {
+                scrollbar-width: none;
+            }
+            &::-webkit-scrollbar {
+                display: none;
+            }
+        }
+    `;
+
+    // Add the CSS to the stylesheet
+    styleSheet.textContent = hideScrollbarsCSS;
+
+    // Function to toggle body class
+    function toggleBodyScrollbars(active) {
+        document.body.classList.toggle('lightbox-active', active);
+    }
+
     // Open lightbox on item click
     galleryItems.forEach((item, index) => {
         item.addEventListener('click', () => {
             currentIndex = index;
             updateLightboxContent(item);
             lightbox.classList.add('active');
-            // Focus the lightbox for keyboard accessibility
-            lightbox.focus();
+            toggleBodyScrollbars(true); // Hide scrollbars
+            lightbox.focus(); // Focus for keyboard accessibility
         });
     });
 
     // Close lightbox
     closeBtn.addEventListener('click', () => {
         lightbox.classList.remove('active');
+        toggleBodyScrollbars(false); // Show scrollbars
     });
 
     // Click outside to close
     lightbox.addEventListener('click', (e) => {
-        if (e.target === lightbox) lightbox.classList.remove('active');
+        if (e.target === lightbox) {
+            lightbox.classList.remove('active');
+            toggleBodyScrollbars(false); // Show scrollbars
+        }
     });
 
     // Next/Prev buttons
@@ -220,22 +242,23 @@ function initLightbox() {
 
     // Keyboard navigation
     lightbox.addEventListener('keydown', (e) => {
-        if (!lightbox.classList.contains('active')) return; // Only handle keys when lightbox is active
+        if (!lightbox.classList.contains('active')) return;
 
         switch (e.key) {
             case 'ArrowRight':
-                e.preventDefault(); // Prevent default scrolling behavior
+                e.preventDefault();
                 currentIndex = (currentIndex + 1) % galleryItems.length;
                 updateLightboxContent(galleryItems[currentIndex]);
                 break;
             case 'ArrowLeft':
-                e.preventDefault(); // Prevent default scrolling behavior
+                e.preventDefault();
                 currentIndex = (currentIndex - 1 + galleryItems.length) % galleryItems.length;
                 updateLightboxContent(galleryItems[currentIndex]);
                 break;
             case 'Escape':
-                e.preventDefault(); // Optional: prevent any default behavior
+                e.preventDefault();
                 lightbox.classList.remove('active');
+                toggleBodyScrollbars(false); // Show scrollbars
                 break;
         }
     });
@@ -257,7 +280,7 @@ function initLightbox() {
     // Update lightbox content (image or video)
     function updateLightboxContent(item) {
         const fullUrl = item.dataset.full;
-        lightboxContent.innerHTML = ''; // Clear previous content
+        lightboxContent.innerHTML = '';
         if (item.tagName === 'VIDEO') {
             lightboxContent.innerHTML = `
                 <video autoplay muted loop disablepictureinpicture playsinline src="${fullUrl}">
