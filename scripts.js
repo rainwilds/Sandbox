@@ -163,6 +163,7 @@ function styleGallery(galleryContainer) {
 }
 
 // Lightbox initialization
+// Lightbox initialization
 function initLightbox() {
     const galleryItems = document.querySelectorAll('.gallery-item');
     const lightbox = document.getElementById('lightbox');
@@ -181,6 +182,8 @@ function initLightbox() {
             currentIndex = index;
             updateLightboxContent(item);
             lightbox.classList.add('active');
+            // Focus the lightbox for keyboard accessibility
+            lightbox.focus();
         });
     });
 
@@ -214,6 +217,31 @@ function initLightbox() {
         touchEndX = e.changedTouches[0].screenX;
         handleSwipe();
     });
+
+    // Keyboard navigation
+    lightbox.addEventListener('keydown', (e) => {
+        if (!lightbox.classList.contains('active')) return; // Only handle keys when lightbox is active
+
+        switch (e.key) {
+            case 'ArrowRight':
+                e.preventDefault(); // Prevent default scrolling behavior
+                currentIndex = (currentIndex + 1) % galleryItems.length;
+                updateLightboxContent(galleryItems[currentIndex]);
+                break;
+            case 'ArrowLeft':
+                e.preventDefault(); // Prevent default scrolling behavior
+                currentIndex = (currentIndex - 1 + galleryItems.length) % galleryItems.length;
+                updateLightboxContent(galleryItems[currentIndex]);
+                break;
+            case 'Escape':
+                e.preventDefault(); // Optional: prevent any default behavior
+                lightbox.classList.remove('active');
+                break;
+        }
+    });
+
+    // Ensure lightbox is focusable for keyboard events
+    lightbox.setAttribute('tabindex', '0');
 
     function handleSwipe() {
         const swipeThreshold = 50;
