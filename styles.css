@@ -722,7 +722,8 @@
     }
 
     div#lightbox {
-        display: none; /* Hidden by default */
+        display: none;
+        /* Hidden by default */
         position: fixed;
         top: 0;
         left: 0;
@@ -730,21 +731,22 @@
         height: 100vh;
         background: rgba(0, 0, 0, 0.9);
         z-index: 1000;
-    
+
         /* Grid layout defined but only applied when active */
         grid-template-columns: minmax(20px, 1fr) minmax(0, 90vw) minmax(20px, 1fr);
         grid-template-rows: 20px minmax(0, 90vh) minmax(20px, 1fr);
-        grid-template-areas: 
+        grid-template-areas:
             "close close close"
             "prev content next"
             ". content .";
-    
+
         &.active {
-            display: grid; /* Show as grid when active */
+            display: grid;
+            /* Show as grid when active */
         }
-    
+
         /* Rest of your styles for .close, .prev, .next, .lightbox-content remain unchanged */
-        & > .close {
+        &>.close {
             grid-area: close;
             color: white;
             font-size: 2rem;
@@ -752,15 +754,15 @@
             z-index: 1001;
             justify-self: end;
             align-self: start;
-    
+
             &:hover {
                 color: var(--color-accent-light-primary);
                 transition: color 0.3s;
             }
         }
-    
-        & > .prev,
-        & > .next {
+
+        &>.prev,
+        &>.next {
             background: rgba(255, 255, 255, 0.2);
             border: none;
             color: white;
@@ -769,33 +771,33 @@
             cursor: pointer;
             z-index: 1001;
             align-self: center;
-    
+
             &:hover {
                 background: rgba(255, 255, 255, 0.4);
                 transition: background 0.3s;
             }
         }
-    
-        & > .prev {
+
+        &>.prev {
             grid-area: prev;
             justify-self: start;
         }
-    
-        & > .next {
+
+        &>.next {
             grid-area: next;
             justify-self: end;
         }
-    
-        & > .lightbox-content {
+
+        &>.lightbox-content {
             grid-area: content;
             max-width: 90vw;
             max-height: 90vh;
             display: flex;
             align-items: center;
             justify-content: center;
-    
-            & > img,
-            & > video {
+
+            &>img,
+            &>video {
                 object-fit: contain;
             }
         }
@@ -817,30 +819,32 @@
 
         >div {
 
-            display: flex;
+            display: flex; /* required to make it flow into a single row */
             gap: var(--space-tiny);
-            min-width: max-content;
+            min-width: max-content; /* renders the entire row */
 
             >* {
                 user-select: none;
             }
 
-            >*:has(h2,h3,h4,h5) {
+            >*:has(h2, h3, h4, h5) {
                 max-width: 250px;
                 display: grid;
                 gap: var(--space-tiny);
+                max-width: 250px;
+                background: beige;
             }
 
         }
 
-        >div[class*="gallery"] {
+        /* >div[class*="gallery"] {
 
             >* {
                 width: 300px;
                 height: 200px;
                 display: flex;
             }
-        }
+        } */
 
         @supports (scroll-snap-align: start) {
             scroll-snap-type: x mandatory;
