@@ -801,6 +801,17 @@
         &>.lightbox-content {
             grid-area: content;
             max-height: 100vh;
+
+
+            &> {
+
+                img,
+                picture,
+                video {
+                    object-fit: contain;
+                }
+
+            }
         }
     }
 
