@@ -280,7 +280,7 @@ function initLightbox() {
     // Update lightbox content (image or video)
     function updateLightboxContent(item) {
         const fullUrl = item.dataset.full;
-        lightboxContent.innerHTML = '';
+        lightboxContent.innerHTML = ''; // Clear previous content
         if (item.tagName === 'VIDEO') {
             lightboxContent.innerHTML = `
                 <video autoplay muted loop disablepictureinpicture playsinline src="${fullUrl}">
@@ -289,7 +289,30 @@ function initLightbox() {
                 </video>
             `;
         } else {
-            lightboxContent.innerHTML = `<img src="${fullUrl}" alt="Full size image">`;
+            // Extract the base filename from fullUrl (e.g., "gallery-item-1" from "/Sandbox/img/gallery/gallery-item-1.jpg")
+            const baseName = fullUrl.split('/').pop().replace(/\.[^/.]+$/, '');
+            const resolutions = [768, 980, 1366, 1920, 2560, 3840];
+            const sizes = `(max-width: 768px) 100vw,
+                           (max-width: 980px) 60vw,
+                           (max-width: 1366px) 75vw,
+                           (max-width: 1920px) 75vw,
+                           (max-width: 2560px) 75vw,
+                           (max-width: 3840px) 75vw,
+                           1920px`;
+
+            // Generate source elements for avif, webp, and jpg with updated paths
+            const avifSources = resolutions.map(res => `./Sandbox/img/gallery/${baseName}-${res}.avif ${res}w`).join(', ');
+            const webpSources = resolutions.map(res => `./Sandbox/img/gallery/${baseName}-${res}.webp ${res}w`).join(', ');
+            const jpgSources = resolutions.map(res => `./Sandbox/img/gallery/${baseName}-${res}.jpg ${res}w`).join(', ');
+
+            lightboxContent.innerHTML = `
+                <picture class="animate animate-fade-in">
+                    <source srcset="${avifSources}" sizes="${sizes}" type="image/avif">
+                    <source srcset="${webpSources}" sizes="${sizes}" type="image/webp">
+                    <source srcset="${jpgSources}" sizes="${sizes}" type="image/jpeg">
+                    <img src="./Sandbox/img/gallery/${baseName}-3840.jpg" alt="" loading="lazy">
+                </picture>
+            `;
         }
     }
 }
