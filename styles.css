@@ -739,13 +739,11 @@
             display: grid;
             /* Show as grid when active */
 
-            /* Hide scrollbar for all browsers */
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-
-            &::-webkit-scrollbar {
-                display: none;
+            @supports selector(scrollbar-width) {
+                scrollbar-width: none;
             }
+    
+            ::-webkit-scrollbar: 0;
         }
 
         /* Rest of your styles for .close, .prev, .next, .lightbox-content remain unchanged */
@@ -810,13 +808,12 @@
         overflow-y: hidden;
         -webkit-overflow-scrolling: touch;
 
-        /* Hide scrollbar for all browsers */
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-
-        &::-webkit-scrollbar {
-            display: none;
+        @supports selector(scrollbar-width) {
+            scrollbar-width: none;
         }
+
+        ::-webkit-scrollbar: 0;
+    }
 
         >div {
 
