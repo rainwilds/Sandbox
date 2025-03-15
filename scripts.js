@@ -112,9 +112,10 @@ function insertAndStyleGallery(selector) {
 
         if (!matchedClass) return;
 
-        if (!container.classList.contains('gallery')) {
-            container.classList.add('gallery');
-        }
+        // Removed the gallery class addition
+        // if (!container.classList.contains('gallery')) {
+        //     container.classList.add('gallery');
+        // }
 
         // Insert media items
         galleryArray.forEach((item) => {
