@@ -704,6 +704,7 @@
                 }
             }
         }
+        
 
         @media (min-width: 1201px) and (max-width: 1919px) {
             & {
@@ -755,7 +756,7 @@
             }
         }
 
-        >div:not([class*="gallery"]) {
+        /* >div:not([class*="gallery"]) {
 
             >* {
                 display: grid;
@@ -775,6 +776,9 @@
                 }
 
             }
+        } */
+
+ 
         }
 
         @supports (scroll-snap-align: start) {
@@ -794,7 +798,7 @@
 
 
 
-}
+
 
 body>* {
 
@@ -907,22 +911,50 @@ footer {
 
 
 
+.gallery-section {
+    display: grid;
+    grid-template-areas: 
+        "gallery"
+        "lightbox";
+    grid-template-rows: auto min-content; /* Gallery takes space, lightbox adapts */
+}
 
+/* Your existing gallery styles */
+.gallery-main {
+    grid-area: gallery;
+    display: grid;
+    background-color: lightslategray;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 15vw));
+}
+
+.gallery-main > * {
+    padding: var(--space-tiny);
+}
+
+.gallery-main picture {
+    aspect-ratio: 1 / 1;
+}
+
+.gallery-main h3 {
+    margin: 0;
+}
+
+/* Lightbox with Popover and Grid */
 .lightbox {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    grid-area: lightbox;
+    /* Removed: position: fixed; top: 0; left: 0; width: 100%; height: 100%; */
     background: rgba(0,0,0,0.9);
     align-items: center;
     justify-content: center;
-    z-index: 1000; /* Ensure it’s above other content */
+    /* Popover styles */
+    display: none; /* Hidden by default, shown by popover */
+    border: none; /* Remove default popover border */
+    inset: 0; /* Fullscreen within grid area */
+    margin: 0; /* Reset margins */
 }
 
-.lightbox.active {
-    display: flex;
+.lightbox:popover-open {
+    display: flex; /* Show as flex when popover is active */
 }
 
 .lightbox-content {
@@ -943,6 +975,8 @@ footer {
     right: 20px;
     font-size: 30px;
     color: white;
+    background: none;
+    border: none;
     cursor: pointer;
 }
 
