@@ -582,6 +582,13 @@
                 --space-medium: 1.5rem;
                 --space-large: 3.5rem;
                 --space-huge: 5rem;
+
+                .max-width-small,
+                .max-width-medium,
+                .max-width-large {
+                    max-width: initial;
+                }
+
             }
 
         }
