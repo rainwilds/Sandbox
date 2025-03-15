@@ -723,20 +723,24 @@
 
     div#lightbox {
         display: none; /* Hidden by default */
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 1000;
     
         /* Grid layout defined but only applied when active */
-
+        grid-template-columns: minmax(20px, 1fr) minmax(0, 90vw) minmax(20px, 1fr);
+        grid-template-rows: 20px minmax(0, 90vh) minmax(20px, 1fr);
+        grid-template-areas: 
+            "close close close"
+            "prev content next"
+            ". content .";
     
         &.active {
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
             display: grid; /* Show as grid when active */
-            grid-template-columns: minmax(20px, 1fr) minmax(0, 90vw) minmax(20px, 1fr);
-            grid-template-rows: 20px minmax(0, 90vh) minmax(20px, 1fr);
-            grid-template-areas: 
-                "close close close"
-                "prev content next"
-                ". content .";
         }
     
         /* Rest of your styles for .close, .prev, .next, .lightbox-content remain unchanged */
