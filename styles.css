@@ -776,7 +776,7 @@
         }
 
         &>.prev,
-        .next {
+        &>.next {
             border: none;
             color: white;
             font-size: 2rem;
@@ -805,9 +805,8 @@
             max-height: 100vh;
 
 
-            &>img,
-            picture,
-            video {
+            &>picture>img,
+            &>video {
                 object-fit: contain;
             }
 
