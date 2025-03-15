@@ -751,6 +751,8 @@
             z-index: 1001;
             justify-self: end;
             align-self: start;
+            line-height: 0.6;
+            padding: var(--space-tiny);
 
             &:hover {
                 color: var(--color-accent-light-primary);
@@ -815,9 +817,11 @@
 
         >div {
 
-            display: flex; /* required to make it flow into a single row */
+            display: flex;
+            /* required to make it flow into a single row */
             gap: var(--space-tiny);
-            min-width: max-content; /* renders the entire row */
+            min-width: max-content;
+            /* renders the entire row */
 
             >* {
                 user-select: none;
