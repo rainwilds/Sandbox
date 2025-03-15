@@ -170,13 +170,13 @@ function initLightbox() {
     let touchStartX = 0;
     let touchEndX = 0;
 
-    // Create a <style> element to manage body styles dynamically
+    // Create a <style> element to manage :root styles dynamically
     const styleSheet = document.createElement('style');
     document.head.appendChild(styleSheet);
 
-    // Define the CSS to hide scrollbars
+    // Define the CSS to hide scrollbars on :root
     const hideScrollbarsCSS = `
-        body.lightbox-active {
+        :root.lightbox-active {
             @supports selector(scrollbar-width) {
                 scrollbar-width: none;
             }
@@ -189,9 +189,9 @@ function initLightbox() {
     // Add the CSS to the stylesheet
     styleSheet.textContent = hideScrollbarsCSS;
 
-    // Function to toggle body class
-    function toggleBodyScrollbars(active) {
-        document.body.classList.toggle('lightbox-active', active);
+    // Function to toggle :root class
+    function toggleRootScrollbars(active) {
+        document.documentElement.classList.toggle('lightbox-active', active);
     }
 
     // Open lightbox on item click
@@ -200,7 +200,7 @@ function initLightbox() {
             currentIndex = index;
             updateLightboxContent(item);
             lightbox.classList.add('active');
-            toggleBodyScrollbars(true); // Hide scrollbars
+            toggleRootScrollbars(true); // Hide scrollbars
             lightbox.focus(); // Focus for keyboard accessibility
         });
     });
@@ -208,14 +208,14 @@ function initLightbox() {
     // Close lightbox
     closeBtn.addEventListener('click', () => {
         lightbox.classList.remove('active');
-        toggleBodyScrollbars(false); // Show scrollbars
+        toggleRootScrollbars(false); // Show scrollbars
     });
 
     // Click outside to close
     lightbox.addEventListener('click', (e) => {
         if (e.target === lightbox) {
             lightbox.classList.remove('active');
-            toggleBodyScrollbars(false); // Show scrollbars
+            toggleRootScrollbars(false); // Show scrollbars
         }
     });
 
@@ -258,7 +258,7 @@ function initLightbox() {
             case 'Escape':
                 e.preventDefault();
                 lightbox.classList.remove('active');
-                toggleBodyScrollbars(false); // Show scrollbars
+                toggleRootScrollbars(false); // Show scrollbars
                 break;
         }
     });
