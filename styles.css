@@ -763,11 +763,11 @@
                 grid-template-columns: minmax(200px, 15vw);
 
                 >div {
-                    padding: var(--space-small);
+                    padding: var(--space-tiny);
                 }
 
                 >picture {
-                    aspect-ratio: 16 / 9;
+                    aspect-ratio: 1 / 1;
                 }
 
                 >h3 {
