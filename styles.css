@@ -29,13 +29,14 @@
         box-sizing: border-box;
     }
 
-    color-scheme: light dark;
-
-    scroll-behavior: smooth;
-
     :popover-open {
         border: none;
         background-color: transparent;
+    }
+
+    html {
+        color-scheme: light dark;
+        scroll-behavior: smooth;
     }
 
     body {
