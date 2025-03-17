@@ -654,7 +654,7 @@
             color: light-dark(var(--color-static-light-8), var(--color-static-dark-8));
         }
 
-        &:has(.secondary) {
+        &.secondary {
             background-color: transparent;
         }
     }
