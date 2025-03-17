@@ -1016,6 +1016,12 @@ header {
             justify-self: baseline;
             padding: var(--side-gutter);
 
+            >div {
+                display: flex;
+                gap: var(--space-tiny);
+                margin-top: var(--space-small);
+            }
+
         }
 
     }
