@@ -139,6 +139,14 @@
 
         color: light-dark(var(--color-background-dark), var(--color-accent-light-secondary));
 
+        .color-dark {
+            color: var(--color-static-dark);
+        }
+
+        .color-light {
+            color: var(--color-static-light);
+        }
+
         --font-1-family: serif;
         /* --font-1-weight-light: 400; PLACEHOLDER */
         --font-1-weight-medium: 500;
