@@ -656,6 +656,10 @@
 
         &.secondary {
             background-color: transparent;
+
+            &:hover {
+                background-color: light-dark(var(--color-accent-opaque-light-primaryy), var(--color-accent-opaque-dark-primary));
+            }
         }
     }
 
