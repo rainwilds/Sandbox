@@ -506,7 +506,6 @@
         body {
 
             display: grid;
-            /* column-gap: var(--space-medium); PLACEHOLDER */
             background-color: light-dark(var(--color-background-light), var(--color-background-dark));
 
             @media (min-width: 550px) and (max-width: 980px) and (orientation: landscape) {
@@ -671,7 +670,7 @@
 
 
         &.background-color-1 {
-            background-color: khaki;
+            background-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
         }
 
         &.border-1 {
@@ -755,8 +754,9 @@
         grid-template-areas: " content ";
 
         &.active {
-            display: grid;
             /* Show as grid when active */
+            display: grid;
+            animation: fadeIn 0.3s ease-in;
 
         }
 
