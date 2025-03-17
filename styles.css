@@ -658,7 +658,7 @@
             background-color: transparent;
 
             &:hover {
-                background-color: light-dark(var(--color-accent-opaque-light-primary), var(--color-accent-opaque-dark-primary));
+                color: light-dark(var(--color-accent-opaque-light-primary), var(--color-accent-opaque-dark-primary));
             }
         }
     }
