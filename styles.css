@@ -650,6 +650,10 @@
             transition: all 0.4s;
             color: light-dark(var(--color-static-light-8), var(--color-static-dark-8));
         }
+
+        &:has(.secondary) {
+
+        }
     }
 
     nav {
