@@ -627,6 +627,7 @@
         >button {
             background-color: light-dark(var(--color-static-light-6), var(--color-static-dark-6));
             border-color: light-dark(var(--color-static-dark-8), var(--color-static-light-8));
+            backdrop-filter: var(--blur-medium);
 
             &:hover {
                 background-color: light-dark(var(--color-accent-dark-secondary), var(--color-accent-light-secondary));
@@ -644,6 +645,8 @@
         width: max-content;
         background-image: var(--background-noise);
         padding: calc(var(--space-tiny) / 2) var(--space-tiny);
+        display: block;
+        backdrop-filter: var(--blur-medium);
 
         &:hover {
             background-color: light-dark(var(--color-accent-light-primary), var(--color-accent-light-secondary));
@@ -652,7 +655,7 @@
         }
 
         &:has(.secondary) {
-
+            background-color: transparent;
         }
     }
 
