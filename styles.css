@@ -920,11 +920,15 @@ header {
 
     }
 
+    >picture {
+        display: block;
+    }
+
     >div:first-of-type {
         /* background-overlay */
 
         z-index: 1;
-        background: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
+        background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
 
     }
 
