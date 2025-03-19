@@ -658,34 +658,32 @@
     }
 
     nav {
-
-        >ul {
-
+        > ul {
             display: flex;
             column-gap: var(--space-medium);
-
+    
             @media (max-width: 980px) {
-
                 & {
                     display: none;
                 }
-
             }
-
         }
-
-        >i {
-            display: none;
-
+    
+        > i {
+            display: none; 
+    
             @media (max-width: 980px) {
-
                 & {
-                    display: flex;
+                    display: flex; 
                 }
-
+            }
+    
+            @media (min-width: 981px) {
+                & {
+                    display: none;
+                }
             }
         }
-
     }
 
     div.card {
