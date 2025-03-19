@@ -669,12 +669,14 @@
             }
         }
     
-        > i {
-            display: none; 
+        > i.fa-bars {
+            --fa-display: none; /* Overrides Font Awesome’s variable */
+            display: none; /* Fallback for safety */
     
             @media (max-width: 980px) {
                 & {
-                    display: flex; 
+                    --fa-display: flex; /* Matches your desired mobile display */
+                    display: flex;
                 }
             }
         }
