@@ -677,12 +677,6 @@
                     display: flex; 
                 }
             }
-    
-            @media (min-width: 981px) {
-                & {
-                    display: none;
-                }
-            }
         }
     }
 
