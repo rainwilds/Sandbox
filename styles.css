@@ -664,16 +664,26 @@
             display: flex;
             column-gap: var(--space-medium);
 
-        }
+            @media (max-width: 980px) {
 
-        @media (max-width: 980px) {
-
-            & {
-
-                display: none;
+                & {
+                    display: none;
+                }
 
             }
 
+        }
+
+        >i {
+            display: none;
+
+            @media (max-width: 980px) {
+
+                & {
+                    display: flex;
+                }
+
+            }
         }
 
     }
