@@ -370,3 +370,31 @@ function addScrollFunctionality() {
 
 // Enable scrolling
 addScrollFunctionality();
+
+
+<script>
+// Accordion
+document.querySelectorAll('.accordion-trigger').forEach(trigger => {
+        trigger.addEventListener('click', () => {
+            const item = trigger.closest('.accordion-item');
+            const isActive = item.classList.contains('active');
+            item.classList.toggle('active');
+            trigger.setAttribute('aria-expanded', !isActive);
+        });
+});
+
+// Modal Open
+document.querySelectorAll('.modal-open').forEach(openBtn => {
+        openBtn.addEventListener('click', () => {
+            document.querySelector('.modal').classList.add('active');
+        });
+});
+
+// Modal Close
+document.querySelectorAll('.modal-close').forEach(closeBtn => {
+        closeBtn.addEventListener('click', () => {
+            const modal = closeBtn.closest('.modal');
+            modal.classList.remove('active');
+        });
+});
+</script>
