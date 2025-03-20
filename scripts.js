@@ -372,7 +372,7 @@ function addScrollFunctionality() {
 addScrollFunctionality();
 
 
-<script>
+
 // Accordion
 document.querySelectorAll('.accordion-trigger').forEach(trigger => {
         trigger.addEventListener('click', () => {
@@ -397,4 +397,3 @@ document.querySelectorAll('.modal-close').forEach(closeBtn => {
             modal.classList.remove('active');
         });
 });
-</script>
