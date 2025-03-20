@@ -658,21 +658,21 @@
     }
 
     nav {
-        > ul {
+        >ul {
             display: flex;
             column-gap: var(--space-medium);
-    
+
             @media (max-width: 980px) {
                 & {
                     display: none;
                 }
             }
         }
-    
-        > i.fa-bars {
+
+        >i.fa-bars {
             --fa-display: none;
             display: none;
-    
+
             @media (max-width: 980px) {
                 & {
                     --fa-display: flex;
@@ -859,269 +859,278 @@
     }
 
 
-/* 1. Modal/Dialog */
-.modal {
-    display: none;
-    position: fixed;
-    inset: 0; /* Latest shorthand for top/left/right/bottom */
-    background: light-dark(rgba(0, 0, 0, 0.8), rgba(255, 255, 255, 0.2));
-    z-index: 1000;
-    place-content: center;
-
-    &.active {
-        display: grid;
-        animation: fadeIn 0.3s ease-out;
-    }
-
-    & .modal-content {
-        background: light-dark(var(--color-background-light), var(--color-background-dark));
-        padding: var(--space-medium);
-        max-width: var(--max-width-medium);
-        border-radius: var(--border-radius-medium);
-        box-shadow: 0 4px 8px var(--color-static-dark-4);
-        backdrop-filter: var(--blur-small);
-    }
-
-    & .modal-close {
-        position: absolute;
-        inset-block-start: var(--space-tiny); /* Logical property */
-        inset-inline-end: var(--space-tiny);  /* Logical property */
-        border: none;
-        background: transparent;
-        font-size: 1.5rem;
-        cursor: pointer;
-        color: light-dark(var(--color-static-dark), var(--color-static-light));
-
-        &:hover {
-            color: var(--color-accent-light-primary);
-            transition: color 0.3s;
-        }
-    }
-}
-
-/* 2. Accordion */
-.accordion {
-    display: grid;
-    gap: var(--space-tiny);
-
-    & .accordion-item {
-        border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
-
-        &.active .accordion-content {
-            display: block;
-            animation: fadeInTopDown 0.3s ease-out;
-        }
-    }
-
-    & .accordion-trigger {
-        background: light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-secondary));
-        padding: var(--space-tiny);
-        border: none;
-        width: 100%;
-        text-align: start; /* Logical equivalent of left */
-        cursor: pointer;
-        font: inherit;
-
-        &:hover {
-            background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
-            transition: background 0.3s;
-        }
-    }
-
-    & .accordion-content {
+    /* 1. Modal/Dialog */
+    .modal {
         display: none;
-        padding: var(--space-tiny);
-        background: light-dark(var(--color-background-light), var(--color-background-dark));
-    }
-}
+        position: fixed;
+        inset: 0;
+        /* Latest shorthand for top/left/right/bottom */
+        background: light-dark(rgba(0, 0, 0, 0.8), rgba(255, 255, 255, 0.2));
+        z-index: 1000;
+        place-content: center;
 
-/* 3. Dropdown Menu */
-.dropdown {
-    position: relative;
-    display: inline-grid;
+        &.active {
+            display: grid;
+            animation: fadeIn 0.3s ease-out;
+        }
 
-    & .dropdown-toggle {
-        background: light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-secondary));
-        padding: var(--space-tiny);
-        border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
-        cursor: pointer;
-    }
+        & .modal-content {
+            background: light-dark(var(--color-background-light), var(--color-background-dark));
+            padding: var(--space-medium);
+            max-width: var(--max-width-medium);
+            border-radius: var(--border-radius-medium);
+            box-shadow: 0 4px 8px var(--color-static-dark-4);
+            backdrop-filter: var(--blur-small);
+        }
 
-    &:hover .dropdown-menu {
-        display: block;
-        animation: fadeInTopDown 0.3s ease-out;
-    }
-
-    & .dropdown-menu {
-        display: none;
-        position: absolute;
-        inset-block-start: 100%; /* Logical property */
-        inset-inline-start: 0;   /* Logical property */
-        background: light-dark(var(--color-background-light), var(--color-background-dark));
-        min-width: 150px;
-        box-shadow: 0 2px 4px var(--color-static-dark-4);
-        z-index: 10;
-        border-radius: var(--border-radius-small);
-
-        & a {
-            display: block;
-            padding: var(--space-tiny);
-            text-decoration: none;
+        & .modal-close {
+            position: absolute;
+            inset-block-start: var(--space-tiny);
+            /* Logical property */
+            inset-inline-end: var(--space-tiny);
+            /* Logical property */
+            border: none;
+            background: transparent;
+            font-size: 1.5rem;
+            cursor: pointer;
             color: light-dark(var(--color-static-dark), var(--color-static-light));
+
+            &:hover {
+                color: var(--color-accent-light-primary);
+                transition: color 0.3s;
+            }
+        }
+    }
+
+    /* 2. Accordion */
+    .accordion {
+        display: grid;
+        gap: var(--space-tiny);
+
+        & .accordion-item {
+            border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+
+            &.active .accordion-content {
+                display: block;
+                animation: fadeInTopDown 0.3s ease-out;
+            }
+        }
+
+        & .accordion-trigger {
+            background: light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-secondary));
+            padding: var(--space-tiny);
+            border: none;
+            width: 100%;
+            text-align: start;
+            /* Logical equivalent of left */
+            cursor: pointer;
+            font: inherit;
 
             &:hover {
                 background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
                 transition: background 0.3s;
             }
         }
-    }
-}
 
-/* 4. Alert/Notification */
-.alert {
-    padding: var(--space-small);
-    border: solid 1px;
-    border-radius: var(--border-radius-small);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: light-dark(var(--color-background-light), var(--color-background-dark));
-
-    &.success {
-        border-color: light-dark(#00cc00, #66ff66);
-        background: light-dark(#e6ffe6, #1a3c1a);
-    }
-
-    &.error {
-        border-color: light-dark(#cc0000, #ff6666);
-        background: light-dark(#ffe6e6, #3c1a1a);
-    }
-
-    & .alert-close {
-        border: none;
-        background: transparent;
-        font-size: 1.2rem;
-        cursor: pointer;
-        color: light-dark(var(--color-static-dark), var(--color-static-light));
-
-        &:hover {
-            color: var(--color-accent-light-primary);
-            transition: color 0.3s;
+        & .accordion-content {
+            display: none;
+            padding: var(--space-tiny);
+            background: light-dark(var(--color-background-light), var(--color-background-dark));
         }
     }
-}
 
-/* 5. Pagination */
-.pagination {
-    display: flex;
-    gap: var(--space-tiny);
-    justify-content: center;
+    /* 3. Dropdown Menu */
+    .dropdown {
+        position: relative;
+        display: inline-grid;
 
-    & a {
-        padding: var(--space-tiny);
-        border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
-        text-decoration: none;
-        color: light-dark(var(--color-static-dark), var(--color-static-light));
-
-        &.active {
-            background: light-dark(var(--color-accent-dark-secondary), var(--color-accent-light-secondary));
+        & .dropdown-toggle {
+            background: light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-secondary));
+            padding: var(--space-tiny);
+            border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+            cursor: pointer;
         }
 
-        &:hover:not(.active) {
-            background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
-            transition: background 0.3s;
+        &:hover .dropdown-menu {
+            display: block;
+            animation: fadeInTopDown 0.3s ease-out;
+        }
+
+        & .dropdown-menu {
+            display: none;
+            position: absolute;
+            inset-block-start: 100%;
+            /* Logical property */
+            inset-inline-start: 0;
+            /* Logical property */
+            background: light-dark(var(--color-background-light), var(--color-background-dark));
+            min-width: 150px;
+            box-shadow: 0 2px 4px var(--color-static-dark-4);
+            z-index: 10;
+            border-radius: var(--border-radius-small);
+
+            & a {
+                display: block;
+                padding: var(--space-tiny);
+                text-decoration: none;
+                color: light-dark(var(--color-static-dark), var(--color-static-light));
+
+                &:hover {
+                    background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
+                    transition: background 0.3s;
+                }
+            }
         }
     }
-}
 
-/* 6. Form Group */
-.form-group {
-    display: grid;
-    gap: var(--space-tiny);
-    margin-bottom: var(--space-small);
-
-    & label {
-        font-weight: var(--font-2-weight-light);
-        color: light-dark(var(--color-static-dark), var(--color-static-light));
-    }
-
-    & input,
-    & textarea {
-        width: 100%;
-        background-image: var(--background-pattern-1);
-        padding: var(--space-tiny);
-        border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+    /* 4. Alert/Notification */
+    .alert {
+        padding: var(--space-small);
+        border: solid 1px;
         border-radius: var(--border-radius-small);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: light-dark(var(--color-background-light), var(--color-background-dark));
 
-        &:user-invalid {
-            border-color: red;
+        &.success {
+            border-color: light-dark(#00cc00, #66ff66);
+            background: light-dark(#e6ffe6, #1a3c1a);
         }
 
-        &:user-valid {
-            border-color: green;
+        &.error {
+            border-color: light-dark(#cc0000, #ff6666);
+            background: light-dark(#ffe6e6, #3c1a1a);
         }
 
-        &:focus-visible {
-            outline-color: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
-            outline-offset: 0.15rem;
-            transition: outline 0.3s;
-        }
-    }
-}
+        & .alert-close {
+            border: none;
+            background: transparent;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: light-dark(var(--color-static-dark), var(--color-static-light));
 
-/* 7. Breadcrumb */
-.breadcrumb {
-    display: flex;
-    gap: var(--space-tiny);
-    flex-wrap: wrap;
-
-    & a {
-        text-decoration: none;
-        color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
-
-        &::after {
-            content: " > ";
-            margin-inline-start: var(--space-tiny); /* Logical property */
-            color: light-dark(var(--color-static-dark-4), var(--color-static-light-4));
-        }
-
-        &:last-child::after {
-            content: none;
-        }
-
-        &:hover {
-            color: light-dark(var(--color-static-dark-6), var(--color-static-light-6));
-            transition: color 0.3s;
+            &:hover {
+                color: var(--color-accent-light-primary);
+                transition: color 0.3s;
+            }
         }
     }
-}
 
-/* 8. Tooltip */
-.tooltip {
-    position: relative;
-    display: inline-grid;
+    /* 5. Pagination */
+    .pagination {
+        display: flex;
+        gap: var(--space-tiny);
+        justify-content: center;
 
-    &:hover::after {
-        content: attr(data-tooltip);
-        position: absolute;
-        inset-block-end: 100%; /* Logical property */
-        inset-inline-start: 50%; /* Logical property */
-        transform: translateX(-50%);
-        background: light-dark(var(--color-static-dark-8), var(--color-static-light-8));
-        color: light-dark(var(--color-static-light), var(--color-static-dark));
-        padding: var(--space-tiny);
-        border-radius: var(--border-radius-small);
-        font-size: var(--font-2-size-small);
-        white-space: nowrap;
-        z-index: 10;
-        animation: fadeIn 0.2s ease-out;
+        & a {
+            padding: var(--space-tiny);
+            border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+            text-decoration: none;
+            color: light-dark(var(--color-static-dark), var(--color-static-light));
+
+            &.active {
+                background: light-dark(var(--color-accent-dark-secondary), var(--color-accent-light-secondary));
+            }
+
+            &:hover:not(.active) {
+                background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
+                transition: background 0.3s;
+            }
+        }
     }
-}
+
+    /* 6. Form Group */
+    .form-group {
+        display: grid;
+        gap: var(--space-tiny);
+        margin-bottom: var(--space-small);
+
+        & label {
+            font-weight: var(--font-2-weight-light);
+            color: light-dark(var(--color-static-dark), var(--color-static-light));
+        }
+
+        & input,
+        & textarea {
+            width: 100%;
+            background-image: var(--background-pattern-1);
+            padding: var(--space-tiny);
+            border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+            border-radius: var(--border-radius-small);
+
+            &:user-invalid {
+                border-color: red;
+            }
+
+            &:user-valid {
+                border-color: green;
+            }
+
+            &:focus-visible {
+                outline-color: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
+                outline-offset: 0.15rem;
+                transition: outline 0.3s;
+            }
+        }
+    }
+
+    /* 7. Breadcrumb */
+    .breadcrumb {
+        display: flex;
+        gap: var(--space-tiny);
+        flex-wrap: wrap;
+
+        & a {
+            text-decoration: none;
+            color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+
+            &::after {
+                content: " > ";
+                margin-inline-start: var(--space-tiny);
+                /* Logical property */
+                color: light-dark(var(--color-static-dark-4), var(--color-static-light-4));
+            }
+
+            &:last-child::after {
+                content: none;
+            }
+
+            &:hover {
+                color: light-dark(var(--color-static-dark-6), var(--color-static-light-6));
+                transition: color 0.3s;
+            }
+        }
+    }
+
+    /* 8. Tooltip */
+    .tooltip {
+        position: relative;
+        display: inline-grid;
+
+        &:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            inset-block-end: 100%;
+            /* Logical property */
+            inset-inline-start: 50%;
+            /* Logical property */
+            transform: translateX(-50%);
+            background: light-dark(var(--color-static-dark-8), var(--color-static-light-8));
+            color: light-dark(var(--color-static-light), var(--color-static-dark));
+            padding: var(--space-tiny);
+            border-radius: var(--border-radius-small);
+            font-size: var(--font-2-size-small);
+            white-space: nowrap;
+            z-index: 10;
+            animation: fadeIn 0.2s ease-out;
+        }
+    }
 
 }
 
 
-}
+
 
 div.scroll {
     width: 100%;
