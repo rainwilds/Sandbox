@@ -4,15 +4,15 @@
     font-weight: normal;
     font-style: normal;
     font-display: swap;
-}
+} */
 
 @font-face {
-    font-family: 'Futura PT';
-    src: url('./fonts/FuturaPT-Light.woff2') format('woff2');
+    font-family: 'AdobeAldine-Regular';
+    src: url('./fonts/AdobeAldine-Regular.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
-} */
+}
 
 @layer reset, defaults, components;
 
@@ -148,13 +148,13 @@
             color: var(--color-static-light);
         }
 
-        --font-1-family: serif;
+        --font-1-family: AdobeAldine-Regular;
         /* --font-1-weight-light: 400; PLACEHOLDER */
-        --font-1-weight-medium: 500;
+        /* --font-1-weight-medium: 500; */
         /* --font-1-weight-heavy: 700 PLACEHOLDER; */
 
-        --font-2-family: sans-serif;
-        --font-2-weight-light: 300;
+        --font-2-family: AdobeAldine-Regular;
+        /* --font-2-weight-light: 300; */
         /* --font-2-weight-medium: 400 PLACEHOLDER; */
         /* --font-2-weight-heavy: 600 PLACEHOLDER; */
         --font-2-size-small: 14px;
