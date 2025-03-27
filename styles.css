@@ -941,22 +941,18 @@
     }
 
     .dropdown {
-        position: relative;
-        display: inline-grid;
+        /* position: relative;
+        display: inline-grid; */
     
-        & ul {
+        /* & ul {
             margin: 0;
             padding: 0;
             display: flex; /* Added to align items horizontally */
-        }
+        } */
     
         & .dropdown-toggle {
-            background: light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-secondary));
-            padding: var(--space-tiny);
-            border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
-            cursor: pointer;
-            list-style: none;
-            position: relative; /* Added for positioning the dropdown */
+        cursor: pointer;
+        position: relative;
         }
     
         & .dropdown-toggle:hover .dropdown-menu {
