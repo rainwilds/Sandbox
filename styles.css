@@ -944,6 +944,7 @@
         & .dropdown-toggle {
             cursor: pointer;
             position: relative;
+            list-style: none; /* Assuming this is needed from your nav structure */
         }
     
         & .dropdown-toggle:hover .dropdown-menu {
@@ -958,23 +959,23 @@
             inset-inline-start: 0;
             background: light-dark(var(--color-background-light), var(--color-background-dark));
             min-width: 180%;
+        }
     
-            & a {
-                display: block;
-                padding: var(--space-tiny);
-                text-decoration: none;
-                color: light-dark(var(--color-static-dark), var(--color-static-light));
+        & .dropdown-menu a {
+            display: block;
+            padding: var(--space-tiny);
+            text-decoration: none;
+            color: light-dark(var(--color-static-dark), var(--color-static-light));
     
-                &:hover {
-                    background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
-                    transition: background 0.3s;
-                }
-            }
-    
-            /* When an <a> inside .dropdown-menu is hovered, set the background of .dropdown-menu */
-            &:has(a:hover) {
+            &:hover {
                 background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
+                transition: background 0.3s;
             }
+        }
+    
+        /* When an <a> inside .dropdown-menu is hovered, set the background of .dropdown-toggle */
+        & .dropdown-toggle:has(.dropdown-menu a:hover) {
+            background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
         }
     
         li {
