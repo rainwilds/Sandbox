@@ -941,14 +941,14 @@
     }
 
     .dropdown {
-        /* position: relative;
-        display: inline-grid; */
+        /* position: relative; */
+        display: inline-grid;
     
-        /* & ul {
-            margin: 0;
-            padding: 0;
+        & ul {
+            /* margin: 0;
+            padding: 0; */
             display: flex; /* Added to align items horizontally */
-        } */
+        }
     
         & .dropdown-toggle {
         cursor: pointer;
