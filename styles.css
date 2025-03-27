@@ -941,10 +941,9 @@
     }
 
     .dropdown {
-    
         & .dropdown-toggle {
-        cursor: pointer;
-        position: relative;
+            cursor: pointer;
+            position: relative;
         }
     
         & .dropdown-toggle:hover .dropdown-menu {
@@ -969,17 +968,15 @@
                 &:hover {
                     background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
                     transition: background 0.3s;
-
-                    div & {
-                        background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
-                    
-                    }
-
                 }
             }
-
+    
+            /* When an <a> inside .dropdown-menu is hovered, set the background of .dropdown-menu */
+            &:has(a:hover) {
+                background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
+            }
         }
-
+    
         li {
             padding: var(--space-tiny);
             padding-bottom: 0;
