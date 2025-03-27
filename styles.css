@@ -112,6 +112,30 @@
         --max-width-medium: 40vw;
         --max-width-large: 60vw;
 
+        .padding-tiny {
+            padding: var(--space-tiny);
+        }
+
+        .padding-small {
+            padding: var(--space-small);
+        }
+
+        .padding-medium {
+            padding: var(--space-medium);
+        }
+
+        .padding-large {
+            padding: var(--space-large);
+        }
+
+        .padding-huge {
+            padding: var(--space-huge);
+        }
+
+        .space-between {
+            place-content: space-between;
+        }
+
         --color-background-light: #faf9f3;
         --color-background-dark: #141b32;
 
@@ -145,7 +169,7 @@
         }
 
         .background-color-1 {
-            color: light-dark(var(--color-accent-light-secondary), var(--color-background-dark));
+            background-color: light-dark(var(--color-accent-light-secondary), var(--color-background-dark));
         }
 
         --font-1-family: AdobeAldine-Regular;
@@ -231,30 +255,7 @@
             animation: fadeIn 3s forwards;
         }
 
-        .padding-tiny {
-            padding: var(--space-tiny);
-        }
 
-        .padding-small {
-            padding: var(--space-small);
-        }
-
-        .padding-medium {
-            padding: var(--space-medium);
-        }
-
-        .padding-large {
-            padding: var(--space-large);
-        }
-
-        .padding-huge {
-            padding: var(--space-huge);
-        }
-
-
-        .space-between {
-            place-content: space-between;
-        }
 
         .text-center {
             text-align: center;
