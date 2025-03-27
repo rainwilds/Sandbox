@@ -140,12 +140,8 @@
 
         color: light-dark(var(--color-background-dark), var(--color-accent-light-secondary));
 
-        .color-dark {
-            color: var(--color-static-dark);
-        }
-
-        .color-light {
-            color: var(--color-static-light);
+        .color-invert {
+            color: light-dark(var(--color-accent-light-secondary), var(--color-background-dark));
         }
 
         --font-1-family: AdobeAldine-Regular;
