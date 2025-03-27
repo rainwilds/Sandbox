@@ -941,14 +941,6 @@
     }
 
     .dropdown {
-        /* position: relative; */
-        /* display: inline-grid; */
-    
-        & ul {
-            /* margin: 0;
-            padding: 0; */
-            /* display: flex;  */
-        }
     
         & .dropdown-toggle {
         cursor: pointer;
@@ -966,10 +958,7 @@
             inset-block-start: 100%;
             inset-inline-start: 0;
             background: light-dark(var(--color-background-light), var(--color-background-dark));
-            min-width: 150px;
-            box-shadow: 0 2px 4px var(--color-static-dark-4);
-            z-index: 10;
-            border-radius: var(--border-radius-small);
+            min-width: 180%;
     
             & a {
                 display: block;
@@ -983,6 +972,11 @@
                 }
             }
         }
+
+        li [
+            padding: var(--space-tiny);
+            padding-bottom: 0;
+        ]
     }
 
     /* 4. Alert/Notification */
