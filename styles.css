@@ -144,6 +144,10 @@
             color: light-dark(var(--color-accent-light-secondary), var(--color-background-dark));
         }
 
+        .background-color-1 {
+            color: light-dark(var(--color-accent-light-secondary), var(--color-background-dark));
+        }
+
         --font-1-family: AdobeAldine-Regular;
         /* --font-1-weight-light: 400; PLACEHOLDER */
         /* --font-1-weight-medium: 500; */
