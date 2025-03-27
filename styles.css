@@ -969,14 +969,21 @@
                 &:hover {
                     background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
                     transition: background 0.3s;
+
+                    div & {
+                        background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
+                    
+                    }
+
                 }
             }
+
         }
 
-        li [
+        li {
             padding: var(--space-tiny);
             padding-bottom: 0;
-        ]
+        }
     }
 
     /* 4. Alert/Notification */
