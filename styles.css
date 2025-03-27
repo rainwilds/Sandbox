@@ -942,12 +942,12 @@
 
     .dropdown {
         /* position: relative; */
-        display: inline-grid;
+        /* display: inline-grid; */
     
         & ul {
             /* margin: 0;
             padding: 0; */
-            display: flex; /* Added to align items horizontally */
+            /* display: flex;  */
         }
     
         & .dropdown-toggle {
