@@ -211,15 +211,12 @@
 
         ::backdrop {
 
+            -webkit-backdrop-filter: var(--blur-large);
+
             @supports selector(backdrop-filter) {
                 backdrop-filter: var(--blur-large);
             }
 
-            -webkit-backdrop-filter: var(--blur-large);
-        }
-
-        @supports selector(scrollbar-color) {
-            scrollbar-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-secondary)) light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-primary));
         }
 
         ::-webkit-scrollbar-track {
@@ -230,12 +227,16 @@
             background: light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-primary));
         }
 
-        @supports selector(scrollbar-width) {
-            scrollbar-width: thin;
+        @supports selector(scrollbar-color) {
+            scrollbar-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-secondary)) light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-primary));
         }
 
         ::-webkit-scrollbar {
             width: 8px;
+        }
+
+        @supports selector(scrollbar-width) {
+            scrollbar-width: thin;
         }
 
         @supports selector(scrollbar-gutter) {
@@ -944,14 +945,15 @@
         & .dropdown-toggle {
             cursor: pointer;
             position: relative;
-            list-style: none; /* Assuming this is needed from your nav structure */
+            list-style: none;
+            /* Assuming this is needed from your nav structure */
         }
-    
+
         & .dropdown-toggle:hover .dropdown-menu {
             display: block;
             animation: fadeInTopDown 0.3s ease-out;
         }
-    
+
         & .dropdown-menu {
             display: none;
             position: absolute;
@@ -960,24 +962,24 @@
             background: light-dark(var(--color-background-light), var(--color-background-dark));
             min-width: 180%;
         }
-    
+
         & .dropdown-menu a {
             display: block;
             padding: var(--space-tiny);
             text-decoration: none;
             color: light-dark(var(--color-static-dark), var(--color-static-light));
-    
+
             &:hover {
                 background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
                 transition: background 0.3s;
             }
         }
-    
+
         /* When an <a> inside .dropdown-menu is hovered, set the background of .dropdown-toggle */
         & .dropdown-toggle:has(.dropdown-menu a:hover) {
             background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
         }
-    
+
         li {
             padding: var(--space-tiny);
         }
@@ -1127,6 +1129,48 @@
         }
     }
 
+
+    /**
+ * Interactive image comparison - with CSS resize
+ */
+
+    .image-slider {
+        position: relative;
+        display: inline-block;
+    }
+
+    .image-slider>div {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 50%;
+        max-width: 100%;
+        overflow: hidden;
+        resize: horizontal;
+    }
+
+    .image-slider>div:before {
+        content: '';
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        width: 12px;
+        height: 12px;
+        padding: 5px;
+        background: linear-gradient(-45deg, white 50%, transparent 0);
+        background-clip: content-box;
+        cursor: ew-resize;
+        -webkit-filter: drop-shadow(0 0 2px black);
+        filter: drop-shadow(0 0 2px black);
+    }
+
+    .image-slider img {
+        display: block;
+        user-select: none;
+    }
+
+
 }
 
 
@@ -1136,17 +1180,16 @@ div.scroll {
     width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
-    
-    -webkit-overflow-scrolling: touch;
 
-    @supports selector(scrollbar-width) {
-        scrollbar-width: none;
-    }
+    -webkit-overflow-scrolling: touch;
 
     ::-webkit-scrollbar {
         display: none;
     }
 
+    @supports selector(scrollbar-width) {
+        scrollbar-width: none;
+    }
 
     >div {
 
