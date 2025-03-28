@@ -1149,19 +1149,43 @@
         display: block;
     }
 
-    .img-before {
+    .img-after {
+        position: relative;
+    }
+
+    .resize-container {
         position: absolute;
         top: 0;
         left: 0;
-        resize: horizontal;
-        /* Allows manual resizing */
-        overflow: hidden;
+        width: 50%;
+        /* Starting width */
         max-width: 100%;
-        min-width: 0;
+        min-width: 10px;
+        /* Minimum width to grab */
+        overflow: hidden;
+        resize: horizontal;
+        /* Allows horizontal resizing */
+        background: transparent;
     }
 
-    .img-after {
-        position: relative;
+    .resize-container img {
+        width: 100%;
+        height: auto;
+        pointer-events: none;
+        /* Prevents image from interfering with resizing */
+    }
+
+    /* Optional: Add a handle for better UX */
+    .resize-container::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+        background: #fff;
+        border-left: 2px solid #333;
+        cursor: ew-resize;
     }
 
 
