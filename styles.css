@@ -980,7 +980,6 @@
     
         li {
             padding: var(--space-tiny);
-            padding-bottom: 0;
         }
     }
 
@@ -1137,6 +1136,7 @@ div.scroll {
     width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
+    
     -webkit-overflow-scrolling: touch;
 
     @supports selector(scrollbar-width) {
@@ -1157,8 +1157,14 @@ div.scroll {
         /* renders the entire row */
 
         >* {
-            user-select: none;
+            -ms-user-select: none;
+            -webkit-user-select: none;
+
             max-width: 300px;
+
+            @supports selector(user-select) {
+                user-select: none;
+            }
         }
 
         >*:has(h2, h3, h4, h5) {
