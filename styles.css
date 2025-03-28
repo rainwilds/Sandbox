@@ -59,6 +59,11 @@
         min-height: 100%;
         /* validate */
         object-fit: cover;
+        animation-play-state: paused;
+
+        &:hover {
+            animation-play-state: running;
+        }
 
     }
 
