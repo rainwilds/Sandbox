@@ -1137,56 +1137,61 @@
 
     .comparison-slider {
         position: relative;
-        width: 600px;
+        width: 600px; /* Fixed width for testing */
         max-width: 100%;
         overflow: hidden;
-    }
-
-    .img-before,
-    .img-after {
+        background: #f0f0f0; /* Light background to see if container renders */
+      }
+      
+      .img-before,
+      .img-after {
         width: 100%;
         height: auto;
         display: block;
-    }
-
-    .img-after {
+        object-fit: cover; /* Ensures images fill their containers */
+      }
+      
+      .img-after {
         position: relative;
-    }
-
-    .resize-container {
+        z-index: 1; /* Ensure it’s below the resize container */
+      }
+      
+      .resize-container {
         position: absolute;
         top: 0;
         left: 0;
-        width: 50%;
-        /* Starting width */
+        width: 50%; /* Starting point */
+        height: 100%; /* Match the height of the container */
         max-width: 100%;
         min-width: 10px;
-        /* Minimum width to grab */
         overflow: hidden;
         resize: horizontal;
-        /* Allows horizontal resizing */
-        background: transparent;
-    }
-
-    .resize-container img {
+        z-index: 2; /* Above the after image */
+      }
+      
+      .resize-container img {
         width: 100%;
         height: auto;
-        pointer-events: none;
-        /* Prevents image from interfering with resizing */
-    }
-
-    /* Optional: Add a handle for better UX */
-    .resize-container::after {
+        pointer-events: none; /* Prevents image from blocking resize */
+      }
+      
+      /* Visual handle for resizing */
+      .resize-container::after {
         content: '';
         position: absolute;
         right: 0;
         top: 0;
         bottom: 0;
-        width: 4px;
-        background: #fff;
-        border-left: 2px solid #333;
+        width: 6px; /* Wider for visibility */
+        background: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
+        border-left: 2px solid #000; /* Black line for contrast */
         cursor: ew-resize;
-    }
+      }
+      
+      /* Ensure the parent has a height */
+      .comparison-slider {
+        height: auto; /* Will adapt to the after image */
+      }
 
 
 }
