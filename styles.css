@@ -227,7 +227,7 @@
 
         }
 
-        :modal {
+        /* :modal {
 
             -webkit-backdrop-filter: var(--blur-large);
 
@@ -235,7 +235,7 @@
                 backdrop-filter: var(--blur-large);
             }
 
-        }
+        } */
 
         ::-webkit-scrollbar-track {
             background: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-secondary));
