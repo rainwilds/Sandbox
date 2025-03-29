@@ -75,15 +75,16 @@
         color: inherit;
         outline: solid 1px;
         outline-color: transparent;
+        appearance: none;
     }
 
     button {
         cursor: pointer;
     }
 
-    select {
+    /* select {
         appearance: none;
-    }
+    } */
 
     address {
         font-style: inherit;
@@ -1149,9 +1150,8 @@
 
 
     .comparison-slider {
+        height: 60vh;
         position: relative;
-        width: 600px; /* Fixed width for testing */
-        max-width: 100%;
         overflow: hidden;
         background: #f0f0f0; /* Light background to see if container renders */
       }
