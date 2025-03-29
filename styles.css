@@ -224,6 +224,16 @@
 
         }
 
+        :modal {
+
+            -webkit-backdrop-filter: var(--blur-large);
+
+            @supports selector(backdrop-filter) {
+                backdrop-filter: var(--blur-large);
+            }
+
+        }
+
         ::-webkit-scrollbar-track {
             background: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-secondary));
         }
