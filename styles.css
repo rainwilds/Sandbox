@@ -943,7 +943,7 @@
             border: none;
             width: 100%;
             text-align: start;
-            /* Logical equivalent of left */
+
             cursor: pointer;
             font: inherit;
 
@@ -960,12 +960,12 @@
         }
     }
 
-    .dropdown {
+    /* .dropdown {
         & .dropdown-toggle {
             cursor: pointer;
             position: relative;
             list-style: none;
-            /* Assuming this is needed from your nav structure */
+
         }
 
         & .dropdown-toggle:hover .dropdown-menu {
@@ -994,15 +994,17 @@
             }
         }
 
-        /* When an <a> inside .dropdown-menu is hovered, set the background of .dropdown-toggle */
-        & .dropdown-toggle:has(.dropdown-menu a:hover) {
+  & .dropdown-toggle:has(.dropdown-menu a:hover) {
             background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
         }
 
         li {
             padding: var(--space-tiny);
         }
-    }
+    } */
+
+
+    
 
     /* 4. Alert/Notification */
     .alert {
@@ -1405,6 +1407,65 @@ footer {
     background: #79554899;
 }
 
+
+
+
+body {
+    margin: 0;
+    transition: filter 0.3s ease;
+  
+    /* Dull <main> when hovering the Portfolio <li> */
+    &:has(nav.dropdown li:hover) main {
+      filter: brightness(0.8);
+    }
+  
+    /* Nested nav styles */
+    & nav.dropdown {
+      padding: 10px;
+  
+      & ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex; /* Horizontal nav */
+        gap: 20px; /* Space between items */
+      }
+  
+      & li {
+        position: relative; /* Anchor for dropdown */
+        padding: 10px;
+        cursor: pointer;
+  
+        & a {
+          text-decoration: none;
+          color: #333;
+        }
+  
+        /* Dropdown menu */
+        & .dropdown-menu {
+          position: absolute;
+          top: 100%;
+          left: 0;
+          background: white;
+          border: 1px solid #ccc;
+          transform: scaleY(0);
+          transform-origin: top;
+          transition: transform 0.3s ease, opacity 0.3s ease;
+          opacity: 0;
+          display: flex;
+          flex-direction: column;
+          padding: 10px;
+        }
+  
+        /* Show dropdown on hover */
+        &:hover .dropdown-menu {
+          transform: scaleY(1);
+          opacity: 1;
+        }
+      }
+    }
+  }
+  
 
 
 
