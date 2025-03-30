@@ -1411,12 +1411,12 @@ footer {
 
 
 body {
-    margin: 0;
+
     transition: filter 0.3s ease;
   
     /* Dull <main> when hovering the Portfolio <li> */
-    &:has(nav.dropdown li:hover) main {
-      filter: brightness(0.8);
+    &:has(nav.dropdown li:hover) > * {
+      filter: brightness(0.8) opacity(0.8) saturate(0);
     }
   
     /* Nested nav styles */
