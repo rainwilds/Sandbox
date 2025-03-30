@@ -220,10 +220,10 @@
 
         ::backdrop {
 
-            -webkit-backdrop-filter: var(--blur-medium) brightness(0.8) opacity(0.8) saturate(0);
+            -webkit-backdrop-filter: brightness(0.1) opacity(0.5) saturate(0);
 
             @supports selector(backdrop-filter) {
-                backdrop-filter: var(--blur-medium) brightness(0.8) opacity(0.8) saturate(0);
+                backdrop-filter: brightness(0.1) opacity(0.5) saturate(0);
             }
 
         }
