@@ -220,10 +220,10 @@
 
         ::backdrop {
 
-            -webkit-backdrop-filter: var(--blur-large);
+            -webkit-backdrop-filter: var(--blur-medium) brightness(0.8) opacity(0.8) saturate(0);
 
             @supports selector(backdrop-filter) {
-                backdrop-filter: var(--blur-large);
+                backdrop-filter: var(--blur-medium) brightness(0.8) opacity(0.8) saturate(0);
             }
 
         }
@@ -588,7 +588,7 @@
             @media (min-width: 1920px) {
 
                 & {
-                    grid-template: 100vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
+                    grid-template: 50vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
                     grid-template-areas:
                         "gutter-left header header header header header header header header header header header header gutter-right"
                         "gutter-left main main main main main main main main main main main main gutter-right"
