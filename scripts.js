@@ -414,7 +414,21 @@ showNumber.addEventListener("click", () => {
 const slider = document.querySelector('.slider');
 const afterImage = document.querySelector('.after');
 
+function updateClipPath(value) {
+    afterImage.style.clipPath = `inset(0 ${100 - value}% 0 0)`;
+}
+
+// Mouse input
 slider.addEventListener('input', (e) => {
-    const sliderValue = e.target.value; // Value from 0 to 100
-    afterImage.style.clipPath = `inset(0 ${100 - sliderValue}% 0 0)`;
+    updateClipPath(e.target.value);
+});
+
+// Touch input
+slider.addEventListener('touchmove', (e) => {
+    e.preventDefault(); // Prevent scrolling while dragging
+    const touch = e.touches[0];
+    const sliderRect = slider.getBoundingClientRect();
+    const value = ((touch.clientX - sliderRect.left) / sliderRect.width) * 100;
+    slider.value = Math.max(0, Math.min(100, value)); // Clamp between 0 and 100
+    updateClipPath(slider.value);
 });
