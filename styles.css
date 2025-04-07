@@ -1151,62 +1151,56 @@
     }
 
 
-    .comparison-slider {
-        height: 60vh;
-        position: relative;
-        overflow: hidden;
-        background: #f0f0f0; /* Light background to see if container renders */
-      }
-      
-      .img-before,
-      .img-after {
-        width: 100%;
-        height: auto;
-        display: block;
-        object-fit: cover; /* Ensures images fill their containers */
-      }
-      
-      .img-after {
-        position: relative;
-        z-index: 1; /* Ensure it’s below the resize container */
-      }
-      
-      .resize-container {
+/* before and after  */
+.comparison-container {
+    position: relative;
+    width: 600px; /* Adjust to your image width */
+    height: 400px; /* Adjust to your image height */
+    overflow: hidden;
+
+    & .image {
         position: absolute;
         top: 0;
         left: 0;
-        width: 50%; /* Starting point */
-        height: 100%; /* Match the height of the container */
-        max-width: 100%;
-        min-width: 10px;
-        overflow: hidden;
-        resize: horizontal;
-        z-index: 2; /* Above the after image */
-      }
-      
-      .resize-container img {
         width: 100%;
-        height: auto;
-        pointer-events: none; /* Prevents image from blocking resize */
-      }
-      
-      /* Visual handle for resizing */
-      .resize-container::after {
-        content: '';
+        height: 100%;
+        object-fit: cover;
+
+        &.before {
+            z-index: 1;
+        }
+
+        &.after {
+            z-index: 2;
+            clip-path: inset(0 50% 0 0);
+        }
+    }
+
+    & .slider {
         position: absolute;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        width: 6px; /* Wider for visibility */
-        background: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
-        border-left: 2px solid #000; /* Black line for contrast */
+        z-index: 3;
+        width: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        -webkit-appearance: none;
+        appearance: none;
+        height: 5px;
+        background: #ccc;
+        outline: none;
         cursor: ew-resize;
-      }
-      
-      /* Ensure the parent has a height */
-      .comparison-slider {
-        height: auto; /* Will adapt to the after image */
-      }
+
+        &::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 10px;
+            height: 40px;
+            background: #fff;
+            border: 2px solid #000;
+            cursor: ew-resize;
+        }
+    }
+}
+
 
 
 }

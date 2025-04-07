@@ -408,3 +408,13 @@ showNumber.addEventListener("click", () => {
   number.innerText = Math.floor(Math.random() * 1000);
   favDialog.showModal();
 });
+
+
+//before and after
+const slider = document.querySelector('.slider');
+const afterImage = document.querySelector('.after');
+
+slider.addEventListener('input', (e) => {
+    const sliderValue = e.target.value; // Value from 0 to 100
+    afterImage.style.clipPath = `inset(0 ${100 - sliderValue}% 0 0)`;
+});
