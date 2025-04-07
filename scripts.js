@@ -418,17 +418,17 @@ function updateClipPath(value) {
     afterImage.style.clipPath = `inset(0 ${100 - value}% 0 0)`;
 }
 
-// Mouse input
 slider.addEventListener('input', (e) => {
-    updateClipPath(e.target.value);
+    const sliderValue = parseFloat(e.target.value);
+    updateClipPath(sliderValue);
 });
 
-// Touch input
+// Optional: Touch support
 slider.addEventListener('touchmove', (e) => {
-    e.preventDefault(); // Prevent scrolling while dragging
+    e.preventDefault();
     const touch = e.touches[0];
     const sliderRect = slider.getBoundingClientRect();
     const value = ((touch.clientX - sliderRect.left) / sliderRect.width) * 100;
-    slider.value = Math.max(0, Math.min(100, value)); // Clamp between 0 and 100
-    updateClipPath(slider.value);
+    slider.value = Math.max(0, Math.min(100, value));
+    updateClipPath(parseFloat(slider.value));
 });
