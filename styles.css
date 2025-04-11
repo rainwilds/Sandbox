@@ -378,7 +378,8 @@
         a:any-link {
 
             color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-secondary));
-            text-decoration: none;
+            /* text-decoration: none; */
+            text-underline-offset: -0.4rem;
 
             /* adobe font requirements */
             /* font-weight: var(--font-2-weight-light); test */
@@ -386,6 +387,7 @@
             &:hover {
 
                 color: light-dark(var(--color-static-dark-4), var(--color-static-light-4));
+                text-decoration: none;
                 transition: color 0.4s;
 
             }
@@ -1151,71 +1153,62 @@
     }
 
 
-/* before and after  */
-.comparison-container {
-    position: relative;
-    width: 100%;
-    height: 60vh;
-
-    & .image {
+    .comparison-slider {
+        height: 60vh;
+        position: relative;
+        overflow: hidden;
+        background: #f0f0f0; /* Light background to see if container renders */
+      }
+      
+      .img-before,
+      .img-after {
+        width: 100%;
+        height: auto;
+        display: block;
+        object-fit: cover; /* Ensures images fill their containers */
+      }
+      
+      .img-after {
+        position: relative;
+        z-index: 1; /* Ensure it’s below the resize container */
+      }
+      
+      .resize-container {
         position: absolute;
-        /* top: 0;
+        top: 0;
         left: 0;
+        width: 50%; /* Starting point */
+        height: 100%; /* Match the height of the container */
+        max-width: 100%;
+        min-width: 10px;
+        overflow: hidden;
+        resize: horizontal;
+        z-index: 2; /* Above the after image */
+      }
+      
+      .resize-container img {
         width: 100%;
-        height: 100%;
-        object-fit: cover; */
-
-        &.before {
-            z-index: 1;
-        }
-
-        &.after {
-            z-index: 2;
-            clip-path: inset(0 50% 0 0);
-        }
-    }
-
-    & .slider {
+        height: auto;
+        pointer-events: none; /* Prevents image from blocking resize */
+      }
+      
+      /* Visual handle for resizing */
+      .resize-container::after {
+        content: '';
         position: absolute;
-        z-index: 3;
-        width: 100%;
-        top: 50%;
-        transform: translateY(-50%);
-        /* -webkit-appearance: none;
-        appearance: none;
-        height: 5px;
-        background: #ccc;
-        outline: none;
-        cursor: ew-resize; */
-        background: transparent;
-        border: none;
-        padding: 0;
-
-        &::-webkit-slider-thumb {
-            width: 20px; /* Wider for easier touch */
-            height: 50px; /* Slightly taller */
-            background: #fff;
-            border: 2px solid #000;
-            cursor: ew-resize; 
-        }
-        /* Add support for other browsers */
-        &::-moz-range-thumb {
-            width: 20px;
-            height: 50px;
-            background: #fff;
-            border: 2px solid #000;
-            cursor: ew-resize;
-        }
-        &::-ms-thumb {
-            width: 20px;
-            height: 50px;
-            background: #fff;
-            border: 2px solid #000;
-            cursor: ew-resize;
-        }
-    }
-}
-
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 6px; /* Wider for visibility */
+        background: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
+        border-left: 2px solid #000; /* Black line for contrast */
+        cursor: ew-resize;
+      }
+      
+      /* Ensure the parent has a height */
+      .comparison-slider {
+        height: auto; /* Will adapt to the after image */
+      }
 
 
 }
