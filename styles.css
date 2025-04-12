@@ -1006,7 +1006,7 @@
     } */
 
 
-    
+
 
     /* 4. Alert/Notification */
     .alert {
@@ -1153,62 +1153,70 @@
     }
 
 
-    .comparison-slider {
+    /* Before and After */
+    .comparison-container {
+        position: relative;
+        width: 100%;
         height: 60vh;
-        position: relative;
         overflow: hidden;
-        background: #f0f0f0; /* Light background to see if container renders */
-      }
-      
-      .img-before,
-      .img-after {
-        width: 100%;
-        height: auto;
-        display: block;
-        object-fit: cover; /* Ensures images fill their containers */
-      }
-      
-      .img-after {
-        position: relative;
-        z-index: 1; /* Ensure it’s below the resize container */
-      }
-      
-      .resize-container {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 50%; /* Starting point */
-        height: 100%; /* Match the height of the container */
-        max-width: 100%;
-        min-width: 10px;
-        overflow: hidden;
-        resize: horizontal;
-        z-index: 2; /* Above the after image */
-      }
-      
-      .resize-container img {
-        width: 100%;
-        height: auto;
-        pointer-events: none; /* Prevents image from blocking resize */
-      }
-      
-      /* Visual handle for resizing */
-      .resize-container::after {
-        content: '';
-        position: absolute;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        width: 6px; /* Wider for visibility */
-        background: rgba(255, 255, 255, 0.8); /* Semi-transparent white */
-        border-left: 2px solid #000; /* Black line for contrast */
-        cursor: ew-resize;
-      }
-      
-      /* Ensure the parent has a height */
-      .comparison-slider {
-        height: auto; /* Will adapt to the after image */
-      }
+
+        & .image {
+            /* Global styles assumed */
+
+            &.before {
+                z-index: 1;
+            }
+
+            &.after {
+                z-index: 2;
+                clip-path: inset(0 50% 0 0);
+            }
+        }
+
+        & .slider {
+            position: absolute;
+            z-index: 3;
+            width: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            -webkit-appearance: none;
+            appearance: none;
+            height: 5px;
+            background: rgba(204, 204, 204, 0.5);
+            border: none;
+            padding: 0;
+            outline: none;
+            cursor: ew-resize;
+
+            &::-webkit-slider-thumb {
+                width: 20px;
+                height: 50px;
+                background: #fff;
+                border: 2px solid #000;
+                cursor: ew-resize;
+            }
+
+            &::-moz-range-thumb {
+                width: 20px;
+                height: 50px;
+                background: #fff;
+                border: 2px solid #000;
+                cursor: ew-resize;
+            }
+
+            &::-ms-thumb {
+                width: 20px;
+                height: 50px;
+                background: #fff;
+                border: 2px solid #000;
+                cursor: ew-resize;
+            }
+        }
+
+        @media (max-width: 768px) {
+            height: 50vh;
+        }
+    }
 
 
 }
@@ -1415,59 +1423,62 @@ footer {
 body {
 
     transition: filter 0.3s ease;
-  
+
     /* Dull <main> when hovering the Portfolio <li> */
-    &:has(nav.dropdown li:hover) > * > * {
-      filter: brightness(0.8) opacity(0.8) saturate(0);
+    &:has(nav.dropdown li:hover)>*>* {
+        filter: brightness(0.8) opacity(0.8) saturate(0);
     }
-  
+
     /* Nested nav styles */
     & nav.dropdown {
-      padding: 10px;
-  
-      & ul {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        display: flex; /* Horizontal nav */
-        gap: 20px; /* Space between items */
-      }
-  
-      & li {
-        position: relative; /* Anchor for dropdown */
         padding: 10px;
-        cursor: pointer;
-  
-        & a {
-          text-decoration: none;
-          color: #333;
+
+        & ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            /* Horizontal nav */
+            gap: 20px;
+            /* Space between items */
         }
-  
-        /* Dropdown menu */
-        & .dropdown-menu {
-          position: absolute;
-          top: 100%;
-          left: 0;
-          background: white;
-          border: 1px solid #ccc;
-          transform: scaleY(0);
-          transform-origin: top;
-          transition: transform 0.3s ease, opacity 0.3s ease;
-          opacity: 0;
-          display: flex;
-          flex-direction: column;
-          padding: 10px;
+
+        & li {
+            position: relative;
+            /* Anchor for dropdown */
+            padding: 10px;
+            cursor: pointer;
+
+            & a {
+                text-decoration: none;
+                color: #333;
+            }
+
+            /* Dropdown menu */
+            & .dropdown-menu {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                background: white;
+                border: 1px solid #ccc;
+                transform: scaleY(0);
+                transform-origin: top;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+                opacity: 0;
+                display: flex;
+                flex-direction: column;
+                padding: 10px;
+            }
+
+            /* Show dropdown on hover */
+            &:hover .dropdown-menu {
+                transform: scaleY(1);
+                opacity: 1;
+            }
         }
-  
-        /* Show dropdown on hover */
-        &:hover .dropdown-menu {
-          transform: scaleY(1);
-          opacity: 1;
-        }
-      }
     }
-  }
-  
+}
+
 
 
 
