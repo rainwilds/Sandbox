@@ -1181,29 +1181,17 @@
             border: none;
             padding: 0;
 
-            &::-webkit-slider-thumb {
-                width: 20px;
-                height: 50px;
-                background: #fff;
-                border: 2px solid #000;
-                cursor: ew-resize;
-            }
-
-            &::-moz-range-thumb {
-                width: 20px;
-                height: 50px;
-                background: #fff;
-                border: 2px solid #000;
-                cursor: ew-resize;
-            }
-
+            &::-webkit-slider-thumb,
+            &::-moz-range-thumb,
             &::-ms-thumb {
-                width: 20px;
-                height: 50px;
-                background: #fff;
-                border: 2px solid #000;
+                width: var(--space-tiny);
+                height: var(--space-medium);
+                border: 1px solid light-dark(var(--color-accent-light-secondary), var(--color-background-dark));
                 cursor: ew-resize;
+                appearance: none;
+                backdrop-filter: var(--blur-small);
             }
+
         }
     }
 
