@@ -1153,15 +1153,19 @@
     }
 
 
-    /* Before and After */
+    /* before and after  */
     .comparison-container {
         position: relative;
         width: 100%;
         height: 60vh;
-        overflow: hidden;
 
         & .image {
-            /* Global styles assumed */
+            position: absolute;
+            /* top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover; */
 
             &.before {
                 z-index: 1;
@@ -1179,23 +1183,27 @@
             width: 100%;
             top: 50%;
             transform: translateY(-50%);
-            -webkit-appearance: none;
-            appearance: none;
-            height: 5px;
-            background: rgba(204, 204, 204, 0.5);
+            /* -webkit-appearance: none;
+        appearance: none;
+        height: 5px;
+        background: #ccc;
+        outline: none;
+        cursor: ew-resize; */
+            background: transparent;
             border: none;
             padding: 0;
-            outline: none;
-            cursor: ew-resize;
 
             &::-webkit-slider-thumb {
                 width: 20px;
+                /* Wider for easier touch */
                 height: 50px;
+                /* Slightly taller */
                 background: #fff;
                 border: 2px solid #000;
                 cursor: ew-resize;
             }
 
+            /* Add support for other browsers */
             &::-moz-range-thumb {
                 width: 20px;
                 height: 50px;
@@ -1211,10 +1219,6 @@
                 border: 2px solid #000;
                 cursor: ew-resize;
             }
-        }
-
-        @media (max-width: 768px) {
-            height: 50vh;
         }
     }
 
