@@ -1171,7 +1171,7 @@
             }
         }
 
-        & input[type=range] {
+        &>input[type=range] {
             position: absolute;
             z-index: 3;
             width: 100%;

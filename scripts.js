@@ -411,7 +411,7 @@ showNumber.addEventListener("click", () => {
 
 
 // Image compare - before and after
-const slider = document.querySelector('.image-compare input[type=range]');
+const slider = document.querySelector('.image-compare > input[type=range]');
 const afterImage = document.querySelector('.image-compare > img:last-of-type');
 
 function updateClipPath(value) {
