@@ -410,9 +410,9 @@ showNumber.addEventListener("click", () => {
 });
 
 
-//before and after
-const slider = document.querySelector('.slider');
-const afterImage = document.querySelector('.after');
+// Image compare - before and after
+const slider = document.querySelector('.image-compare input[type=range]');
+const afterImage = document.querySelector('.image-compare > img:last-of-type');
 
 function updateClipPath(value) {
     afterImage.style.clipPath = `inset(0 ${100 - value}% 0 0)`;
