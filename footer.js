@@ -10,4 +10,4 @@ class Footer extends HTMLElement {
       `;
     }
   }
-  customElements.define('bh-footer', SiteFooter);
+  customElements.define('bh-footer', Footer);
