@@ -89,11 +89,10 @@ class Head extends HTMLElement {
       head.appendChild(linkCanonical);
     }
 
-    // NEW: Add theme-color meta tag with fallback
+    // MODIFIED: Add theme-color meta tag without id
     if (!document.querySelector('meta[name="theme-color"]')) {
       const metaThemeColor = document.createElement('meta');
       metaThemeColor.name = 'theme-color';
-      metaThemeColor.id = 'theme-color'; // ID for JavaScript updates
       metaThemeColor.content = 'cyan'; // Fallback color
       head.appendChild(metaThemeColor);
     }
@@ -156,14 +155,14 @@ class Head extends HTMLElement {
       head.appendChild(scriptInit);
     }
 
-    // NEW: Initialize theme color and listen for changes
+    // MODIFIED: Initialize theme color and listen for changes
     this.updateThemeColor();
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => this.updateThemeColor());
   }
 
-  // NEW: Method to update theme color based on CSS variables
+  // MODIFIED: Method to update theme color based on CSS variables without id
   updateThemeColor() {
-    const metaThemeColor = document.getElementById('theme-color');
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (!metaThemeColor) return;
 
     const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
