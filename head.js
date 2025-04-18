@@ -155,10 +155,14 @@ class Head extends HTMLElement {
       console.log('Adding Eruda'); // Debug: Confirm Eruda logic
       const scriptEruda = document.createElement('script');
       scriptEruda.src = 'https://cdn.jsdelivr.net/npm/eruda';
+      scriptEruda.onload = () => {
+        console.log('Eruda script loaded, initializing'); // Debug: Confirm Eruda load
+        const scriptInit = document.createElement('script');
+        scriptInit.textContent = 'eruda.init();';
+        head.appendChild(scriptInit);
+      };
+      scriptEruda.onerror = () => console.error('Failed to load Eruda script');
       head.appendChild(scriptEruda);
-      const scriptInit = document.createElement('script');
-      scriptInit.textContent = 'eruda.init();';
-      head.appendChild(scriptInit);
     }
 
     // Optional Snipcart e-commerce
@@ -175,12 +179,54 @@ class Head extends HTMLElement {
           const snipcartScript = document.createElement('script');
           snipcartScript.dataset.snipcart = 'true';
           snipcartScript.textContent = `
-            window.SnipcartSettings = {
+            try {
+              window.SnipcartSettings = {
                 publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
-                loadStrategy: 'on-user-interaction',
-            };
+                loadStrategy: 'on-user-interaction'
+              };
 
-            (()=>{var c,d;(d=(c=window.SnipcartSettings).version)!=null||(c.version="3.0");var s,S;(S=(s=window.SnipcartSettings).timeoutDuration)!=null||(s.timeoutDuration=2750);var l,p;(p=(l=window.SnipcartSettings).domain)!=null||(l.domain="cdn.snipcart.com");var w,u;(u=(w=window.SnipcartSettings).protocol)!=null||(w.protocol="https");var f=window.SnipcartSettings.version.includes("v3.0.0-ci")||window.SnipcartSettings.version!="3.0"&&window.SnipcartSettings.version.localeCompare("3.4.0",void 0,{numeric:!0,sensitivity:"base"})===-1,m=["focus","mouseover","touchmove","scroll","keydown"];window.LoadSnipcart=o;document.readyState==="loading"?document.addEventListener("DOMContentLoaded",r):r();function r(){window.SnipcartSettings.loadStrategy?window.SnipcartSettings.loadStrategy==="on-user-interaction"&&(m.forEach(t=>document.addEventListener(t,o)),setTimeout(o,window.SnipcartSettings.timeoutDuration)):o()}var a=!1;function o(){if(a)return;a=!0;let t=document.getElementsByTagName("head")[0],e=document.querySelector("#snipcart"),i=document.querySelector('src[src^="${window.SnipcartSettings.protocol}://${window.SnipcartSettings.domain}"][src$="snipcart.js"]'),n=document.querySelector('link[href^="${window.SnipcartSettings.protocol}://${window.SnipcartSettings.domain}"][href$="snipcart.css"]');e||(e=document.createElement("div"),e.id="snipcart",e.setAttribute("hidden","true"),document.body.appendChild(e)),v(e),i||(i=document.createElement("script"),i.src='${window.SnipcartSettings.protocol}://${window.SnipcartSettings.domain}/themes/v${window.SnipcartSettings.version}/default/snipcart.js',i.async=!0,t.appendChild(i)),n||(n=document.createElement("link"),n.rel="stylesheet",n.type="text/css",n.href='${window.SnipcartSettings.protocol}://${window.SnipcartSettings.domain}/themes/v${window.SnipcartSettings.version}/default/snipcart.css',t.prepend(n)),m.forEach(g=>document.removeEventListener(g,o))}function v(t){!f||(t.dataset.apiKey=window.SnipcartSettings.publicApiKey,window.SnipcartSettings.addProductBehavior&&(t.dataset.configAddProductBehavior=window.SnipcartSettings.addProductBehavior),window.SnipcartSettings.modalStyle&&(t.dataset.configModalStyle=window.SnipcartSettings.modalStyle),window.SnipcartSettings.currency&&(t.dataset.currency=window.SnipcartSettings.currency),window.SnipcartSettings.templatesUrl&&(t.dataset.templatesUrl=window.SnipcartSettings.templatesUrl))}})();
+              (() => {
+                var c, d;
+                (d = (c = window.SnipcartSettings).version) != null || (c.version = "3.0");
+                var s, S;
+                (S = (s = window.SnipcartSettings).timeoutDuration) != null || (s.timeoutDuration = 2750);
+                var l, p;
+                (p = (l = window.SnipcartSettings).domain) != null || (l.domain = "cdn.snipcart.com");
+                var w, u;
+                (u = (w = window.SnipcartSettings).protocol) != null || (w.protocol = "https");
+                var f = window.SnipcartSettings.version.includes("v3.0.0-ci") || window.SnipcartSettings.version != "3.0" && window.SnipcartSettings.version.localeCompare("3.4.0", void 0, { numeric: true, sensitivity: "base" }) === -1,
+                  m = ["focus", "mouseover", "touchmove", "scroll", "keydown"];
+                window.LoadSnipcart = o;
+                document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r) : r();
+                function r() {
+                  window.SnipcartSettings.loadStrategy ? window.SnipcartSettings.loadStrategy === "on-user-interaction" && (m.forEach(t => document.addEventListener(t, o)), setTimeout(o, window.SnipcartSettings.timeoutDuration)) : o();
+                }
+                var a = false;
+                function o() {
+                  if (a) return;
+                  a = true;
+                  let t = document.getElementsByTagName("head")[0],
+                    e = document.querySelector("#snipcart"),
+                    i = document.querySelector(\`src[src^="\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}"][src$="snipcart.js"]\`),
+                    n = document.querySelector(\`link[href^="\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}"][href$="snipcart.css"]\`);
+                  e || (e = document.createElement("div"), e.id = "snipcart", e.setAttribute("hidden", "true"), document.body.appendChild(e));
+                  v(e);
+                  i || (i = document.createElement("script"), i.src = \`\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}/themes/v\${window.SnipcartSettings.version}/default/snipcart.js\`, i.async = true, t.appendChild(i));
+                  n || (n = document.createElement("link"), n.rel = "stylesheet", n.type = "text/css", n.href = \`\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}/themes/v\${window.SnipcartSettings.version}/default/snipcart.css\`, t.prepend(n));
+                  m.forEach(g => document.removeEventListener(g, o));
+                }
+                function v(t) {
+                  if (!f) return;
+                  t.dataset.apiKey = window.SnipcartSettings.publicApiKey;
+                  window.SnipcartSettings.addProductBehavior && (t.dataset.configAddProductBehavior = window.SnipcartSettings.addProductBehavior);
+                  window.SnipcartSettings.modalStyle && (t.dataset.configModalStyle = window.SnipcartSettings.modalStyle);
+                  window.SnipcartSettings.currency && (t.dataset.currency = window.SnipcartSettings.currency);
+                  window.SnipcartSettings.templatesUrl && (t.dataset.templatesUrl = window.SnipcartSettings.templatesUrl);
+                }
+              })();
+            } catch (error) {
+              console.error('Snipcart script error:', error);
+            }
           `;
           snipcartScript.onerror = () => console.error('Failed to load Snipcart script');
           document.body.prepend(snipcartScript);
@@ -207,6 +253,12 @@ class Head extends HTMLElement {
       preconnect.rel = 'preconnect';
       preconnect.href = 'https://cdn.snipcart.com';
       head.appendChild(preconnect);
+    }
+
+    // Remove <bh-head> from DOM to prevent it appearing in <body>
+    if (this.parentNode) {
+      console.log('Removing bh-head from DOM'); // Debug: Confirm removal
+      this.parentNode.removeChild(this);
     }
 
     // Initialize theme color and listen for changes
