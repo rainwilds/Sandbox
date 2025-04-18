@@ -94,7 +94,7 @@ function manageHead(attributes = {}, businessConfig = {}) {
 
   if (attributes.description && !document.querySelector('meta[name="description"]')) {
     const metaDesc = document.createElement('meta');
-    metaDesc.name = 'description'; // FIXED: Corrected syntax error
+    metaDesc.name = 'description';
     metaDesc.content = attributes.description || '';
     head.appendChild(metaDesc);
   }
@@ -322,7 +322,7 @@ function manageHead(attributes = {}, businessConfig = {}) {
         `;
         document.body.appendChild(snipcartSettings);
 
-        const snipcartScript = document.createElement>('script');
+        const snipcartScript = document.createElement('script'); // FIXED: Corrected syntax error
         snipcartScript.dataset.snipcart = 'true';
         snipcartScript.type = 'text/javascript';
         snipcartScript.textContent = `
@@ -441,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Fetch business-info.json
-  fetch('/Sandbox/business-info.json')
+  fetch('/business-info.json')
     .then(response => response.ok ? response.json() : {})
     .then(businessConfig => {
       console.log('Fetched business-info.json:', businessConfig); // TEMPORARY: Remove after testing
