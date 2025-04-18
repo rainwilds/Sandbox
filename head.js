@@ -8,38 +8,6 @@ class Head extends HTMLElement {
     let head = document.head || document.createElement('head');
     if (!document.head) document.documentElement.prepend(head);
 
-    // Append instead of clearing to preserve static <link> tags
-    if (!document.querySelector('meta[charset]')) {
-      const metaCharset = document.createElement('meta');
-      metaCharset.setAttribute('charset', 'UTF-8');
-      head.appendChild(metaCharset);
-    }
-
-    if (!document.querySelector('meta[name="viewport"]')) {
-      const metaViewport = document.createElement('meta');
-      metaViewport.name = 'viewport';
-      metaViewport.content = 'width=device-width, initial-scale=1';
-      head.appendChild(metaViewport);
-    }
-
-    // Hardcoded Font Awesome styles
-    const fontAwesomeStyles = [
-      './fonts/fontawesome/fontawesome.min.css',
-      './fonts/fontawesome/sharp-light.min.css',
-      './fonts/fontawesome/brands.min.css'
-    ];
-
-    // Preload Font Awesome styles
-    fontAwesomeStyles.forEach(href => {
-      if (!document.querySelector(`link[href="${href}"]`)) {
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.href = href;
-        link.as = 'style';
-        head.appendChild(link);
-      }
-    });
-
     // Hardcoded font preloads
     const fonts = [
       { href: './fonts/AdobeAldine-Regular.woff2', type: 'font/woff2' }
@@ -54,6 +22,38 @@ class Head extends HTMLElement {
         head.appendChild(link);
       }
     });
+
+    // Hardcoded Font Awesome styles
+    const fontAwesomeStyles = [
+      './fonts/fontawesome/fontawesome.min.css',
+      './fonts/fontawesome/sharp-light.min.css',
+      './fonts/fontawesome/brands.min.css'
+    ];
+
+    // Preload Font Awesome styles (first)
+    fontAwesomeStyles.forEach(href => {
+      if (!document.querySelector(`link[href="${href}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.href = href;
+        link.as = 'style';
+        head.appendChild(link);
+      }
+    });
+
+    // Append instead of clearing to preserve static <link> tags
+    if (!document.querySelector('meta[charset]')) {
+      const metaCharset = document.createElement('meta');
+      metaCharset.setAttribute('charset', 'UTF-8');
+      head.appendChild(metaCharset);
+    }
+
+    if (!document.querySelector('meta[name="viewport"]')) {
+      const metaViewport = document.createElement('meta');
+      metaViewport.name = 'viewport';
+      metaViewport.content = 'width=device-width, initial-scale=1';
+      head.appendChild(metaViewport);
+    }
 
     if (!document.querySelector('title')) {
       const title = document.createElement('title');
@@ -99,6 +99,18 @@ class Head extends HTMLElement {
       }
     });
 
+    // Scripts
+    const scripts = ['./scripts.js', './components.js'];
+    scripts.forEach(src => {
+      if (!document.querySelector(`script[src="${src}"]`)) {
+        const script = document.createElement('script');
+        script.src = src;
+        script.defer = true;
+        script.onerror = () => console.error(`Failed to load script: ${src}`);
+        head.appendChild(script);
+      }
+    });
+
     // Hardcoded favicons
     const favicons = [
       { rel: 'apple-touch-icon', sizes: '180x180', href: './img/icons/apple-touch-icon.png' },
@@ -113,18 +125,6 @@ class Head extends HTMLElement {
         if (favicon.sizes) link.sizes = favicon.sizes;
         if (favicon.type) link.type = favicon.type;
         head.appendChild(link);
-      }
-    });
-
-    // Scripts
-    const scripts = ['./scripts.js', './components.js'];
-    scripts.forEach(src => {
-      if (!document.querySelector(`script[src="${src}"]`)) {
-        const script = document.createElement('script');
-        script.src = src;
-        script.defer = true;
-        script.onerror = () => console.error(`Failed to load script: ${src}`);
-        head.appendChild(script);
       }
     });
 
