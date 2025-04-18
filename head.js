@@ -22,6 +22,39 @@ class Head extends HTMLElement {
       head.appendChild(metaViewport);
     }
 
+    // Hardcoded Font Awesome styles
+    const fontAwesomeStyles = [
+      './fonts/fontawesome/fontawesome.min.css',
+      './fonts/fontawesome/sharp-light.min.css',
+      './fonts/fontawesome/brands.min.css'
+    ];
+
+    // Preload Font Awesome styles
+    fontAwesomeStyles.forEach(href => {
+      if (!document.querySelector(`link[href="${href}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.href = href;
+        link.as = 'style';
+        head.appendChild(link);
+      }
+    });
+
+    // Hardcoded font preloads
+    const fonts = [
+      { href: './fonts/AdobeAldine-Regular.woff2', type: 'font/woff2' }
+    ];
+    fonts.forEach(font => {
+      if (!document.querySelector(`link[href="${font.href}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.href = font.href;
+        link.as = 'font';
+        link.type = font.type;
+        head.appendChild(link);
+      }
+    });
+
     if (!document.querySelector('title')) {
       const title = document.createElement('title');
       title.textContent = this.getAttribute('title') || 'Sandbox';
@@ -56,45 +89,12 @@ class Head extends HTMLElement {
       head.appendChild(linkCanonical);
     }
 
-    // Hardcoded Font Awesome styles
-    const fontAwesomeStyles = [
-      './fonts/fontawesome/fontawesome.min.css',
-      './fonts/fontawesome/sharp-light.min.css',
-      './fonts/fontawesome/brands.min.css'
-    ];
-
-    // Preload Font Awesome styles
-    fontAwesomeStyles.forEach(href => {
-      if (!document.querySelector(`link[href="${href}"]`)) {
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.href = href;
-        link.as = 'style';
-        head.appendChild(link);
-      }
-    });
-
     // Load Font Awesome stylesheets
     fontAwesomeStyles.forEach(href => {
       if (!document.querySelector(`link[rel="stylesheet"][href="${href}"]`)) {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = href;
-        head.appendChild(link);
-      }
-    });
-
-    // Hardcoded font preloads
-    const fonts = [
-      { href: './fonts/AdobeAldine-Regular.woff2', type: 'font/woff2' }
-    ];
-    fonts.forEach(font => {
-      if (!document.querySelector(`link[href="${font.href}"]`)) {
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.href = font.href;
-        link.as = 'font';
-        link.type = font.type;
         head.appendChild(link);
       }
     });
@@ -116,16 +116,6 @@ class Head extends HTMLElement {
       }
     });
 
-    // Optional Eruda
-    if (this.hasAttribute('include-eruda') && !document.querySelector('script[src="https://cdn.jsdelivr.net/npm/eruda"]')) {
-      const scriptEruda = document.createElement('script');
-      scriptEruda.src = 'https://cdn.jsdelivr.net/npm/eruda';
-      head.appendChild(scriptEruda);
-      const scriptInit = document.createElement('script');
-      scriptInit.textContent = 'eruda.init();';
-      head.appendChild(scriptInit);
-    }
-
     // Scripts
     const scripts = ['./scripts.js', './components.js'];
     scripts.forEach(src => {
@@ -137,6 +127,16 @@ class Head extends HTMLElement {
         head.appendChild(script);
       }
     });
+
+    // Optional Eruda (last)
+    if (this.hasAttribute('include-eruda') && !document.querySelector('script[src="https://cdn.jsdelivr.net/npm/eruda"]')) {
+      const scriptEruda = document.createElement('script');
+      scriptEruda.src = 'https://cdn.jsdelivr.net/npm/eruda';
+      head.appendChild(scriptEruda);
+      const scriptInit = document.createElement('script');
+      scriptInit.textContent = 'eruda.init();';
+      head.appendChild(scriptInit);
+    }
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
