@@ -88,7 +88,7 @@ function manageHead(attributes = {}) {
   if (!document.querySelector('meta[name="author"]')) {
     const metaAuthor = document.createElement('meta');
     metaAuthor.name = 'author';
-    metaAuthor.content = attributes.author || 'David Dufourq';
+    metaAuthor.content = attributes.author || 'Unknown';
     head.appendChild(metaAuthor);
   }
 
@@ -200,6 +200,55 @@ function manageHead(attributes = {}) {
     head.appendChild(twitterImage);
   }
 
+  // Add schema markup (WebSite, LocalBusiness, optional Product)
+  const schemaScript = document.createElement('script');
+  schemaScript.type = 'application/ld+json';
+  const schemas = [
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": attributes['schema-site-name'] || attributes.title || 'Business Site',
+      "url": attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/'
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": attributes['business-name'] || attributes.title || 'Business Site',
+      "url": attributes['business-url'] || attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/',
+      "telephone": attributes['business-telephone'] || '',
+      "address": attributes['business-address-street'] ? {
+        "@type": "PostalAddress",
+        "streetAddress": attributes['business-address-street'] || '',
+        "addressLocality": attributes['business-address-locality'] || '',
+        "addressRegion": attributes['business-address-region'] || '',
+        "postalCode": attributes['business-address-postal'] || '',
+        "addressCountry": attributes['business-address-country'] || ''
+      } : undefined,
+      "openingHours": attributes['business-opening-hours'] || ''
+    }
+  ];
+
+  // Add Product schema if e-commerce is enabled
+  if (attributes['include-e-commerce']) {
+    schemas.push({
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": attributes['product-name'] || 'Featured Product',
+      "description": attributes['product-description'] || attributes.description || 'High-quality product.',
+      "image": attributes['product-image'] || attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/product.jpg',
+      "offers": {
+        "@type": "Offer",
+        "priceCurrency": attributes['product-price-currency'] || 'USD',
+        "price": attributes['product-price'] || '10.00',
+        "availability": attributes['product-availability'] || 'https://schema.org/InStock'
+      }
+    });
+  }
+
+  // Filter out schemas with undefined properties (e.g., address if no street)
+  schemaScript.textContent = JSON.stringify(schemas.filter(schema => schema.address ? schema.address.streetAddress : true));
+  head.appendChild(schemaScript);
+
   // Load Font Awesome stylesheets
   fontAwesomeStyles.forEach(href => {
     if (!document.querySelector(`link[rel="stylesheet"][href="${href}"]`)) {
@@ -259,8 +308,7 @@ function manageHead(attributes = {}) {
         window.SnipcartSettings = {
           publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
           loadStrategy: 'on-user-interaction',
-          version: '3.0',
-          loadCSS: false
+          version: '3.0'
         };
       `;
       document.body.appendChild(snipcartSettings);
@@ -312,7 +360,7 @@ function manageHead(attributes = {}) {
           })();
         } catch (error) {}
       `;
-      document.body.appendChild(snipcartScript);
+      document.body.appendChild(s🙨n😨i😨p😨c😨a😨r😨t😨S😨c😨r😨i😨p😨t😨);
     }
   }
 
@@ -363,6 +411,23 @@ document.addEventListener('DOMContentLoaded', () => {
       'twitter-url': dataHead.dataset.twitterUrl,
       'twitter-domain': dataHead.dataset.twitterDomain,
       'twitter-card': dataHead.dataset.twitterCard,
+      'business-name': dataHead.dataset.businessName,
+      'business-url': dataHead.dataset.businessUrl,
+      'business-telephone': dataHead.dataset.businessTelephone,
+      'business-address-street': dataHead.dataset.businessAddressStreet,
+      'business-address-locality': dataHead.dataset.businessAddressLocality,
+      'business-address-region': dataHead.dataset.businessAddressRegion,
+      'business-address-postal': dataHead.dataset.businessAddressPostal,
+      'business-address-country': dataHead.dataset.businessAddressCountry,
+      'business-opening-hours': dataHead.dataset.businessOpeningHours,
+      'schema-site-name': dataHead.dataset.schemaSiteName,
+      'schema-site-url': dataHead.dataset.schemaSiteUrl,
+      'product-name': dataHead.dataset.productName,
+      'product-description': dataHead.dataset.productDescription,
+      'product-image': dataHead.dataset.productImage,
+      'product-price-currency': dataHead.dataset.productPriceCurrency,
+      'product-price': dataHead.dataset.productPrice,
+      'product-availability': dataHead.dataset.productAvailability,
       'include-e-commerce': dataHead.hasAttribute('data-include-e-commerce'),
       'include-eruda': dataHead.hasAttribute('data-include-eruda')
     };
@@ -376,7 +441,7 @@ document.addEventListener('DOMContentLoaded', () => {
       title: 'Sandbox',
       description: '',
       keywords: '',
-      author: 'David Dufourq',
+      author: 'Unknown',
       canonical: ''
     });
   }
