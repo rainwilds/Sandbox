@@ -1,5 +1,6 @@
 class Head extends HTMLElement {
   static get observedAttributes() {
+    // MODIFIED: Removed include-e-commerce, as dynamic updates are not needed
     return ['title', 'description', 'keywords', 'author', 'canonical'];
   }
 
@@ -89,7 +90,7 @@ class Head extends HTMLElement {
       head.appendChild(linkCanonical);
     }
 
-    // MODIFIED: Add theme-color meta tag without id
+    // Add theme-color meta tag without id
     if (!document.querySelector('meta[name="theme-color"]')) {
       const metaThemeColor = document.createElement('meta');
       metaThemeColor.name = 'theme-color';
@@ -97,7 +98,7 @@ class Head extends HTMLElement {
       head.appendChild(metaThemeColor);
     }
 
-    // NEW: Add main stylesheet (ensure CSS variables are available)
+    // Add main stylesheet (ensure CSS variables are available)
     const mainStylesheet = './styles.css'; // Adjust path as needed
     if (!document.querySelector(`link[href="${mainStylesheet}"]`)) {
       const link = document.createElement('link');
@@ -145,7 +146,7 @@ class Head extends HTMLElement {
       }
     });
 
-    // Optional Eruda (last)
+    // Optional Eruda
     if (this.hasAttribute('include-eruda') && !document.querySelector('script[src="https://cdn.jsdelivr.net/npm/eruda"]')) {
       const scriptEruda = document.createElement('script');
       scriptEruda.src = 'https://cdn.jsdelivr.net/npm/eruda';
@@ -155,12 +156,33 @@ class Head extends HTMLElement {
       head.appendChild(scriptInit);
     }
 
-    // MODIFIED: Initialize theme color and listen for changes
+    // NEW: Optional Snipcart e-commerce (fixed on page load)
+    if (this.hasAttribute('include-e-commerce') && !document.querySelector('script[data-snipcart]')) {
+      if (!document.body) {
+        console.warn('Cannot add Snipcart: <body> element not found');
+        return;
+      }
+
+      // Add Snipcart script just after <body>
+      const snipcartScript = document.createElement('script');
+      snipcartScript.dataset.snipcart = 'true'; // Marker to identify Snipcart script
+      snipcartScript.textContent = `
+        window.SnipcartSettings = {
+            publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
+            loadStrategy: 'on-user-interaction',
+        };
+
+        (()=>{var c,d;(d=(c=window.SnipcartSettings).version)!=null||(c.version="3.0");var s,S;(S=(s=window.SnipcartSettings).timeoutDuration)!=null||(s.timeoutDuration=2750);var l,p;(p=(l=window.SnipcartSettings).domain)!=null||(l.domain="cdn.snipcart.com");var w,u;(u=(w=window.SnipcartSettings).protocol)!=null||(w.protocol="https");var f=window.SnipcartSettings.version.includes("v3.0.0-ci")||window.SnipcartSettings.version!="3.0"&&window.SnipcartSettings.version.localeCompare("3.4.0",void 0,{numeric:!0,sensitivity:"base"})===-1,m=["focus","mouseover","touchmove","scroll","keydown"];window.LoadSnipcart=o;document.readyState==="loading"?document.addEventListener("DOMContentLoaded",r):r();function r(){window.SnipcartSettings.loadStrategy?window.SnipcartSettings.loadStrategy==="on-user-interaction"&&(m.forEach(t=>document.addEventListener(t,o)),setTimeout(o,window.SnipcartSettings.timeoutDuration)):o()}var a=!1;function o(){if(a)return;a=!0;let t=document.getElementsByTagName("head")[0],e=document.querySelector("#snipcart"),i=document.querySelector('src[src^="${window.SnipcartSettings.protocol}://${window.SnipcartSettings.domain}"][src$="snipcart.js"]'),n=document.querySelector('link[href^="${window.SnipcartSettings.protocol}://${window.SnipcartSettings.domain}"][href$="snipcart.css"]');e||(e=document.createElement("div"),e.id="snipcart",e.setAttribute("hidden","true"),document.body.appendChild(e)),v(e),i||(i=document.createElement("script"),i.src='${window.SnipcartSettings.protocol}://${window.SnipcartSettings.domain}/themes/v${window.SnipcartSettings.version}/default/snipcart.js',i.async=!0,t.appendChild(i)),n||(n=document.createElement("link"),n.rel="stylesheet",n.type="text/css",n.href='${window.SnipcartSettings.protocol}://${window.SnipcartSettings.domain}/themes/v${window.SnipcartSettings.version}/default/snipcart.css',t.prepend(n)),m.forEach(g=>document.removeEventListener(g,o))}function v(t){!f||(t.dataset.apiKey=window.SnipcartSettings.publicApiKey,window.SnipcartSettings.addProductBehavior&&(t.dataset.configAddProductBehavior=window.SnipcartSettings.addProductBehavior),window.SnipcartSettings.modalStyle&&(t.dataset.configModalStyle=window.SnipcartSettings.modalStyle),window.SnipcartSettings.currency&&(t.dataset.currency=window.SnipcartSettings.currency),window.SnipcartSettings.templatesUrl&&(t.dataset.templatesUrl=window.SnipcartSettings.templatesUrl))}})();
+      `;
+      snipcartScript.onerror = () => console.error('Failed to load Snipcart script');
+      document.body.prepend(snipcartScript); // Place just after <body>
+    }
+
+    // Initialize theme color and listen for changes
     this.updateThemeColor();
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => this.updateThemeColor());
   }
 
-  // MODIFIED: Method to update theme color based on CSS variables without id
   updateThemeColor() {
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (!metaThemeColor) return;
@@ -170,7 +192,6 @@ class Head extends HTMLElement {
       ? getComputedStyle(document.documentElement).getPropertyValue('--color-background-dark').trim()
       : getComputedStyle(document.documentElement).getPropertyValue('--color-background-light').trim();
 
-    // Only update if a valid color is found
     if (color) {
       metaThemeColor.setAttribute('content', color);
     } else {
@@ -220,6 +241,7 @@ class Head extends HTMLElement {
       }
       if (link) link.href = newValue || '';
     }
+    // MODIFIED: Removed include-e-commerce case, as dynamic updates are not needed
   }
 }
 customElements.define('bh-head', Head);
