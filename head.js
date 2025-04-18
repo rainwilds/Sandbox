@@ -159,7 +159,7 @@ class Head extends HTMLElement {
           if (node.nodeName === 'LINK' && node.rel === 'stylesheet' && node.href.includes('styles.css')) {
             console.log(`Detected <link> injection in <body>: ${node.href}`); // Debug
             console.log(`Injection context: ${mutation.target.nodeName}`); // Debug
-            // Don't remove yet to trace cause
+            console.log('Stack trace:', new Error().stack); // Debug: Trace script
           }
         });
       });
@@ -171,6 +171,17 @@ class Head extends HTMLElement {
     const mainStylesheet = './styles.css';
     const addStylesheet = () => {
       setTimeout(() => {
+        // Ensure styles.css is loaded in <head>
+        if (!document.querySelector(`link[rel="stylesheet"][href="${mainStylesheet}"]`)) {
+          console.log('Forcing styles.css stylesheet in <head>'); // Debug
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = mainStylesheet;
+          head.appendChild(link);
+        } else {
+          console.log('styles.css stylesheet already present in <head>, skipping force'); // Debug
+        }
+
         const existingStylesheets = document.querySelectorAll(`link[rel="stylesheet"]`);
         let found = false;
         existingStylesheets.forEach(link => {
@@ -193,7 +204,6 @@ class Head extends HTMLElement {
         const bodyStylesheets = document.body.querySelectorAll(`link[rel="stylesheet"]`);
         bodyStylesheets.forEach(link => {
           console.log(`Found unexpected stylesheet in <body>: ${link.getAttribute('href')}`); // Debug
-          // Don't remove to trace cause
         });
       }, 100);
     };
