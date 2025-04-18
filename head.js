@@ -160,12 +160,15 @@ class Head extends HTMLElement {
             console.log(`Detected <link> injection in <body>: ${node.href}`); // Debug
             console.log(`Injection context: ${mutation.target.nodeName}`); // Debug
             console.log('Stack trace:', new Error().stack); // Debug: Trace script
+            console.log('Current <head> links:', Array.from(document.head.querySelectorAll('link[rel="stylesheet"]')).map(link => link.href)); // Debug
           }
         });
       });
     });
-    observer.observe(document.body, { childList: true, subtree: true });
-    console.log('Started mutation observer for <body> <link> injections'); // Debug
+    setTimeout(() => {
+      observer.observe(document.body, { childList: true, subtree: true });
+      console.log('Started mutation observer for <body> <link> injections'); // Debug
+    }, 50); // Delay to catch early injections
 
     // Add main stylesheet on DOMContentLoaded with delayed check
     const mainStylesheet = './styles.css';
