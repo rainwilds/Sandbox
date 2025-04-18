@@ -306,14 +306,33 @@ function manageHead(attributes = {}) {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeColor);
 }
 
-// Execute manageHead with hardcoded attributes (temporary to avoid <bh-head> parsing issues)
+// Read <data-bh-head> attributes and call manageHead
 document.addEventListener('DOMContentLoaded', () => {
-  manageHead({
-    title: 'Home',
-    description: 'Welcome to my photography portfolio',
-    keywords: 'portfolio, web design',
-    author: 'David Dufourq',
-    canonical: 'https://linktopage.com',
-    'include-e-commerce': true
-  });
+  const dataHead = document.querySelector('data-bh-head');
+  if (dataHead) {
+    const attributes = {
+      title: dataHead.dataset.title,
+      description: dataHead.dataset.description,
+      keywords: dataHead.dataset.keywords,
+      author: dataHead.dataset.author,
+      canonical: dataHead.dataset.canonical,
+      'include-e-commerce': dataHead.hasAttribute('data-include-e-commerce'),
+      'include-eruda': dataHead.hasAttribute('data-include-eruda')
+    };
+    manageHead(attributes);
+    // Remove <data-bh-head> from DOM to keep <head> clean
+    if (dataHead.parentNode) {
+      console.log('Removing data-bh-head from DOM'); // Debug
+      dataHead.parentNode.removeChild(dataHead);
+    }
+  } else {
+    console.log('No data-bh-head element found, using defaults'); // Debug
+    manageHead({
+      title: 'Sandbox',
+      description: '',
+      keywords: '',
+      author: 'David Dufourq',
+      canonical: ''
+    });
+  }
 });
