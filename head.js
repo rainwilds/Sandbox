@@ -152,29 +152,10 @@ class Head extends HTMLElement {
       }
     });
 
-    // Add mutation observer to catch <body> <link> injection
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach(mutation => {
-        mutation.addedNodes.forEach(node => {
-          if (node.nodeName === 'LINK' && node.rel === 'stylesheet' && node.href.includes('styles.css')) {
-            console.log(`Detected <link> injection in <body>: ${node.href}`); // Debug
-            console.log(`Injection context: ${mutation.target.nodeName}`); // Debug
-            console.log('Stack trace:', new Error().stack); // Debug: Trace script
-            console.log('Current <head> links:', Array.from(document.head.querySelectorAll('link[rel="stylesheet"]')).map(link => link.href)); // Debug
-          }
-        });
-      });
-    });
-    setTimeout(() => {
-      observer.observe(document.body, { childList: true, subtree: true });
-      console.log('Started mutation observer for <body> <link> injections'); // Debug
-    }, 50); // Delay to catch early injections
-
-    // Add main stylesheet on DOMContentLoaded with delayed check
+    // Add main stylesheet on DOMContentLoaded
     const mainStylesheet = './styles.css';
     const addStylesheet = () => {
       setTimeout(() => {
-        // Ensure styles.css is loaded in <head>
         if (!document.querySelector(`link[rel="stylesheet"][href="${mainStylesheet}"]`)) {
           console.log('Forcing styles.css stylesheet in <head>'); // Debug
           const link = document.createElement('link');
@@ -184,30 +165,6 @@ class Head extends HTMLElement {
         } else {
           console.log('styles.css stylesheet already present in <head>, skipping force'); // Debug
         }
-
-        const existingStylesheets = document.querySelectorAll(`link[rel="stylesheet"]`);
-        let found = false;
-        existingStylesheets.forEach(link => {
-          const href = link.getAttribute('href');
-          console.log(`Checking stylesheet href: ${href}`); // Debug: Log all stylesheet hrefs
-          if (href === mainStylesheet || href.endsWith('/styles.css') || href.includes('styles.css')) {
-            found = true;
-          }
-        });
-        if (!found) {
-          console.log('Adding styles.css stylesheet to <head> on DOMContentLoaded'); // Debug
-          const link = document.createElement('link');
-          link.rel = 'stylesheet';
-          link.href = mainStylesheet;
-          head.appendChild(link);
-        } else {
-          console.log('styles.css stylesheet already present in DOM, skipping'); // Debug
-        }
-        // Check for <body> stylesheets
-        const bodyStylesheets = document.body.querySelectorAll(`link[rel="stylesheet"]`);
-        bodyStylesheets.forEach(link => {
-          console.log(`Found unexpected stylesheet in <body>: ${link.getAttribute('href')}`); // Debug
-        });
       }, 100);
     };
     console.log('Scheduling styles.css check on DOMContentLoaded'); // Debug
@@ -333,17 +290,9 @@ class Head extends HTMLElement {
       head.appendChild(preconnect);
     }
 
-    // Remove <bh-head> from DOM to prevent it appearing in <body>
-    if (this.parentNode) {
-      console.log('Removing bh-head from DOM'); // Debug: Confirm removal
-      this.parentNode.removeChild(this);
-    }
-
-    // Schedule theme color update on DOMContentLoaded to ensure CSS is loaded
-    console.log('Scheduling theme color update on DOMContentLoaded'); // Debug
-    document.addEventListener('DOMContentLoaded', () => {
-      setTimeout(() => this.updateThemeColor(), 100); // Delay to ensure CSS is applied
-    });
+    // Initialize theme color and listen for changes
+    this.updateThemeColor();
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => this.updateThemeColor());
   }
 
   updateThemeColor() {
@@ -355,7 +304,6 @@ class Head extends HTMLElement {
       ? getComputedStyle(document.documentElement).getPropertyValue('--color-background-dark').trim()
       : getComputedStyle(document.documentElement).getPropertyValue('--color-background-light').trim();
 
-    console.log(`Attempting to update theme-color. Dark mode: ${isDarkMode}, Color: ${color}`); // Debug
     if (color) {
       console.log(`Updating theme-color to: ${color}`); // Debug: Confirm theme color update
       metaThemeColor.setAttribute('content', color);
