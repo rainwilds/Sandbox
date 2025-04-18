@@ -26,7 +26,7 @@ class Head extends HTMLElement {
 customElements.define('bh-head', Head);
 
 // Head management function
-function manageHead(attributes = {}) {
+function manageHead(attributes = {}, businessConfig = {}) {
   // Find or create <head>
   let head = document.head || document.createElement('head');
   if (!document.head) document.documentElement.prepend(head);
@@ -213,18 +213,18 @@ function manageHead(attributes = {}) {
     {
       "@context": "https://schema.org",
       "@type": "LocalBusiness",
-      "name": attributes['business-name'] || attributes.title || 'Business Site',
-      "url": attributes['business-url'] || attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/',
-      "telephone": attributes['business-telephone'] || '',
-      "address": attributes['business-address-street'] ? {
+      "name": attributes['business-name'] || businessConfig.business?.name || attributes.title || 'Business Site',
+      "url": attributes['business-url'] || businessConfig.business?.url || attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/',
+      "telephone": attributes['business-telephone'] || businessConfig.business?.telephone || '',
+      "address": (attributes['business-address-street'] || businessConfig.business?.address?.streetAddress) ? {
         "@type": "PostalAddress",
-        "streetAddress": attributes['business-address-street'] || '',
-        "addressLocality": attributes['business-address-locality'] || '',
-        "addressRegion": attributes['business-address-region'] || '',
-        "postalCode": attributes['business-address-postal'] || '',
-        "addressCountry": attributes['business-address-country'] || ''
+        "streetAddress": attributes['business-address-street'] || businessConfig.business?.address?.streetAddress || '',
+        "addressLocality": attributes['business-address-locality'] || businessConfig.business?.address?.addressLocality || '',
+        "addressRegion": attributes['business-address-region'] || businessConfig.business?.address?.addressRegion || '',
+        "postalCode": attributes['business-address-postal'] || businessConfig.business?.address?.postalCode || '',
+        "addressCountry": attributes['business-address-country'] || businessConfig.business?.address?.addressCountry || ''
       } : undefined,
-      "openingHours": attributes['business-opening-hours'] || ''
+      "openingHours": attributes['business-opening-hours'] || businessConfig.business?.openingHours || ''
     }
   ];
 
@@ -360,7 +360,7 @@ function manageHead(attributes = {}) {
           })();
         } catch (error) {}
       `;
-      document.body.appendChild(s🙨n😨i😨p😨c😨a😨r😨t😨S😨c😨r😨i😨p😨t😨);
+      document.body.appendChild(snipcartScript);
     }
   }
 
@@ -390,59 +390,62 @@ function manageHead(attributes = {}) {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeColor);
 }
 
-// Read <data-bh-head> attributes and call manageHead
+// Fetch business-config.json and process <data-bh-head> attributes
 document.addEventListener('DOMContentLoaded', () => {
   const dataHead = document.querySelector('data-bh-head');
-  if (dataHead) {
-    const attributes = {
-      title: dataHead.dataset.title,
-      description: dataHead.dataset.description,
-      keywords: dataHead.dataset.keywords,
-      author: dataHead.dataset.author,
-      canonical: dataHead.dataset.canonical,
-      'og-title': dataHead.dataset.ogTitle,
-      'og-description': dataHead.dataset.ogDescription,
-      'og-image': dataHead.dataset.ogImage,
-      'og-url': dataHead.dataset.ogUrl,
-      'og-type': dataHead.dataset.ogType,
-      'twitter-title': dataHead.dataset.twitterTitle,
-      'twitter-description': dataHead.dataset.twitterDescription,
-      'twitter-image': dataHead.dataset.twitterImage,
-      'twitter-url': dataHead.dataset.twitterUrl,
-      'twitter-domain': dataHead.dataset.twitterDomain,
-      'twitter-card': dataHead.dataset.twitterCard,
-      'business-name': dataHead.dataset.businessName,
-      'business-url': dataHead.dataset.businessUrl,
-      'business-telephone': dataHead.dataset.businessTelephone,
-      'business-address-street': dataHead.dataset.businessAddressStreet,
-      'business-address-locality': dataHead.dataset.businessAddressLocality,
-      'business-address-region': dataHead.dataset.businessAddressRegion,
-      'business-address-postal': dataHead.dataset.businessAddressPostal,
-      'business-address-country': dataHead.dataset.businessAddressCountry,
-      'business-opening-hours': dataHead.dataset.businessOpeningHours,
-      'schema-site-name': dataHead.dataset.schemaSiteName,
-      'schema-site-url': dataHead.dataset.schemaSiteUrl,
-      'product-name': dataHead.dataset.productName,
-      'product-description': dataHead.dataset.productDescription,
-      'product-image': dataHead.dataset.productImage,
-      'product-price-currency': dataHead.dataset.productPriceCurrency,
-      'product-price': dataHead.dataset.productPrice,
-      'product-availability': dataHead.dataset.productAvailability,
-      'include-e-commerce': dataHead.hasAttribute('data-include-e-commerce'),
-      'include-eruda': dataHead.hasAttribute('data-include-eruda')
-    };
-    manageHead(attributes);
-    // Remove <data-bh-head> from DOM to keep <head> clean
-    if (dataHead.parentNode) {
-      dataHead.parentNode.removeChild(dataHead);
-    }
-  } else {
-    manageHead({
-      title: 'Sandbox',
-      description: '',
-      keywords: '',
-      author: 'Unknown',
-      canonical: ''
-    });
-  }
+  const attributes = dataHead ? {
+    title: dataHead.dataset.title,
+    description: dataHead.dataset.description,
+    keywords: dataHead.dataset.keywords,
+    author: dataHead.dataset.author,
+    canonical: dataHead.dataset.canonical,
+    'og-title': dataHead.dataset.ogTitle,
+    'og-description': dataHead.dataset.ogDescription,
+    'og-image': dataHead.dataset.ogImage,
+    'og-url': dataHead.dataset.ogUrl,
+    'og-type': dataHead.dataset.ogType,
+    'twitter-title': dataHead.dataset.twitterTitle,
+    'twitter-description': dataHead.dataset.twitterDescription,
+    'twitter-image': dataHead.dataset.twitterImage,
+    'twitter-url': dataHead.dataset.twitterUrl,
+    'twitter-domain': dataHead.dataset.twitterDomain,
+    'twitter-card': dataHead.dataset.twitterCard,
+    'business-name': dataHead.dataset.businessName,
+    'business-url': dataHead.dataset.businessUrl,
+    'business-telephone': dataHead.dataset.businessTelephone,
+    'business-address-street': dataHead.dataset.businessAddressStreet,
+    'business-address-locality': dataHead.dataset.businessAddressLocality,
+    'business-address-region': dataHead.dataset.businessAddressRegion,
+    'business-address-postal': dataHead.dataset.businessAddressPostal,
+    'business-address-country': dataHead.dataset.businessAddressCountry,
+    'business-opening-hours': dataHead.dataset.businessOpeningHours,
+    'schema-site-name': dataHead.dataset.schemaSiteName,
+    'schema-site-url': dataHead.dataset.schemaSiteUrl,
+    'product-name': dataHead.dataset.productName,
+    'product-description': dataHead.dataset.productDescription,
+    'product-image': dataHead.dataset.productImage,
+    'product-price-currency': dataHead.dataset.productPriceCurrency,
+    'product-price': dataHead.dataset.productPrice,
+    'product-availability': dataHead.dataset.productAvailability,
+    'include-e-commerce': dataHead.hasAttribute('data-include-e-commerce'),
+    'include-eruda': dataHead.hasAttribute('data-include-eruda')
+  } : {
+    title: 'Sandbox',
+    description: '',
+    keywords: '',
+    author: 'Unknown',
+    canonical: ''
+  };
+
+  // Fetch business-config.json
+  fetch('/business-config.json')
+    .then(response => response.ok ? response.json() : {})
+    .then(businessConfig => {
+      manageHead(attributes, businessConfig);
+      // Remove <data-bh-head> from DOM to keep <head> clean
+      if (dataHead && dataHead.parentNode) {
+        dataHead.parentNode.removeChild(dataHead);
+      }
+    })
+    .catch(() => manageHead(attributes, {})); // Fallback if fetch fails
 });

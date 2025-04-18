@@ -1,0 +1,15 @@
+{
+  "business": {
+    "name": "Example Business",
+    "url": "https://example.com",
+    "telephone": "+1-123-456-7890",
+    "address": {
+      "streetAddress": "123 Main St",
+      "addressLocality": "Burpengary East",
+      "addressRegion": "State",
+      "postalCode": "12345",
+      "addressCountry": "US"
+    },
+    "openingHours": "Mo-Fr 09:00-17:00"
+  }
+}
