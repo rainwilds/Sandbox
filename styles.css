@@ -1136,28 +1136,9 @@
         }
     }
 
-    /* 5. Pagination */
-    .pagination {
-        display: flex;
-        gap: var(--space-tiny);
-        justify-content: center;
+    /* 5. notificatio banner */
+    
 
-        & a {
-            padding: var(--space-tiny);
-            border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
-            text-decoration: none;
-            color: light-dark(var(--color-static-dark), var(--color-static-light));
-
-            &.active {
-                background: light-dark(var(--color-accent-dark-secondary), var(--color-accent-light-secondary));
-            }
-
-            &:hover:not(.active) {
-                background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
-                transition: background 0.3s;
-            }
-        }
-    }
 
     /* 6. Form Group */
     .form-group {

@@ -56,13 +56,15 @@ class Head extends HTMLElement {
       head.appendChild(linkCanonical);
     }
 
-    // Preload styles
-    const preloadStyles = [
+    // Hardcoded Font Awesome styles
+    const fontAwesomeStyles = [
       './fonts/fontawesome/fontawesome.min.css',
       './fonts/fontawesome/sharp-light.min.css',
       './fonts/fontawesome/brands.min.css'
     ];
-    preloadStyles.forEach(href => {
+
+    // Preload Font Awesome styles
+    fontAwesomeStyles.forEach(href => {
       if (!document.querySelector(`link[href="${href}"]`)) {
         const link = document.createElement('link');
         link.rel = 'preload';
@@ -72,51 +74,9 @@ class Head extends HTMLElement {
       }
     });
 
-    // Optional font preloads
-    if (this.hasAttribute('include-fonts')) {
-      const fonts = [
-        { href: './fonts/Gelica-Medium.woff2', type: 'font/woff2' },
-        { href: './fonts/FuturaPT-Light.woff2', type: 'font/woff2' }
-      ];
-      fonts.forEach(font => {
-        if (!document.querySelector(`link[href="${font.href}"]`)) {
-          const link = document.createElement('link');
-          link.rel = 'preload';
-          link.href = font.href;
-          link.as = 'font';
-          link.type = font.type;
-          head.appendChild(link);
-        }
-      });
-    }
-
-    // Optional favicons
-    if (this.hasAttribute('include-favicons')) {
-      const favicons = [
-        { rel: 'apple-touch-icon', sizes: '180x180', href: './img/icons/apple-touch-icon.png' },
-        { rel: 'icon', type: 'image/png', sizes: '32x32', href: './img/icons/favicon-32x32.png' },
-        { rel: 'icon', type: 'image/png', sizes: '16x16', href: './img/icons/favicon-16x16.png' }
-      ];
-      favicons.forEach(favicon => {
-        if (!document.querySelector(`link[href="${favicon.href}"]`)) {
-          const link = document.createElement('link');
-          link.rel = favicon.rel;
-          link.href = favicon.href;
-          if (favicon.sizes) link.sizes = favicon.sizes;
-          if (favicon.type) link.type = favicon.type;
-          head.appendChild(link);
-        }
-      });
-    }
-
-    // Stylesheets
-    const stylesheets = [
-      './fonts/fontawesome/fontawesome.min.css',
-      './fonts/fontawesome/sharp-light.min.css',
-      './fonts/fontawesome/brands.min.css'
-    ];
-    stylesheets.forEach(href => {
-      if (!document.querySelector(`link[href="${href}"]`)) {
+    // Load Font Awesome stylesheets
+    fontAwesomeStyles.forEach(href => {
+      if (!document.querySelector(`link[rel="stylesheet"][href="${href}"]`)) {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = href;
@@ -124,7 +84,39 @@ class Head extends HTMLElement {
       }
     });
 
-    // Optional Eruda (removed from this version per your HTML)
+    // Hardcoded font preloads
+    const fonts = [
+      { href: './fonts/AdobeAldine-Regular.woff2', type: 'font/woff2' }
+    ];
+    fonts.forEach(font => {
+      if (!document.querySelector(`link[href="${font.href}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'preload';
+        link.href = font.href;
+        link.as = 'font';
+        link.type = font.type;
+        head.appendChild(link);
+      }
+    });
+
+    // Hardcoded favicons
+    const favicons = [
+      { rel: 'apple-touch-icon', sizes: '180x180', href: './img/icons/apple-touch-icon.png' },
+      { rel: 'icon', type: 'image/png', sizes: '32x32', href: './img/icons/favicon-32x32.png' },
+      { rel: 'icon', type: 'image/png', sizes: '16x16', href: './img/icons/favicon-16x16.png' }
+    ];
+    favicons.forEach(favicon => {
+      if (!document.querySelector(`link[href="${favicon.href}"]`)) {
+        const link = document.createElement('link');
+        link.rel = favicon.rel;
+        link.href = favicon.href;
+        if (favicon.sizes) link.sizes = favicon.sizes;
+        if (favicon.type) link.type = favicon.type;
+        head.appendChild(link);
+      }
+    });
+
+    // Optional Eruda
     if (this.hasAttribute('include-eruda') && !document.querySelector('script[src="https://cdn.jsdelivr.net/npm/eruda"]')) {
       const scriptEruda = document.createElement('script');
       scriptEruda.src = 'https://cdn.jsdelivr.net/npm/eruda';
