@@ -438,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // Fetch business-config.json
-  fetch('/business-config.json')
+  fetch('/Sandbox/business-config.json')
     .then(response => response.ok ? response.json() : {})
     .then(businessConfig => {
       manageHead(attributes, businessConfig);
