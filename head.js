@@ -5,7 +5,6 @@ class Head extends HTMLElement {
   }
 
   connectedCallback() {
-    console.log('bh-head connectedCallback started (body context)'); // Debug: Only runs if <bh-head> is in <body>
     // Minimal logic for <body> use, if needed
     this.updateThemeColor();
   }
@@ -20,20 +19,14 @@ class Head extends HTMLElement {
       : getComputedStyle(document.documentElement).getPropertyValue('--color-background-light').trim();
 
     if (color) {
-      console.log(`Updating theme-color to: ${color}`); // Debug
       metaThemeColor.setAttribute('content', color);
-    } else {
-      console.warn('Theme color not updated: CSS variables not found');
     }
   }
 }
-console.log('bh-head custom element defined'); // Debug
 customElements.define('bh-head', Head);
 
 // Head management function
 function manageHead(attributes = {}) {
-  console.log('manageHead started with attributes:', attributes); // Debug
-
   // Find or create <head>
   let head = document.head || document.createElement('head');
   if (!document.head) document.documentElement.prepend(head);
@@ -44,7 +37,6 @@ function manageHead(attributes = {}) {
   ];
   fonts.forEach(font => {
     if (!document.querySelector(`link[href="${font.href}"]`)) {
-      console.log(`Adding font preload: ${font.href}`); // Debug
       const link = document.createElement('link');
       link.rel = 'preload';
       link.href = font.href;
@@ -65,7 +57,6 @@ function manageHead(attributes = {}) {
   // Preload Font Awesome styles
   fontAwesomeStyles.forEach(href => {
     if (!document.querySelector(`link[href="${href}"]`)) {
-      console.log(`Adding Font Awesome preload: ${href}`); // Debug
       const link = document.createElement('link');
       link.rel = 'preload';
       link.href = href;
@@ -76,14 +67,12 @@ function manageHead(attributes = {}) {
 
   // Append meta tags
   if (!document.querySelector('meta[charset]')) {
-    console.log('Adding meta charset'); // Debug
     const metaCharset = document.createElement('meta');
     metaCharset.setAttribute('charset', 'UTF-8');
     head.appendChild(metaCharset);
   }
 
   if (!document.querySelector('meta[name="viewport"]')) {
-    console.log('Adding meta viewport'); // Debug
     const metaViewport = document.createElement('meta');
     metaViewport.name = 'viewport';
     metaViewport.content = 'width=device-width, initial-scale=1';
@@ -91,14 +80,12 @@ function manageHead(attributes = {}) {
   }
 
   if (!document.querySelector('title')) {
-    console.log('Adding title'); // Debug
     const title = document.createElement('title');
     title.textContent = attributes.title || 'Sandbox';
     head.appendChild(title);
   }
 
   if (!document.querySelector('meta[name="author"]')) {
-    console.log('Adding meta author'); // Debug
     const metaAuthor = document.createElement('meta');
     metaAuthor.name = 'author';
     metaAuthor.content = attributes.author || 'David Dufourq';
@@ -106,7 +93,6 @@ function manageHead(attributes = {}) {
   }
 
   if (attributes.description && !document.querySelector('meta[name="description"]')) {
-    console.log('Adding meta description'); // Debug
     const metaDesc = document.createElement('meta');
     metaDesc.name = 'description';
     metaDesc.content = attributes.description || '';
@@ -114,7 +100,6 @@ function manageHead(attributes = {}) {
   }
 
   if (attributes.keywords && !document.querySelector('meta[name="keywords"]')) {
-    console.log('Adding meta keywords'); // Debug
     const metaKeywords = document.createElement('meta');
     metaKeywords.name = 'keywords';
     metaKeywords.content = attributes.keywords || '';
@@ -122,7 +107,6 @@ function manageHead(attributes = {}) {
   }
 
   if (attributes.canonical && !document.querySelector('link[rel="canonical"]')) {
-    console.log('Adding link canonical'); // Debug
     const linkCanonical = document.createElement('link');
     linkCanonical.rel = 'canonical';
     linkCanonical.href = attributes.canonical || '';
@@ -131,7 +115,6 @@ function manageHead(attributes = {}) {
 
   // Add theme-color meta tag
   if (!document.querySelector('meta[name="theme-color"]')) {
-    console.log('Adding meta theme-color'); // Debug
     const metaThemeColor = document.createElement('meta');
     metaThemeColor.name = 'theme-color';
     metaThemeColor.content = 'cyan';
@@ -141,7 +124,6 @@ function manageHead(attributes = {}) {
   // Load Font Awesome stylesheets
   fontAwesomeStyles.forEach(href => {
     if (!document.querySelector(`link[rel="stylesheet"][href="${href}"]`)) {
-      console.log(`Adding Font Awesome stylesheet: ${href}`); // Debug
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = href;
@@ -153,11 +135,9 @@ function manageHead(attributes = {}) {
   const scripts = ['./scripts.js', './components.js'];
   scripts.forEach(src => {
     if (!document.querySelector(`script[src="${src}"]`)) {
-      console.log(`Adding script: ${src}`); // Debug
       const script = document.createElement('script');
       script.src = src;
       script.defer = true;
-      script.onerror = () => console.error(`Failed to load script: ${src}`);
       head.appendChild(script);
     }
   });
@@ -170,7 +150,6 @@ function manageHead(attributes = {}) {
   ];
   favicons.forEach(favicon => {
     if (!document.querySelector(`link[href="${favicon.href}"]`)) {
-      console.log(`Adding favicon: ${favicon.href}`); // Debug
       const link = document.createElement('link');
       link.rel = favicon.rel;
       link.href = favicon.href;
@@ -183,31 +162,21 @@ function manageHead(attributes = {}) {
   // Add main stylesheet immediately
   const mainStylesheet = './styles.css';
   if (!document.querySelector(`link[rel="stylesheet"][href="${mainStylesheet}"]`)) {
-    console.log('Forcing styles.css stylesheet in <head>'); // Debug
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = mainStylesheet;
     head.appendChild(link);
-  } else {
-    console.log('styles.css stylesheet already present in <head>, skipping force'); // Debug
   }
 
   // Optional Snipcart e-commerce
   if (attributes['include-e-commerce']) {
-    console.log('include-e-commerce detected'); // Debug
     if (!document.querySelector('script[data-snipcart]')) {
-      console.log('No existing Snipcart script, attempting to add'); // Debug
       // Add Snipcart immediately
-      if (!document.body) {
-        console.warn('Cannot add Snipcart: <body> element not found');
-        return;
-      }
-      console.log('Adding Snipcart scripts'); // Debug
+      if (!document.body) return;
       // Add Snipcart settings
       const snipcartSettings = document.createElement('script');
       snipcartSettings.type = 'text/javascript';
       snipcartSettings.textContent = `
-        console.log('Setting window.SnipcartSettings'); // Debug
         window.SnipcartSettings = {
           publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
           loadStrategy: 'on-user-interaction',
@@ -222,7 +191,6 @@ function manageHead(attributes = {}) {
       snipcartScript.type = 'text/javascript';
       snipcartScript.textContent = `
         try {
-          console.log('Executing Snipcart inline script'); // Debug
           (() => {
             var c, d;
             (d = (c = window.SnipcartSettings).version) != null || (c.version = "3.0");
@@ -252,7 +220,6 @@ function manageHead(attributes = {}) {
               i || (i = document.createElement("script"), i.src = \`\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}/themes/v\${window.SnipcartSettings.version}/default/snipcart.js\`, i.async = true, t.appendChild(i));
               n || (n = document.createElement("link"), n.rel = "stylesheet", n.type = "text/css", n.href = \`\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}/themes/v\${window.SnipcartSettings.version}/default/snipcart.css\`, t.appendChild(n));
               m.forEach(g => document.removeEventListener(g, o));
-              console.log('Snipcart initialized'); // Debug
             }
             function v(t) {
               if (!f) return;
@@ -263,22 +230,14 @@ function manageHead(attributes = {}) {
               window.SnipcartSettings.templatesUrl && (t.dataset.templatesUrl = window.SnipcartSettings.templatesUrl);
             }
           })();
-        } catch (error) {
-          console.error('Snipcart script error:', error);
-        }
+        } catch (error) {}
       `;
-      snipcartScript.onerror = () => console.error('Failed to load Snipcart script');
       document.body.appendChild(snipcartScript);
-    } else {
-      console.log('Snipcart script already exists'); // Debug
     }
-  } else {
-    console.log('include-e-commerce attribute not found'); // Debug
   }
 
   // Add preconnect for Snipcart CDN
   if (attributes['include-e-commerce'] && !document.querySelector('link[href="https://cdn.snipcart.com"]')) {
-    console.log('Adding Snipcart preconnect'); // Debug
     const preconnect = document.createElement('link');
     preconnect.rel = 'preconnect';
     preconnect.href = 'https://cdn.snipcart.com';
@@ -296,10 +255,7 @@ function manageHead(attributes = {}) {
       : getComputedStyle(document.documentElement).getPropertyValue('--color-background-light').trim();
 
     if (color) {
-      console.log(`Updating theme-color to: ${color}`); // Debug
       metaThemeColor.setAttribute('content', color);
-    } else {
-      console.warn('Theme color not updated: CSS variables not found');
     }
   };
   updateThemeColor();
@@ -322,11 +278,9 @@ document.addEventListener('DOMContentLoaded', () => {
     manageHead(attributes);
     // Remove <data-bh-head> from DOM to keep <head> clean
     if (dataHead.parentNode) {
-      console.log('Removing data-bh-head from DOM'); // Debug
       dataHead.parentNode.removeChild(dataHead);
     }
   } else {
-    console.log('No data-bh-head element found, using defaults'); // Debug
     manageHead({
       title: 'Sandbox',
       description: '',
