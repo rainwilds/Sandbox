@@ -1449,12 +1449,6 @@ header {
         max-width: var(--max-width-medium);
         height: 100%;
 
-        button {
-
-            margin-top: var(--space-small);
-
-        }
-
         >div {
 
             background: #79554899;
