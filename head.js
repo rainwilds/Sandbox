@@ -48,12 +48,14 @@ class Head extends HTMLElement {
 
     // Append meta tags
     if (!document.querySelector('meta[charset]')) {
+      console.log('Adding meta charset'); // Debug
       const metaCharset = document.createElement('meta');
       metaCharset.setAttribute('charset', 'UTF-8');
       head.appendChild(metaCharset);
     }
 
     if (!document.querySelector('meta[name="viewport"]')) {
+      console.log('Adding meta viewport'); // Debug
       const metaViewport = document.createElement('meta');
       metaViewport.name = 'viewport';
       metaViewport.content = 'width=device-width, initial-scale=1';
@@ -61,12 +63,14 @@ class Head extends HTMLElement {
     }
 
     if (!document.querySelector('title')) {
+      console.log('Adding title'); // Debug
       const title = document.createElement('title');
       title.textContent = this.getAttribute('title') || 'Sandbox';
       head.appendChild(title);
     }
 
     if (!document.querySelector('meta[name="author"]')) {
+      console.log('Adding meta author'); // Debug
       const metaAuthor = document.createElement('meta');
       metaAuthor.name = 'author';
       metaAuthor.content = this.getAttribute('author') || 'David Dufourq';
@@ -74,6 +78,7 @@ class Head extends HTMLElement {
     }
 
     if (this.hasAttribute('description') && !document.querySelector('meta[name="description"]')) {
+      console.log('Adding meta description'); // Debug
       const metaDesc = document.createElement('meta');
       metaDesc.name = 'description';
       metaDesc.content = this.getAttribute('description') || '';
@@ -81,6 +86,7 @@ class Head extends HTMLElement {
     }
 
     if (this.hasAttribute('keywords') && !document.querySelector('meta[name="keywords"]')) {
+      console.log('Adding meta keywords'); // Debug
       const metaKeywords = document.createElement('meta');
       metaKeywords.name = 'keywords';
       metaKeywords.content = this.getAttribute('keywords') || '';
@@ -88,6 +94,7 @@ class Head extends HTMLElement {
     }
 
     if (this.hasAttribute('canonical') && !document.querySelector('link[rel="canonical"]')) {
+      console.log('Adding link canonical'); // Debug
       const linkCanonical = document.createElement('link');
       linkCanonical.rel = 'canonical';
       linkCanonical.href = this.getAttribute('canonical') || '';
@@ -96,23 +103,11 @@ class Head extends HTMLElement {
 
     // Add theme-color meta tag
     if (!document.querySelector('meta[name="theme-color"]')) {
+      console.log('Adding meta theme-color'); // Debug
       const metaThemeColor = document.createElement('meta');
       metaThemeColor.name = 'theme-color';
       metaThemeColor.content = 'cyan';
       head.appendChild(metaThemeColor);
-    }
-
-    // Add main stylesheet (only if not already present in <head>)
-    const mainStylesheet = './styles.css';
-    const existingStylesheet = document.querySelector(`link[rel="stylesheet"][href="${mainStylesheet}"]`);
-    if (!existingStylesheet || !head.contains(existingStylesheet)) {
-      console.log('Adding styles.css stylesheet to <head>'); // Debug: Confirm stylesheet addition
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = mainStylesheet;
-      head.appendChild(link);
-    } else {
-      console.log('styles.css stylesheet already present in <head>, skipping'); // Debug: Confirm duplicate check
     }
 
     // Load Font Awesome stylesheets
@@ -156,6 +151,23 @@ class Head extends HTMLElement {
         head.appendChild(link);
       }
     });
+
+    // Add main stylesheet on DOMContentLoaded to ensure DOM is parsed
+    const mainStylesheet = './styles.css';
+    const addStylesheet = () => {
+      const existingStylesheet = document.querySelector(`link[rel="stylesheet"][href="${mainStylesheet}"]`);
+      if (!existingStylesheet || !head.contains(existingStylesheet)) {
+        console.log('Adding styles.css stylesheet to <head> on DOMContentLoaded'); // Debug
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = mainStylesheet;
+        head.appendChild(link);
+      } else {
+        console.log('styles.css stylesheet already present in <head> on DOMContentLoaded, skipping'); // Debug
+      }
+    };
+    console.log('Scheduling styles.css check on DOMContentLoaded'); // Debug
+    document.addEventListener('DOMContentLoaded', addStylesheet);
 
     // Optional Eruda
     if (this.hasAttribute('include-eruda')) {
@@ -306,7 +318,10 @@ class Head extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    if (!document.head) return;
+    // Define head for attributeChangedCallback
+    const head = document.head || document.createElement('head');
+    if (!document.head) document.documentElement.prepend(head);
+
     if (name === 'title') {
       let title = document.querySelector('title');
       if (!title) {
