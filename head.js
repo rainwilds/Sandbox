@@ -12,15 +12,17 @@ class Head extends HTMLElement {
 
     // Hardcoded font preloads
     const fonts = [
-      { href: './fonts/AdobeAldine-Regular.woff2', type: 'font/woff2' }
+      { href: './fonts/AdobeAldine-Regular.woff2', type: 'font/woff2', crossorigin: 'anonymous' }
     ];
     fonts.forEach(font => {
       if (!document.querySelector(`link[href="${font.href}"]`)) {
+        console.log(`Adding font preload: ${font.href}`); // Debug: Confirm font preload
         const link = document.createElement('link');
         link.rel = 'preload';
         link.href = font.href;
         link.as = 'font';
         link.type = font.type;
+        link.crossOrigin = font.crossorigin;
         head.appendChild(link);
       }
     });
@@ -35,6 +37,7 @@ class Head extends HTMLElement {
     // Preload Font Awesome styles
     fontAwesomeStyles.forEach(href => {
       if (!document.querySelector(`link[href="${href}"]`)) {
+        console.log(`Adding Font Awesome preload: ${href}`); // Debug: Confirm preload
         const link = document.createElement('link');
         link.rel = 'preload';
         link.href = href;
@@ -99,7 +102,7 @@ class Head extends HTMLElement {
       head.appendChild(metaThemeColor);
     }
 
-    // Add main stylesheet (only if not already present)
+    // Add main stylesheet (only if not already present in <head> or <body>)
     const mainStylesheet = './styles.css';
     if (!document.querySelector(`link[rel="stylesheet"][href="${mainStylesheet}"]`)) {
       console.log('Adding styles.css stylesheet'); // Debug: Confirm stylesheet addition
@@ -114,6 +117,7 @@ class Head extends HTMLElement {
     // Load Font Awesome stylesheets
     fontAwesomeStyles.forEach(href => {
       if (!document.querySelector(`link[rel="stylesheet"][href="${href}"]`)) {
+        console.log(`Adding Font Awesome stylesheet: ${href}`); // Debug: Confirm stylesheet
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = href;
@@ -125,6 +129,7 @@ class Head extends HTMLElement {
     const scripts = ['./scripts.js', './components.js'];
     scripts.forEach(src => {
       if (!document.querySelector(`script[src="${src}"]`)) {
+        console.log(`Adding script: ${src}`); // Debug: Confirm script
         const script = document.createElement('script');
         script.src = src;
         script.defer = true;
@@ -141,6 +146,7 @@ class Head extends HTMLElement {
     ];
     favicons.forEach(favicon => {
       if (!document.querySelector(`link[href="${favicon.href}"]`)) {
+        console.log(`Adding favicon: ${favicon.href}`); // Debug: Confirm favicon
         const link = document.createElement('link');
         link.rel = favicon.rel;
         link.href = favicon.href;
@@ -176,15 +182,22 @@ class Head extends HTMLElement {
             return;
           }
           console.log('Adding Snipcart script'); // Debug: Confirm script addition
+          // Add Snipcart settings
+          const snipcartSettings = document.createElement('script');
+          snipcartSettings.textContent = `
+            window.SnipcartSettings = {
+              publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
+              loadStrategy: 'on-user-interaction',
+              version: '3.0'
+            };
+          `;
+          document.body.prepend(snipcartSettings);
+
+          // Add Snipcart inline script
           const snipcartScript = document.createElement('script');
           snipcartScript.dataset.snipcart = 'true';
           snipcartScript.textContent = `
             try {
-              window.SnipcartSettings = {
-                publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
-                loadStrategy: 'on-user-interaction'
-              };
-
               (() => {
                 var c, d;
                 (d = (c = window.SnipcartSettings).version) != null || (c.version = "3.0");
@@ -214,6 +227,7 @@ class Head extends HTMLElement {
                   i || (i = document.createElement("script"), i.src = \`\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}/themes/v\${window.SnipcartSettings.version}/default/snipcart.js\`, i.async = true, t.appendChild(i));
                   n || (n = document.createElement("link"), n.rel = "stylesheet", n.type = "text/css", n.href = \`\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}/themes/v\${window.SnipcartSettings.version}/default/snipcart.css\`, t.prepend(n));
                   m.forEach(g => document.removeEventListener(g, o));
+                  console.log('Snipcart initialized'); // Debug: Confirm initialization
                 }
                 function v(t) {
                   if (!f) return;
@@ -276,6 +290,7 @@ class Head extends HTMLElement {
       : getComputedStyle(document.documentElement).getPropertyValue('--color-background-light').trim();
 
     if (color) {
+      console.log(`Updating theme-color to: ${color}`); // Debug: Confirm theme color update
       metaThemeColor.setAttribute('content', color);
     } else {
       console.warn('Theme color not updated: CSS variables not found');
@@ -288,7 +303,7 @@ class Head extends HTMLElement {
       let title = document.querySelector('title');
       if (!title) {
         title = document.createElement('title');
-        document.head.appendChild(title);
+        head.appendChild(title);
       }
       title.textContent = newValue || 'Sandbox';
     } else if (name === 'description') {
@@ -296,7 +311,7 @@ class Head extends HTMLElement {
       if (newValue && !meta) {
         meta = document.createElement('meta');
         meta.name = 'description';
-        document.head.appendChild(meta);
+        head.appendChild(meta);
       }
       if (meta) meta.content = newValue || '';
     } else if (name === 'keywords') {
@@ -304,7 +319,7 @@ class Head extends HTMLElement {
       if (newValue && !meta) {
         meta = document.createElement('meta');
         meta.name = 'keywords';
-        document.head.appendChild(meta);
+        head.appendChild(meta);
       }
       if (meta) meta.content = newValue || '';
     } else if (name === 'author') {
@@ -312,7 +327,7 @@ class Head extends HTMLElement {
       if (!meta) {
         meta = document.createElement('meta');
         meta.name = 'author';
-        document.head.appendChild(meta);
+        head.appendChild(meta);
       }
       meta.content = newValue || 'David Dufourq';
     } else if (name === 'canonical') {
@@ -320,7 +335,7 @@ class Head extends HTMLElement {
       if (newValue && !link) {
         link = document.createElement('link');
         link.rel = 'canonical';
-        document.head.appendChild(link);
+        head.appendChild(link);
       }
       if (link) link.href = newValue || '';
     }
