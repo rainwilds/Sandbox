@@ -94,72 +94,7 @@ function manageHead(attributes = {}, businessConfig = {}) {
 
   if (attributes.description && !document.querySelector('meta[name="description"]')) {
     const metaDesc = document.createElement('meta');
-    metaDesc.name = 'document.documentElement.appendChild(head);
-
-  // Hardcoded font preloads
-  const fonts = [
-    { href: './fonts/AdobeAldine-Regular.woff2', type: 'font/woff2', crossorigin: 'anonymous' }
-  ];
-  fonts.forEach(font => {
-    if (!document.querySelector(`link[href="${font.href}"]`)) {
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.href = font.href;
-      link.as = 'font';
-      link.type = font.type;
-      link.crossOrigin = font.crossorigin;
-      head.appendChild(link);
-    }
-  });
-
-  // Hardcoded Font Awesome styles
-  const fontAwesomeStyles = [
-    './fonts/fontawesome/fontawesome.min.css',
-    './fonts/fontawesome/sharp-light.min.css',
-    './fonts/fontawesome/brands.min.css'
-  ];
-
-  // Preload Font Awesome styles
-  fontAwesomeStyles.forEach(href => {
-    if (!document.querySelector(`link[href="${href}"]`)) {
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.href = href;
-      link.as = 'style';
-      head.appendChild(link);
-    }
-  });
-
-  // Append meta tags
-  if (!document.querySelector('meta[charset]')) {
-    const metaCharset = document.createElement('meta');
-    metaCharset.setAttribute('charset', 'UTF-8');
-    head.appendChild(metaCharset);
-  }
-
-  if (!document.querySelector('meta[name="viewport"]')) {
-    const metaViewport = document.createElement('meta');
-    metaViewport.name = 'viewport';
-    metaViewport.content = 'width=device-width, initial-scale=1';
-    head.appendChild(metaViewport);
-  }
-
-  if (!document.querySelector('title')) {
-    const title = document.createElement('title');
-    title.textContent = attributes.title || 'Sandbox';
-    head.appendChild(title);
-  }
-
-  if (!document.querySelector('meta[name="author"]')) {
-    const metaAuthor = document.createElement('meta');
-    metaAuthor.name = 'author';
-    metaAuthor.content = attributes.author || 'Unknown';
-    head.appendChild(metaAuthor);
-  }
-
-  if (attributes.description && !document.querySelector('meta[name="description"]')) {
-    const metaDesc = document.createElement('meta');
-    metaDesc.name = 'description';
+    metaDesc.name = 'description'; // FIXED: Corrected syntax error
     metaDesc.content = attributes.description || '';
     head.appendChild(metaDesc);
   }
@@ -387,7 +322,7 @@ function manageHead(attributes = {}, businessConfig = {}) {
         `;
         document.body.appendChild(snipcartSettings);
 
-        const snipcartScript = document.createElement('script');
+        const snipcartScript = document.createElement>('script');
         snipcartScript.dataset.snipcart = 'true';
         snipcartScript.type = 'text/javascript';
         snipcartScript.textContent = `
