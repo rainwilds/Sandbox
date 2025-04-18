@@ -287,13 +287,26 @@ function manageHead(attributes = {}, businessConfig = {}) {
     }
   });
 
-  // Add main stylesheet immediately
+  // Add main stylesheet with strict <head> check (prevent <body> insertion)
   const mainStylesheet = './styles.css';
-  if (!document.querySelector(`link[rel="stylesheet"][href="${mainStylesheet}"]`)) {
+  const existingLink = document.querySelector(`link[rel="stylesheet"][href="${mainStylesheet}"]`);
+  if (existingLink && existingLink.parentNode === head) {
+    console.log('styles.css already in <head>'); // TEMPORARY: Remove after testing
+  } else if (!existingLink) {
+    console.log('Adding styles.css to <head>'); // TEMPORARY: Remove after testing
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = mainStylesheet;
     head.appendChild(link);
+  } else {
+    console.warn('styles.css found outside <head>, not adding'); // TEMPORARY: Remove after testing
+  }
+
+  // Check for unexpected <body> <link> (debugging)
+  const bodyLink = document.body && document.body.querySelector(`link[rel="stylesheet"][href="${mainStylesheet}"]`);
+  if (bodyLink) {
+    console.error('Unexpected styles.css in <body>, removing'); // TEMPORARY: Remove after testing
+    bodyLink.remove();
   }
 
   // Optional Snipcart e-commerce
@@ -390,9 +403,10 @@ function manageHead(attributes = {}, businessConfig = {}) {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeColor);
 }
 
-// Fetch business-config.json and process <data-bh-head> attributes
+// Process <data-bh-head> attributes and fetch business-info.json
 document.addEventListener('DOMContentLoaded', () => {
   const dataHead = document.querySelector('data-bh-head');
+  // Read attributes immediately to minimize parsing time
   const attributes = dataHead ? {
     title: dataHead.dataset.title,
     description: dataHead.dataset.description,
@@ -437,15 +451,21 @@ document.addEventListener('DOMContentLoaded', () => {
     canonical: ''
   };
 
-  // Fetch business-config.json
-  fetch('/Sandbox/business-config.json')
+  // Remove <data-bh-head> immediately to prevent parsing issues
+  if (dataHead && dataHead.parentNode) {
+    console.log('Removing data-bh-head from DOM'); // TEMPORARY: Remove after testing
+    dataHead.parentNode.removeChild(dataHead);
+  }
+
+  // Fetch business-info.json
+  fetch('/Sandbox/business-info.json')
     .then(response => response.ok ? response.json() : {})
     .then(businessConfig => {
+      console.log('Fetched business-info.json:', businessConfig); // TEMPORARY: Remove after testing
       manageHead(attributes, businessConfig);
-      // Remove <data-bh-head> from DOM to keep <head> clean
-      if (dataHead && dataHead.parentNode) {
-        dataHead.parentNode.removeChild(dataHead);
-      }
     })
-    .catch(() => manageHead(attributes, {})); // Fallback if fetch fails
+    .catch(error => {
+      console.warn('Failed to fetch business-info.json:', error.message); // TEMPORARY: Remove after testing
+      manageHead(attributes, {});
+    });
 });
