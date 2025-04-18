@@ -259,7 +259,8 @@ function manageHead(attributes = {}) {
         window.SnipcartSettings = {
           publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
           loadStrategy: 'on-user-interaction',
-          version: '3.0'
+          version: '3.0',
+          loadCSS: false
         };
       `;
       document.body.appendChild(snipcartSettings);
