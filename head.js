@@ -102,16 +102,17 @@ class Head extends HTMLElement {
       head.appendChild(metaThemeColor);
     }
 
-    // Add main stylesheet (only if not already present in <head> or <body>)
+    // Add main stylesheet (only if not already present in <head>)
     const mainStylesheet = './styles.css';
-    if (!document.querySelector(`link[rel="stylesheet"][href="${mainStylesheet}"]`)) {
-      console.log('Adding styles.css stylesheet'); // Debug: Confirm stylesheet addition
+    const existingStylesheet = document.querySelector(`link[rel="stylesheet"][href="${mainStylesheet}"]`);
+    if (!existingStylesheet || !head.contains(existingStylesheet)) {
+      console.log('Adding styles.css stylesheet to <head>'); // Debug: Confirm stylesheet addition
       const link = document.createElement('link');
       link.rel = 'stylesheet';
       link.href = mainStylesheet;
       head.appendChild(link);
     } else {
-      console.log('styles.css stylesheet already present, skipping'); // Debug: Confirm duplicate check
+      console.log('styles.css stylesheet already present in <head>, skipping'); // Debug: Confirm duplicate check
     }
 
     // Load Font Awesome stylesheets
@@ -157,18 +158,25 @@ class Head extends HTMLElement {
     });
 
     // Optional Eruda
-    if (this.hasAttribute('include-eruda') && !document.querySelector('script[src="https://cdn.jsdelivr.net/npm/eruda"]')) {
-      console.log('Adding Eruda'); // Debug: Confirm Eruda logic
-      const scriptEruda = document.createElement('script');
-      scriptEruda.src = 'https://cdn.jsdelivr.net/npm/eruda';
-      scriptEruda.onload = () => {
-        console.log('Eruda script loaded, initializing'); // Debug: Confirm Eruda load
-        const scriptInit = document.createElement('script');
-        scriptInit.textContent = 'eruda.init();';
-        head.appendChild(scriptInit);
-      };
-      scriptEruda.onerror = () => console.error('Failed to load Eruda script');
-      head.appendChild(scriptEruda);
+    if (this.hasAttribute('include-eruda')) {
+      console.log('include-eruda detected'); // Debug: Confirm Eruda attribute
+      if (!document.querySelector('script[src="https://cdn.jsdelivr.net/npm/eruda"]')) {
+        console.log('Adding Eruda script'); // Debug: Confirm Eruda logic
+        const scriptEruda = document.createElement('script');
+        scriptEruda.src = 'https://cdn.jsdelivr.net/npm/eruda';
+        scriptEruda.onload = () => {
+          console.log('Eruda script loaded, initializing'); // Debug: Confirm Eruda load
+          const scriptInit = document.createElement('script');
+          scriptInit.textContent = 'eruda.init();';
+          head.appendChild(scriptInit);
+        };
+        scriptEruda.onerror = () => console.error('Failed to load Eruda script');
+        head.appendChild(scriptEruda);
+      } else {
+        console.log('Eruda script already present, skipping'); // Debug: Confirm duplicate check
+      }
+    } else {
+      console.log('include-eruda attribute not found'); // Debug: Confirm attribute missing
     }
 
     // Optional Snipcart e-commerce
