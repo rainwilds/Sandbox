@@ -181,18 +181,19 @@ class Head extends HTMLElement {
             console.warn('Cannot add Snipcart: <body> element not found');
             return;
           }
-          console.log('Adding Snipcart script'); // Debug: Confirm script addition
+          console.log('Adding Snipcart scripts'); // Debug: Confirm script addition
           // Add Snipcart settings
           const snipcartSettings = document.createElement('script');
           snipcartSettings.type = 'text/javascript';
           snipcartSettings.textContent = `
+            console.log('Setting window.SnipcartSettings'); // Debug: Confirm settings
             window.SnipcartSettings = {
               publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
               loadStrategy: 'on-user-interaction',
               version: '3.0'
             };
           `;
-          document.body.prepend(snipcartSettings);
+          document.body.appendChild(snipcartSettings);
 
           // Add Snipcart inline script
           const snipcartScript = document.createElement('script');
@@ -200,6 +201,7 @@ class Head extends HTMLElement {
           snipcartScript.type = 'text/javascript';
           snipcartScript.textContent = `
             try {
+              console.log('Executing Snipcart inline script'); // Debug: Confirm execution
               (() => {
                 var c, d;
                 (d = (c = window.SnipcartSettings).version) != null || (c.version = "3.0");
@@ -245,7 +247,7 @@ class Head extends HTMLElement {
             }
           `;
           snipcartScript.onerror = () => console.error('Failed to load Snipcart script');
-          document.body.appendChild(snipcartScript); // Use appendChild to avoid prepend issues
+          document.body.appendChild(snipcartScript);
         };
 
         // Add Snipcart on DOMContentLoaded to ensure DOM is parsed
