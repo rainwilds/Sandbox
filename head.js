@@ -121,6 +121,85 @@ function manageHead(attributes = {}) {
     head.appendChild(metaThemeColor);
   }
 
+  // Add Open Graph (OG) meta tags
+  if (!document.querySelector('meta[property="og:url"]')) {
+    const ogUrl = document.createElement('meta');
+    ogUrl.setAttribute('property', 'og:url');
+    ogUrl.setAttribute('content', attributes['og-url'] || 'https://rainwilds.github.io/Sandbox/index.html');
+    head.appendChild(ogUrl);
+  }
+
+  if (!document.querySelector('meta[property="og:type"]')) {
+    const ogType = document.createElement('meta');
+    ogType.setAttribute('property', 'og:type');
+    ogType.setAttribute('content', attributes['og-type'] || 'website');
+    head.appendChild(ogType);
+  }
+
+  if (!document.querySelector('meta[property="og:title"]')) {
+    const ogTitle = document.createElement('meta');
+    ogTitle.setAttribute('property', 'og:title');
+    ogTitle.setAttribute('content', attributes['og-title'] || attributes.title || 'Sandbox');
+    head.appendChild(ogTitle);
+  }
+
+  if (!document.querySelector('meta[property="og:description"]')) {
+    const ogDescription = document.createElement('meta');
+    ogDescription.setAttribute('property', 'og:description');
+    ogDescription.setAttribute('content', attributes['og-description'] || attributes.description || '');
+    head.appendChild(ogDescription);
+  }
+
+  if (!document.querySelector('meta[property="og:image"]')) {
+    const ogImage = document.createElement('meta');
+    ogImage.setAttribute('property', 'og:image');
+    ogImage.setAttribute('content', attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg');
+    head.appendChild(ogImage);
+  }
+
+  // Add Twitter meta tags
+  if (!document.querySelector('meta[name="twitter:card"]')) {
+    const twitterCard = document.createElement('meta');
+    twitterCard.setAttribute('name', 'twitter:card');
+    twitterCard.setAttribute('content', attributes['twitter-card'] || 'summary_large_image');
+    head.appendChild(twitterCard);
+  }
+
+  if (!document.querySelector('meta[property="twitter:domain"]')) {
+    const twitterDomain = document.createElement('meta');
+    twitterDomain.setAttribute('property', 'twitter:domain');
+    twitterDomain.setAttribute('content', attributes['twitter-domain'] || 'rainwilds.github.io');
+    head.appendChild(twitterDomain);
+  }
+
+  if (!document.querySelector('meta[property="twitter:url"]')) {
+    const twitterUrl = document.createElement('meta');
+    twitterUrl.setAttribute('property', 'twitter:url');
+    twitterUrl.setAttribute('content', attributes['twitter-url'] || 'https://rainwilds.github.io/Sandbox/index.html');
+    head.appendChild(twitterUrl);
+  }
+
+  if (!document.querySelector('meta[name="twitter:title"]')) {
+    const twitterTitle = document.createElement('meta');
+    twitterTitle.setAttribute('name', 'twitter:title');
+    twitterTitle.setAttribute('content', attributes['twitter-title'] || attributes.title || 'Sandbox');
+    head.appendChild(twitterTitle);
+  }
+
+  if (!document.querySelector('meta[name="twitter:description"]')) {
+    const twitterDescription = document.createElement('meta');
+    twitterDescription.setAttribute('name', 'twitter:description');
+    twitterDescription.setAttribute('content', attributes['twitter-description'] || attributes.description || '');
+    head.appendChild(twitterDescription);
+  }
+
+  if (!document.querySelector('meta[name="twitter:image"]')) {
+    const twitterImage = document.createElement('meta');
+    twitterImage.setAttribute('name', 'twitter:image');
+    twitterImage.setAttribute('content', attributes['twitter-image'] || attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg');
+    head.appendChild(twitterImage);
+  }
+
   // Load Font Awesome stylesheets
   fontAwesomeStyles.forEach(href => {
     if (!document.querySelector(`link[rel="stylesheet"][href="${href}"]`)) {
@@ -131,7 +210,7 @@ function manageHead(attributes = {}) {
     }
   });
 
-  // Scripts (components.js first to define custom elements before scripts.js runs)
+  // Scripts
   const scripts = ['./components.js', './scripts.js'];
   scripts.forEach(src => {
     if (!document.querySelector(`script[src="${src}"]`)) {
@@ -272,6 +351,17 @@ document.addEventListener('DOMContentLoaded', () => {
       keywords: dataHead.dataset.keywords,
       author: dataHead.dataset.author,
       canonical: dataHead.dataset.canonical,
+      'og-title': dataHead.dataset.ogTitle,
+      'og-description': dataHead.dataset.ogDescription,
+      'og-image': dataHead.dataset.ogImage,
+      'og-url': dataHead.dataset.ogUrl,
+      'og-type': dataHead.dataset.ogType,
+      'twitter-title': dataHead.dataset.twitterTitle,
+      'twitter-description': dataHead.dataset.twitterDescription,
+      'twitter-image': dataHead.dataset.twitterImage,
+      'twitter-url': dataHead.dataset.twitterUrl,
+      'twitter-domain': dataHead.dataset.twitterDomain,
+      'twitter-card': dataHead.dataset.twitterCard,
       'include-e-commerce': dataHead.hasAttribute('data-include-e-commerce'),
       'include-eruda': dataHead.hasAttribute('data-include-eruda')
     };
