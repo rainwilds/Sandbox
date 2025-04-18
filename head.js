@@ -1,11 +1,11 @@
-// Define <bh-head> custom element (for potential <body> use)
+// Define <bh-head> custom element (for potential <body> use, minimal logic)
 class Head extends HTMLElement {
   static get observedAttributes() {
     return ['title', 'description', 'keywords', 'author', 'canonical'];
   }
 
   connectedCallback() {
-    console.log('bh-head connectedCallback started (body context)'); // Debug
+    console.log('bh-head connectedCallback started (body context)'); // Debug: Only runs if <bh-head> is in <body>
     // Minimal logic for <body> use, if needed
     this.updateThemeColor();
   }
@@ -30,9 +30,9 @@ class Head extends HTMLElement {
 console.log('bh-head custom element defined'); // Debug
 customElements.define('bh-head', Head);
 
-// Head management function (replaces <bh-head> in <head>)
+// Head management function (handles <head> content, avoids custom element in <head>)
 function manageHead(attributes = {}) {
-  console.log('manageHead started'); // Debug
+  console.log('manageHead started with attributes:', attributes); // Debug
 
   // Find or create <head>
   let head = document.head || document.createElement('head');
@@ -180,106 +180,95 @@ function manageHead(attributes = {}) {
     }
   });
 
-  // Add main stylesheet on DOMContentLoaded
+  // Add main stylesheet immediately
   const mainStylesheet = './styles.css';
-  const addStylesheet = () => {
-    setTimeout(() => {
-      if (!document.querySelector(`link[rel="stylesheet"][href="${mainStylesheet}"]`)) {
-        console.log('Forcing styles.css stylesheet in <head>'); // Debug
-        const link = document.createElement('link');
-        link.rel = ' periodontitis';
-        link.href = mainStylesheet;
-        head.appendChild(link);
-      } else {
-        console.log('styles.css stylesheet already present in <head>, skipping force'); // Debug
-      }
-    }, 100);
-  };
-  console.log('Scheduling styles.css check on DOMContentLoaded'); // Debug
-  document.addEventListener('DOMContentLoaded', addStylesheet);
+  if (!document.querySelector(`link[rel="stylesheet"][href="${mainStylesheet}"]`)) {
+    console.log('Forcing styles.css stylesheet in <head>'); // Debug
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = mainStylesheet;
+    head.appendChild(link);
+  } else {
+    console.log('styles.css stylesheet already present in <head>, skipping force'); // Debug
+  }
 
   // Optional Snipcart e-commerce
   if (attributes['include-e-commerce']) {
     console.log('include-e-commerce detected'); // Debug
     if (!document.querySelector('script[data-snipcart]')) {
       console.log('No existing Snipcart script, attempting to add'); // Debug
-      const addSnipcartScript = () => {
-        if (!document.body) {
-          console.warn('Cannot add Snipcart: <body> element not found');
-          return;
+      // Add Snipcart immediately
+      if (!document.body) {
+        console.warn('Cannot add Snipcart: <body> element not found');
+        return;
+      }
+      console.log('Adding Snipcart scripts'); // Debug
+      // Add Snipcart settings
+      const snipcartSettings = document.createElement('script');
+      snipcartSettings.type = 'text/javascript';
+      snipcartSettings.textContent = `
+        console.log('Setting window.SnipcartSettings'); // Debug
+        window.SnipcartSettings = {
+          publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
+          loadStrategy: 'on-user-interaction',
+          version: '3.0'
+        };
+      `;
+      document.body.appendChild(snipcartSettings);
+
+      // Add Snipcart inline script
+      const snipcartScript = document.createElement('script');
+      snipcartScript.dataset.snipcart = 'true';
+      snipcartScript.type = 'text/javascript';
+      snipcartScript.textContent = `
+        try {
+          console.log('Executing Snipcart inline script'); // Debug
+          (() => {
+            var c, d;
+            (d = (c = window.SnipcartSettings).version) != null || (c.version = "3.0");
+            var s, S;
+            (S = (s = window.SnipcartSettings).timeoutDuration) != null || (s.timeoutDuration = 2750);
+            var l, p;
+            (p = (l = window.SnipcartSettings).domain) != null || (l.domain = "cdn.snipcart.com");
+            var w, u;
+            (u = (w = window.SnipcartSettings).protocol) != null || (w.protocol = "https");
+            var f = window.SnipcartSettings.version.includes("v3.0.0-ci") || window.SnipcartSettings.version != "3.0" && window.SnipcartSettings.version.localeCompare("3.4.0", void 0, { numeric: true, sensitivity: "base" }) === -1,
+              m = ["focus", "mouseover", "touchmove", "scroll", "keydown"];
+            window.LoadSnipcart = o;
+            document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r) : r();
+            function r() {
+              window.SnipcartSettings.loadStrategy ? window.SnipcartSettings.loadStrategy === "on-user-interaction" && (m.forEach(t => document.addEventListener(t, o)), setTimeout(o, window.SnipcartSettings.timeoutDuration)) : o();
+            }
+            var a = false;
+            function o() {
+              if (a) return;
+              a = true;
+              let t = document.getElementsByTagName("head")[0],
+                e = document.querySelector("#snipcart"),
+                i = document.querySelector(\`src[src^="\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}"][src$="snipcart.js"]\`),
+                n = document.querySelector(\`link[href^="\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}"][href$="snipcart.css"]\`);
+              e || (e = document.createElement("div"), e.id = "snipcart", e.setAttribute("hidden", "true"), document.body.appendChild(e));
+              v(e);
+              i || (i = document.createElement("script"), i.src = \`\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}/themes/v\${window.SnipcartSettings.version}/default/snipcart.js\`, i.async = true, t.appendChild(i));
+              n || (n = document.createElement("link"), n.rel = "stylesheet", n.type = "text/css", n.href = \`\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}/themes/v\${window.SnipcartSettings.version}/default/snipcart.css\`, t.appendChild(n));
+              m.forEach(g => document.removeEventListener(g, o));
+              console.log('Snipcart initialized'); // Debug
+            }
+            function v(t) {
+              if (!f) return;
+              t.dataset.apiKey = window.SnipcartSettings.publicApiKey;
+              window.SnipcartSettings.addProductBehavior && (t.dataset.configAddProductBehavior = window.SnipcartSettings.addProductBehavior);
+              window.SnipcartSettings.modalStyle && (t.dataset.configModalStyle = window.SnipcartSettings.modalStyle);
+              window.SnipcartSettings.currency && (t.dataset.currency = window.SnipcartSettings.currency);
+              window.SnipcartSettings.templatesUrl && (t.dataset.templatesUrl = window.SnipcartSettings.templatesUrl);
+            }
+          })();
+        } catch (error) {
+          console.error('Snipcart script error:', error);
         }
-        console.log('Adding Snipcart scripts'); // Debug
-        // Add Snipcart settings
-        const snipcartSettings = document.createElement('script');
-        snipcartSettings.type = 'text/javascript';
-        snipcartSettings.textContent = `
-          console.log('Setting window.SnipcartSettings'); // Debug
-          window.SnipcartSettings = {
-            publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
-            loadStrategy: 'on-user-interaction',
-            version: '3.0'
-          };
-        `;
-        document.body.appendChild(snipcartSettings);
-
-        // Add Snipcart inline script
-        const snipcartScript = document.createElement('script');
-        snipcartScript.dataset.snipcart = 'true';
-        snipcartScript.type = 'text/javascript';
-        snipcartScript.textContent = `
-          try {
-            console.log('Executing Snipcart inline script'); // Debug
-            (() => {
-              var c, d;
-              (d = (c = window.SnipcartSettings).version) != null || (c.version = "3.0");
-              var s, S;
-              (S = (s = window.SnipcartSettings).timeoutDuration) != null || (s.timeoutDuration = 2750);
-              var l, p;
-              (p = (l = window.SnipcartSettings).domain) != null || (l.domain = "cdn.snipcart.com");
-              var w, u;
-              (u = (w = window.SnipcartSettings).protocol) != null || (w.protocol = "https");
-              var f = window.SnipcartSettings.version.includes("v3.0.0-ci") || window.SnipcartSettings.version != "3.0" && window.SnipcartSettings.version.localeCompare("3.4.0", void 0, { numeric: true, sensitivity: "base" }) === -1,
-                m = ["focus", "mouseover", "touchmove", "scroll", "keydown"];
-              window.LoadSnipcart = o;
-              document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r) : r();
-              function r() {
-                window.SnipcartSettings.loadStrategy ? window.SnipcartSettings.loadStrategy === "on-user-interaction" && (m.forEach(t => document.addEventListener(t, o)), setTimeout(o, window.SnipcartSettings.timeoutDuration)) : o();
-              }
-              var a = false;
-              function o() {
-                if (a) return;
-                a = true;
-                let t = document.getElementsByTagName("head")[0],
-                  e = document.querySelector("#snipcart"),
-                  i = document.querySelector(\`src[src^="\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}"][src$="snipcart.js"]\`),
-                  n = document.querySelector(\`link[href^="\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}"][href$="snipcart.css"]\`);
-                e || (e = document.createElement("div"), e.id = "snipcart", e.setAttribute("hidden", "true"), document.body.appendChild(e));
-                v(e);
-                i || (i = document.createElement("script"), i.src = \`\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}/themes/v\${window.SnipcartSettings.version}/default/snipcart.js\`, i.async = true, t.appendChild(i));
-                n || (n = document.createElement("link"), n.rel = "stylesheet", n.type = "text/css", n.href = \`\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}/themes/v\${window.SnipcartSettings.version}/default/snipcart.css\`, t.prepend(n));
-                m.forEach(g => document.removeEventListener(g, o));
-                console.log('Snipcart initialized'); // Debug
-              }
-              function v(t) {
-                if (!f) return;
-                t.dataset.apiKey = window.SnipcartSettings.publicApiKey;
-                window.SnipcartSettings.addProductBehavior && (t.dataset.configAddProductBehavior = window.SnipcartSettings.addProductBehavior);
-                window.SnipcartSettings.modalStyle && (t.dataset.configModalStyle = window.SnipcartSettings.modalStyle);
-                window.SnipcartSettings.currency && (t.dataset.currency = window.SnipcartSettings.currency);
-                window.SnipcartSettings.templatesUrl && (t.dataset.templatesUrl = window.SnipcartSettings.templatesUrl);
-              }
-            })();
-          } catch (error) {
-            console.error('Snipcart script error:', error);
-          }
-        `;
-        snipcartScript.onerror = () => console.error('Failed to load Snipcart script');
-        document.body.appendChild(snipcartScript);
-      };
-
-      // Add Snipcart on DOMContentLoaded to ensure DOM is parsed
-      console.log('Scheduling Snipcart script addition'); // Debug
-      document.addEventListener('DOMContentLoaded', addSnipcartScript);
+      `;
+      snipcartScript.onerror = () => console.error('Failed to load Snipcart script');
+      document.body.appendChild(snipcartScript);
     } else {
       console.log('Snipcart script already exists'); // Debug
     }
@@ -317,14 +306,25 @@ function manageHead(attributes = {}) {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeColor);
 }
 
-// Execute head management immediately
+// Read <bh-head> attributes and call manageHead
 document.addEventListener('DOMContentLoaded', () => {
-  manageHead({
-    title: 'Home',
-    description: 'Welcome to my photography portfolio',
-    keywords: 'portfolio, web design',
-    author: 'David Dufourq',
-    canonical: 'https://linktopage.com',
-    'include-e-commerce': true
-  });
+  const bhHead = document.querySelector('bh-head');
+  if (bhHead) {
+    const attributes = {
+      title: bhHead.getAttribute('title'),
+      description: bhHead.getAttribute('description'),
+      keywords: bhHead.getAttribute('keywords'),
+      author: bhHead.getAttribute('author'),
+      canonical: bhHead.getAttribute('canonical'),
+      'include-e-commerce': bhHead.hasAttribute('include-e-commerce')
+    };
+    manageHead(attributes);
+    // Remove <bh-head> from DOM to avoid parsing issues
+    if (bhHead.parentNode) {
+      console.log('Removing bh-head from DOM'); // Debug
+      bhHead.parentNode.removeChild(bhHead);
+    }
+  } else {
+    console.log('No bh-head element found, skipping manageHead'); // Debug
+  }
 });
