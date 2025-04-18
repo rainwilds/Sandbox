@@ -131,8 +131,8 @@ function manageHead(attributes = {}) {
     }
   });
 
-  // Scripts
-  const scripts = ['./scripts.js', './components.js'];
+  // Scripts (components.js first to define custom elements before scripts.js runs)
+  const scripts = ['./components.js', './scripts.js'];
   scripts.forEach(src => {
     if (!document.querySelector(`script[src="${src}"]`)) {
       const script = document.createElement('script');
