@@ -30,7 +30,7 @@ class Head extends HTMLElement {
 console.log('bh-head custom element defined'); // Debug
 customElements.define('bh-head', Head);
 
-// Head management function (handles <head> content, avoids custom element in <head>)
+// Head management function
 function manageHead(attributes = {}) {
   console.log('manageHead started with attributes:', attributes); // Debug
 
@@ -306,25 +306,14 @@ function manageHead(attributes = {}) {
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeColor);
 }
 
-// Read <bh-head> attributes and call manageHead
+// Execute manageHead with hardcoded attributes (temporary to avoid <bh-head> parsing issues)
 document.addEventListener('DOMContentLoaded', () => {
-  const bhHead = document.querySelector('bh-head');
-  if (bhHead) {
-    const attributes = {
-      title: bhHead.getAttribute('title'),
-      description: bhHead.getAttribute('description'),
-      keywords: bhHead.getAttribute('keywords'),
-      author: bhHead.getAttribute('author'),
-      canonical: bhHead.getAttribute('canonical'),
-      'include-e-commerce': bhHead.hasAttribute('include-e-commerce')
-    };
-    manageHead(attributes);
-    // Remove <bh-head> from DOM to avoid parsing issues
-    if (bhHead.parentNode) {
-      console.log('Removing bh-head from DOM'); // Debug
-      bhHead.parentNode.removeChild(bhHead);
-    }
-  } else {
-    console.log('No bh-head element found, skipping manageHead'); // Debug
-  }
+  manageHead({
+    title: 'Home',
+    description: 'Welcome to my photography portfolio',
+    keywords: 'portfolio, web design',
+    author: 'David Dufourq',
+    canonical: 'https://linktopage.com',
+    'include-e-commerce': true
+  });
 });
