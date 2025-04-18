@@ -184,6 +184,7 @@ class Head extends HTMLElement {
           console.log('Adding Snipcart script'); // Debug: Confirm script addition
           // Add Snipcart settings
           const snipcartSettings = document.createElement('script');
+          snipcartSettings.type = 'text/javascript';
           snipcartSettings.textContent = `
             window.SnipcartSettings = {
               publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
@@ -196,6 +197,7 @@ class Head extends HTMLElement {
           // Add Snipcart inline script
           const snipcartScript = document.createElement('script');
           snipcartScript.dataset.snipcart = 'true';
+          snipcartScript.type = 'text/javascript';
           snipcartScript.textContent = `
             try {
               (() => {
@@ -243,16 +245,12 @@ class Head extends HTMLElement {
             }
           `;
           snipcartScript.onerror = () => console.error('Failed to load Snipcart script');
-          document.body.prepend(snipcartScript);
+          document.body.appendChild(snipcartScript); // Use appendChild to avoid prepend issues
         };
 
-        // Try adding Snipcart immediately, or wait for DOMContentLoaded if body is null
-        if (document.body) {
-          addSnipcartScript();
-        } else {
-          console.log('document.body not available, waiting for DOMContentLoaded'); // Debug: Confirm fallback
-          document.addEventListener('DOMContentLoaded', addSnipcartScript);
-        }
+        // Add Snipcart on DOMContentLoaded to ensure DOM is parsed
+        console.log('Scheduling Snipcart script addition'); // Debug: Confirm scheduling
+        document.addEventListener('DOMContentLoaded', addSnipcartScript);
       } else {
         console.log('Snipcart script already exists'); // Debug: Confirm duplicate check
       }
