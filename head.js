@@ -89,6 +89,24 @@ class Head extends HTMLElement {
       head.appendChild(linkCanonical);
     }
 
+    // NEW: Add theme-color meta tag with fallback
+    if (!document.querySelector('meta[name="theme-color"]')) {
+      const metaThemeColor = document.createElement('meta');
+      metaThemeColor.name = 'theme-color';
+      metaThemeColor.id = 'theme-color'; // ID for JavaScript updates
+      metaThemeColor.content = 'cyan'; // Fallback color
+      head.appendChild(metaThemeColor);
+    }
+
+    // NEW: Add main stylesheet (ensure CSS variables are available)
+    const mainStylesheet = './styles.css'; // Adjust path as needed
+    if (!document.querySelector(`link[href="${mainStylesheet}"]`)) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = mainStylesheet;
+      head.appendChild(link);
+    }
+
     // Load Font Awesome stylesheets
     fontAwesomeStyles.forEach(href => {
       if (!document.querySelector(`link[rel="stylesheet"][href="${href}"]`)) {
@@ -136,6 +154,28 @@ class Head extends HTMLElement {
       const scriptInit = document.createElement('script');
       scriptInit.textContent = 'eruda.init();';
       head.appendChild(scriptInit);
+    }
+
+    // NEW: Initialize theme color and listen for changes
+    this.updateThemeColor();
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => this.updateThemeColor());
+  }
+
+  // NEW: Method to update theme color based on CSS variables
+  updateThemeColor() {
+    const metaThemeColor = document.getElementById('theme-color');
+    if (!metaThemeColor) return;
+
+    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const color = isDarkMode
+      ? getComputedStyle(document.documentElement).getPropertyValue('--color-background-dark').trim()
+      : getComputedStyle(document.documentElement).getPropertyValue('--color-background-light').trim();
+
+    // Only update if a valid color is found
+    if (color) {
+      metaThemeColor.setAttribute('content', color);
+    } else {
+      console.warn('Theme color not updated: CSS variables not found');
     }
   }
 
