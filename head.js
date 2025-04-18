@@ -134,11 +134,11 @@ class Head extends HTMLElement {
       }
     });
 
-    // Hardcoded favicons (updated paths, verify these exist)
+    // Hardcoded favicons
     const favicons = [
       { rel: 'apple-touch-icon', sizes: '180x180', href: './img/icons/apple-touch-icon.png' },
-      { rel: 'icon', type: 'image/png', sizes: '32x32', href: './img/icons/favicon-32x32.png' }, // Verify path
-      { rel: 'icon', type: 'image/png', sizes: '16x16', href: './img/icons/favicon-16x16.png' }  // Verify path
+      { rel: 'icon', type: 'image/png', sizes: '32x32', href: './img/icons/favicon-32x32.png' },
+      { rel: 'icon', type: 'image/png', sizes: '16x16', href: './img/icons/favicon-16x16.png' }
     ];
     favicons.forEach(favicon => {
       if (!document.querySelector(`link[href="${favicon.href}"]`)) {
@@ -152,17 +152,30 @@ class Head extends HTMLElement {
       }
     });
 
+    // Add mutation observer to catch <body> <link> injection
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach(mutation => {
+        mutation.addedNodes.forEach(node => {
+          if (node.nodeName === 'LINK' && node.rel === 'stylesheet' && node.href.includes('styles.css')) {
+            console.log(`Detected <link> injection in <body>: ${node.href}`); // Debug
+            console.log(`Injection context: ${mutation.target.nodeName}`); // Debug
+            // Don't remove yet to trace cause
+          }
+        });
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    console.log('Started mutation observer for <body> <link> injections'); // Debug
+
     // Add main stylesheet on DOMContentLoaded with delayed check
     const mainStylesheet = './styles.css';
     const addStylesheet = () => {
-      // Delay to ensure DOM stability
       setTimeout(() => {
         const existingStylesheets = document.querySelectorAll(`link[rel="stylesheet"]`);
         let found = false;
         existingStylesheets.forEach(link => {
           const href = link.getAttribute('href');
           console.log(`Checking stylesheet href: ${href}`); // Debug: Log all stylesheet hrefs
-          // Check for exact match or path ending with styles.css
           if (href === mainStylesheet || href.endsWith('/styles.css') || href.includes('styles.css')) {
             found = true;
           }
@@ -176,12 +189,13 @@ class Head extends HTMLElement {
         } else {
           console.log('styles.css stylesheet already present in DOM, skipping'); // Debug
         }
-        // Log any unexpected <body> stylesheets
+        // Check for <body> stylesheets
         const bodyStylesheets = document.body.querySelectorAll(`link[rel="stylesheet"]`);
         bodyStylesheets.forEach(link => {
           console.log(`Found unexpected stylesheet in <body>: ${link.getAttribute('href')}`); // Debug
+          // Don't remove to trace cause
         });
-      }, 100); // Increased delay to account for DOM modifications
+      }, 100);
     };
     console.log('Scheduling styles.css check on DOMContentLoaded'); // Debug
     document.addEventListener('DOMContentLoaded', addStylesheet);
