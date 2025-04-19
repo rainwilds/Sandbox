@@ -226,8 +226,8 @@ function manageHead(attributes = {}, businessInfo = {}) {
     }
   ];
 
-  // Include Product schema if e-commerce is enabled
-  if (attributes['include-e-commerce']) {
+  // Include Product schema only if e-commerce is enabled and product name is provided
+  if (attributes['include-e-commerce'] && attributes['product-name']) {
     schemas.push({
       "@context": "https://schema.org",
       "@type": "Product",
@@ -294,7 +294,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
     head.appendChild(link);
   }
 
-  // Initialize Snipcart for e-commerce functionality if enabled
+  // Initialize Snipcart for e-commerce functionality only if explicitly enabled
   if (attributes['include-e-commerce']) {
     if (!document.querySelector('script[data-snipcart]')) {
       const addSnipcartScripts = () => {
@@ -409,12 +409,12 @@ document.addEventListener('DOMContentLoaded', () => {
     'business-opening-hours': dataHead.dataset.businessOpeningHours,
     'schema-site-name': dataHead.dataset.schemaSiteName,
     'schema-site-url': dataHead.dataset.schemaSiteUrl,
-    'product-name': dataHead.dataset.productName,
-    'product-description': dataHead.dataset.productDescription,
-    'product-image': dataHead.dataset.productImage,
-    'product-price-currency': dataHead.dataset.productPriceCurrency,
-    'product-price': dataHead.dataset.productPrice,
-    'product-availability': dataHead.dataset.productAvailability,
+    'product-name': dataHead.dataset.productName || null,
+    'product-description': dataHead.dataset.productDescription || null,
+    'product-image': dataHead.dataset.productImage || null,
+    'product-price-currency': dataHead.dataset.productPriceCurrency || null,
+    'product-price': dataHead.dataset.productPrice || null,
+    'product-availability': dataHead.dataset.productAvailability || null,
     'include-e-commerce': dataHead.hasAttribute('data-include-e-commerce'),
     'include-eruda': dataHead.hasAttribute('data-include-eruda')
   } : {
@@ -424,6 +424,9 @@ document.addEventListener('DOMContentLoaded', () => {
     author: 'Unknown',
     canonical: ''
   };
+
+  // Debug: Log the value of include-e-commerce
+  console.log('include-e-commerce:', attributes['include-e-commerce']);
 
   // Remove <data-bh-head> to prevent parsing issues
   if (dataHead && dataHead.parentNode) {
