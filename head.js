@@ -226,12 +226,13 @@ function manageHead(attributes = {}, businessInfo = {}) {
     }
   ];
 
-  // Include Product schema only if e-commerce is enabled and product name is provided
-  if (attributes['include-e-commerce'] && attributes['product-name']) {
+  // Include Product schema only if e-commerce is explicitly enabled and product name is provided
+  if (attributes['include-e-commerce'] === true && attributes['product-name']) {
+    console.log('Adding Product schema');
     schemas.push({
       "@context": "https://schema.org",
       "@type": "Product",
-      "name": attributes['product-name'] || 'Featured Product',
+      "name": attributes['product-name'],
       "description": attributes['product-description'] || attributes.description || 'High-quality product.',
       "image": attributes['product-image'] || attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/product.jpg',
       "offers": {
@@ -268,7 +269,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
     }
   });
 
-  // Add favicon links for various devices
+  // Add favicon links for various devices (TODO: Fix 404 errors by verifying paths)
   const favicons = [
     { rel: 'apple-touch-icon', sizes: '180x180', href: './img/icons/apple-touch-icon.png' },
     { rel: 'icon', type: 'image/png', sizes: '32x32', href: './img/icons/favicon-32x32.png' },
@@ -295,7 +296,8 @@ function manageHead(attributes = {}, businessInfo = {}) {
   }
 
   // Initialize Snipcart for e-commerce functionality only if explicitly enabled
-  if (attributes['include-e-commerce']) {
+  if (attributes['include-e-commerce'] === true) {
+    console.log('Snipcart initialization triggered');
     if (!document.querySelector('script[data-snipcart]')) {
       const addSnipcartScripts = () => {
         if (!document.body) {
@@ -415,8 +417,8 @@ document.addEventListener('DOMContentLoaded', () => {
     'product-price-currency': dataHead.dataset.productPriceCurrency || null,
     'product-price': dataHead.dataset.productPrice || null,
     'product-availability': dataHead.dataset.productAvailability || null,
-    'include-e-commerce': dataHead.hasAttribute('data-include-e-commerce'),
-    'include-eruda': dataHead.hasAttribute('data-include-eruda')
+    'include-e-commerce': dataHead.dataset.dataIncludeECommerce !== undefined,
+    'include-eruda': dataHead.dataset.dataIncludeEruda !== undefined
   } : {
     title: 'Sandbox',
     description: '',
@@ -425,21 +427,15 @@ document.addEventListener('DOMContentLoaded', () => {
     canonical: ''
   };
 
-  // Debug: Log the value of include-e-commerce
+  // Debug: Log the value of include-e-commerce and dataset
   console.log('include-e-commerce:', attributes['include-e-commerce']);
+  console.log('data-bh-head dataset:', dataHead ? JSON.stringify(dataHead.dataset) : 'No data-bh-head');
 
   // Remove <data-bh-head> to prevent parsing issues
   if (dataHead && dataHead.parentNode) {
     dataHead.parentNode.removeChild(dataHead);
   }
 
-  // Fetch business-info.json to populate LocalBusiness schema data
-  fetch('/business-info.json')
-    .then(response => response.ok ? response.json() : {})
-    .then(businessInfo => {
-      manageHead(attributes, businessInfo);
-    })
-    .catch(error => {
-      manageHead(attributes, {});
-    });
+  // Pass empty businessInfo since business-info.json is not found
+  manageHead(attributes, {});
 });
