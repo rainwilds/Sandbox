@@ -382,6 +382,30 @@ function manageHead(attributes = {}, businessInfo = {}) {
     } else {
       console.log('Skipping Snipcart initialization: include-e-commerce=', attributes['include-e-commerce']);
     }
+
+    // Initialize Eruda for debugging if enabled
+    if (attributes['include-eruda']) {
+      console.log('Eruda initialization triggered');
+      if (!document.querySelector('script[src="https://cdn.jsdelivr.net/npm/eruda"]')) {
+        const erudaScript = document.createElement('script');
+        erudaScript.src = 'https://cdn.jsdelivr.net/npm/eruda';
+        erudaScript.onload = () => {
+          console.log('Eruda script loaded, initializing...');
+          try {
+            window.eruda.init();
+            console.log('Eruda initialized successfully');
+          } catch (error) {
+            console.error('Eruda initialization error:', error);
+          }
+        };
+        erudaScript.onerror = () => {
+          console.error('Failed to load Eruda script');
+        };
+        document.head.appendChild(erudaScript);
+      }
+    } else {
+      console.log('Skipping Eruda initialization: include-eruda=', attributes['include-eruda']);
+    }
   }
 }
 
@@ -438,8 +462,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Debug: Log the value of include-e-commerce, dataset, and DOM attributes
   console.log('include-e-commerce:', attributes['include-e-commerce']);
+  console.log('include-eruda:', attributes['include-eruda']);
   console.log('data-bh-head dataset:', dataHead ? JSON.stringify(dataHead.dataset) : 'No data-bh-head');
-  console.log('data-bh-head hasAttribute:', dataHead ? dataHead.hasAttribute('data-include-e-commerce') : 'No data-bh-head');
+  console.log('data-bh-head hasAttribute (include-e-commerce):', dataHead ? dataHead.hasAttribute('data-include-e-commerce') : 'No data-bh-head');
+  console.log('data-bh-head hasAttribute (include-eruda):', dataHead ? dataHead.hasAttribute('data-include-eruda') : 'No data-bh-head');
 
   // Remove <data-bh-head> to prevent parsing issues
   if (dataHead && dataHead.parentNode) {
