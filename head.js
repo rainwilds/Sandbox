@@ -242,6 +242,8 @@ function manageHead(attributes = {}, businessInfo = {}) {
         "availability": attributes['product-availability'] || 'https://schema.org/InStock'
       }
     });
+  } else {
+    console.log('Skipping Product schema: e-commerce=', attributes['include-e-commerce'], 'product-name=', attributes['product-name']);
   }
 
   // Filter schemas to exclude those with undefined address properties
@@ -360,7 +362,9 @@ function manageHead(attributes = {}, businessInfo = {}) {
                 window.SnipcartSettings.templatesUrl && (t.dataset.templatesUrl = window.SnipcartSettings.templatesUrl);
               }
             })();
-          } catch (error) {}
+          } catch (error) {
+            console.error('Snipcart initialization error:', error);
+          }
         `;
         document.body.appendChild(snipcartScript);
       };
@@ -375,6 +379,8 @@ function manageHead(attributes = {}, businessInfo = {}) {
 
       // Initialize Snipcart scripts
       addSnipcartScripts();
+    } else {
+      console.log('Skipping Snipcart initialization: include-e-commerce=', attributes['include-e-commerce']);
     }
   }
 }
@@ -427,9 +433,10 @@ document.addEventListener('DOMContentLoaded', () => {
     canonical: ''
   };
 
-  // Debug: Log the value of include-e-commerce and dataset
+  // Debug: Log the value of include-e-commerce, dataset, and DOM attributes
   console.log('include-e-commerce:', attributes['include-e-commerce']);
   console.log('data-bh-head dataset:', dataHead ? JSON.stringify(dataHead.dataset) : 'No data-bh-head');
+  console.log('data-bh-head hasAttribute:', dataHead ? dataHead.hasAttribute('data-include-e-commerce') : 'No data-bh-head');
 
   // Remove <data-bh-head> to prevent parsing issues
   if (dataHead && dataHead.parentNode) {
