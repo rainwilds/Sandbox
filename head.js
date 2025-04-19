@@ -79,14 +79,14 @@ function manageHead(attributes = {}, businessInfo = {}) {
 
   if (!document.querySelector('title')) {
     const title = document.createElement('title');
-    title.textContent = attributes.title || 'Sandbox';
+    title.textContent = attributes.title || 'Behive';
     head.appendChild(title);
   }
 
   if (!document.querySelector('meta[name="author"]')) {
     const metaAuthor = document.createElement('meta');
     metaAuthor.name = 'author';
-    metaAuthor.content = attributes.author || 'Unknown';
+    metaAuthor.content = attributes.author || 'David Dufourq';
     head.appendChild(metaAuthor);
   }
 
@@ -123,7 +123,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
   if (!document.querySelector('meta[property="og:url"]')) {
     const ogUrl = document.createElement('meta');
     ogUrl.setAttribute('property', 'og:url');
-    ogUrl.setAttribute('content', attributes['og-url'] || 'https://rainwilds.github.io/Sandbox/index.html');
+    ogUrl.setAttribute('content', attributes['og-url'] || 'https://behive.co');
     head.appendChild(ogUrl);
   }
 
@@ -137,7 +137,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
   if (!document.querySelector('meta[property="og:title"]')) {
     const ogTitle = document.createElement('meta');
     ogTitle.setAttribute('property', 'og:title');
-    ogTitle.setAttribute('content', attributes['og-title'] || attributes.title || 'Sandbox');
+    ogTitle.setAttribute('content', attributes['og-title'] || attributes.title || 'Behive');
     head.appendChild(ogTitle);
   }
 
@@ -151,7 +151,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
   if (!document.querySelector('meta[property="og:image"]')) {
     const ogImage = document.createElement('meta');
     ogImage.setAttribute('property', 'og:image');
-    ogImage.setAttribute('content', attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg');
+    ogImage.setAttribute('content', attributes['og-image'] || 'https://behive.co/img/preview.jpg');
     head.appendChild(ogImage);
   }
 
@@ -166,21 +166,21 @@ function manageHead(attributes = {}, businessInfo = {}) {
   if (!document.querySelector('meta[property="twitter:domain"]')) {
     const twitterDomain = document.createElement('meta');
     twitterDomain.setAttribute('property', 'twitter:domain');
-    twitterDomain.setAttribute('content', attributes['twitter-domain'] || 'rainwilds.github.io');
+    twitterDomain.setAttribute('content', attributes['twitter-domain'] || 'behive.co');
     head.appendChild(twitterDomain);
   }
 
   if (!document.querySelector('meta[property="twitter:url"]')) {
     const twitterUrl = document.createElement('meta');
     twitterUrl.setAttribute('property', 'twitter:url');
-    twitterUrl.setAttribute('content', attributes['twitter-url'] || 'https://rainwilds.github.io/Sandbox/index.html');
+    twitterUrl.setAttribute('content', attributes['twitter-url'] || 'https://behive.co');
     head.appendChild(twitterUrl);
   }
 
   if (!document.querySelector('meta[name="twitter:title"]')) {
     const twitterTitle = document.createElement('meta');
     twitterTitle.setAttribute('name', 'twitter:title');
-    twitterTitle.setAttribute('content', attributes['twitter-title'] || attributes.title || 'Sandbox');
+    twitterTitle.setAttribute('content', attributes['twitter-title'] || attributes.title || 'Behive');
     head.appendChild(twitterTitle);
   }
 
@@ -194,7 +194,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
   if (!document.querySelector('meta[name="twitter:image"]')) {
     const twitterImage = document.createElement('meta');
     twitterImage.setAttribute('name', 'twitter:image');
-    twitterImage.setAttribute('content', attributes['twitter-image'] || attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg');
+    twitterImage.setAttribute('content', attributes['twitter-image'] || attributes['og-image'] || 'https://behive.co/img/preview.jpg');
     head.appendChild(twitterImage);
   }
 
@@ -205,14 +205,14 @@ function manageHead(attributes = {}, businessInfo = {}) {
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
-      "name": attributes['schema-site-name'] || attributes.title || 'Business Site',
-      "url": attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/'
+      "name": attributes['schema-site-name'] || attributes.title || 'Behive',
+      "url": attributes['schema-site-url'] || 'https://behive.co'
     },
     {
       "@context": "https://schema.org",
       "@type": "LocalBusiness",
-      "name": attributes['business-name'] || businessInfo.business?.name || attributes.title || 'Business Site',
-      "url": attributes['business-url'] || businessInfo.business?.url || attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/',
+      "name": attributes['business-name'] || businessInfo.business?.name || attributes.title || 'Behive',
+      "url": attributes['business-url'] || businessInfo.business?.url || attributes['schema-site-url'] || 'https://behive.co',
       "telephone": attributes['business-telephone'] || businessInfo.business?.telephone || '',
       "address": (attributes['business-address-street'] || businessInfo.business?.address?.streetAddress) ? {
         "@type": "PostalAddress",
@@ -226,15 +226,15 @@ function manageHead(attributes = {}, businessInfo = {}) {
     }
   ];
 
-  // Include Product schema only if e-commerce is explicitly enabled and product name is provided
-  if (attributes['include-e-commerce'] === true && attributes['product-name']) {
+  // Include Product schema only if e-commerce is enabled and product name is provided
+  if (attributes['include-e-commerce'] && attributes['product-name']) {
     console.log('Adding Product schema');
     schemas.push({
       "@context": "https://schema.org",
       "@type": "Product",
       "name": attributes['product-name'],
       "description": attributes['product-description'] || attributes.description || 'High-quality product.',
-      "image": attributes['product-image'] || attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/product.jpg',
+      "image": attributes['product-image'] || attributes['og-image'] || 'https://behive.co/img/product.jpg',
       "offers": {
         "@type": "Offer",
         "priceCurrency": attributes['product-price-currency'] || 'USD',
@@ -295,8 +295,8 @@ function manageHead(attributes = {}, businessInfo = {}) {
     head.appendChild(link);
   }
 
-  // Initialize Snipcart for e-commerce functionality only if explicitly enabled
-  if (attributes['include-e-commerce'] === true) {
+  // Initialize Snipcart for e-commerce functionality only if enabled
+  if (attributes['include-e-commerce']) {
     console.log('Snipcart initialization triggered');
     if (!document.querySelector('script[data-snipcart]')) {
       const addSnipcartScripts = () => {
@@ -417,13 +417,13 @@ document.addEventListener('DOMContentLoaded', () => {
     'product-price-currency': dataHead.dataset.productPriceCurrency || null,
     'product-price': dataHead.dataset.productPrice || null,
     'product-availability': dataHead.dataset.productAvailability || null,
-    'include-e-commerce': dataHead.dataset.dataIncludeECommerce !== undefined,
-    'include-eruda': dataHead.dataset.dataIncludeEruda !== undefined
+    'include-e-commerce': dataHead.hasAttribute('data-include-e-commerce'),
+    'include-eruda': dataHead.hasAttribute('data-include-eruda')
   } : {
-    title: 'Sandbox',
+    title: 'Behive',
     description: '',
     keywords: '',
-    author: 'Unknown',
+    author: 'David Dufourq',
     canonical: ''
   };
 
