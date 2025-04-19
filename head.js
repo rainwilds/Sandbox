@@ -1,30 +1,3 @@
-// Custom element for <bh-head> to handle minimal head-related logic, primarily theme color updates
-class Head extends HTMLElement {
-  static get observedAttributes() {
-    return ['title', 'description', 'keywords', 'author', 'canonical'];
-  }
-
-  connectedCallback() {
-    this.updateThemeColor();
-  }
-
-  // Updates the theme-color meta tag based on the user's prefers-color-scheme
-  updateThemeColor() {
-    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
-    if (!metaThemeColor) return;
-
-    const isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const color = isDarkMode
-      ? getComputedStyle(document.documentElement).getPropertyValue('--color-background-dark').trim()
-      : getComputedStyle(document.documentElement).getPropertyValue('--color-background-light').trim();
-
-    if (color) {
-      metaThemeColor.setAttribute('content', color);
-    }
-  }
-}
-customElements.define('bh-head', Head);
-
 // Manages the <head> section by adding meta tags, styles, scripts, and schema markup
 function manageHead(attributes = {}, businessInfo = {}) {
   // Ensure <head> exists, creating one if necessary
