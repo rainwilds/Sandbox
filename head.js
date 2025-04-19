@@ -433,13 +433,6 @@ document.addEventListener('DOMContentLoaded', () => {
     canonical: ''
   };
 
-  // Debug: Log the value of include-e-commerce, dataset, and DOM attributes
-  console.log('include-e-commerce:', attributes['include-e-commerce']);
-  console.log('include-eruda:', attributes['include-eruda']);
-  console.log('data-bh-head dataset:', dataHead ? JSON.stringify(dataHead.dataset) : 'No data-bh-head');
-  console.log('data-bh-head hasAttribute (include-e-commerce):', dataHead ? dataHead.hasAttribute('data-include-e-commerce') : 'No data-bh-head');
-  console.log('data-bh-head hasAttribute (include-eruda):', dataHead ? dataHead.hasAttribute('data-include-eruda') : 'No data-bh-head');
-
   // Remove <data-bh-head> to prevent parsing issues
   if (dataHead && dataHead.parentNode) {
     dataHead.parentNode.removeChild(dataHead);
