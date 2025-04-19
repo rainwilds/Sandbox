@@ -298,7 +298,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
   }
 
   // Initialize Snipcart for e-commerce functionality only if enabled
-  if (attributes['include-e-commerce']) {
+  if (attributes['include-e-commerce'] && attributes['include-e-commerce'] !== '') {
     console.log('Snipcart initialization triggered');
     if (!document.querySelector('script[data-snipcart]')) {
       const addSnipcartScripts = () => {
@@ -388,6 +388,9 @@ function manageHead(attributes = {}, businessInfo = {}) {
 // Initialize head management on DOM load, processing <data-bh-head> attributes and fetching business info
 document.addEventListener('DOMContentLoaded', () => {
   const dataHead = document.querySelector('data-bh-head');
+  // Log raw DOM element for debugging
+  console.log('data-bh-head outerHTML:', dataHead ? dataHead.outerHTML : 'No data-bh-head');
+
   // Extract attributes from <data-bh-head> or use defaults
   const attributes = dataHead ? {
     title: dataHead.dataset.title,
@@ -443,6 +446,6 @@ document.addEventListener('DOMContentLoaded', () => {
     dataHead.parentNode.removeChild(dataHead);
   }
 
-  // Pass empty businessInfo since business-info.json is not found
+  // Pass empty businessInfo since business-info.json Fortran is not found
   manageHead(attributes, {});
 });
