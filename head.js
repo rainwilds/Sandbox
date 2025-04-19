@@ -1,14 +1,14 @@
-// Define <bh-head> custom element (for potential <body> use, minimal logic)
+// Custom element for <bh-head> to handle minimal head-related logic, primarily theme color updates
 class Head extends HTMLElement {
   static get observedAttributes() {
     return ['title', 'description', 'keywords', 'author', 'canonical'];
   }
 
   connectedCallback() {
-    // Minimal logic for <body> use, if needed
     this.updateThemeColor();
   }
 
+  // Updates the theme-color meta tag based on the user's prefers-color-scheme
   updateThemeColor() {
     const metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (!metaThemeColor) return;
@@ -25,13 +25,13 @@ class Head extends HTMLElement {
 }
 customElements.define('bh-head', Head);
 
-// Head management function
-function manageHead(attributes = {}, businessConfig = {}) {
-  // Find or create <head>
+// Manages the <head> section by adding meta tags, styles, scripts, and schema markup
+function manageHead(attributes = {}, businessInfo = {}) {
+  // Ensure <head> exists, creating one if necessary
   let head = document.head || document.createElement('head');
   if (!document.head) document.documentElement.prepend(head);
 
-  // Hardcoded font preloads
+  // Preload fonts to improve performance
   const fonts = [
     { href: './fonts/AdobeAldine-Regular.woff2', type: 'font/woff2', crossorigin: 'anonymous' }
   ];
@@ -47,14 +47,12 @@ function manageHead(attributes = {}, businessConfig = {}) {
     }
   });
 
-  // Hardcoded Font Awesome styles
+  // Preload Font Awesome styles for icons
   const fontAwesomeStyles = [
     './fonts/fontawesome/fontawesome.min.css',
     './fonts/fontawesome/sharp-light.min.css',
     './fonts/fontawesome/brands.min.css'
   ];
-
-  // Preload Font Awesome styles
   fontAwesomeStyles.forEach(href => {
     if (!document.querySelector(`link[href="${href}"]`)) {
       const link = document.createElement('link');
@@ -65,7 +63,7 @@ function manageHead(attributes = {}, businessConfig = {}) {
     }
   });
 
-  // Append meta tags
+  // Add essential meta tags (charset, viewport, title, author, etc.)
   if (!document.querySelector('meta[charset]')) {
     const metaCharset = document.createElement('meta');
     metaCharset.setAttribute('charset', 'UTF-8');
@@ -113,7 +111,7 @@ function manageHead(attributes = {}, businessConfig = {}) {
     head.appendChild(linkCanonical);
   }
 
-  // Add theme-color meta tag
+  // Add theme-color meta tag with a default value
   if (!document.querySelector('meta[name="theme-color"]')) {
     const metaThemeColor = document.createElement('meta');
     metaThemeColor.name = 'theme-color';
@@ -121,7 +119,7 @@ function manageHead(attributes = {}, businessConfig = {}) {
     head.appendChild(metaThemeColor);
   }
 
-  // Add Open Graph (OG) meta tags
+  // Add Open Graph (OG) meta tags for social media sharing
   if (!document.querySelector('meta[property="og:url"]')) {
     const ogUrl = document.createElement('meta');
     ogUrl.setAttribute('property', 'og:url');
@@ -157,7 +155,7 @@ function manageHead(attributes = {}, businessConfig = {}) {
     head.appendChild(ogImage);
   }
 
-  // Add Twitter meta tags
+  // Add Twitter meta tags for social media sharing
   if (!document.querySelector('meta[name="twitter:card"]')) {
     const twitterCard = document.createElement('meta');
     twitterCard.setAttribute('name', 'twitter:card');
@@ -200,7 +198,7 @@ function manageHead(attributes = {}, businessConfig = {}) {
     head.appendChild(twitterImage);
   }
 
-  // Add schema markup (WebSite, LocalBusiness, optional Product)
+  // Add JSON-LD schema markup for SEO (WebSite, LocalBusiness, optional Product)
   const schemaScript = document.createElement('script');
   schemaScript.type = 'application/ld+json';
   const schemas = [
@@ -213,22 +211,22 @@ function manageHead(attributes = {}, businessConfig = {}) {
     {
       "@context": "https://schema.org",
       "@type": "LocalBusiness",
-      "name": attributes['business-name'] || businessConfig.business?.name || attributes.title || 'Business Site',
-      "url": attributes['business-url'] || businessConfig.business?.url || attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/',
-      "telephone": attributes['business-telephone'] || businessConfig.business?.telephone || '',
-      "address": (attributes['business-address-street'] || businessConfig.business?.address?.streetAddress) ? {
+      "name": attributes['business-name'] || businessInfo.business?.name || attributes.title || 'Business Site',
+      "url": attributes['business-url'] || businessInfo.business?.url || attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/',
+      "telephone": attributes['business-telephone'] || businessInfo.business?.telephone || '',
+      "address": (attributes['business-address-street'] || businessInfo.business?.address?.streetAddress) ? {
         "@type": "PostalAddress",
-        "streetAddress": attributes['business-address-street'] || businessConfig.business?.address?.streetAddress || '',
-        "addressLocality": attributes['business-address-locality'] || businessConfig.business?.address?.addressLocality || '',
-        "addressRegion": attributes['business-address-region'] || businessConfig.business?.address?.addressRegion || '',
-        "postalCode": attributes['business-address-postal'] || businessConfig.business?.address?.postalCode || '',
-        "addressCountry": attributes['business-address-country'] || businessConfig.business?.address?.addressCountry || ''
+        "streetAddress": attributes['business-address-street'] || businessInfo.business?.address?.streetAddress || '',
+        "addressLocality": attributes['business-address-locality'] || businessInfo.business?.address?.addressLocality || '',
+        "addressRegion": attributes['business-address-region'] || businessInfo.business?.address?.addressRegion || '',
+        "postalCode": attributes['business-address-postal'] || businessInfo.business?.address?.postalCode || '',
+        "addressCountry": attributes['business-address-country'] || businessInfo.business?.address?.addressCountry || ''
       } : undefined,
-      "openingHours": attributes['business-opening-hours'] || businessConfig.business?.openingHours || ''
+      "openingHours": attributes['business-opening-hours'] || businessInfo.business?.openingHours || ''
     }
   ];
 
-  // Add Product schema if e-commerce is enabled
+  // Include Product schema if e-commerce is enabled
   if (attributes['include-e-commerce']) {
     schemas.push({
       "@context": "https://schema.org",
@@ -245,7 +243,7 @@ function manageHead(attributes = {}, businessConfig = {}) {
     });
   }
 
-  // Filter out schemas with undefined properties (e.g., address if no street)
+  // Filter schemas to exclude those with undefined address properties
   schemaScript.textContent = JSON.stringify(schemas.filter(schema => schema.address ? schema.address.streetAddress : true));
   head.appendChild(schemaScript);
 
@@ -259,7 +257,7 @@ function manageHead(attributes = {}, businessConfig = {}) {
     }
   });
 
-  // Scripts
+  // Load additional scripts (components.js, scripts.js)
   const scripts = ['./components.js', './scripts.js'];
   scripts.forEach(src => {
     if (!document.querySelector(`script[src="${src}"]`)) {
@@ -270,7 +268,7 @@ function manageHead(attributes = {}, businessConfig = {}) {
     }
   });
 
-  // Hardcoded favicons
+  // Add favicon links for various devices
   const favicons = [
     { rel: 'apple-touch-icon', sizes: '180x180', href: './img/icons/apple-touch-icon.png' },
     { rel: 'icon', type: 'image/png', sizes: '32x32', href: './img/icons/favicon-32x32.png' },
@@ -287,26 +285,20 @@ function manageHead(attributes = {}, businessConfig = {}) {
     }
   });
 
-  // Add main stylesheet with strict <head> check
+  // Add main stylesheet (styles.css) if not already present
   const mainStylesheet = './styles.css';
   if (!document.querySelector(`link[rel="stylesheet"][href="${mainStylesheet}"]`)) {
-    console.log('Adding styles.css to <head>'); // TEMPORARY: Remove after testing
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = mainStylesheet;
     head.appendChild(link);
-  } else {
-    console.log('styles.css already in DOM'); // TEMPORARY: Remove after testing
   }
 
-  // Initialize Snipcart
+  // Initialize Snipcart for e-commerce functionality if enabled
   if (attributes['include-e-commerce']) {
     if (!document.querySelector('script[data-snipcart]')) {
-      console.log('Adding Snipcart scripts'); // TEMPORARY: Remove after testing
-      // Wait for document.body
       const addSnipcartScripts = () => {
         if (!document.body) {
-          console.warn('document.body not available, retrying Snipcart'); // TEMPORARY: Remove after testing
           setTimeout(addSnipcartScripts, 100);
           return;
         }
@@ -322,7 +314,7 @@ function manageHead(attributes = {}, businessConfig = {}) {
         `;
         document.body.appendChild(snipcartSettings);
 
-        const snipcartScript = document.createElement('script'); // FIXED: Corrected syntax error
+        const snipcartScript = document.createElement('script');
         snipcartScript.dataset.snipcart = 'true';
         snipcartScript.type = 'text/javascript';
         snipcartScript.textContent = `
@@ -371,25 +363,24 @@ function manageHead(attributes = {}, businessConfig = {}) {
         document.body.appendChild(snipcartScript);
       };
 
-      // Add preconnect for Snipcart CDN
+      // Add preconnect for Snipcart CDN to improve loading performance
       if (!document.querySelector('link[href="https://cdn.snipcart.com"]')) {
-        console.log('Adding Snipcart preconnect'); // TEMPORARY: Remove after testing
         const preconnect = document.createElement('link');
         preconnect.rel = 'preconnect';
         preconnect.href = 'https://cdn.snipcart.com';
         head.appendChild(preconnect);
       }
 
-      // Initialize Snipcart
+      // Initialize Snipcart scripts
       addSnipcartScripts();
     }
   }
 }
 
-// Process <data-bh-head> attributes and fetch business-info.json
+// Initialize head management on DOM load, processing <data-bh-head> attributes and fetching business info
 document.addEventListener('DOMContentLoaded', () => {
   const dataHead = document.querySelector('data-bh-head');
-  // Read attributes immediately
+  // Extract attributes from <data-bh-head> or use defaults
   const attributes = dataHead ? {
     title: dataHead.dataset.title,
     description: dataHead.dataset.description,
@@ -434,21 +425,18 @@ document.addEventListener('DOMContentLoaded', () => {
     canonical: ''
   };
 
-  // Remove <data-bh-head> immediately to prevent parsing issues
+  // Remove <data-bh-head> to prevent parsing issues
   if (dataHead && dataHead.parentNode) {
-    console.log('Removing data-bh-head from DOM'); // TEMPORARY: Remove after testing
     dataHead.parentNode.removeChild(dataHead);
   }
 
-  // Fetch business-info.json
+  // Fetch business-info.json to populate LocalBusiness schema data
   fetch('/business-info.json')
     .then(response => response.ok ? response.json() : {})
-    .then(businessConfig => {
-      console.log('Fetched business-info.json:', businessConfig); // TEMPORARY: Remove after testing
-      manageHead(attributes, businessConfig);
+    .then(businessInfo => {
+      manageHead(attributes, businessInfo);
     })
     .catch(error => {
-      console.warn('Failed to fetch business-info.json:', error.message); // TEMPORARY: Remove after testing
       manageHead(attributes, {});
     });
 });
