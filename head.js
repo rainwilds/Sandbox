@@ -294,7 +294,6 @@ function manageHead(attributes = {}, businessInfo = {}) {
             publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
             loadStrategy: 'on-user-interaction',
             version: '3.7.1',
-            loadCSS: false,
             currency: 'aud',
             modalStyle: 'side'
           };
