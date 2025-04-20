@@ -298,11 +298,9 @@ function manageHead(attributes = {}, businessInfo = {}) {
             currency: 'aud',
             timeoutDuration: 5000,
             modalStyle: 'sidebar',
-            addProductBehavior: 'none',
             allowedCountries: ['AU'],
             defaultCountry: 'AU',
             language: 'en'
-
           };
         `;
         document.body.appendChild(snipcartSettings);
