@@ -36,7 +36,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
     }
   });
 
-  // Add essential meta tags (charset, viewport, title, author, etc.)
+  // Add essential meta tags (charset, viewport, robots, title, author, etc.)
   if (!document.querySelector('meta[charset]')) {
     const metaCharset = document.createElement('meta');
     metaCharset.setAttribute('charset', 'UTF-8');
@@ -390,8 +390,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const dataHead = document.querySelector('data-bh-head');
   console.log('data-bh-head outerHTML:', dataHead ? dataHead.outerHTML : 'No data-bh-head');
 
-  // Extract attributes from <data-bh-head> or use defaults
-  const attributes = dataHead ? {
+  // Extract attributes from <data-bh-head> (no fallback object needed)
+  const attributes = {
     title: dataHead.dataset.title,
     description: dataHead.dataset.description,
     keywords: dataHead.dataset.keywords,
@@ -428,13 +428,6 @@ document.addEventListener('DOMContentLoaded', () => {
     'product-availability': dataHead.dataset.productAvailability || null,
     'include-e-commerce': dataHead.hasAttribute('data-include-e-commerce'),
     'include-eruda': dataHead.hasAttribute('data-include-eruda')
-  } : {
-    title: 'Behive',
-    description: '',
-    keywords: '',
-    author: 'David Dufourq',
-    canonical: '',
-    robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
   };
 
   // Remove <data-bh-head> to prevent parsing issues
@@ -442,6 +435,6 @@ document.addEventListener('DOMContentLoaded', () => {
     dataHead.parentNode.removeChild(dataHead);
   }
 
-  // Pass empty businessInfo since business-info.json is not found
+  // Pass attributes to manageHead
   manageHead(attributes, {});
 });
