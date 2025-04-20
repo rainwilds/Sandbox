@@ -293,11 +293,12 @@ function manageHead(attributes = {}, businessInfo = {}) {
           window.SnipcartSettings = {
             publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
             loadStrategy: 'on-user-interaction',
-            version: '3.0',
+            version: '3.7.1',
+            loadCSS: false,
             templatesUrl: './snipcart-templates.html',
             currency: 'aud',
-            timeoutDuration: 5000,
-            modalStyle: 'sidebar',
+            timeoutDuration: 2000,
+            modalStyle: 'side',
             allowedCountries: ['AU'],
             defaultCountry: 'AU',
             language: 'en'
