@@ -50,6 +50,13 @@ function manageHead(attributes = {}, businessInfo = {}) {
     head.appendChild(metaViewport);
   }
 
+  if (!document.querySelector('meta[name="robots"]')) {
+    const metaRobots = document.createElement('meta');
+    metaRobots.name = 'robots';
+    metaRobots.content = attributes.robots || 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+    head.appendChild(metaRobots);
+  }
+
   if (!document.querySelector('title')) {
     const title = document.createElement('title');
     title.textContent = attributes.title || 'Behive';
@@ -124,7 +131,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
   if (!document.querySelector('meta[property="og:image"]')) {
     const ogImage = document.createElement('meta');
     ogImage.setAttribute('property', 'og:image');
-    ogImage.setAttribute('content', attributes['og-image'] || 'https://behive.co/img/preview.jpg');
+    ogImage.setAttribute('content', attributes['og-image'] || 'https://behive.co/images/preview.jpg');
     head.appendChild(ogImage);
   }
 
@@ -167,7 +174,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
   if (!document.querySelector('meta[name="twitter:image"]')) {
     const twitterImage = document.createElement('meta');
     twitterImage.setAttribute('name', 'twitter:image');
-    twitterImage.setAttribute('content', attributes['twitter-image'] || attributes['og-image'] || 'https://behive.co/img/preview.jpg');
+    twitterImage.setAttribute('content', attributes['twitter-image'] || attributes['og-image'] || 'https://behive.co/images/preview.jpg');
     head.appendChild(twitterImage);
   }
 
@@ -207,7 +214,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
       "@type": "Product",
       "name": attributes['product-name'],
       "description": attributes['product-description'] || attributes.description || 'High-quality product.',
-      "image": attributes['product-image'] || attributes['og-image'] || 'https://behive.co/img/product.jpg',
+      "image": attributes['product-image'] || attributes['og-image'] || 'https://behive.co/images/product.jpg',
       "offers": {
         "@type": "Offer",
         "priceCurrency": attributes['product-price-currency'] || 'USD',
@@ -244,11 +251,11 @@ function manageHead(attributes = {}, businessInfo = {}) {
     }
   });
 
-  // Add favicon links for various devices (TODO: Fix 404 errors by verifying paths)
+  // Add favicon links for various devices
   const favicons = [
-    { rel: 'apple-touch-icon', sizes: '180x180', href: './img/icons/apple-touch-icon.png' },
-    { rel: 'icon', type: 'image/png', sizes: '32x32', href: './img/icons/favicon-32x32.png' },
-    { rel: 'icon', type: 'image/png', sizes: '16x16', href: './img/icons/favicon-16x16.png' }
+    { rel: 'apple-touch-icon', sizes: '180x180', href: './images/icons/apple-touch-icon.png' },
+    { rel: 'icon', type: 'image/png', sizes: '32x32', href: './images/icons/favicon-32x32.png' },
+    { rel: 'icon', type: 'image/png', sizes: '16x16', href: './images/icons/favicon-16x16.png' }
   ];
   favicons.forEach(favicon => {
     if (!document.querySelector(`link[href="${favicon.href}"]`)) {
@@ -352,40 +359,35 @@ function manageHead(attributes = {}, businessInfo = {}) {
 
       // Initialize Snipcart scripts
       addSnipcartScripts();
-    } else {
-      console.log('Skipping Snipcart initialization: include-e-commerce=', attributes['include-e-commerce']);
     }
+  }
 
-    // Initialize Eruda for debugging if enabled
-    if (attributes['include-eruda']) {
-      console.log('Eruda initialization triggered');
-      if (!document.querySelector('script[src="https://cdn.jsdelivr.net/npm/eruda"]')) {
-        const erudaScript = document.createElement('script');
-        erudaScript.src = 'https://cdn.jsdelivr.net/npm/eruda';
-        erudaScript.onload = () => {
-          console.log('Eruda script loaded, initializing...');
-          try {
-            window.eruda.init();
-            console.log('Eruda initialized successfully');
-          } catch (error) {
-            console.error('Eruda initialization error:', error);
-          }
-        };
-        erudaScript.onerror = () => {
-          console.error('Failed to load Eruda script');
-        };
-        document.head.appendChild(erudaScript);
-      }
-    } else {
-      console.log('Skipping Eruda initialization: include-eruda=', attributes['include-eruda']);
+  // Initialize Eruda for debugging if enabled
+  if (attributes['include-eruda']) {
+    console.log('Eruda initialization triggered');
+    if (!document.querySelector('script[src="https://cdn.jsdelivr.net/npm/eruda"]')) {
+      const erudaScript = document.createElement('script');
+      erudaScript.src = 'https://cdn.jsdelivr.net/npm/eruda';
+      erudaScript.onload = () => {
+        console.log('Eruda script loaded, initializing...');
+        try {
+          window.eruda.init();
+          console.log('Eruda initialized successfully');
+        } catch (error) {
+          console.error('Eruda initialization error:', error);
+        }
+      };
+      erudaScript.onerror = () => {
+        console.error('Failed to load Eruda script');
+      };
+      document.head.appendChild(erudaScript);
     }
   }
 }
 
-// Initialize head management on DOM load, processing <data-bh-head> attributes and fetching business info
+// Initialize head management on DOM load, processing <data-bh-head> attributes
 document.addEventListener('DOMContentLoaded', () => {
   const dataHead = document.querySelector('data-bh-head');
-  // Log raw DOM element for debugging
   console.log('data-bh-head outerHTML:', dataHead ? dataHead.outerHTML : 'No data-bh-head');
 
   // Extract attributes from <data-bh-head> or use defaults
@@ -395,6 +397,7 @@ document.addEventListener('DOMContentLoaded', () => {
     keywords: dataHead.dataset.keywords,
     author: dataHead.dataset.author,
     canonical: dataHead.dataset.canonical,
+    robots: dataHead.dataset.robots,
     'og-title': dataHead.dataset.ogTitle,
     'og-description': dataHead.dataset.ogDescription,
     'og-image': dataHead.dataset.ogImage,
@@ -430,7 +433,8 @@ document.addEventListener('DOMContentLoaded', () => {
     description: '',
     keywords: '',
     author: 'David Dufourq',
-    canonical: ''
+    canonical: '',
+    robots: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'
   };
 
   // Remove <data-bh-head> to prevent parsing issues
