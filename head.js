@@ -91,48 +91,77 @@ function manageHead(attributes = {}, businessInfo = {}) {
     head.appendChild(linkCanonical);
   }
 
-  // Add theme-color meta tag with a default value
-  if (!document.querySelector('meta[name="theme-color"]')) {
-    const metaThemeColor = document.createElement('meta');
-    metaThemeColor.name = 'theme-color';
-    metaThemeColor.content = 'cyan';
-    head.appendChild(metaThemeColor);
-  }
+  // Add theme-color meta tag with dynamic light/dark support
+  const updateThemeColor = () => {
+    let metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (!metaThemeColor) {
+      metaThemeColor = document.createElement('meta');
+      metaThemeColor.name = 'theme-color';
+      head.appendChild(metaThemeColor);
+    }
+    // Check data-theme attribute on <html> or <body>
+    const theme = document.documentElement.dataset.theme || document.body.dataset.theme;
+    // Fallback to prefers-color-scheme if no data-theme
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = theme ? theme === 'dark' : prefersDark;
+    // Use attributes or defaults for light/dark colors
+    const lightColor = attributes['theme-color-light'] || '#ffffff'; // White for light mode
+    const darkColor = attributes['theme-color-dark'] || '#000000'; // Black for dark mode
+    metaThemeColor.content = isDark ? darkColor : lightColor;
+  };
+
+  // Initial theme color update
+  updateThemeColor();
+
+  // Observe changes to data-theme or system preference
+  const htmlObserver = new MutationObserver(updateThemeColor);
+  htmlObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  const bodyObserver = new MutationObserver(updateThemeColor);
+  bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeColor);
 
   // Add Open Graph (OG) meta tags for social media sharing
+  if (!document.querySelector('meta[property="og:locale"]')) {
+    const ogLocale = document.createElement('meta');
+    ogLocale.setAttribute('property', 'og:locale');
+    ogLocale.setAttribute('content', attributes['og-locale'] || 'en_AU');
+    head.appendChild(ogLocale);
+  }
   if (!document.querySelector('meta[property="og:url"]')) {
     const ogUrl = document.createElement('meta');
     ogUrl.setAttribute('property', 'og:url');
     ogUrl.setAttribute('content', attributes['og-url'] || 'https://behive.co');
     head.appendChild(ogUrl);
   }
-
   if (!document.querySelector('meta[property="og:type"]')) {
     const ogType = document.createElement('meta');
     ogType.setAttribute('property', 'og:type');
     ogType.setAttribute('content', attributes['og-type'] || 'website');
     head.appendChild(ogType);
   }
-
   if (!document.querySelector('meta[property="og:title"]')) {
     const ogTitle = document.createElement('meta');
     ogTitle.setAttribute('property', 'og:title');
     ogTitle.setAttribute('content', attributes['og-title'] || attributes.title || 'Behive');
     head.appendChild(ogTitle);
   }
-
   if (!document.querySelector('meta[property="og:description"]')) {
     const ogDescription = document.createElement('meta');
     ogDescription.setAttribute('property', 'og:description');
     ogDescription.setAttribute('content', attributes['og-description'] || attributes.description || '');
     head.appendChild(ogDescription);
   }
-
   if (!document.querySelector('meta[property="og:image"]')) {
     const ogImage = document.createElement('meta');
     ogImage.setAttribute('property', 'og:image');
     ogImage.setAttribute('content', attributes['og-image'] || 'https://behive.co/images/preview.jpg');
     head.appendChild(ogImage);
+  }
+  if (!document.querySelector('meta[property="og:site_name"]')) {
+    const ogSiteName = document.createElement('meta');
+    ogSiteName.setAttribute('property', 'og:site_name');
+    ogSiteName.setAttribute('content', attributes['og-site-name'] || 'Behive');
+    head.appendChild(ogSiteName);
   }
 
   // Add Twitter meta tags for social media sharing
@@ -142,35 +171,30 @@ function manageHead(attributes = {}, businessInfo = {}) {
     twitterCard.setAttribute('content', attributes['twitter-card'] || 'summary_large_image');
     head.appendChild(twitterCard);
   }
-
   if (!document.querySelector('meta[property="twitter:domain"]')) {
     const twitterDomain = document.createElement('meta');
     twitterDomain.setAttribute('property', 'twitter:domain');
     twitterDomain.setAttribute('content', attributes['twitter-domain'] || 'behive.co');
     head.appendChild(twitterDomain);
   }
-
   if (!document.querySelector('meta[property="twitter:url"]')) {
     const twitterUrl = document.createElement('meta');
     twitterUrl.setAttribute('property', 'twitter:url');
     twitterUrl.setAttribute('content', attributes['twitter-url'] || 'https://behive.co');
     head.appendChild(twitterUrl);
   }
-
   if (!document.querySelector('meta[name="twitter:title"]')) {
     const twitterTitle = document.createElement('meta');
     twitterTitle.setAttribute('name', 'twitter:title');
     twitterTitle.setAttribute('content', attributes['twitter-title'] || attributes.title || 'Behive');
     head.appendChild(twitterTitle);
   }
-
   if (!document.querySelector('meta[name="twitter:description"]')) {
     const twitterDescription = document.createElement('meta');
     twitterDescription.setAttribute('name', 'twitter:description');
     twitterDescription.setAttribute('content', attributes['twitter-description'] || attributes.description || '');
     head.appendChild(twitterDescription);
   }
-
   if (!document.querySelector('meta[name="twitter:image"]')) {
     const twitterImage = document.createElement('meta');
     twitterImage.setAttribute('name', 'twitter:image');
@@ -222,8 +246,6 @@ function manageHead(attributes = {}, businessInfo = {}) {
         "availability": attributes['product-availability'] || 'https://schema.org/InStock'
       }
     });
-  } else {
-    console.log('Skipping Product schema: e-commerce=', attributes['include-e-commerce'], 'product-name=', attributes['product-name']);
   }
 
   // Filter schemas to exclude those with undefined address properties
@@ -293,7 +315,14 @@ function manageHead(attributes = {}, businessInfo = {}) {
           window.SnipcartSettings = {
             publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
             loadStrategy: 'on-user-interaction',
-            version: '3.0'
+            version: '3.0',
+            currency: 'aud',
+            timeoutDuration: 5000,
+            modalStyle: 'sidebar',
+            addProductBehavior: 'none',
+            allowedCountries: ['AU'],
+            defaultCountry: 'AU',
+            language: 'en'
           };
         `;
         document.body.appendChild(snipcartSettings);
@@ -390,7 +419,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const dataHead = document.querySelector('data-bh-head');
   console.log('data-bh-head outerHTML:', dataHead ? dataHead.outerHTML : 'No data-bh-head');
 
-  // Extract attributes from <data-bh-head> (no fallback object needed)
+  // Extract attributes from <data-bh-head>
   const attributes = {
     title: dataHead.dataset.title,
     description: dataHead.dataset.description,
@@ -403,6 +432,8 @@ document.addEventListener('DOMContentLoaded', () => {
     'og-image': dataHead.dataset.ogImage,
     'og-url': dataHead.dataset.ogUrl,
     'og-type': dataHead.dataset.ogType,
+    'og-locale': dataHead.dataset.ogLocale,
+    'og-site-name': dataHead.dataset.ogSiteName,
     'twitter-title': dataHead.dataset.twitterTitle,
     'twitter-description': dataHead.dataset.twitterDescription,
     'twitter-image': dataHead.dataset.twitterImage,
@@ -426,6 +457,8 @@ document.addEventListener('DOMContentLoaded', () => {
     'product-price-currency': dataHead.dataset.productPriceCurrency || null,
     'product-price': dataHead.dataset.productPrice || null,
     'product-availability': dataHead.dataset.productAvailability || null,
+    'theme-color-light': dataHead.dataset.themeColorLight,
+    'theme-color-dark': dataHead.dataset.themeColorDark,
     'include-e-commerce': dataHead.hasAttribute('data-include-e-commerce'),
     'include-eruda': dataHead.hasAttribute('data-include-eruda')
   };
