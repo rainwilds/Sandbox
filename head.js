@@ -293,9 +293,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
           window.SnipcartSettings = {
             publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
             loadStrategy: 'on-user-interaction',
-            version: '3.7.1',
-            currency: 'aud',
-            modalStyle: 'side'
+            version: '3.0'
           };
         `;
         document.body.appendChild(snipcartSettings);
