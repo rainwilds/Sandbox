@@ -296,7 +296,6 @@ function manageHead(attributes = {}, businessInfo = {}) {
             version: '3.7.1',
             loadCSS: false,
             currency: 'aud',
-            timeoutDuration: 2000,
             modalStyle: 'side'
           };
         `;
