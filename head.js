@@ -295,13 +295,9 @@ function manageHead(attributes = {}, businessInfo = {}) {
             loadStrategy: 'on-user-interaction',
             version: '3.7.1',
             loadCSS: false,
-            templatesUrl: './snipcart-templates.html',
             currency: 'aud',
             timeoutDuration: 2000,
-            modalStyle: 'side',
-            allowedCountries: ['AU'],
-            defaultCountry: 'AU',
-            language: 'en'
+            modalStyle: 'side'
           };
         `;
         document.body.appendChild(snipcartSettings);
