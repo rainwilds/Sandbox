@@ -1545,7 +1545,7 @@ body {
 
 
 /* Too convert into the .card Web Component */
-#products {
+div#products {
     display: grid !important; /* Ensure grid applies, for debugging */
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
     gap: 24px !important;
