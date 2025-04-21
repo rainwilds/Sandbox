@@ -1,0 +1,26 @@
+[
+  {
+    "id": "BH-PHOTO-001",
+    "name": "Photography Session Package",
+    "url": "https://rainwilds.github.io/Sandbox/products/photo-session/",
+    "image": "https://rainwilds.github.io/Sandbox/img/photo-session.jpg",
+    "description": "Professional photography session for events.",
+    "sku": "BH-PHOTO-001",
+    "brand": "Behive",
+    "priceCurrency": "AUD",
+    "price": "150.00",
+    "availability": "https://schema.org/InStock"
+  },
+  {
+    "id": "BH-VIDEO-002",
+    "name": "Video Production Package",
+    "url": "https://rainwilds.github.io/Sandbox/products/video-production/",
+    "image": "https://rainwilds.github.io/Sandbox/img/video-production.jpg",
+    "description": "High-quality video production for marketing.",
+    "sku": "BH-VIDEO-002",
+    "brand": "Behive",
+    "priceCurrency": "AUD",
+    "price": "500.00",
+    "availability": "https://schema.org/InStock"
+  }
+]

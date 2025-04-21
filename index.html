@@ -5,7 +5,8 @@
 
     <link rel="preload" href="./styles.css" as="style">
     <link rel="stylesheet" href="./styles.css">
-    <script src="./js/head.js"></script>
+    <script src="./js/head.js" defer></script>
+    <script src="./products.js" defer></script>
 
     <!-- General/Site -->
     <data-bh-head
@@ -41,7 +42,7 @@
     ></data-bh-head>
 
     <!-- Product -->
-    <!-- <data-bh-head
+    <data-bh-head
     data-product-name="Featured Product"
     data-product-description="High-quality product from Behive."
     data-product-image="https://rainwilds.github.io/Sandbox/img/preview.jpg"
@@ -54,14 +55,14 @@
     data-product-rating-value="4.8"
     data-product-review-count="25"
     data-include-e-commerce
-    ></data-bh-head> -->
+    ></data-bh-head>
 
     <!-- Product Collection -->
-    <data-bh-head
+    <!-- <data-bh-head
     data-collection-name="Behive Shop"
     data-collection-description="Browse our curated selection of photography and videography products."
     data-include-e-commerce
-    ></data-bh-head>
+    ></data-bh-head> -->
 
 </head>
 
@@ -165,7 +166,9 @@
 
 
                 <div>
-                    <button class="snipcart-add-item" data-item-id="1" data-item-name="Test Product" data-item-price="10.00" data-item-url="https://linktopage.com">Buy</button>
+                    <!-- Product Container -->
+<div id="products" data-product-sku="BH-PHOTO-001"></div>
+                    <!-- <button class="snipcart-add-item" data-item-id="1" data-item-name="Test Product" data-item-price="10.00" data-item-url="https://linktopage.com">Buy</button> -->
                     <a class="button" href="#">Button</a>
                     <a class="button secondary" href="#">Secondary</a>
                 </div>
