@@ -91,7 +91,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
     head.appendChild(linkCanonical);
   }
 
-  // Add theme-color meta tag with dynamic light/dark support
+  // Add theme-color meta tag with dynamic light/dark support using CSS variables
   const updateThemeColor = () => {
     let metaThemeColor = document.querySelector('meta[name="theme-color"]');
     if (!metaThemeColor) {
@@ -104,9 +104,10 @@ function manageHead(attributes = {}, businessInfo = {}) {
     // Fallback to prefers-color-scheme if no data-theme
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const isDark = theme ? theme === 'dark' : prefersDark;
-    // Use attributes or defaults for light/dark colors
-    const lightColor = attributes['theme-color-light'] || '#ffffff'; // White for light mode
-    const darkColor = attributes['theme-color-dark'] || '#000000'; // Black for dark mode
+    // Get CSS variable values from :root
+    const rootStyle = getComputedStyle(document.documentElement);
+    const lightColor = attributes['theme-color-light'] || rootStyle.getPropertyValue('--color-background-light').trim();
+    const darkColor = attributes['theme-color-dark'] || rootStyle.getPropertyValue('--color-background-dark').trim();
     metaThemeColor.content = isDark ? darkColor : lightColor;
   };
 
