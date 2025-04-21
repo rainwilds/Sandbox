@@ -317,15 +317,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
           publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
           loadStrategy: 'on-user-interaction',
           version: '3.7.3',
-          modalHeaderBkgColor: '#000000',
-          templateFontFamily: 'serif',
-          templateFontSize: '1.2rem',
-          themeColor: 'auto',
-          templatesUrl: '/plugins/snipcart.html',
-          appearance: 'minimal',
-          currency: 'aud',
-          billingAddress: 'required',
-          shippingAddress: 'required',
+          templatesUrl: '/Sandbox//plugins/snipcart.html'
         };
       `;
         document.body.appendChild(snipcartSettings);
