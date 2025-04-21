@@ -27,9 +27,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     productsToDisplay.forEach(product => {
       const card = document.createElement('div');
       card.className = 'product-card';
+      // Validate image URL (basic check for non-empty string)
+      const imageUrl = product.image && typeof product.image === 'string' && product.image.trim() !== ''
+        ? product.image
+        : 'https://placehold.co/600x400';
+      if (!product.image) {
+        console.warn(`Product ${product.sku} is missing an image; using fallback: https://placehold.co/600x400`);
+      }
       card.innerHTML = `
         <h3>${product.name || 'Unnamed Product'}</h3>
-        <img src="${product.image || 'https://placehold.co/600x400'}" alt="${product.name || 'Product Image'}" style="max-width: 100%;">
+        <img src="${imageUrl}" alt="${product.name || 'Product Image'}" style="max-width: 100%;" onerror="this.src='https://placehold.co/600x400'; console.warn('Failed to load image for product ${product.sku}: ${imageUrl}');">
         <p>${product.description || 'No description available.'}</p>
       `;
       const button = document.createElement('button');
