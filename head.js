@@ -216,7 +216,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
         "url": attributes['schema-site-url'] || 'https://behive.co',
         "description": attributes.description || 'Behive Media offers professional photography, videography, and website services in Australia.',
         "inLanguage": attributes['og-locale'] || 'en-AU',
-        "publisher": { "@id": (attributes['business-url'] || 'https://behive.co') + "#business" },
+        "publisher": { "@id": (attributes['business-url'] || businessInfo.business?.url || 'https://behive.co') + "#business" },
         "potentialAction": [
           {
             "@type": "SearchAction",
@@ -234,7 +234,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
       },
       {
         "@type": "LocalBusiness",
-        "@id": (attributes['business-url'] || 'https://behive.co') + "#business",
+        "@id": (attributes['business-url'] || businessInfo.business?.url || 'https://behive.co') + "#business",
         "name": attributes['business-name'] || businessInfo.business?.name || 'Behive Media',
         "url": attributes['business-url'] || businessInfo.business?.url || 'https://behive.co',
         "telephone": attributes['business-telephone'] || businessInfo.business?.telephone || '+61-3-9876-5432',
@@ -370,7 +370,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
           publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
           loadStrategy: 'on-user-interaction',
           version: '3.7.3',
-          templatesUrl: '/Sandbox//plugins/snipcart.html',
+          templatesUrl: '/Sandbox/plugins/snipcart.html',
           modalStyle: 'side',
         };
       `;
@@ -470,12 +470,23 @@ function manageHead(attributes = {}, businessInfo = {}) {
 }
 
 // Initialize head management on DOM load, processing <data-bh-head> attributes
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const dataHeads = document.querySelectorAll('data-bh-head');
   console.log('Found data-bh-head elements:', dataHeads.length);
   dataHeads.forEach((dataHead, index) => {
     console.log(`data-bh-head[${index}] outerHTML:`, dataHead.outerHTML);
   });
+
+  // Fetch business-info.json
+  let businessInfo = {};
+  try {
+    const response = await fetch('./JSON/business-info.json');
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    businessInfo = await response.json();
+    console.log('Loaded business-info.json:', businessInfo);
+  } catch (error) {
+    console.error('Failed to load business-info.json:', error);
+  }
 
   // Merge attributes from all <data-bh-head> elements
   const attributes = {};
@@ -541,6 +552,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Pass merged attributes to manageHead
-  manageHead(attributes, {});
+  // Pass merged attributes and businessInfo to manageHead
+  manageHead(attributes, businessInfo);
 });
