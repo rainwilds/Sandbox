@@ -1545,16 +1545,6 @@ body {
 
 
 // Too convert into the .card Web Component
-/* :root {
-    --color-accent-dark-primary: #333;
-    --color-accent-light-primary: #ddd;
-    --color-static-light-4: rgba(255, 255, 255, 0.8);
-    --color-static-dark-2: rgba(0, 0, 0, 0.6);
-    --border-size-small: 1px;
-    --space-tiny: 4px;
-    --space-small: 8px;
-  } */
-  
   #products {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
