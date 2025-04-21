@@ -318,76 +318,14 @@ function manageHead(attributes = {}, businessInfo = {}) {
           loadStrategy: 'on-user-interaction',
           version: '3.7.3',
           modalHeaderBkgColor: '#000000',
-          templateFontFamily: 'Inter, sans-serif',
+          templateFontFamily: 'serif',
           templateFontSize: '1.2rem',
           themeColor: 'auto',
-          templatesUrl: '/snipcart/templates',
+          templatesUrl: '/plugins/snipcart.html',
           appearance: 'minimal',
-          currency: 'usd',
+          currency: 'aud',
           billingAddress: 'required',
           shippingAddress: 'required',
-          languages: {
-            'en': {
-              'fields': {
-                'email': {
-                  'placeholder': 'Email'
-                },
-                'name': {
-                  'placeholder': 'Full name'
-                },
-                'telephone': {
-                  'placeholder': 'Phone number'
-                },
-                'address': {
-                  'placeholder': 'Address'
-                },
-                'city': {
-                  'placeholder': 'City'
-                },
-                'postcode': {
-                  'placeholder': 'Postal code'
-                },
-                'country': {
-                  'placeholder': 'Country'
-                }
-              },
-              'errors': {
-                'emptyError': 'This field is required',
-                'numberError': 'Invalid value',
-                'emailError': 'Invalid email',
-                'addressError': {
-                  'noCountry': 'Please select a country',
-                  'noCity': 'Please enter a city name',
-                  'noPostcode': 'Please enter a postal code',
-                  'noAddress': 'Please enter an address',
-                  'noName': 'Please enter a name',
-                  'noTelephone': 'Please enter a phone number',
-                  'noValidAddress': 'Please enter a valid address'
-                },
-                'defaultError': 'An error occurred, please try again later'
-              }
-            }
-          },
-          callbacks: {
-            onInitError: function (err) {
-              console.error('Snipcart initialization error:', err);
-            },
-            onReady: function () {
-              console.log('Snipcart is ready!');
-            },
-            onUserLoggedIn: function (user) {
-              console.log('User logged in:', user);
-            },
-            onUserLoggedOut: function () {
-              console.log('User logged out');
-            },
-            onAddressSaved: function (user) {
-              console.log('Address saved:', user);
-            },
-            onOrderCompleted: function (order) {
-              console.log('Order completed:', order);
-            }
-          }
         };
       `;
         document.body.appendChild(snipcartSettings);
