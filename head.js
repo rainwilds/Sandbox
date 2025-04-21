@@ -318,13 +318,6 @@ function manageHead(attributes = {}, businessInfo = {}) {
           publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
           loadStrategy: 'on-user-interaction',
           version: '3.7.3',
-          currency: 'aud',
-          timeoutDuration: 5000,
-          modalStyle: 'side',
-          addProductBehavior: 'open',
-          allowedCountries: ['AU'],
-          defaultCountry: 'AU',
-          language: 'en'
         };
       `;
         document.body.appendChild(snipcartSettings);
