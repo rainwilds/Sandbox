@@ -203,54 +203,107 @@ function manageHead(attributes = {}, businessInfo = {}) {
     head.appendChild(twitterImage);
   }
 
-  // Add JSON-LD schema markup for SEO (WebSite, LocalBusiness, optional Product)
+  // Add JSON-LD schema markup for SEO (WebSite, LocalBusiness, BreadcrumbList, optional Product)
   const schemaScript = document.createElement('script');
   schemaScript.type = 'application/ld+json';
-  const schemas = [
-    {
-      "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": attributes['schema-site-name'] || attributes.title || 'Behive',
-      "url": attributes['schema-site-url'] || 'https://behive.co'
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "name": attributes['business-name'] || businessInfo.business?.name || attributes.title || 'Behive',
-      "url": attributes['business-url'] || businessInfo.business?.url || attributes['schema-site-url'] || 'https://behive.co',
-      "telephone": attributes['business-telephone'] || businessInfo.business?.telephone || '',
-      "address": (attributes['business-address-street'] || businessInfo.business?.address?.streetAddress) ? {
-        "@type": "PostalAddress",
-        "streetAddress": attributes['business-address-street'] || businessInfo.business?.address?.streetAddress || '',
-        "addressLocality": attributes['business-address-locality'] || businessInfo.business?.address?.addressLocality || '',
-        "addressRegion": attributes['business-address-region'] || businessInfo.business?.address?.addressRegion || '',
-        "postalCode": attributes['business-address-postal'] || businessInfo.business?.address?.postalCode || '',
-        "addressCountry": attributes['business-address-country'] || businessInfo.business?.address?.addressCountry || ''
-      } : undefined,
-      "openingHours": attributes['business-opening-hours'] || businessInfo.business?.openingHours || ''
-    }
-  ];
+  const schemas = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": (attributes['schema-site-url'] || 'https://behive.co') + "#website",
+        "name": attributes['schema-site-name'] || attributes.title || 'Behive Media',
+        "url": attributes['schema-site-url'] || 'https://behive.co',
+        "description": attributes.description || 'Behive Media offers professional photography, videography, and website services in Australia.',
+        "inLanguage": attributes['og-locale'] || 'en-AU',
+        "publisher": { "@id": (attributes['business-url'] || 'https://behive.co') + "#business" },
+        "potentialAction": [
+          {
+            "@type": "SearchAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": (attributes['schema-site-url'] || 'https://behive.co') + "?s={search_term_string}"
+            },
+            "query-input": {
+              "@type": "PropertyValueSpecification",
+              "valueRequired": true,
+              "valueName": "search_term_string"
+            }
+          }
+        ]
+      },
+      {
+        "@type": "LocalBusiness",
+        "@id": (attributes['business-url'] || 'https://behive.co') + "#business",
+        "name": attributes['business-name'] || businessInfo.business?.name || 'Behive Media',
+        "url": attributes['business-url'] || businessInfo.business?.url || 'https://behive.co',
+        "telephone": attributes['business-telephone'] || businessInfo.business?.telephone || '+61-3-9876-5432',
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": attributes['business-address-street'] || businessInfo.business?.address?.streetAddress || '456 Creative Lane',
+          "addressLocality": attributes['business-address-locality'] || businessInfo.business?.address?.addressLocality || 'Melbourne',
+          "addressRegion": attributes['business-address-region'] || businessInfo.business?.address?.addressRegion || 'VIC',
+          "postalCode": attributes['business-address-postal'] || businessInfo.business?.address?.postalCode || '3000',
+          "addressCountry": attributes['business-address-country'] || businessInfo.business?.address?.addressCountry || 'AU'
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": attributes['business-geo-latitude'] || businessInfo.business?.geo?.latitude || -37.8136,
+          "longitude": attributes['business-geo-longitude'] || businessInfo.business?.geo?.longitude || 144.9631
+        },
+        "openingHours": attributes['business-opening-hours'] || businessInfo.business?.openingHours || 'Mo-Fr 09:00-18:00',
+        "image": attributes['business-image'] || businessInfo.business?.image || 'https://behive.co/images/logo.jpg',
+        "logo": attributes['business-logo'] || businessInfo.business?.logo || 'https://behive.co/images/logo.jpg',
+        "sameAs": attributes['business-same-as']?.split(',') || businessInfo.business?.sameAs || [
+          'https://www.facebook.com/behivemedia',
+          'https://www.instagram.com/behivemedia'
+        ]
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": attributes['schema-site-url'] || 'https://behive.co'
+          }
+        ]
+      }
+    ]
+  };
 
   // Include Product schema only if e-commerce is enabled and product name is provided
   if (attributes['include-e-commerce'] && attributes['product-name']) {
     console.log('Adding Product schema');
-    schemas.push({
-      "@context": "https://schema.org",
+    schemas["@graph"].push({
       "@type": "Product",
-      "name": attributes['product-name'],
-      "description": attributes['product-description'] || attributes.description || 'High-quality product.',
-      "image": attributes['product-image'] || attributes['og-image'] || 'https://behive.co/images/product.jpg',
+      "name": attributes['product-name'] || 'Behive Premium Video Production Package',
+      "url": attributes['product-url'] || 'https://behive.co/products/video-package',
+      "description": attributes['product-description'] || attributes.description || 'Professional video production services for events and marketing.',
+      "image": attributes['product-image'] || attributes['og-image'] || 'https://behive.co/images/video-package.jpg',
+      "sku": attributes['product-sku'] || 'BH-VIDEO-002',
+      "brand": {
+        "@type": "Brand",
+        "name": attributes['product-brand'] || 'Behive'
+      },
       "offers": {
         "@type": "Offer",
-        "priceCurrency": attributes['product-price-currency'] || 'USD',
-        "price": attributes['product-price'] || '10.00',
-        "availability": attributes['product-availability'] || 'https://schema.org/InStock'
+        "priceCurrency": attributes['product-price-currency'] || 'AUD',
+        "price": attributes['product-price'] || '1500.00',
+        "availability": attributes['product-availability'] || 'https://schema.org/InStock',
+        "url": attributes['product-url'] || 'https://behive.co/products/video-package'
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": attributes['product-rating-value'] || '4.9',
+        "reviewCount": attributes['product-review-count'] || '30'
       }
     });
   }
 
-  // Filter schemas to exclude those with undefined address properties
-  schemaScript.textContent = JSON.stringify(schemas.filter(schema => schema.address ? schema.address.streetAddress : true));
+  // Set schema content, filtering out undefined properties
+  schemaScript.textContent = JSON.stringify(schemas, (key, value) => value === undefined ? null : value);
   head.appendChild(schemaScript);
 
   // Load Font Awesome stylesheets
@@ -319,57 +372,6 @@ function manageHead(attributes = {}, businessInfo = {}) {
           version: '3.7.3',
           templatesUrl: '/Sandbox//plugins/snipcart.html',
           modalStyle: 'side',
-          currencies: { AUD: { symbol: '$', minimumFractionDigits: 2, decimalDigits: 2 } },
-          language: 'en',
-          showContinueShopping: true,
-          billingAddress: false,
-          shippingAddress: false,
-          tax: { display: false },
-          shipping: { display: false },
-          paymentMethods: {
-            'card': { display: false },
-            'paypal': { display: false },
-            'stripe': { display: false },
-            'google-pay': { display: false },
-            'apple-pay': { display: false },
-            'klarna': { display: false },
-            'paypal': { display: false },
-            'paynow': { display: false },
-            'alipay': { display: false },
-            'amazon-pay': { display: false },
-            'bitcoin': { display: false },
-            'blik': { display: false },
-            'boletobancario': { display: false },
-            'cashapp': { display: false },
-            'diners': { display: false },
-            'directdebit': { display: false },
-            'discovery': { display: false },
-            'ebay': { display: false },
-            'eps': { display: false },
-            'giropay': { display: false },
-            'ideal': { display: false },
-            'instore': { display: false },
-            'installments': { display: false },
-            'mercadopago': { display: false },
-            'multibanco': { display: false },
-            'oxxo': { display: false },
-            'p24': { display: false },
-            'payex': { display: false },
-            'payfast': { display: false },
-            'paylater': { display: false },
-            'paypal': { display: false },
-            'payshop': { display: false },
-            'pix': { display: false },
-            'przelewy24': { display: false },
-            'sepa': { display: false },
-            'sofort': { display: false },
-            'swish': { display: false },
-            'trustly': { display: false },
-            'venmo': { display: false },
-            'vipay': { display: false },
-            'wechat': { display: false },
-            'zip': { display: false }
-          }
         };
       `;
         document.body.appendChild(snipcartSettings);
