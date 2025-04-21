@@ -1545,25 +1545,43 @@ body {
 
 
 // Too convert into the .card Web Component
-#products {
+/* :root {
+    --color-accent-dark-primary: #333;
+    --color-accent-light-primary: #ddd;
+    --color-static-light-4: rgba(255, 255, 255, 0.8);
+    --color-static-dark-2: rgba(0, 0, 0, 0.6);
+    --border-size-small: 1px;
+    --space-tiny: 4px;
+    --space-small: 8px;
+  } */
+  
+  #products {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 20px;
-    padding: 20px;
+    gap: 24px;
+    padding: 24px;
+    justify-content: center; /* Center grid items horizontally */
+    max-width: 1200px; /* Constrain grid width for larger screens */
+    margin: 0 auto; /* Center the grid container */
   }
   
   .product-card {
     display: grid;
-    grid-template-rows: auto auto 1fr auto;
-    padding: 15px;
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
+    grid-template-rows: auto auto 1fr auto; /* Matches .card grid-auto-rows: min-content */
+    padding: 16px;
+    background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
+    border: var(--border-size-small) solid light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
     border-radius: 8px;
     text-align: center;
+    transition: transform 0.2s; /* Smooth hover effect */
+  }
+  
+  .product-card:hover {
+    transform: translateY(-4px); /* Subtle lift on hover */
   }
   
   .product-card h3 {
-    margin: 0 0 10px;
+    margin: 0 0 var(--space-small);
     font-size: 1.5em;
   }
   
@@ -1571,13 +1589,13 @@ body {
     max-width: 100%;
     height: auto;
     border-radius: 4px;
-    margin-bottom: 10px;
+    margin-bottom: var(--space-small);
   }
   
   .product-card p {
-    margin: 0 0 10px;
+    margin: 0 0 var(--space-small);
     font-size: 1em;
-    color: #555;
+    color: light-dark(#555, #aaa);
   }
   
   .product-card .snipcart-add-item {
@@ -1588,6 +1606,7 @@ body {
     border-radius: 4px;
     cursor: pointer;
     font-size: 1em;
+    margin-top: var(--space-tiny);
   }
   
   .product-card .snipcart-add-item:hover {
