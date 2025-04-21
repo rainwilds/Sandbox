@@ -309,14 +309,14 @@ function manageHead(attributes = {}, businessInfo = {}) {
           setTimeout(addSnipcartScripts, 100);
           return;
         }
-
+  
         const snipcartSettings = document.createElement('script');
         snipcartSettings.type = 'text/javascript';
         snipcartSettings.textContent = `
           window.SnipcartSettings = {
             publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
             loadStrategy: 'on-user-interaction',
-            version: '3.0',
+            version: '3.4',
             currency: 'aud',
             timeoutDuration: 5000,
             modalStyle: 'sidebar',
@@ -327,7 +327,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
           };
         `;
         document.body.appendChild(snipcartSettings);
-
+  
         const snipcartScript = document.createElement('script');
         snipcartScript.dataset.snipcart = 'true';
         snipcartScript.type = 'text/javascript';
@@ -335,14 +335,14 @@ function manageHead(attributes = {}, businessInfo = {}) {
           try {
             (() => {
               var c, d;
-              (d = (c = window.SnipcartSettings).version) != null || (c.version = "3.0");
+              (d = (c = window.SnipcartSettings).version) != null || (c.version = "3.4");
               var s, S;
               (S = (s = window.SnipcartSettings).timeoutDuration) != null || (s.timeoutDuration = 2750);
               var l, p;
               (p = (l = window.SnipcartSettings).domain) != null || (l.domain = "cdn.snipcart.com");
               var w, u;
               (u = (w = window.SnipcartSettings).protocol) != null || (w.protocol = "https");
-              var f = window.SnipcartSettings.version.includes("v3.0.0-ci") || window.SnipcartSettings.version != "3.0" && window.SnipcartSettings.version.localeCompare("3.4.0", void 0, { numeric: true, sensitivity: "base" }) === -1,
+              var f = window.SnipcartSettings.version.includes("v3.0.0-ci") || window.SnipcartSettings.version != "3.4" && window.SnipcartSettings.version.localeCompare("3.4.0", void 0, { numeric: true, sensitivity: "base" }) === -1,
                 m = ["focus", "mouseover", "touchmove", "scroll", "keydown"];
               window.LoadSnipcart = o;
               document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r) : r();
@@ -357,7 +357,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
                   e = document.querySelector("#snipcart"),
                   i = document.querySelector(\`src[src^="\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}"][src$="snipcart.js"]\`),
                   n = document.querySelector(\`link[href^="\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}"][href$="snipcart.css"]\`);
-                e || (e = document.createElement("div"), e.id = "snipcart", e.setAttribute("hidden", "true"), document.body.appendChild(e));
+                e || (e = document.createElement("div"), e.id = "snipcart", e.setAttribute("hidden", "true"), e.setAttribute("data-snipcart-debug", "true"), document.body.appendChild(e));
                 v(e);
                 i || (i = document.createElement("script"), i.src = \`\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}/themes/v\${window.SnipcartSettings.version}/default/snipcart.js\`, i.async = true, t.appendChild(i));
                 n || (n = document.createElement("link"), n.rel = "stylesheet", n.type = "text/css", n.href = \`\${window.SnipcartSettings.protocol}://\${window.SnipcartSettings.domain}/themes/v\${window.SnipcartSettings.version}/default/snipcart.css\`, t.appendChild(n));
@@ -376,9 +376,15 @@ function manageHead(attributes = {}, businessInfo = {}) {
             console.error('Snipcart initialization error:', error);
           }
         `;
+        snipcartScript.onload = () => {
+          console.log('Snipcart script loaded successfully');
+        };
+        snipcartScript.onerror = () => {
+          console.error('Failed to load Snipcart script');
+        };
         document.body.appendChild(snipcartScript);
       };
-
+  
       // Add preconnect for Snipcart CDN to improve loading performance
       if (!document.querySelector('link[href="https://cdn.snipcart.com"]')) {
         const preconnect = document.createElement('link');
@@ -386,7 +392,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
         preconnect.href = 'https://cdn.snipcart.com';
         head.appendChild(preconnect);
       }
-
+  
       // Initialize Snipcart scripts
       addSnipcartScripts();
     }
