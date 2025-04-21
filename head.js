@@ -316,14 +316,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
           window.SnipcartSettings = {
             publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
             loadStrategy: 'on-user-interaction',
-            version: '3.4',
-            currency: 'aud',
-            timeoutDuration: 5000,
-            modalStyle: 'sidebar',
-            addProductBehavior: 'none',
-            allowedCountries: ['AU'],
-            defaultCountry: 'AU',
-            language: 'en'
+            version: '3.0'
           };
         `;
         document.body.appendChild(snipcartSettings);
