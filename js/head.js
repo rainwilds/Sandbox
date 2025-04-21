@@ -352,7 +352,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
   });
 
   // Load additional scripts (components.js, scripts.js)
-  const scripts = ['./components.js', './scripts.js'];
+  const scripts = ['./js/components.js', './js/scripts.js'];
   scripts.forEach(src => {
     if (!document.querySelector(`script[src="${src}"]`)) {
       const script = document.createElement('script');
