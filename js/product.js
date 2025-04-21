@@ -25,6 +25,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     productsToDisplay.forEach(product => {
+      const card = document.createElement('div');
+      card.className = 'product-card';
+      card.innerHTML = `
+        <h3>${product.name || 'Unnamed Product'}</h3>
+        <img src="${product.image || 'https://placehold.co/600x400'}" alt="${product.name || 'Product Image'}" style="max-width: 100%;">
+        <p>${product.description || 'No description available.'}</p>
+      `;
       const button = document.createElement('button');
       button.className = 'snipcart-add-item';
       button.setAttribute('data-item-id', product.id || product.sku);
@@ -32,7 +39,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       button.setAttribute('data-item-price', product.price || '0.00');
       button.setAttribute('data-item-url', product.url || '');
       button.textContent = 'Buy';
-      productContainer.appendChild(button);
+      card.appendChild(button);
+      productContainer.appendChild(card);
     });
   } catch (error) {
     console.error('Failed to load products.json for buttons:', error);
