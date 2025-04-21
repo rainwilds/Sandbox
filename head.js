@@ -99,22 +99,16 @@ function manageHead(attributes = {}, businessInfo = {}) {
       metaThemeColor.name = 'theme-color';
       head.appendChild(metaThemeColor);
     }
-    // Check data-theme attribute on <html> or <body>
     const theme = document.documentElement.dataset.theme || document.body.dataset.theme;
-    // Fallback to prefers-color-scheme if no data-theme
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const isDark = theme ? theme === 'dark' : prefersDark;
-    // Get CSS variable values from :root
     const rootStyle = getComputedStyle(document.documentElement);
     const lightColor = attributes['theme-color-light'] || rootStyle.getPropertyValue('--color-background-light').trim();
     const darkColor = attributes['theme-color-dark'] || rootStyle.getPropertyValue('--color-background-dark').trim();
     metaThemeColor.content = isDark ? darkColor : lightColor;
   };
 
-  // Initial theme color update
   updateThemeColor();
-
-  // Observe changes to data-theme or system preference
   const htmlObserver = new MutationObserver(updateThemeColor);
   htmlObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   const bodyObserver = new MutationObserver(updateThemeColor);
@@ -131,7 +125,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
   if (!document.querySelector('meta[property="og:url"]')) {
     const ogUrl = document.createElement('meta');
     ogUrl.setAttribute('property', 'og:url');
-    ogUrl.setAttribute('content', attributes['og-url'] || 'https://behive.co');
+    ogUrl.setAttribute('content', attributes['og-url'] || 'https://rainwilds.github.io/Sandbox/');
     head.appendChild(ogUrl);
   }
   if (!document.querySelector('meta[property="og:type"]')) {
@@ -155,7 +149,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
   if (!document.querySelector('meta[property="og:image"]')) {
     const ogImage = document.createElement('meta');
     ogImage.setAttribute('property', 'og:image');
-    ogImage.setAttribute('content', attributes['og-image'] || 'https://behive.co/images/preview.jpg');
+    ogImage.setAttribute('content', attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg');
     head.appendChild(ogImage);
   }
   if (!document.querySelector('meta[property="og:site_name"]')) {
@@ -175,13 +169,13 @@ function manageHead(attributes = {}, businessInfo = {}) {
   if (!document.querySelector('meta[property="twitter:domain"]')) {
     const twitterDomain = document.createElement('meta');
     twitterDomain.setAttribute('property', 'twitter:domain');
-    twitterDomain.setAttribute('content', attributes['twitter-domain'] || 'behive.co');
+    twitterDomain.setAttribute('content', attributes['twitter-domain'] || 'rainwilds.github.io');
     head.appendChild(twitterDomain);
   }
   if (!document.querySelector('meta[property="twitter:url"]')) {
     const twitterUrl = document.createElement('meta');
     twitterUrl.setAttribute('property', 'twitter:url');
-    twitterUrl.setAttribute('content', attributes['twitter-url'] || 'https://behive.co');
+    twitterUrl.setAttribute('content', attributes['twitter-url'] || 'https://rainwilds.github.io/Sandbox/');
     head.appendChild(twitterUrl);
   }
   if (!document.querySelector('meta[name="twitter:title"]')) {
@@ -199,11 +193,11 @@ function manageHead(attributes = {}, businessInfo = {}) {
   if (!document.querySelector('meta[name="twitter:image"]')) {
     const twitterImage = document.createElement('meta');
     twitterImage.setAttribute('name', 'twitter:image');
-    twitterImage.setAttribute('content', attributes['twitter-image'] || attributes['og-image'] || 'https://behive.co/images/preview.jpg');
+    twitterImage.setAttribute('content', attributes['twitter-image'] || attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg');
     head.appendChild(twitterImage);
   }
 
-  // Add JSON-LD schema markup for SEO (WebSite, LocalBusiness, BreadcrumbList, optional Product)
+  // Add JSON-LD schema markup for SEO (WebSite, LocalBusiness, BreadcrumbList, Product/CollectionPage)
   const schemaScript = document.createElement('script');
   schemaScript.type = 'application/ld+json';
   const schemas = {
@@ -211,18 +205,18 @@ function manageHead(attributes = {}, businessInfo = {}) {
     "@graph": [
       {
         "@type": "WebSite",
-        "@id": (attributes['schema-site-url'] || 'https://behive.co') + "#website",
+        "@id": (attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/') + "#website",
         "name": attributes['schema-site-name'] || attributes.title || 'Behive Media',
-        "url": attributes['schema-site-url'] || 'https://behive.co',
+        "url": attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/',
         "description": attributes.description || 'Behive Media offers professional photography, videography, and website services in Australia.',
         "inLanguage": attributes['og-locale'] || 'en-AU',
-        "publisher": { "@id": (attributes['business-url'] || businessInfo.business?.url || 'https://behive.co') + "#business" },
+        "publisher": { "@id": (attributes['business-url'] || businessInfo.business?.url || 'https://rainwilds.github.io/Sandbox/') + "#business" },
         "potentialAction": [
           {
             "@type": "SearchAction",
             "target": {
               "@type": "EntryPoint",
-              "urlTemplate": (attributes['schema-site-url'] || 'https://behive.co') + "?s={search_term_string}"
+              "urlTemplate": (attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/') + "?s={search_term_string}"
             },
             "query-input": {
               "@type": "PropertyValueSpecification",
@@ -234,9 +228,9 @@ function manageHead(attributes = {}, businessInfo = {}) {
       },
       {
         "@type": "LocalBusiness",
-        "@id": (attributes['business-url'] || businessInfo.business?.url || 'https://behive.co') + "#business",
+        "@id": (attributes['business-url'] || businessInfo.business?.url || 'https://rainwilds.github.io/Sandbox/') + "#business",
         "name": attributes['business-name'] || businessInfo.business?.name || 'Behive Media',
-        "url": attributes['business-url'] || businessInfo.business?.url || 'https://behive.co',
+        "url": attributes['business-url'] || businessInfo.business?.url || 'https://rainwilds.github.io/Sandbox/',
         "telephone": attributes['business-telephone'] || businessInfo.business?.telephone || '+61-3-9876-5432',
         "address": {
           "@type": "PostalAddress",
@@ -252,8 +246,8 @@ function manageHead(attributes = {}, businessInfo = {}) {
           "longitude": attributes['business-geo-longitude'] || businessInfo.business?.geo?.longitude || 144.9631
         },
         "openingHours": attributes['business-opening-hours'] || businessInfo.business?.openingHours || 'Mo-Fr 09:00-18:00',
-        "image": attributes['business-image'] || businessInfo.business?.image || 'https://behive.co/images/logo.jpg',
-        "logo": attributes['business-logo'] || businessInfo.business?.logo || 'https://behive.co/images/logo.jpg',
+        "image": attributes['business-image'] || businessInfo.business?.image || 'https://rainwilds.github.io/Sandbox/img/logo.jpg',
+        "logo": attributes['business-logo'] || businessInfo.business?.logo || 'https://rainwilds.github.io/Sandbox/img/logo.jpg',
         "sameAs": attributes['business-same-as']?.split(',') || businessInfo.business?.sameAs || [
           'https://www.facebook.com/behivemedia',
           'https://www.instagram.com/behivemedia'
@@ -266,40 +260,81 @@ function manageHead(attributes = {}, businessInfo = {}) {
             "@type": "ListItem",
             "position": 1,
             "name": "Home",
-            "item": attributes['schema-site-url'] || 'https://behive.co'
+            "item": attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/'
           }
         ]
       }
     ]
   };
 
-  // Include Product schema only if e-commerce is enabled and product name is provided
-  if (attributes['include-e-commerce'] && attributes['product-name']) {
-    console.log('Adding Product schema');
-    schemas["@graph"].push({
-      "@type": "Product",
-      "name": attributes['product-name'] || 'Behive Premium Video Production Package',
-      "url": attributes['product-url'] || 'https://behive.co/products/video-package',
-      "description": attributes['product-description'] || attributes.description || 'Professional video production services for events and marketing.',
-      "image": attributes['product-image'] || attributes['og-image'] || 'https://behive.co/images/video-package.jpg',
-      "sku": attributes['product-sku'] || 'BH-VIDEO-002',
-      "brand": {
-        "@type": "Brand",
-        "name": attributes['product-brand'] || 'Behive'
-      },
-      "offers": {
-        "@type": "Offer",
-        "priceCurrency": attributes['product-price-currency'] || 'AUD',
-        "price": attributes['product-price'] || '1500.00',
-        "availability": attributes['product-availability'] || 'https://schema.org/InStock',
-        "url": attributes['product-url'] || 'https://behive.co/products/video-package'
-      },
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": attributes['product-rating-value'] || '4.9',
-        "reviewCount": attributes['product-review-count'] || '30'
+  // Handle Product or CollectionPage schema based on attributes
+  if (attributes['include-e-commerce']) {
+    if (attributes['products']) {
+      // Multi-product page: CollectionPage with ItemList
+      console.log('Adding CollectionPage schema');
+      let products;
+      try {
+        products = JSON.parse(attributes['products']);
+      } catch (error) {
+        console.error('Failed to parse data-products:', error);
+        products = [];
       }
-    });
+      const collectionSchema = {
+        "@type": "CollectionPage",
+        "@id": (attributes['canonical'] || attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/') + "#collectionpage",
+        "url": attributes['canonical'] || attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/',
+        "name": attributes['collection-name'] || attributes.title || 'Behive Shop',
+        "description": attributes['collection-description'] || attributes.description || 'Browse our curated selection of products.',
+        "isPartOf": { "@id": (attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/') + "#website" },
+        "inLanguage": attributes['og-locale'] || 'en-AU',
+        "mainEntity": {
+          "@type": "ItemList",
+          "itemListElement": products.map(product => ({
+            "@type": "Product",
+            "name": product.name || 'Unnamed Product',
+            "url": product.url || '',
+            "image": product.image || attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/product.jpg',
+            "description": product.description || attributes.description || '',
+            "sku": product.sku || '',
+            "brand": {
+              "@type": "Brand",
+              "name": product.brand || 'Behive'
+            },
+            "offers": {
+              "@type": "Offer",
+              "priceCurrency": product.priceCurrency || 'AUD',
+              "price": product.price || '0.00',
+              "availability": product.availability || 'https://schema.org/InStock',
+              "url": product.url || ''
+            }
+          }))
+        }
+      };
+      schemas["@graph"].push(collectionSchema);
+    } else if (attributes['product-name']) {
+      // Single-product page: Product schema
+      console.log('Adding Product schema');
+      const productSchema = {
+        "@type": "Product",
+        "name": attributes['product-name'] || 'Behive Premium Video Production Package',
+        "url": attributes['product-url'] || 'https://rainwilds.github.io/Sandbox/products/video-package',
+        "description": attributes['product-description'] || attributes.description || 'Professional video production services for events and marketing.',
+        "image": attributes['product-image'] || attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/video-package.jpg',
+        "sku": attributes['product-sku'] || 'BH-VIDEO-002',
+        "brand": {
+          "@type": "Brand",
+          "name": attributes['product-brand'] || 'Behive'
+        },
+        "offers": {
+          "@type": "Offer",
+          "priceCurrency": attributes['product-price-currency'] || 'AUD',
+          "price": attributes['product-price'] || '1500.00',
+          "availability": attributes['product-availability'] || 'https://schema.org/InStock',
+          "url": attributes['product-url'] || 'https://rainwilds.github.io/Sandbox/products/video-package'
+        }
+      };
+      schemas["@graph"].push(productSchema);
+    }
   }
 
   // Set schema content, filtering out undefined properties
@@ -370,7 +405,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
           publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
           loadStrategy: 'on-user-interaction',
           version: '3.7.3',
-          templatesUrl: '/Sandbox/plugins/snipcart.html',
+          templatesUrl: '/Sandbox//plugins/snipcart.html',
           modalStyle: 'side',
         };
       `;
@@ -433,7 +468,6 @@ function manageHead(attributes = {}, businessInfo = {}) {
         document.body.appendChild(snipcartScript);
       };
 
-      // Add preconnect for Snipcart CDN to improve loading performance
       if (!document.querySelector('link[href="https://cdn.snipcart.com"]')) {
         const preconnect = document.createElement('link');
         preconnect.rel = 'preconnect';
@@ -441,7 +475,6 @@ function manageHead(attributes = {}, businessInfo = {}) {
         head.appendChild(preconnect);
       }
 
-      // Initialize Snipcart scripts
       addSnipcartScripts();
     }
   }
@@ -536,8 +569,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       'product-availability': dataHead.dataset.productAvailability || null,
       'product-sku': dataHead.dataset.productSku || null,
       'product-brand': dataHead.dataset.productBrand || null,
-      'product-rating-value': dataHead.dataset.productRatingValue || null,
-      'product-review-count': dataHead.dataset.productReviewCount || null,
+      'collection-name': dataHead.dataset.collectionName || null,
+      'collection-description': dataHead.dataset.collectionDescription || null,
+      products: dataHead.dataset.products || null,
       'theme-color-light': dataHead.dataset.themeColorLight,
       'theme-color-dark': dataHead.dataset.themeColorDark,
       'include-e-commerce': dataHead.hasAttribute('data-include-e-commerce') || attributes['include-e-commerce'],
