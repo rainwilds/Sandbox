@@ -6,7 +6,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
 
   // Preload fonts to improve performance
   const fonts = [
-    { href: './fonts/AdobeAldine-Regular.woff2', type: 'font/woff2' } n
+    { href: './fonts/AdobeAldine-Regular.woff2', type: 'font/woff2' }
   ];
   fonts.forEach(font => {
     if (!document.querySelector(`link[href="${font.href}"]`)) {
