@@ -1,16 +1,16 @@
 class Img extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
   }
 
   connectedCallback() {
     const src = this.getAttribute('src') || '';
     const alt = this.getAttribute('alt') || '';
     const aspectRatio = this.getAttribute('aspect-ratio') || '';
-    // Extract filename without extension and append -3840 for primary image
+    // Extract base filename without extension
     const baseFilename = src.split('/').pop().split('.')[0];
-    const filename = `${baseFilename}-3840`;
+    // Append -3840 only for primary image
+    const primaryFilename = `${baseFilename}-3840`;
 
     const widths = [768, 980, 1366, 1920, 2560, 3840];
     const formats = ['avif', 'webp', 'jpg'];
@@ -38,7 +38,7 @@ class Img extends HTMLElement {
     });
 
     const img = document.createElement('img');
-    img.src = `img/primary/${filename}.jpg`; // Primary image with -3840
+    img.src = `img/primary/${primaryFilename}.jpg`; // Primary image with -3840
     img.alt = alt;
     img.loading = 'lazy';
     if (aspectRatio) {
@@ -46,7 +46,7 @@ class Img extends HTMLElement {
     }
 
     picture.appendChild(img);
-    this.shadowRoot.appendChild(picture);
+    this.appendChild(picture);
   }
 }
 
@@ -66,7 +66,7 @@ class Footer extends HTMLElement {
     }
   }
   customElements.define('bh-footer', Footer);
-  
+
 
   class Nav extends HTMLElement {
     connectedCallback() {
