@@ -1,3 +1,58 @@
+class Img extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+  }
+
+  connectedCallback() {
+    const src = this.getAttribute('src') || '';
+    const alt = this.getAttribute('alt') || '';
+    const aspectRatio = this.getAttribute('aspect-ratio') || '';
+    // Extract filename without extension and append -3840 for primary image
+    const baseFilename = src.split('/').pop().split('.')[0];
+    const filename = `${baseFilename}-3840`;
+
+    const widths = [768, 980, 1366, 1920, 2560, 3840];
+    const formats = ['avif', 'webp', 'jpg'];
+
+    const generateSrcset = (format) => 
+      widths.map(w => `img/responsive/${baseFilename}-${w}.${format} ${w}w`).join(',\n');
+
+    const sizes = `(max-width: 768px) calc(100vw * 1.5),
+                   (max-width: 980px) calc(60vw * 1.5),
+                   (max-width: 1366px) calc(75vw * 1.5),
+                   (max-width: 1920px) calc(75vw * 1.5),
+                   (max-width: 2560px) calc(75vw * 1.5),
+                   (max-width: 3840px) calc(75vw * 1.5),
+                   2880px`;
+
+    const picture = document.createElement('picture');
+    picture.className = 'animate animate-fade-in';
+
+    formats.forEach(format => {
+      const source = document.createElement('source');
+      source.srcset = generateSrcset(format);
+      source.sizes = sizes;
+      source.type = `image/${format}`;
+      picture.appendChild(source);
+    });
+
+    const img = document.createElement('img');
+    img.src = `img/primary/${filename}.jpg`; // Primary image with -3840
+    img.alt = alt;
+    img.loading = 'lazy';
+    if (aspectRatio) {
+      img.style.aspectRatio = aspectRatio;
+    }
+
+    picture.appendChild(img);
+    this.shadowRoot.appendChild(picture);
+  }
+}
+
+customElements.define('bh-img', Img);
+
+
 class Footer extends HTMLElement {
     connectedCallback() {
       this.innerHTML = `
@@ -11,6 +66,7 @@ class Footer extends HTMLElement {
     }
   }
   customElements.define('bh-footer', Footer);
+  
 
   class Nav extends HTMLElement {
     connectedCallback() {
