@@ -15,7 +15,7 @@ class Img extends HTMLElement {
     const primaryImagePath = `img/primary/${baseFilename}-3840.jpg`;
 
     const widths = [768, 980, 1366, 1920, 2560, 3840];
-    const formats = ['avif', 'webp', 'jpg'];
+    const formats = ['avif', 'webp', 'jpeg'];
 
     const generateSrcset = (format) => 
       widths.map(w => `img/responsive/${baseFilename}-${w}.${format} ${w}w`).join(',\n');
@@ -44,7 +44,9 @@ class Img extends HTMLElement {
     img.alt = alt;
     img.loading = 'lazy';
     if (aspectRatio) {
-      img.style.aspectRatio = aspectRatio;
+      // Convert the aspect-ratio value (e.g., "16/9") to a class name (e.g., "aspect-ratio-16-9")
+      const aspectRatioClass = `aspect-ratio-${aspectRatio.replace('/', '-')}`;
+      img.className = aspectRatioClass;
     }
 
     picture.appendChild(img);
