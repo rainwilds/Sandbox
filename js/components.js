@@ -7,8 +7,10 @@ class Img extends HTMLElement {
     const src = this.getAttribute('src') || '';
     const alt = this.getAttribute('alt') || '';
     const aspectRatio = this.getAttribute('aspect-ratio') || '';
-    // Extract base filename without extension
-    const baseFilename = src.split('/').pop().split('.')[0];
+
+    // Normalize src to extract base filename (remove path, extension, and -3840)
+    let baseFilename = src.split('/').pop().split('.')[0]; // Get filename without path or extension
+    baseFilename = baseFilename.replace(/-3840$/, ''); // Remove -3840 if present
     // Append -3840 only for primary image
     const primaryFilename = `${baseFilename}-3840`;
 
