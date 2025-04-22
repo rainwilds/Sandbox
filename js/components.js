@@ -46,6 +46,11 @@ class Img extends HTMLElement {
     if (aspectRatio) {
       img.style.aspectRatio = aspectRatio;
     }
+    // Add onerror handler to handle primary image failure
+    img.onerror = () => {
+      img.src = 'img/fallback-placeholder.jpg'; // Fallback to a placeholder if primary image fails
+      img.onerror = null; // Prevent infinite loop if placeholder also fails
+    };
 
     picture.appendChild(img);
     this.appendChild(picture);
