@@ -11,7 +11,7 @@ class Img extends HTMLElement {
     // Normalize src to extract base filename (remove path, extension, and -3840)
     let baseFilename = src.split('/').pop().split('.')[0]; // Get filename without path or extension
     baseFilename = baseFilename.replace(/-3840$/, ''); // Remove -3840 if present
-    // Construct primary image path with -3840
+    // Construct primary image path with -3840 in img/primary/
     const primaryImagePath = `img/primary/${baseFilename}-3840.jpg`;
 
     const widths = [768, 980, 1366, 1920, 2560, 3840];
@@ -40,7 +40,7 @@ class Img extends HTMLElement {
     });
 
     const img = document.createElement('img');
-    img.src = primaryImagePath; // Use the constructed primary image path as fallback
+    img.src = primaryImagePath; // Use the constructed primary image path in img/primary/
     img.alt = alt;
     img.loading = 'lazy';
     if (aspectRatio) {
@@ -48,7 +48,7 @@ class Img extends HTMLElement {
     }
     // Add onerror handler to handle primary image failure
     img.onerror = () => {
-      img.src = 'https://placehold.co/1440x780'; // Fallback to a placeholder if primary image fails
+      img.src = 'https://placehold.co/1440x780'; // Fallback to the placeholder
       img.onerror = null; // Prevent infinite loop if placeholder also fails
     };
 
