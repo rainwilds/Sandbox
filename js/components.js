@@ -4,24 +4,22 @@ class Img extends HTMLElement {
   static FORMATS = ['avif', 'webp', 'jpeg'];
   static VALID_ASPECT_RATIOS = ['16/9', '9/16', '3/2', '2/3', '1/1'];
   static SIZES_BREAKPOINTS = [
-    { maxWidth: 768, value: 'calc(100vw * 1.5)' }, // At 768px, this evaluates to 1152px (100vw * 1.5 = 1.0 * 768 * 1.5)
-    { maxWidth: 980, value: 'calc(60vw * 1.5)' }, // At 980px, this evaluates to 882px (60vw * 1.5 = 0.6 * 980 * 1.5)
-    { maxWidth: 1366, value: 'calc(75vw * 1.5)' }, // At 1366px, this evaluates to 1537px (75vw * 1.5 = 0.75 * 1366 * 1.5)
-    { maxWidth: 1920, value: 'calc(75vw * 1.5)' }, // At 1920px, this evaluates to 2160px (75vw * 1.5 = 0.75 * 1920 * 1.5)
-    { maxWidth: 2560, value: 'calc(75vw * 1.5)' }, // At 2560px, this evaluates to 2880px (75vw * 1.5 = 0.75 * 2560 * 1.5)
-    { maxWidth: 3840, value: 'calc(75vw * 1.5)' }, // At 3840px, this evaluates to 4320px (75vw * 1.5 = 0.75 * 3840 * 1.5)
+    { maxWidth: 768, baseValue: '100vw' }, // At 768px, this evaluates to 768px (100vw = 768)
+    { maxWidth: 980, baseValue: '100vw' }, // At 980px, this evaluates to 980px (100vw = 980)
+    { maxWidth: 1366, baseValue: '100vw' }, // At 1366px, this evaluates to 1366px (100vw = 1366)
+    { maxWidth: 1920, baseValue: '100vw' }, // At 1920px, this evaluates to 1920px (100vw = 1920)
+    { maxWidth: 2560, baseValue: '100vw' }, // At 2560px, this evaluates to 2560px (100vw = 2560)
+    { maxWidth: 3840, baseValue: '100vw' }, // At 3840px, this evaluates to 3840px (100vw = 3840)
   ];
 
-  // Calculate DEFAULT_SIZE based on the last breakpoint
+  // Calculate DEFAULT_SIZE based on the last breakpoint (actual layout size, no multiplier)
   static DEFAULT_SIZE = (() => {
     const lastBreakpoint = Img.SIZES_BREAKPOINTS[Img.SIZES_BREAKPOINTS.length - 1];
     const viewportWidth = lastBreakpoint.maxWidth;
-    const value = lastBreakpoint.value; // 'calc(75vw * 1.5)'
-    // Extract the percentage (75vw) and multiplier (1.5) from the calc expression
-    const percentage = 0.75; // 75vw
-    const multiplier = 1.5; // * 1.5
-    const defaultSize = viewportWidth * percentage * multiplier; // 3840 * 0.75 * 1.5 = 4320
-    return `${defaultSize}px`; // '4320px'
+    const percentageMatch = lastBreakpoint.baseValue.match(/(\d+)vw/);
+    const percentage = percentageMatch ? parseInt(percentageMatch[1]) / 100 : 1;
+    const defaultSize = viewportWidth * percentage; // 3840 * 1.0 = 3840
+    return `${defaultSize}px`; // '3840px'
   })();
 
   constructor() {
@@ -32,6 +30,7 @@ class Img extends HTMLElement {
     const src = this.getAttribute('src');
     const alt = this.getAttribute('alt') || '';
     const aspectRatio = this.getAttribute('aspect-ratio') || '';
+    const imageWidth = this.getAttribute('image-width') || '100vw'; // Default to 100vw for hero image assumption
 
     // Validate src
     if (!src) {
@@ -50,10 +49,22 @@ class Img extends HTMLElement {
     // Construct primary image path
     const primaryImagePath = `img/primary/${baseFilename}-3840.jpg`;
 
-    // Generate sizes attribute dynamically
+    // Parse image-width (e.g., "100vw" or "40vw")
+    const widthMatch = imageWidth.match(/(\d+)vw/);
+    let widthPercentage = widthMatch ? parseInt(widthMatch[1]) / 100 : 1.0; // Default to 1.0 (100vw) if invalid
+
+    // Validate widthPercentage (between 0.1 and 2.0)
+    widthPercentage = Math.max(0.1, Math.min(2.0, widthPercentage));
+
+    // Generate sizes attribute dynamically, scaling based on image-width (no multiplier, DPR handles scaling)
     const sizes = [
-      ...Img.SIZES_BREAKPOINTS.map(bp => `(max-width: ${bp.maxWidth}px) ${bp.value}`),
-      Img.DEFAULT_SIZE
+      ...Img.SIZES_BREAKPOINTS.map(bp => {
+        const baseMatch = bp.baseValue.match(/(\d+)vw/);
+        const basePercentage = baseMatch ? parseInt(baseMatch[1]) / 100 : 1;
+        const scaledPercentage = basePercentage * widthPercentage;
+        return `(max-width: ${bp.maxWidth}px) ${scaledPercentage * 100}vw`;
+      }),
+      `${parseInt(Img.DEFAULT_SIZE) * widthPercentage}px`
     ].join(', ');
 
     // Generate the base srcset string once (without format)
