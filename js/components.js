@@ -4,23 +4,16 @@ class Img extends HTMLElement {
   static FORMATS = ['avif', 'webp', 'jpeg'];
   static VALID_ASPECT_RATIOS = ['16/9', '9/16', '3/2', '2/3', '1/1'];
   static SIZES_BREAKPOINTS = [
-    { maxWidth: 768, baseValue: '100vw' }, // At 768px, this evaluates to 768px (100vw = 768)
-    { maxWidth: 980, baseValue: '100vw' }, // At 980px, this evaluates to 980px (100vw = 980)
-    { maxWidth: 1366, baseValue: '100vw' }, // At 1366px, this evaluates to 1366px (100vw = 1366)
-    { maxWidth: 1920, baseValue: '100vw' }, // At 1920px, this evaluates to 1920px (100vw = 1920)
-    { maxWidth: 2560, baseValue: '100vw' }, // At 2560px, this evaluates to 2560px (100vw = 2560)
-    { maxWidth: 3840, baseValue: '100vw' }, // At 3840px, this evaluates to 3840px (100vw = 3840)
+    { maxWidth: 768, baseValue: '100vw' },
+    { maxWidth: 980, baseValue: '100vw' },
+    { maxWidth: 1366, baseValue: '100vw' },
+    { maxWidth: 1920, baseValue: '100vw' },
+    { maxWidth: 2560, baseValue: '100vw' },
+    { maxWidth: 3840, baseValue: '100vw' },
   ];
 
-  // Calculate DEFAULT_SIZE based on the last breakpoint (actual layout size, no multiplier)
-  static DEFAULT_SIZE = (() => {
-    const lastBreakpoint = Img.SIZES_BREAKPOINTS[Img.SIZES_BREAKPOINTS.length - 1];
-    const viewportWidth = lastBreakpoint.maxWidth;
-    const percentageMatch = lastBreakpoint.baseValue.match(/(\d+)vw/);
-    const percentage = percentageMatch ? parseInt(percentageMatch[1]) / 100 : 1;
-    const defaultSize = viewportWidth * percentage; // 3840 * 1.0 = 3840
-    return `${defaultSize}px`; // '3840px'
-  })();
+  // Extract DEFAULT_SIZE directly from the last breakpoint's maxWidth
+  static DEFAULT_SIZE = `${Img.SIZES_BREAKPOINTS[Img.SIZES_BREAKPOINTS.length - 1].maxWidth}px`; // 3840px
 
   constructor() {
     super();
@@ -58,17 +51,9 @@ class Img extends HTMLElement {
 
     // Generate sizes attribute dynamically, scaling based on image-width (no multiplier, DPR handles scaling)
     const sizes = [
-      ...Img.SIZES_BREAKPOINTS.map(bp => {
-        const baseMatch = bp.baseValue.match(/(\d+)vw/);
-        const basePercentage = baseMatch ? parseInt(baseMatch[1]) / 100 : 1;
-        const scaledPercentage = basePercentage * widthPercentage;
-        return `(max-width: ${bp.maxWidth}px) ${scaledPercentage * 100}vw`;
-      }),
+      ...Img.SIZES_BREAKPOINTS.map(bp => `(max-width: ${bp.maxWidth}px) ${widthPercentage * 100}vw`),
       `${parseInt(Img.DEFAULT_SIZE) * widthPercentage}px`
     ].join(', ');
-
-    // Generate the base srcset string once (without format)
-    const srcsetBase = Img.WIDTHS.map(w => `img/responsive/${baseFilename}-${w}`).join(', ');
 
     // Create picture element
     const picture = document.createElement('picture');
@@ -78,7 +63,8 @@ class Img extends HTMLElement {
     const fragment = document.createDocumentFragment();
     Img.FORMATS.forEach(format => {
       const source = document.createElement('source');
-      source.srcset = `${srcsetBase}.${format}`.replace(/,/g, `.${format},`) + ` ${Img.WIDTHS.join('w, ')}w`;
+      const srcset = Img.WIDTHS.map(w => `img/responsive/${baseFilename}-${w}.${format} ${w}w`).join(', ');
+      source.srcset = srcset;
       source.sizes = sizes;
       source.type = `image/${format}`;
       fragment.appendChild(source);
