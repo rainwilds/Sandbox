@@ -21,9 +21,11 @@ class Img extends HTMLElement {
 
   connectedCallback() {
     const src = this.getAttribute('src');
+    const lightSrc = this.getAttribute('light-src');
+    const darkSrc = this.getAttribute('dark-src');
     const alt = this.getAttribute('alt') || '';
     const aspectRatio = this.getAttribute('aspect-ratio') || '';
-    const imageWidth = this.getAttribute('image-width') || '100vw'; // Default to 100vw for hero image assumption
+    const width = this.getAttribute('width') || '100vw'; // Default to 100vw for hero image assumption
 
     // Validate src
     if (!src) {
@@ -39,17 +41,30 @@ class Img extends HTMLElement {
       return;
     }
 
+    // Extract base filenames for light and dark themes (if provided)
+    let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.')[0].replace(/-3840$/, '') : null;
+    let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.')[0].replace(/-3840$/, '') : null;
+
+    if (lightSrc && !lightBaseFilename) {
+      console.error('Invalid "light-src" attribute for <bh-img>: unable to extract base filename');
+      return;
+    }
+    if (darkSrc && !darkBaseFilename) {
+      console.error('Invalid "dark-src" attribute for <bh-img>: unable to extract base filename');
+      return;
+    }
+
     // Construct primary image path
     const primaryImagePath = `img/primary/${baseFilename}-3840.jpg`;
 
-    // Parse image-width (e.g., "100vw" or "40vw")
-    const widthMatch = imageWidth.match(/(\d+)vw/);
+    // Parse width (e.g., "100vw" or "40vw")
+    const widthMatch = width.match(/(\d+)vw/);
     let widthPercentage = widthMatch ? parseInt(widthMatch[1]) / 100 : 1.0; // Default to 1.0 (100vw) if invalid
 
     // Validate widthPercentage (between 0.1 and 2.0)
     widthPercentage = Math.max(0.1, Math.min(2.0, widthPercentage));
 
-    // Generate sizes attribute dynamically, scaling based on image-width (no multiplier, DPR handles scaling)
+    // Generate sizes attribute dynamically, scaling based on width (no multiplier, DPR handles scaling)
     const sizes = [
       ...Img.SIZES_BREAKPOINTS.map(bp => `(max-width: ${bp.maxWidth}px) ${widthPercentage * 100}vw`),
       `${parseInt(Img.DEFAULT_SIZE) * widthPercentage}px`
@@ -62,6 +77,28 @@ class Img extends HTMLElement {
     // Use DocumentFragment to batch DOM operations
     const fragment = document.createDocumentFragment();
     Img.FORMATS.forEach(format => {
+      // If both lightSrc and darkSrc are provided, add theme-specific sources
+      if (lightSrc && darkSrc) {
+        // Source for light theme
+        const sourceLight = document.createElement('source');
+        const srcsetLight = Img.WIDTHS.map(w => `img/light/${lightBaseFilename}-${w}.${format} ${w}w`).join(', ');
+        sourceLight.srcset = srcsetLight;
+        sourceLight.sizes = sizes;
+        sourceLight.type = `image/${format}`;
+        sourceLight.media = '(prefers-color-scheme: light)';
+        fragment.appendChild(sourceLight);
+
+        // Source for dark theme
+        const sourceDark = document.createElement('source');
+        const srcsetDark = Img.WIDTHS.map(w => `img/dark/${darkBaseFilename}-${w}.${format} ${w}w`).join(', ');
+        sourceDark.srcset = srcsetDark;
+        sourceDark.sizes = sizes;
+        sourceDark.type = `image/${format}`;
+        sourceDark.media = '(prefers-color-scheme: dark)';
+        fragment.appendChild(sourceDark);
+      }
+
+      // Default source (used if no theme match or if light/dark src not provided)
       const source = document.createElement('source');
       const srcset = Img.WIDTHS.map(w => `img/responsive/${baseFilename}-${w}.${format} ${w}w`).join(', ');
       source.srcset = srcset;
@@ -95,52 +132,3 @@ class Img extends HTMLElement {
 }
 
 customElements.define('bh-img', Img);
-
-
-class Footer extends HTMLElement {
-    connectedCallback() {
-      this.innerHTML = `
-        <footer class="min-height-two-thirds">
-          <p>© ${new Date().getFullYear()} My Site. All rights reserved.</p>
-          <nav>
-            <a href="/about">About</a> | <a href="/contact">Contact</a>
-          </nav>
-        </footer>
-      `;
-    }
-  }
-  customElements.define('bh-footer', Footer);
-
-
-  class Nav extends HTMLElement {
-    connectedCallback() {
-      const hasDropdown = this.hasAttribute('dropdown') && this.getAttribute('dropdown') !== 'false';
-      const menuItemHtml = hasDropdown
-        ? `
-          <li class="dropdown-toggle">
-            <a href="./item2.html">Item 2</a>
-            <div class="dropdown-menu">
-              <a href="./item2/subitem1.html">Subitem 1</a>
-              <a href="./item2/subitem2.html">Subitem 2</a>
-            </div>
-          </li>
-        `
-        : `<li><a href="./item2.html">Item 2</a></li>`;
-  
-      this.innerHTML = `
-        <nav ${hasDropdown ? 'class="dropdown"' : ''}>
-          <ul>
-            <li><a href="./item1.html">Item 1</a></li>
-            ${menuItemHtml}
-            <li><a href="./item3.html">Item 3</a></li>
-            <li><a href="./item4.html">Item 4</a></li>
-            <li><a href="./item5.html">Item 5</a></li>
-            <li><a href="./item6.html">Item 6</a></li>
-          </ul>
-          <i class="fa-sharp fa-light fa-bars font-size-medium"></i>
-        </nav>
-      `;
-    }
-  }
-  customElements.define('bh-nav', Nav);
-
