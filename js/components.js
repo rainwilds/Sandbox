@@ -1,3 +1,84 @@
+
+class BHVideo extends HTMLElement {
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this.isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  }
+
+  static get observedAttributes() {
+    return ['src', 'src-light', 'src-dark', 'poster', 'poster-light', 'poster-dark', 'alt', 'loading', 'autoplay', 'muted', 'loop', 'playsinline', 'disablepictureinpicture'];
+  }
+
+  connectedCallback() {
+    this.render();
+    this.setupMediaQueryListener();
+  }
+
+  attributeChangedCallback() {
+    this.render();
+  }
+
+  setupMediaQueryListener() {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    mediaQuery.addEventListener('change', (e) => {
+      this.isDarkMode = e.matches;
+      this.render();
+    });
+  }
+
+  render() {
+    const srcLight = this.getAttribute('src-light');
+    const srcDark = this.getAttribute('src-dark');
+    const src = this.getAttribute('src');
+    const activeSrc = this.isDarkMode ? (srcDark || src) : (srcLight || src);
+    const posterLight = this.getAttribute('poster-light');
+    const posterDark = this.getAttribute('poster-dark');
+    const poster = this.getAttribute('poster');
+    const activePoster = this.isDarkMode ? (posterDark || poster) : (posterLight || poster);
+    const alt = this.getAttribute('alt') || 'Video content';
+    const loading = this.getAttribute('loading') || 'lazy';
+    const autoplay = this.hasAttribute('autoplay') ? 'autoplay' : '';
+    const muted = this.hasAttribute('muted') ? 'muted' : '';
+    const loop = this.hasAttribute('loop') ? 'loop' : '';
+    const playsinline = this.hasAttribute('playsinline') ? 'playsinline' : '';
+    const disablepictureinpicture = this.hasAttribute('disablepictureinpicture') ? 'disablepictureinpicture' : '';
+    const className = this.getAttribute('class') || '';
+
+    // Determine video type based on file extension
+    const videoType = activeSrc && activeSrc.endsWith('.webm') ? 'video/webm' : 'video/mp4';
+
+    this.shadowRoot.innerHTML = `
+      <style>
+        :host {
+          display: block;
+        }
+        video {
+          width: 100%;
+          height: auto;
+          max-width: 100%;
+        }
+      </style>
+      <video
+        ${autoplay}
+        ${muted}
+        ${loop}
+        ${playsinline}
+        ${disablepictureinpicture}
+        ${activePoster ? `poster="${activePoster}"` : ''}
+        preload="${loading === 'lazy' ? 'metadata' : 'auto'}"
+        class="${className}"
+        title="${alt}"
+      >
+        ${activeSrc ? `<source src="${activeSrc}" type="${videoType}">` : ''}
+        Your browser does not support the video tag. ${activeSrc ? `<a href="${activeSrc}">Download video</a>` : ''}
+      </video>
+    `;
+  }
+}
+
+customElements.define('bh-video', BHVideo);
+
 class Img extends HTMLElement {
   // Configuration constants
   static WIDTHS = [768, 980, 1366, 1920, 2560, 3840];

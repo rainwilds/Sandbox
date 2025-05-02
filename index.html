@@ -174,10 +174,28 @@
                  loading="lazy">
           </picture> -->
 
-        <video autoplay muted loop disablepictureinpicture playsinline poster="./img/image2.jpg">
+        <!-- <video autoplay muted loop disablepictureinpicture playsinline poster="./img/image2.jpg" preload="metadata">
             <source src="./video/video1.mp4" type="video/webm">
             <source src="./video/video1.mp4" type="video/mp4">
-        </video>
+            Your browser does not support the video tag. Please download the video <a href="./video/video1.mp4">here</a>.
+        </video> -->
+
+        <bh-video
+        src="./video/video1.mp4"
+        src-light="./video/video1-light.mp4"
+        src-dark="./video/video1-dark.mp4"
+        poster="./img/poster.jpg"
+        poster-light="./img/poster-light.jpg"
+        poster-dark="./img/poster-dark.jpg"
+        alt="Sample video"
+        loading="lazy"
+        autoplay
+        muted
+        loop
+        playsinline
+        disablepictureinpicture
+        class="video-style"
+      ></bh-video>
 
         <div>
             <picture>
