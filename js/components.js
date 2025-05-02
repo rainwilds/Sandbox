@@ -3,7 +3,7 @@ class BHVideo extends HTMLElement {
     super();
   }
 
-  connectedCallback() {
+  async connectedCallback() {
     const src = this.getAttribute('src');
     const srcLight = this.getAttribute('src-light');
     const srcDark = this.getAttribute('src-dark');
@@ -64,8 +64,29 @@ class BHVideo extends HTMLElement {
     // Use DocumentFragment to batch DOM operations
     const fragment = document.createDocumentFragment();
 
-    // Add source for light theme if provided
-    if (srcLight) {
+    // Function to check if a video source is loadable
+    const canLoadVideo = (url) => {
+      return new Promise((resolve) => {
+        const testVideo = document.createElement('video');
+        const source = document.createElement('source');
+        source.src = url;
+        source.type = url.endsWith('.webm') ? 'video/webm' : 'video/mp4';
+        testVideo.appendChild(source);
+
+        testVideo.addEventListener('error', () => resolve(false), { once: true });
+        testVideo.addEventListener('canplay', () => resolve(true), { once: true });
+
+        // Timeout to prevent hanging if the video doesn't load or error
+        setTimeout(() => resolve(false), 2000);
+      });
+    };
+
+    // Check if light and dark sources are loadable
+    const canLoadLight = srcLight ? await canLoadVideo(srcLight) : false;
+    const canLoadDark = srcDark ? await canLoadVideo(srcDark) : false;
+
+    // Add source for light theme if loadable
+    if (srcLight && canLoadLight) {
       const sourceLight = document.createElement('source');
       sourceLight.src = srcLight;
       sourceLight.type = srcLight.endsWith('.webm') ? 'video/webm' : 'video/mp4';
@@ -73,8 +94,8 @@ class BHVideo extends HTMLElement {
       fragment.appendChild(sourceLight);
     }
 
-    // Add source for dark theme if provided
-    if (srcDark) {
+    // Add source for dark theme if loadable
+    if (srcDark && canLoadDark) {
       const sourceDark = document.createElement('source');
       sourceDark.src = srcDark;
       sourceDark.type = srcDark.endsWith('.webm') ? 'video/webm' : 'video/mp4';
@@ -95,25 +116,6 @@ class BHVideo extends HTMLElement {
 
     video.appendChild(fragment);
     this.appendChild(video);
-
-    // Add error handling to fall back to default src if light/dark source fails
-    video.addEventListener('error', () => {
-      const sources = video.querySelectorAll('source');
-      let failedSource = null;
-      for (const source of sources) {
-        if (source.src === video.currentSrc) {
-          failedSource = source;
-          break;
-        }
-      }
-      if (failedSource && failedSource.src !== src) {
-        // Remove the failed source
-        failedSource.remove();
-        // Reload the video to try the next source (default src)
-        video.load();
-        if (autoplay) video.play();
-      }
-    });
   }
 }
 
