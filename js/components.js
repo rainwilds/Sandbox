@@ -56,33 +56,36 @@ class BHVideo extends HTMLElement {
     if (disablepictureinpicture) video.setAttribute('disablepictureinpicture', '');
     if (className) video.className = className;
 
+    // Select poster based on prefers-color-scheme
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const activePoster = prefersDark ? (posterDark || poster) : (posterLight || poster);
+    if (activePoster) video.setAttribute('poster', activePoster);
+
     // Use DocumentFragment to batch DOM operations
     const fragment = document.createDocumentFragment();
 
-    // Add sources for light and dark themes if provided
-    if (srcLight && srcDark) {
-      // Source for light theme
+    // Add source for light theme if provided
+    if (srcLight) {
       const sourceLight = document.createElement('source');
       sourceLight.src = srcLight;
       sourceLight.type = srcLight.endsWith('.webm') ? 'video/webm' : 'video/mp4';
       sourceLight.media = '(prefers-color-scheme: light)';
-      if (posterLight) sourceLight.setAttribute('poster', posterLight);
       fragment.appendChild(sourceLight);
+    }
 
-      // Source for dark theme
+    // Add source for dark theme if provided
+    if (srcDark) {
       const sourceDark = document.createElement('source');
       sourceDark.src = srcDark;
       sourceDark.type = srcDark.endsWith('.webm') ? 'video/webm' : 'video/mp4';
       sourceDark.media = '(prefers-color-scheme: dark)';
-      if (posterDark) sourceDark.setAttribute('poster', posterDark);
       fragment.appendChild(sourceDark);
     }
 
-    // Default source (fallback)
+    // Default source (always included as fallback)
     const sourceDefault = document.createElement('source');
     sourceDefault.src = src;
     sourceDefault.type = src.endsWith('.webm') ? 'video/webm' : 'video/mp4';
-    if (poster) sourceDefault.setAttribute('poster', poster);
     fragment.appendChild(sourceDefault);
 
     // Fallback message
