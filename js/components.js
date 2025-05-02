@@ -21,8 +21,8 @@ class Img extends HTMLElement {
 
   connectedCallback() {
     const src = this.getAttribute('src');
-    const lightSrc = this.getAttribute('lightsrc'); // Use lowercase to match HTML attribute
-    const darkSrc = this.getAttribute('darksrc'); // Use lowercase to match HTML attribute
+    const lightSrc = this.getAttribute('light-src'); // Use kebab-case to match HTML convention
+    const darkSrc = this.getAttribute('dark-src'); // Use kebab-case to match HTML convention
     const alt = this.getAttribute('alt') || '';
     const aspectRatio = this.getAttribute('aspect-ratio') || '';
     const width = this.getAttribute('width') || '100vw'; // Default to 100vw for hero image assumption
@@ -45,11 +45,11 @@ class Img extends HTMLElement {
     let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.')[0] : null;
 
     if (lightSrc && !lightBaseFilename) {
-      console.error('Invalid "lightsrc" attribute for <bh-img>: unable to extract base filename');
+      console.error('Invalid "light-src" attribute for <bh-img>: unable to extract base filename');
       return;
     }
     if (darkSrc && !darkBaseFilename) {
-      console.error('Invalid "darksrc" attribute for <bh-img>: unable to extract base filename');
+      console.error('Invalid "dark-src" attribute for <bh-img>: unable to extract base filename');
       return;
     }
 
