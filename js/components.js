@@ -1,41 +1,15 @@
-
 class BHVideo extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
-    this.isDarkMode = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  }
-
-  static get observedAttributes() {
-    return ['src', 'src-light', 'src-dark', 'poster', 'poster-light', 'poster-dark', 'alt', 'loading', 'autoplay', 'muted', 'loop', 'playsinline', 'disablepictureinpicture'];
   }
 
   connectedCallback() {
-    this.render();
-    this.setupMediaQueryListener();
-  }
-
-  attributeChangedCallback() {
-    this.render();
-  }
-
-  setupMediaQueryListener() {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    mediaQuery.addEventListener('change', (e) => {
-      this.isDarkMode = e.matches;
-      this.render();
-    });
-  }
-
-  render() {
+    const src = this.getAttribute('src');
     const srcLight = this.getAttribute('src-light');
     const srcDark = this.getAttribute('src-dark');
-    const src = this.getAttribute('src');
-    const activeSrc = this.isDarkMode ? (srcDark || src) : (srcLight || src);
+    const poster = this.getAttribute('poster');
     const posterLight = this.getAttribute('poster-light');
     const posterDark = this.getAttribute('poster-dark');
-    const poster = this.getAttribute('poster');
-    const activePoster = this.isDarkMode ? (posterDark || poster) : (posterLight || poster);
     const alt = this.getAttribute('alt') || 'Video content';
     const loading = this.getAttribute('loading') || 'lazy';
     const autoplay = this.hasAttribute('autoplay') ? 'autoplay' : '';
@@ -45,39 +19,84 @@ class BHVideo extends HTMLElement {
     const disablepictureinpicture = this.hasAttribute('disablepictureinpicture') ? 'disablepictureinpicture' : '';
     const className = this.getAttribute('class') || '';
 
-    // Determine video type based on file extension
-    const videoType = activeSrc && activeSrc.endsWith('.webm') ? 'video/webm' : 'video/mp4';
+    // Validate src
+    if (!src) {
+      console.error('The "src" attribute is required for <bh-video>');
+      return;
+    }
 
-    this.shadowRoot.innerHTML = `
-      <style>
-        :host {
-          display: block;
-        }
-        video {
-          width: 100%;
-          height: auto;
-          max-width: 100%;
-        }
-      </style>
-      <video
-        ${autoplay}
-        ${muted}
-        ${loop}
-        ${playsinline}
-        ${disablepictureinpicture}
-        ${activePoster ? `poster="${activePoster}"` : ''}
-        preload="${loading === 'lazy' ? 'metadata' : 'auto'}"
-        class="${className}"
-        title="${alt}"
-      >
-        ${activeSrc ? `<source src="${activeSrc}" type="${videoType}">` : ''}
-        Your browser does not support the video tag. ${activeSrc ? `<a href="${activeSrc}">Download video</a>` : ''}
-      </video>
-    `;
+    // Extract base filename from src (remove path and extension)
+    const baseFilename = src.split('/').pop().split('.')[0];
+    if (!baseFilename) {
+      console.error('Invalid "src" attribute for <bh-video>: unable to extract base filename');
+      return;
+    }
+
+    // Extract base filenames for light and dark themes (if provided)
+    const lightBaseFilename = srcLight ? srcLight.split('/').pop().split('.')[0] : null;
+    const darkBaseFilename = srcDark ? srcDark.split('/').pop().split('.')[0] : null;
+
+    if (srcLight && !lightBaseFilename) {
+      console.error('Invalid "src-light" attribute for <bh-video>: unable to extract base filename');
+      return;
+    }
+    if (srcDark && !darkBaseFilename) {
+      console.error('Invalid "src-dark" attribute for <bh-video>: unable to extract base filename');
+      return;
+    }
+
+    // Create video element
+    const video = document.createElement('video');
+    video.setAttribute('preload', loading === 'lazy' ? 'metadata' : 'auto');
+    video.setAttribute('title', alt);
+    if (autoplay) video.setAttribute('autoplay', '');
+    if (muted) video.setAttribute('muted', '');
+    if (loop) video.setAttribute('loop', '');
+    if (playsinline) video.setAttribute('playsinline', '');
+    if (disablepictureinpicture) video.setAttribute('disablepictureinpicture', '');
+    if (className) video.className = className;
+
+    // Use DocumentFragment to batch DOM operations
+    const fragment = document.createDocumentFragment();
+
+    // Add sources for light and dark themes if provided
+    if (srcLight && srcDark) {
+      // Source for light theme
+      const sourceLight = document.createElement('source');
+      sourceLight.src = srcLight;
+      sourceLight.type = srcLight.endsWith('.webm') ? 'video/webm' : 'video/mp4';
+      sourceLight.media = '(prefers-color-scheme: light)';
+      if (posterLight) sourceLight.setAttribute('poster', posterLight);
+      fragment.appendChild(sourceLight);
+
+      // Source for dark theme
+      const sourceDark = document.createElement('source');
+      sourceDark.src = srcDark;
+      sourceDark.type = srcDark.endsWith('.webm') ? 'video/webm' : 'video/mp4';
+      sourceDark.media = '(prefers-color-scheme: dark)';
+      if (posterDark) sourceDark.setAttribute('poster', posterDark);
+      fragment.appendChild(sourceDark);
+    }
+
+    // Default source (fallback)
+    const sourceDefault = document.createElement('source');
+    sourceDefault.src = src;
+    sourceDefault.type = src.endsWith('.webm') ? 'video/webm' : 'video/mp4';
+    if (poster) sourceDefault.setAttribute('poster', poster);
+    fragment.appendChild(sourceDefault);
+
+    // Fallback message
+    const fallback = document.createElement('p');
+    fallback.innerHTML = `Your browser does not support the video tag. <a href="${src}">Download video</a>`;
+    fragment.appendChild(fallback);
+
+    video.appendChild(fragment);
+    this.appendChild(video);
   }
 }
 
 customElements.define('bh-video', BHVideo);
+
 
 class Img extends HTMLElement {
   // Configuration constants
