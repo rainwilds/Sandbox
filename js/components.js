@@ -33,38 +33,24 @@ class Img extends HTMLElement {
       return;
     }
 
-    // Extract directory and base filename from src
-    const srcParts = src.split('/');
-    const srcDir = srcParts.slice(0, -1).join('/') + (srcParts.length > 1 ? '/' : '');
-    let baseFilename = srcParts.pop().split('.')[0];
+    // Extract base filename from src (remove path and extension)
+    let baseFilename = src.split('/').pop().split('.')[0];
     if (!baseFilename) {
       console.error('Invalid "src" attribute for <bh-img>: unable to extract base filename');
       return;
     }
 
-    // Extract directories and base filenames for light and dark themes (if provided)
-    let lightDir = '';
-    let lightBaseFilename = null;
-    if (lightSrc) {
-      const lightParts = lightSrc.split('/');
-      lightDir = lightParts.slice(0, -1).join('/') + (lightParts.length > 1 ? '/' : '');
-      lightBaseFilename = lightParts.pop().split('.')[0];
-      if (!lightBaseFilename) {
-        console.error('Invalid "light-src" attribute for <bh-img>: unable to extract base filename');
-        return;
-      }
-    }
+    // Extract base filenames for light and dark themes (if provided)
+    let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.')[0] : null;
+    let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.')[0] : null;
 
-    let darkDir = '';
-    let darkBaseFilename = null;
-    if (darkSrc) {
-      const darkParts = darkSrc.split('/');
-      darkDir = darkParts.slice(0, -1).join('/') + (darkParts.length > 1 ? '/' : '');
-      darkBaseFilename = darkParts.pop().split('.')[0];
-      if (!darkBaseFilename) {
-        console.error('Invalid "dark-src" attribute for <bh-img>: unable to extract base filename');
-        return;
-      }
+    if (lightSrc && !lightBaseFilename) {
+      console.error('Invalid "light-src" attribute for <bh-img>: unable to extract base filename');
+      return;
+    }
+    if (darkSrc && !darkBaseFilename) {
+      console.error('Invalid "dark-src" attribute for <bh-img>: unable to extract base filename');
+      return;
     }
 
     // Use the src directly as the primary image path (fallback for <img>)
@@ -94,7 +80,7 @@ class Img extends HTMLElement {
       if (lightSrc && darkSrc) {
         // Source for light theme
         const sourceLight = document.createElement('source');
-        const srcsetLight = Img.WIDTHS.map(w => `${lightDir}${lightBaseFilename}-${w}.${format} ${w}w`).join(', ');
+        const srcsetLight = Img.WIDTHS.map(w => `/img/responsive/${lightBaseFilename}-${w}.${format} ${w}w`).join(', ');
         sourceLight.srcset = srcsetLight;
         sourceLight.sizes = sizes;
         sourceLight.type = `image/${format}`;
@@ -103,7 +89,7 @@ class Img extends HTMLElement {
 
         // Source for dark theme
         const sourceDark = document.createElement('source');
-        const srcsetDark = Img.WIDTHS.map(w => `${darkDir}${darkBaseFilename}-${w}.${format} ${w}w`).join(', ');
+        const srcsetDark = Img.WIDTHS.map(w => `/img/responsive/${darkBaseFilename}-${w}.${format} ${w}w`).join(', ');
         sourceDark.srcset = srcsetDark;
         sourceDark.sizes = sizes;
         sourceDark.type = `image/${format}`;
@@ -113,7 +99,7 @@ class Img extends HTMLElement {
 
       // Default source (used if no theme match or if light/dark src not provided)
       const source = document.createElement('source');
-      const srcset = Img.WIDTHS.map(w => `${srcDir}${baseFilename}-${w}.${format} ${w}w`).join(', ');
+      const srcset = Img.WIDTHS.map(w => `/img/responsive/${baseFilename}-${w}.${format} ${w}w`).join(', ');
       source.srcset = srcset;
       source.sizes = sizes;
       source.type = `image/${format}`;
