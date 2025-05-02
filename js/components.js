@@ -95,6 +95,25 @@ class BHVideo extends HTMLElement {
 
     video.appendChild(fragment);
     this.appendChild(video);
+
+    // Add error handling to fall back to default src if light/dark source fails
+    video.addEventListener('error', () => {
+      const sources = video.querySelectorAll('source');
+      let failedSource = null;
+      for (const source of sources) {
+        if (source.src === video.currentSrc) {
+          failedSource = source;
+          break;
+        }
+      }
+      if (failedSource && failedSource.src !== src) {
+        // Remove the failed source
+        failedSource.remove();
+        // Reload the video to try the next source (default src)
+        video.load();
+        if (autoplay) video.play();
+      }
+    });
   }
 }
 
