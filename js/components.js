@@ -80,7 +80,7 @@ class Img extends HTMLElement {
       if (lightSrc && darkSrc) {
         // Source for light theme
         const sourceLight = document.createElement('source');
-        const srcsetLight = Img.WIDTHS.map(w => `/img/responsive/${lightBaseFilename}-${w}.${format} ${w}w`).join(', ');
+        const srcsetLight = Img.WIDTHS.map(w => `./img/responsive/${lightBaseFilename}-${w}.${format} ${w}w`).join(', ');
         sourceLight.srcset = srcsetLight;
         sourceLight.sizes = sizes;
         sourceLight.type = `image/${format}`;
@@ -89,7 +89,7 @@ class Img extends HTMLElement {
 
         // Source for dark theme
         const sourceDark = document.createElement('source');
-        const srcsetDark = Img.WIDTHS.map(w => `/img/responsive/${darkBaseFilename}-${w}.${format} ${w}w`).join(', ');
+        const srcsetDark = Img.WIDTHS.map(w => `./img/responsive/${darkBaseFilename}-${w}.${format} ${w}w`).join(', ');
         sourceDark.srcset = srcsetDark;
         sourceDark.sizes = sizes;
         sourceDark.type = `image/${format}`;
@@ -99,7 +99,7 @@ class Img extends HTMLElement {
 
       // Default source (used if no theme match or if light/dark src not provided)
       const source = document.createElement('source');
-      const srcset = Img.WIDTHS.map(w => `/img/responsive/${baseFilename}-${w}.${format} ${w}w`).join(', ');
+      const srcset = Img.WIDTHS.map(w => `./img/responsive/${baseFilename}-${w}.${format} ${w}w`).join(', ');
       source.srcset = srcset;
       source.sizes = sizes;
       source.type = `image/${format}`;
@@ -119,11 +119,11 @@ class Img extends HTMLElement {
       img.className = aspectRatioClass;
     }
 
-    // Add onerror handler to fall back to placeholder
-    img.onerror = () => {
-      img.src = 'https://placehold.co/3000x2000';
-      img.onerror = null; // Prevent infinite loop if placeholder also fails
-    };
+    // Temporarily disable onerror handler to debug primary image loading
+    // img.onerror = () => {
+    //   img.src = 'https://placehold.co/3000x2000';
+    //   img.onerror = null; // Prevent infinite loop if placeholder also fails
+    // };
 
     picture.appendChild(img);
     this.appendChild(picture);
