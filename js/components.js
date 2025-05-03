@@ -3,7 +3,7 @@ class BHVideo extends HTMLElement {
     super();
   }
 
-  connectedCallback() {
+  async connectedCallback() {
     const src = this.getAttribute('src');
     const srcLight = this.getAttribute('src-light');
     const srcDark = this.getAttribute('src-dark');
@@ -56,10 +56,32 @@ class BHVideo extends HTMLElement {
     if (disablepictureinpicture) video.setAttribute('disablepictureinpicture', '');
     if (className) video.className = className;
 
-    // Select poster based on prefers-color-scheme
+    // Function to check if an image is loadable
+    const canLoadImage = (url) => {
+      return new Promise((resolve) => {
+        const img = new Image();
+        img.src = url;
+        img.onload = () => resolve(true);
+        img.onerror = () => resolve(false);
+      });
+    };
+
+    // Select poster based on prefers-color-scheme and check availability
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const activePoster = prefersDark ? (posterDark || poster) : (posterLight || poster);
-    if (activePoster) video.setAttribute('poster', activePoster);
+    let activePoster = prefersDark ? (posterDark || poster) : (posterLight || poster);
+    if (activePoster) {
+      const canLoadPoster = await canLoadImage(activePoster);
+      if (!canLoadPoster) {
+        activePoster = poster; // Fall back to default poster if light/dark fails
+        if (activePoster) {
+          const canLoadDefaultPoster = await canLoadImage(activePoster);
+          if (!canLoadDefaultPoster) {
+            activePoster = null; // No poster if both fail
+          }
+        }
+      }
+      if (activePoster) video.setAttribute('poster', activePoster);
+    }
 
     // Use DocumentFragment to batch DOM operations
     const fragment = document.createDocumentFragment();
@@ -70,6 +92,11 @@ class BHVideo extends HTMLElement {
       sourceLight.src = srcLight;
       sourceLight.type = srcLight.endsWith('.webm') ? 'video/webm' : 'video/mp4';
       sourceLight.media = '(prefers-color-scheme: light)';
+      sourceLight.onerror = () => {
+        sourceLight.remove();
+        video.load();
+        if (autoplay) video.play();
+      };
       fragment.appendChild(sourceLight);
     }
 
@@ -79,6 +106,11 @@ class BHVideo extends HTMLElement {
       sourceDark.src = srcDark;
       sourceDark.type = srcDark.endsWith('.webm') ? 'video/webm' : 'video/mp4';
       sourceDark.media = '(prefers-color-scheme: dark)';
+      sourceDark.onerror = () => {
+        sourceDark.remove();
+        video.load();
+        if (autoplay) video.play();
+      };
       fragment.appendChild(sourceDark);
     }
 
@@ -95,24 +127,6 @@ class BHVideo extends HTMLElement {
 
     video.appendChild(fragment);
     this.appendChild(video);
-
-    // Ensure fallback to default src if no source loads
-    let hasLoaded = false;
-    video.addEventListener('canplay', () => {
-      hasLoaded = true;
-    }, { once: true });
-
-    // After a timeout, check if the video has loaded; if not, force the default src
-    setTimeout(() => {
-      if (!hasLoaded && video.currentSrc !== src) {
-        // Remove all sources and set the default src directly
-        const sources = video.querySelectorAll('source');
-        sources.forEach(source => source.remove());
-        video.src = src;
-        video.load();
-        if (autoplay) video.play();
-      }
-    }, 3000); // 3-second timeout to allow initial load attempts
   }
 }
 
