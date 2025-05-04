@@ -92,11 +92,6 @@ class BHVideo extends HTMLElement {
       sourceLight.src = srcLight;
       sourceLight.type = srcLight.endsWith('.webm') ? 'video/webm' : 'video/mp4';
       sourceLight.media = '(prefers-color-scheme: light)';
-      sourceLight.onerror = () => {
-        sourceLight.remove();
-        video.load();
-        if (autoplay) video.play();
-      };
       fragment.appendChild(sourceLight);
     }
 
@@ -106,11 +101,6 @@ class BHVideo extends HTMLElement {
       sourceDark.src = srcDark;
       sourceDark.type = srcDark.endsWith('.webm') ? 'video/webm' : 'video/mp4';
       sourceDark.media = '(prefers-color-scheme: dark)';
-      sourceDark.onerror = () => {
-        sourceDark.remove();
-        video.load();
-        if (autoplay) video.play();
-      };
       fragment.appendChild(sourceDark);
     }
 
@@ -127,6 +117,31 @@ class BHVideo extends HTMLElement {
 
     video.appendChild(fragment);
     this.appendChild(video);
+
+    // Handle video source errors and ensure playback
+    video.addEventListener('error', () => {
+      if (video.currentSrc && video.currentSrc !== src) {
+        const sources = video.querySelectorAll('source');
+        for (const source of sources) {
+          if (source.src === video.currentSrc) {
+            source.remove();
+            break;
+          }
+        }
+        video.src = src; // Force default src
+        video.load();
+        if (autoplay) video.play();
+      }
+    });
+
+    // Ensure playback starts once the video is ready
+    video.addEventListener('loadeddata', () => {
+      if (autoplay) {
+        video.play().catch((err) => {
+          console.warn('Autoplay failed:', err);
+        });
+      }
+    });
   }
 }
 
