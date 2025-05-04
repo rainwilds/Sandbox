@@ -86,29 +86,45 @@ class BHVideo extends HTMLElement {
     // Use DocumentFragment to batch DOM operations
     const fragment = document.createDocumentFragment();
 
-    // Add source for light theme if provided
+    // Function to add WEBM and MP4 sources for a given video URL
+    const addSources = (videoSrc, mediaQuery) => {
+      // Add WEBM source first
+      const sourceWebm = document.createElement('source');
+      sourceWebm.src = videoSrc;
+      sourceWebm.type = 'video/webm';
+      if (mediaQuery) sourceWebm.media = mediaQuery;
+      sourceWebm.onerror = () => {
+        sourceWebm.remove();
+        video.load();
+        if (autoplay) video.play();
+      };
+      fragment.appendChild(sourceWebm);
+
+      // Add MP4 source second
+      const sourceMp4 = document.createElement('source');
+      sourceMp4.src = videoSrc;
+      sourceMp4.type = 'video/mp4';
+      if (mediaQuery) sourceMp4.media = mediaQuery;
+      sourceMp4.onerror = () => {
+        sourceMp4.remove();
+        video.load();
+        if (autoplay) video.play();
+      };
+      fragment.appendChild(sourceMp4);
+    };
+
+    // Add sources for light theme if provided
     if (srcLight) {
-      const sourceLight = document.createElement('source');
-      sourceLight.src = srcLight;
-      sourceLight.type = srcLight.endsWith('.webm') ? 'video/webm' : 'video/mp4';
-      sourceLight.media = '(prefers-color-scheme: light)';
-      fragment.appendChild(sourceLight);
+      addSources(srcLight, '(prefers-color-scheme: light)');
     }
 
-    // Add source for dark theme if provided
+    // Add sources for dark theme if provided
     if (srcDark) {
-      const sourceDark = document.createElement('source');
-      sourceDark.src = srcDark;
-      sourceDark.type = srcDark.endsWith('.webm') ? 'video/webm' : 'video/mp4';
-      sourceDark.media = '(prefers-color-scheme: dark)';
-      fragment.appendChild(sourceDark);
+      addSources(srcDark, '(prefers-color-scheme: dark)');
     }
 
-    // Default source (always included as fallback)
-    const sourceDefault = document.createElement('source');
-    sourceDefault.src = src;
-    sourceDefault.type = src.endsWith('.webm') ? 'video/webm' : 'video/mp4';
-    fragment.appendChild(sourceDefault);
+    // Default sources (always included as fallback)
+    addSources(src, null);
 
     // Fallback message
     const fallback = document.createElement('p');
