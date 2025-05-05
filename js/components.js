@@ -1,3 +1,52 @@
+
+class BhCard extends HTMLElement {
+  constructor() {
+      super();
+      this.callbacks = [];
+  }
+
+  connectedCallback() {
+      this.render();
+      this.callbacks.forEach(callback => callback());
+  }
+
+  disconnectedCallback() {
+      this.callbacks = [];
+  }
+
+  addCallback(callback) {
+      this.callbacks.push(callback);
+  }
+
+  render() {
+      // Get attributes
+      const heading = this.getAttribute('heading') || 'Default Heading';
+      const description = this.getAttribute('description') || 'Default description text.';
+      const buttonHref = this.getAttribute('button-href') || '#';
+
+      // Render the HTML structure
+      this.innerHTML = `
+          <div class="card">
+              <hgroup>
+                  <h2>${heading}</h2>
+                  <p>${description}</p>
+              </hgroup>
+              <a class="button" href="${buttonHref}"></a>
+          </div>
+      `;
+  }
+
+  static get observedAttributes() {
+      return ['heading', 'description', 'button-href'];
+  }
+
+  attributeChangedCallback() {
+      this.render();
+  }
+}
+
+customElements.define('bh-card', BhCard);
+
 class BHVideo extends HTMLElement {
   constructor() {
     super();
