@@ -3,7 +3,7 @@ class BHVideo extends HTMLElement {
     super();
   }
 
-  async connectedCallback() {
+  connectedCallback() {
     const src = this.getAttribute('src');
     const srcLight = this.getAttribute('src-light');
     const srcDark = this.getAttribute('src-dark');
@@ -12,11 +12,11 @@ class BHVideo extends HTMLElement {
     const posterDark = this.getAttribute('poster-dark');
     const alt = this.getAttribute('alt') || 'Video content';
     const loading = this.getAttribute('loading') || 'lazy';
-    const autoplay = this.hasAttribute('autoplay') ? 'autoplay' : '';
-    const muted = this.hasAttribute('muted') ? 'muted' : '';
-    const loop = this.hasAttribute('loop') ? 'loop' : '';
-    const playsinline = this.hasAttribute('playsinline') ? 'playsinline' : '';
-    const disablepictureinpicture = this.hasAttribute('disablepictureinpicture') ? 'disablepictureinpicture' : '';
+    const autoplay = this.hasAttribute('autoplay');
+    const muted = this.hasAttribute('muted');
+    const loop = this.hasAttribute('loop');
+    const playsinline = this.hasAttribute('playsinline');
+    const disablepictureinpicture = this.hasAttribute('disablepictureinpicture');
     const className = this.getAttribute('class') || '';
 
     // Validate src
@@ -56,107 +56,75 @@ class BHVideo extends HTMLElement {
     if (disablepictureinpicture) video.setAttribute('disablepictureinpicture', '');
     if (className) video.className = className;
 
-    // Function to check if an image is loadable
-    const canLoadImage = (url) => {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.src = url;
-        img.onload = () => resolve(true);
-        img.onerror = () => resolve(false);
-      });
-    };
-
-    // Select poster based on prefers-color-scheme and check availability
+    // Select initial poster based on prefers-color-scheme (optimistic)
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     let activePoster = prefersDark ? (posterDark || poster) : (posterLight || poster);
+
+    // Set up poster fallback without blocking
     if (activePoster) {
-      const canLoadPoster = await canLoadImage(activePoster);
-      if (!canLoadPoster) {
-        activePoster = poster; // Fall back to default poster if light/dark fails
-        if (activePoster) {
-          const canLoadDefaultPoster = await canLoadImage(activePoster);
-          if (!canLoadDefaultPoster) {
-            console.warn(`Default poster "${activePoster}" failed to load; no poster will be set.`);
-            activePoster = null; // No poster if both fail
+      const img = new Image();
+      img.src = activePoster;
+      img.onerror = () => {
+        if (activePoster !== poster) {
+          activePoster = poster;
+          if (activePoster) {
+            const fallbackImg = new Image();
+            fallbackImg.src = activePoster;
+            fallbackImg.onerror = () => {
+              console.warn(`Default poster "${activePoster}" failed to load; no poster will be set.`);
+              video.removeAttribute('poster');
+            };
+            fallbackImg.onload = () => {
+              video.setAttribute('poster', activePoster);
+            };
           }
         }
-      }
-      if (activePoster) video.setAttribute('poster', activePoster);
+      };
+      img.onload = () => {
+        video.setAttribute('poster', activePoster);
+      };
     }
 
-    // Use DocumentFragment to batch DOM operations
-    const fragment = document.createDocumentFragment();
+    // Build inner HTML for sources and fallback message
+    let innerHTML = '';
 
-    // Function to add WEBM and MP4 sources for a given video URL
-    const addSources = (videoSrc, mediaQuery) => {
-      // Add WEBM source first
-      const sourceWebm = document.createElement('source');
-      sourceWebm.src = videoSrc;
-      sourceWebm.type = 'video/webm';
-      if (mediaQuery) sourceWebm.media = mediaQuery;
-      sourceWebm.onerror = () => {
-        sourceWebm.remove();
-        video.load();
-        if (autoplay) video.play();
-      };
-      fragment.appendChild(sourceWebm);
-
-      // Add MP4 source second
-      const sourceMp4 = document.createElement('source');
-      sourceMp4.src = videoSrc;
-      sourceMp4.type = 'video/mp4';
-      if (mediaQuery) sourceMp4.media = mediaQuery;
-      sourceMp4.onerror = () => {
-        sourceMp4.remove();
-        video.load();
-        if (autoplay) video.play();
-      };
-      fragment.appendChild(sourceMp4);
+    // Function to add WEBM and MP4 sources as HTML strings
+    const addSourcesHTML = (videoSrc, mediaQuery) => {
+      const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
+      return `
+        <source src="${videoSrc}" type="video/webm"${mediaAttr}>
+        <source src="${videoSrc}" type="video/mp4"${mediaAttr}>
+      `;
     };
 
     // Add sources for light theme if provided
     if (srcLight) {
-      addSources(srcLight, '(prefers-color-scheme: light)');
+      innerHTML += addSourcesHTML(srcLight, '(prefers-color-scheme: light)');
     }
 
     // Add sources for dark theme if provided
     if (srcDark) {
-      addSources(srcDark, '(prefers-color-scheme: dark)');
+      innerHTML += addSourcesHTML(srcDark, '(prefers-color-scheme: dark)');
     }
 
     // Default sources (always included as fallback)
-    addSources(src, null);
+    innerHTML += addSourcesHTML(src, null);
 
-    // Fallback message
-    const fallback = document.createElement('p');
-    fallback.innerHTML = `Your browser does not support the video tag. <a href="${src}">Download video</a>`;
-    fragment.appendChild(fallback);
+    // Add fallback message
+    innerHTML += `<p>Your browser does not support the video tag. <a href="${src}">Download video</a></p>`;
 
-    video.appendChild(fragment);
+    // Set inner HTML all at once
+    video.innerHTML = innerHTML;
+
+    // Append video element to the DOM
     this.appendChild(video);
 
-    // Handle video source errors and ensure playback
+    // Handle video source errors (simplified)
     video.addEventListener('error', () => {
       if (video.currentSrc && video.currentSrc !== src) {
-        const sources = video.querySelectorAll('source');
-        for (const source of sources) {
-          if (source.src === video.currentSrc) {
-            source.remove();
-            break;
-          }
-        }
         video.src = src; // Force default src
         video.load();
         if (autoplay) video.play();
-      }
-    });
-
-    // Ensure playback starts once the video is ready
-    video.addEventListener('loadeddata', () => {
-      if (autoplay) {
-        video.play().catch((err) => {
-          console.warn('Autoplay failed:', err);
-        });
       }
     });
   }
