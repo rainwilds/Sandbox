@@ -23,21 +23,44 @@ class BhCard extends HTMLElement {
       const heading = this.getAttribute('heading') || 'Default Heading';
       const description = this.getAttribute('description') || 'Default description text.';
       const buttonHref = this.getAttribute('button-href') || '#';
+      const buttonText = this.getAttribute('button-text') || 'Button';
+      const hasBackgroundImage = this.hasAttribute('background-image');
+      const classes = this.getAttribute('classes') || '';
+      const imgSrc = this.getAttribute('src') || '';
+      const lightSrc = this.getAttribute('light-src') || '';
+      const darkSrc = this.getAttribute('dark-src') || '';
+      const alt = this.getAttribute('alt') || '';
+      const width = this.getAttribute('width') || '100vw';
+      const aspectRatio = this.getAttribute('aspect-ratio') || '';
+
+      // Build the card with optional background image
+      let backgroundImageHTML = '';
+      if (hasBackgroundImage && imgSrc) {
+          backgroundImageHTML = ImageShared.generatePictureMarkup({
+              src: imgSrc,
+              lightSrc: lightSrc,
+              darkSrc: darkSrc,
+              alt: alt,
+              width: width,
+              aspectRatio: aspectRatio
+          });
+      }
 
       // Render the HTML structure
       this.innerHTML = `
-          <div class="card">
+          <div class="card ${classes}">
+              ${backgroundImageHTML}
               <hgroup>
                   <h2>${heading}</h2>
                   <p>${description}</p>
               </hgroup>
-              <a class="button" href="${buttonHref}"></a>
+              <a class="button" href="${buttonHref}">${buttonText}</a>
           </div>
       `;
   }
 
   static get observedAttributes() {
-      return ['heading', 'description', 'button-href'];
+      return ['heading', 'description', 'button-href', 'button-text', 'background-image', 'classes', 'src', 'light-src', 'dark-src', 'alt', 'width', 'aspect-ratio'];
   }
 
   attributeChangedCallback() {
@@ -46,6 +69,7 @@ class BhCard extends HTMLElement {
 }
 
 customElements.define('bh-card', BhCard);
+
 
 class BHVideo extends HTMLElement {
   constructor() {
@@ -187,143 +211,52 @@ customElements.define('bh-video', BHVideo);
 
 
 class Img extends HTMLElement {
-  // Configuration constants
-  static WIDTHS = [768, 980, 1366, 1920, 2560, 3840];
-  static FORMATS = ['avif', 'webp', 'jpeg'];
-  static VALID_ASPECT_RATIOS = ['16/9', '9/16', '3/2', '2/3', '1/1'];
-  static SIZES_BREAKPOINTS = [
-    { maxWidth: 768, baseValue: '100vw' },
-    { maxWidth: 980, baseValue: '100vw' },
-    { maxWidth: 1366, baseValue: '100vw' },
-    { maxWidth: 1920, baseValue: '100vw' },
-    { maxWidth: 2560, baseValue: '100vw' },
-    { maxWidth: 3840, baseValue: '100vw' },
-  ];
-
-  // Extract DEFAULT_SIZE directly from the last breakpoint's maxWidth
-  static DEFAULT_SIZE = `${Img.SIZES_BREAKPOINTS[Img.SIZES_BREAKPOINTS.length - 1].maxWidth}px`; // 3840px
-
   constructor() {
-    super();
+      super();
   }
 
   connectedCallback() {
-    const src = this.getAttribute('src');
-    const lightSrc = this.getAttribute('light-src');
-    const darkSrc = this.getAttribute('dark-src');
-    const alt = this.getAttribute('alt') || '';
-    const aspectRatio = this.getAttribute('aspect-ratio') || '';
-    const width = this.getAttribute('width') || '100vw'; // Default to 100vw for hero image assumption
-    const customClasses = this.getAttribute('class') || ''; // Get custom classes from the class attribute
+      const src = this.getAttribute('src');
+      const lightSrc = this.getAttribute('light-src');
+      const darkSrc = this.getAttribute('dark-src');
+      const alt = this.getAttribute('alt') || '';
+      const aspectRatio = this.getAttribute('aspect-ratio') || '';
+      const width = this.getAttribute('width') || '100vw';
+      const customClasses = this.getAttribute('class') || '';
 
-    // Validate src
-    if (!src) {
-      console.error('The "src" attribute is required for <bh-img>');
-      return;
-    }
+      // Generate the picture markup using the shared utility
+      const pictureHTML = ImageShared.generatePictureMarkup({
+          src: src,
+          lightSrc: lightSrc,
+          darkSrc: darkSrc,
+          alt: alt,
+          width: width,
+          aspectRatio: aspectRatio
+      });
 
-    // Extract base filename from src (remove path and extension)
-    let baseFilename = src.split('/').pop().split('.')[0];
-    if (!baseFilename) {
-      console.error('Invalid "src" attribute for <bh-img>: unable to extract base filename');
-      return;
-    }
-
-    // Extract base filenames for light and dark themes (if provided)
-    let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.')[0] : null;
-    let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.')[0] : null;
-
-    if (lightSrc && !lightBaseFilename) {
-      console.error('Invalid "light-src" attribute for <bh-img>: unable to extract base filename');
-      return;
-    }
-    if (darkSrc && !darkBaseFilename) {
-      console.error('Invalid "dark-src" attribute for <bh-img>: unable to extract base filename');
-      return;
-    }
-
-    // Use the src directly as the primary image path (fallback for <img>)
-    const primaryImagePath = src;
-
-    // Parse width (e.g., "100vw" or "40vw")
-    const widthMatch = width.match(/(\d+)vw/);
-    let widthPercentage = widthMatch ? parseInt(widthMatch[1]) / 100 : 1.0; // Default to 1.0 (100vw) if invalid
-
-    // Validate widthPercentage (between 0.1 and 2.0)
-    widthPercentage = Math.max(0.1, Math.min(2.0, widthPercentage));
-
-    // Generate sizes attribute dynamically, scaling based on width (no multiplier, DPR handles scaling)
-    const sizes = [
-      ...Img.SIZES_BREAKPOINTS.map(bp => `(max-width: ${bp.maxWidth}px) ${widthPercentage * 100}vw`),
-      `${parseInt(Img.DEFAULT_SIZE) * widthPercentage}px`
-    ].join(', ');
-
-    // Create picture element
-    const picture = document.createElement('picture');
-    picture.className = 'animate animate-fade-in';
-
-    // Use DocumentFragment to batch DOM operations
-    const fragment = document.createDocumentFragment();
-    Img.FORMATS.forEach(format => {
-      // If both lightSrc and darkSrc are provided, add theme-specific sources
-      if (lightSrc && darkSrc) {
-        // Source for light theme
-        const sourceLight = document.createElement('source');
-        const srcsetLight = Img.WIDTHS.map(w => `./img/responsive/${lightBaseFilename}-${w}.${format} ${w}w`).join(', ');
-        sourceLight.srcset = srcsetLight;
-        sourceLight.sizes = sizes;
-        sourceLight.type = `image/${format}`;
-        sourceLight.media = '(prefers-color-scheme: light)';
-        fragment.appendChild(sourceLight);
-
-        // Source for dark theme
-        const sourceDark = document.createElement('source');
-        const srcsetDark = Img.WIDTHS.map(w => `./img/responsive/${darkBaseFilename}-${w}.${format} ${w}w`).join(', ');
-        sourceDark.srcset = srcsetDark;
-        sourceDark.sizes = sizes;
-        sourceDark.type = `image/${format}`;
-        sourceDark.media = '(prefers-color-scheme: dark)';
-        fragment.appendChild(sourceDark);
+      if (!pictureHTML) {
+          return; // Error already logged in utility
       }
 
-      // Default source (used if no theme match or if light/dark src not provided)
-      const source = document.createElement('source');
-      const srcset = Img.WIDTHS.map(w => `./img/responsive/${baseFilename}-${w}.${format} ${w}w`).join(', ');
-      source.srcset = srcset;
-      source.sizes = sizes;
-      source.type = `image/${format}`;
-      fragment.appendChild(source);
-    });
-    picture.appendChild(fragment);
+      // Create picture element from HTML
+      const div = document.createElement('div');
+      div.innerHTML = pictureHTML;
+      const picture = div.firstChild;
 
-    // Create img element
-    const img = document.createElement('img');
-    img.src = primaryImagePath;
-    if (alt) img.alt = alt; // Only set alt if non-empty
-    img.setAttribute('loading', 'lazy'); // Explicitly set for clarity
+      // Add custom classes to the img element
+      const img = picture.querySelector('img');
+      if (customClasses) {
+          img.className = img.className ? `${img.className} ${customClasses}` : customClasses;
+      }
 
-    // Combine aspect ratio class (if present) with custom classes
-    let imgClasses = [];
-    if (aspectRatio && Img.VALID_ASPECT_RATIOS.includes(aspectRatio)) {
-      const aspectRatioClass = `aspect-ratio-${aspectRatio.replace('/', '-')}`;
-      imgClasses.push(aspectRatioClass);
-    }
-    if (customClasses) {
-      imgClasses.push(customClasses);
-    }
-    if (imgClasses.length > 0) {
-      img.className = imgClasses.join(' ');
-    }
+      // Add error handler
+      img.onerror = () => {
+          console.warn(`Failed to load primary image: ${src}. Falling back to placeholder.`);
+          img.src = 'https://placehold.co/3000x2000';
+          img.onerror = null;
+      };
 
-    // Re-enable onerror handler with a console warning for debugging
-    img.onerror = () => {
-      console.warn(`Failed to load primary image: ${primaryImagePath}. Falling back to placeholder.`);
-      img.src = 'https://placehold.co/3000x2000';
-      img.onerror = null; // Prevent infinite loop if placeholder also fails
-    };
-
-    picture.appendChild(img);
-    this.appendChild(picture);
+      this.appendChild(picture);
   }
 }
 
