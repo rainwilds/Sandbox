@@ -17,7 +17,6 @@ class BHVideo extends HTMLElement {
     const loop = this.hasAttribute('loop');
     const playsinline = this.hasAttribute('playsinline');
     const disablepictureinpicture = this.hasAttribute('disablepictureinpicture');
-    const className = this.getAttribute('class') || '';
 
     // Validate src
     if (!src) {
@@ -54,7 +53,12 @@ class BHVideo extends HTMLElement {
     if (loop) video.setAttribute('loop', '');
     if (playsinline) video.setAttribute('playsinline', '');
     if (disablepictureinpicture) video.setAttribute('disablepictureinpicture', '');
-    video.className = `bh-video-inner ${className}`.trim();
+
+    // Apply classes to the video element using classList (without bh-video-inner)
+    const hostClasses = this.classList;
+    hostClasses.forEach(cls => {
+      if (cls) video.classList.add(cls);
+    });
 
     // Select initial poster based on prefers-color-scheme (optimistic)
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
