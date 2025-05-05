@@ -54,7 +54,7 @@ class BHVideo extends HTMLElement {
     if (loop) video.setAttribute('loop', '');
     if (playsinline) video.setAttribute('playsinline', '');
     if (disablepictureinpicture) video.setAttribute('disablepictureinpicture', '');
-    if (className) video.className = className;
+    video.className = `bh-video-inner ${className}`.trim();
 
     // Select initial poster based on prefers-color-scheme (optimistic)
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -110,8 +110,8 @@ class BHVideo extends HTMLElement {
     // Default sources (always included as fallback)
     innerHTML += addSourcesHTML(src, null);
 
-    // Add fallback message
-    innerHTML += `<p>Your browser does not support the video tag. <a href="${src}">Download video</a></p>`;
+    // Add fallback message with a class for styling
+    innerHTML += `<p class="bh-video-fallback">Your browser does not support the video tag. <a href="${src}">Download video</a></p>`;
 
     // Set inner HTML all at once
     video.innerHTML = innerHTML;
