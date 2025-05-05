@@ -76,6 +76,7 @@ class BHVideo extends HTMLElement {
         if (activePoster) {
           const canLoadDefaultPoster = await canLoadImage(activePoster);
           if (!canLoadDefaultPoster) {
+            console.warn(`Default poster "${activePoster}" failed to load; no poster will be set.`);
             activePoster = null; // No poster if both fail
           }
         }
