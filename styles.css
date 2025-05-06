@@ -830,7 +830,7 @@
             grid-column: 1;
         }
     
-        &.background-image > :where(:not(picture)) {
+        &.background-image > :not(picture) {
             /* Apply display: grid only to non-<picture> elements */
             display: grid;
     
@@ -852,11 +852,11 @@
             border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
         }
     
-        & > div:not(div[class*="background-overlay"]):has(p) {
+        & > div:not(.background-overlay):has(p) {
             z-index: 2;
         }
     
-        & > div[class*="background-overlay"] {
+        & > .background-overlay {
             background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
             margin: 0 !important;
         }
@@ -874,7 +874,7 @@
         }
     }
 
-    
+
 
     div[class*="gallery-main"] {
 

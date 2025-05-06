@@ -50,6 +50,8 @@ class BhCard extends HTMLElement {
             const buttonHref = this.getAttribute('button-href') || '#';
             const buttonText = this.getAttribute('button-text') || 'Button';
             const hasBackgroundImage = this.hasAttribute('background-image');
+            const hasBackgroundOverlay = this.hasAttribute('background-overlay');
+            const backgroundOverlayColor = this.getAttribute('background-overlay') || 'light-dark(var(--color-static-light-4), var(--color-static-dark-2))';
             const classes = this.getAttribute('classes') || '';
             const imgSrc = this.getAttribute('src') || '';
             const lightSrc = this.getAttribute('light-src') || '';
@@ -74,11 +76,16 @@ class BhCard extends HTMLElement {
                         aspectRatio: aspectRatio
                     });
                     console.log('Generated backgroundImageHTML:', backgroundImageHTML); // Debug log
-                    overlayHTML = `<div class="background-overlay-1"></div>`;
+                    // Add the background-overlay div only if the attribute is present
+                    if (hasBackgroundOverlay) {
+                        overlayHTML = `<div class="background-overlay" style="background-color: ${backgroundOverlayColor};"></div>`;
+                    }
                 }
             } else if (hasBackgroundImage) {
                 console.warn('background-image attribute is present, but src is missing. Image will not be displayed.');
-                overlayHTML = `<div class="background-overlay-1"></div>`;
+                if (hasBackgroundOverlay) {
+                    overlayHTML = `<div class="background-overlay" style="background-color: ${backgroundOverlayColor};"></div>`;
+                }
             }
 
             // Determine the main div class and content structure
@@ -125,7 +132,7 @@ class BhCard extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['heading', 'description', 'button-href', 'button-text', 'background-image', 'classes', 'src', 'light-src', 'dark-src', 'alt', 'width', 'aspect-ratio'];
+        return ['heading', 'description', 'button-href', 'button-text', 'background-image', 'background-overlay', 'classes', 'src', 'light-src', 'dark-src', 'alt', 'width', 'aspect-ratio'];
     }
 
     attributeChangedCallback() {
