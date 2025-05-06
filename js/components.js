@@ -5,12 +5,14 @@ class BhCard extends HTMLElement {
     }
 
     connectedCallback() {
-        try {
-            this.render();
-            this.callbacks.forEach(callback => callback());
-        } catch (error) {
-            console.error('Error in BhCard connectedCallback:', error);
-        }
+        this.waitForImageShared(() => {
+            try {
+                this.render();
+                this.callbacks.forEach(callback => callback());
+            } catch (error) {
+                console.error('Error in BhCard connectedCallback:', error);
+            }
+        });
     }
 
     disconnectedCallback() {
@@ -19,6 +21,25 @@ class BhCard extends HTMLElement {
 
     addCallback(callback) {
         this.callbacks.push(callback);
+    }
+
+    waitForImageShared(callback) {
+        if (typeof ImageShared !== 'undefined') {
+            callback();
+            return;
+        }
+        const interval = setInterval(() => {
+            if (typeof ImageShared !== 'undefined') {
+                clearInterval(interval);
+                callback();
+            }
+        }, 100);
+        // Fallback timeout to prevent infinite waiting
+        setTimeout(() => {
+            clearInterval(interval);
+            console.error('Timed out waiting for ImageShared to be defined. Ensure image-shared.js is loaded correctly.');
+            callback(); // Proceed with rendering, even if ImageShared is missing
+        }, 5000);
     }
 
     render() {
@@ -42,7 +63,7 @@ class BhCard extends HTMLElement {
             let overlayHTML = '';
             if (hasBackgroundImage && imgSrc) {
                 if (typeof ImageShared === 'undefined') {
-                    console.error('ImageShared is not defined. Ensure image-shared.js is loaded before components.js');
+                    console.error('ImageShared is not defined during render. Ensure image-shared.js is loaded before components.js');
                 } else {
                     backgroundImageHTML = ImageShared.generatePictureMarkup({
                         src: imgSrc,
@@ -108,11 +129,13 @@ class BhCard extends HTMLElement {
     }
 
     attributeChangedCallback() {
-        try {
-            this.render();
-        } catch (error) {
-            console.error('Error in BhCard attributeChangedCallback:', error);
-        }
+        this.waitForImageShared(() => {
+            try {
+                this.render();
+            } catch (error) {
+                console.error('Error in BhCard attributeChangedCallback:', error);
+            }
+        });
     }
 }
 
@@ -124,56 +147,76 @@ class Img extends HTMLElement {
     }
 
     connectedCallback() {
-        try {
-            const src = this.getAttribute('src');
-            const lightSrc = this.getAttribute('light-src');
-            const darkSrc = this.getAttribute('dark-src');
-            const alt = this.getAttribute('alt') || '';
-            const aspectRatio = this.getAttribute('aspect-ratio') || '';
-            const width = this.getAttribute('width') || '100vw';
-            const customClasses = this.getAttribute('class') || '';
+        this.waitForImageShared(() => {
+            try {
+                const src = this.getAttribute('src');
+                const lightSrc = this.getAttribute('light-src');
+                const darkSrc = this.getAttribute('dark-src');
+                const alt = this.getAttribute('alt') || '';
+                const aspectRatio = this.getAttribute('aspect-ratio') || '';
+                const width = this.getAttribute('width') || '100vw';
+                const customClasses = this.getAttribute('class') || '';
 
-            // Generate the picture markup using the shared utility
-            if (typeof ImageShared === 'undefined') {
-                console.error('ImageShared is not defined. Ensure image-shared.js is loaded before components.js');
-                return;
+                // Generate the picture markup using the shared utility
+                if (typeof ImageShared === 'undefined') {
+                    console.error('ImageShared is not defined. Ensure image-shared.js is loaded before components.js');
+                    return;
+                }
+
+                const pictureHTML = ImageShared.generatePictureMarkup({
+                    src: src,
+                    lightSrc: lightSrc,
+                    darkSrc: darkSrc,
+                    alt: alt,
+                    width: width,
+                    aspectRatio: aspectRatio
+                });
+
+                if (!pictureHTML) {
+                    return; // Error already logged in utility
+                }
+
+                // Create picture element from HTML
+                const div = document.createElement('div');
+                div.innerHTML = pictureHTML;
+                const picture = div.firstChild;
+
+                // Add custom classes to the img element
+                const img = picture.querySelector('img');
+                if (customClasses) {
+                    img.className = img.className ? `${img.className} ${customClasses}` : customClasses;
+                }
+
+                // Add error handler
+                img.onerror = () => {
+                    console.warn(`Failed to load primary image: ${src}. Falling back to placeholder.`);
+                    img.src = 'https://placehold.co/3000x2000';
+                    img.onerror = null;
+                };
+
+                this.appendChild(picture);
+            } catch (error) {
+                console.error('Error in Img connectedCallback:', error);
             }
+        });
+    }
 
-            const pictureHTML = ImageShared.generatePictureMarkup({
-                src: src,
-                lightSrc: lightSrc,
-                darkSrc: darkSrc,
-                alt: alt,
-                width: width,
-                aspectRatio: aspectRatio
-            });
-
-            if (!pictureHTML) {
-                return; // Error already logged in utility
-            }
-
-            // Create picture element from HTML
-            const div = document.createElement('div');
-            div.innerHTML = pictureHTML;
-            const picture = div.firstChild;
-
-            // Add custom classes to the img element
-            const img = picture.querySelector('img');
-            if (customClasses) {
-                img.className = img.className ? `${img.className} ${customClasses}` : customClasses;
-            }
-
-            // Add error handler
-            img.onerror = () => {
-                console.warn(`Failed to load primary image: ${src}. Falling back to placeholder.`);
-                img.src = 'https://placehold.co/3000x2000';
-                img.onerror = null;
-            };
-
-            this.appendChild(picture);
-        } catch (error) {
-            console.error('Error in Img connectedCallback:', error);
+    waitForImageShared(callback) {
+        if (typeof ImageShared !== 'undefined') {
+            callback();
+            return;
         }
+        const interval = setInterval(() => {
+            if (typeof ImageShared !== 'undefined') {
+                clearInterval(interval);
+                callback();
+            }
+        }, 100);
+        setTimeout(() => {
+            clearInterval(interval);
+            console.error('Timed out waiting for ImageShared to be defined. Ensure image-shared.js is loaded correctly.');
+            callback();
+        }, 5000);
     }
 }
 
