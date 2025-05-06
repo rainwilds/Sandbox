@@ -825,7 +825,11 @@
         grid-auto-rows: min-content;
         height: 100%; /* to ensure web component spans designated height */
 
-        &.background-image>*:not(picture>source) {
+        >picture {
+            display: block; /* placed here to overrite below */
+        }
+
+        &.background-image>* {
             display: grid;
             grid-row: 1 / span 2;
             grid-column: 1;
