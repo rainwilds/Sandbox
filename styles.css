@@ -843,19 +843,19 @@
             z-index: 1;
         }
     
-        &.border-1 {
+        /* &.border-1 {
             border: solid var(--border-size-small);
             border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
-        }
+        } */
     
         & > div:not(.background-overlay):has(p) {
             z-index: 2;
         }
     
-        & > .background-overlay {
+        /* & > .background-overlay {
             background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
             margin: 0 !important;
-        }
+        } */
     
         > picture:first-child + * {
             margin-top: var(--space-small);
