@@ -857,16 +857,21 @@
             margin: 0 !important;
         }
     
-        a {
-            margin-top: var(--space-tiny);
-        }
-    
         > picture:first-child + * {
             margin-top: var(--space-small);
         }
+
     
         > *:first-child:not(picture) {
             margin-bottom: var(--space-small);
+        }
+
+        a {
+            margin-top: var(--space-tiny);
+        }
+
+        img {
+            height: 100%;
         }
     }
 
