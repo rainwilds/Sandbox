@@ -399,7 +399,7 @@
 
             color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-secondary));
             /* text-decoration: none; */
-            text-underline-offset: -0.4rem;
+            /* text-underline-offset: -0.4rem; */
 
             /* adobe font requirements */
             /* font-weight: var(--font-2-weight-light); test */
