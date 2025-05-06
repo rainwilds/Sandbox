@@ -39,6 +39,7 @@ class BhCard extends HTMLElement {
 
             // Build the card with optional background image
             let backgroundImageHTML = '';
+            let overlayHTML = '';
             if (hasBackgroundImage && imgSrc) {
                 if (typeof ImageShared === 'undefined') {
                     console.error('ImageShared is not defined. Ensure image-shared.js is loaded before components.js');
@@ -51,6 +52,7 @@ class BhCard extends HTMLElement {
                         width: width,
                         aspectRatio: aspectRatio
                     });
+                    overlayHTML = `<div class="background-overlay-1"></div>`;
                 }
             }
 
@@ -58,12 +60,12 @@ class BhCard extends HTMLElement {
             const mainDivClass = hasBackgroundImage ? `card background-image ${classes}` : `card ${classes}`;
             const contentHTML = hasBackgroundImage
                 ? `
-                    <div>
+                    <div class="padding-medium space-between">
                         <hgroup>
                             <h2>${heading}</h2>
                             <p>${description}</p>
                         </hgroup>
-                        <a class="button" href="${buttonHref}">${buttonText}</a>
+                        <a href="${buttonHref}"><button>${buttonText}</button></a>
                     </div>
                 `
                 : `
@@ -78,6 +80,7 @@ class BhCard extends HTMLElement {
             this.innerHTML = `
                 <div class="${mainDivClass}">
                     ${backgroundImageHTML || ''}
+                    ${overlayHTML}
                     ${contentHTML}
                 </div>
             `;
