@@ -864,7 +864,7 @@
             margin-top: var(--space-tiny);
         }
 
-        >picture {
+        >:is(picture) {
             display: block; /* removes additional space added by grid for sources */
         }
 
