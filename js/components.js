@@ -53,7 +53,7 @@ class BhCard extends HTMLElement {
             const hasBackgroundOverlay = this.hasAttribute('background-overlay');
             const backgroundOverlayColor = this.getAttribute('background-overlay') || 'light-dark(var(--color-static-light-4), var(--color-static-dark-2))';
             const hasBackgroundColor = this.hasAttribute('background-color');
-            const backgroundColor = hasBackgroundColor ? `background-color: ${this.getAttribute('background-color')};` : '';
+            const backgroundColorClass = hasBackgroundColor ? this.getAttribute('background-color') : '';
             const classes = this.getAttribute('classes') || '';
             const imgSrc = this.getAttribute('src') || '';
             const lightSrc = this.getAttribute('light-src') || '';
@@ -91,7 +91,9 @@ class BhCard extends HTMLElement {
             }
 
             // Determine the main div class and content structure
-            const mainDivClass = hasBackgroundImage ? `card background-image ${classes}` : `card ${classes}`;
+            const mainDivClass = hasBackgroundImage 
+                ? `card background-image ${classes} ${backgroundColorClass}` 
+                : `card ${classes} ${backgroundColorClass}`;
             const contentHTML = hasBackgroundImage
                 ? `
                     <div class="padding-medium space-between">
@@ -112,7 +114,7 @@ class BhCard extends HTMLElement {
 
             // Render the HTML structure
             this.innerHTML = `
-                <div class="${mainDivClass}" style="${backgroundColor}">
+                <div class="${mainDivClass}">
                     ${backgroundImageHTML || ''}
                     ${overlayHTML}
                     ${contentHTML}
