@@ -860,7 +860,6 @@
         > picture:first-child + * {
             margin-top: var(--space-small);
         }
-
     
         > *:first-child:not(picture) {
             margin-bottom: var(--space-small);

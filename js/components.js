@@ -99,7 +99,7 @@ class BhCard extends HTMLElement {
                             <h2>${heading}</h2>
                             <p>${description}</p>
                         </hgroup>
-                        <a href="${buttonHref}"><button>${buttonText}</button></a>
+                        <a href="${buttonHref}">${buttonText}</a>
                     </div>
                 `
                 : `
