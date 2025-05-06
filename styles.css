@@ -820,63 +820,61 @@
 
 
     div.card {
-
         display: grid;
         grid-auto-rows: min-content;
         height: 100%; /* to ensure web component spans designated height */
-
-        >picture {
-            display: block; /* placed here to overrite below */
-        }
-
-        &.background-image>* {
-            display: grid;
+    
+        &.background-image > * {
+            /* Apply positioning to all direct children, including <picture> */
             grid-row: 1 / span 2;
             grid-column: 1;
-
-            >div {
+        }
+    
+        &.background-image > :where(:not(picture)) {
+            /* Apply display: grid only to non-<picture> elements */
+            display: grid;
+    
+            > div {
                 margin: 0;
             }
         }
-
-        &.background-image>*:not(picture) {
+    
+        &.background-image > *:not(picture) {
             z-index: 1;
         }
-
-
+    
         &.background-color-1 {
             background-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
         }
-
+    
         &.border-1 {
             border: solid var(--border-size-small);
             border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
         }
-
-        &>div:not(div[class*="background-overlay"]):has(p) {
+    
+        & > div:not(div[class*="background-overlay"]):has(p) {
             z-index: 2;
         }
-
-        &>div[class*="background-overlay"] {
-
+    
+        & > div[class*="background-overlay"] {
             background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
             margin: 0 !important;
-
         }
-
+    
         a {
             margin-top: var(--space-tiny);
         }
-        
-
-        >picture:first-child+* {
+    
+        > picture:first-child + * {
             margin-top: var(--space-small);
         }
-
-        >*:first-child:not(picture) {
+    
+        > *:first-child:not(picture) {
             margin-bottom: var(--space-small);
         }
     }
+
+    
 
     div[class*="gallery-main"] {
 
