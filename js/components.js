@@ -52,8 +52,12 @@ class BhCard extends HTMLElement {
                         width: width,
                         aspectRatio: aspectRatio
                     });
+                    console.log('Generated backgroundImageHTML:', backgroundImageHTML); // Debug log
                     overlayHTML = `<div class="background-overlay-1"></div>`;
                 }
+            } else if (hasBackgroundImage) {
+                console.warn('background-image attribute is present, but src is missing. Image will not be displayed.');
+                overlayHTML = `<div class="background-overlay-1"></div>`;
             }
 
             // Determine the main div class and content structure
