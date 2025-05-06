@@ -825,7 +825,7 @@
         grid-auto-rows: min-content;
         height: 100%; /* to ensure web component spans designated height */
 
-        &.background-image>* {
+        &.background-image>*:not(picture) {
             display: grid;
             grid-row: 1 / span 2;
             grid-column: 1;
@@ -864,7 +864,7 @@
             margin-top: var(--space-tiny);
         }
 
-        >:is(picture) {
+        >picture{
             display: block; /* removes additional space added by grid for sources */
         }
 
