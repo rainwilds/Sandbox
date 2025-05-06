@@ -843,10 +843,6 @@
             z-index: 1;
         }
     
-        &.background-color-1 {
-            background-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
-        }
-    
         &.border-1 {
             border: solid var(--border-size-small);
             border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));

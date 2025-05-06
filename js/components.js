@@ -52,6 +52,8 @@ class BhCard extends HTMLElement {
             const hasBackgroundImage = this.hasAttribute('background-image');
             const hasBackgroundOverlay = this.hasAttribute('background-overlay');
             const backgroundOverlayColor = this.getAttribute('background-overlay') || 'light-dark(var(--color-static-light-4), var(--color-static-dark-2))';
+            const hasBackgroundColor = this.hasAttribute('background-color');
+            const backgroundColor = hasBackgroundColor ? `background-color: ${this.getAttribute('background-color')};` : '';
             const classes = this.getAttribute('classes') || '';
             const imgSrc = this.getAttribute('src') || '';
             const lightSrc = this.getAttribute('light-src') || '';
@@ -110,7 +112,7 @@ class BhCard extends HTMLElement {
 
             // Render the HTML structure
             this.innerHTML = `
-                <div class="${mainDivClass}">
+                <div class="${mainDivClass}" style="${backgroundColor}">
                     ${backgroundImageHTML || ''}
                     ${overlayHTML}
                     ${contentHTML}
@@ -132,7 +134,7 @@ class BhCard extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['heading', 'description', 'button-href', 'button-text', 'background-image', 'background-overlay', 'classes', 'src', 'light-src', 'dark-src', 'alt', 'width', 'aspect-ratio'];
+        return ['heading', 'description', 'button-href', 'button-text', 'background-image', 'background-overlay', 'background-color', 'classes', 'src', 'light-src', 'dark-src', 'alt', 'width', 'aspect-ratio'];
     }
 
     attributeChangedCallback() {
