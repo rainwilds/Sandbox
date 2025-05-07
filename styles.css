@@ -230,28 +230,35 @@
         --grayscale-medium: grayscale(0.6);
         --grayscale-large: grayscale(1);
 
+        --filter-blur: none;
+        --filter-grayscale: none;
+
         .backdrop-filter-blur-small {
-                backdrop-filter: var(--blur-small);
+            --blur-filter: blur(var(--blur-small));
         }
-
+        
         .backdrop-filter-blur-medium {
-                backdrop-filter: var(--blur-medium);
+            --blur-filter: blur(var(--blur-medium));
         }
-
+        
         .backdrop-filter-blur-large {
-                backdrop-filter: var(--blur-large);
+            --blur-filter: blur(var(--blur-large));
         }
         
         .backdrop-filter-grayscale-small {
-            backdrop-filter: var(--grayscale-small);
+            --grayscale-filter: grayscale(var(--grayscale-small));
         }
-
+        
         .backdrop-filter-grayscale-medium {
-            backdrop-filter: var(--grayscale-medium);
+            --grayscale-filter: grayscale(var(--grayscale-medium));
+        }
+        
+        .backdrop-filter-grayscale-large {
+            --grayscale-filter: grayscale(var(--grayscale-large));
         }
 
-        .backdrop-filter-grayscale-large {
-            backdrop-filter: var(--grayscale-large);
+        [class*="backdrop-filter-"] {
+            backdrop-filter: var(--blur-filter) var(--grayscale-filter);
         }
 
         ::backdrop {
@@ -858,52 +865,53 @@
     div.card {
         display: grid;
         grid-auto-rows: min-content;
-        height: 100%; /* to ensure web component spans designated height */
+        height: 100%;
+        /* to ensure web component spans designated height */
 
-        &:not(.background-image) > picture:first-child + * {
+        &:not(.background-image)>picture:first-child+* {
             margin-top: var(--space-small);
-        } 
-    
-        &.background-image > * {
+        }
+
+        &.background-image>* {
             /* Apply positioning to all direct children, including <picture> */
             grid-row: 1 / span 2;
             grid-column: 1;
         }
-    
-        &.background-image > :not(picture) {
+
+        &.background-image> :not(picture) {
             /* Apply display: grid only to non-<picture> elements */
             display: grid;
-    
-            > div {
+
+            >div {
                 margin: 0;
             }
         }
-    
-        &.background-image > *:not(picture) {
+
+        &.background-image>*:not(picture) {
             z-index: 1;
         }
-    
+
         /* &.border-1 {
             border: solid var(--border-size-small);
             border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
         } */
-    
-        & > div:not(.background-overlay):has(p) {
+
+        &>div:not(.background-overlay):has(p) {
             z-index: 2;
         }
-    
-        & > .background-overlay {
+
+        &>.background-overlay {
             background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
             margin: 0 !important;
         }
-    
+
         /* > picture:first-child + * {
             margin-top: var(--space-small);
         } */
 
-       
-    
-        > *:first-child:not(picture) {
+
+
+        >*:first-child:not(picture) {
             margin-bottom: var(--space-small);
         }
 
@@ -1203,7 +1211,7 @@
     }
 
     /* 5. notificatio banner */
-    
+
 
 
     /* 6. Form Group */
@@ -1612,17 +1620,19 @@ body {
 
 /* Too convert into the .card Web Component */
 div#products {
-    display: grid !important; /* Ensure grid applies, for debugging */
+    display: grid !important;
+    /* Ensure grid applies, for debugging */
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
     gap: 24px !important;
     padding: 24px !important;
     justify-content: center !important;
     max-width: 1200px !important;
     margin: 0 auto !important;
-    border: 2px solid red; /* Temporary border for debugging */
-  }
-  
-  .product-card {
+    border: 2px solid red;
+    /* Temporary border for debugging */
+}
+
+.product-card {
     display: grid;
     grid-template-rows: auto auto 1fr auto;
     padding: 16px;
@@ -1631,31 +1641,31 @@ div#products {
     border-radius: 8px;
     text-align: center;
     transition: transform 0.2s;
-  }
-  
-  .product-card:hover {
+}
+
+.product-card:hover {
     transform: translateY(-4px);
-  }
-  
-  .product-card h3 {
+}
+
+.product-card h3 {
     margin: 0 0 var(--space-small);
     font-size: 1.5em;
-  }
-  
-  .product-card img {
+}
+
+.product-card img {
     max-width: 100%;
     height: auto;
     border-radius: 4px;
     margin-bottom: var(--space-small);
-  }
-  
-  .product-card p {
+}
+
+.product-card p {
     margin: 0 0 var(--space-small);
     font-size: 1em;
     color: light-dark(#555, #aaa);
-  }
-  
-  .product-card .snipcart-add-item {
+}
+
+.product-card .snipcart-add-item {
     padding: 10px 20px;
     background-color: #007bff;
     color: white;
@@ -1664,11 +1674,11 @@ div#products {
     cursor: pointer;
     font-size: 1em;
     margin-top: var(--space-tiny);
-  }
-  
-  .product-card .snipcart-add-item:hover {
+}
+
+.product-card .snipcart-add-item:hover {
     background-color: #0056b3;
-  }
+}
 
 
 
