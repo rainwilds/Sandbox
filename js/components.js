@@ -54,6 +54,9 @@ class BhCard extends HTMLElement {
             const backgroundOverlayColor = this.getAttribute('background-overlay') || 'light-dark(var(--color-static-light-4), var(--color-static-dark-2))';
             const hasBackgroundColor = this.hasAttribute('background-color');
             const backgroundColorClass = hasBackgroundColor ? this.getAttribute('background-color') : '';
+            const hasBackdropFilter = this.hasAttribute('backdrop-filter');
+            // backdropFilterClass can be a space-separated list of classes (e.g., "backdrop-filter-blur-medium backdrop-filter-grayscale-large")
+            const backdropFilterClass = hasBackdropFilter ? this.getAttribute('backdrop-filter') : '';
             const classes = this.getAttribute('classes') || '';
             const imgSrc = this.getAttribute('src') || '';
             const lightSrc = this.getAttribute('light-src') || '';
@@ -80,13 +83,15 @@ class BhCard extends HTMLElement {
                     console.log('Generated backgroundImageHTML:', backgroundImageHTML); // Debug log
                     // Add the background-overlay div only if the attribute is present
                     if (hasBackgroundOverlay) {
-                        overlayHTML = `<div class="background-overlay" style="background-color: ${backgroundOverlayColor};"></div>`;
+                        // Apply backdrop-filter classes to the background-overlay div
+                        overlayHTML = `<div class="background-overlay ${backdropFilterClass}" style="background-color: ${backgroundOverlayColor};"></div>`;
                     }
                 }
             } else if (hasBackgroundImage) {
                 console.warn('background-image attribute is present, but src is missing. Image will not be displayed.');
                 if (hasBackgroundOverlay) {
-                    overlayHTML = `<div class="background-overlay" style="background-color: ${backgroundOverlayColor};"></div>`;
+                    // Apply backdrop-filter classes to the background-overlay div
+                    overlayHTML = `<div class="background-overlay ${backdropFilterClass}" style="background-color: ${backgroundOverlayColor};"></div>`;
                 }
             }
 
@@ -136,7 +141,7 @@ class BhCard extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['heading', 'description', 'button-href', 'button-text', 'background-image', 'background-overlay', 'background-color', 'classes', 'src', 'light-src', 'dark-src', 'alt', 'width', 'aspect-ratio'];
+        return ['heading', 'description', 'button-href', 'button-text', 'background-image', 'background-overlay', 'background-color', 'backdrop-filter', 'classes', 'src', 'light-src', 'dark-src', 'alt', 'width', 'aspect-ratio'];
     }
 
     attributeChangedCallback() {
