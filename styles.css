@@ -902,6 +902,10 @@
             grid-column: 1;
         }
 
+        &.background-image[class*="border-radius"] > picture {
+            border-radius: inherit;
+        }
+
         &.background-image> :not(picture) {
             /* Apply display: grid only to non-<picture> elements */
             display: grid;
