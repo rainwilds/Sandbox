@@ -54,6 +54,10 @@ class BhCard extends HTMLElement {
             const backgroundOverlayColor = this.getAttribute('background-overlay') || 'light-dark(var(--color-static-light-4), var(--color-static-dark-2))';
             const hasBackgroundColor = this.hasAttribute('background-color');
             const backgroundColorClass = hasBackgroundColor ? this.getAttribute('background-color') : '';
+            const hasBorder = this.hasAttribute('border');
+            const borderClass = hasBorder ? this.getAttribute('border') : '';
+            const hasBorderRadius = this.hasAttribute('border-radius');
+            const borderRadiusClass = hasBorderRadius && hasBorder ? this.getAttribute('border-radius') : ''; // Only apply border-radius if border is present
             const hasBackdropFilter = this.hasAttribute('backdrop-filter');
             // backdropFilterClass can be a space-separated list of classes (e.g., "backdrop-filter-blur-medium backdrop-filter-grayscale-large")
             const backdropFilterClass = hasBackdropFilter ? this.getAttribute('backdrop-filter') : '';
@@ -97,8 +101,8 @@ class BhCard extends HTMLElement {
 
             // Determine the main div class and content structure
             const mainDivClass = hasBackgroundImage 
-                ? `card background-image ${classes} ${backgroundColorClass}` 
-                : `card ${classes} ${backgroundColorClass}`;
+                ? `card background-image ${classes} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`
+                : `card ${classes} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`;
             const contentHTML = hasBackgroundImage
                 ? `
                     <div class="padding-medium space-between">
@@ -141,7 +145,7 @@ class BhCard extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['heading', 'description', 'button-href', 'button-text', 'background-image', 'background-overlay', 'background-color', 'backdrop-filter', 'classes', 'src', 'light-src', 'dark-src', 'alt', 'width', 'aspect-ratio'];
+        return ['heading', 'description', 'button-href', 'button-text', 'background-image', 'background-overlay', 'background-color', 'border', 'border-radius', 'backdrop-filter', 'classes', 'src', 'light-src', 'dark-src', 'alt', 'width', 'aspect-ratio'];
     }
 
     attributeChangedCallback() {
