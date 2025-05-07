@@ -902,7 +902,7 @@
             grid-column: 1;
         }
 
-        &.background-image[class*="border-radius"] :where(> picture, > picture > img) {
+        &.background-image[class*="border-radius"] > :where(picture, picture > img) {
             border-radius: inherit;
         }
 
