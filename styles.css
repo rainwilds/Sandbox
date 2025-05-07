@@ -222,6 +222,30 @@
         --border-radius-medium: 20px;
         --border-radius-large: 30px;
 
+        .border-small {
+            border: solid var(--border-size-small) light-dark(var(--color-background-dark), var(--color-accent-light-secondary));
+        }
+
+        .border-medium {
+            border: solid var(--border-size-medium) light-dark(var(--color-background-dark), var(--color-accent-light-secondary));
+        }
+
+        .border-large {
+            border: solid var(--border-size-large) light-dark(var(--color-background-dark), var(--color-accent-light-secondary));
+        }
+
+        .border-radius-small {
+            border-radius: var(--border-radius-small);
+        }
+
+        .border-radius-medium {
+            border-radius: var(--border-radius-medium);
+        }
+
+        .border-radius-large {
+            border-radius: var(--border-radius-large);
+        }
+
         --blur-small: 5px;
         --blur-medium: 10px;
         --blur-large: 20px;
@@ -236,23 +260,23 @@
         .backdrop-filter-blur-small {
             --blur-filter: blur(var(--blur-small));
         }
-        
+
         .backdrop-filter-blur-medium {
             --blur-filter: blur(var(--blur-medium));
         }
-        
+
         .backdrop-filter-blur-large {
             --blur-filter: blur(var(--blur-large));
         }
-        
+
         .backdrop-filter-grayscale-small {
             --grayscale-filter: grayscale(var(--grayscale-small));
         }
-        
+
         .backdrop-filter-grayscale-medium {
             --grayscale-filter: grayscale(var(--grayscale-medium));
         }
-        
+
         .backdrop-filter-grayscale-large {
             --grayscale-filter: grayscale(var(--grayscale-large));
         }
