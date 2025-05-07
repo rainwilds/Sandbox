@@ -222,13 +222,13 @@
         --border-radius-medium: 20px;
         --border-radius-large: 30px;
 
-        --blur-small: blur(5px);
-        --blur-medium: blur(10px);
-        --blur-large: blur(20px);
+        --blur-small: 5px;
+        --blur-medium: 10px;
+        --blur-large: 20px;
 
-        --grayscale-small: grayscale(0.3);
-        --grayscale-medium: grayscale(0.6);
-        --grayscale-large: grayscale(1);
+        --grayscale-small: 0.3;
+        --grayscale-medium: 0.6;
+        --grayscale-large: 1;
 
         --filter-blur: none;
         --filter-grayscale: none;
