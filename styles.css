@@ -226,6 +226,30 @@
         --blur-medium: blur(10px);
         --blur-large: blur(20px);
 
+        .backdrop-filter-small {
+            -webkit-backdrop-filter: blur(var(--blur-small));
+
+            @supports selector(backdrop-filter) {
+                backdrop-filter: blur(var(--blur-small));
+            }
+        }
+
+        .backdrop-filter-medium {
+            -webkit-backdrop-filter: blur(var(--blur-medium));
+
+            @supports selector(backdrop-filter) {
+                backdrop-filter: blur(var(--blur-medium));
+            }
+        }
+
+        .backdrop-filter-large {
+            -webkit-backdrop-filter: blur(var(--blur-large));
+
+            @supports selector(backdrop-filter) {
+                backdrop-filter: blur(var(--blur-large));
+            }
+        }        
+
         ::backdrop {
 
             -webkit-backdrop-filter: brightness(0.1) opacity(0.5) saturate(0);
@@ -831,6 +855,10 @@
         display: grid;
         grid-auto-rows: min-content;
         height: 100%; /* to ensure web component spans designated height */
+
+        &:not(.background-image) > picture:first-child + * {
+            margin-top: var(--space-small);
+        } 
     
         &.background-image > * {
             /* Apply positioning to all direct children, including <picture> */
@@ -869,9 +897,7 @@
             margin-top: var(--space-small);
         } */
 
-        &:not(.background-image) > picture:first-child + * {
-            margin-top: var(--space-small);
-        }        
+       
     
         > *:first-child:not(picture) {
             margin-bottom: var(--space-small);
