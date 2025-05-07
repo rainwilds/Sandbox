@@ -865,9 +865,13 @@
             margin: 0 !important;
         }
     
-        > picture:first-child + * {
+        /* > picture:first-child + * {
             margin-top: var(--space-small);
-        }
+        } */
+
+        &:not(.background-image) > picture:first-child + * {
+            margin-top: var(--space-small);
+        }        
     
         > *:first-child:not(picture) {
             margin-bottom: var(--space-small);
