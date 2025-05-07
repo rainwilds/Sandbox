@@ -226,17 +226,33 @@
         --blur-medium: blur(10px);
         --blur-large: blur(20px);
 
-        .backdrop-filter-small {
-                backdrop-filter: blur(var(--blur-small));
+        --grayscale-small: grayscale(0.3);
+        --grayscale-medium: grayscale(0.6);
+        --grayscale-large: grayscale(1);
+
+        .backdrop-filter-blur-small {
+                backdrop-filter: var(--blur-small);
         }
 
-        .backdrop-filter-medium {
-                backdrop-filter: blur(var(--blur-medium));
+        .backdrop-filter-blur-medium {
+                backdrop-filter: var(--blur-medium);
         }
 
-        .backdrop-filter-large {
-                backdrop-filter: blur(var(--blur-large));
-        }        
+        .backdrop-filter-blur-large {
+                backdrop-filter: var(--blur-large);
+        }
+        
+        .backdrop-filter-grayscale-small {
+            backdrop-filter: var(--grayscale-small);
+        }
+
+        .backdrop-filter-grayscale-medium {
+            backdrop-filter: var(--grayscale-medium);
+        }
+
+        .backdrop-filter-grayscale-large {
+            backdrop-filter: var(--grayscale-large);
+        }
 
         ::backdrop {
 
