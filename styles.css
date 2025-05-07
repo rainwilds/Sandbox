@@ -227,27 +227,15 @@
         --blur-large: blur(20px);
 
         .backdrop-filter-small {
-            -webkit-backdrop-filter: blur(var(--blur-small));
-
-            @supports selector(backdrop-filter) {
                 backdrop-filter: blur(var(--blur-small));
-            }
         }
 
         .backdrop-filter-medium {
-            -webkit-backdrop-filter: blur(var(--blur-medium));
-
-            @supports selector(backdrop-filter) {
                 backdrop-filter: blur(var(--blur-medium));
-            }
         }
 
         .backdrop-filter-large {
-            -webkit-backdrop-filter: blur(var(--blur-large));
-
-            @supports selector(backdrop-filter) {
                 backdrop-filter: blur(var(--blur-large));
-            }
         }        
 
         ::backdrop {
