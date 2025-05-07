@@ -891,6 +891,7 @@
         grid-auto-rows: min-content;
         height: 100%;
         /* to ensure web component spans designated height */
+        overflow: auto; /* needed to make sure that border-radius on background-images works */
 
         &:not(.background-image)>picture:first-child+* {
             margin-top: var(--space-small);
