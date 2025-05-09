@@ -103,9 +103,15 @@ class BhCard extends HTMLElement {
             const mainDivClass = hasBackgroundImage 
                 ? `card background-image ${classes} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`
                 : `card ${classes} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`;
+            
+            // Check if 'space-between' is in the classes attribute
+            const hasSpaceBetween = classes.split(' ').includes('space-between');
+            // Apply 'space-between' to the inner div only if present in classes
+            const innerDivClass = `padding-medium${hasSpaceBetween ? ' space-between' : ''}`;
+            
             const contentHTML = hasBackgroundImage
                 ? `
-                    <div class="padding-medium space-between">
+                    <div class="${innerDivClass}">
                         <hgroup>
                             <h2>${heading}</h2>
                             <p>${description}</p>
