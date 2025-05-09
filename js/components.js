@@ -57,7 +57,7 @@ class BhCard extends HTMLElement {
             const hasBorder = this.hasAttribute('border');
             const borderClass = hasBorder ? this.getAttribute('border') : '';
             const hasBorderRadius = this.hasAttribute('border-radius');
-            const borderRadiusClass = hasBorderRadius && hasBorder ? this.getAttribute('border-radius') : ''; // Only apply border-radius if border is present
+            const borderRadiusClass = hasBorderRadius && hasBorder ? this.getAttribute('border-radius') : '';
             const hasBackdropFilter = this.hasAttribute('backdrop-filter');
             // backdropFilterClass can be a space-separated list of classes (e.g., "backdrop-filter-blur-medium backdrop-filter-grayscale-large")
             const backdropFilterClass = hasBackdropFilter ? this.getAttribute('backdrop-filter') : '';
@@ -104,14 +104,19 @@ class BhCard extends HTMLElement {
                 ? `card background-image ${classes} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`
                 : `card ${classes} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`;
             
-            // Check if 'space-between' is in the classes attribute
-            const hasSpaceBetween = classes.split(' ').includes('space-between');
-            // Apply 'space-between' to the inner div only if present in classes
-            const innerDivClass = `padding-medium${hasSpaceBetween ? ' space-between' : ''}`;
+            // Check if 'space-between' and 'padding-medium' are in the classes attribute
+            const classList = classes.split(' ').filter(cls => cls.length > 0); // Split and filter out empty strings
+            const hasSpaceBetween = classList.includes('space-between');
+            const hasPaddingMedium = classList.includes('padding-medium');
+            // Construct the inner div class dynamically
+            const innerDivClasses = [];
+            if (hasPaddingMedium) innerDivClasses.push('padding-medium');
+            if (hasSpaceBetween) innerDivClasses.push('space-between');
+            const innerDivClass = innerDivClasses.length > 0 ? innerDivClasses.join(' ') : '';
             
             const contentHTML = hasBackgroundImage
                 ? `
-                    <div class="${innerDivClass}">
+                    <div${innerDivClass ? ` class="${innerDivClass}"` : ''}>
                         <hgroup>
                             <h2>${heading}</h2>
                             <p>${description}</p>
