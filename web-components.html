@@ -43,6 +43,71 @@
       data-twitter-domain="rainwilds.github.io"
       data-twitter-card="summary_large_image"
     ></data-bh-head>
+
+      <style>
+    .category-container {
+      margin-bottom: 20px;
+    }
+    .category-header {
+      width: 100%;
+      margin: 20px 0 10px;
+      font-size: 1.2em;
+      color: white;
+    }
+    .component-list {
+      display: flex;
+      flex-wrap: wrap;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      gap: 20px;
+    }
+    .component-item {
+      color: black;
+      padding: 15px;
+      border-radius: 8px;
+      min-width: 200px;
+      max-width: 250px;
+    }
+    .component-item.bg-1 { background-color: #f0f0f0; }
+    .component-item.bg-2 { background-color: #e6f3ff; }
+    .component-item.bg-3 { background-color: #fff5e6; }
+    .component-item.bg-4 { background-color: #e6ffe6; }
+    .component-item.bg-5 { background-color: #ffe6f0; }
+    .component-item.bg-6 { background-color: #f0e6ff; }
+    .component-item.bg-7 { background-color: #e6f0ff; }
+    .component-item.bg-8 { background-color: #fff0e6; }
+    .component-item.bg-9 { background-color: #f0f0e6; }
+    .component-item.bg-10 { background-color: #e6fae6; }
+    .component-item.bg-11 { background-color: #f0e6e6; }
+    .component-item.bg-12 { background-color: #e6e6ff; }
+    .component-item.bg-13 { background-color: #faf0e6; }
+    .component-item.bg-14 { background-color: #f5e6f0; }
+    .component-item.bg-15 { background-color: #fae6fa; }
+    .component-item.bg-16 { background-color: #e6fafa; }
+    .component-item.bg-17 { background-color: #f0e6f0; }
+    .component-item.bg-18 { background-color: #e6f0e6; }
+    .component-item.bg-19 { background-color: #f0f5e6; }
+    .component-item.bg-20 { background-color: #f5e6ff; }
+    .component-item.bg-21 { background-color: #ffe6ff; }
+    .component-item.bg-22 { background-color: #e6fffa; }
+    .component-item.bg-23 { background-color: #e6f0f5; }
+    .component-item.bg-24 { background-color: #e6e6f0; }
+    .component-item.bg-25 { background-color: #f5f0e6; }
+    .component-item.bg-26 { background-color: #e6f5f0; }
+    .component-item.bg-27 { background-color: #e6f5fa; }
+    .component-item.bg-28 { background-color: #e6e6fa; }
+    .component-item.bg-29 { background-color: #f0f5fa; }
+    .link-list {
+      list-style: none;
+      padding: 10px 0;
+      margin: 0;
+    }
+    .component-link {
+      color: #0078d4;
+      text-decoration: none;
+    }
+  </style>
   </head>
 
   <body>
@@ -379,83 +444,7 @@
         </div>
       </section>
 
-      <!-- Test Section for Custom Web Components -->
-      <section class="min-height-half">
-        <hgroup class="max-width-medium padding-medium center text-center">
-          <h2>Custom Web Components Testing</h2>
-          <p>Test examples of Behive's custom web components below.</p>
-        </hgroup>
-      </section>
-
-      <!-- bh-img Test -->
-      <section>
-        <h3>bh-img Component</h3>
-        <bh-img
-          src="./img/primary/image1.jpg"
-          light-src="./img/primary/image1.jpg"
-          dark-src="./img/primary/image2.jpg"
-          alt="Test Image"
-          width="50vw"
-          aspect-ratio="16/9"
-          class="padding-medium border-round"
-        ></bh-img>
-      </section>
-
-      <!-- bh-video Test -->
-      <section>
-        <h3>bh-video Component</h3>
-        <bh-video
-          src="./video/video1.mp4"
-          src-light="./video/video1-light.mp4"
-          src-dark="./video/video1-dark.mp4"
-          poster="./img/poster.jpg"
-          poster-light="./img/poster-light.jpg"
-          poster-dark="./img/poster-dark.jpg"
-          alt="Test Video"
-          loading="lazy"
-          autoplay=""
-          muted=""
-          loop=""
-          playsinline=""
-          disablepictureinpicture=""
-          class="padding-medium aspect-ratio-16-9"
-        ></bh-video>
-      </section>
-
-      <!-- bh-card Test -->
-      <section class="min-height-half">
-        <h3>bh-card Component</h3>
-        <bh-card
-          heading="Test Card"
-          description="This is a test card with a background image."
-          button-href="https://example.com"
-          button-text="Learn More"
-          classes="space-between padding-medium"
-          background-image
-          src="./img/primary/image1.jpg"
-          light-src="./img/primary/image1.jpg"
-          dark-src="./img/primary/image2.jpg"
-          alt="Test Card Image"
-          width="25vw"
-          background-overlay="light-dark(var(--color-static-light-4), var(--color-static-dark-2))"
-          backdrop-filter="backdrop-filter-blur-small backdrop-filter-grayscale-medium"
-          border="border-small"
-          border-radius="border-radius-medium"
-        ></bh-card>
-      </section>
-
-      <!-- bh-nav Test (already in header, but add a variant here) -->
-      <section>
-        <h3>bh-nav Component (No Dropdown)</h3>
-        <bh-nav></bh-nav>
-      </section>
-
-      <!-- bh-footer Test (already in footer, but add a note) -->
-      <section>
-        <h3>bh-footer Component</h3>
-        <p>The footer component is rendered at the bottom of the page. Scroll down to see it.</p>
-      </section>
-    </main>
+      
 
     <bh-footer></bh-footer>
   </body>
