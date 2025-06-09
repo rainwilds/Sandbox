@@ -1,703 +1,386 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
+  <head>
     <link rel="preload" href="./styles.css" as="style" />
     <link rel="stylesheet" href="./styles.css" />
+    <link rel="preload" href="./components-list.css" as="style" />
+    <link rel="stylesheet" href="./components-list.css" />
     <script src="./js/head.js" defer></script>
     <script src="./js/components.js" defer></script>
     <script src="./js/image-shared.js" defer></script>
     <script src="./js/scripts.js" defer></script>
 
     <!-- General/Site -->
-    <data-bh-head data-title="Web Components Test Page - Behive"
-        data-description="A test page for exploring and debugging Behive's custom web components."
-        data-keywords="web components, testing, behive, custom elements" data-author="David Dufourq"
-        data-canonical="https://rainwilds.github.io/Sandbox/web-components.html" data-robots="noindex, nofollow"
-        data-schema-site-name="Behive: Photography, Videography & Websites"
-        data-schema-site-url="https://rainwilds.github.io/Sandbox/"
-        data-preload-feature-img-mobile="img/responsive/business-service-location-1-1366.avif"
-        data-preload-feature-img-desktop="img/responsive/business-service-location-1-1920.avif"
-        ></data-bh-head>
+    <data-bh-head
+      data-title="Web Components Test Page - Behive"
+      data-description="A test page for exploring and debugging Behive's custom web components."
+      data-keywords="web components, testing, behive, custom elements"
+      data-author="David Dufourq"
+      data-canonical="https://rainwilds.github.io/Sandbox/web-components.html"
+      data-robots="noindex, nofollow"
+      data-schema-site-name="Behive: Photography, Videography & Websites"
+      data-schema-site-url="https://rainwilds.github.io/Sandbox/"
+      data-preload-feature-img-mobile="img/responsive/business-service-location-1-1366.avif"
+      data-preload-feature-img-desktop="img/responsive/business-service-location-1-1920.avif"
+    ></data-bh-head>
 
     <!-- Open Graph -->
-    <data-bh-head data-og-title="Web Components Test Page - Behive"
-        data-og-description="A test page for exploring and debugging Behive's custom web components."
-        data-og-image="https://rainwilds.github.io/Sandbox/img/preview.jpg"
-        data-og-url="https://rainwilds.github.io/Sandbox/web-components.html" data-og-type="website"
-        data-og-locale="en_AU" data-og-site-name="Behive"></data-bh-head>
+    <data-bh-head
+      data-og-title="Web Components Test Page - Behive"
+      data-og-description="A test page for exploring and debugging Behive's custom web components."
+      data-og-image="https://rainwilds.github.io/Sandbox/img/preview.jpg"
+      data-og-url="https://rainwilds.github.io/Sandbox/web-components.html"
+      data-og-type="website"
+      data-og-locale="en_AU"
+      data-og-site-name="Behive"
+    ></data-bh-head>
 
     <!-- Twitter -->
-    <data-bh-head data-twitter-title="Web Components Test Page - Behive"
-        data-twitter-description="A test page for exploring and debugging Behive's custom web components."
-        data-twitter-image="https://rainwilds.github.io/Sandbox/img/preview.jpg"
-        data-twitter-url="https://rainwilds.github.io/Sandbox/web-components.html"
-        data-twitter-domain="rainwilds.github.io" data-twitter-card="summary_large_image"></data-bh-head>
+    <data-bh-head
+      data-twitter-title="Web Components Test Page - Behive"
+      data-twitter-description="A test page for exploring and debugging Behive's custom web components."
+      data-twitter-image="https://rainwilds.github.io/Sandbox/img/preview.jpg"
+      data-twitter-url="https://rainwilds.github.io/Sandbox/web-components.html"
+      data-twitter-domain="rainwilds.github.io"
+      data-twitter-card="summary_large_image"
+    ></data-bh-head>
+  </head>
 
-    <style>
-        .category-container {
-            margin-bottom: 20px;
-        }
-
-        .category-header {
-            width: 100%;
-            margin: 20px 0 10px;
-            font-size: 1.2em;
-            color: white;
-        }
-
-        .component-list {
-            display: flex;
-            flex-wrap: wrap;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            gap: 20px;
-        }
-
-        .component-item {
-            color: black;
-            padding: 15px;
-            border-radius: 8px;
-            min-width: 200px;
-            max-width: 250px;
-        }
-
-        .component-item.bg-1 {
-            background-color: #f0f0f0;
-        }
-
-        .component-item.bg-2 {
-            background-color: #e6f3ff;
-        }
-
-        .component-item.bg-3 {
-            background-color: #fff5e6;
-        }
-
-        .component-item.bg-4 {
-            background-color: #e6ffe6;
-        }
-
-        .component-item.bg-5 {
-            background-color: #ffe6f0;
-        }
-
-        .component-item.bg-6 {
-            background-color: #f0e6ff;
-        }
-
-        .component-item.bg-7 {
-            background-color: #e6f0ff;
-        }
-
-        .component-item.bg-8 {
-            background-color: #fff0e6;
-        }
-
-        .component-item.bg-9 {
-            background-color: #f0f0e6;
-        }
-
-        .component-item.bg-10 {
-            background-color: #e6fae6;
-        }
-
-        .component-item.bg-11 {
-            background-color: #f0e6e6;
-        }
-
-        .component-item.bg-12 {
-            background-color: #e6e6ff;
-        }
-
-        .component-item.bg-13 {
-            background-color: #faf0e6;
-        }
-
-        .component-item.bg-14 {
-            background-color: #f5e6f0;
-        }
-
-        .component-item.bg-15 {
-            background-color: #fae6fa;
-        }
-
-        .component-item.bg-16 {
-            background-color: #e6fafa;
-        }
-
-        .component-item.bg-17 {
-            background-color: #f0e6f0;
-        }
-
-        .component-item.bg-18 {
-            background-color: #e6f0e6;
-        }
-
-        .component-item.bg-19 {
-            background-color: #f0f5e6;
-        }
-
-        .component-item.bg-20 {
-            background-color: #f5e6ff;
-        }
-
-        .component-item.bg-21 {
-            background-color: #ffe6ff;
-        }
-
-        .component-item.bg-22 {
-            background-color: #e6fffa;
-        }
-
-        .component-item.bg-23 {
-            background-color: #e6f0f5;
-        }
-
-        .component-item.bg-24 {
-            background-color: #e6e6f0;
-        }
-
-        .component-item.bg-25 {
-            background-color: #f5f0e6;
-        }
-
-        .component-item.bg-26 {
-            background-color: #e6f5f0;
-        }
-
-        .component-item.bg-27 {
-            background-color: #e6f5fa;
-        }
-
-        .component-item.bg-28 {
-            background-color: #e6e6fa;
-        }
-
-        .component-item.bg-29 {
-            background-color: #f0f5fa;
-        }
-
-        .link-list {
-            list-style: none;
-            padding: 10px 0;
-            margin: 0;
-        }
-
-        .component-link {
-            color: #0078d4;
-            text-decoration: none;
-        }
-    </style>
-</head>
-
-<body>
+  <body>
     <header>
-        <div></div>
+      <div></div>
+      <div>
+        <picture>
+          <img src="https://placehold.co/250x80" alt="Behive Logo" />
+        </picture>
+        <bh-nav dropdown="true"></bh-nav>
+      </div>
+      <section>
         <div>
-            <picture>
-                <img src="https://placehold.co/250x80" alt="Behive Logo" />
-            </picture>
-            <bh-nav dropdown="true"></bh-nav>
+          <hgroup>
+            <h1>Web Components Test Page</h1>
+            <p>Test and explore Behive's custom web components in a clean environment.</p>
+          </hgroup>
         </div>
-        <section>
-            <div>
-                <hgroup>
-                    <h1>Web Components Test Page</h1>
-                    <p>Test and explore Behive's custom web components in a clean environment.</p>
-                </hgroup>
-            </div>
-        </section>
+      </section>
     </header>
 
     <main>
-        <!-- Web Components Reference List -->
-        <section>
-            <div class="category-container">
-                <h4 class="category-header">Form Elements</h4>
-                <ul class="component-list">
-                    <li class="component-item bg-1">Button
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/button" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/button"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components/button/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-2">Input
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/input" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/text-field"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Text
-                                    Field)</a></li>
-                            <li><a href="https://material-web.dev/components/text-field/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC) (Text Field)</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-3">Select
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/select" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/select"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components/select/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-4">Textarea
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/textarea" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/text-area"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components/text-field/#outlined-text-area"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Google Material
-                                    (MWC) (Text Area)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-5">Checkbox
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/checkbox" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/checkbox"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components/checkbox/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-6">Radio button
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/radio-group" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Radio Group)</a>
-                            </li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/radio"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components/radio/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-7">Toggle switch
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/switch" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Switch)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/switch"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components/switch/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-8">Slider
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/range" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace) (Range)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/slider"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components/slider" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-9">Form
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/form" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (MWC)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not
-                                    explicitly supported, see components overview)</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see
-                                    components overview)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-10">File upload
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/file-upload" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Preview)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/file-attachment"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (File
-                                    Attachment)</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported)</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-            <div class="category-container">
-                <h4 class="category-header">Navigation and Layout</h4>
-                <ul class="component-list">
-                    <li class="component-item bg-11">Navigation bar
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/menu" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace) (Menu as Navigation)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/toolbar"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Toolbar
-                                    as Navigation)</a></li>
-                            <li><a href="https://material-web.dev/components/navigation-bar/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-12">Tabs
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/tab-group" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Tab Group)</a>
-                            </li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/tabs"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components/tabs/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-13">Menu
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/menu" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/menu"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components/menu/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-14">Breadcrumbs
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/breadcrumb" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/breadcrumb"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see
-                                    components overview)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-15">Sidebar
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/drawer" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Drawer)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not
-                                    explicitly supported, see components overview)</a></li>
-                            <li><a href="https://material-web.dev/components/navigation-drawer/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC) (Navigation
-                                    Drawer)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-16">Header
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace) (Not explicitly supported, see
-                                    components overview)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not
-                                    explicitly supported, see components overview)</a></li>
-                            <li><a href="https://material-web.dev/components/top-app-bar/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC) (Top App Bar)</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-17">Footer
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace) (Not explicitly supported, see
-                                    components overview)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not
-                                    explicitly supported, see components overview)</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see
-                                    components overview)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-18">Toolbar
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace) (Not explicitly supported, see
-                                    components overview)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/toolbar"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see
-                                    components overview)</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-            <div class="category-container">
-                <h4 class="category-header">Containers and Interactions</h4>
-                <ul class="component-list">
-                    <li class="component-item bg-19">Card
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/card" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/card"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components/card/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-17">Modal/dialog
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/dialog" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Dialog)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/dialog"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components/dialog/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-18">Tooltip
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/tooltip" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/tooltip"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components/tooltip" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-20">Popover
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/popup" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace) (Popup)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not
-                                    explicitly supported, see components overview)</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see
-                                    components overview)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-21">Accordion
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/details" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Details)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/accordion"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see
-                                    components overview)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-22">Carousel
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/carousel" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not
-                                    explicitly supported)</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (Not supported)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-23">Pagination
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace) (Not explicitly supported, see
-                                    components overview)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/pagination"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see
-                                    components overview)</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-            <div class="category-container">
-                <h4 class="category-header">Data Display</h4>
-                <ul class="component-list">
-                    <li class="component-item bg-24">List
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/menu" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace) (Menu as List)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/list"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components/list/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-25">Table
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/table" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace) (Preview)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/data-grid"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Data
-                                    Grid)</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see
-                                    components overview)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-26">Grid
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace) (Not explicitly supported, see
-                                    components overview)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/data-grid"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Data
-                                    Grid as Grid)</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see
-                                    components overview)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-27">Tree view
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/tree" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/tree"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see
-                                    components overview)</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-            <div class="category-container">
-                <h4 class="category-header">Feedback and Indicators</h4>
-                <ul class="component-list">
-                    <li class="component-item bg-28">Alert
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/alert" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not
-                                    explicitly supported, see components overview)</a></li>
-                            <li><a href="https://material-web.dev/components/snackbar/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC) (Snackbar)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-4">Progress bar
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/progress-bar" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/progress"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components/linear-progress/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC) (Linear
-                                    Progress)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-5">Spinner/loader
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/spinner" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/spinner"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components/circular-progress/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC) (Circular
-                                    Progress)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-15">Badge
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/badge" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/badge"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see
-                                    components overview)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-29">Rating
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/rating" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/rating"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see
-                                    components overview)</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-            <div class="category-container">
-                <h4 class="category-header">Input Helpers</h4>
-                <ul class="component-list">
-                    <li class="component-item bg-4">Search bar
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/input" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace) (Input as Search)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/search"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components/text-field/" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Google Material (MWC) (Text Field as
-                                    Search)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-9">Date picker
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/input#date" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Input with Date
-                                    Type)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/date-picker"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see
-                                    components overview)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-27">Time picker
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/input#time" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Input with Time
-                                    Type)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not
-                                    explicitly supported, see components overview)</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see
-                                    components overview)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-14">Color picker
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/color-picker" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not
-                                    explicitly supported, see components overview)</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see
-                                    components overview)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-10">Avatar
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components/avatar" class="component-link"
-                                    target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/avatar"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see
-                                    components overview)</a></li>
-                        </ul>
-                    </li>
-                    <li class="component-item bg-15">Stepper
-                        <ul class="link-list">
-                            <li><a href="https://shoelace.style/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Web Awesome (Shoelace) (Not explicitly supported, see
-                                    components overview)</a></li>
-                            <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components"
-                                    class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not
-                                    explicitly supported, see components overview)</a></li>
-                            <li><a href="https://material-web.dev/components" class="component-link" target="_blank"
-                                    rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see
-                                    components overview)</a></li>
-                        </ul>
-                    </li>
-                </ul>
-            </div>
-        </section>
+      <!-- Web Components Reference List -->
+      <section>
+        <div class="category-container">
+          <h4 class="category-header">Form Elements</h4>
+          <ul class="component-list">
+            <li class="component-item">Button
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/button" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/button" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components/button/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Input
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/input" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/text-field" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Text Field)</a></li>
+                <li><a href="https://material-web.dev/components/text-field/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Text Field)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Select
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/select" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/select" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components/select/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Textarea
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/textarea" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/text-area" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components/text-field/#outlined-text-area" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Text Area)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Checkbox
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/checkbox" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/checkbox" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components/checkbox/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Radio button
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/radio-group" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Radio Group)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/radio" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components/radio/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Toggle switch
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/switch" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Switch)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/switch" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components/switch/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Slider
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/range" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Range)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/slider" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components/slider" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Form
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/form" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (MWC)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not explicitly supported, see components overview)</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see components overview)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">File upload
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/file-upload" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Preview)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/file-attachment" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (File Attachment)</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported)</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <div class="category-container">
+          <h4 class="category-header">Navigation and Layout</h4>
+          <ul class="component-list">
+            <li class="component-item">Navigation bar
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/menu" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Menu as Navigation)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/toolbar" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Toolbar as Navigation)</a></li>
+                <li><a href="https://material-web.dev/components/navigation-bar/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Tabs
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/tab-group" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Tab Group)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/tabs" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components/tabs/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Menu
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/menu" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/menu" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components/menu/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Breadcrumbs
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/breadcrumb" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/breadcrumb" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see components overview)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Sidebar
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/drawer" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Drawer)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not explicitly supported, see components overview)</a></li>
+                <li><a href="https://material-web.dev/components/navigation-drawer/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Navigation Drawer)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Header
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Not explicitly supported, see components overview)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not explicitly supported, see components overview)</a></li>
+                <li><a href="https://material-web.dev/components/top-app-bar/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Top App Bar)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Footer
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Not explicitly supported, see components overview)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not explicitly supported, see components overview)</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see components overview)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Toolbar
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Not explicitly supported, see components overview)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/toolbar" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see components overview)</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <div class="category-container">
+          <h4 class="category-header">Containers and Interactions</h4>
+          <ul class="component-list">
+            <li class="component-item">Card
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/card" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/card" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components/card/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Modal/dialog
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/dialog" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Dialog)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/dialog" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components/dialog/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Tooltip
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/tooltip" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/tooltip" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components/tooltip" class="component-link" target="_blank" rel="noopener noreferrer">Google Material</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Popover
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/popup" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Popup)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not explicitly supported, see components overview)</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see components overview)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Accordion
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/details" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Details)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/accordion" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see components overview)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Carousel
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/carousel" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not explicitly supported)</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (Not supported)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Pagination
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Not explicitly supported, see components overview)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/pagination" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see components overview)</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <div class="category-container">
+          <h4 class="category-header">Data Display</h4>
+          <ul class="component-list">
+            <li class="component-item">List
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/menu" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Menu as List)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/list" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components/list/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Table
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/table" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Preview)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/data-grid" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Data Grid)</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see components overview)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Grid
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Not explicitly supported, see components overview)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/data-grid" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Data Grid as Grid)</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see components overview)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Tree view
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/tree" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/tree" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see components overview)</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <div class="category-container">
+          <h4 class="category-header">Feedback and Indicators</h4>
+          <ul class="component-list">
+            <li class="component-item">Alert
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/alert" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not explicitly supported, see components overview)</a></li>
+                <li><a href="https://material-web.dev/components/snackbar/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Snackbar)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Progress bar
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/progress-bar" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/progress" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components/linear-progress/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Linear Progress)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Spinner/loader
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/spinner" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/spinner" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components/circular-progress/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Circular Progress)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Badge
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/badge" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/badge" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see components overview)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Rating
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/rating" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/rating" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see components overview)</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <div class="category-container">
+          <h4 class="category-header">Input Helpers</h4>
+          <ul class="component-list">
+            <li class="component-item">Search bar
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/input" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Input as Search)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/search" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components/text-field/" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Text Field as Search)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Date picker
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/input#date" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Input with Date Type)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/date-picker" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see components overview)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Time picker
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/input#time" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Input with Time Type)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not explicitly supported, see components overview)</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see components overview)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Color picker
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/color-picker" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not explicitly supported, see components overview)</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see components overview)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Avatar
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components/avatar" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components/avatar" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see components overview)</a></li>
+              </ul>
+            </li>
+            <li class="component-item">Stepper
+              <ul class="link-list">
+                <li><a href="https://shoelace.style/components" class="component-link" target="_blank" rel="noopener noreferrer">Web Awesome (Shoelace) (Not explicitly supported, see components overview)</a></li>
+                <li><a href="https://learn.microsoft.com/en-us/fluent-ui/web-components/components" class="component-link" target="_blank" rel="noopener noreferrer">Fluent UI (Not explicitly supported, see components overview)</a></li>
+                <li><a href="https://material-web.dev/components" class="component-link" target="_blank" rel="noopener noreferrer">Google Material (MWC) (Not explicitly supported, see components overview)</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </main>
 
-
-
-        <bh-footer></bh-footer>
-</body>
-
+    <bh-footer></bh-footer>
+  </body>
 </html>
