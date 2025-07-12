@@ -413,14 +413,14 @@ document.querySelectorAll('.modal-close').forEach(closeBtn => {
 
 
 
-const showNumber = document.getElementById("showNumber");
-const favDialog = document.getElementById("favDialog");
-const number = document.getElementById("number");
+// const showNumber = document.getElementById("showNumber");
+// const favDialog = document.getElementById("favDialog");
+// const number = document.getElementById("number");
 
-showNumber.addEventListener("click", () => {
-  number.innerText = Math.floor(Math.random() * 1000);
-  favDialog.showModal();
-});
+// showNumber.addEventListener("click", () => {
+//   number.innerText = Math.floor(Math.random() * 1000);
+//   favDialog.showModal();
+// });
 
 
 // Image compare - before and after
