@@ -412,7 +412,7 @@ document.querySelectorAll('.modal-close').forEach(closeBtn => {
 });
 
 
-
+// removed untill adding back
 // const showNumber = document.getElementById("showNumber");
 // const favDialog = document.getElementById("favDialog");
 // const number = document.getElementById("number");
