@@ -169,7 +169,7 @@ function styleGallery(galleryContainer) {
     });
 }
 
-// Lightbox initialization (unchanged)
+// Lightbox initialization (with null checks added)
 function initLightbox() {
     const galleryItems = document.querySelectorAll('.gallery-item');
     const lightbox = document.getElementById('lightbox');
@@ -177,6 +177,11 @@ function initLightbox() {
     const closeBtn = document.querySelector('.close');
     const prevBtn = document.querySelector('.prev');
     const nextBtn = document.querySelector('.next');
+
+    if (!lightbox) {
+        console.log('Lightbox element not found; skipping lightbox initialization.');
+        return;
+    }
 
     let currentIndex = 0;
     let touchStartX = 0;
@@ -211,10 +216,12 @@ function initLightbox() {
         });
     });
 
-    closeBtn.addEventListener('click', () => {
-        lightbox.classList.remove('active');
-        toggleRootScrollbars(false);
-    });
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            lightbox.classList.remove('active');
+            toggleRootScrollbars(false);
+        });
+    }
 
     lightbox.addEventListener('click', (e) => {
         if (e.target === lightbox) {
@@ -223,24 +230,30 @@ function initLightbox() {
         }
     });
 
-    nextBtn.addEventListener('click', () => {
-        currentIndex = (currentIndex + 1) % galleryItems.length;
-        updateLightboxContent(galleryItems[currentIndex]);
-    });
+    if (nextBtn) {
+        nextBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % galleryItems.length;
+            updateLightboxContent(galleryItems[currentIndex]);
+        });
+    }
 
-    prevBtn.addEventListener('click', () => {
-        currentIndex = (currentIndex - 1 + galleryItems.length) % galleryItems.length;
-        updateLightboxContent(galleryItems[currentIndex]);
-    });
+    if (prevBtn) {
+        prevBtn.addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + galleryItems.length) % galleryItems.length;
+            updateLightboxContent(galleryItems[currentIndex]);
+        });
+    }
 
-    lightboxContent.addEventListener('touchstart', (e) => {
-        touchStartX = e.changedTouches[0].screenX;
-    });
+    if (lightboxContent) {
+        lightboxContent.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
 
-    lightboxContent.addEventListener('touchend', (e) => {
-        touchEndX = e.changedTouches[0].screenX;
-        handleSwipe();
-    });
+        lightboxContent.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+    }
 
     lightbox.addEventListener('keydown', (e) => {
         if (!lightbox.classList.contains('active')) return;
