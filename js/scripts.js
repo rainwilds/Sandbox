@@ -424,24 +424,24 @@ document.querySelectorAll('.modal-close').forEach(closeBtn => {
 
 
 // Image compare - before and after
-const slider = document.querySelector('.image-compare > input[type=range]');
-const afterImage = document.querySelector('.image-compare > img:last-of-type');
+// const slider = document.querySelector('.image-compare > input[type=range]');
+// const afterImage = document.querySelector('.image-compare > img:last-of-type');
 
-function updateClipPath(value) {
-    afterImage.style.clipPath = `inset(0 ${100 - value}% 0 0)`;
-}
+// function updateClipPath(value) {
+//     afterImage.style.clipPath = `inset(0 ${100 - value}% 0 0)`;
+// }
 
-slider.addEventListener('input', (e) => {
-    const sliderValue = parseFloat(e.target.value);
-    updateClipPath(sliderValue);
-});
+// slider.addEventListener('input', (e) => {
+//     const sliderValue = parseFloat(e.target.value);
+//     updateClipPath(sliderValue);
+// });
 
 // Optional: Touch support
-slider.addEventListener('touchmove', (e) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    const sliderRect = slider.getBoundingClientRect();
-    const value = ((touch.clientX - sliderRect.left) / sliderRect.width) * 100;
-    slider.value = Math.max(0, Math.min(100, value));
-    updateClipPath(parseFloat(slider.value));
-});
+// slider.addEventListener('touchmove', (e) => {
+//     e.preventDefault();
+//     const touch = e.touches[0];
+//     const sliderRect = slider.getBoundingClientRect();
+//     const value = ((touch.clientX - sliderRect.left) / sliderRect.width) * 100;
+//     slider.value = Math.max(0, Math.min(100, value));
+//     updateClipPath(parseFloat(slider.value));
+// });
