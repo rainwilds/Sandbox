@@ -177,60 +177,61 @@ class Img extends HTMLElement {
         super();
     }
 
-    connectedCallback() {
-        this.waitForImageShared(() => {
-            try {
-                const src = this.getAttribute('src');
-                const lightSrc = this.getAttribute('light-src');
-                const darkSrc = this.getAttribute('dark-src');
-                const alt = this.getAttribute('alt') || '';
-                const aspectRatio = this.getAttribute('aspect-ratio') || '';
-                const width = this.getAttribute('width') || '100vw';
-                const customClasses = this.getAttribute('class') || '';
+connectedCallback() {
+    this.waitForImageShared(() => {
+        try {
+            const src = this.getAttribute('src');
+            const lightSrc = this.getAttribute('light-src');
+            const darkSrc = this.getAttribute('dark-src');
+            const alt = this.getAttribute('alt') || '';
+            const aspectRatio = this.getAttribute('aspect-ratio') || '';
+            const width = this.getAttribute('width') || '100vw';
+            const customClasses = this.getAttribute('class') || '';
 
-                // Generate the picture markup using the shared utility
-                if (typeof ImageShared === 'undefined') {
-                    console.error('ImageShared is not defined. Ensure image-shared.js is loaded before components.js');
-                    return;
-                }
-
-                const pictureHTML = ImageShared.generatePictureMarkup({
-                    src: src,
-                    lightSrc: lightSrc,
-                    darkSrc: darkSrc,
-                    alt: alt,
-                    width: width,
-                    aspectRatio: aspectRatio
-                });
-
-                if (!pictureHTML) {
-                    return; // Error already logged in utility
-                }
-
-                // Create picture element from HTML
-                const div = document.createElement('div');
-                div.innerHTML = pictureHTML;
-                const picture = div.firstChild;
-
-                // Add custom classes to the img element
-                const img = picture.querySelector('img');
-                if (customClasses) {
-                    img.className = img.className ? `${img.className} ${customClasses}` : customClasses;
-                }
-
-                // Add error handler
-                img.onerror = () => {
-                    console.warn(`Failed to load primary image: ${src}. Falling back to placeholder.`);
-                    img.src = 'https://placehold.co/3000x2000';
-                    img.onerror = null;
-                };
-
-                this.appendChild(picture);
-            } catch (error) {
-                console.error('Error in Img connectedCallback:', error);
+            // Generate the picture markup using the shared utility
+            if (typeof ImageShared === 'undefined') {
+                console.error('ImageShared is not defined. Ensure image-shared.js is loaded before components.js');
+                return;
             }
-        });
-    }
+
+            const pictureHTML = ImageShared.generatePictureMarkup({
+                src: src,
+                lightSrc: lightSrc,
+                darkSrc: darkSrc,
+                alt: alt,
+                width: width,
+                aspectRatio: aspectRatio
+            });
+
+            if (!pictureHTML) {
+                return; // Error already logged in utility
+            }
+
+            // Create picture element from HTML
+            const div = document.createElement('div');
+            div.innerHTML = pictureHTML;
+            const picture = div.firstChild;
+
+            // Add custom classes to the img element
+            const img = picture.querySelector('img');
+            if (customClasses) {
+                img.className = img.className ? `${img.className} ${customClasses}` : customClasses;
+            }
+
+            // Add error handler
+            img.onerror = () => {
+                console.warn(`Failed to load primary image: ${src}. Falling back to placeholder.`);
+                img.src = 'https://placehold.co/3000x2000';
+                img.onerror = null;
+            };
+
+            // Replace the <bh-img> tag with the generated <picture>
+            this.replaceWith(picture);
+        } catch (error) {
+            console.error('Error in Img connectedCallback:', error);
+        }
+    });
+}
 
     waitForImageShared(callback) {
         if (typeof ImageShared !== 'undefined') {
