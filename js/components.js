@@ -189,7 +189,6 @@ connectedCallback() {
             const customClasses = this.getAttribute('class') || '';
             const loading = this.getAttribute('loading') || 'lazy';
             const fetchpriority = this.getAttribute('fetchpriority') || 'auto';
-            const sizesOverride = this.getAttribute('sizes') || '';  // Custom override
 
             if (typeof ImageUtils === 'undefined') {
                 console.error('ImageUtils is not defined. Ensure image-utils.js is loaded before components.js');
@@ -205,7 +204,6 @@ connectedCallback() {
                 aspectRatio: aspectRatio,
                 loading: loading,
                 fetchpriority: fetchpriority,
-                sizesOverride: sizesOverride,  // Use in function to override sizes
             });
 
             if (!pictureHTML) {
