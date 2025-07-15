@@ -188,8 +188,8 @@ connectedCallback() {
             const mobileWidth = this.getAttribute('mobileWidth') || '100vw';  // Default full-width for mobile
             const desktopWidth = this.getAttribute('desktopWidth') || '100vw';  // Default full-width for desktop (adjust if needed)
             const customClasses = this.getAttribute('class') || '';
-            const loading = this.getAttribute('loading') || 'lazy';
-            const fetchpriority = this.getAttribute('fetchpriority') || 'auto';
+            const loading = this.hasAttribute('loadingLazy') ? 'lazy' : null;
+            const fetchpriority = this.hasAttribute('fetchPriorityHigh') ? 'high' : null;
 
             if (typeof ImageUtils === 'undefined') {
                 console.error('ImageUtils is not defined. Ensure image-utils.js is loaded before components.js');

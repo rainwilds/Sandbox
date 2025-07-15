@@ -15,7 +15,7 @@ const ImageUtils = {
     ],
     DEFAULT_SIZE: '3840px',
 
-    generatePictureMarkup({ src, lightSrc, darkSrc, alt = '', mobileWidth = '100vw', desktopWidth = '100vw', aspectRatio = '', loading = 'lazy', fetchpriority = 'auto' }) {
+    generatePictureMarkup({ src, lightSrc, darkSrc, alt = '', mobileWidth = '100vw', desktopWidth = '100vw', aspectRatio = '', loading, fetchpriority }) {
         console.log('ImageUtils.generatePictureMarkup called with:', { src, lightSrc, darkSrc, alt, mobileWidth, desktopWidth, aspectRatio, loading, fetchpriority }); // Debug log
         if (!src) {
             console.error('The "src" parameter is required for generatePictureMarkup');
@@ -94,8 +94,11 @@ const ImageUtils = {
         }
         const imgClassAttr = imgClasses.length > 0 ? ` class="${imgClasses.join(' ')}"` : '';
         const altAttr = alt ? ` alt="${alt}"` : '';
+        let imgAttrs = '';
+        if (loading) imgAttrs += ` loading="${loading}"`;
+        if (fetchpriority) imgAttrs += ` fetchpriority="${fetchpriority}"`;
         pictureHTML += `
-            <img src="${src}"${imgClassAttr}${altAttr} loading="${loading}" fetchpriority="${fetchpriority}">
+            <img src="${src}"${imgClassAttr}${altAttr}${imgAttrs}>
         `;
         pictureHTML += '</picture>';
 
