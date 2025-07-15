@@ -5,7 +5,7 @@ class BhCard extends HTMLElement {
     }
 
     connectedCallback() {
-        this.waitForImageShared(() => {
+        this.waitForImageUtils(() => {
             try {
                 this.render();
                 this.callbacks.forEach(callback => callback());
@@ -23,13 +23,13 @@ class BhCard extends HTMLElement {
         this.callbacks.push(callback);
     }
 
-    waitForImageShared(callback) {
-        if (typeof ImageShared !== 'undefined') {
+    waitForImageUtils(callback) {
+        if (typeof ImageUtils !== 'undefined') {
             callback();
             return;
         }
         const interval = setInterval(() => {
-            if (typeof ImageShared !== 'undefined') {
+            if (typeof ImageUtils !== 'undefined') {
                 clearInterval(interval);
                 callback();
             }
@@ -37,8 +37,8 @@ class BhCard extends HTMLElement {
         // Fallback timeout to prevent infinite waiting
         setTimeout(() => {
             clearInterval(interval);
-            console.error('Timed out waiting for ImageShared to be defined. Ensure image-shared.js is loaded correctly.');
-            callback(); // Proceed with rendering, even if ImageShared is missing
+            console.error('Timed out waiting for ImageUtils to be defined. Ensure image-shared.js is loaded correctly.');
+            callback(); // Proceed with rendering, even if ImageUtils is missing
         }, 5000);
     }
 
@@ -73,10 +73,10 @@ class BhCard extends HTMLElement {
             let backgroundImageHTML = '';
             let overlayHTML = '';
             if (hasBackgroundImage && imgSrc) {
-                if (typeof ImageShared === 'undefined') {
-                    console.error('ImageShared is not defined during render. Ensure image-shared.js is loaded before components.js');
+                if (typeof ImageUtils === 'undefined') {
+                    console.error('ImageUtils is not defined during render. Ensure image-shared.js is loaded before components.js');
                 } else {
-                    backgroundImageHTML = ImageShared.generatePictureMarkup({
+                    backgroundImageHTML = ImageUtils.generatePictureMarkup({
                         src: imgSrc,
                         lightSrc: lightSrc,
                         darkSrc: darkSrc,
@@ -160,7 +160,7 @@ class BhCard extends HTMLElement {
     }
 
     attributeChangedCallback() {
-        this.waitForImageShared(() => {
+        this.waitForImageUtils(() => {
             try {
                 this.render();
             } catch (error) {
@@ -178,7 +178,7 @@ class Img extends HTMLElement {
     }
 
 connectedCallback() {
-    this.waitForImageShared(() => {
+    this.waitForImageUtils(() => {
         try {
             const src = this.getAttribute('src');
             const lightSrc = this.getAttribute('light-src');
@@ -187,45 +187,50 @@ connectedCallback() {
             const aspectRatio = this.getAttribute('aspect-ratio') || '';
             const width = this.getAttribute('width') || '100vw';
             const customClasses = this.getAttribute('class') || '';
+            // New attributes
+            const loading = this.getAttribute('loading') || 'lazy';
+            const decoding = this.getAttribute('decoding') || 'async';
+            const fetchpriority = this.getAttribute('fetchpriority') || 'auto';
+            const sizesAttr = this.getAttribute('sizes') || '';  // Custom override
 
-            // Generate the picture markup using the shared utility
-            if (typeof ImageShared === 'undefined') {
-                console.error('ImageShared is not defined. Ensure image-shared.js is loaded before components.js');
+            if (typeof ImageUtils === 'undefined') {
+                console.error('ImageUtils is not defined. Ensure image-utils.js is loaded before components.js');
                 return;
             }
 
-            const pictureHTML = ImageShared.generatePictureMarkup({
+            const pictureHTML = ImageUtils.generatePictureMarkup({
                 src: src,
                 lightSrc: lightSrc,
                 darkSrc: darkSrc,
                 alt: alt,
                 width: width,
-                aspectRatio: aspectRatio
+                aspectRatio: aspectRatio,
+                // Pass new ones
+                loading: loading,
+                decoding: decoding,
+                fetchpriority: fetchpriority,
+                sizesAttr: sizesAttr,  // Use in function to override sizes
             });
 
             if (!pictureHTML) {
-                return; // Error already logged in utility
+                return;
             }
 
-            // Create picture element from HTML
             const div = document.createElement('div');
             div.innerHTML = pictureHTML;
             const picture = div.firstChild;
 
-            // Add custom classes to the img element
             const img = picture.querySelector('img');
             if (customClasses) {
                 img.className = img.className ? `${img.className} ${customClasses}` : customClasses;
             }
 
-            // Add error handler
             img.onerror = () => {
                 console.warn(`Failed to load primary image: ${src}. Falling back to placeholder.`);
                 img.src = 'https://placehold.co/3000x2000';
                 img.onerror = null;
             };
 
-            // Replace the <bh-img> tag with the generated <picture>
             this.replaceWith(picture);
         } catch (error) {
             console.error('Error in Img connectedCallback:', error);
@@ -233,20 +238,20 @@ connectedCallback() {
     });
 }
 
-    waitForImageShared(callback) {
-        if (typeof ImageShared !== 'undefined') {
+    waitForImageUtils(callback) {
+        if (typeof ImageUtils !== 'undefined') {
             callback();
             return;
         }
         const interval = setInterval(() => {
-            if (typeof ImageShared !== 'undefined') {
+            if (typeof ImageUtils !== 'undefined') {
                 clearInterval(interval);
                 callback();
             }
         }, 100);
         setTimeout(() => {
             clearInterval(interval);
-            console.error('Timed out waiting for ImageShared to be defined. Ensure image-shared.js is loaded correctly.');
+            console.error('Timed out waiting for ImageUtils to be defined. Ensure image-shared.js is loaded correctly.');
             callback();
         }, 5000);
     }

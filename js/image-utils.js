@@ -1,4 +1,4 @@
-const ImageShared = {
+const ImageUtils = {
     // Configuration constants
     WIDTHS: [768, 980, 1366, 1920, 2560, 3840],
     FORMATS: ['avif', 'webp', 'jpeg'],
@@ -14,7 +14,7 @@ const ImageShared = {
     DEFAULT_SIZE: '3840px',
 
     generatePictureMarkup({ src, lightSrc, darkSrc, alt = '', width = '100vw', aspectRatio = '' }) {
-        console.log('ImageShared.generatePictureMarkup called with:', { src, lightSrc, darkSrc, alt, width, aspectRatio }); // Debug log
+        console.log('ImageUtils.generatePictureMarkup called with:', { src, lightSrc, darkSrc, alt, width, aspectRatio }); // Debug log
         if (!src) {
             console.error('The "src" parameter is required for generatePictureMarkup');
             return '';
