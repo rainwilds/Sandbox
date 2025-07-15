@@ -58,15 +58,6 @@ function manageHead(attributes = {}, businessInfo = {}) {
       }
   });
 
-  // Add Permissions-Policy meta to suppress interest-cohort warning
-  if (!document.querySelector('meta[http-equiv="Permissions-Policy"]')) {
-      const metaPolicy = document.createElement('meta');
-      metaPolicy.setAttribute('http-equiv', 'Permissions-Policy');
-      metaPolicy.setAttribute('content', '');
-      head.appendChild(metaPolicy);
-      console.log('Added Permissions-Policy meta');
-  }
-
   // Add essential meta tags (charset, viewport, robots, title, author, etc.)
   if (!document.querySelector('meta[charset]')) {
       const metaCharset = document.createElement('meta');
