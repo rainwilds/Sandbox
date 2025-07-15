@@ -1,3 +1,5 @@
+// In image-utils.js, update the generatePictureMarkup function:
+
 const ImageUtils = {
     // Configuration constants
     WIDTHS: [768, 980, 1366, 1920, 2560, 3840],
@@ -13,8 +15,8 @@ const ImageUtils = {
     ],
     DEFAULT_SIZE: '3840px',
 
-    generatePictureMarkup({ src, lightSrc, darkSrc, alt = '', width = '100vw', aspectRatio = '', loading = 'lazy', fetchpriority = 'auto' }) {
-        console.log('ImageUtils.generatePictureMarkup called with:', { src, lightSrc, darkSrc, alt, width, aspectRatio, loading, fetchpriority }); // Debug log
+    generatePictureMarkup({ src, lightSrc, darkSrc, alt = '', mobileWidth = '100vw', desktopWidth = '100vw', aspectRatio = '', loading = 'lazy', fetchpriority = 'auto' }) {
+        console.log('ImageUtils.generatePictureMarkup called with:', { src, lightSrc, darkSrc, alt, mobileWidth, desktopWidth, aspectRatio, loading, fetchpriority }); // Debug log
         if (!src) {
             console.error('The "src" parameter is required for generatePictureMarkup');
             return '';
@@ -40,18 +42,22 @@ const ImageUtils = {
             return '';
         }
 
-        // Parse width (e.g., "100vw" or "50vw")
-        const widthMatch = width.match(/(\d+)vw/);
-        let widthPercentage = widthMatch ? parseInt(widthMatch[1]) / 100 : 1.0;
-        widthPercentage = Math.max(0.1, Math.min(2.0, widthPercentage));
+        // Parse mobileWidth and desktopWidth (e.g., "100vw" or "50vw")
+        const mobileMatch = mobileWidth.match(/(\d+)vw/);
+        let mobilePercentage = mobileMatch ? parseInt(mobileMatch[1]) / 100 : 1.0;
+        mobilePercentage = Math.max(0.1, Math.min(2.0, mobilePercentage));
 
-        // Generate sizes attribute with mobile full-width
+        const desktopMatch = desktopWidth.match(/(\d+)vw/);
+        let desktopPercentage = desktopMatch ? parseInt(desktopMatch[1]) / 100 : 1.0;
+        desktopPercentage = Math.max(0.1, Math.min(2.0, desktopPercentage));
+
+        // Generate sizes attribute: Use mobilePercentage for <=768px, desktopPercentage for >768px
         const sizes = [
             ...this.SIZES_BREAKPOINTS.map(bp => {
-                const value = (bp.maxWidth <= 768) ? '100vw' : `${widthPercentage * 100}vw`;
-                return `(max-width: ${bp.maxWidth}px) ${value}`;
+                const percentage = (bp.maxWidth <= 768) ? mobilePercentage : desktopPercentage;
+                return `(max-width: ${bp.maxWidth}px) ${percentage * 100}vw`;
             }),
-            `${parseInt(this.DEFAULT_SIZE) * widthPercentage}px`
+            `${parseInt(this.DEFAULT_SIZE) * desktopPercentage}px`  // Use desktop for the fallback
         ].join(', ');
 
         // Build the <picture> element HTML

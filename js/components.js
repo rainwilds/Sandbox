@@ -185,7 +185,8 @@ connectedCallback() {
             const darkSrc = this.getAttribute('dark-src');
             const alt = this.getAttribute('alt') || '';
             const aspectRatio = this.getAttribute('aspect-ratio') || '';
-            const width = this.getAttribute('width') || '100vw';
+            const mobileWidth = this.getAttribute('mobileWidth') || '100vw';  // Default full-width for mobile
+            const desktopWidth = this.getAttribute('desktopWidth') || '100vw';  // Default full-width for desktop (adjust if needed)
             const customClasses = this.getAttribute('class') || '';
             const loading = this.getAttribute('loading') || 'lazy';
             const fetchpriority = this.getAttribute('fetchpriority') || 'auto';
@@ -200,10 +201,11 @@ connectedCallback() {
                 lightSrc: lightSrc,
                 darkSrc: darkSrc,
                 alt: alt,
-                width: width,
+                mobileWidth: mobileWidth,
+                desktopWidth: desktopWidth,
                 aspectRatio: aspectRatio,
                 loading: loading,
-                fetchpriority: fetchpriority,
+                fetchpriority: fetchpriority
             });
 
             if (!pictureHTML) {
