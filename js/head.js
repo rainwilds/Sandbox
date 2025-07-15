@@ -400,9 +400,9 @@ function manageHead(attributes = {}, businessInfo = {}) {
       }
   });
 
-  // Load additional scripts (image-shared.js, components.js, scripts.js)
+  // Load additional scripts (image-utils.js, components.js, scripts.js)
   const scripts = [
-      { src: './js/image-shared.js', defer: false }, // Load synchronously to ensure availability
+      { src: './js/image-utils.js', defer: false }, // Load synchronously to ensure availability
       { src: './js/components.js', defer: true },
       { src: './js/scripts.js', defer: true }
   ];
