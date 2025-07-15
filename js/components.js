@@ -187,11 +187,9 @@ connectedCallback() {
             const aspectRatio = this.getAttribute('aspect-ratio') || '';
             const width = this.getAttribute('width') || '100vw';
             const customClasses = this.getAttribute('class') || '';
-            // New attributes
             const loading = this.getAttribute('loading') || 'lazy';
-            const decoding = this.getAttribute('decoding') || 'async';
             const fetchpriority = this.getAttribute('fetchpriority') || 'auto';
-            const sizesAttr = this.getAttribute('sizes') || '';  // Custom override
+            const sizesOverride = this.getAttribute('sizes') || '';  // Custom override
 
             if (typeof ImageUtils === 'undefined') {
                 console.error('ImageUtils is not defined. Ensure image-utils.js is loaded before components.js');
@@ -205,11 +203,9 @@ connectedCallback() {
                 alt: alt,
                 width: width,
                 aspectRatio: aspectRatio,
-                // Pass new ones
                 loading: loading,
-                decoding: decoding,
                 fetchpriority: fetchpriority,
-                sizesAttr: sizesAttr,  // Use in function to override sizes
+                sizesOverride: sizesOverride,  // Use in function to override sizes
             });
 
             if (!pictureHTML) {

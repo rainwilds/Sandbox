@@ -13,8 +13,8 @@ const ImageUtils = {
     ],
     DEFAULT_SIZE: '3840px',
 
-    generatePictureMarkup({ src, lightSrc, darkSrc, alt = '', width = '100vw', aspectRatio = '' }) {
-        console.log('ImageUtils.generatePictureMarkup called with:', { src, lightSrc, darkSrc, alt, width, aspectRatio }); // Debug log
+    generatePictureMarkup({ src, lightSrc, darkSrc, alt = '', width = '100vw', aspectRatio = '', loading = 'lazy', fetchpriority = 'auto', sizesOverride = '' }) {
+        console.log('ImageUtils.generatePictureMarkup called with:', { src, lightSrc, darkSrc, alt, width, aspectRatio, loading, fetchpriority, sizesOverride }); // Debug log
         if (!src) {
             console.error('The "src" parameter is required for generatePictureMarkup');
             return '';
@@ -45,11 +45,14 @@ const ImageUtils = {
         let widthPercentage = widthMatch ? parseInt(widthMatch[1]) / 100 : 1.0;
         widthPercentage = Math.max(0.1, Math.min(2.0, widthPercentage));
 
-        // Generate sizes attribute
-        const sizes = [
-            ...this.SIZES_BREAKPOINTS.map(bp => `(max-width: ${bp.maxWidth}px) ${widthPercentage * 100}vw`),
-            `${parseInt(this.DEFAULT_SIZE) * widthPercentage}px`
-        ].join(', ');
+        // Generate sizes attribute if no override is provided
+        let sizes = sizesOverride;
+        if (!sizes) {
+            sizes = [
+                ...this.SIZES_BREAKPOINTS.map(bp => `(max-width: ${bp.maxWidth}px) ${widthPercentage * 100}vw`),
+                `${parseInt(this.DEFAULT_SIZE) * widthPercentage}px`
+            ].join(', ');
+        }
 
         // Build the <picture> element HTML
         let pictureHTML = '<picture class="animate animate-fade-in">';
@@ -86,7 +89,7 @@ const ImageUtils = {
         const imgClassAttr = imgClasses.length > 0 ? ` class="${imgClasses.join(' ')}"` : '';
         const altAttr = alt ? ` alt="${alt}"` : '';
         pictureHTML += `
-            <img src="${src}"${imgClassAttr}${altAttr} loading="lazy">
+            <img src="${src}"${imgClassAttr}${altAttr} loading="${loading}" fetchpriority="${fetchpriority}">
         `;
         pictureHTML += '</picture>';
 
