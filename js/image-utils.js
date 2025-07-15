@@ -13,8 +13,8 @@ const ImageUtils = {
     ],
     DEFAULT_SIZE: '3840px',
 
-    generatePictureMarkup({ src, lightSrc, darkSrc, alt = '', width = '100vw', aspectRatio = '', loading = 'lazy', fetchpriority = 'auto', sizesOverride = '' }) {
-        console.log('ImageUtils.generatePictureMarkup called with:', { src, lightSrc, darkSrc, alt, width, aspectRatio, loading, fetchpriority, sizesOverride }); // Debug log
+    generatePictureMarkup({ src, lightSrc, darkSrc, alt = '', width = '100vw', aspectRatio = '', loading = 'lazy', fetchpriority = 'auto' }) {
+        console.log('ImageUtils.generatePictureMarkup called with:', { src, lightSrc, darkSrc, alt, width, aspectRatio, loading, fetchpriority }); // Debug log
         if (!src) {
             console.error('The "src" parameter is required for generatePictureMarkup');
             return '';
@@ -45,14 +45,14 @@ const ImageUtils = {
         let widthPercentage = widthMatch ? parseInt(widthMatch[1]) / 100 : 1.0;
         widthPercentage = Math.max(0.1, Math.min(2.0, widthPercentage));
 
-        // Generate sizes attribute if no override is provided
-        let sizes = sizesOverride;
-        if (!sizes) {
-            sizes = [
-                ...this.SIZES_BREAKPOINTS.map(bp => `(max-width: ${bp.maxWidth}px) ${widthPercentage * 100}vw`),
-                `${parseInt(this.DEFAULT_SIZE) * widthPercentage}px`
-            ].join(', ');
-        }
+        // Generate sizes attribute with mobile full-width
+        const sizes = [
+            ...this.SIZES_BREAKPOINTS.map(bp => {
+                const value = (bp.maxWidth <= 768) ? '100vw' : `${widthPercentage * 100}vw`;
+                return `(max-width: ${bp.maxWidth}px) ${value}`;
+            }),
+            `${parseInt(this.DEFAULT_SIZE) * widthPercentage}px`
+        ].join(', ');
 
         // Build the <picture> element HTML
         let pictureHTML = '<picture class="animate animate-fade-in">';
