@@ -177,6 +177,8 @@ class Img extends HTMLElement {
         super();
     }
 
+// In components.js, update the Img class connectedCallback:
+
 connectedCallback() {
     this.waitForImageUtils(() => {
         try {
@@ -185,11 +187,12 @@ connectedCallback() {
             const darkSrc = this.getAttribute('dark-src');
             const alt = this.getAttribute('alt') || '';
             const aspectRatio = this.getAttribute('aspect-ratio') || '';
-            const mobileWidth = this.getAttribute('mobileWidth') || '100vw';  // Default full-width for mobile
-            const desktopWidth = this.getAttribute('desktopWidth') || '100vw';  // Default full-width for desktop (adjust if needed)
+            const mobileWidth = this.getAttribute('width-mobile') || '100vw';  // Default full-width for mobile
+            const tabletWidth = this.getAttribute('width-tablet') || '100vw';  // Default full-width for tablet
+            const desktopWidth = this.getAttribute('width-desktop') || '100vw';  // Default full-width for desktop
             const customClasses = this.getAttribute('class') || '';
-            const loading = this.hasAttribute('loadingLazy') ? 'lazy' : null;
-            const fetchpriority = this.hasAttribute('fetchPriorityHigh') ? 'high' : null;
+            const loading = this.hasAttribute('loading-lazy') ? 'lazy' : null;
+            const fetchpriority = this.hasAttribute('fetch-priority') ? 'high' : null;
 
             if (typeof ImageUtils === 'undefined') {
                 console.error('ImageUtils is not defined. Ensure image-utils.js is loaded before components.js');
@@ -202,10 +205,11 @@ connectedCallback() {
                 darkSrc: darkSrc,
                 alt: alt,
                 mobileWidth: mobileWidth,
+                tabletWidth: tabletWidth,
                 desktopWidth: desktopWidth,
                 aspectRatio: aspectRatio,
                 loading: loading,
-                fetchpriority: fetchpriority
+                'fetch-priority': fetchpriority
             });
 
             if (!pictureHTML) {
