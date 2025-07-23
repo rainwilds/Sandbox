@@ -26,17 +26,43 @@ The `<bh-img>` component renders responsive images with support for themes, acce
 | `schema-url`      | Canonical URL for schema.org `ImageObject`.                                 | Set absolute URL for `<meta itemprop="url">`. Example: `schema-url="https://example.com/image.jpg"`. | Resolved `src` |
 | `schema-description` | Description for schema.org `ImageObject`.                             | Set description for `<meta itemprop="description">`. Example: `schema-description="Photo description"`. | `alt` or empty |
 
-## Example
+## Examples
 ```html
+<bh-img src="./img/primary/image.jpg"></bh-img>
+
 <bh-img
-    src="./img/primary/image.jpg"
+    src="./img/primary/business-service.jpg"
     alt="Business service in Location"
     aspect-ratio="16/9"
     mobile-width="100vw"
     tablet-width="80vw"
     desktop-width="80vw"
     object-fit="cover"
+    object-position="top"
+    class="border-radius-medium"
     loading="lazy"
+    fetch-priority="high"
+    fallback-src="./img/custom-placeholder.jpg">
+</bh-img>
+
+<bh-img
+    src="./img/primary/business-service.jpg"
+    light-src="./img/primary/business-service-light.jpg"
+    dark-src="./img/primary/business-service-dark.jpg"
+    alt="Business service in Location"
+    decorative
+    aspect-ratio="21/9"
+    mobile-width="100vw"
+    tablet-width="80vw"
+    desktop-width="80vw"
+    class="border-radius-medium shadow-large"
+    loading="lazy"
+    fetch-priority="high"
+    fallback-src="./img/custom-placeholder.jpg"
+    object-fit="cover"
+    object-position="top"
     include-schema
-    caption="Business service in Location"
->
+    caption="Business service offered at our downtown location"
+    schema-url="https://example.com/business-service.jpg"
+    schema-description="Photo of our business service at the downtown location">
+</bh-img>
