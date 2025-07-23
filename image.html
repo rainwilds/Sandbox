@@ -21,10 +21,16 @@
                 light-src="./img/primary/image1.jpg"
                 dark-src="./img/primary/image2.jpg"
                 alt="Business service in Location"
-                aspect-ratio="3/2"
-                width-desktop="80"
-                width-tablet="50"
+                aspect-ratio="16/9"
+                mobile-width="100vw"
+                tablet-width="80vw"
+                desktop-width="80vw"
+                object-fit="cover"
                 class="border-radius-medium"
+                include-schema
+                caption="Business service offered at our downtown location"
+                schema-url="https://example.com/business-service.jpg"
+                schema-description="Photo of our business service at the downtown location"
                 fetch-priority>
             </bh-img>
         </section>
@@ -32,8 +38,10 @@
         <section>
             <bh-img
                 src="./img/primary/image1.jpg"
-                alt="Business service in Location"
-                loading-lazy>
+                loading="lazy"
+                object-postion="top"
+                fallback-src="./img/primary/image2.jpg"
+                decorative>
             </bh-img>
         </section>
     </main>
