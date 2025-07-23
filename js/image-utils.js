@@ -1,5 +1,3 @@
-// In image-utils.js, update the generatePictureMarkup function:
-
 const ImageUtils = {
     // Configuration constants
     WIDTHS: [768, 980, 1366, 1920, 2560, 3840],

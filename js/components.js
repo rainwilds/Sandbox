@@ -177,8 +177,6 @@ class Img extends HTMLElement {
         super();
     }
 
-// In components.js, update the Img class connectedCallback:
-
 connectedCallback() {
     this.waitForImageUtils(() => {
         try {
