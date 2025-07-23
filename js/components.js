@@ -228,7 +228,7 @@ class Img extends HTMLElement {
                     'fetch-priority': fetchpriority,
                     objectFit,
                     objectPosition,
-                    includeSchema // Pass to add itemprop="contentUrl"
+                    includeSchema
                 });
 
                 if (!pictureHTML) {
@@ -245,7 +245,7 @@ class Img extends HTMLElement {
                 }
 
                 if (objectFit) {
-                    img.style.objectFit = objectFit;
+                    img.classList.add(`object-fit-${objectFit}`);
                 }
                 if (objectPosition) {
                     img.style.objectPosition = objectPosition;
