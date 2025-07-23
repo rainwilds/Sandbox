@@ -6,7 +6,7 @@ const ImageUtils = {
     SIZES_BREAKPOINTS: [
         { maxWidth: 768, baseValue: '100vw' },
         { maxWidth: 980, baseValue: '100vw' },
-        { maxWidth: 1024, baseValue: '100vw' }, // New breakpoint for tablet
+        { maxWidth: 1024, baseValue: '100vw' },
         { maxWidth: 1366, baseValue: '100vw' },
         { maxWidth: 1920, baseValue: '100vw' },
         { maxWidth: 2560, baseValue: '100vw' },
@@ -14,8 +14,8 @@ const ImageUtils = {
     ],
     DEFAULT_SIZE: '3840px',
 
-    generatePictureMarkup({ src, lightSrc, darkSrc, alt = '', isDecorative = false, mobileWidth = '100vw', tabletWidth = '100vw', desktopWidth = '100vw', aspectRatio = '', loading, 'fetch-priority': fetchpriority, objectFit, objectPosition }) {
-        console.log('ImageUtils.generatePictureMarkup called with:', { src, lightSrc, darkSrc, alt, isDecorative, mobileWidth, tabletWidth, desktopWidth, aspectRatio, loading, fetchpriority, objectFit, objectPosition });
+    generatePictureMarkup({ src, lightSrc, darkSrc, alt = '', isDecorative = false, mobileWidth = '100vw', tabletWidth = '100vw', desktopWidth = '100vw', aspectRatio = '', loading, 'fetch-priority': fetchpriority, objectFit, objectPosition, includeSchema = false }) {
+        console.log('ImageUtils.generatePictureMarkup called with:', { src, lightSrc, darkSrc, alt, isDecorative, mobileWidth, tabletWidth, desktopWidth, aspectRatio, loading, fetchpriority, objectFit, objectPosition, includeSchema });
         if (!src) {
             console.error('The "src" parameter is required for generatePictureMarkup');
             return '';
@@ -105,6 +105,7 @@ const ImageUtils = {
         let imgAttrs = '';
         if (loading) imgAttrs += ` loading="${loading}"`;
         if (fetchpriority) imgAttrs += ` fetchpriority="${fetchpriority}"`;
+        if (includeSchema) imgAttrs += ` itemprop="contentUrl"`;
 
         pictureHTML += `
             <img src="${src}"${imgClassAttr}${altAttr}${ariaHiddenAttr}${imgAttrs}>

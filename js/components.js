@@ -192,18 +192,22 @@ class Img extends HTMLElement {
                     console.warn(`<bh-img src="${src}"> is missing an alt attribute for accessibility. Use alt="" if decorative, or add decorative attribute.`);
                 }
                 const aspectRatio = this.getAttribute('aspect-ratio') || '';
-                const mobileWidth = this.getAttribute('mobile-width') || '100vw';  // Default full-width for mobile
-                const tabletWidth = this.getAttribute('tablet-width') || '100vw';  // Default full-width for tablet
-                const desktopWidth = this.getAttribute('desktop-width') || '100vw';  // Default full-width for desktop
+                const mobileWidth = this.getAttribute('mobile-width') || '100vw';
+                const tabletWidth = this.getAttribute('tablet-width') || '100vw';
+                const desktopWidth = this.getAttribute('desktop-width') || '100vw';
                 const customClasses = this.getAttribute('class') || '';
-                const loading = this.getAttribute('loading') || null;  // 'lazy' or 'eager'; null for browser default
-                const fetchpriority = this.getAttribute('fetch-priority') || null;  // 'high', 'low', 'auto'; null for browser default
+                const loading = this.getAttribute('loading') || null;
+                const fetchpriority = this.getAttribute('fetch-priority') || null;
                 if (fetchpriority && !['high', 'low', 'auto'].includes(fetchpriority)) {
                     console.warn(`Invalid fetch-priority value "${fetchpriority}" in <bh-img>. Use 'high', 'low', or 'auto'.`);
                 }
                 const fallbackSrc = this.getAttribute('fallback-src') || 'https://placehold.co/3000x2000';
-                const objectFit = this.getAttribute('object-fit') || null;  // e.g., 'cover'; null for browser default
-                const objectPosition = this.getAttribute('object-position') || null;  // e.g., 'top'; null for browser default
+                const objectFit = this.getAttribute('object-fit') || null;
+                const objectPosition = this.getAttribute('object-position') || null;
+                const includeSchema = this.hasAttribute('include-schema');
+                const caption = this.getAttribute('caption') || null;
+                const schemaUrl = this.getAttribute('schema-url') || (src ? new URL(src, window.location.origin).href : '');
+                const schemaDescription = this.getAttribute('schema-description') || (isDecorative ? '' : alt);
 
                 if (typeof ImageUtils === 'undefined') {
                     console.error('ImageUtils is not defined. Ensure image-utils.js is loaded before components.js');
@@ -223,7 +227,8 @@ class Img extends HTMLElement {
                     loading,
                     'fetch-priority': fetchpriority,
                     objectFit,
-                    objectPosition
+                    objectPosition,
+                    includeSchema // Pass to add itemprop="contentUrl"
                 });
 
                 if (!pictureHTML) {
@@ -255,7 +260,31 @@ class Img extends HTMLElement {
                     img.onerror = null;
                 };
 
-                this.replaceWith(picture);
+                // Wrap in <figure> with schema.org markup if include-schema is present
+                let finalElement = picture;
+                if (includeSchema) {
+                    const figure = document.createElement('figure');
+                    figure.setAttribute('itemscope', '');
+                    figure.setAttribute('itemtype', 'https://schema.org/ImageObject');
+                    figure.appendChild(picture);
+                    if (caption) {
+                        const figcaption = document.createElement('figcaption');
+                        figcaption.setAttribute('itemprop', 'caption');
+                        figcaption.textContent = caption;
+                        figure.appendChild(figcaption);
+                    }
+                    const metaUrl = document.createElement('meta');
+                    metaUrl.setAttribute('itemprop', 'url');
+                    metaUrl.setAttribute('content', schemaUrl || '');
+                    figure.appendChild(metaUrl);
+                    const metaDescription = document.createElement('meta');
+                    metaDescription.setAttribute('itemprop', 'description');
+                    metaDescription.setAttribute('content', schemaDescription || '');
+                    figure.appendChild(metaDescription);
+                    finalElement = figure;
+                }
+
+                this.replaceWith(finalElement);
             } catch (error) {
                 console.error('Error in Img connectedCallback:', error);
             }
