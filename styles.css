@@ -442,6 +442,18 @@
             backdrop-filter: var(--blur-large);
         }
 
+        .object-fit-contain {
+            object-fit: contain;
+        }
+
+        .object-fit-cover {
+            object-fit: cover;
+        }
+        
+        .object-fit-fill {
+            object-fit: fill;
+        }        
+
         .aspect-ratio-21-9 {
             aspect-ratio: 21/9;
         }

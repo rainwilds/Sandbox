@@ -1,117 +1,139 @@
-const ImageUtils = {
-    // Configuration constants
-    WIDTHS: [768, 980, 1024, 1366, 1920, 2560, 3840],
-    FORMATS: ['avif', 'webp', 'jpeg'],
-    VALID_ASPECT_RATIOS: ['16/9', '9/16', '3/2', '2/3', '1/1', '21/9'], // Added 21/9
-    SIZES_BREAKPOINTS: [
-        { maxWidth: 768, baseValue: '100vw' },
-        { maxWidth: 980, baseValue: '100vw' },
-        { maxWidth: 1024, baseValue: '100vw' },
-        { maxWidth: 1366, baseValue: '100vw' },
-        { maxWidth: 1920, baseValue: '100vw' },
-        { maxWidth: 2560, baseValue: '100vw' },
-        { maxWidth: 3840, baseValue: '100vw' },
-    ],
-    DEFAULT_SIZE: '3840px',
-
-    generatePictureMarkup({ src, lightSrc, darkSrc, alt = '', isDecorative = false, mobileWidth = '100vw', tabletWidth = '100vw', desktopWidth = '100vw', aspectRatio = '', loading, 'fetch-priority': fetchpriority, objectFit, objectPosition, includeSchema = false }) {
-        console.log('ImageUtils.generatePictureMarkup called with:', { src, lightSrc, darkSrc, alt, isDecorative, mobileWidth, tabletWidth, desktopWidth, aspectRatio, loading, fetchpriority, objectFit, objectPosition, includeSchema });
-        if (!src) {
-            console.error('The "src" parameter is required for generatePictureMarkup');
-            return '';
-        }
-
-        // Extract base filename from src
-        let baseFilename = src.split('/').pop().split('.')[0];
-        if (!baseFilename) {
-            console.error('Invalid "src" parameter: unable to extract base filename');
-            return '';
-        }
-
-        // Extract base filenames for light and dark themes (if provided)
-        let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.')[0] : null;
-        let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.')[0] : null;
-
-        if (lightSrc && !lightBaseFilename) {
-            console.error('Invalid "light-src" parameter: unable to extract base filename');
-            return '';
-        }
-        if (darkSrc && !darkBaseFilename) {
-            console.error('Invalid "dark-src" parameter: unable to extract base filename');
-            return '';
-        }
-
-        // Parse mobileWidth, tabletWidth, and desktopWidth
-        const parseWidth = (widthStr) => {
-            const vwMatch = widthStr.match(/(\d+)vw/);
-            if (vwMatch) {
-                return parseInt(vwMatch[1]) / 100;
-            }
-            const pxMatch = widthStr.match(/(\d+)px/);
-            if (pxMatch) {
-                return parseInt(pxMatch[1]) / window.innerWidth; // Approximate fraction
-            }
-            return 1.0;
-        };
-        let mobilePercentage = parseWidth(mobileWidth);
-        mobilePercentage = Math.max(0.1, Math.min(2.0, mobilePercentage));
-
-        let tabletPercentage = parseWidth(tabletWidth);
-        tabletPercentage = Math.max(0.1, Math.min(2.0, tabletPercentage));
-
-        let desktopPercentage = parseWidth(desktopWidth);
-        desktopPercentage = Math.max(0.1, Math.min(2.0, desktopPercentage));
-
-        // Generate sizes attribute
-        const sizes = [
-            ...this.SIZES_BREAKPOINTS.map(bp => {
-                const percentage = bp.maxWidth <= 768 ? mobilePercentage : (bp.maxWidth <= 1024 ? tabletPercentage : desktopPercentage);
-                return `(max-width: ${bp.maxWidth}px) ${percentage * 100}vw`;
-            }),
-            `${parseInt(this.DEFAULT_SIZE) * desktopPercentage}px`
-        ].join(', ');
-
-        // Build the <picture> element HTML
-        let pictureHTML = '<picture class="animate animate-fade-in">';
-
-        // Add <source> elements for each format
-        this.FORMATS.forEach(format => {
-            if (lightSrc && darkSrc) {
-                const srcsetLight = this.WIDTHS.map(w => `./img/responsive/${lightBaseFilename}-${w}.${format} ${w}w`).join(', ');
-                pictureHTML += `
-                    <source srcset="${srcsetLight}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: light)">
-                `;
-                const srcsetDark = this.WIDTHS.map(w => `./img/responsive/${darkBaseFilename}-${w}.${format} ${w}w`).join(', ');
-                pictureHTML += `
-                    <source srcset="${srcsetDark}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: dark)">
-                `;
-            }
-
-            const srcset = this.WIDTHS.map(w => `./img/responsive/${baseFilename}-${w}.${format} ${w}w`).join(', ');
-            pictureHTML += `
-                <source srcset="${srcset}" sizes="${sizes}" type="image/${format}">
-            `;
-        });
-
-        // Add <img> element
-        let imgClasses = [];
-        if (aspectRatio && this.VALID_ASPECT_RATIOS.includes(aspectRatio)) {
-            const aspectRatioClass = `aspect-ratio-${aspectRatio.replace('/', '-')}`;
-            imgClasses.push(aspectRatioClass);
-        }
-        const imgClassAttr = imgClasses.length > 0 ? ` class="${imgClasses.join(' ')}"` : '';
-        const altAttr = alt && !isDecorative ? ` alt="${alt}"` : '';
-        const ariaHiddenAttr = isDecorative ? ' aria-hidden="true"' : '';
-        let imgAttrs = '';
-        if (loading) imgAttrs += ` loading="${loading}"`;
-        if (fetchpriority) imgAttrs += ` fetchpriority="${fetchpriority}"`;
-        if (includeSchema) imgAttrs += ` itemprop="contentUrl"`;
-
-        pictureHTML += `
-            <img src="${src}"${imgClassAttr}${altAttr}${ariaHiddenAttr}${imgAttrs}>
-        `;
-        pictureHTML += '</picture>';
-
-        return pictureHTML;
+class Img extends HTMLElement {
+    constructor() {
+        super();
     }
-};
+
+    connectedCallback() {
+        // Add role to custom element before replacement
+        this.setAttribute('role', 'img');
+
+        this.waitForImageUtils(() => {
+            try {
+                const src = this.getAttribute('src');
+                const lightSrc = this.getAttribute('light-src');
+                const darkSrc = this.getAttribute('dark-src');
+                const alt = this.getAttribute('alt') || '';
+                const isDecorative = this.hasAttribute('decorative');
+                if (!alt && !isDecorative) {
+                    console.warn(`<bh-img src="${src}"> is missing an alt attribute for accessibility. Use alt="" if decorative, or add decorative attribute.`);
+                }
+                const aspectRatio = this.getAttribute('aspect-ratio') || '';
+                const mobileWidth = this.getAttribute('mobile-width') || '100vw';
+                const tabletWidth = this.getAttribute('tablet-width') || '100vw';
+                const desktopWidth = this.getAttribute('desktop-width') || '100vw';
+                const customClasses = this.getAttribute('class') || '';
+                const loading = this.getAttribute('loading') || null;
+                const fetchpriority = this.getAttribute('fetch-priority') || null;
+                if (fetchpriority && !['high', 'low', 'auto'].includes(fetchpriority)) {
+                    console.warn(`Invalid fetch-priority value "${fetchpriority}" in <bh-img>. Use 'high', 'low', or 'auto'.`);
+                }
+                const fallbackSrc = this.getAttribute('fallback-src') || 'https://placehold.co/3000x2000';
+                const objectFit = this.getAttribute('object-fit') || null;
+                const objectPosition = this.getAttribute('object-position') || null;
+                const includeSchema = this.hasAttribute('include-schema');
+                const caption = this.getAttribute('caption') || null;
+                const schemaUrl = this.getAttribute('schema-url') || (src ? new URL(src, window.location.origin).href : '');
+                const schemaDescription = this.getAttribute('schema-description') || (isDecorative ? '' : alt);
+
+                if (typeof ImageUtils === 'undefined') {
+                    console.error('ImageUtils is not defined. Ensure image-utils.js is loaded before components.js');
+                    return;
+                }
+
+                const pictureHTML = ImageUtils.generatePictureMarkup({
+                    src,
+                    lightSrc,
+                    darkSrc,
+                    alt,
+                    isDecorative,
+                    mobileWidth,
+                    tabletWidth,
+                    desktopWidth,
+                    aspectRatio,
+                    loading,
+                    'fetch-priority': fetchpriority,
+                    objectFit,
+                    objectPosition,
+                    includeSchema
+                });
+
+                if (!pictureHTML) {
+                    return;
+                }
+
+                const div = document.createElement('div');
+                div.innerHTML = pictureHTML;
+                const picture = div.firstChild;
+
+                const img = picture.querySelector('img');
+                if (customClasses) {
+                    img.className = img.className ? `${img.className} ${customClasses}`.trim() : customClasses;
+                }
+
+                if (objectFit) {
+                    img.classList.add(`object-fit-${objectFit}`);
+                }
+                if (objectPosition) {
+                    img.style.objectPosition = objectPosition;
+                }
+
+                img.onerror = () => {
+                    console.warn(`Failed to load primary image: ${src}. Falling back to ${fallbackSrc}.`);
+                    img.src = fallbackSrc;
+                    if (!isDecorative) {
+                        img.setAttribute('alt', alt || 'Placeholder image');
+                    }
+                    img.onerror = null;
+                };
+
+                // Wrap in <figure> with schema.org markup if include-schema is present
+                let finalElement = picture;
+                if (includeSchema) {
+                    const figure = document.createElement('figure');
+                    figure.setAttribute('itemscope', '');
+                    figure.setAttribute('itemtype', 'https://schema.org/ImageObject');
+                    figure.appendChild(picture);
+                    if (caption) {
+                        const figcaption = document.createElement('figcaption');
+                        figcaption.setAttribute('itemprop', 'caption');
+                        figcaption.textContent = caption;
+                        figure.appendChild(figcaption);
+                    }
+                    const metaUrl = document.createElement('meta');
+                    metaUrl.setAttribute('itemprop', 'url');
+                    metaUrl.setAttribute('content', schemaUrl || '');
+                    figure.appendChild(metaUrl);
+                    const metaDescription = document.createElement('meta');
+                    metaDescription.setAttribute('itemprop', 'description');
+                    metaDescription.setAttribute('content', schemaDescription || '');
+                    figure.appendChild(metaDescription);
+                    finalElement = figure;
+                }
+
+                this.replaceWith(finalElement);
+            } catch (error) {
+                console.error('Error in Img connectedCallback:', error);
+            }
+        });
+    }
+
+    waitForImageUtils(callback) {
+        if (typeof ImageUtils !== 'undefined') {
+            callback();
+            return;
+        }
+        const interval = setInterval(() => {
+            if (typeof ImageUtils !== 'undefined') {
+                clearInterval(interval);
+                callback();
+            }
+        }, 100);
+        setTimeout(() => {
+            clearInterval(interval);
+            console.error('Timed out waiting for ImageUtils to be defined. Ensure image-shared.js is loaded correctly.');
+            callback();
+        }, 5000);
+    }
+}
+
+customElements.define('bh-img', Img);
