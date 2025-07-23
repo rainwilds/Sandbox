@@ -1,11 +1,12 @@
 const ImageUtils = {
     // Configuration constants
-    WIDTHS: [768, 980, 1366, 1920, 2560, 3840],
+    WIDTHS: [768, 980, 1024, 1366, 1920, 2560, 3840],
     FORMATS: ['avif', 'webp', 'jpeg'],
     VALID_ASPECT_RATIOS: ['16/9', '9/16', '3/2', '2/3', '1/1'],
     SIZES_BREAKPOINTS: [
         { maxWidth: 768, baseValue: '100vw' },
         { maxWidth: 980, baseValue: '100vw' },
+        { maxWidth: 1024, baseValue: '100vw' }, // New breakpoint for tablet
         { maxWidth: 1366, baseValue: '100vw' },
         { maxWidth: 1920, baseValue: '100vw' },
         { maxWidth: 2560, baseValue: '100vw' },
@@ -40,23 +41,31 @@ const ImageUtils = {
             return '';
         }
 
-        // Parse mobileWidth, tabletWidth, and desktopWidth (e.g., "100vw" or "50vw")
-        const mobileMatch = mobileWidth.match(/(\d+)vw/);
-        let mobilePercentage = mobileMatch ? parseInt(mobileMatch[1]) / 100 : 1.0;
+        // Parse mobileWidth, tabletWidth, and desktopWidth
+        const parseWidth = (widthStr) => {
+            const vwMatch = widthStr.match(/(\d+)vw/);
+            if (vwMatch) {
+                return parseInt(vwMatch[1]) / 100;
+            }
+            const pxMatch = widthStr.match(/(\d+)px/);
+            if (pxMatch) {
+                return parseInt(pxMatch[1]) / window.innerWidth; // Approximate fraction
+            }
+            return 1.0;
+        };
+        let mobilePercentage = parseWidth(mobileWidth);
         mobilePercentage = Math.max(0.1, Math.min(2.0, mobilePercentage));
 
-        const tabletMatch = tabletWidth.match(/(\d+)vw/);
-        let tabletPercentage = tabletMatch ? parseInt(tabletMatch[1]) / 100 : 1.0;
+        let tabletPercentage = parseWidth(tabletWidth);
         tabletPercentage = Math.max(0.1, Math.min(2.0, tabletPercentage));
 
-        const desktopMatch = desktopWidth.match(/(\d+)vw/);
-        let desktopPercentage = desktopMatch ? parseInt(desktopMatch[1]) / 100 : 1.0;
+        let desktopPercentage = parseWidth(desktopWidth);
         desktopPercentage = Math.max(0.1, Math.min(2.0, desktopPercentage));
 
         // Generate sizes attribute
         const sizes = [
             ...this.SIZES_BREAKPOINTS.map(bp => {
-                const percentage = bp.maxWidth <= 768 ? mobilePercentage : (bp.maxWidth <= 980 ? tabletPercentage : desktopPercentage);
+                const percentage = bp.maxWidth <= 768 ? mobilePercentage : (bp.maxWidth <= 1024 ? tabletPercentage : desktopPercentage);
                 return `(max-width: ${bp.maxWidth}px) ${percentage * 100}vw`;
             }),
             `${parseInt(this.DEFAULT_SIZE) * desktopPercentage}px`
@@ -70,18 +79,18 @@ const ImageUtils = {
             if (lightSrc && darkSrc) {
                 const srcsetLight = this.WIDTHS.map(w => `./img/responsive/${lightBaseFilename}-${w}.${format} ${w}w`).join(', ');
                 pictureHTML += `
-                <source srcset="${srcsetLight}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: light)">
-            `;
+                    <source srcset="${srcsetLight}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: light)">
+                `;
                 const srcsetDark = this.WIDTHS.map(w => `./img/responsive/${darkBaseFilename}-${w}.${format} ${w}w`).join(', ');
                 pictureHTML += `
-                <source srcset="${srcsetDark}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: dark)">
-            `;
+                    <source srcset="${srcsetDark}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: dark)">
+                `;
             }
 
             const srcset = this.WIDTHS.map(w => `./img/responsive/${baseFilename}-${w}.${format} ${w}w`).join(', ');
             pictureHTML += `
-            <source srcset="${srcset}" sizes="${sizes}" type="image/${format}">
-        `;
+                <source srcset="${srcset}" sizes="${sizes}" type="image/${format}">
+            `;
         });
 
         // Add <img> element
@@ -98,8 +107,8 @@ const ImageUtils = {
         if (fetchpriority) imgAttrs += ` fetchpriority="${fetchpriority}"`;
 
         pictureHTML += `
-        <img src="${src}"${imgClassAttr}${altAttr}${ariaHiddenAttr}${imgAttrs}>
-    `;
+            <img src="${src}"${imgClassAttr}${altAttr}${ariaHiddenAttr}${imgAttrs}>
+        `;
         pictureHTML += '</picture>';
 
         return pictureHTML;

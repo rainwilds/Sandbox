@@ -177,88 +177,90 @@ class Img extends HTMLElement {
         super();
     }
 
-connectedCallback() {
-    // Add role to custom element before replacement
-    this.setAttribute('role', 'img');
+    connectedCallback() {
+        // Add role to custom element before replacement
+        this.setAttribute('role', 'img');
 
-    this.waitForImageUtils(() => {
-        try {
-            const src = this.getAttribute('src');
-            const lightSrc = this.getAttribute('light-src');
-            const darkSrc = this.getAttribute('dark-src');
-            const alt = this.getAttribute('alt') || '';
-            const isDecorative = this.hasAttribute('decorative');
-            if (!alt && !isDecorative) {
-                console.warn(`<bh-img src="${src}"> is missing an alt attribute for accessibility. Use alt="" if decorative, or add decorative attribute.`);
-            }
-            const aspectRatio = this.getAttribute('aspect-ratio') || '';
-            const mobileWidth = this.getAttribute('width-mobile') || '100vw';
-            const tabletWidth = this.getAttribute('width-tablet') || '100vw';
-            const desktopWidth = this.getAttribute('width-desktop') || '100vw';
-            const customClasses = this.getAttribute('class') || '';
-            const loading = this.getAttribute('loading') || null;
-            const fetchpriority = this.getAttribute('fetch-priority') || null;
-            const fallbackSrc = this.getAttribute('fallback-src') || 'https://placehold.co/3000x2000';
-            const objectFit = this.getAttribute('object-fit') || null;
-            const objectPosition = this.getAttribute('object-position') || null;
-
-            if (typeof ImageUtils === 'undefined') {
-                console.error('ImageUtils is not defined. Ensure image-utils.js is loaded before components.js');
-                return;
-            }
-
-            const pictureHTML = ImageUtils.generatePictureMarkup({
-                src,
-                lightSrc,
-                darkSrc,
-                alt,
-                isDecorative, // Pass to ImageUtils
-                mobileWidth,
-                tabletWidth,
-                desktopWidth,
-                aspectRatio,
-                loading,
-                'fetch-priority': fetchpriority,
-                objectFit,
-                objectPosition
-            });
-
-            if (!pictureHTML) {
-                return;
-            }
-
-            const div = document.createElement('div');
-            div.innerHTML = pictureHTML;
-            const picture = div.firstChild;
-
-            const img = picture.querySelector('img');
-            if (customClasses) {
-                img.className = img.className ? `${img.className} ${customClasses}`.trim() : customClasses;
-            }
-
-            if (objectFit) {
-                img.style.objectFit = objectFit;
-            }
-            if (objectPosition) {
-                img.style.objectPosition = objectPosition;
-            }
-
-            img.onerror = () => {
-                console.warn(`Failed to load primary image: ${src}. Falling back to ${fallbackSrc}.`);
-                img.src = fallbackSrc;
-                // Update alt for fallback if not decorative
-                if (!isDecorative) {
-                    img.setAttribute('alt', alt || 'Placeholder image');
+        this.waitForImageUtils(() => {
+            try {
+                const src = this.getAttribute('src');
+                const lightSrc = this.getAttribute('light-src');
+                const darkSrc = this.getAttribute('dark-src');
+                const alt = this.getAttribute('alt') || '';
+                const isDecorative = this.hasAttribute('decorative');
+                if (!alt && !isDecorative) {
+                    console.warn(`<bh-img src="${src}"> is missing an alt attribute for accessibility. Use alt="" if decorative, or add decorative attribute.`);
                 }
-                img.onerror = null;
-            };
+                const aspectRatio = this.getAttribute('aspect-ratio') || '';
+                const mobileWidth = this.getAttribute('mobile-width') || '100vw';  // Default full-width for mobile
+                const tabletWidth = this.getAttribute('tablet-width') || '100vw';  // Default full-width for tablet
+                const desktopWidth = this.getAttribute('desktop-width') || '100vw';  // Default full-width for desktop
+                const customClasses = this.getAttribute('class') || '';
+                const loading = this.getAttribute('loading') || null;  // 'lazy' or 'eager'; null for browser default
+                const fetchpriority = this.getAttribute('fetch-priority') || null;  // 'high', 'low', 'auto'; null for browser default
+                if (fetchpriority && !['high', 'low', 'auto'].includes(fetchpriority)) {
+                    console.warn(`Invalid fetch-priority value "${fetchpriority}" in <bh-img>. Use 'high', 'low', or 'auto'.`);
+                }
+                const fallbackSrc = this.getAttribute('fallback-src') || 'https://placehold.co/3000x2000';
+                const objectFit = this.getAttribute('object-fit') || null;  // e.g., 'cover'; null for browser default
+                const objectPosition = this.getAttribute('object-position') || null;  // e.g., 'top'; null for browser default
 
-            this.replaceWith(picture);
-        } catch (error) {
-            console.error('Error in Img connectedCallback:', error);
-        }
-    });
-}
+                if (typeof ImageUtils === 'undefined') {
+                    console.error('ImageUtils is not defined. Ensure image-utils.js is loaded before components.js');
+                    return;
+                }
+
+                const pictureHTML = ImageUtils.generatePictureMarkup({
+                    src,
+                    lightSrc,
+                    darkSrc,
+                    alt,
+                    isDecorative,
+                    mobileWidth,
+                    tabletWidth,
+                    desktopWidth,
+                    aspectRatio,
+                    loading,
+                    'fetch-priority': fetchpriority,
+                    objectFit,
+                    objectPosition
+                });
+
+                if (!pictureHTML) {
+                    return;
+                }
+
+                const div = document.createElement('div');
+                div.innerHTML = pictureHTML;
+                const picture = div.firstChild;
+
+                const img = picture.querySelector('img');
+                if (customClasses) {
+                    img.className = img.className ? `${img.className} ${customClasses}`.trim() : customClasses;
+                }
+
+                if (objectFit) {
+                    img.style.objectFit = objectFit;
+                }
+                if (objectPosition) {
+                    img.style.objectPosition = objectPosition;
+                }
+
+                img.onerror = () => {
+                    console.warn(`Failed to load primary image: ${src}. Falling back to ${fallbackSrc}.`);
+                    img.src = fallbackSrc;
+                    if (!isDecorative) {
+                        img.setAttribute('alt', alt || 'Placeholder image');
+                    }
+                    img.onerror = null;
+                };
+
+                this.replaceWith(picture);
+            } catch (error) {
+                console.error('Error in Img connectedCallback:', error);
+            }
+        });
+    }
 
     waitForImageUtils(callback) {
         if (typeof ImageUtils !== 'undefined') {
