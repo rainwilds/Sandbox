@@ -178,19 +178,29 @@ class Img extends HTMLElement {
     }
 
 connectedCallback() {
+    // Add role to custom element before replacement
+    this.setAttribute('role', 'img');
+
     this.waitForImageUtils(() => {
         try {
             const src = this.getAttribute('src');
             const lightSrc = this.getAttribute('light-src');
             const darkSrc = this.getAttribute('dark-src');
             const alt = this.getAttribute('alt') || '';
+            const isDecorative = this.hasAttribute('decorative');
+            if (!alt && !isDecorative) {
+                console.warn(`<bh-img src="${src}"> is missing an alt attribute for accessibility. Use alt="" if decorative, or add decorative attribute.`);
+            }
             const aspectRatio = this.getAttribute('aspect-ratio') || '';
-            const mobileWidth = this.getAttribute('width-mobile') || '100vw';  // Default full-width for mobile
-            const tabletWidth = this.getAttribute('width-tablet') || '100vw';  // Default full-width for tablet
-            const desktopWidth = this.getAttribute('width-desktop') || '100vw';  // Default full-width for desktop
+            const mobileWidth = this.getAttribute('width-mobile') || '100vw';
+            const tabletWidth = this.getAttribute('width-tablet') || '100vw';
+            const desktopWidth = this.getAttribute('width-desktop') || '100vw';
             const customClasses = this.getAttribute('class') || '';
-            const loading = this.hasAttribute('loading-lazy') ? 'lazy' : null;
-            const fetchpriority = this.hasAttribute('fetch-priority') ? 'high' : null;
+            const loading = this.getAttribute('loading') || null;
+            const fetchpriority = this.getAttribute('fetch-priority') || null;
+            const fallbackSrc = this.getAttribute('fallback-src') || 'https://placehold.co/3000x2000';
+            const objectFit = this.getAttribute('object-fit') || null;
+            const objectPosition = this.getAttribute('object-position') || null;
 
             if (typeof ImageUtils === 'undefined') {
                 console.error('ImageUtils is not defined. Ensure image-utils.js is loaded before components.js');
@@ -198,16 +208,19 @@ connectedCallback() {
             }
 
             const pictureHTML = ImageUtils.generatePictureMarkup({
-                src: src,
-                lightSrc: lightSrc,
-                darkSrc: darkSrc,
-                alt: alt,
-                mobileWidth: mobileWidth,
-                tabletWidth: tabletWidth,
-                desktopWidth: desktopWidth,
-                aspectRatio: aspectRatio,
-                loading: loading,
-                'fetch-priority': fetchpriority
+                src,
+                lightSrc,
+                darkSrc,
+                alt,
+                isDecorative, // Pass to ImageUtils
+                mobileWidth,
+                tabletWidth,
+                desktopWidth,
+                aspectRatio,
+                loading,
+                'fetch-priority': fetchpriority,
+                objectFit,
+                objectPosition
             });
 
             if (!pictureHTML) {
@@ -220,12 +233,23 @@ connectedCallback() {
 
             const img = picture.querySelector('img');
             if (customClasses) {
-                img.className = img.className ? `${img.className} ${customClasses}` : customClasses;
+                img.className = img.className ? `${img.className} ${customClasses}`.trim() : customClasses;
+            }
+
+            if (objectFit) {
+                img.style.objectFit = objectFit;
+            }
+            if (objectPosition) {
+                img.style.objectPosition = objectPosition;
             }
 
             img.onerror = () => {
-                console.warn(`Failed to load primary image: ${src}. Falling back to placeholder.`);
-                img.src = 'https://placehold.co/3000x2000';
+                console.warn(`Failed to load primary image: ${src}. Falling back to ${fallbackSrc}.`);
+                img.src = fallbackSrc;
+                // Update alt for fallback if not decorative
+                if (!isDecorative) {
+                    img.setAttribute('alt', alt || 'Placeholder image');
+                }
                 img.onerror = null;
             };
 
