@@ -206,7 +206,10 @@ class Img extends HTMLElement {
                 const objectPosition = this.getAttribute('object-position') || null;
                 const includeSchema = this.hasAttribute('include-schema');
                 const caption = this.getAttribute('caption') || null;
-                const schemaUrl = this.getAttribute('schema-url') || (src ? new URL(src, 'https://rainwilds.github.io/Sandbox/').href : '');
+                const schemaUrl = this.getAttribute('schema-url') || (src ? new URL(src, window.location.origin).href : '');
+                if (includeSchema && src && !this.getAttribute('schema-url') && !src.startsWith('http') && window.location.origin !== 'https://rainwilds.github.io') {
+                    console.warn(`<bh-img src="${src}"> is using a relative src on a different domain (${window.location.origin}). Consider providing an absolute schema-url for accurate schema.org metadata.`);
+                }
                 const schemaDescription = this.getAttribute('schema-description') || (isDecorative ? '' : alt);
 
                 if (typeof ImageUtils === 'undefined') {
@@ -264,7 +267,7 @@ class Img extends HTMLElement {
                 let finalElement = picture;
                 if (includeSchema) {
                     const figure = document.createElement('figure');
-                    figure.itemscope = true; // Clean boolean attribute
+                    figure.itemscope = true;
                     figure.setAttribute('itemtype', 'https://schema.org/ImageObject');
                     figure.appendChild(picture);
                     if (caption) {
