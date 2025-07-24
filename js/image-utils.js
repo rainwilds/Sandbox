@@ -21,17 +21,17 @@ const ImageUtils = {
             return '';
         }
 
-        // Extract base filename from src, stripping any -XXXX suffix before the extension
+        // Extract base filename from src, stripping any -XXXX(px) suffix before the extension
         let baseFilename = src.split('/').pop().split('.')[0];
-        baseFilename = baseFilename.replace(/-\d+$/, ''); // Strip -XXXX (e.g., -3840)
+        baseFilename = baseFilename.replace(/-\d+(px)?$/, ''); // Strip -XXXX or -XXXXpx
         if (!baseFilename) {
             console.error('Invalid "src" parameter: unable to extract base filename');
             return '';
         }
 
-        // Extract base filenames for light and dark themes (if provided), stripping -XXXX
-        let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.')[0].replace(/-\d+$/, '') : null;
-        let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.')[0].replace(/-\d+$/, '') : null;
+        // Extract base filenames for light and dark themes (if provided), stripping -XXXX(px)
+        let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.')[0].replace(/-\d+(px)?$/, '') : null;
+        let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.')[0].replace(/-\d+(px)?$/, '') : null;
 
         if (lightSrc && !lightBaseFilename) {
             console.error('Invalid "light-src" parameter: unable to extract base filename');
