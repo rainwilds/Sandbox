@@ -2,7 +2,7 @@ const ImageUtils = {
     // Configuration constants
     WIDTHS: [768, 980, 1024, 1366, 1920, 2560, 3840],
     FORMATS: ['avif', 'webp', 'jpeg'],
-    VALID_ASPECT_RATIOS: ['16/9', '9/16', '3/2', '2/3', '1/1', '21/9'], // Added 21/9
+    VALID_ASPECT_RATIOS: ['16/9', '9/16', '3/2', '2/3', '1/1', '21/9'],
     SIZES_BREAKPOINTS: [
         { maxWidth: 768, baseValue: '100vw' },
         { maxWidth: 980, baseValue: '100vw' },
@@ -21,16 +21,17 @@ const ImageUtils = {
             return '';
         }
 
-        // Extract base filename from src
+        // Extract base filename from src, stripping any -XXXXpx suffix before the extension
         let baseFilename = src.split('/').pop().split('.')[0];
+        baseFilename = baseFilename.replace(/-\d+px$/, ''); // Strip -XXXXpx if present
         if (!baseFilename) {
             console.error('Invalid "src" parameter: unable to extract base filename');
             return '';
         }
 
-        // Extract base filenames for light and dark themes (if provided)
-        let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.')[0] : null;
-        let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.')[0] : null;
+        // Extract base filenames for light and dark themes (if provided), stripping -XXXXpx
+        let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.')[0].replace(/-\d+px$/, '') : null;
+        let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.')[0].replace(/-\d+px$/, '') : null;
 
         if (lightSrc && !lightBaseFilename) {
             console.error('Invalid "light-src" parameter: unable to extract base filename');
