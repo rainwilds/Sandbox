@@ -206,7 +206,7 @@ class Img extends HTMLElement {
                 const objectPosition = this.getAttribute('object-position') || null;
                 const includeSchema = this.hasAttribute('include-schema');
                 const caption = this.getAttribute('caption') || null;
-                const schemaUrl = this.getAttribute('schema-url') || (src ? new URL(src, window.location.origin).href : '');
+                const schemaUrl = this.getAttribute('schema-url') || (src ? new URL(src, 'https://rainwilds.github.io/Sandbox/').href : '');
                 const schemaDescription = this.getAttribute('schema-description') || (isDecorative ? '' : alt);
 
                 if (typeof ImageUtils === 'undefined') {
@@ -264,7 +264,7 @@ class Img extends HTMLElement {
                 let finalElement = picture;
                 if (includeSchema) {
                     const figure = document.createElement('figure');
-                    figure.setAttribute('itemscope', '');
+                    figure.itemscope = true; // Clean boolean attribute
                     figure.setAttribute('itemtype', 'https://schema.org/ImageObject');
                     figure.appendChild(picture);
                     if (caption) {
