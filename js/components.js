@@ -37,7 +37,7 @@ class Card extends HTMLElement {
         // Fallback timeout to prevent infinite waiting
         setTimeout(() => {
             clearInterval(interval);
-            console.error('Timed out waiting for ImageUtils to be defined. Ensure image-shared.js is loaded correctly.');
+            console.error('Timed out waiting for ImageUtils to be defined. Ensure image-utils.js is loaded correctly.');
             callback(); // Proceed with rendering, even if ImageUtils is missing
         }, 5000);
     }
@@ -74,7 +74,7 @@ class Card extends HTMLElement {
             let overlayHTML = '';
             if (hasBackgroundImage && imgSrc) {
                 if (typeof ImageUtils === 'undefined') {
-                    console.error('ImageUtils is not defined during render. Ensure image-shared.js is loaded before components.js');
+                    console.error('ImageUtils is not defined during render. Ensure image-utils.js is loaded before components.js');
                 } else {
                     backgroundImageHTML = ImageUtils.generatePictureMarkup({
                         src: imgSrc,

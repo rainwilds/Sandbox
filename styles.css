@@ -186,6 +186,18 @@
             background-color: light-dark(var(--color-accent-opaque-dark-primary), var(--color-accent-opaque-light-primary));
         }
 
+        .shadow-light {
+            box-shadow: 0 2px 4px light-dark(var(--color-background-dark), var(--color-accent-light-secondary));
+        }
+
+        .shadow-medium {
+            box-shadow: 0 4px 8px light-dark(var(--color-background-dark), var(--color-accent-light-secondary));
+        }
+
+        .shadow-heavy {
+            box-shadow: 0 8px 16px light-dark(var(--color-background-dark), var(--color-accent-light-secondary));
+        }
+
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
 
@@ -449,10 +461,10 @@
         .object-fit-cover {
             object-fit: cover;
         }
-        
+
         .object-fit-fill {
             object-fit: fill;
-        }        
+        }
 
         .aspect-ratio-21-9 {
             aspect-ratio: 21/9;
@@ -907,7 +919,8 @@
         grid-auto-rows: min-content;
         height: 100%;
         /* to ensure web component spans designated height */
-        overflow: auto; /* needed to make sure that border-radius on background-images works */
+        overflow: auto;
+        /* needed to make sure that border-radius on background-images works */
 
         &:not(.background-image)>picture:first-child+* {
             margin-top: var(--space-small);
