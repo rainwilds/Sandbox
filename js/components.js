@@ -68,6 +68,15 @@ class Card extends HTMLElement {
             const alt = this.getAttribute('alt') || '';
             const width = this.getAttribute('width') || '100vw';
             const aspectRatio = this.getAttribute('aspect-ratio') || '';
+            const isDecorative = this.hasAttribute('is-decorative');
+            const mobileWidth = this.getAttribute('mobile-width') || '';
+            const tabletWidth = this.getAttribute('tablet-width') || '';
+            const desktopWidth = this.getAttribute('desktop-width') || '';
+            const loading = this.getAttribute('loading') || 'lazy';
+            const fetchPriority = this.getAttribute('fetch-priority') || 'auto';
+            const objectFit = this.getAttribute('object-fit') || 'cover';
+            const objectPosition = this.getAttribute('object-position') || 'center';
+            const includeSchema = this.hasAttribute('include-schema');
 
             // Build the card with optional background image
             let backgroundImageHTML = '';
@@ -82,7 +91,16 @@ class Card extends HTMLElement {
                         darkSrc: darkSrc,
                         alt: alt,
                         width: width,
-                        aspectRatio: aspectRatio
+                        aspectRatio: aspectRatio,
+                        isDecorative: isDecorative,
+                        mobileWidth: mobileWidth,
+                        tabletWidth: tabletWidth,
+                        desktopWidth: desktopWidth,
+                        loading: loading,
+                        fetchPriority: fetchPriority,
+                        objectFit: objectFit,
+                        objectPosition: objectPosition,
+                        includeSchema: includeSchema
                     });
                     console.log('Generated backgroundImageHTML:', backgroundImageHTML); // Debug log
                     // Add the background-overlay div only if the attribute is present
@@ -160,7 +178,12 @@ class Card extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['heading', 'description', 'button-href', 'button-text', 'background-image', 'background-overlay', 'background-color', 'border', 'border-radius', 'backdrop-filter', 'classes', 'src', 'light-src', 'dark-src', 'alt', 'width', 'aspect-ratio'];
+        return [
+            'heading', 'description', 'button-href', 'button-text', 'background-image', 'background-overlay', 
+            'background-color', 'border', 'border-radius', 'backdrop-filter', 'classes', 'src', 'light-src', 
+            'dark-src', 'alt', 'width', 'aspect-ratio', 'is-decorative', 'mobile-width', 'tablet-width', 
+            'desktop-width', 'loading', 'fetch-priority', 'object-fit', 'object-position', 'include-schema'
+        ];
     }
 
     attributeChangedCallback() {
