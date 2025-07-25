@@ -2,7 +2,68 @@
 
 ## Overview
 
-The `bh-card` is a customizable web component that renders a card element, typically consisting of a heading, description, button, and optional background image with overlay. It supports light/dark mode image variants, CSS classes for styling (including background color, border, radius, and backdrop filters), and depends on `ImageUtils` (from `image-utils.js`) for generating background image markup. The component observes attribute changes and re-renders dynamically.
+The `bh-card` is a customizable web component that renders a card element, typically consisting of a heading, description, button, and optional background image with overlay. It supports light/dark mode image variants, CSS classes for styling (including background color, border, radius, and backdrop filters), and depends on `ImageUtils` (from `image-utils.js`) for generating background image markup.
+
+This component is ideal for creating interactive cards in web applications, such as product displays, blog teasers, or call-to-action blocks. Upon connection to the DOM, the `<bh-card>` element replaces itself with the generated `<div class="card">` structure, removing the custom tag from the rendered HTML.
+
+## Usage
+
+### Basic Example
+```html
+<bh-card 
+  heading="Card Title" 
+  description="This is a simple card description." 
+  button-text="Learn More" 
+  button-href="/details">
+</bh-card>
+```
+
+### With Background Image and Overlay
+```html
+<bh-card 
+  heading="Featured Card" 
+  description="Card with image background and overlay." 
+  button-text="Explore" 
+  button-href="/explore" 
+  src="default-image.jpg" 
+  light-src="light-image.jpg" 
+  dark-src="dark-image.jpg" 
+  alt="Background image" 
+  width="100%" 
+  aspect-ratio="16/9" 
+  background-image 
+  background-overlay="rgba(0,0,0,0.5)" 
+  classes="space-between padding-medium">
+</bh-card>
+```
+
+### With Styling Classes
+```html
+<bh-card 
+  heading="Styled Card" 
+  description="Card with custom background, border, and filter." 
+  button-text="Action" 
+  button-href="#" 
+  background-color="bg-primary" 
+  border="border-solid" 
+  border-radius="rounded-lg" 
+  backdrop-filter="backdrop-filter-blur-medium" 
+  classes="shadow-lg">
+</bh-card>
+```
+
+**Notes:**
+- Ensure `image-utils.js` is loaded before `components.js` for background image support, as it provides `ImageUtils`.
+- The card's inner structure adapts based on attributes: e.g., if `background-image` is present, content is wrapped in a div that can have classes like `space-between` or `padding-medium` (pulled from the `classes` attribute).
+- Upon connection, the `<bh-card>` element replaces itself with the rendered `<div class="card">` element, removing the custom tag from the DOM. Attribute changes after initial rendering are not observed.
+
+## Attributes
+
+The following table lists all possible attributes for the `bh-card` component, including their descriptions, types, defaults, and usage notes.
+
+## Overview
+
+The `bh-card` is a customizable web component that renders a card element, typically consisting of a heading, description, button, and optional background image with overlay. It supports light/dark mode image variants, CSS classes for styling (including background color, border, radius, and backdrop filters), and depends on `ImageUtils` (from `image-utils.js`) for generating background image markup. The component observes attribute changes and re-renders dynamically. Upon rendering, the `<bh-card>` tag is replaced in the DOM with its generated markup (a single `<div>` containing the card content), similar to the `bh-img` component.
 
 This component is ideal for creating interactive cards in web applications, such as product displays, blog teasers, or call-to-action blocks.
 
@@ -55,7 +116,8 @@ This component is ideal for creating interactive cards in web applications, such
 **Notes:**
 - Ensure `image-utils.js` is loaded before `components.js` for background image support, as it provides `ImageUtils`.
 - The card's inner structure adapts based on attributes: e.g., if `background-image` is present, content is wrapped in a div that can have classes like `space-between` or `padding-medium` (pulled from the `classes` attribute).
-- All attributes are observed for changes, triggering a re-render.
+- All attributes are observed for changes, triggering a re-render. However, since the component replaces itself with the rendered markup upon connection, dynamic attribute changes after initial render may require re-insertion of the component.
+- The `<bh-card>` tag is removed from the final rendered HTML, replaced by the generated `<div class="card ...">` structure.
 
 ## Attributes
 

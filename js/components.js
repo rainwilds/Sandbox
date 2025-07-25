@@ -132,26 +132,30 @@ class Card extends HTMLElement {
                     <a class="button" href="${buttonHref}">${buttonText}</a>
                 `;
 
-            // Render the HTML structure
-            this.innerHTML = `
-                <div class="${mainDivClass}">
-                    ${backgroundImageHTML || ''}
-                    ${overlayHTML}
-                    ${contentHTML}
-                </div>
+            // Create the rendered element
+            const renderedDiv = document.createElement('div');
+            renderedDiv.className = mainDivClass;
+            renderedDiv.innerHTML = `
+                ${backgroundImageHTML || ''}
+                ${overlayHTML}
+                ${contentHTML}
             `;
+
+            // Replace the custom element with the rendered div
+            this.replaceWith(renderedDiv);
         } catch (error) {
             console.error('Error rendering Card:', error);
             // Fallback rendering
-            this.innerHTML = `
-                <div class="card">
-                    <hgroup>
-                        <h2>Error</h2>
-                        <p>Failed to render card. Check console for details.</p>
-                    </hgroup>
-                    <a class="button" href="#">Button</a>
-                </div>
+            const fallbackDiv = document.createElement('div');
+            fallbackDiv.className = 'card';
+            fallbackDiv.innerHTML = `
+                <hgroup>
+                    <h2>Error</h2>
+                    <p>Failed to render card. Check console for details.</p>
+                </hgroup>
+                <a class="button" href="#">Button</a>
             `;
+            this.replaceWith(fallbackDiv);
         }
     }
 
@@ -171,6 +175,7 @@ class Card extends HTMLElement {
 }
 
 customElements.define('bh-card', Card);
+
 
 class Img extends HTMLElement {
     constructor() {
