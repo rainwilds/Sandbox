@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <link rel="preload" href="./styles.css" as="style" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./js/head.js" defer></script>
+
+    <meta charset='utf-8'>
+    <title>Page Title</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+</head>
+
+<body>
+
+    <main>
+        <section>
+
+            <bh-card
+                heading="Card w/ Background Image"
+                description="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                button-href="https://example.com"
+                button-text="Learn More"
+                classes="space-between"
+                background-image
+                src="./img/primary/image1.jpg"
+                light-src="./img/primary/image1.jpg"
+                dark-src="./img/primary/image2.jpg"
+                alt="Business service in Location"
+                width="25vw">
+            </bh-card>
+
+            <bh-card
+                heading="Card w/ Background Image"
+                description="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                button-href="https://example.com"
+                button-text="Learn More"
+                background-image
+                src="./img/primary/image1.jpg"
+                light-src="./img/primary/image1.jpg"
+                dark-src="./img/primary/image2.jpg"
+                background-overlay="light-dark(var(--color-static-light-4), var(--color-static-dark-2))"
+                backdrop-filter="backdrop-filter-blur-small backdrop-filter-grayscale-medium"
+                border="border-small"
+                border-radius="border-radius-medium"
+                alt="Business service in Location"
+                width="25vw">
+            </bh-card>
+
+            <bh-card
+                heading="Card w/ Background Image"
+                description="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
+                button-href="https://example.com"
+                button-text="Learn More"
+                classes="space-between padding-medium"
+                background-color="background-color-3"
+                alt="Business service in Location"
+                width="25vw">
+            </bh-card>
+            
+        </section>
+
+    </main>
+
+</body>
+
+</html>

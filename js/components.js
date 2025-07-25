@@ -1,4 +1,4 @@
-class BhCard extends HTMLElement {
+class Card extends HTMLElement {
     constructor() {
         super();
         this.callbacks = [];
@@ -10,7 +10,7 @@ class BhCard extends HTMLElement {
                 this.render();
                 this.callbacks.forEach(callback => callback());
             } catch (error) {
-                console.error('Error in BhCard connectedCallback:', error);
+                console.error('Error in Card connectedCallback:', error);
             }
         });
     }
@@ -141,7 +141,7 @@ class BhCard extends HTMLElement {
                 </div>
             `;
         } catch (error) {
-            console.error('Error rendering BhCard:', error);
+            console.error('Error rendering Card:', error);
             // Fallback rendering
             this.innerHTML = `
                 <div class="card">
@@ -164,13 +164,13 @@ class BhCard extends HTMLElement {
             try {
                 this.render();
             } catch (error) {
-                console.error('Error in BhCard attributeChangedCallback:', error);
+                console.error('Error in Card attributeChangedCallback:', error);
             }
         });
     }
 }
 
-customElements.define('bh-card', BhCard);
+customElements.define('bh-card', Card);
 
 class Img extends HTMLElement {
     constructor() {
