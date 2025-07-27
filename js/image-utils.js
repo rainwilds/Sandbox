@@ -113,6 +113,17 @@ const ImageUtils = {
         `;
         pictureHTML += '</picture>';
 
+        // Wrap in <figure> with schema if includeSchema is true
+        if (includeSchema) {
+            let figureHTML = `<figure itemscope itemtype="https://schema.org/ImageObject">`;
+            figureHTML += pictureHTML;
+            if (alt) {
+                figureHTML += `<figcaption itemprop="name">${alt}</figcaption>`;
+            }
+            figureHTML += `</figure>`;
+            return figureHTML;
+        }
+
         return pictureHTML;
     }
 };
