@@ -60,21 +60,36 @@ class Card extends HTMLElement {
             const hasBackdropFilter = this.hasAttribute('backdrop-filter');
             const backdropFilterClass = hasBackdropFilter ? this.getAttribute('backdrop-filter') : '';
             const classes = this.getAttribute('classes') || '';
-            const imgSrc = this.getAttribute('src') || '';
-            const lightSrc = this.getAttribute('light-src') || '';
-            const darkSrc = this.getAttribute('dark-src') || '';
-            const alt = this.getAttribute('alt') || '';
-            const width = this.getAttribute('width') || '100vw';
-            const aspectRatio = this.getAttribute('aspect-ratio') || '';
-            const isDecorative = this.hasAttribute('is-decorative');
-            const mobileWidth = this.getAttribute('mobile-width') || '';
-            const tabletWidth = this.getAttribute('tablet-width') || '';
-            const desktopWidth = this.getAttribute('desktop-width') || '';
-            const loading = this.getAttribute('loading') || 'lazy';
-            const fetchPriority = this.getAttribute('fetch-priority') || 'auto';
-            const objectFit = this.getAttribute('object-fit') || 'cover';
-            const objectPosition = this.getAttribute('object-position') || 'center';
-            const includeSchema = this.hasAttribute('include-schema');
+            // Image attributes with 'image-' prefix
+            const imgSrc = this.getAttribute('image-src') || '';
+            const lightSrc = this.getAttribute('image-light-src') || '';
+            const darkSrc = this.getAttribute('image-dark-src') || '';
+            const alt = this.getAttribute('image-alt') || '';
+            const width = this.getAttribute('image-width') || '100vw';
+            const aspectRatio = this.getAttribute('image-aspect-ratio') || '';
+            const isDecorative = this.hasAttribute('image-is-decorative');
+            const mobileWidth = this.getAttribute('image-mobile-width') || '';
+            const tabletWidth = this.getAttribute('image-tablet-width') || '';
+            const desktopWidth = this.getAttribute('image-desktop-width') || '';
+            const loading = this.getAttribute('image-loading') || 'lazy';
+            const fetchPriority = this.getAttribute('image-fetch-priority') || 'auto';
+            const objectFit = this.getAttribute('image-object-fit') || 'cover';
+            const objectPosition = this.getAttribute('image-object-position') || 'center';
+            const includeSchema = this.hasAttribute('image-include-schema');
+            // Video attributes with 'video-' prefix
+            const videoSrc = this.getAttribute('video-src') || '';
+            const videoSrcLight = this.getAttribute('video-src-light') || '';
+            const videoSrcDark = this.getAttribute('video-src-dark') || '';
+            const videoPoster = this.getAttribute('video-poster') || '';
+            const videoPosterLight = this.getAttribute('video-poster-light') || '';
+            const videoPosterDark = this.getAttribute('video-poster-dark') || '';
+            const videoAlt = this.getAttribute('video-alt') || 'Background video';
+            const videoLoading = this.getAttribute('video-loading') || 'lazy';
+            const videoAutoplay = this.hasAttribute('video-autoplay') ? this.getAttribute('video-autoplay') !== 'false' : true;
+            const videoMuted = this.hasAttribute('video-muted') ? this.getAttribute('video-muted') !== 'false' : true;
+            const videoLoop = this.hasAttribute('video-loop') ? this.getAttribute('video-loop') !== 'false' : true;
+            const videoPlaysinline = this.hasAttribute('video-playsinline') ? this.getAttribute('video-playsinline') !== 'false' : true;
+            const videoDisablePictureInPicture = this.hasAttribute('video-disablepictureinpicture') ? this.getAttribute('video-disablepictureinpicture') !== 'false' : false;
 
             // Build the card with optional background image
             let backgroundImageHTML = '';
@@ -102,27 +117,44 @@ class Card extends HTMLElement {
                         includeSchema: includeSchema
                     });
                     console.log('Generated backgroundImageHTML:', backgroundImageHTML); // Debug log
-                    if (hasBackgroundOverlay) {
-                        overlayHTML = `<div class="background-overlay ${backdropFilterClass}" style="background-color: ${backgroundOverlayColor};"></div>`;
-                    }
                 }
-            } else if (hasBackgroundOverlay) {
-                console.warn('background-overlay attribute is present, but src is missing. Overlay will be applied without an image.');
+            } else if (hasBackgroundImage) {
+                console.warn('image-src attribute is missing. Image will not be displayed.');
+            }
+
+            // Build the card with optional background video
+            let backgroundVideoHTML = '';
+            const hasBackgroundVideo = !!videoSrc;
+            if (hasBackgroundVideo) {
+                backgroundVideoHTML = `<bh-video src="${videoSrc}"`;
+                if (videoSrcLight) backgroundVideoHTML += ` src-light="${videoSrcLight}"`;
+                if (videoSrcDark) backgroundVideoHTML += ` src-dark="${videoSrcDark}"`;
+                if (videoPoster) backgroundVideoHTML += ` poster="${videoPoster}"`;
+                if (videoPosterLight) backgroundVideoHTML += ` poster-light="${videoPosterLight}"`;
+                if (videoPosterDark) backgroundVideoHTML += ` poster-dark="${videoPosterDark}"`;
+                backgroundVideoHTML += ` alt="${videoAlt}" loading="${videoLoading}"`;
+                if (videoAutoplay) backgroundVideoHTML += ` autoplay`;
+                if (videoMuted) backgroundVideoHTML += ` muted`;
+                if (videoLoop) backgroundVideoHTML += ` loop`;
+                if (videoPlaysinline) backgroundVideoHTML += ` playsinline`;
+                if (videoDisablePictureInPicture) backgroundVideoHTML += ` disablepictureinpicture`;
+                backgroundVideoHTML += `></bh-video>`;
+            }
+
+            // Add the background-overlay div only if the attribute is present
+            if (hasBackgroundOverlay) {
+                // Apply backdrop-filter classes to the background-overlay div
                 overlayHTML = `<div class="background-overlay ${backdropFilterClass}" style="background-color: ${backgroundOverlayColor};"></div>`;
             }
 
             // Determine the main div class and content structure
-            const mainDivClass = [
-                'card',
-                hasBackgroundImage ? 'background-image' : '',
-                classes,
-                backgroundColorClass,
-                borderClass,
-                borderRadiusClass
-            ].filter(cls => cls).join(' ');
+            let mainDivClass = 'card';
+            if (hasBackgroundImage) mainDivClass += ' background-image';
+            if (hasBackgroundVideo) mainDivClass += ' background-video';
+            mainDivClass += ` ${classes} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`;
 
             // Check if 'space-between' and 'padding-medium' are in the classes attribute
-            const classList = classes.split(' ').filter(cls => cls.length > 0);
+            const classList = classes.split(' ').filter(cls => cls.length > 0); // Split and filter out empty strings
             const hasSpaceBetween = classList.includes('space-between');
             const hasPaddingMedium = classList.includes('padding-medium');
             // Construct the inner div class dynamically
@@ -130,8 +162,8 @@ class Card extends HTMLElement {
             if (hasPaddingMedium) innerDivClasses.push('padding-medium');
             if (hasSpaceBetween) innerDivClasses.push('space-between');
             const innerDivClass = innerDivClasses.length > 0 ? innerDivClasses.join(' ') : '';
-
-            const contentHTML = hasBackgroundImage
+            
+            const contentHTML = (hasBackgroundImage || hasBackgroundVideo)
                 ? `
                     <div${innerDivClass ? ` class="${innerDivClass}"` : ''}>
                         <hgroup>
@@ -149,40 +181,32 @@ class Card extends HTMLElement {
                     <a class="button" href="${buttonHref}">${buttonText}</a>
                 `;
 
-            // Create the rendered element
-            const renderedDiv = document.createElement('div');
-            renderedDiv.className = mainDivClass;
-            renderedDiv.innerHTML = `
-                ${backgroundImageHTML || ''}
-                ${overlayHTML}
-                ${contentHTML}
+            // Render the HTML structure
+            this.innerHTML = `
+                <div class="${mainDivClass}">
+                    ${backgroundImageHTML || ''}
+                    ${backgroundVideoHTML || ''}
+                    ${overlayHTML}
+                    ${contentHTML}
+                </div>
             `;
-
-            // Replace the custom element with the rendered div
-            this.replaceWith(renderedDiv);
         } catch (error) {
             console.error('Error rendering Card:', error);
             // Fallback rendering
-            const fallbackDiv = document.createElement('div');
-            fallbackDiv.className = 'card';
-            fallbackDiv.innerHTML = `
-                <hgroup>
-                    <h2>Error</h2>
-                    <p>Failed to render card. Check console for details.</p>
-                </hgroup>
-                <a class="button" href="#">Button</a>
+            this.innerHTML = `
+                <div class="card">
+                    <hgroup>
+                        <h2>Error</h2>
+                        <p>Failed to render card. Check console for details.</p>
+                    </hgroup>
+                    <a class="button" href="#">Button</a>
+                </div>
             `;
-            this.replaceWith(fallbackDiv);
         }
     }
 
     static get observedAttributes() {
-        return [
-            'heading', 'description', 'button-href', 'button-text', 'background-overlay', 
-            'background-color', 'border', 'border-radius', 'backdrop-filter', 'classes', 'src', 'light-src', 
-            'dark-src', 'alt', 'width', 'aspect-ratio', 'is-decorative', 'mobile-width', 'tablet-width', 
-            'desktop-width', 'loading', 'fetch-priority', 'object-fit', 'object-position', 'include-schema'
-        ];
+        return ['heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-color', 'border', 'border-radius', 'backdrop-filter', 'classes', 'image-src', 'image-light-src', 'image-dark-src', 'image-alt', 'image-width', 'image-aspect-ratio', 'image-is-decorative', 'image-mobile-width', 'image-tablet-width', 'image-desktop-width', 'image-loading', 'image-fetch-priority', 'image-object-fit', 'image-object-position', 'image-include-schema', 'video-src', 'video-src-light', 'video-src-dark', 'video-poster', 'video-poster-light', 'video-poster-dark', 'video-alt', 'video-loading', 'video-autoplay', 'video-muted', 'video-loop', 'video-playsinline', 'video-disablepictureinpicture'];
     }
 
     attributeChangedCallback() {
@@ -339,7 +363,7 @@ class Img extends HTMLElement {
 
 customElements.define('bh-img', Img);
 
-class BHVideo extends HTMLElement {
+class Video extends HTMLElement {
     constructor() {
         super();
     }
@@ -475,7 +499,7 @@ class BHVideo extends HTMLElement {
     }
 }
 
-customElements.define('bh-video', BHVideo);
+customElements.define('bh-video', Video);
 
 class Footer extends HTMLElement {
     connectedCallback() {
