@@ -49,7 +49,6 @@ class Card extends HTMLElement {
             const description = this.getAttribute('description') || 'Default description text.';
             const buttonHref = this.getAttribute('button-href') || '#';
             const buttonText = this.getAttribute('button-text') || 'Button';
-            const hasBackgroundImage = this.hasAttribute('background-image');
             const hasBackgroundOverlay = this.hasAttribute('background-overlay');
             const backgroundOverlayColor = this.getAttribute('background-overlay') || 'light-dark(var(--color-static-light-4), var(--color-static-dark-2))';
             const hasBackgroundColor = this.hasAttribute('background-color');
@@ -81,7 +80,8 @@ class Card extends HTMLElement {
             // Build the card with optional background image
             let backgroundImageHTML = '';
             let overlayHTML = '';
-            if (hasBackgroundImage && imgSrc) {
+            const hasBackgroundImage = !!imgSrc;
+            if (hasBackgroundImage) {
                 if (typeof ImageUtils === 'undefined') {
                     console.error('ImageUtils is not defined during render. Ensure image-utils.js is loaded before components.js');
                 } else {
@@ -109,8 +109,8 @@ class Card extends HTMLElement {
                         overlayHTML = `<div class="background-overlay ${backdropFilterClass}" style="background-color: ${backgroundOverlayColor};"></div>`;
                     }
                 }
-            } else if (hasBackgroundImage) {
-                console.warn('background-image attribute is present, but src is missing. Image will not be displayed.');
+            } else {
+                console.warn('No src provided for background image. Image will not be displayed.');
                 if (hasBackgroundOverlay) {
                     // Apply backdrop-filter classes to the background-overlay div
                     overlayHTML = `<div class="background-overlay ${backdropFilterClass}" style="background-color: ${backgroundOverlayColor};"></div>`;
@@ -179,7 +179,7 @@ class Card extends HTMLElement {
 
     static get observedAttributes() {
         return [
-            'heading', 'description', 'button-href', 'button-text', 'background-image', 'background-overlay', 
+            'heading', 'description', 'button-href', 'button-text', 'background-overlay', 
             'background-color', 'border', 'border-radius', 'backdrop-filter', 'classes', 'src', 'light-src', 
             'dark-src', 'alt', 'width', 'aspect-ratio', 'is-decorative', 'mobile-width', 'tablet-width', 
             'desktop-width', 'loading', 'fetch-priority', 'object-fit', 'object-position', 'include-schema'
