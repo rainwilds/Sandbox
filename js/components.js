@@ -58,7 +58,6 @@ class Card extends HTMLElement {
             const hasBorderRadius = this.hasAttribute('border-radius');
             const borderRadiusClass = hasBorderRadius && hasBorder ? this.getAttribute('border-radius') : '';
             const hasBackdropFilter = this.hasAttribute('backdrop-filter');
-            // backdropFilterClass can be a space-separated list of classes (e.g., "backdrop-filter-blur-medium backdrop-filter-grayscale-large")
             const backdropFilterClass = hasBackdropFilter ? this.getAttribute('backdrop-filter') : '';
             const classes = this.getAttribute('classes') || '';
             const imgSrc = this.getAttribute('src') || '';
@@ -105,16 +104,12 @@ class Card extends HTMLElement {
                     console.log('Generated backgroundImageHTML:', backgroundImageHTML); // Debug log
                     // Add the background-overlay div only if the attribute is present
                     if (hasBackgroundOverlay) {
-                        // Apply backdrop-filter classes to the background-overlay div
                         overlayHTML = `<div class="background-overlay ${backdropFilterClass}" style="background-color: ${backgroundOverlayColor};"></div>`;
                     }
                 }
-            } else {
-                console.warn('No src provided for background image. Image will not be displayed.');
-                if (hasBackgroundOverlay) {
-                    // Apply backdrop-filter classes to the background-overlay div
-                    overlayHTML = `<div class="background-overlay ${backdropFilterClass}" style="background-color: ${backgroundOverlayColor};"></div>`;
-                }
+            } else if (hasBackgroundOverlay) {
+                console.warn('background-overlay attribute is present, but src is missing. Overlay will be applied without an image.');
+                overlayHTML = `<div class="background-overlay ${backdropFilterClass}" style="background-color: ${backgroundOverlayColor};"></div>`;
             }
 
             // Determine the main div class and content structure
@@ -123,7 +118,7 @@ class Card extends HTMLElement {
                 : `card ${classes} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`;
             
             // Check if 'space-between' and 'padding-medium' are in the classes attribute
-            const classList = classes.split(' ').filter(cls => cls.length > 0); // Split and filter out empty strings
+            const classList = classes.split(' ').filter(cls => cls.length > 0);
             const hasSpaceBetween = classList.includes('space-between');
             const hasPaddingMedium = classList.includes('padding-medium');
             // Construct the inner div class dynamically
