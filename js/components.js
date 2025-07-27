@@ -82,7 +82,7 @@ class Card extends HTMLElement {
             const hasBackgroundImage = !!imgSrc;
             if (hasBackgroundImage) {
                 if (typeof ImageUtils === 'undefined') {
-                    console.error('ImageUtils is notdefined during render. Ensure image-utils.js is loaded before components.js');
+                    console.error('ImageUtils is not defined during render. Ensure image-utils.js is loaded before components.js');
                 } else {
                     backgroundImageHTML = ImageUtils.generatePictureMarkup({
                         src: imgSrc,
@@ -102,7 +102,6 @@ class Card extends HTMLElement {
                         includeSchema: includeSchema
                     });
                     console.log('Generated backgroundImageHTML:', backgroundImageHTML); // Debug log
-                    // Add the background-overlay div only if the attribute is present
                     if (hasBackgroundOverlay) {
                         overlayHTML = `<div class="background-overlay ${backdropFilterClass}" style="background-color: ${backgroundOverlayColor};"></div>`;
                     }
@@ -113,12 +112,17 @@ class Card extends HTMLElement {
             }
 
             // Determine the main div class and content structure
-            const mainDivClass = hasBackgroundImage 
-                ? `card background-image ${classes} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`
-                : `card ${classes} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`;
-            
+            const mainDivClass = [
+                'card',
+                hasBackgroundImage ? 'background-image' : '',
+                classes,
+                backgroundColorClass,
+                borderClass,
+                borderRadiusClass
+            ].filter(cls => cls).join(' ');
+
             // Check if 'space-between' and 'padding-medium' are in the classes attribute
-            const classList = classes.split(' ').filter(cls => cls.length > 0); // Split and filter out empty strings
+            const classList = classes.split(' ').filter(cls => cls.length > 0);
             const hasSpaceBetween = classList.includes('space-between');
             const hasPaddingMedium = classList.includes('padding-medium');
             // Construct the inner div class dynamically
@@ -126,7 +130,7 @@ class Card extends HTMLElement {
             if (hasPaddingMedium) innerDivClasses.push('padding-medium');
             if (hasSpaceBetween) innerDivClasses.push('space-between');
             const innerDivClass = innerDivClasses.length > 0 ? innerDivClasses.join(' ') : '';
-            
+
             const contentHTML = hasBackgroundImage
                 ? `
                     <div${innerDivClass ? ` class="${innerDivClass}"` : ''}>
@@ -145,31 +149,40 @@ class Card extends HTMLElement {
                     <a class="button" href="${buttonHref}">${buttonText}</a>
                 `;
 
-            // Render the HTML structure
-            this.innerHTML = `
-                <div class="${mainDivClass}">
-                    ${backgroundImageHTML || ''}
-                    ${overlayHTML}
-                    ${contentHTML}
-                </div>
+            // Create the rendered element
+            const renderedDiv = document.createElement('div');
+            renderedDiv.className = mainDivClass;
+            renderedDiv.innerHTML = `
+                ${backgroundImageHTML || ''}
+                ${overlayHTML}
+                ${contentHTML}
             `;
+
+            // Replace the custom element with the rendered div
+            this.replaceWith(renderedDiv);
         } catch (error) {
             console.error('Error rendering Card:', error);
             // Fallback rendering
-            this.innerHTML = `
-                <div class="card">
-                    <hgroup>
-                        <h2>Error</h2>
-                        <p>Failed to render card. Check console for details.</p>
-                    </hgroup>
-                    <a class="button" href="#">Button</a>
-                </div>
+            const fallbackDiv = document.createElement('div');
+            fallbackDiv.className = 'card';
+            fallbackDiv.innerHTML = `
+                <hgroup>
+                    <h2>Error</h2>
+                    <p>Failed to render card. Check console for details.</p>
+                </hgroup>
+                <a class="button" href="#">Button</a>
             `;
+            this.replaceWith(fallbackDiv);
         }
     }
 
     static get observedAttributes() {
-        return ['heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-color', 'border', 'border-radius', 'backdrop-filter', 'classes', 'src', 'light-src', 'dark-src', 'alt', 'width', 'aspect-ratio', 'is-decorative', 'mobile-width', 'tablet-width', 'desktop-width', 'loading', 'fetch-priority', 'object-fit', 'object-position', 'include-schema'];
+        return [
+            'heading', 'description', 'button-href', 'button-text', 'background-overlay', 
+            'background-color', 'border', 'border-radius', 'backdrop-filter', 'classes', 'src', 'light-src', 
+            'dark-src', 'alt', 'width', 'aspect-ratio', 'is-decorative', 'mobile-width', 'tablet-width', 
+            'desktop-width', 'loading', 'fetch-priority', 'object-fit', 'object-position', 'include-schema'
+        ];
     }
 
     attributeChangedCallback() {
