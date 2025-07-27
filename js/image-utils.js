@@ -100,6 +100,12 @@ const ImageUtils = {
             const aspectRatioClass = `aspect-ratio-${aspectRatio.replace('/', '-')}`;
             imgClasses.push(aspectRatioClass);
         }
+        if (objectFit) {
+            imgClasses.push(`object-fit-${objectFit}`);
+        }
+        if (objectPosition) {
+            imgClasses.push(`object-position-${objectPosition}`);
+        }
         const imgClassAttr = imgClasses.length > 0 ? ` class="${imgClasses.join(' ')}"` : '';
         const altAttr = alt && !isDecorative ? ` alt="${alt}"` : '';
         const ariaHiddenAttr = isDecorative ? ' aria-hidden="true"' : '';

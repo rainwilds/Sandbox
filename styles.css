@@ -466,6 +466,18 @@
             object-fit: fill;
         }
 
+        .object-position-center {
+            object-position: center;
+        }
+
+        .object-position-top {
+            object-position: top;
+        }
+
+        .object-position-bottom {
+            object-position: bottom;
+        }
+
         .aspect-ratio-21-9 {
             aspect-ratio: 21/9;
         }
