@@ -977,7 +977,7 @@
 
 
 
-        >*:first-child:not(picture) {
+        >*:first-child:not(picture):not(figure) {
             margin-bottom: var(--space-small);
         }
 
