@@ -230,15 +230,16 @@ class Card extends HTMLElement {
 
 customElements.define('bh-card', Card);
 
-
-class Img extends HTMLElement {
+class CustomImg extends HTMLImageElement {
     constructor() {
         super();
     }
 
     connectedCallback() {
-        // Add role to custom element before replacement
-        this.setAttribute('role', 'img');
+        // Add role if not present
+        if (!this.hasAttribute('role')) {
+            this.setAttribute('role', 'img');
+        }
 
         this.waitForImageUtils(() => {
             try {
@@ -248,7 +249,7 @@ class Img extends HTMLElement {
                 const alt = this.getAttribute('alt') || '';
                 const isDecorative = this.hasAttribute('decorative');
                 if (!alt && !isDecorative) {
-                    console.warn(`<bh-img src="${src}"> is missing an alt attribute for accessibility. Use alt="" if decorative, or add decorative attribute.`);
+                    console.warn(`<img is="custom-img" src="${src}"> is missing an alt attribute for accessibility. Use alt="" if decorative, or add decorative attribute.`);
                 }
                 const aspectRatio = this.getAttribute('aspect-ratio') || '';
                 const mobileWidth = this.getAttribute('mobile-width') || '100vw';
@@ -258,7 +259,7 @@ class Img extends HTMLElement {
                 const loading = this.getAttribute('loading') || null;
                 const fetchpriority = this.getAttribute('fetch-priority') || null;
                 if (fetchpriority && !['high', 'low', 'auto'].includes(fetchpriority)) {
-                    console.warn(`Invalid fetch-priority value "${fetchpriority}" in <bh-img>. Use 'high', 'low', or 'auto'.`);
+                    console.warn(`Invalid fetch-priority value "${fetchpriority}" in <img is="custom-img">. Use 'high', 'low', or 'auto'.`);
                 }
                 const fallbackSrc = this.getAttribute('fallback-src') || 'https://placehold.co/3000x2000';
                 const objectFit = this.getAttribute('object-fit') || null;
@@ -294,37 +295,58 @@ class Img extends HTMLElement {
                     return;
                 }
 
+                // Parse the generated picture HTML
                 const div = document.createElement('div');
                 div.innerHTML = pictureHTML;
-                const picture = div.firstChild;
+                const generatedPicture = div.firstChild;
+                const generatedImg = generatedPicture.querySelector('img');
+                const generatedSources = generatedPicture.querySelectorAll('source');
 
-                const img = picture.querySelector('img');
+                // Create new picture element
+                const picture = document.createElement('picture');
+
+                // Insert generated sources into the new picture
+                generatedSources.forEach(source => {
+                    picture.appendChild(source.cloneNode(true));
+                });
+
+                // Apply custom classes to the current img (this)
                 if (customClasses) {
-                    img.className = img.className ? `${img.className} ${customClasses}`.trim() : customClasses;
+                    this.className = this.className ? `${this.className} ${customClasses}`.trim() : customClasses;
+                }
+
+                // Apply classes, styles, and onerror from generatedImg to this
+                if (generatedImg.className) {
+                    this.className = this.className ? `${this.className} ${generatedImg.className}`.trim() : generatedImg.className;
                 }
 
                 if (objectFit) {
-                    img.classList.add(`object-fit-${objectFit}`);
+                    this.classList.add(`object-fit-${objectFit}`);
                 }
                 if (objectPosition) {
-                    img.style.objectPosition = objectPosition;
+                    this.style.objectPosition = objectPosition;
                 }
 
-                img.onerror = () => {
+                this.onerror = () => {
                     console.warn(`Failed to load primary image: ${src}. Falling back to ${fallbackSrc}.`);
-                    img.src = fallbackSrc;
+                    this.src = fallbackSrc;
                     if (!isDecorative) {
-                        img.setAttribute('alt', alt || 'Placeholder image');
+                        this.setAttribute('alt', alt || 'Placeholder image');
                     }
-                    img.onerror = null;
+                    this.onerror = null;
                 };
 
-                // Wrap in <figure> with schema.org markup if include-schema is present
+                // Wrap this img in the picture
+                this.parentNode.insertBefore(picture, this);
+                picture.appendChild(this);
+
+                // If includeSchema, wrap in <figure> with schema.org markup
                 let finalElement = picture;
                 if (includeSchema) {
                     const figure = document.createElement('figure');
                     figure.setAttribute('itemscope', '');
                     figure.setAttribute('itemtype', 'https://schema.org/ImageObject');
+                    picture.parentNode.insertBefore(figure, picture);
                     figure.appendChild(picture);
                     if (caption) {
                         const figcaption = document.createElement('figcaption');
@@ -342,10 +364,8 @@ class Img extends HTMLElement {
                     figure.appendChild(metaDescription);
                     finalElement = figure;
                 }
-
-                this.replaceWith(finalElement);
             } catch (error) {
-                console.error('Error in Img connectedCallback:', error);
+                console.error('Error in CustomImg connectedCallback:', error);
             }
         });
     }
@@ -369,7 +389,7 @@ class Img extends HTMLElement {
     }
 }
 
-customElements.define('bh-img', Img);
+customElements.define('custom-img', CustomImg, { extends: 'img' });
 
 class CustomVideo extends HTMLVideoElement {
     constructor() {
