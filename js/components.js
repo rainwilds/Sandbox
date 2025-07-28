@@ -229,6 +229,9 @@ class CustomImg extends HTMLImageElement {
     }
 
     connectedCallback() {
+        if (this.isInitialized) return; // Prevent multiple initializations
+        this.isInitialized = true;
+
         // Add role if not present
         if (!this.hasAttribute('role')) {
             this.setAttribute('role', 'img');
@@ -249,11 +252,6 @@ class CustomImg extends HTMLImageElement {
                 const tabletWidth = this.getAttribute('tablet-width') || '100vw';
                 const desktopWidth = this.getAttribute('desktop-width') || '100vw';
                 const customClasses = this.getAttribute('class') || '';
-                const loading = this.getAttribute('loading') || null;
-                const fetchpriority = this.getAttribute('fetch-priority') || null;
-                if (fetchpriority && !['high', 'low', 'auto'].includes(fetchpriority)) {
-                    console.warn(`Invalid fetch-priority value "${fetchpriority}" in <img is="custom-img">. Use 'high', 'low', or 'auto'.`);
-                }
                 const fallbackSrc = this.getAttribute('fallback-src') || 'https://placehold.co/3000x2000';
                 const objectFit = this.getAttribute('object-fit') || null;
                 const objectPosition = this.getAttribute('object-position') || null;
@@ -277,8 +275,6 @@ class CustomImg extends HTMLImageElement {
                     tabletWidth,
                     desktopWidth,
                     aspectRatio,
-                    loading,
-                    'fetch-priority': fetchpriority,
                     objectFit,
                     objectPosition,
                     includeSchema
