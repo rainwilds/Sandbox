@@ -371,7 +371,7 @@ class Img extends HTMLElement {
 
 customElements.define('bh-img', Img);
 
-class Video extends HTMLElement {
+class Video extends HTMLVideoElement {
     constructor() {
         super();
     }
@@ -385,15 +385,15 @@ class Video extends HTMLElement {
         const posterDark = this.getAttribute('poster-dark');
         const alt = this.getAttribute('alt') || 'Video content';
         const loading = this.getAttribute('loading');
-        const autoplay = this.getAttribute('autoplay') !== null;
-        const muted = this.getAttribute('muted') !== null;
-        const loop = this.getAttribute('loop') !== null;
-        const playsinline = this.getAttribute('playsinline') !== null;
-        const disablepictureinpicture = this.getAttribute('disablepictureinpicture') !== null;
+        const autoplay = this.hasAttribute('autoplay');
+        const muted = this.hasAttribute('muted');
+        const loop = this.hasAttribute('loop');
+        const playsinline = this.hasAttribute('playsinline');
+        const disablepictureinpicture = this.hasAttribute('disablepictureinpicture');
 
         // Validate src
         if (!src) {
-            console.error('The "src" attribute is required for <bh-video>');
+            console.error('The "src" attribute is required for <video is="bh-video">');
             return;
         }
 
@@ -416,22 +416,12 @@ class Video extends HTMLElement {
             return;
         }
 
-        // Create video element
-        const video = document.createElement('video');
-        if (loading) video.setAttribute('preload', loading === 'lazy' ? 'metadata' : loading);
-        video.setAttribute('title', alt);
-        video.setAttribute('aria-label', alt);
-        if (autoplay) video.setAttribute('autoplay', '');
-        if (muted) video.setAttribute('muted', '');
-        if (loop) video.setAttribute('loop', '');
-        if (playsinline) video.setAttribute('playsinline', '');
-        if (disablepictureinpicture) video.setAttribute('disablepictureinpicture', '');
+        // Set title and aria-label if not already set
+        if (!this.hasAttribute('title')) this.setAttribute('title', alt);
+        if (!this.hasAttribute('aria-label')) this.setAttribute('aria-label', alt);
 
-        // Apply classes to the video element
-        const hostClasses = this.classList;
-        hostClasses.forEach(cls => {
-            if (cls) video.classList.add(cls);
-        });
+        // Set preload if loading is provided
+        if (loading) this.setAttribute('preload', loading === 'lazy' ? 'metadata' : loading);
 
         // Function to update poster based on current theme
         const updatePoster = (prefersDark) => {
@@ -440,14 +430,14 @@ class Video extends HTMLElement {
                 const img = new Image();
                 img.src = activePoster;
                 img.onload = () => {
-                    video.setAttribute('poster', activePoster);
+                    this.setAttribute('poster', activePoster);
                 };
                 img.onerror = () => {
                     if (activePoster !== poster && poster) {
-                        video.setAttribute('poster', poster);
+                        this.setAttribute('poster', poster);
                     } else {
                         console.warn(`Poster "${activePoster}" failed to load; no poster will be set.`);
-                        video.removeAttribute('poster');
+                        this.removeAttribute('poster');
                     }
                 };
             }
@@ -455,7 +445,7 @@ class Video extends HTMLElement {
 
         // Set initial poster (default first, then theme-specific asynchronously)
         if (poster) {
-            video.setAttribute('poster', poster);
+            this.setAttribute('poster', poster);
         }
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         updatePoster(prefersDark);
@@ -464,7 +454,7 @@ class Video extends HTMLElement {
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
         mediaQuery.addEventListener('change', (e) => {
             updatePoster(e.matches);
-            video.load(); // Reload to potentially apply new sources
+            this.load(); // Reload to potentially apply new sources
         });
 
         // Build inner HTML for sources and fallback message
@@ -473,7 +463,6 @@ class Video extends HTMLElement {
         // Function to add sources as HTML strings, with webm before mp4 before ogg
         const addSourcesHTML = (videoSrc, mediaQuery) => {
             if (!videoSrc) return '';
-            // Get base by removing the extension if it's a known video extension
             let baseSrc = videoSrc;
             const ext = videoSrc.split('.').pop().toLowerCase();
             if (validExtensions.includes(ext)) {
@@ -481,11 +470,8 @@ class Video extends HTMLElement {
             }
             const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
             let sources = '';
-            // Add webm first
             sources += `<source src="${baseSrc}.webm" type="video/webm"${mediaAttr}>`;
-            // Then mp4
             sources += `<source src="${baseSrc}.mp4" type="video/mp4"${mediaAttr}>`;
-            // Then ogg
             sources += `<source src="${baseSrc}.ogg" type="video/ogg"${mediaAttr}>`;
             return sources;
         };
@@ -506,25 +492,22 @@ class Video extends HTMLElement {
         // Add fallback message with a class for styling
         innerHTML += `<p class="bh-video-fallback">Your browser does not support the video tag. <a href="${src}">Download video</a></p>`;
 
-        // Set inner HTML all at once
-        video.innerHTML = innerHTML;
+        // Set inner HTML all at once and remove original src
+        this.removeAttribute('src');
+        this.innerHTML = innerHTML;
 
         // Handle video source errors
-        video.addEventListener('error', () => {
-            console.warn(`Video source "${video.currentSrc}" failed to load; falling back to default src "${src}".`);
-            if (video.currentSrc && video.currentSrc !== src) {
-                video.src = src;
-                video.load();
+        this.addEventListener('error', () => {
+            console.warn(`Video source "${this.currentSrc}" failed to load; falling back to default src "${src}".`);
+            if (this.currentSrc && this.currentSrc !== src) {
+                this.src = src;
+                this.load();
             }
         });
-
-        // Append the video as child and set display: contents to avoid layout impact
-        this.style.display = 'contents';
-        this.appendChild(video);
     }
 }
 
-customElements.define('bh-video', Video);
+customElements.define('bh-video', Video, { extends: 'video' });
 
 class Footer extends HTMLElement {
     connectedCallback() {
