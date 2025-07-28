@@ -523,20 +523,31 @@ class Video extends HTMLElement {
             }
         });
 
-        // Attempt autoplay with delayed retry to account for DOM readiness
+        // Attempt autoplay with optimized timing and visibility consideration
         if (autoplay) {
-            // Immediate attempt with slight delay
-            setTimeout(() => {
+            // Check if the video is in the viewport (mimics scrolling effect)
+            const checkVisibilityAndPlay = () => {
+                const rect = video.getBoundingClientRect();
+                const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+                if (isVisible) {
+                    video.play().catch(err => {
+                        console.warn(`Autoplay failed: ${err.message}. Requires user interaction in some browsers (e.g., Brave, Edge). Try scrolling or clicking.`);
+                    });
+                } else {
+                    // Retry after a short delay if not visible
+                    setTimeout(checkVisibilityAndPlay, 100);
+                }
+            };
+
+            // Initial attempt after DOM insertion
+            setTimeout(checkVisibilityAndPlay, 100);
+
+            // Fallback to metadata load
+            video.addEventListener('loadedmetadata', () => {
                 video.play().catch(err => {
-                    console.warn(`Autoplay failed: ${err.message}. Requires user interaction in some browsers (e.g., Brave, Edge).`);
-                    // Fallback to metadata load if initial attempt fails
-                    video.addEventListener('loadedmetadata', () => {
-                        video.play().catch(err => {
-                            console.warn(`Autoplay after metadata failed: ${err.message}. Try interacting with the page.`);
-                        });
-                    }, { once: true });
+                    console.warn(`Autoplay after metadata failed: ${err.message}. Interaction may be required.`);
                 });
-            }, 100); // Small delay to ensure DOM is ready
+            }, { once: true });
         }
 
         // Replace the custom element with the video element
