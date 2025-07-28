@@ -418,7 +418,7 @@ class Video extends HTMLElement {
 
         // Create video element
         const video = document.createElement('video');
-        if (loading) video.setAttribute('preload', loading === 'lazy' ? 'metadata' : loading); // Only set preload if loading is specified
+        if (loading) video.setAttribute('preload', loading === 'lazy' ? 'metadata' : loading); // Only set preload if specified
         video.setAttribute('title', alt);
         video.setAttribute('aria-label', alt);
         if (autoplay) {
@@ -523,18 +523,20 @@ class Video extends HTMLElement {
             }
         });
 
-        // Attempt autoplay immediately after DOM insertion, with metadata check as fallback
+        // Attempt autoplay with delayed retry to account for DOM readiness
         if (autoplay) {
-            // Try to play immediately
-            video.play().catch(err => {
-                console.warn(`Initial autoplay failed: ${err.message}. Waiting for loadedmetadata or user interaction.`);
-                // Fallback to play after metadata is loaded
-                video.addEventListener('loadedmetadata', () => {
-                    video.play().catch(err => {
-                        console.warn(`Autoplay after metadata failed: ${err.message}. Requires user interaction.`);
-                    });
-                }, { once: true });
-            });
+            // Immediate attempt with slight delay
+            setTimeout(() => {
+                video.play().catch(err => {
+                    console.warn(`Autoplay failed: ${err.message}. Requires user interaction in some browsers (e.g., Brave, Edge).`);
+                    // Fallback to metadata load if initial attempt fails
+                    video.addEventListener('loadedmetadata', () => {
+                        video.play().catch(err => {
+                            console.warn(`Autoplay after metadata failed: ${err.message}. Try interacting with the page.`);
+                        });
+                    }, { once: true });
+                });
+            }, 100); // Small delay to ensure DOM is ready
         }
 
         // Replace the custom element with the video element
