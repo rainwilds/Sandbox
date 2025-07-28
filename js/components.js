@@ -470,14 +470,24 @@ class Video extends HTMLElement {
         // Build inner HTML for sources and fallback message
         let innerHTML = '';
 
-        // Function to add sources as HTML strings, with webm before mp4
+        // Function to add sources as HTML strings, with webm before mp4 before ogg
         const addSourcesHTML = (videoSrc, mediaQuery) => {
             if (!videoSrc) return '';
+            // Get base by removing the extension if it's a known video extension
+            let baseSrc = videoSrc;
+            const ext = videoSrc.split('.').pop().toLowerCase();
+            if (validExtensions.includes(ext)) {
+                baseSrc = videoSrc.slice(0, -(ext.length + 1));
+            }
             const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
-            return `
-                <source src="${videoSrc}" type="video/webm"${mediaAttr}>
-                <source src="${videoSrc}" type="video/mp4"${mediaAttr}>
-            `;
+            let sources = '';
+            // Add webm first
+            sources += `<source src="${baseSrc}.webm" type="video/webm"${mediaAttr}>`;
+            // Then mp4
+            sources += `<source src="${baseSrc}.mp4" type="video/mp4"${mediaAttr}>`;
+            // Then ogg
+            sources += `<source src="${baseSrc}.ogg" type="video/ogg"${mediaAttr}>`;
+            return sources;
         };
 
         // Add sources for light theme if provided
