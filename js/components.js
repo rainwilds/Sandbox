@@ -385,8 +385,8 @@ class Video extends HTMLElement {
         const posterDark = this.getAttribute('poster-dark');
         const alt = this.getAttribute('alt') || 'Video content';
         const loading = this.getAttribute('loading') || 'lazy';
-        const autoplay = this.getAttribute('autoplay') !== null; // Check if attribute exists
-        const muted = this.getAttribute('muted') !== null; // Check if attribute exists
+        const autoplay = this.getAttribute('autoplay') !== null;
+        const muted = this.getAttribute('muted') !== null;
         const loop = this.getAttribute('loop') !== null;
         const playsinline = this.getAttribute('playsinline') !== null;
         const disablepictureinpicture = this.getAttribute('disablepictureinpicture') !== null;
@@ -421,11 +421,7 @@ class Video extends HTMLElement {
         video.setAttribute('preload', loading === 'lazy' ? 'metadata' : 'auto');
         video.setAttribute('title', alt);
         video.setAttribute('aria-label', alt);
-        if (autoplay) {
-            video.setAttribute('autoplay', '');
-            // Force muted for autoplay to comply with browser policies
-            video.setAttribute('muted', '');
-        }
+        if (autoplay) video.setAttribute('autoplay', '');
         if (muted) video.setAttribute('muted', '');
         if (loop) video.setAttribute('loop', '');
         if (playsinline) video.setAttribute('playsinline', '');
@@ -474,17 +470,24 @@ class Video extends HTMLElement {
         // Build inner HTML for sources and fallback message
         let innerHTML = '';
 
-        // Function to add source as HTML string based on actual file extension
+        // Function to add sources as HTML strings, with webm before mp4 before ogg
         const addSourcesHTML = (videoSrc, mediaQuery) => {
             if (!videoSrc) return '';
+            // Get base by removing the extension if it's a known video extension
+            let baseSrc = videoSrc;
             const ext = videoSrc.split('.').pop().toLowerCase();
-            let type;
-            if (ext === 'webm') type = 'video/webm';
-            else if (ext === 'mp4') type = 'video/mp4';
-            else if (ext === 'ogg') type = 'video/ogg';
-            else return ''; // Invalid extension, skip
+            if (validExtensions.includes(ext)) {
+                baseSrc = videoSrc.slice(0, -(ext.length + 1));
+            }
             const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
-            return `<source src="${videoSrc}" type="${type}"${mediaAttr}>`;
+            let sources = '';
+            // Add webm first
+            sources += `<source src="${baseSrc}.webm" type="video/webm"${mediaAttr}>`;
+            // Then mp4
+            sources += `<source src="${baseSrc}.mp4" type="video/mp4"${mediaAttr}>`;
+            // Then ogg
+            sources += `<source src="${baseSrc}.ogg" type="video/ogg"${mediaAttr}>`;
+            return sources;
         };
 
         // Add sources for light theme if provided
@@ -497,7 +500,7 @@ class Video extends HTMLElement {
             innerHTML += addSourcesHTML(srcDark, '(prefers-color-scheme: dark)');
         }
 
-        // Default source (based on provided src)
+        // Default sources (always included as fallback)
         innerHTML += addSourcesHTML(src, null);
 
         // Add fallback message with a class for styling
@@ -510,25 +513,11 @@ class Video extends HTMLElement {
         video.addEventListener('error', () => {
             console.warn(`Video source "${video.currentSrc}" failed to load; falling back to default src "${src}".`);
             if (video.currentSrc && video.currentSrc !== src) {
-                video.src = src;
+                video.src = src; // Force default src
                 video.load();
                 if (autoplay) video.play();
             }
         });
-
-        // Delay play() until metadata is loaded and handle autoplay restrictions
-        if (autoplay) {
-            video.addEventListener('loadedmetadata', () => {
-                video.play().catch(err => {
-                    console.warn(`Autoplay failed: ${err.message}. Video will remain paused until user interaction.`);
-                    // Add a fallback play button if desired
-                    const fallback = document.createElement('button');
-                    fallback.textContent = 'Play Video';
-                    fallback.addEventListener('click', () => video.play());
-                    video.parentNode.insertBefore(fallback, video.nextSibling);
-                });
-            });
-        }
 
         // Replace the custom element with the video element
         this.replaceWith(video);
