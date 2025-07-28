@@ -421,7 +421,11 @@ class Video extends HTMLElement {
         video.setAttribute('preload', loading === 'lazy' ? 'metadata' : 'auto');
         video.setAttribute('title', alt);
         video.setAttribute('aria-label', alt);
-        if (autoplay) video.setAttribute('autoplay', '');
+        if (autoplay) {
+            video.setAttribute('autoplay', '');
+            // Ensure muted is set when autoplay is used to comply with browser policies
+            if (!muted) video.setAttribute('muted', '');
+        }
         if (muted) video.setAttribute('muted', '');
         if (loop) video.setAttribute('loop', '');
         if (playsinline) video.setAttribute('playsinline', '');
@@ -512,10 +516,12 @@ class Video extends HTMLElement {
             }
         });
 
-        // Ensure autoplay is triggered
+        // Delay play() until metadata is loaded to ensure the video is ready
         if (autoplay) {
-            video.play().catch(err => {
-                console.warn(`Autoplay failed: ${err.message}`);
+            video.addEventListener('loadedmetadata', () => {
+                video.play().catch(err => {
+                    console.warn(`Autoplay failed: ${err.message}. Ensure user interaction or muted attribute is present.`);
+                });
             });
         }
 
