@@ -60,7 +60,7 @@ class Card extends HTMLElement {
             const hasBackdropFilter = this.hasAttribute('backdrop-filter');
             const backdropFilterClass = hasBackdropFilter ? this.getAttribute('backdrop-filter') : '';
             const classes = this.getAttribute('classes') || '';
-            // Image attributes with 'image-' prefix
+            // Image attributes
             const imgSrc = this.getAttribute('image-src') || '';
             const lightSrc = this.getAttribute('image-light-src') || '';
             const darkSrc = this.getAttribute('image-dark-src') || '';
@@ -76,7 +76,7 @@ class Card extends HTMLElement {
             const objectFit = this.getAttribute('image-object-fit') || 'cover';
             const objectPosition = this.getAttribute('image-object-position') || 'center';
             const includeSchema = this.hasAttribute('image-include-schema');
-            // Video attributes with 'video-' prefix
+            // Video attributes
             const videoSrc = this.getAttribute('video-src') || '';
             const videoSrcLight = this.getAttribute('video-src-light') || '';
             const videoSrcDark = this.getAttribute('video-src-dark') || '';
@@ -119,7 +119,7 @@ class Card extends HTMLElement {
                     console.log('Generated backgroundImageHTML:', backgroundImageHTML); // Debug log
                 }
             } else if (hasBackgroundImage) {
-                console.warn('image-src attribute is missing. Image will not be displayed.');
+                console.warn('background-image attribute is present, but image-src is missing. Image will not be displayed.');
             }
 
             // Build the card with optional background video
@@ -181,32 +181,40 @@ class Card extends HTMLElement {
                     <a class="button" href="${buttonHref}">${buttonText}</a>
                 `;
 
-            // Render the HTML structure
-            this.innerHTML = `
-                <div class="${mainDivClass}">
-                    ${backgroundImageHTML || ''}
-                    ${backgroundVideoHTML || ''}
-                    ${overlayHTML}
-                    ${contentHTML}
-                </div>
+            // Create the rendered element
+            const renderedDiv = document.createElement('div');
+            renderedDiv.className = mainDivClass;
+            renderedDiv.innerHTML = `
+                ${backgroundImageHTML || ''}
+                ${backgroundVideoHTML || ''}
+                ${overlayHTML}
+                ${contentHTML}
             `;
+
+            // Replace the custom element with the rendered div
+            this.replaceWith(renderedDiv);
         } catch (error) {
             console.error('Error rendering Card:', error);
             // Fallback rendering
-            this.innerHTML = `
-                <div class="card">
-                    <hgroup>
-                        <h2>Error</h2>
-                        <p>Failed to render card. Check console for details.</p>
-                    </hgroup>
-                    <a class="button" href="#">Button</a>
-                </div>
+            const fallbackDiv = document.createElement('div');
+            fallbackDiv.className = 'card';
+            fallbackDiv.innerHTML = `
+                <hgroup>
+                    <h2>Error</h2>
+                    <p>Failed to render card. Check console for details.</p>
+                </hgroup>
+                <a class="button" href="#">Button</a>
             `;
+            this.replaceWith(fallbackDiv);
         }
     }
 
     static get observedAttributes() {
-        return ['heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-color', 'border', 'border-radius', 'backdrop-filter', 'classes', 'image-src', 'image-light-src', 'image-dark-src', 'image-alt', 'image-width', 'image-aspect-ratio', 'image-is-decorative', 'image-mobile-width', 'image-tablet-width', 'image-desktop-width', 'image-loading', 'image-fetch-priority', 'image-object-fit', 'image-object-position', 'image-include-schema', 'video-src', 'video-src-light', 'video-src-dark', 'video-poster', 'video-poster-light', 'video-poster-dark', 'video-alt', 'video-loading', 'video-autoplay', 'video-muted', 'video-loop', 'video-playsinline', 'video-disablepictureinpicture'];
+        return [
+            'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-color', 'border', 'border-radius', 'backdrop-filter', 'classes',
+            'image-src', 'image-light-src', 'image-dark-src', 'image-alt', 'image-width', 'image-aspect-ratio', 'image-is-decorative', 'image-mobile-width', 'image-tablet-width', 'image-desktop-width', 'image-loading', 'image-fetch-priority', 'image-object-fit', 'image-object-position', 'image-include-schema',
+            'video-src', 'video-src-light', 'video-src-dark', 'video-poster', 'video-poster-light', 'video-poster-dark', 'video-alt', 'video-loading', 'video-autoplay', 'video-muted', 'video-loop', 'video-playsinline', 'video-disablepictureinpicture'
+        ];
     }
 
     attributeChangedCallback() {
