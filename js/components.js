@@ -374,10 +374,6 @@ customElements.define('bh-img', Img);
 class Video extends HTMLElement {
     constructor() {
         super();
-        // Create and append the video element immediately in the constructor
-        const video = document.createElement('video');
-        this.appendChild(video);
-        this.video = video; // Store reference for later use
     }
 
     connectedCallback() {
@@ -388,10 +384,11 @@ class Video extends HTMLElement {
         const posterLight = this.getAttribute('poster-light');
         const posterDark = this.getAttribute('poster-dark');
         const alt = this.getAttribute('alt') || 'Video content';
-        const loading = this.getAttribute('loading'); // Only set if provided
+        const loading = this.getAttribute('loading') || 'lazy';
         const autoplay = this.getAttribute('autoplay') !== null;
         const muted = this.getAttribute('muted') !== null;
         const loop = this.getAttribute('loop') !== null;
+        const playsinline = this.getAttribute('playsinline') !== null;
         const disablepictureinpicture = this.getAttribute('disablepictureinpicture') !== null;
 
         // Validate src
@@ -419,17 +416,15 @@ class Video extends HTMLElement {
             return;
         }
 
-        const video = this.video; // Use the pre-created video element
-
-        // Set attributes
+        // Create video element
+        const video = document.createElement('video');
+        // Removed preload setting to match working static HTML
         video.setAttribute('title', alt);
         video.setAttribute('aria-label', alt);
-        if (autoplay) {
-            video.setAttribute('autoplay', '');
-            video.setAttribute('muted', ''); // Force muted for autoplay
-        }
+        if (autoplay) video.setAttribute('autoplay', '');
         if (muted) video.setAttribute('muted', '');
         if (loop) video.setAttribute('loop', '');
+        if (playsinline) video.setAttribute('playsinline', '');
         if (disablepictureinpicture) video.setAttribute('disablepictureinpicture', '');
 
         // Apply classes to the video element
@@ -458,7 +453,7 @@ class Video extends HTMLElement {
             }
         };
 
-        // Set initial poster
+        // Set initial poster (default first, then theme-specific asynchronously)
         if (poster) {
             video.setAttribute('poster', poster);
         }
@@ -478,6 +473,7 @@ class Video extends HTMLElement {
         // Function to add sources as HTML strings, with webm before mp4 before ogg
         const addSourcesHTML = (videoSrc, mediaQuery) => {
             if (!videoSrc) return '';
+            // Get base by removing the extension if it's a known video extension
             let baseSrc = videoSrc;
             const ext = videoSrc.split('.').pop().toLowerCase();
             if (validExtensions.includes(ext)) {
@@ -485,8 +481,11 @@ class Video extends HTMLElement {
             }
             const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
             let sources = '';
+            // Add webm first
             sources += `<source src="${baseSrc}.webm" type="video/webm"${mediaAttr}>`;
+            // Then mp4
             sources += `<source src="${baseSrc}.mp4" type="video/mp4"${mediaAttr}>`;
+            // Then ogg
             sources += `<source src="${baseSrc}.ogg" type="video/ogg"${mediaAttr}>`;
             return sources;
         };
@@ -501,13 +500,13 @@ class Video extends HTMLElement {
             innerHTML += addSourcesHTML(srcDark, '(prefers-color-scheme: dark)');
         }
 
-        // Default sources
+        // Default sources (always included as fallback)
         innerHTML += addSourcesHTML(src, null);
 
-        // Add fallback message
+        // Add fallback message with a class for styling
         innerHTML += `<p class="bh-video-fallback">Your browser does not support the video tag. <a href="${src}">Download video</a></p>`;
 
-        // Set inner HTML
+        // Set inner HTML all at once
         video.innerHTML = innerHTML;
 
         // Handle video source errors
@@ -516,21 +515,11 @@ class Video extends HTMLElement {
             if (video.currentSrc && video.currentSrc !== src) {
                 video.src = src;
                 video.load();
-                if (autoplay) video.play();
             }
         });
 
-        // Attempt autoplay with minimal delay
-        if (autoplay) {
-            setTimeout(() => {
-                video.play().catch(err => {
-                    console.warn(`Autoplay failed: ${err.message}. User interaction may be required in Brave/Edge.`);
-                });
-            }, 0); // Immediate but allows DOM to settle
-        }
-
-        // Optionally hide the bh-video element if needed (though replaceWith was preferred)
-        // this.style.display = 'none'; // Uncomment if you want to hide the custom element
+        // Replace the custom element with the video element
+        this.replaceWith(video);
     }
 }
 
