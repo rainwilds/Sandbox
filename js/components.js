@@ -253,8 +253,6 @@ class CustomImg extends HTMLImageElement {
                 const desktopWidth = this.getAttribute('desktop-width') || '100vw';
                 const customClasses = this.getAttribute('class') || '';
                 const fallbackSrc = this.getAttribute('fallback-src') || 'https://placehold.co/3000x2000';
-                const objectFit = this.getAttribute('object-fit') || null;
-                const objectPosition = this.getAttribute('object-position') || null;
                 const includeSchema = this.hasAttribute('include-schema');
                 const caption = this.getAttribute('caption') || null;
                 const schemaUrl = this.getAttribute('schema-url') || ((src || lightSrc || darkSrc) ? new URL(src || lightSrc || darkSrc, window.location.origin).href : '');
@@ -283,8 +281,6 @@ class CustomImg extends HTMLImageElement {
                     tabletWidth,
                     desktopWidth,
                     aspectRatio,
-                    objectFit,
-                    objectPosition,
                     includeSchema
                 });
 
@@ -315,16 +311,12 @@ class CustomImg extends HTMLImageElement {
                     this.className = this.className ? `${this.className} ${customClasses}`.trim() : customClasses;
                 }
 
-                // Apply classes, styles, and onerror from generatedImg to this
+                // Apply classes from generatedImg to this (excluding object-fit/position)
                 if (generatedImg.className) {
-                    this.className = this.className ? `${this.className} ${generatedImg.className}`.trim() : generatedImg.className;
-                }
-
-                if (objectFit) {
-                    this.classList.add(`object-fit-${objectFit}`);
-                }
-                if (objectPosition) {
-                    this.style.objectPosition = objectPosition;
+                    const generatedClasses = generatedImg.className.split(' ').filter(cls => !cls.startsWith('object-fit-') && !cls.startsWith('object-position-'));
+                    if (generatedClasses.length > 0) {
+                        this.className = this.className ? `${this.className} ${generatedClasses.join(' ')}`.trim() : generatedClasses.join(' ');
+                    }
                 }
 
                 this.onerror = () => {
