@@ -262,7 +262,133 @@ class CustomImg extends HTMLImageElement {
                 if (!src && !lightSrc && !darkSrc) {
                     console.error('No source attribute (src, light-src, or dark-src) provided for <img is="custom-img">. At least one is required.');
                     this.src = fallbackSrc; // Set fallback as a last resort
-                    if (!isDecorative) this.setAttribute('alt', alt
+                    if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
+                    return;
+                }
+
+                if (typeof ImageUtils === 'undefined') {
+                    console.error('ImageUtils is not defined. Ensure image-utils.js is loaded before components.js');
+                    return;
+                }
+
+                const pictureHTML = ImageUtils.generatePictureMarkup({
+                    src: src || lightSrc || darkSrc,
+                    lightSrc,
+                    darkSrc,
+                    alt,
+                    isDecorative,
+                    mobileWidth,
+                    tabletWidth,
+                    desktopWidth,
+                    aspectRatio,
+                    includeSchema
+                });
+
+                if (!pictureHTML) {
+                    console.warn('No valid picture HTML generated. Falling back to default src or fallback.');
+                    this.src = src || lightSrc || darkSrc || fallbackSrc;
+                    if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
+                    return;
+                }
+
+                // Parse the generated picture HTML
+                const div = document.createElement('div');
+                div.innerHTML = pictureHTML;
+                const generatedPicture = div.firstChild;
+                const generatedSources = generatedPicture.querySelectorAll('source');
+
+                // Create new picture element
+                const picture = document.createElement('picture');
+
+                // Insert generated sources into the new picture
+                generatedSources.forEach(source => {
+                    picture.appendChild(source.cloneNode(true));
+                });
+
+                // Apply custom classes to the current img (this)
+                if (customClasses) {
+                    this.className = this.className ? `${this.className} ${customClasses}`.trim() : customClasses;
+                }
+
+                // Deduplicate classes
+                this.className = [...new Set(this.className.split(' '))].join(' ').trim();
+
+                this.onerror = () => {
+                    console.warn(`Failed to load primary image: ${src || lightSrc || darkSrc}. Falling back to ${fallbackSrc}.`);
+                    this.src = fallbackSrc;
+                    if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
+                    this.onerror = null;
+                };
+
+                // Set initial src if not already set by picture (e.g., as fallback)
+                if (!this.src && (src || lightSrc || darkSrc)) {
+                    this.src = src || lightSrc || darkSrc;
+                }
+
+                // Remove custom attributes from the final img to clean up
+                this.removeAttribute('light-src');
+                this.removeAttribute('dark-src');
+                this.removeAttribute('aspect-ratio');
+                this.removeAttribute('mobile-width');
+                this.removeAttribute('tablet-width');
+                this.removeAttribute('desktop-width');
+                this.removeAttribute('include-schema');
+                this.removeAttribute('caption');
+                this.removeAttribute('schema-url');
+                this.removeAttribute('schema-description');
+
+                // Wrap this img in the picture
+                this.parentNode.insertBefore(picture, this);
+                picture.appendChild(this);
+
+                // If includeSchema, wrap in <figure> with schema.org markup
+                if (includeSchema) {
+                    const figure = document.createElement('figure');
+                    figure.setAttribute('itemscope', '');
+                    figure.setAttribute('itemtype', 'https://schema.org/ImageObject');
+                    picture.parentNode.insertBefore(figure, picture);
+                    figure.appendChild(picture);
+                    if (caption) {
+                        const figcaption = document.createElement('figcaption');
+                        figcaption.setAttribute('itemprop', 'caption');
+                        figcaption.textContent = caption;
+                        figure.appendChild(figcaption);
+                    }
+                    const metaUrl = document.createElement('meta');
+                    metaUrl.setAttribute('itemprop', 'url');
+                    metaUrl.setAttribute('content', schemaUrl || '');
+                    figure.appendChild(metaUrl);
+                    const metaDescription = document.createElement('meta');
+                    metaDescription.setAttribute('itemprop', 'description');
+                    metaDescription.setAttribute('content', schemaDescription || '');
+                    figure.appendChild(metaDescription);
+                }
+            } catch (error) {
+                console.error('Error in CustomImg connectedCallback:', error);
+            }
+        });
+    }
+
+    waitForImageUtils(callback) {
+        if (typeof ImageUtils !== 'undefined') {
+            callback();
+            return;
+        }
+        const interval = setInterval(() => {
+            if (typeof ImageUtils !== 'undefined') {
+                clearInterval(interval);
+                callback();
+            }
+        }, 100);
+        setTimeout(() => {
+            clearInterval(interval);
+            console.error('Timed out waiting for ImageUtils to be defined. Ensure image-shared.js is loaded correctly.');
+            callback();
+        }, 5000);
+    }
+}
+
+customElements.define('custom-img', CustomImg, { extends: 'img' });
 
 class CustomVideo extends HTMLVideoElement {
     constructor() {
