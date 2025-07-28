@@ -374,6 +374,10 @@ customElements.define('bh-img', Img);
 class Video extends HTMLElement {
     constructor() {
         super();
+        // Create and append the video element immediately in the constructor
+        const video = document.createElement('video');
+        this.appendChild(video);
+        this.video = video; // Store reference for later use
     }
 
     connectedCallback() {
@@ -388,7 +392,6 @@ class Video extends HTMLElement {
         const autoplay = this.getAttribute('autoplay') !== null;
         const muted = this.getAttribute('muted') !== null;
         const loop = this.getAttribute('loop') !== null;
-        const playsinline = this.getAttribute('playsinline') !== null;
         const disablepictureinpicture = this.getAttribute('disablepictureinpicture') !== null;
 
         // Validate src
@@ -416,19 +419,17 @@ class Video extends HTMLElement {
             return;
         }
 
-        // Create video element
-        const video = document.createElement('video');
-        if (loading) video.setAttribute('preload', loading === 'lazy' ? 'metadata' : loading); // Only set preload if specified
+        const video = this.video; // Use the pre-created video element
+
+        // Set attributes
         video.setAttribute('title', alt);
         video.setAttribute('aria-label', alt);
         if (autoplay) {
             video.setAttribute('autoplay', '');
-            // Force muted for autoplay to comply with browser policies
-            video.setAttribute('muted', '');
+            video.setAttribute('muted', ''); // Force muted for autoplay
         }
         if (muted) video.setAttribute('muted', '');
         if (loop) video.setAttribute('loop', '');
-        if (playsinline) video.setAttribute('playsinline', '');
         if (disablepictureinpicture) video.setAttribute('disablepictureinpicture', '');
 
         // Apply classes to the video element
@@ -457,7 +458,7 @@ class Video extends HTMLElement {
             }
         };
 
-        // Set initial poster (default first, then theme-specific asynchronously)
+        // Set initial poster
         if (poster) {
             video.setAttribute('poster', poster);
         }
@@ -477,7 +478,6 @@ class Video extends HTMLElement {
         // Function to add sources as HTML strings, with webm before mp4 before ogg
         const addSourcesHTML = (videoSrc, mediaQuery) => {
             if (!videoSrc) return '';
-            // Get base by removing the extension if it's a known video extension
             let baseSrc = videoSrc;
             const ext = videoSrc.split('.').pop().toLowerCase();
             if (validExtensions.includes(ext)) {
@@ -485,11 +485,8 @@ class Video extends HTMLElement {
             }
             const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
             let sources = '';
-            // Add webm first
             sources += `<source src="${baseSrc}.webm" type="video/webm"${mediaAttr}>`;
-            // Then mp4
             sources += `<source src="${baseSrc}.mp4" type="video/mp4"${mediaAttr}>`;
-            // Then ogg
             sources += `<source src="${baseSrc}.ogg" type="video/ogg"${mediaAttr}>`;
             return sources;
         };
@@ -504,13 +501,13 @@ class Video extends HTMLElement {
             innerHTML += addSourcesHTML(srcDark, '(prefers-color-scheme: dark)');
         }
 
-        // Default sources (always included as fallback)
+        // Default sources
         innerHTML += addSourcesHTML(src, null);
 
-        // Add fallback message with a class for styling
+        // Add fallback message
         innerHTML += `<p class="bh-video-fallback">Your browser does not support the video tag. <a href="${src}">Download video</a></p>`;
 
-        // Set inner HTML all at once
+        // Set inner HTML
         video.innerHTML = innerHTML;
 
         // Handle video source errors
@@ -523,25 +520,17 @@ class Video extends HTMLElement {
             }
         });
 
-        // Attempt autoplay with optimized timing and visibility consideration
+        // Attempt autoplay with minimal delay
         if (autoplay) {
-            // Initial attempt after a short delay
             setTimeout(() => {
                 video.play().catch(err => {
-                    console.warn(`Autoplay failed: ${err.message}. User interaction (e.g., scroll or click) is required in some browsers (Brave, Edge).`);
+                    console.warn(`Autoplay failed: ${err.message}. User interaction may be required in Brave/Edge.`);
                 });
-            }, 100);
-
-            // Fallback to metadata load
-            video.addEventListener('loadedmetadata', () => {
-                video.play().catch(err => {
-                    console.warn(`Autoplay after metadata failed: ${err.message}. Interaction may be needed.`);
-                });
-            }, { once: true });
+            }, 0); // Immediate but allows DOM to settle
         }
 
-        // Replace the custom element with the video element
-        this.replaceWith(video);
+        // Optionally hide the bh-video element if needed (though replaceWith was preferred)
+        // this.style.display = 'none'; // Uncomment if you want to hide the custom element
     }
 }
 
