@@ -385,11 +385,11 @@ class Video extends HTMLElement {
         const posterDark = this.getAttribute('poster-dark');
         const alt = this.getAttribute('alt') || 'Video content';
         const loading = this.getAttribute('loading') || 'lazy';
-        const autoplay = this.hasAttribute('autoplay');
-        const muted = this.hasAttribute('muted');
-        const loop = this.hasAttribute('loop');
-        const playsinline = this.hasAttribute('playsinline');
-        const disablepictureinpicture = this.hasAttribute('disablepictureinpicture');
+        const autoplay = this.getAttribute('autoplay') === '';
+        const muted = this.getAttribute('muted') === '';
+        const loop = this.getAttribute('loop') === '';
+        const playsinline = this.getAttribute('playsinline') === '';
+        const disablepictureinpicture = this.getAttribute('disablepictureinpicture') === '';
 
         // Validate src
         if (!src) {
@@ -470,24 +470,17 @@ class Video extends HTMLElement {
         // Build inner HTML for sources and fallback message
         let innerHTML = '';
 
-        // Function to add sources as HTML strings, with webm before mp4 before ogg
+        // Function to add source as HTML string based on actual file extension
         const addSourcesHTML = (videoSrc, mediaQuery) => {
             if (!videoSrc) return '';
-            // Get base by removing the extension if it's a known video extension
-            let baseSrc = videoSrc;
             const ext = videoSrc.split('.').pop().toLowerCase();
-            if (validExtensions.includes(ext)) {
-                baseSrc = videoSrc.slice(0, -(ext.length + 1));
-            }
+            let type;
+            if (ext === 'webm') type = 'video/webm';
+            else if (ext === 'mp4') type = 'video/mp4';
+            else if (ext === 'ogg') type = 'video/ogg';
+            else return ''; // Invalid extension, skip
             const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
-            let sources = '';
-            // Add webm first
-            sources += `<source src="${baseSrc}.webm" type="video/webm"${mediaAttr}>`;
-            // Then mp4
-            sources += `<source src="${baseSrc}.mp4" type="video/mp4"${mediaAttr}>`;
-            // Then ogg
-            sources += `<source src="${baseSrc}.ogg" type="video/ogg"${mediaAttr}>`;
-            return sources;
+            return `<source src="${videoSrc}" type="${type}"${mediaAttr}>`;
         };
 
         // Add sources for light theme if provided
@@ -500,7 +493,7 @@ class Video extends HTMLElement {
             innerHTML += addSourcesHTML(srcDark, '(prefers-color-scheme: dark)');
         }
 
-        // Default sources (always included as fallback)
+        // Default source (based on provided src)
         innerHTML += addSourcesHTML(src, null);
 
         // Add fallback message with a class for styling
@@ -518,6 +511,13 @@ class Video extends HTMLElement {
                 if (autoplay) video.play();
             }
         });
+
+        // Ensure autoplay is triggered
+        if (autoplay) {
+            video.play().catch(err => {
+                console.warn(`Autoplay failed: ${err.message}`);
+            });
+        }
 
         // Replace the custom element with the video element
         this.replaceWith(video);
