@@ -239,144 +239,30 @@ class CustomImg extends HTMLImageElement {
 
         this.waitForImageUtils(() => {
             try {
+                const src = this.getAttribute('src');
                 const lightSrc = this.getAttribute('light-src');
                 const darkSrc = this.getAttribute('dark-src');
                 const alt = this.getAttribute('alt') || '';
                 const isDecorative = this.hasAttribute('decorative');
                 if (!alt && !isDecorative) {
-                    console.warn(`<img is="custom-img" light-src="${lightSrc || 'not provided'}" dark-src="${darkSrc || 'not provided'}"> is missing an alt attribute for accessibility. Use alt="" if decorative, or add decorative attribute.`);
+                    console.warn(`<img is="custom-img" src="${src || 'not provided'}" light-src="${lightSrc || 'not provided'}" dark-src="${darkSrc || 'not provided'}"> is missing an alt attribute for accessibility. Use alt="" if decorative, or add decorative attribute.`);
                 }
                 const aspectRatio = this.getAttribute('aspect-ratio') || '';
                 const mobileWidth = this.getAttribute('mobile-width') || '100vw';
                 const tabletWidth = this.getAttribute('tablet-width') || '100vw';
                 const desktopWidth = this.getAttribute('desktop-width') || '100vw';
                 const customClasses = this.getAttribute('class') || '';
-                const fallbackSrc = this.getAttribute('fallback-src') || 'https://placehold.co/3000x2000'; // Optional fallback
+                const fallbackSrc = this.getAttribute('fallback-src') || 'https://placehold.co/3000x2000';
                 const includeSchema = this.hasAttribute('include-schema');
                 const caption = this.getAttribute('caption') || null;
-                const schemaUrl = this.getAttribute('schema-url') || ((lightSrc || darkSrc) ? new URL(lightSrc || darkSrc, window.location.origin).href : '');
+                const schemaUrl = this.getAttribute('schema-url') || ((src || lightSrc || darkSrc) ? new URL(src || lightSrc || darkSrc, window.location.origin).href : '');
                 const schemaDescription = this.getAttribute('schema-description') || (isDecorative ? '' : alt);
 
-                // Check if at least one theme source is provided
-                if (!lightSrc && !darkSrc) {
-                    console.error('No source attribute (light-src or dark-src) provided for <img is="custom-img">. At least one is required.');
-                    this.src = fallbackSrc; // Use fallback only if no theme sources
-                    if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
-                    return;
-                }
-
-                if (typeof ImageUtils === 'undefined') {
-                    console.error('ImageUtils is not defined. Ensure image-utils.js is loaded before components.js');
-                    return;
-                }
-
-                const pictureHTML = ImageUtils.generatePictureMarkup({
-                    src: lightSrc || darkSrc, // Use first available theme source
-                    lightSrc,
-                    darkSrc,
-                    alt,
-                    isDecorative,
-                    mobileWidth,
-                    tabletWidth,
-                    desktopWidth,
-                    aspectRatio,
-                    includeSchema
-                });
-
-                if (!pictureHTML) {
-                    console.warn('No valid picture HTML generated. Falling back to theme source or fallback.');
-                    this.src = lightSrc || darkSrc || fallbackSrc;
-                    if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
-                    return;
-                }
-
-                // Parse the generated picture HTML
-                const div = document.createElement('div');
-                div.innerHTML = pictureHTML;
-                const generatedPicture = div.firstChild;
-                const generatedSources = generatedPicture.querySelectorAll('source');
-
-                // Create new picture element
-                const picture = document.createElement('picture');
-
-                // Insert generated sources into the new picture
-                generatedSources.forEach(source => {
-                    picture.appendChild(source.cloneNode(true));
-                });
-
-                // Apply custom classes to the current img (this)
-                if (customClasses) {
-                    this.className = this.className ? `${this.className} ${customClasses}`.trim() : customClasses;
-                }
-
-                this.onerror = () => {
-                    console.warn(`Failed to load primary image: ${lightSrc || darkSrc}. Falling back to ${fallbackSrc}.`);
-                    this.src = fallbackSrc;
-                    if (!isDecorative) {
-                        this.setAttribute('alt', alt || 'Placeholder image');
-                    }
-                    this.onerror = null;
-                };
-
-                // Set initial src based on theme or fallback
-                if (!this.src) {
-                    this.src = lightSrc || darkSrc || fallbackSrc;
-                }
-
-                // Wrap this img in the picture
-                this.parentNode.insertBefore(picture, this);
-                picture.appendChild(this);
-
-                // If includeSchema, wrap in <figure> with schema.org markup
-                let finalElement = picture;
-                if (includeSchema) {
-                    const figure = document.createElement('figure');
-                    figure.setAttribute('itemscope', '');
-                    figure.setAttribute('itemtype', 'https://schema.org/ImageObject');
-                    picture.parentNode.insertBefore(figure, picture);
-                    figure.appendChild(picture);
-                    if (caption) {
-                        const figcaption = document.createElement('figcaption');
-                        figcaption.setAttribute('itemprop', 'caption');
-                        figcaption.textContent = caption;
-                        figure.appendChild(figcaption);
-                    }
-                    const metaUrl = document.createElement('meta');
-                    metaUrl.setAttribute('itemprop', 'url');
-                    metaUrl.setAttribute('content', schemaUrl || '');
-                    figure.appendChild(metaUrl);
-                    const metaDescription = document.createElement('meta');
-                    metaDescription.setAttribute('itemprop', 'description');
-                    metaDescription.setAttribute('content', schemaDescription || '');
-                    figure.appendChild(metaDescription);
-                    finalElement = figure;
-                }
-            } catch (error) {
-                console.error('Error in CustomImg connectedCallback:', error);
-            }
-        });
-    }
-
-    waitForImageUtils(callback) {
-        if (typeof ImageUtils !== 'undefined') {
-            callback();
-            return;
-        }
-        const interval = setInterval(() => {
-            if (typeof ImageUtils !== 'undefined') {
-                clearInterval(interval);
-                callback();
-            }
-        }, 100);
-        setTimeout(() => {
-            clearInterval(interval);
-            console.error('Timed out waiting for ImageUtils to be defined. Ensure image-shared.js is loaded correctly.');
-            callback();
-        }, 5000);
-    }
-}
-
-customElements.define('custom-img', CustomImg, { extends: 'img' });
+                // Check if at least one source is provided
+                if (!src && !lightSrc && !darkSrc) {
+                    console.error('No source attribute (src, light-src, or dark-src) provided for <img is="custom-img">. At least one is required.');
+                    this.src = fallbackSrc; // Set fallback as a last resort
+                    if (!isDecorative) this.setAttribute('alt', alt
 
 class CustomVideo extends HTMLVideoElement {
     constructor() {
