@@ -384,7 +384,7 @@ class Video extends HTMLElement {
         const posterLight = this.getAttribute('poster-light');
         const posterDark = this.getAttribute('poster-dark');
         const alt = this.getAttribute('alt') || 'Video content';
-        const loading = this.getAttribute('loading') || 'lazy';
+        const loading = this.getAttribute('loading'); // Only set if provided
         const autoplay = this.getAttribute('autoplay') !== null;
         const muted = this.getAttribute('muted') !== null;
         const loop = this.getAttribute('loop') !== null;
@@ -418,10 +418,14 @@ class Video extends HTMLElement {
 
         // Create video element
         const video = document.createElement('video');
-        video.setAttribute('preload', loading === 'lazy' ? 'metadata' : 'auto');
+        if (loading) video.setAttribute('preload', loading === 'lazy' ? 'metadata' : loading); // Only set preload if loading is specified
         video.setAttribute('title', alt);
         video.setAttribute('aria-label', alt);
-        if (autoplay) video.setAttribute('autoplay', '');
+        if (autoplay) {
+            video.setAttribute('autoplay', '');
+            // Force muted for autoplay to comply with browser policies
+            video.setAttribute('muted', '');
+        }
         if (muted) video.setAttribute('muted', '');
         if (loop) video.setAttribute('loop', '');
         if (playsinline) video.setAttribute('playsinline', '');
@@ -513,11 +517,25 @@ class Video extends HTMLElement {
         video.addEventListener('error', () => {
             console.warn(`Video source "${video.currentSrc}" failed to load; falling back to default src "${src}".`);
             if (video.currentSrc && video.currentSrc !== src) {
-                video.src = src; // Force default src
+                video.src = src;
                 video.load();
                 if (autoplay) video.play();
             }
         });
+
+        // Attempt autoplay immediately after DOM insertion, with metadata check as fallback
+        if (autoplay) {
+            // Try to play immediately
+            video.play().catch(err => {
+                console.warn(`Initial autoplay failed: ${err.message}. Waiting for loadedmetadata or user interaction.`);
+                // Fallback to play after metadata is loaded
+                video.addEventListener('loadedmetadata', () => {
+                    video.play().catch(err => {
+                        console.warn(`Autoplay after metadata failed: ${err.message}. Requires user interaction.`);
+                    });
+                }, { once: true });
+            });
+        }
 
         // Replace the custom element with the video element
         this.replaceWith(video);
