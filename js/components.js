@@ -321,9 +321,10 @@ class CustomImg extends HTMLImageElement {
                     this.onerror = null;
                 };
 
-                // Set initial src based on theme or fallback
+                // Set initial src to the raw theme source, avoiding width-based modification
                 if (!this.src) {
-                    this.src = lightSrc || darkSrc || fallbackSrc;
+                    this.src = (lightSrc || darkSrc); // Use raw value, no modification
+                    if (!this.src) this.src = fallbackSrc; // Only fallback if no theme source
                 }
 
                 // Remove custom attributes from the final img to clean up
@@ -383,7 +384,7 @@ class CustomImg extends HTMLImageElement {
         }, 100);
         setTimeout(() => {
             clearInterval(interval);
-            console.error('Timed out waiting for ImageUtils to be defined. Ensure image-shared.js is loaded correctly.');
+            console.error('Timed out waiting for ImageUtils to be defined. Ensure image-utils.js is loaded correctly.');
             callback();
         }, 5000);
     }
