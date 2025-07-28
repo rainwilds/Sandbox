@@ -291,11 +291,10 @@ class CustomImg extends HTMLImageElement {
                     return;
                 }
 
-                // Parse the generated picture HTML
+                // Parse the generated picture HTML and extract sources
                 const div = document.createElement('div');
                 div.innerHTML = pictureHTML;
                 const generatedPicture = div.firstChild;
-                const generatedImg = generatedPicture.querySelector('img');
                 const generatedSources = generatedPicture.querySelectorAll('source');
 
                 // Create new picture element
@@ -309,14 +308,6 @@ class CustomImg extends HTMLImageElement {
                 // Apply custom classes to the current img (this)
                 if (customClasses) {
                     this.className = this.className ? `${this.className} ${customClasses}`.trim() : customClasses;
-                }
-
-                // Apply classes from generatedImg to this (excluding object-fit/position)
-                if (generatedImg.className) {
-                    const generatedClasses = generatedImg.className.split(' ').filter(cls => !cls.startsWith('object-fit-') && !cls.startsWith('object-position-'));
-                    if (generatedClasses.length > 0) {
-                        this.className = this.className ? `${this.className} ${generatedClasses.join(' ')}`.trim() : generatedClasses.join(' ');
-                    }
                 }
 
                 this.onerror = () => {
