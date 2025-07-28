@@ -244,7 +244,7 @@ class CustomImg extends HTMLImageElement {
                 const alt = this.getAttribute('alt') || '';
                 const isDecorative = this.hasAttribute('decorative');
                 if (!alt && !isDecorative) {
-                    console.warn(`<img is="custom-img" light-src="${lightSrc || 'not provided'}" dark-src="${darkSrc || 'not provided'}"> is missing an alt attribute for accessibility. Use alt="" if decorative, or add decorative attribute.`);
+                    console.warn(`<img is="custom-img" light-src="${lightSrc || 'not provided'}" dark-src="${darkSrc || 'not provided'}"> is missing an alt attribute for accessibility.`);
                 }
                 const aspectRatio = this.getAttribute('aspect-ratio') || '';
                 const mobileWidth = this.getAttribute('mobile-width') || '100vw';
@@ -259,8 +259,8 @@ class CustomImg extends HTMLImageElement {
 
                 // Check if at least one theme source is provided
                 if (!lightSrc && !darkSrc) {
-                    console.error('No source attribute (light-src or dark-src) provided for <img is="custom-img">. At least one is required.');
-                    this.src = fallbackSrc; // Use fallback as the only option
+                    console.error('No source attribute (light-src or dark-src) provided for <img is="custom-img">. Using fallback.');
+                    this.src = fallbackSrc;
                     if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
                     return;
                 }
@@ -271,7 +271,7 @@ class CustomImg extends HTMLImageElement {
                 }
 
                 const pictureHTML = ImageUtils.generatePictureMarkup({
-                    src: lightSrc || darkSrc, // Use first available theme source
+                    src: lightSrc || darkSrc,
                     lightSrc,
                     darkSrc,
                     alt,
@@ -321,10 +321,10 @@ class CustomImg extends HTMLImageElement {
                     this.onerror = null;
                 };
 
-                // Set initial src to the raw theme source, avoiding width-based modification
+                // Set initial src based on theme source
                 if (!this.src) {
-                    this.src = (lightSrc || darkSrc); // Use raw value, no modification
-                    if (!this.src) this.src = fallbackSrc; // Only fallback if no theme source
+                    this.src = lightSrc || darkSrc;
+                    if (!this.src) this.src = fallbackSrc; // Only use fallback if no theme source
                 }
 
                 // Remove custom attributes from the final img to clean up
@@ -358,11 +358,11 @@ class CustomImg extends HTMLImageElement {
                     }
                     const metaUrl = document.createElement('meta');
                     metaUrl.setAttribute('itemprop', 'url');
-                    metaUrl.setAttribute('content', schemaUrl || '');
+                    metaUrl.setAttribute('content', schemaUrl); // Use provided schema-url or computed image URL
                     figure.appendChild(metaUrl);
                     const metaDescription = document.createElement('meta');
                     metaDescription.setAttribute('itemprop', 'description');
-                    metaDescription.setAttribute('content', schemaDescription || '');
+                    metaDescription.setAttribute('content', schemaDescription);
                     figure.appendChild(metaDescription);
                 }
             } catch (error) {
