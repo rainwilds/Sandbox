@@ -385,11 +385,11 @@ class Video extends HTMLElement {
         const posterDark = this.getAttribute('poster-dark');
         const alt = this.getAttribute('alt') || 'Video content';
         const loading = this.getAttribute('loading') || 'lazy';
-        const autoplay = this.getAttribute('autoplay') === '';
-        const muted = this.getAttribute('muted') === '';
-        const loop = this.getAttribute('loop') === '';
-        const playsinline = this.getAttribute('playsinline') === '';
-        const disablepictureinpicture = this.getAttribute('disablepictureinpicture') === '';
+        const autoplay = this.getAttribute('autoplay') !== null; // Check if attribute exists
+        const muted = this.getAttribute('muted') !== null; // Check if attribute exists
+        const loop = this.getAttribute('loop') !== null;
+        const playsinline = this.getAttribute('playsinline') !== null;
+        const disablepictureinpicture = this.getAttribute('disablepictureinpicture') !== null;
 
         // Validate src
         if (!src) {
@@ -423,8 +423,8 @@ class Video extends HTMLElement {
         video.setAttribute('aria-label', alt);
         if (autoplay) {
             video.setAttribute('autoplay', '');
-            // Ensure muted is set when autoplay is used to comply with browser policies
-            if (!muted) video.setAttribute('muted', '');
+            // Force muted for autoplay to comply with browser policies
+            video.setAttribute('muted', '');
         }
         if (muted) video.setAttribute('muted', '');
         if (loop) video.setAttribute('loop', '');
@@ -510,17 +510,22 @@ class Video extends HTMLElement {
         video.addEventListener('error', () => {
             console.warn(`Video source "${video.currentSrc}" failed to load; falling back to default src "${src}".`);
             if (video.currentSrc && video.currentSrc !== src) {
-                video.src = src; // Force default src
+                video.src = src;
                 video.load();
                 if (autoplay) video.play();
             }
         });
 
-        // Delay play() until metadata is loaded to ensure the video is ready
+        // Delay play() until metadata is loaded and handle autoplay restrictions
         if (autoplay) {
             video.addEventListener('loadedmetadata', () => {
                 video.play().catch(err => {
-                    console.warn(`Autoplay failed: ${err.message}. Ensure user interaction or muted attribute is present.`);
+                    console.warn(`Autoplay failed: ${err.message}. Video will remain paused until user interaction.`);
+                    // Add a fallback play button if desired
+                    const fallback = document.createElement('button');
+                    fallback.textContent = 'Play Video';
+                    fallback.addEventListener('click', () => video.play());
+                    video.parentNode.insertBefore(fallback, video.nextSibling);
                 });
             });
         }
