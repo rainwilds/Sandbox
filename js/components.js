@@ -232,8 +232,8 @@ class CustomImg extends HTMLImageElement {
         if (this.isInitialized) return; // Prevent multiple initializations
         this.isInitialized = true;
 
-        // Add role if not present
-        if (!this.hasAttribute('role')) {
+        // Add role if not present and no alt
+        if (!this.hasAttribute('role') && !this.hasAttribute('alt')) {
             this.setAttribute('role', 'img');
         }
 
@@ -245,7 +245,7 @@ class CustomImg extends HTMLImageElement {
                 const alt = this.getAttribute('alt') || '';
                 const isDecorative = this.hasAttribute('decorative');
                 if (!alt && !isDecorative) {
-                    console.warn(`<img is="custom-img" src="${src}"> is missing an alt attribute for accessibility. Use alt="" if decorative, or add decorative attribute.`);
+                    console.warn(`<img is="custom-img" src="${src || 'not provided'}" light-src="${lightSrc || 'not provided'}" dark-src="${darkSrc || 'not provided'}"> is missing an alt attribute for accessibility. Use alt="" if decorative, or add decorative attribute.`);
                 }
                 const aspectRatio = this.getAttribute('aspect-ratio') || '';
                 const mobileWidth = this.getAttribute('mobile-width') || '100vw';
@@ -257,8 +257,16 @@ class CustomImg extends HTMLImageElement {
                 const objectPosition = this.getAttribute('object-position') || null;
                 const includeSchema = this.hasAttribute('include-schema');
                 const caption = this.getAttribute('caption') || null;
-                const schemaUrl = this.getAttribute('schema-url') || (src ? new URL(src, window.location.origin).href : '');
+                const schemaUrl = this.getAttribute('schema-url') || ((src || lightSrc || darkSrc) ? new URL(src || lightSrc || darkSrc, window.location.origin).href : '');
                 const schemaDescription = this.getAttribute('schema-description') || (isDecorative ? '' : alt);
+
+                // Check if at least one source is provided
+                if (!src && !lightSrc && !darkSrc) {
+                    console.error('No source attribute (src, light-src, or dark-src) provided for <img is="custom-img">. At least one is required.');
+                    this.src = fallbackSrc; // Set fallback as a last resort
+                    if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
+                    return;
+                }
 
                 if (typeof ImageUtils === 'undefined') {
                     console.error('ImageUtils is not defined. Ensure image-utils.js is loaded before components.js');
@@ -266,7 +274,7 @@ class CustomImg extends HTMLImageElement {
                 }
 
                 const pictureHTML = ImageUtils.generatePictureMarkup({
-                    src,
+                    src: src || lightSrc || darkSrc, // Use first available source as fallback
                     lightSrc,
                     darkSrc,
                     alt,
@@ -281,6 +289,9 @@ class CustomImg extends HTMLImageElement {
                 });
 
                 if (!pictureHTML) {
+                    console.warn('No valid picture HTML generated. Falling back to default src or fallback.');
+                    this.src = src || lightSrc || darkSrc || fallbackSrc;
+                    if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
                     return;
                 }
 
@@ -317,13 +328,18 @@ class CustomImg extends HTMLImageElement {
                 }
 
                 this.onerror = () => {
-                    console.warn(`Failed to load primary image: ${src}. Falling back to ${fallbackSrc}.`);
+                    console.warn(`Failed to load primary image: ${src || lightSrc || darkSrc}. Falling back to ${fallbackSrc}.`);
                     this.src = fallbackSrc;
                     if (!isDecorative) {
                         this.setAttribute('alt', alt || 'Placeholder image');
                     }
                     this.onerror = null;
                 };
+
+                // Set initial src if not already set by picture (e.g., as fallback)
+                if (!this.src && (src || lightSrc || darkSrc)) {
+                    this.src = src || lightSrc || darkSrc;
+                }
 
                 // Wrap this img in the picture
                 this.parentNode.insertBefore(picture, this);
