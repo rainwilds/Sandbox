@@ -466,10 +466,6 @@
             object-fit: fill;
         }
 
-        .object-position-center {
-            object-position: center;
-        }
-
         .object-position-top {
             object-position: top;
         }
