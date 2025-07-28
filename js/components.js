@@ -525,27 +525,17 @@ class Video extends HTMLElement {
 
         // Attempt autoplay with optimized timing and visibility consideration
         if (autoplay) {
-            // Check if the video is in the viewport (mimics scrolling effect)
-            const checkVisibilityAndPlay = () => {
-                const rect = video.getBoundingClientRect();
-                const isVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
-                if (isVisible) {
-                    video.play().catch(err => {
-                        console.warn(`Autoplay failed: ${err.message}. Requires user interaction in some browsers (e.g., Brave, Edge). Try scrolling or clicking.`);
-                    });
-                } else {
-                    // Retry after a short delay if not visible
-                    setTimeout(checkVisibilityAndPlay, 100);
-                }
-            };
-
-            // Initial attempt after DOM insertion
-            setTimeout(checkVisibilityAndPlay, 100);
+            // Initial attempt after a short delay
+            setTimeout(() => {
+                video.play().catch(err => {
+                    console.warn(`Autoplay failed: ${err.message}. User interaction (e.g., scroll or click) is required in some browsers (Brave, Edge).`);
+                });
+            }, 100);
 
             // Fallback to metadata load
             video.addEventListener('loadedmetadata', () => {
                 video.play().catch(err => {
-                    console.warn(`Autoplay after metadata failed: ${err.message}. Interaction may be required.`);
+                    console.warn(`Autoplay after metadata failed: ${err.message}. Interaction may be needed.`);
                 });
             }, { once: true });
         }
