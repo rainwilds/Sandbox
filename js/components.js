@@ -1,4 +1,4 @@
-class Card extends HTMLElement {
+class CustomCard extends HTMLDivElement {
     constructor() {
         super();
         this.callbacks = [];
@@ -10,7 +10,7 @@ class Card extends HTMLElement {
                 this.render();
                 this.callbacks.forEach(callback => callback());
             } catch (error) {
-                console.error('Error in Card connectedCallback:', error);
+                console.error('Error in CustomCard connectedCallback:', error);
             }
         });
     }
@@ -34,7 +34,6 @@ class Card extends HTMLElement {
                 callback();
             }
         }, 100);
-        // Fallback timeout to prevent infinite waiting
         setTimeout(() => {
             clearInterval(interval);
             console.error('Timed out waiting for ImageUtils to be defined. Ensure image-utils.js is loaded correctly.');
@@ -59,7 +58,7 @@ class Card extends HTMLElement {
             const borderRadiusClass = hasBorderRadius && hasBorder ? this.getAttribute('border-radius') : '';
             const hasBackdropFilter = this.hasAttribute('backdrop-filter');
             const backdropFilterClass = hasBackdropFilter ? this.getAttribute('backdrop-filter') : '';
-            const classes = this.getAttribute('classes') || '';
+            const classes = this.getAttribute('class') || '';
             // Image attributes
             const imgSrc = this.getAttribute('image-src') || '';
             const lightSrc = this.getAttribute('image-light-src') || '';
@@ -181,31 +180,25 @@ class Card extends HTMLElement {
                     <a class="button" href="${buttonHref}">${buttonText}</a>
                 `;
 
-            // Create the rendered element
-            const renderedDiv = document.createElement('div');
-            renderedDiv.className = mainDivClass;
-            renderedDiv.innerHTML = `
+            // Set the class and innerHTML directly on this (the div)
+            this.className = mainDivClass;
+            this.innerHTML = `
                 ${backgroundImageHTML || ''}
                 ${backgroundVideoHTML || ''}
                 ${overlayHTML}
                 ${contentHTML}
             `;
-
-            // Replace the custom element with the rendered div
-            this.replaceWith(renderedDiv);
         } catch (error) {
-            console.error('Error rendering Card:', error);
+            console.error('Error rendering CustomCard:', error);
             // Fallback rendering
-            const fallbackDiv = document.createElement('div');
-            fallbackDiv.className = 'card';
-            fallbackDiv.innerHTML = `
+            this.className = 'card';
+            this.innerHTML = `
                 <hgroup>
                     <h2>Error</h2>
                     <p>Failed to render card. Check console for details.</p>
                 </hgroup>
                 <a class="button" href="#">Button</a>
             `;
-            this.replaceWith(fallbackDiv);
         }
     }
 
@@ -222,13 +215,13 @@ class Card extends HTMLElement {
             try {
                 this.render();
             } catch (error) {
-                console.error('Error in Card attributeChangedCallback:', error);
+                console.error('Error in CustomCard attributeChangedCallback:', error);
             }
         });
     }
 }
 
-customElements.define('bh-card', Card);
+customElements.define('custom-card', CustomCard, { extends: 'div' });
 
 class CustomImg extends HTMLImageElement {
     constructor() {
