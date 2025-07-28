@@ -374,7 +374,6 @@ customElements.define('bh-img', Img);
 class Video extends HTMLElement {
     constructor() {
         super();
-        this.attachShadow({ mode: 'open' });
     }
 
     connectedCallback() {
@@ -471,17 +470,14 @@ class Video extends HTMLElement {
         // Build inner HTML for sources and fallback message
         let innerHTML = '';
 
-        // Function to add source as HTML string with detected type
+        // Function to add sources as HTML strings, with webm before mp4
         const addSourcesHTML = (videoSrc, mediaQuery) => {
             if (!videoSrc) return '';
-            const ext = videoSrc.split('.').pop().toLowerCase();
-            let type;
-            if (ext === 'webm') type = 'video/webm';
-            else if (ext === 'mp4') type = 'video/mp4';
-            else if (ext === 'ogg') type = 'video/ogg';
-            else return ''; // Invalid, skip
             const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
-            return `<source src="${videoSrc}" type="${type}"${mediaAttr}>`;
+            return `
+                <source src="${videoSrc}" type="video/webm"${mediaAttr}>
+                <source src="${videoSrc}" type="video/mp4"${mediaAttr}>
+            `;
         };
 
         // Add sources for light theme if provided
@@ -503,9 +499,6 @@ class Video extends HTMLElement {
         // Set inner HTML all at once
         video.innerHTML = innerHTML;
 
-        // Append video element to the shadow root
-        this.shadowRoot.appendChild(video);
-
         // Handle video source errors
         video.addEventListener('error', () => {
             console.warn(`Video source "${video.currentSrc}" failed to load; falling back to default src "${src}".`);
@@ -515,6 +508,9 @@ class Video extends HTMLElement {
                 if (autoplay) video.play();
             }
         });
+
+        // Replace the custom element with the video element
+        this.replaceWith(video);
     }
 }
 
