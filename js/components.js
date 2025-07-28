@@ -384,7 +384,7 @@ class Video extends HTMLElement {
         const posterLight = this.getAttribute('poster-light');
         const posterDark = this.getAttribute('poster-dark');
         const alt = this.getAttribute('alt') || 'Video content';
-        const loading = this.getAttribute('loading') || 'lazy';
+        const loading = this.getAttribute('loading');
         const autoplay = this.getAttribute('autoplay') !== null;
         const muted = this.getAttribute('muted') !== null;
         const loop = this.getAttribute('loop') !== null;
@@ -418,7 +418,7 @@ class Video extends HTMLElement {
 
         // Create video element
         const video = document.createElement('video');
-        // Removed preload setting to match working static HTML
+        if (loading) video.setAttribute('preload', loading === 'lazy' ? 'metadata' : loading);
         video.setAttribute('title', alt);
         video.setAttribute('aria-label', alt);
         if (autoplay) video.setAttribute('autoplay', '');
@@ -518,8 +518,9 @@ class Video extends HTMLElement {
             }
         });
 
-        // Replace the custom element with the video element
-        this.replaceWith(video);
+        // Append the video as child and set display: contents to avoid layout impact
+        this.style.display = 'contents';
+        this.appendChild(video);
     }
 }
 
