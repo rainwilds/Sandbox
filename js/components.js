@@ -371,7 +371,7 @@ class Img extends HTMLElement {
 
 customElements.define('bh-img', Img);
 
-class Video extends HTMLVideoElement {
+class CustomVideo extends HTMLVideoElement {
     constructor() {
         super();
     }
@@ -393,7 +393,7 @@ class Video extends HTMLVideoElement {
 
         // Validate src
         if (!src) {
-            console.error('The "src" attribute is required for <video is="bh-video">');
+            console.error('The "src" attribute is required for <video is="custom-video">');
             return;
         }
 
@@ -507,7 +507,7 @@ class Video extends HTMLVideoElement {
     }
 }
 
-customElements.define('bh-video', Video, { extends: 'video' });
+customElements.define('custom-video', CustomVideo, { extends: 'video' });
 
 class Footer extends HTMLElement {
     connectedCallback() {
