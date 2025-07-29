@@ -248,9 +248,8 @@ customElements.define('custom-card', CustomCard, { extends: 'div' });
 class CustomImg extends HTMLImageElement {
     constructor() {
         super();
-        // Pre-set a valid src to avoid broken image flash with fallback
-        const fallbackSrc = this.getAttribute('fallback-src') || 'https://placehold.co/3000x2000';
-        this.src = fallbackSrc; // Initial placeholder to prevent broken image
+        // Pre-set a valid src to avoid broken image flash with hardcoded fallback
+        this.src = 'https://placehold.co/3000x2000'; // Initial placeholder to prevent broken image
     }
 
     connectedCallback() {
@@ -271,23 +270,19 @@ class CustomImg extends HTMLImageElement {
                 if (!alt && !isDecorative) {
                     console.warn(`<img is="custom-img" light-src="${lightSrc || 'not provided'}" dark-src="${darkSrc || 'not provided'}"> is missing an alt attribute for accessibility.`);
                 }
-                const aspectRatio = this.getAttribute('aspect-ratio') || '';
                 const mobileWidth = this.getAttribute('mobile-width') || '100vw';
                 const tabletWidth = this.getAttribute('tablet-width') || '100vw';
                 const desktopWidth = this.getAttribute('desktop-width') || '100vw';
                 const customClasses = this.getAttribute('class') || '';
-                const fallbackSrc = this.getAttribute('fallback-src') || 'https://placehold.co/3000x2000';
                 const includeSchema = this.hasAttribute('include-schema');
                 const caption = this.getAttribute('caption') || null;
                 const schemaUrl = this.getAttribute('schema-url') || ((lightSrc || darkSrc) ? new URL(lightSrc || darkSrc, window.location.origin).href : '');
                 const schemaDescription = this.getAttribute('schema-description') || (isDecorative ? '' : alt);
 
-                console.log('Aspect ratio:', aspectRatio); // Debug the aspect ratio value
-
                 // Check if at least one theme source is provided
                 if (!lightSrc && !darkSrc) {
                     console.error('No source attribute (light-src or dark-src) provided for <img is="custom-img">. Using fallback.');
-                    this.src = fallbackSrc;
+                    this.src = 'https://placehold.co/3000x2000';
                     if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
                     return;
                 }
@@ -306,18 +301,13 @@ class CustomImg extends HTMLImageElement {
                     mobileWidth,
                     tabletWidth,
                     desktopWidth,
-                    aspectRatio, // Ensure aspectRatio is passed
                     includeSchema
                 });
 
                 if (!pictureHTML) {
                     console.warn('No valid picture HTML generated. Falling back to theme source or fallback.');
-                    this.src = lightSrc || darkSrc || fallbackSrc;
+                    this.src = lightSrc || darkSrc || 'https://placehold.co/3000x2000';
                     if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
-                    // Apply aspect ratio as fallback if ImageUtils fails
-                    if (aspectRatio) {
-                        this.style.aspectRatio = aspectRatio;
-                    }
                     return;
                 }
 
@@ -345,8 +335,8 @@ class CustomImg extends HTMLImageElement {
                 this.className = [...new Set(this.className.split(' '))].join(' ').trim();
 
                 this.onerror = () => {
-                    console.warn(`Failed to load primary image: ${lightSrc || darkSrc}. Falling back to ${fallbackSrc}.`);
-                    this.src = fallbackSrc;
+                    console.warn(`Failed to load primary image: ${lightSrc || darkSrc}. Falling back to ${'https://placehold.co/3000x2000'}.`);
+                    this.src = 'https://placehold.co/3000x2000';
                     if (!isDecorative) {
                         this.setAttribute('alt', alt || 'Placeholder image');
                     }
@@ -354,20 +344,14 @@ class CustomImg extends HTMLImageElement {
                 };
 
                 // Set initial src based on theme source
-                if (!this.src || this.src === fallbackSrc) {
+                if (!this.src || this.src === 'https://placehold.co/3000x2000') {
                     this.src = lightSrc || darkSrc;
-                    if (!this.src) this.src = fallbackSrc; // Only use fallback if no theme source
-                }
-
-                // Apply aspect ratio to the img if specified
-                if (aspectRatio) {
-                    this.style.aspectRatio = aspectRatio; // Apply as inline style
+                    if (!this.src) this.src = 'https://placehold.co/3000x2000'; // Only use fallback if no theme source
                 }
 
                 // Remove custom attributes from the final img to clean up
                 this.removeAttribute('light-src');
                 this.removeAttribute('dark-src');
-                this.removeAttribute('aspect-ratio');
                 this.removeAttribute('mobile-width');
                 this.removeAttribute('tablet-width');
                 this.removeAttribute('desktop-width');
