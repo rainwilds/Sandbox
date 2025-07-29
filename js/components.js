@@ -444,9 +444,8 @@ class CustomVideo extends HTMLVideoElement {
     }
 
     connectedCallback() {
-        const src = this.getAttribute('src');
-        const srcLight = this.getAttribute('src-light');
-        const srcDark = this.getAttribute('src-dark');
+        const lightSrc = this.getAttribute('light-src');
+        const darkSrc = this.getAttribute('dark-src');
         const poster = this.getAttribute('poster');
         const posterLight = this.getAttribute('poster-light');
         const posterDark = this.getAttribute('poster-dark');
@@ -458,9 +457,9 @@ class CustomVideo extends HTMLVideoElement {
         const playsinline = this.hasAttribute('playsinline');
         const disablepictureinpicture = this.hasAttribute('disablepictureinpicture');
 
-        // Validate src
-        if (!src) {
-            console.error('The "src" attribute is required for <video is="custom-video">');
+        // Validate that at least one source is provided
+        if (!lightSrc && !darkSrc) {
+            console.error('At least one of "light-src" or "dark-src" attributes is required for <video is="custom-video">');
             return;
         }
 
@@ -468,8 +467,8 @@ class CustomVideo extends HTMLVideoElement {
         const validExtensions = ['mp4', 'webm', 'ogg'];
         const validateExtension = (videoSrc, attrName) => {
             if (videoSrc) {
-                const ext = videoSrc.split('.').pop().toLowerCase();
-                if (!validExtensions.includes(ext)) {
+                const ext = videoSrc.split('.').pop()?.toLowerCase();
+                if (ext && !validExtensions.includes(ext)) {
                     console.error(`Invalid video file extension in "${attrName}": ${videoSrc}`);
                     return false;
                 }
@@ -477,9 +476,7 @@ class CustomVideo extends HTMLVideoElement {
             return true;
         };
 
-        if (!validateExtension(src, 'src') ||
-            !validateExtension(srcLight, 'src-light') ||
-            !validateExtension(srcDark, 'src-dark')) {
+        if (!validateExtension(lightSrc, 'light-src') || !validateExtension(darkSrc, 'dark-src')) {
             return;
         }
 
@@ -489,6 +486,13 @@ class CustomVideo extends HTMLVideoElement {
 
         // Set preload if loading is provided
         if (loading) this.setAttribute('preload', loading === 'lazy' ? 'metadata' : loading);
+
+        // Explicitly set video attributes
+        this.autoplay = autoplay;
+        this.muted = muted;
+        this.loop = loop;
+        this.playsInline = playsinline;
+        this.disablePictureInPicture = disablepictureinpicture;
 
         // Function to update poster based on current theme
         const updatePoster = (prefersDark) => {
@@ -510,66 +514,62 @@ class CustomVideo extends HTMLVideoElement {
             }
         };
 
-        // Set initial poster (default first, then theme-specific asynchronously)
-        if (poster) {
-            this.setAttribute('poster', poster);
-        }
+        // Set initial poster
+        if (poster) this.setAttribute('poster', poster);
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         updatePoster(prefersDark);
 
-        // Listen for theme changes
-        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        mediaQuery.addEventListener('change', (e) => {
-            updatePoster(e.matches);
-            this.load(); // Reload to potentially apply new sources
-        });
-
-        // Build inner HTML for sources and fallback message
+        // Build inner HTML for sources and fallback
         let innerHTML = '';
-
-        // Function to add sources as HTML strings, with webm before mp4 before ogg
         const addSourcesHTML = (videoSrc, mediaQuery) => {
             if (!videoSrc) return '';
-            let baseSrc = videoSrc;
-            const ext = videoSrc.split('.').pop().toLowerCase();
-            if (validExtensions.includes(ext)) {
-                baseSrc = videoSrc.slice(0, -(ext.length + 1));
-            }
+            const ext = videoSrc.split('.').pop()?.toLowerCase();
+            if (!ext || !validExtensions.includes(ext)) return '';
             const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
-            let sources = '';
-            sources += `<source src="${baseSrc}.webm" type="video/webm"${mediaAttr}>`;
-            sources += `<source src="${baseSrc}.mp4" type="video/mp4"${mediaAttr}>`;
-            sources += `<source src="${baseSrc}.ogg" type="video/ogg"${mediaAttr}>`;
-            return sources;
+            return `<source src="${videoSrc}" type="video/${ext}"${mediaAttr}>`;
         };
 
-        // Add sources for light theme if provided
-        if (srcLight) {
-            innerHTML += addSourcesHTML(srcLight, '(prefers-color-scheme: light)');
-        }
+        // Default source (used as fallback if no theme-specific source matches)
+        const defaultSrc = lightSrc || darkSrc;
 
-        // Add sources for dark theme if provided
-        if (srcDark) {
-            innerHTML += addSourcesHTML(srcDark, '(prefers-color-scheme: dark)');
-        }
+        // Add sources for light and dark themes
+        if (lightSrc) innerHTML += addSourcesHTML(lightSrc, '(prefers-color-scheme: light)');
+        if (darkSrc) innerHTML += addSourcesHTML(darkSrc, '(prefers-color-scheme: dark)');
+        innerHTML += addSourcesHTML(defaultSrc, null);
 
-        // Default sources (always included as fallback)
-        innerHTML += addSourcesHTML(src, null);
+        // Add fallback message
+        innerHTML += `<p>Your browser does not support the video tag. <a href="${defaultSrc}">Download video</a></p>`;
 
-        // Add fallback message with a class for styling
-        innerHTML += `<p class="bh-video-fallback">Your browser does not support the video tag. <a href="${src}">Download video</a></p>`;
-
-        // Set inner HTML all at once and remove original src
-        this.removeAttribute('src');
+        // Set inner HTML and remove non-native attributes
         this.innerHTML = innerHTML;
+        this.removeAttribute('light-src');
+        this.removeAttribute('dark-src');
+        this.removeAttribute('poster-light');
+        this.removeAttribute('poster-dark');
 
         // Handle video source errors
         this.addEventListener('error', () => {
-            console.warn(`Video source "${this.currentSrc}" failed to load; falling back to default src "${src}".`);
-            if (this.currentSrc && this.currentSrc !== src) {
-                this.src = src;
+            console.warn(`Video source "${this.currentSrc}" failed to load.`);
+            if (this.currentSrc !== defaultSrc) {
+                this.innerHTML = addSourcesHTML(defaultSrc, null) + `<p>Your browser does not support the video tag. <a href="${defaultSrc}">Download video</a></p>`;
                 this.load();
             }
+        });
+
+        // Listen for theme changes with playback state preservation
+        let debounceTimeout;
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        mediaQuery.addEventListener('change', (e) => {
+            clearTimeout(debounceTimeout);
+            debounceTimeout = setTimeout(() => {
+                const wasPlaying = !this.paused;
+                const currentTime = this.currentTime;
+                updatePoster(e.matches);
+                this.innerHTML = innerHTML; // Rebuild sources
+                this.load();
+                this.currentTime = currentTime;
+                if (wasPlaying) this.play().catch(() => console.warn('Auto-play failed after theme change'));
+            }, 100);
         });
     }
 }
