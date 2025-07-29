@@ -316,6 +316,14 @@ class CustomImg extends HTMLImageElement {
                     console.warn('No valid picture HTML generated. Falling back to theme source or fallback.');
                     this.src = lightSrc || darkSrc || 'https://placehold.co/3000x2000';
                     if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
+                    // Clean up custom attributes on fallback
+                    this.removeAttribute('light-src');
+                    this.removeAttribute('dark-src');
+                    this.removeAttribute('mobile-width');
+                    this.removeAttribute('tablet-width');
+                    this.removeAttribute('desktop-width');
+                    this.removeAttribute('include-schema');
+                    this.removeAttribute('caption');
                     return;
                 }
 
@@ -357,7 +365,11 @@ class CustomImg extends HTMLImageElement {
                     if (!this.src) this.src = 'https://placehold.co/3000x2000'; // Only use fallback if no theme source
                 }
 
-                // Remove custom attributes from the final img to clean up
+                // Wrap this img in the picture
+                this.parentNode.insertBefore(picture, this);
+                picture.appendChild(this);
+
+                // Clean up custom attributes after wrapping
                 this.removeAttribute('light-src');
                 this.removeAttribute('dark-src');
                 this.removeAttribute('mobile-width');
@@ -365,10 +377,6 @@ class CustomImg extends HTMLImageElement {
                 this.removeAttribute('desktop-width');
                 this.removeAttribute('include-schema');
                 this.removeAttribute('caption');
-
-                // Wrap this img in the picture
-                this.parentNode.insertBefore(picture, this);
-                picture.appendChild(this);
 
                 // If includeSchema, wrap in <figure> with schema.org markup
                 if (includeSchema) {
