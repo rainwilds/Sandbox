@@ -360,7 +360,10 @@ class CustomImg extends HTMLImageElement {
                 if (this.hasAttribute('loading')) {
                     generatedImg.setAttribute('loading', this.getAttribute('loading'));
                 }
-                generatedImg.setAttribute('src', this.src);
+
+                // Determine the initial src based on theme
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                generatedImg.src = prefersDark && darkSrc ? darkSrc : lightSrc || darkSrc || 'https://placehold.co/3000x2000';
 
                 // Apply custom classes to the new img
                 if (customClasses) {
@@ -378,12 +381,6 @@ class CustomImg extends HTMLImageElement {
                     }
                     this.onerror = null;
                 };
-
-                // Set initial src based on theme source
-                if (!generatedImg.src || generatedImg.src === 'https://placehold.co/3000x2000') {
-                    generatedImg.src = lightSrc || darkSrc;
-                    if (!generatedImg.src) generatedImg.src = 'https://placehold.co/3000x2000'; // Only use fallback if no theme source
-                }
 
                 // Wrap the new img in the picture
                 picture.appendChild(generatedImg);
