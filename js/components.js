@@ -2,6 +2,7 @@ class CustomCard extends HTMLDivElement {
     constructor() {
         super();
         this.callbacks = [];
+        this.isRendered = false; // Flag to prevent multiple renders
     }
 
     connectedCallback() {
@@ -17,6 +18,7 @@ class CustomCard extends HTMLDivElement {
 
     disconnectedCallback() {
         this.callbacks = [];
+        this.isRendered = false; // Reset flag on disconnect
     }
 
     addCallback(callback) {
@@ -42,6 +44,9 @@ class CustomCard extends HTMLDivElement {
     }
 
     render() {
+        if (this.isRendered) return; // Prevent multiple renders
+        this.isRendered = true;
+
         try {
             // Get attributes
             const heading = this.getAttribute('heading') || 'Default Heading';
@@ -152,6 +157,9 @@ class CustomCard extends HTMLDivElement {
             if (hasBackgroundVideo) mainDivClass += ' background-video';
             mainDivClass += ` ${classes} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`;
 
+            // Deduplicate classes
+            mainDivClass = [...new Set(mainDivClass.split(' '))].join(' ').trim();
+
             // Check if 'space-between' and 'padding-medium' are in the classes attribute
             const classList = classes.split(' ').filter(cls => cls.length > 0); // Split and filter out empty strings
             const hasSpaceBetween = classList.includes('space-between');
@@ -188,6 +196,19 @@ class CustomCard extends HTMLDivElement {
                 ${overlayHTML}
                 ${contentHTML}
             `;
+
+            // Clean up background image attributes if rendered
+            const backgroundImg = this.querySelector('img');
+            if (backgroundImg) {
+                backgroundImg.removeAttribute('light-src');
+                backgroundImg.removeAttribute('dark-src');
+                backgroundImg.removeAttribute('aspect-ratio');
+                backgroundImg.removeAttribute('mobile-width');
+                backgroundImg.removeAttribute('tablet-width');
+                backgroundImg.removeAttribute('desktop-width');
+                backgroundImg.removeAttribute('include-schema');
+                // Add other custom attributes to remove if needed
+            }
         } catch (error) {
             console.error('Error rendering CustomCard:', error);
             // Fallback rendering
@@ -211,6 +232,7 @@ class CustomCard extends HTMLDivElement {
     }
 
     attributeChangedCallback() {
+        if (this.isRendered) return; // Prevent re-render on attribute change after initial render
         this.waitForImageUtils(() => {
             try {
                 this.render();
