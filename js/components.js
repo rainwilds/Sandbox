@@ -464,7 +464,7 @@ class CustomVideo extends HTMLVideoElement {
         }
 
         // Validate file extensions
-        const validExtensions = ['mp4', 'webm', 'ogg'];
+        const validExtensions = ['mp4', 'webm'];
         const validateExtension = (videoSrc, attrName) => {
             if (videoSrc) {
                 const ext = videoSrc.split('.').pop()?.toLowerCase();
