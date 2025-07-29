@@ -282,6 +282,8 @@ class CustomImg extends HTMLImageElement {
                 const schemaUrl = this.getAttribute('schema-url') || ((lightSrc || darkSrc) ? new URL(lightSrc || darkSrc, window.location.origin).href : '');
                 const schemaDescription = this.getAttribute('schema-description') || (isDecorative ? '' : alt);
 
+                console.log('Aspect ratio:', aspectRatio); // Debug the aspect ratio value
+
                 // Check if at least one theme source is provided
                 if (!lightSrc && !darkSrc) {
                     console.error('No source attribute (light-src or dark-src) provided for <img is="custom-img">. Using fallback.');
@@ -291,7 +293,7 @@ class CustomImg extends HTMLImageElement {
                 }
 
                 if (typeof ImageUtils === 'undefined') {
-                    console.error('ImageUtils is not defined. Ensure image-utils.js is loaded with <link rel="preload"> and <script defer>.');
+                    console.error('ImageUtils is not defined. Ensure image-utils.js is loaded.');
                     return;
                 }
 
@@ -304,7 +306,7 @@ class CustomImg extends HTMLImageElement {
                     mobileWidth,
                     tabletWidth,
                     desktopWidth,
-                    aspectRatio,
+                    aspectRatio, // Ensure aspectRatio is passed
                     includeSchema
                 });
 
@@ -312,6 +314,10 @@ class CustomImg extends HTMLImageElement {
                     console.warn('No valid picture HTML generated. Falling back to theme source or fallback.');
                     this.src = lightSrc || darkSrc || fallbackSrc;
                     if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
+                    // Apply aspect ratio as fallback if ImageUtils fails
+                    if (aspectRatio) {
+                        this.style.aspectRatio = aspectRatio;
+                    }
                     return;
                 }
 
@@ -320,6 +326,7 @@ class CustomImg extends HTMLImageElement {
                 div.innerHTML = pictureHTML;
                 const generatedPicture = div.firstChild;
                 const generatedSources = generatedPicture.querySelectorAll('source');
+                const generatedImg = generatedPicture.querySelector('img');
 
                 // Create new picture element
                 const picture = document.createElement('picture');
@@ -350,6 +357,11 @@ class CustomImg extends HTMLImageElement {
                 if (!this.src || this.src === fallbackSrc) {
                     this.src = lightSrc || darkSrc;
                     if (!this.src) this.src = fallbackSrc; // Only use fallback if no theme source
+                }
+
+                // Apply aspect ratio to the img if specified
+                if (aspectRatio) {
+                    this.style.aspectRatio = aspectRatio; // Apply as inline style
                 }
 
                 // Remove custom attributes from the final img to clean up
@@ -409,7 +421,7 @@ class CustomImg extends HTMLImageElement {
         }, 100);
         setTimeout(() => {
             clearInterval(interval);
-            console.error('Timed out waiting for ImageUtils to be defined. Ensure image-utils.js is loaded with <link rel="preload"> and <script defer>.');
+            console.error('Timed out waiting for ImageUtils to be defined. Ensure image-utils.js is loaded.');
             callback();
         }, 5000);
     }
