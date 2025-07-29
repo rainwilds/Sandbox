@@ -271,7 +271,7 @@ class CustomImg extends HTMLImageElement {
                 }
 
                 if (typeof ImageUtils === 'undefined') {
-                    console.error('ImageUtils is not defined. Ensure image-utils.js is loaded before components.js');
+                    console.error('ImageUtils is not defined. Ensure image-utils.js is loaded with <link rel="preload"> and <script defer>.');
                     return;
                 }
 
@@ -329,7 +329,7 @@ class CustomImg extends HTMLImageElement {
                 // Update src based on theme source if different from initial
                 const initialSrc = this.getAttribute('light-src') || this.getAttribute('dark-src') || fallbackSrc;
                 if (this.src !== initialSrc) {
-                    this.src = initialSrc; // Ensure src matches the theme source
+                    this.src = initialSrc;
                 }
 
                 // Remove custom attributes from the final img to clean up
@@ -389,7 +389,7 @@ class CustomImg extends HTMLImageElement {
         }, 100);
         setTimeout(() => {
             clearInterval(interval);
-            console.error('Timed out waiting for ImageUtils to be defined. Ensure image-utils.js is loaded correctly.');
+            console.error('Timed out waiting for ImageUtils to be defined. Ensure image-utils.js is loaded with <link rel="preload"> and <script defer>.');
             callback();
         }, 5000);
     }
