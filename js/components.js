@@ -226,11 +226,13 @@ customElements.define('custom-card', CustomCard, { extends: 'div' });
 class CustomImg extends HTMLImageElement {
     constructor() {
         super();
-        // Pre-set a valid src to avoid broken image flash
+        // Pre-set a valid src to avoid broken image flash, with fallback
         const lightSrc = this.getAttribute('light-src');
         const darkSrc = this.getAttribute('dark-src');
         const fallbackSrc = this.getAttribute('fallback-src') || 'https://placehold.co/3000x2000';
-        this.src = lightSrc || darkSrc || fallbackSrc; // Initial src to prevent broken image
+        // Use a temporary placeholder until confirmed, then set the real src
+        this.src = fallbackSrc; // Initial placeholder to prevent broken image
+        this.classList.add('loading'); // Add loading class for CSS control
     }
 
     connectedCallback() {
@@ -267,11 +269,13 @@ class CustomImg extends HTMLImageElement {
                     console.error('No source attribute (light-src or dark-src) provided for <img is="custom-img">. Using fallback.');
                     this.src = fallbackSrc;
                     if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
+                    this.classList.remove('loading'); // Remove loading state
                     return;
                 }
 
                 if (typeof ImageUtils === 'undefined') {
                     console.error('ImageUtils is not defined. Ensure image-utils.js is loaded with <link rel="preload"> and <script defer>.');
+                    this.classList.remove('loading'); // Remove loading state on error
                     return;
                 }
 
@@ -292,6 +296,7 @@ class CustomImg extends HTMLImageElement {
                     console.warn('No valid picture HTML generated. Falling back to theme source or fallback.');
                     this.src = lightSrc || darkSrc || fallbackSrc;
                     if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
+                    this.classList.remove('loading'); // Remove loading state
                     return;
                 }
 
@@ -323,14 +328,13 @@ class CustomImg extends HTMLImageElement {
                     if (!isDecorative) {
                         this.setAttribute('alt', alt || 'Placeholder image');
                     }
+                    this.classList.remove('loading'); // Remove loading state on error
                     this.onerror = null;
                 };
 
-                // Update src based on theme source if different from initial
-                const initialSrc = this.getAttribute('light-src') || this.getAttribute('dark-src') || fallbackSrc;
-                if (this.src !== initialSrc) {
-                    this.src = initialSrc;
-                }
+                // Update src based on theme source
+                this.src = lightSrc || darkSrc; // Set the correct theme source
+                if (!this.src) this.src = fallbackSrc; // Fallback only if no theme source
 
                 // Remove custom attributes from the final img to clean up
                 this.removeAttribute('light-src');
@@ -370,8 +374,12 @@ class CustomImg extends HTMLImageElement {
                     metaDescription.setAttribute('content', schemaDescription);
                     figure.appendChild(metaDescription);
                 }
+
+                // Remove loading state once fully rendered
+                this.classList.remove('loading');
             } catch (error) {
                 console.error('Error in CustomImg connectedCallback:', error);
+                this.classList.remove('loading'); // Ensure loading state is removed on error
             }
         });
     }
