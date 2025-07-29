@@ -470,10 +470,6 @@
             object-fit: contain;
         }
 
-        .object-fit-cover {
-            object-fit: cover;
-        }
-
         .object-fit-fill {
             object-fit: fill;
         }
