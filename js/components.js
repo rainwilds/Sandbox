@@ -234,15 +234,20 @@ class CustomImg extends HTMLImageElement {
         // Derive the lowest resolution src (assuming 768w as the lowest from srcset)
         const getLowestResolutionSrc = (src) => {
             if (!src) return null;
-            const match = src.match(/(\w+-\d+)/); // Extract base name and resolution (e.g., "image1-3840")
-            if (match) {
-                const baseName = match[1].replace(/\d+$/, '768'); // Replace with 768
-                return src.replace(/(\w+-\d+)/, baseName);
+            // Match base name and number (e.g., "image1-3840" or "image-3840")
+            const match = src.match(/(.+?)(\d+)(?=\.\w+$)/); // Capture base and number before extension
+            if (match && match[1] && match[2]) {
+                const baseName = match[1];
+                const originalNumber = parseInt(match[2], 10);
+                const lowestNumber = 768; // Hardcoded lowest resolution
+                return src.replace(`${baseName}${originalNumber}`, `${baseName}${lowestNumber}`);
             }
+            console.warn(`Could not derive lowest resolution for ${src}. Using original.`);
             return src; // Fallback to original if pattern not matched
         };
 
         const initialSrc = getLowestResolutionSrc(lightSrc) || getLowestResolutionSrc(darkSrc) || fallbackSrc;
+        console.log('Initial src set to:', initialSrc); // Debug the derived src
         this.src = initialSrc; // Set lowest resolution or fallback
         this.classList.add('loading'); // Add loading class for CSS control
     }
