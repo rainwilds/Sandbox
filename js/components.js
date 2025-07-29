@@ -447,8 +447,8 @@ class CustomVideo extends HTMLVideoElement {
         const lightSrc = this.getAttribute('light-src');
         const darkSrc = this.getAttribute('dark-src');
         const poster = this.getAttribute('poster');
-        const posterLight = this.getAttribute('poster-light');
-        const posterDark = this.getAttribute('poster-dark');
+        const lightPoster = this.getAttribute('light-poster');
+        const darkPoster = this.getAttribute('dark-poster');
         const alt = this.getAttribute('alt') || 'Video content';
         const loading = this.getAttribute('loading');
         const autoplay = this.hasAttribute('autoplay');
@@ -496,7 +496,7 @@ class CustomVideo extends HTMLVideoElement {
 
         // Function to update poster based on current theme
         const updatePoster = (prefersDark) => {
-            const activePoster = prefersDark ? (posterDark || poster) : (posterLight || poster);
+            const activePoster = prefersDark ? (darkPoster || poster) : (lightPoster || poster);
             if (activePoster) {
                 const img = new Image();
                 img.src = activePoster;
@@ -525,8 +525,13 @@ class CustomVideo extends HTMLVideoElement {
             if (!videoSrc) return '';
             const ext = videoSrc.split('.').pop()?.toLowerCase();
             if (!ext || !validExtensions.includes(ext)) return '';
+            const baseSrc = videoSrc.slice(0, -(ext.length + 1));
             const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
-            return `<source src="${videoSrc}" type="video/${ext}"${mediaAttr}>`;
+            let sources = '';
+            // Prioritize webm over mp4
+            sources += `<source src="${baseSrc}.webm" type="video/webm"${mediaAttr}>`;
+            sources += `<source src="${baseSrc}.mp4" type="video/mp4"${mediaAttr}>`;
+            return sources;
         };
 
         // Default source (used as fallback if no theme-specific source matches)
@@ -544,8 +549,8 @@ class CustomVideo extends HTMLVideoElement {
         this.innerHTML = innerHTML;
         this.removeAttribute('light-src');
         this.removeAttribute('dark-src');
-        this.removeAttribute('poster-light');
-        this.removeAttribute('poster-dark');
+        this.removeAttribute('light-poster');
+        this.removeAttribute('dark-poster');
 
         // Handle video source errors
         this.addEventListener('error', () => {
@@ -571,6 +576,17 @@ class CustomVideo extends HTMLVideoElement {
                 if (wasPlaying) this.play().catch(() => console.warn('Auto-play failed after theme change'));
             }, 100);
         });
+
+        // Enhance lazy loading with IntersectionObserver for autoplay
+        if (loading === 'lazy' && autoplay) {
+            const observer = new IntersectionObserver((entries) => {
+                if (entries[0].isIntersecting) {
+                    this.play().catch(() => console.warn('Auto-play failed on lazy load'));
+                    observer.disconnect();
+                }
+            });
+            observer.observe(this);
+        }
     }
 }
 
