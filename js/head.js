@@ -6,24 +6,6 @@ function manageHead(attributes = {}, businessInfo = {}) {
   let head = document.head || document.createElement('head');
   if (!document.head) document.documentElement.prepend(head);
 
-  // Preload hero images for mobile and desktop
-  const heroImages = [
-      { href: attributes['preload-feature-img-mobile'], media: '(max-width: 980px)', type: 'image/avif' },
-      { href: attributes['preload-feature-img-desktop'], media: '(min-width: 981px)', type: 'image/avif' }
-  ].filter(image => image.href);
-  heroImages.forEach(image => {
-      if (!document.querySelector(`link[href="${image.href}"][media="${image.media}"]`)) {
-          const link = document.createElement('link');
-          link.rel = 'preload';
-          link.href = image.href;
-          link.as = 'image';
-          link.type = image.type;
-          link.media = image.media;
-          head.appendChild(link);
-          console.log(`Preloaded hero image: ${image.href} with media: ${image.media}`);
-      }
-  });
-
   // Preload fonts to improve performance
   const fonts = [
       { href: './fonts/AdobeAldine-Regular.woff2', type: 'font/woff2' }
@@ -57,23 +39,6 @@ function manageHead(attributes = {}, businessInfo = {}) {
           console.log(`Preloaded Font Awesome style: ${href}`);
       }
   });
-
-  // Preload image-utils.js to ensure availability for custom-img component
-  if (!document.querySelector(`link[href="./js/image-utils.js"]`)) {
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.href = './js/image-utils.js';
-      link.as = 'script';
-      head.appendChild(link);
-      console.log('Preloaded image-utils.js');
-  }
-  if (!document.querySelector(`script[src="./js/image-utils.js"]`)) {
-      const script = document.createElement('script');
-      script.src = './js/image-utils.js';
-      script.defer = true; // Defer execution until DOM is parsed
-      head.appendChild(script);
-      console.log('Added deferred script for image-utils.js');
-  }
 
   // Add essential meta tags (charset, viewport, robots, title, author, etc.)
   if (!document.querySelector('meta[charset]')) {
@@ -410,7 +375,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
 
   // Load additional scripts (image-utils.js, components.js, scripts.js)
   const scripts = [
-      { src: './js/image-utils.js', defer: true }, // Already preloaded, defer for execution
+      { src: './js/image-utils.js', defer: false }, // Load synchronously to ensure availability
       { src: './js/components.js', defer: true },
       { src: './js/scripts.js', defer: true }
   ];

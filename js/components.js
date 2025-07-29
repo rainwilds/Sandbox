@@ -226,34 +226,13 @@ customElements.define('custom-card', CustomCard, { extends: 'div' });
 class CustomImg extends HTMLImageElement {
     constructor() {
         super();
-        // Pre-set the lowest resolution image as src to avoid broken image flash
-        const lightSrc = this.getAttribute('light-src');
-        const darkSrc = this.getAttribute('dark-src');
+        // Pre-set a valid src to avoid broken image flash with fallback
         const fallbackSrc = this.getAttribute('fallback-src') || 'https://placehold.co/3000x2000';
-
-        // Derive the lowest resolution src (assuming 768w as the lowest from srcset)
-        const getLowestResolutionSrc = (src) => {
-            if (!src) return null;
-            // Match base name and number (e.g., "image1-3840" or "image-3840")
-            const match = src.match(/(.+?)(\d+)(?=\.\w+$)/); // Capture base and number before extension
-            if (match && match[1] && match[2]) {
-                const baseName = match[1];
-                const originalNumber = parseInt(match[2], 10);
-                const lowestNumber = 768; // Hardcoded lowest resolution
-                return src.replace(`${baseName}${originalNumber}`, `${baseName}${lowestNumber}`);
-            }
-            console.warn(`Could not derive lowest resolution for ${src}. Using original.`);
-            return src; // Fallback to original if pattern not matched
-        };
-
-        const initialSrc = getLowestResolutionSrc(lightSrc) || getLowestResolutionSrc(darkSrc) || fallbackSrc;
-        console.log('Initial src set to:', initialSrc); // Debug the derived src
-        this.src = initialSrc; // Set lowest resolution or fallback
-        this.classList.add('loading'); // Add loading class for CSS control
+        this.src = fallbackSrc; // Initial placeholder to prevent broken image
     }
 
     connectedCallback() {
-        if (this.isInitialized) return;
+        if (this.isInitialized) return; // Prevent multiple initializations
         this.isInitialized = true;
 
         // Add role if not present and no alt
@@ -281,19 +260,16 @@ class CustomImg extends HTMLImageElement {
                 const schemaUrl = this.getAttribute('schema-url') || ((lightSrc || darkSrc) ? new URL(lightSrc || darkSrc, window.location.origin).href : '');
                 const schemaDescription = this.getAttribute('schema-description') || (isDecorative ? '' : alt);
 
+                // Check if at least one theme source is provided
                 if (!lightSrc && !darkSrc) {
                     console.error('No source attribute (light-src or dark-src) provided for <img is="custom-img">. Using fallback.');
                     this.src = fallbackSrc;
                     if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
-                    this.classList.remove('loading');
-                    this.classList.add('loaded');
                     return;
                 }
 
                 if (typeof ImageUtils === 'undefined') {
                     console.error('ImageUtils is not defined. Ensure image-utils.js is loaded with <link rel="preload"> and <script defer>.');
-                    this.classList.remove('loading');
-                    this.classList.add('loaded');
                     return;
                 }
 
@@ -314,37 +290,47 @@ class CustomImg extends HTMLImageElement {
                     console.warn('No valid picture HTML generated. Falling back to theme source or fallback.');
                     this.src = lightSrc || darkSrc || fallbackSrc;
                     if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
-                    this.classList.remove('loading');
-                    this.classList.add('loaded');
                     return;
                 }
 
+                // Parse the generated picture HTML
                 const div = document.createElement('div');
                 div.innerHTML = pictureHTML;
                 const generatedPicture = div.firstChild;
                 const generatedSources = generatedPicture.querySelectorAll('source');
 
+                // Create new picture element
                 const picture = document.createElement('picture');
-                generatedSources.forEach(source => picture.appendChild(source.cloneNode(true)));
 
+                // Insert generated sources into the new picture
+                generatedSources.forEach(source => {
+                    picture.appendChild(source.cloneNode(true));
+                });
+
+                // Apply custom classes to the current img (this)
                 if (customClasses) {
                     this.className = this.className ? `${this.className} ${customClasses}`.trim() : customClasses;
                 }
 
+                // Deduplicate classes
                 this.className = [...new Set(this.className.split(' '))].join(' ').trim();
 
                 this.onerror = () => {
                     console.warn(`Failed to load primary image: ${lightSrc || darkSrc}. Falling back to ${fallbackSrc}.`);
                     this.src = fallbackSrc;
-                    if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
-                    this.classList.remove('loading');
-                    this.classList.add('loaded');
+                    if (!isDecorative) {
+                        this.setAttribute('alt', alt || 'Placeholder image');
+                    }
                     this.onerror = null;
                 };
 
-                this.src = lightSrc || darkSrc; // Update to the intended theme source
-                if (!this.src) this.src = fallbackSrc;
+                // Set initial src based on theme source
+                if (!this.src || this.src === fallbackSrc) {
+                    this.src = lightSrc || darkSrc;
+                    if (!this.src) this.src = fallbackSrc; // Only use fallback if no theme source
+                }
 
+                // Remove custom attributes from the final img to clean up
                 this.removeAttribute('light-src');
                 this.removeAttribute('dark-src');
                 this.removeAttribute('aspect-ratio');
@@ -356,9 +342,11 @@ class CustomImg extends HTMLImageElement {
                 this.removeAttribute('schema-url');
                 this.removeAttribute('schema-description');
 
+                // Wrap this img in the picture
                 this.parentNode.insertBefore(picture, this);
                 picture.appendChild(this);
 
+                // If includeSchema, wrap in <figure> with schema.org markup
                 if (includeSchema) {
                     const figure = document.createElement('figure');
                     figure.setAttribute('itemscope', '');
@@ -380,13 +368,8 @@ class CustomImg extends HTMLImageElement {
                     metaDescription.setAttribute('content', schemaDescription);
                     figure.appendChild(metaDescription);
                 }
-
-                this.classList.remove('loading');
-                this.classList.add('loaded');
             } catch (error) {
                 console.error('Error in CustomImg connectedCallback:', error);
-                this.classList.remove('loading');
-                this.classList.add('loaded');
             }
         });
     }
