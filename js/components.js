@@ -245,7 +245,6 @@ class CustomCard extends HTMLDivElement {
 
 customElements.define('custom-card', CustomCard, { extends: 'div' });
 
-// components.js
 class CustomImg extends HTMLImageElement {
     constructor() {
         super();
@@ -287,8 +286,6 @@ class CustomImg extends HTMLImageElement {
                 const customClasses = this.getAttribute('class') || '';
                 const includeSchema = this.hasAttribute('include-schema');
                 const caption = this.getAttribute('caption') || null;
-                const schemaUrl = this.getAttribute('schema-url') || ((lightSrc || darkSrc) ? new URL(lightSrc || darkSrc, window.location.origin).href : '');
-                const schemaDescription = this.getAttribute('schema-description') || (isDecorative ? '' : alt);
 
                 // Check if at least one theme source is provided
                 if (!lightSrc && !darkSrc) {
@@ -368,8 +365,6 @@ class CustomImg extends HTMLImageElement {
                 this.removeAttribute('desktop-width');
                 this.removeAttribute('include-schema');
                 this.removeAttribute('caption');
-                this.removeAttribute('schema-url');
-                this.removeAttribute('schema-description');
 
                 // Wrap this img in the picture
                 this.parentNode.insertBefore(picture, this);
@@ -390,11 +385,11 @@ class CustomImg extends HTMLImageElement {
                     }
                     const metaUrl = document.createElement('meta');
                     metaUrl.setAttribute('itemprop', 'url');
-                    metaUrl.setAttribute('content', schemaUrl || '');
+                    metaUrl.setAttribute('content', this.src ? new URL(this.src, window.location.origin).href : ''); // Match src
                     figure.appendChild(metaUrl);
                     const metaDescription = document.createElement('meta');
                     metaDescription.setAttribute('itemprop', 'description');
-                    metaDescription.setAttribute('content', schemaDescription);
+                    metaDescription.setAttribute('content', alt); // Match alt
                     figure.appendChild(metaDescription);
                 }
             } catch (error) {
@@ -423,8 +418,6 @@ class CustomImg extends HTMLImageElement {
 }
 
 customElements.define('custom-img', CustomImg, { extends: 'img' });
-
-// Other components (e.g., custom-card) remain unchanged unless needed
 
 class CustomVideo extends HTMLVideoElement {
     constructor() {
