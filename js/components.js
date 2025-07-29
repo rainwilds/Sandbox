@@ -292,6 +292,14 @@ class CustomImg extends HTMLImageElement {
                     console.error('No source attribute (light-src or dark-src) provided for <img is="custom-img">. Using fallback.');
                     this.src = 'https://placehold.co/3000x2000';
                     if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
+                    // Clean up custom attributes on fallback
+                    this.removeAttribute('light-src');
+                    this.removeAttribute('dark-src');
+                    this.removeAttribute('mobile-width');
+                    this.removeAttribute('tablet-width');
+                    this.removeAttribute('desktop-width');
+                    this.removeAttribute('include-schema');
+                    this.removeAttribute('caption');
                     return;
                 }
 
@@ -332,7 +340,7 @@ class CustomImg extends HTMLImageElement {
                 div.innerHTML = pictureHTML;
                 const generatedPicture = div.firstChild;
                 const generatedSources = generatedPicture.querySelectorAll('source');
-                const generatedImg = generatedPicture.querySelector('img');
+                let generatedImg = generatedPicture.querySelector('img');
 
                 // Create new picture element
                 const picture = document.createElement('picture');
@@ -342,41 +350,47 @@ class CustomImg extends HTMLImageElement {
                     picture.appendChild(source.cloneNode(true));
                 });
 
-                // Apply custom classes to the current img (this)
+                // Create a new img element to replace the original, transferring only native attributes
+                generatedImg = document.createElement('img');
+                generatedImg.setAttribute('alt', this.getAttribute('alt') || '');
+                generatedImg.setAttribute('class', this.className);
+                if (this.hasAttribute('fetchpriority')) {
+                    generatedImg.setAttribute('fetchpriority', this.getAttribute('fetchpriority'));
+                }
+                if (this.hasAttribute('loading')) {
+                    generatedImg.setAttribute('loading', this.getAttribute('loading'));
+                }
+                generatedImg.setAttribute('src', this.src);
+
+                // Apply custom classes to the new img
                 if (customClasses) {
-                    this.className = this.className ? `${this.className} ${customClasses}`.trim() : customClasses;
+                    generatedImg.className = generatedImg.className ? `${generatedImg.className} ${customClasses}`.trim() : customClasses;
                 }
 
                 // Deduplicate classes
-                this.className = [...new Set(this.className.split(' '))].join(' ').trim();
+                generatedImg.className = [...new Set(generatedImg.className.split(' '))].join(' ').trim();
 
                 this.onerror = () => {
                     console.warn(`Failed to load primary image: ${lightSrc || darkSrc}. Falling back to ${'https://placehold.co/3000x2000'}.`);
-                    this.src = 'https://placehold.co/3000x2000';
+                    generatedImg.src = 'https://placehold.co/3000x2000';
                     if (!isDecorative) {
-                        this.setAttribute('alt', alt || 'Placeholder image');
+                        generatedImg.setAttribute('alt', alt || 'Placeholder image');
                     }
                     this.onerror = null;
                 };
 
                 // Set initial src based on theme source
-                if (!this.src || this.src === 'https://placehold.co/3000x2000') {
-                    this.src = lightSrc || darkSrc;
-                    if (!this.src) this.src = 'https://placehold.co/3000x2000'; // Only use fallback if no theme source
+                if (!generatedImg.src || generatedImg.src === 'https://placehold.co/3000x2000') {
+                    generatedImg.src = lightSrc || darkSrc;
+                    if (!generatedImg.src) generatedImg.src = 'https://placehold.co/3000x2000'; // Only use fallback if no theme source
                 }
 
-                // Wrap this img in the picture
-                this.parentNode.insertBefore(picture, this);
-                picture.appendChild(this);
+                // Wrap the new img in the picture
+                picture.appendChild(generatedImg);
 
-                // Clean up custom attributes after wrapping
-                this.removeAttribute('light-src');
-                this.removeAttribute('dark-src');
-                this.removeAttribute('mobile-width');
-                this.removeAttribute('tablet-width');
-                this.removeAttribute('desktop-width');
-                this.removeAttribute('include-schema');
-                this.removeAttribute('caption');
+                // Replace the original img with the picture
+                this.parentNode.insertBefore(picture, this);
+                this.parentNode.removeChild(this); // Remove the original custom element
 
                 // If includeSchema, wrap in <figure> with schema.org markup
                 if (includeSchema) {
@@ -393,11 +407,11 @@ class CustomImg extends HTMLImageElement {
                     }
                     const metaUrl = document.createElement('meta');
                     metaUrl.setAttribute('itemprop', 'url');
-                    metaUrl.setAttribute('content', this.src ? new URL(this.src, window.location.origin).href : ''); // Match src
+                    metaUrl.setAttribute('content', generatedImg.src ? new URL(generatedImg.src, window.location.origin).href : '');
                     figure.appendChild(metaUrl);
                     const metaDescription = document.createElement('meta');
                     metaDescription.setAttribute('itemprop', 'description');
-                    metaDescription.setAttribute('content', alt); // Match alt
+                    metaDescription.setAttribute('content', alt);
                     figure.appendChild(metaDescription);
                 }
             } catch (error) {
