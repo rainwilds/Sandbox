@@ -40,6 +40,23 @@ function manageHead(attributes = {}, businessInfo = {}) {
       }
   });
 
+  // Preload image-utils.js to ensure availability for custom-img component
+  if (!document.querySelector(`link[href="./js/image-utils.js"]`)) {
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.href = './js/image-utils.js';
+      link.as = 'script';
+      head.appendChild(link);
+      console.log('Preloaded image-utils.js');
+  }
+  if (!document.querySelector(`script[src="./js/image-utils.js"]`)) {
+      const script = document.createElement('script');
+      script.src = './js/image-utils.js';
+      script.defer = true; // Defer execution until DOM is parsed
+      head.appendChild(script);
+      console.log('Added deferred script for image-utils.js');
+  }
+
   // Add essential meta tags (charset, viewport, robots, title, author, etc.)
   if (!document.querySelector('meta[charset]')) {
       const metaCharset = document.createElement('meta');
@@ -375,7 +392,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
 
   // Load additional scripts (image-utils.js, components.js, scripts.js)
   const scripts = [
-      { src: './js/image-utils.js', defer: false }, // Load synchronously to ensure availability
+      { src: './js/image-utils.js', defer: true }, // Preloaded and deferred
       { src: './js/components.js', defer: true },
       { src: './js/scripts.js', defer: true }
   ];
@@ -597,8 +614,6 @@ document.addEventListener('DOMContentLoaded', async () => {
           products: dataHead.dataset.products || null,
           'theme-color-light': dataHead.dataset.themeColorLight,
           'theme-color-dark': dataHead.dataset.themeColorDark,
-          'preload-feature-img-mobile': dataHead.dataset.preloadFeatureImgMobile,
-          'preload-feature-img-desktop': dataHead.dataset.preloadFeatureImgDesktop,
           'include-e-commerce': dataHead.hasAttribute('data-include-e-commerce') || attributes['include-e-commerce'],
           'include-eruda': dataHead.hasAttribute('data-include-eruda') || attributes['include-eruda']
       });

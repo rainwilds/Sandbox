@@ -245,15 +245,26 @@ class CustomCard extends HTMLDivElement {
 
 customElements.define('custom-card', CustomCard, { extends: 'div' });
 
+// components.js
 class CustomImg extends HTMLImageElement {
     constructor() {
         super();
-        // Pre-set a valid src to avoid broken image flash with hardcoded fallback
-        this.src = 'https://placehold.co/3000x2000'; // Initial placeholder to prevent broken image
+        this.isVisible = false;
+        this.isInitialized = false; // Moved here for clarity
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                this.isVisible = true;
+                observer.disconnect();
+                if (!this.isInitialized) {
+                    this.connectedCallback(); // Trigger render only if not initialized
+                }
+            }
+        }, { rootMargin: '50px' });
+        observer.observe(this);
     }
 
     connectedCallback() {
-        if (this.isInitialized) return; // Prevent multiple initializations
+        if (this.isInitialized || !this.isVisible) return;
         this.isInitialized = true;
 
         // Add role if not present and no alt
@@ -402,16 +413,18 @@ class CustomImg extends HTMLImageElement {
                 clearInterval(interval);
                 callback();
             }
-        }, 100);
+        }, 50); // Reduced from 100ms
         setTimeout(() => {
             clearInterval(interval);
-            console.error('Timed out waiting for ImageUtils to be defined. Ensure image-utils.js is loaded.');
+            console.error('Timed out waiting for ImageUtils to be defined. Ensure image-utils.js is preloaded.');
             callback();
-        }, 5000);
+        }, 3000); // Reduced from 5000ms
     }
 }
 
 customElements.define('custom-img', CustomImg, { extends: 'img' });
+
+// Other components (e.g., custom-card) remain unchanged unless needed
 
 class CustomVideo extends HTMLVideoElement {
     constructor() {

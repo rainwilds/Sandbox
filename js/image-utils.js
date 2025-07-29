@@ -1,3 +1,4 @@
+// image-utils.js
 const ImageUtils = {
     // Configuration constants
     WIDTHS: [768, 980, 1024, 1366, 1920, 2560, 3840],
@@ -14,8 +15,8 @@ const ImageUtils = {
     ],
     DEFAULT_SIZE: '3840px',
 
-    generatePictureMarkup({ src, lightSrc, darkSrc, alt = '', isDecorative = false, mobileWidth = '100vw', tabletWidth = '100vw', desktopWidth = '100vw', aspectRatio = '', loading, 'fetch-priority': fetchpriority, objectFit, objectPosition, includeSchema = false }) {
-        console.log('ImageUtils.generatePictureMarkup called with:', { src, lightSrc, darkSrc, alt, isDecorative, mobileWidth, tabletWidth, desktopWidth, aspectRatio, loading, fetchpriority, objectFit, objectPosition, includeSchema });
+    generatePictureMarkup({ src, lightSrc, darkSrc, alt = '', isDecorative = false, mobileWidth = '100vw', tabletWidth = '100vw', desktopWidth = '100vw', aspectRatio = '', includeSchema = false }) {
+        console.log('ImageUtils.generatePictureMarkup called with:', { src, lightSrc, darkSrc, alt, isDecorative, mobileWidth, tabletWidth, desktopWidth, aspectRatio, includeSchema });
         if (!src) {
             console.error('The "src" parameter is required for generatePictureMarkup');
             return '';
@@ -100,22 +101,11 @@ const ImageUtils = {
             const aspectRatioClass = `aspect-ratio-${aspectRatio.replace('/', '-')}`;
             imgClasses.push(aspectRatioClass);
         }
-        if (objectFit) {
-            imgClasses.push(`object-fit-${objectFit}`);
-        }
-        if (objectPosition) {
-            imgClasses.push(`object-position-${objectPosition}`);
-        }
         const imgClassAttr = imgClasses.length > 0 ? ` class="${imgClasses.join(' ')}"` : '';
         const altAttr = alt && !isDecorative ? ` alt="${alt}"` : '';
         const ariaHiddenAttr = isDecorative ? ' aria-hidden="true"' : '';
-        let imgAttrs = '';
-        if (loading) imgAttrs += ` loading="${loading}"`;
-        if (fetchpriority) imgAttrs += ` fetchpriority="${fetchpriority}"`;
-        if (includeSchema) imgAttrs += ` itemprop="contentUrl"`;
-
         pictureHTML += `
-            <img src="${src}"${imgClassAttr}${altAttr}${ariaHiddenAttr}${imgAttrs}>
+            <img src="${src}"${imgClassAttr}${altAttr}${ariaHiddenAttr}>
         `;
         pictureHTML += '</picture>';
 
