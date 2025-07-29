@@ -226,6 +226,11 @@ customElements.define('custom-card', CustomCard, { extends: 'div' });
 class CustomImg extends HTMLImageElement {
     constructor() {
         super();
+        // Pre-set a valid src to avoid broken image flash
+        const lightSrc = this.getAttribute('light-src');
+        const darkSrc = this.getAttribute('dark-src');
+        const fallbackSrc = this.getAttribute('fallback-src') || 'https://placehold.co/3000x2000';
+        this.src = lightSrc || darkSrc || fallbackSrc; // Initial src to prevent broken image
     }
 
     connectedCallback() {
@@ -321,10 +326,10 @@ class CustomImg extends HTMLImageElement {
                     this.onerror = null;
                 };
 
-                // Set initial src based on theme source
-                if (!this.src) {
-                    this.src = lightSrc || darkSrc;
-                    if (!this.src) this.src = fallbackSrc; // Only use fallback if no theme source
+                // Update src based on theme source if different from initial
+                const initialSrc = this.getAttribute('light-src') || this.getAttribute('dark-src') || fallbackSrc;
+                if (this.src !== initialSrc) {
+                    this.src = initialSrc; // Ensure src matches the theme source
                 }
 
                 // Remove custom attributes from the final img to clean up
@@ -358,7 +363,7 @@ class CustomImg extends HTMLImageElement {
                     }
                     const metaUrl = document.createElement('meta');
                     metaUrl.setAttribute('itemprop', 'url');
-                    metaUrl.setAttribute('content', schemaUrl); // Use provided schema-url or computed image URL
+                    metaUrl.setAttribute('content', schemaUrl || '');
                     figure.appendChild(metaUrl);
                     const metaDescription = document.createElement('meta');
                     metaDescription.setAttribute('itemprop', 'description');
