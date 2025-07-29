@@ -534,12 +534,13 @@ class CustomVideo extends HTMLVideoElement {
             return sources;
         };
 
-        // Default source (used as fallback if no theme-specific source matches)
+        // Default source (used as fallback)
         const defaultSrc = lightSrc || darkSrc;
 
-        // Add sources for light and dark themes
+        // Add theme-specific sources
         if (lightSrc) innerHTML += addSourcesHTML(lightSrc, '(prefers-color-scheme: light)');
         if (darkSrc) innerHTML += addSourcesHTML(darkSrc, '(prefers-color-scheme: dark)');
+        // Always add default sources to ensure playability
         innerHTML += addSourcesHTML(defaultSrc, null);
 
         // Add fallback message
@@ -570,10 +571,14 @@ class CustomVideo extends HTMLVideoElement {
                 const wasPlaying = !this.paused;
                 const currentTime = this.currentTime;
                 updatePoster(e.matches);
-                this.innerHTML = innerHTML; // Rebuild sources
-                this.load();
-                this.currentTime = currentTime;
-                if (wasPlaying) this.play().catch(() => console.warn('Auto-play failed after theme change'));
+                // Only reload if sources would change
+                const activeSrc = e.matches ? (darkSrc || lightSrc) : (lightSrc || darkSrc);
+                if (activeSrc !== this.currentSrc) {
+                    this.innerHTML = innerHTML; // Rebuild sources
+                    this.load();
+                    this.currentTime = currentTime;
+                    if (wasPlaying) this.play().catch(() => console.warn('Auto-play failed after theme change'));
+                }
             }, 100);
         });
 
