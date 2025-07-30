@@ -1,6 +1,6 @@
 const ImageUtils = {
     // Configuration constants
-    WIDTHS: [768, 980, 1024, 1366, 1920, 2560, 3840],
+    WIDTHS: [768, 980, 1024, 1366, 1920, 2560],
     FORMATS: ['jxl', 'avif', 'webp', 'jpeg'],
     VALID_ASPECT_RATIOS: ['16/9', '9/16', '3/2', '2/3', '1/1', '21/9'],
     SIZES_BREAKPOINTS: [
@@ -10,7 +10,6 @@ const ImageUtils = {
         { maxWidth: 1366, baseValue: '100vw' },
         { maxWidth: 1920, baseValue: '100vw' },
         { maxWidth: 2560, baseValue: '100vw' },
-        { maxWidth: 3840, baseValue: '100vw' },
     ],
     DEFAULT_SIZE: '3840px',
 
@@ -21,9 +20,9 @@ const ImageUtils = {
             return '';
         }
 
-        // Extract base filename from src, stripping any -XXXX(px) suffix before the extension
+        // Extract base filename from src, stripping any -XXXX(px) suffix before the extension (except for primary image)
         let baseFilename = src.split('/').pop().split('.')[0];
-        baseFilename = baseFilename.replace(/-\d+(px)?$/, ''); // Strip -XXXX or -XXXXpx
+        baseFilename = baseFilename.replace(/-\d+(px)?$/, ''); // Strip -XXXX or -XXXXpx for non-primary images
         if (!baseFilename) {
             console.error('Invalid "src" parameter: unable to extract base filename');
             return '';
@@ -78,17 +77,28 @@ const ImageUtils = {
         // Add <source> elements for each format
         this.FORMATS.forEach(format => {
             if (lightSrc && darkSrc) {
-                const srcsetLight = this.WIDTHS.map(w => `./img/responsive/${lightBaseFilename}-${w}.${format} ${w}w`).join(', ');
+                // Primary image (3840px) without suffix, others with -WIDTH
+                const srcsetLight = [
+                    `./img/responsive/${lightBaseFilename}.${format} 3840w`,
+                    ...this.WIDTHS.map(w => `./img/responsive/${lightBaseFilename}-${w}.${format} ${w}w`)
+                ].join(', ');
                 pictureHTML += `
                     <source srcset="${srcsetLight}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: light)">
                 `;
-                const srcsetDark = this.WIDTHS.map(w => `./img/responsive/${darkBaseFilename}-${w}.${format} ${w}w`).join(', ');
+                const srcsetDark = [
+                    `./img/responsive/${darkBaseFilename}.${format} 3840w`,
+                    ...this.WIDTHS.map(w => `./img/responsive/${darkBaseFilename}-${w}.${format} ${w}w`)
+                ].join(', ');
                 pictureHTML += `
                     <source srcset="${srcsetDark}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: dark)">
                 `;
             }
 
-            const srcset = this.WIDTHS.map(w => `./img/responsive/${baseFilename}-${w}.${format} ${w}w`).join(', ');
+            // Primary image (3840px) without suffix, others with -WIDTH
+            const srcset = [
+                `./img/responsive/${baseFilename}.${format} 3840w`,
+                ...this.WIDTHS.map(w => `./img/responsive/${baseFilename}-${w}.${format} ${w}w`)
+            ].join(', ');
             pictureHTML += `
                 <source srcset="${srcset}" sizes="${sizes}" type="image/${format}">
             `;
