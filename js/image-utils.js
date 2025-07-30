@@ -1,8 +1,7 @@
-// image-utils.js
 const ImageUtils = {
     // Configuration constants
     WIDTHS: [768, 980, 1024, 1366, 1920, 2560, 3840],
-    FORMATS: ['avif', 'webp', 'jpeg'],
+    FORMATS: ['jxl', 'avif', 'webp', 'jpeg'],
     VALID_ASPECT_RATIOS: ['16/9', '9/16', '3/2', '2/3', '1/1', '21/9'],
     SIZES_BREAKPOINTS: [
         { maxWidth: 768, baseValue: '100vw' },
