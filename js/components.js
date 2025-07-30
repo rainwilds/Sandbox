@@ -249,13 +249,13 @@ class CustomImg extends HTMLImageElement {
     constructor() {
         super();
         this.isVisible = false;
-        this.isInitialized = false; // Moved here for clarity
+        this.isInitialized = false;
         const observer = new IntersectionObserver((entries) => {
             if (entries[0].isIntersecting) {
                 this.isVisible = true;
                 observer.disconnect();
                 if (!this.isInitialized) {
-                    this.connectedCallback(); // Trigger render only if not initialized
+                    this.connectedCallback();
                 }
             }
         }, { rootMargin: '50px' });
@@ -266,7 +266,6 @@ class CustomImg extends HTMLImageElement {
         if (this.isInitialized || !this.isVisible) return;
         this.isInitialized = true;
 
-        // Add role if not present and no alt
         if (!this.hasAttribute('role') && !this.hasAttribute('alt')) {
             this.setAttribute('role', 'img');
         }
@@ -287,12 +286,10 @@ class CustomImg extends HTMLImageElement {
                 const includeSchema = this.hasAttribute('include-schema');
                 const caption = this.getAttribute('caption') || null;
 
-                // Check if at least one theme source is provided
                 if (!lightSrc && !darkSrc) {
                     console.error('No source attribute (light-src or dark-src) provided for <img is="custom-img">. Using fallback.');
                     this.src = 'https://placehold.co/3000x2000';
                     if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
-                    // Clean up custom attributes on fallback
                     this.removeAttribute('light-src');
                     this.removeAttribute('dark-src');
                     this.removeAttribute('mobile-width');
@@ -324,7 +321,6 @@ class CustomImg extends HTMLImageElement {
                     console.warn('No valid picture HTML generated. Falling back to theme source or fallback.');
                     this.src = lightSrc || darkSrc || 'https://placehold.co/3000x2000';
                     if (!isDecorative) this.setAttribute('alt', alt || 'Placeholder image');
-                    // Clean up custom attributes on fallback
                     this.removeAttribute('light-src');
                     this.removeAttribute('dark-src');
                     this.removeAttribute('mobile-width');
@@ -335,22 +331,17 @@ class CustomImg extends HTMLImageElement {
                     return;
                 }
 
-                // Parse the generated picture HTML
                 const div = document.createElement('div');
                 div.innerHTML = pictureHTML;
                 const generatedPicture = div.firstChild;
                 const generatedSources = generatedPicture.querySelectorAll('source');
                 let generatedImg = generatedPicture.querySelector('img');
 
-                // Create new picture element
                 const picture = document.createElement('picture');
-
-                // Insert generated sources into the new picture
                 generatedSources.forEach(source => {
                     picture.appendChild(source.cloneNode(true));
                 });
 
-                // Create a new img element to replace the original, transferring only native attributes
                 generatedImg = document.createElement('img');
                 generatedImg.setAttribute('alt', this.getAttribute('alt') || '');
                 generatedImg.setAttribute('class', this.className);
@@ -361,16 +352,13 @@ class CustomImg extends HTMLImageElement {
                     generatedImg.setAttribute('loading', this.getAttribute('loading'));
                 }
 
-                // Determine the initial src based on theme
                 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                generatedImg.src = prefersDark && darkSrc ? darkSrc : lightSrc || darkSrc || 'https://placehold.co/3000x2000';
+                const srcBase = (prefersDark && darkSrc) ? darkSrc : (lightSrc || darkSrc);
+                generatedImg.src = srcBase ? `./img/primary/${srcBase.split('/').pop().split('.')[0]}.jpg` : 'https://placehold.co/3000x2000';
 
-                // Apply custom classes to the new img
                 if (customClasses) {
                     generatedImg.className = generatedImg.className ? `${generatedImg.className} ${customClasses}`.trim() : customClasses;
                 }
-
-                // Deduplicate classes
                 generatedImg.className = [...new Set(generatedImg.className.split(' '))].join(' ').trim();
 
                 this.onerror = () => {
@@ -382,14 +370,10 @@ class CustomImg extends HTMLImageElement {
                     this.onerror = null;
                 };
 
-                // Wrap the new img in the picture
                 picture.appendChild(generatedImg);
-
-                // Replace the original img with the picture
                 this.parentNode.insertBefore(picture, this);
-                this.parentNode.removeChild(this); // Remove the original custom element
+                this.parentNode.removeChild(this);
 
-                // If includeSchema, wrap in <figure> with schema.org markup
                 if (includeSchema) {
                     const figure = document.createElement('figure');
                     figure.setAttribute('itemscope', '');
@@ -427,12 +411,12 @@ class CustomImg extends HTMLImageElement {
                 clearInterval(interval);
                 callback();
             }
-        }, 50); // Reduced from 100ms
+        }, 50);
         setTimeout(() => {
             clearInterval(interval);
             console.error('Timed out waiting for ImageUtils to be defined. Ensure image-utils.js is preloaded.');
             callback();
-        }, 3000); // Reduced from 5000ms
+        }, 3000);
     }
 }
 
