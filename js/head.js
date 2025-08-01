@@ -40,21 +40,22 @@ function manageHead(attributes = {}, businessInfo = {}) {
       }
   });
 
-  // Preload image-utils.js to ensure availability for custom-img component
-  if (!document.querySelector(`link[href="./js/image-utils.js"]`)) {
+  // Preload picture-generator.js to ensure availability for components
+  if (!document.querySelector(`link[href="./js/picture-generator.js"]`)) {
       const link = document.createElement('link');
       link.rel = 'preload';
-      link.href = './js/image-utils.js';
+      link.href = './js/picture-generator.js';
       link.as = 'script';
       head.appendChild(link);
-      console.log('Preloaded image-utils.js');
+      console.log('Preloaded picture-generator.js');
   }
-  if (!document.querySelector(`script[src="./js/image-utils.js"]`)) {
+  if (!document.querySelector(`script[src="./js/picture-generator.js"]`)) {
       const script = document.createElement('script');
-      script.src = './js/image-utils.js';
+      script.src = './js/picture-generator.js';
+      script.type = 'module';
       script.defer = true; // Defer execution until DOM is parsed
       head.appendChild(script);
-      console.log('Added deferred script for image-utils.js');
+      console.log('Added deferred script for picture-generator.js');
   }
 
   // Add essential meta tags (charset, viewport, robots, title, author, etc.)
@@ -274,7 +275,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
               "@id": (attributes['business-url'] || businessInfo.business?.url || 'https://rainwilds.github.io/Sandbox/') + "#business",
               "name": attributes['business-name'] || businessInfo.business?.name || 'Behive Media',
               "url": attributes['business-url'] || businessInfo.business?.url || 'https://rainwilds.github.io/Sandbox/',
-              "telephone": attributes['business-telephone'] || businessInfo.business?.telephone || '+61-3-9876-5432',
+              "telephone": attributes['business-telephone'] || businessInfo.business?.telephone || '+61-3-3-9876-5432',
               "address": {
                   "@type": "PostalAddress",
                   "streetAddress": attributes['business-address-street'] || businessInfo.business?.address?.streetAddress || '456 Creative Lane',
@@ -390,16 +391,15 @@ function manageHead(attributes = {}, businessInfo = {}) {
       }
   });
 
-  // Load additional scripts (image-utils.js, components.js, scripts.js)
-  const scripts = [
-      { src: './js/image-utils.js', defer: true }, // Preloaded and deferred
-      { src: './js/components.js', defer: true },
+  // Load additional scripts (scripts.js if needed; components loaded dynamically below)
+  const commonScripts = [
       { src: './js/scripts.js', defer: true }
   ];
-  scripts.forEach(({ src, defer }) => {
+  commonScripts.forEach(({ src, defer }) => {
       if (!document.querySelector(`script[src="${src}"]`)) {
           const script = document.createElement('script');
           script.src = src;
+          script.type = 'module';
           if (defer) script.defer = true;
           head.appendChild(script);
           console.log(`Loaded script: ${src}${defer ? ' (deferred)' : ''}`);
@@ -615,7 +615,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           'theme-color-light': dataHead.dataset.themeColorLight,
           'theme-color-dark': dataHead.dataset.themeColorDark,
           'include-e-commerce': dataHead.hasAttribute('data-include-e-commerce') || attributes['include-e-commerce'],
-          'include-eruda': dataHead.hasAttribute('data-include-eruda') || attributes['include-eruda']
+          'include-eruda': dataHead.hasAttribute('data-include-eruda') || attributes['include-eruda'],
+          components: dataHead.dataset.components || attributes.components
       });
   });
 
@@ -628,6 +629,22 @@ document.addEventListener('DOMContentLoaded', async () => {
           console.log('Removed data-bh-head element');
       }
   });
+
+  // Dynamically load per-page components from data-components
+  if (attributes.components) {
+      const componentList = attributes.components.split(' ').filter(Boolean);
+      componentList.forEach(component => {
+          const scriptPath = `./js/components/${component}.js`;
+          if (!document.querySelector(`script[src="${scriptPath}"]`)) {
+              const script = document.createElement('script');
+              script.src = scriptPath;
+              script.type = 'module';
+              script.defer = true;
+              head.appendChild(script);
+              console.log(`Loaded component script: ${scriptPath}`);
+          }
+      });
+  }
 
   // Pass merged attributes and businessInfo to manageHead
   manageHead(attributes, businessInfo);

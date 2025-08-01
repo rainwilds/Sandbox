@@ -10,13 +10,16 @@
     <meta charset='utf-8'>
     <title>Page Title</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
+
+    <data-bh-head data-components="custom-img" data-title="Home" data-description="Welcome to Behive"></data-bh-head>
+
 </head>
 
 <body>
 
     <main>
         <section>
-            <img
+            <!-- <img
                 is="custom-img"
                 light-src="./img/primary/image1.jpg"
                 dark-src="./img/primary/image2.jpg"
@@ -30,15 +33,14 @@
                 schema-url="https://example.com/image.jpg"
                 schema-description="A professional business service image"
                 fetchpriority="high">
-            </img>
-            <img
-                is="custom-img"
+            </img> -->
+            <custom-img
                 light-src="./img/primary/image2.jpg"
                 dark-src="./img/primary/image1.jpg"
                 alt="Business service in Location"
                 class="border-radius-medium object-fit-fill"
                 loading="lazy">
-            </img>            
+            </custom-img>            
         </section>
     </main>
 
