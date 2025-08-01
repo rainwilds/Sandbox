@@ -1,5 +1,5 @@
 // custom-img.js
-import { generatePictureMarkup, WIDTHS, FORMATS, VALID_ASPECT_RATIOS, SIZES_BREAKPOINTS, DEFAULT_SIZE } from './picture-generator.js';
+import { generatePictureMarkup, WIDTHS, FORMATS, VALID_ASPECT_RATIOS, SIZES_BREAKPOINTS, DEFAULT_SIZE } from '../picture-generator.js';
 
 class CustomImg extends HTMLElement {
     constructor() {
