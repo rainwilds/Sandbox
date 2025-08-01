@@ -1,5 +1,5 @@
-// custom-img.js
-import { generatePictureMarkup, WIDTHS, FORMATS, VALID_ASPECT_RATIOS, SIZES_BREAKPOINTS, DEFAULT_SIZE } from '../picture-generator.js';
+// custom-img.js (in /js/components/)
+import { generatePictureMarkup } from '../picture-generator.js';
 
 class CustomImg extends HTMLElement {
     constructor() {
@@ -87,7 +87,7 @@ class CustomImg extends HTMLElement {
                 };
             }
 
-            // Add schema meta if includeSchema (since generatePictureMarkup may not include all meta)
+            // Add schema meta if includeSchema
             if (includeSchema && generatedElement.tagName === 'FIGURE') {
                 const metaUrl = document.createElement('meta');
                 metaUrl.setAttribute('itemprop', 'url');
