@@ -1,4 +1,3 @@
-// picture-generator.js
 export const WIDTHS = [768, 1024, 1366, 1920, 2560];
 export const FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
 export const VALID_ASPECT_RATIOS = ['16/9', '9/16', '3/2', '2/3', '1/1', '21/9'];
@@ -40,7 +39,7 @@ export function generatePictureMarkup({
         console.error('Invalid "lightSrc" parameter');
         return '';
     }
-    if (darkSrc && !lightBaseFilename) {
+    if (darkSrc && !darkBaseFilename) {
         console.error('Invalid "darkSrc" parameter');
         return '';
     }
