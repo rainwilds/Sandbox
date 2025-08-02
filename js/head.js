@@ -6,6 +6,25 @@ function manageHead(attributes = {}, businessInfo = {}) {
     let head = document.head || document.createElement('head');
     if (!document.head) document.documentElement.prepend(head);
 
+    // Add stylesheets
+    const stylesheets = attributes.stylesheets ? attributes.stylesheets.split(',') : ['./styles.css'];
+    stylesheets.forEach(href => {
+        if (!document.querySelector(`link[href="${href}"]`)) {
+            const preloadLink = document.createElement('link');
+            preloadLink.rel = 'preload';
+            preloadLink.href = href.trim();
+            preloadLink.as = 'style';
+            head.appendChild(preloadLink);
+            console.log(`Preloaded stylesheet: ${href}`);
+
+            const styleLink = document.createElement('link');
+            styleLink.rel = 'stylesheet';
+            styleLink.href = href.trim();
+            head.appendChild(styleLink);
+            console.log(`Loaded stylesheet: ${href}`);
+        }
+    });
+
     // Preload fonts to improve performance
     const fonts = [
         { href: './fonts/AdobeAldine-Regular.woff2', type: 'font/woff2', crossorigin: 'anonymous' }
