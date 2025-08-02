@@ -40,7 +40,7 @@ export function generatePictureMarkup({
         console.error('Invalid "lightSrc" parameter');
         return '';
     }
-    if (darkSrc && !darkBaseFilename) {
+    if (darkSrc && !lightBaseFilename) {
         console.error('Invalid "darkSrc" parameter');
         return '';
     }

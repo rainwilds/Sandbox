@@ -1,3 +1,4 @@
+// custom-img.js (in /js/components/)
 import { generatePictureMarkup } from '../picture-generator.js';
 
 class CustomImg extends HTMLElement {

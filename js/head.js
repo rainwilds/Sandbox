@@ -1,3 +1,4 @@
+// head.js
 // Manages the <head> section by adding meta tags, styles, scripts, and schema markup
 function manageHead(attributes = {}, businessInfo = {}) {
     console.log('manageHead called with attributes:', attributes);
@@ -8,7 +9,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
 
     // Preload fonts to improve performance
     const fonts = [
-        { href: './fonts/AdobeAldine-Regular.woff2', type: 'font/woff2' }
+        { href: './fonts/AdobeAldine-Regular.woff2', type: 'font/woff2', crossorigin: 'anonymous' }
     ];
     fonts.forEach(font => {
         if (!document.querySelector(`link[href="${font.href}"]`)) {
@@ -46,6 +47,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
         link.rel = 'preload';
         link.href = './js/picture-generator.js';
         link.as = 'script';
+        link.crossOrigin = 'anonymous';
         head.appendChild(link);
         console.log('Preloaded picture-generator.js');
     }
