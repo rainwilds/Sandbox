@@ -409,10 +409,10 @@ function manageHead(attributes = {}, businessInfo = {}) {
 
     // Add favicon links for various devices
     const favicons = [
-        { rel: 'apple-touch-icon', sizes: '180x180', href: './images/icons/apple-touch-icon.png' },
-        { rel: 'icon', type: 'image/png', sizes: '32x32', href: './images/icons/favicon-32x32.png' },
-        { rel: 'icon', type: 'image/png', sizes: '16x16', href: './images/icons/favicon-16x16.png' },
-        { rel: 'icon', type: 'image/x-icon', href: './images/icons/favicon.ico' } // Updated path
+        { rel: 'apple-touch-icon', sizes: '180x180', href: './img/icons/apple-touch-icon.png' },
+        { rel: 'icon', type: 'image/png', sizes: '32x32', href: './img/icons/favicon-32x32.png' },
+        { rel: 'icon', type: 'image/png', sizes: '16x16', href: './img/icons/favicon-16x16.png' },
+        { rel: 'icon', type: 'image/x-icon', href: './img/icons/favicon.ico' }
     ];
     favicons.forEach(favicon => {
         if (!document.querySelector(`link[href="${favicon.href}"]`)) {
@@ -517,7 +517,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
     }
 
     // Initialize Eruda for debugging if enabled
-    if (attributes['include-eruda']) {
+    if (attributes['include-e-commerce']) {
         console.log('Eruda initialization triggered');
         if (!document.querySelector('script[src="https://cdn.jsdelivr.net/npm/eruda"]')) {
             const erudaScript = document.createElement('script');
