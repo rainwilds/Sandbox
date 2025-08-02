@@ -1,4 +1,3 @@
-// head.js
 // Manages the <head> section by adding meta tags, styles, scripts, and schema markup
 function manageHead(attributes = {}, businessInfo = {}) {
     console.log('manageHead called with attributes:', attributes);
@@ -413,7 +412,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
         { rel: 'apple-touch-icon', sizes: '180x180', href: './images/icons/apple-touch-icon.png' },
         { rel: 'icon', type: 'image/png', sizes: '32x32', href: './images/icons/favicon-32x32.png' },
         { rel: 'icon', type: 'image/png', sizes: '16x16', href: './images/icons/favicon-16x16.png' },
-        { rel: 'icon', type: 'image/x-icon', href: './favicon.ico' }
+        { rel: 'icon', type: 'image/x-icon', href: './images/icons/favicon.ico' } // Updated path
     ];
     favicons.forEach(favicon => {
         if (!document.querySelector(`link[href="${favicon.href}"]`)) {
