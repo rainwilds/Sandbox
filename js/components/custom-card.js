@@ -58,7 +58,7 @@ class CustomCard extends HTMLElement {
         const borderRadiusClass = hasBorderRadius && hasBorder ? this.getAttribute('border-radius') : '';
         const hasBackdropFilter = this.hasAttribute('backdrop-filter');
         const backdropFilterClass = hasBackdropFilter ? this.getAttribute('backdrop-filter') : '';
-        const classes = this.getAttribute('class') || '';
+        const customClasses = this.getAttribute('class') || '';
         // Image attributes
         const lightSrc = this.getAttribute('image-light-src') || '';
         const darkSrc = this.getAttribute('image-dark-src') || '';
@@ -115,13 +115,13 @@ class CustomCard extends HTMLElement {
         // Determine the main div class and content structure
         let mainDivClass = 'card';
         if (hasBackgroundImage) mainDivClass += ' background-image';
-        mainDivClass += ` ${classes} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`;
+        mainDivClass += ` ${customClasses} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`;
 
         // Deduplicate classes
         mainDivClass = [...new Set(mainDivClass.split(' '))].join(' ').trim();
 
         // Check if 'space-between' and 'padding-medium' are in the classes attribute
-        const classList = classes.split(' ').filter(cls => cls.length > 0);
+        const classList = customClasses.split(' ').filter(cls => cls.length > 0);
         const hasSpaceBetween = classList.includes('space-between');
         const hasPaddingMedium = classList.includes('padding-medium');
         const innerDivClasses = [];
