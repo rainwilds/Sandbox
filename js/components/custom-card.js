@@ -60,7 +60,6 @@ class CustomCard extends HTMLDivElement {
             const backdropFilterClass = hasBackdropFilter ? this.getAttribute('backdrop-filter') : '';
             const classes = this.getAttribute('class') || '';
             // Image attributes
-            const imgSrc = this.getAttribute('image-src') || '';
             const lightSrc = this.getAttribute('image-light-src') || '';
             const darkSrc = this.getAttribute('image-dark-src') || '';
             const alt = this.getAttribute('image-alt') || '';
@@ -91,16 +90,16 @@ class CustomCard extends HTMLDivElement {
             const videoDisablePictureInPicture = this.hasAttribute('video-disablepictureinpicture') ? this.getAttribute('video-disablepictureinpicture') !== 'false' : false;
 
             // Accessibility warning for missing alt text
-            if (!alt && !isDecorative && imgSrc) {
-                console.warn(`<custom-card image-src="${imgSrc || 'not provided'}"> is missing an image-alt attribute for accessibility.`);
+            if (!alt && !isDecorative && (lightSrc || darkSrc)) {
+                console.warn(`<custom-card image-light-src="${lightSrc || 'not provided'}" image-dark-src="${darkSrc || 'not provided'}"> is missing an image-alt attribute for accessibility.`);
             }
 
             // Build the card with optional background image
             let backgroundImageHTML = '';
             let overlayHTML = '';
-            const hasBackgroundImage = !!imgSrc;
+            const hasBackgroundImage = !!(lightSrc || darkSrc);
             if (hasBackgroundImage) {
-                const src = imgSrc || lightSrc || darkSrc;
+                const src = lightSrc || darkSrc;
                 if (!src) {
                     console.warn('No valid image source provided for <custom-card>. Skipping image rendering.');
                 } else {
@@ -200,7 +199,7 @@ class CustomCard extends HTMLDivElement {
             const backgroundImg = this.querySelector('img');
             if (backgroundImg) {
                 backgroundImg.onerror = () => {
-                    console.warn(`Failed to load image: ${imgSrc || lightSrc || darkSrc}. Falling back to placeholder.`);
+                    console.warn(`Failed to load image: ${lightSrc || darkSrc}. Falling back to placeholder.`);
                     backgroundImg.src = 'https://placehold.co/3000x2000';
                     if (!isDecorative) backgroundImg.alt = alt || 'Placeholder image';
                     backgroundImg.onerror = null;
@@ -213,7 +212,7 @@ class CustomCard extends HTMLDivElement {
                 if (figure) {
                     const metaUrl = document.createElement('meta');
                     metaUrl.setAttribute('itemprop', 'url');
-                    metaUrl.setAttribute('content', imgSrc ? new URL(imgSrc, window.location.origin).href : '');
+                    metaUrl.setAttribute('content', (lightSrc || darkSrc) ? new URL(lightSrc || darkSrc, window.location.origin).href : '');
                     figure.appendChild(metaUrl);
 
                     const metaDescription = document.createElement('meta');
@@ -253,7 +252,7 @@ class CustomCard extends HTMLDivElement {
     static get observedAttributes() {
         return [
             'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-color', 'border', 'border-radius', 'backdrop-filter', 'class',
-            'image-src', 'image-light-src', 'image-dark-src', 'image-alt', 'image-width', 'image-aspect-ratio', 'image-is-decorative', 'image-mobile-width', 'image-tablet-width', 'image-desktop-width', 'image-loading', 'image-fetch-priority', 'image-object-fit', 'image-object-position', 'image-include-schema',
+            'image-light-src', 'image-dark-src', 'image-alt', 'image-width', 'image-aspect-ratio', 'image-is-decorative', 'image-mobile-width', 'image-tablet-width', 'image-desktop-width', 'image-loading', 'image-fetch-priority', 'image-object-fit', 'image-object-position', 'image-include-schema',
             'video-src', 'video-src-light', 'video-src-dark', 'video-poster', 'video-poster-light', 'video-poster-dark', 'video-alt', 'video-loading', 'video-autoplay', 'video-muted', 'video-loop', 'video-playsinline', 'video-disablepictureinpicture'
         ];
     }
