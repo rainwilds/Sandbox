@@ -217,48 +217,48 @@ function manageHead(attributes = {}, businessInfo = {}) {
         console.log('Added og:site_name meta');
     }
 
-    // Add Twitter meta tags for social media sharing
-    if (!document.querySelector('meta[name="twitter:card"]')) {
-        const twitterCard = document.createElement('meta');
-        twitterCard.setAttribute('name', 'twitter:card');
-        twitterCard.setAttribute('content', attributes['twitter-card'] || 'summary_large_image');
-        head.appendChild(twitterCard);
-        console.log('Added twitter:card meta');
+    // Add X meta tags for social media sharing
+    if (!document.querySelector('meta[name="x:card"]')) {
+        const xCard = document.createElement('meta');
+        xCard.setAttribute('name', 'x:card');
+        xCard.setAttribute('content', attributes['x-card'] || 'summary_large_image');
+        head.appendChild(xCard);
+        console.log('Added x:card meta');
     }
-    if (!document.querySelector('meta[property="twitter:domain"]')) {
-        const twitterDomain = document.createElement('meta');
-        twitterDomain.setAttribute('property', 'twitter:domain');
-        twitterDomain.setAttribute('content', attributes['twitter-domain'] || 'rainwilds.github.io');
-        head.appendChild(twitterDomain);
-        console.log('Added twitter:domain meta');
+    if (!document.querySelector('meta[property="x:domain"]')) {
+        const xDomain = document.createElement('meta');
+        xDomain.setAttribute('property', 'x:domain');
+        xDomain.setAttribute('content', attributes['x-domain'] || 'rainwilds.github.io');
+        head.appendChild(xDomain);
+        console.log('Added x:domain meta');
     }
-    if (!document.querySelector('meta[property="twitter:url"]')) {
-        const twitterUrl = document.createElement('meta');
-        twitterUrl.setAttribute('property', 'twitter:url');
-        twitterUrl.setAttribute('content', attributes['twitter-url'] || 'https://rainwilds.github.io/Sandbox/');
-        head.appendChild(twitterUrl);
-        console.log('Added twitter:url meta');
+    if (!document.querySelector('meta[property="x:url"]')) {
+        const xUrl = document.createElement('meta');
+        xUrl.setAttribute('property', 'x:url');
+        xUrl.setAttribute('content', attributes['x-url'] || 'https://rainwilds.github.io/Sandbox/');
+        head.appendChild(xUrl);
+        console.log('Added x:url meta');
     }
-    if (!document.querySelector('meta[name="twitter:title"]')) {
-        const twitterTitle = document.createElement('meta');
-        twitterTitle.setAttribute('name', 'twitter:title');
-        twitterTitle.setAttribute('content', attributes['twitter-title'] || attributes.title || 'Behive');
-        head.appendChild(twitterTitle);
-        console.log('Added twitter:title meta');
+    if (!document.querySelector('meta[name="x:title"]')) {
+        const xTitle = document.createElement('meta');
+        xTitle.setAttribute('name', 'x:title');
+        xTitle.setAttribute('content', attributes['x-title'] || attributes.title || 'Behive');
+        head.appendChild(xTitle);
+        console.log('Added x:title meta');
     }
-    if (!document.querySelector('meta[name="twitter:description"]')) {
-        const twitterDescription = document.createElement('meta');
-        twitterDescription.setAttribute('name', 'twitter:description');
-        twitterDescription.setAttribute('content', attributes['twitter-description'] || attributes.description || '');
-        head.appendChild(twitterDescription);
-        console.log('Added twitter:description meta');
+    if (!document.querySelector('meta[name="x:description"]')) {
+        const xDescription = document.createElement('meta');
+        xDescription.setAttribute('name', 'x:description');
+        xDescription.setAttribute('content', attributes['x-description'] || attributes.description || '');
+        head.appendChild(xDescription);
+        console.log('Added x:description meta');
     }
-    if (!document.querySelector('meta[name="twitter:image"]')) {
-        const twitterImage = document.createElement('meta');
-        twitterImage.setAttribute('name', 'twitter:image');
-        twitterImage.setAttribute('content', attributes['twitter-image'] || attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg');
-        head.appendChild(twitterImage);
-        console.log('Added twitter:image meta');
+    if (!document.querySelector('meta[name="x:image"]')) {
+        const xImage = document.createElement('meta');
+        xImage.setAttribute('name', 'x:image');
+        xImage.setAttribute('content', attributes['x-image'] || attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg');
+        head.appendChild(xImage);
+        console.log('Added x:image meta');
     }
 
     // Add JSON-LD schema markup for SEO (WebSite, LocalBusiness, BreadcrumbList, Product/CollectionPage)
@@ -594,12 +594,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             'og-type': dataHead.dataset.ogType,
             'og-locale': dataHead.dataset.ogLocale,
             'og-site-name': dataHead.dataset.ogSiteName,
-            'twitter-title': dataHead.dataset.twitterTitle,
-            'twitter-description': dataHead.dataset.twitterDescription,
-            'twitter-image': dataHead.dataset.twitterImage,
-            'twitter-url': dataHead.dataset.twitterUrl,
-            'twitter-domain': dataHead.dataset.twitterDomain,
-            'twitter-card': dataHead.dataset.twitterCard,
+            'x-title': dataHead.dataset.xTitle,
+            'x-description': dataHead.dataset.xDescription,
+            'x-image': dataHead.dataset.xImage,
+            'x-url': dataHead.dataset.xUrl,
+            'x-domain': dataHead.dataset.xDomain,
+            'x-card': dataHead.dataset.xCard,
             'business-name': dataHead.dataset.businessName,
             'business-url': dataHead.dataset.businessUrl,
             'business-telephone': dataHead.dataset.businessTelephone,

@@ -1,11 +1,13 @@
 import { generatePictureMarkup } from '../picture-generator.js';
 
-class CustomCard extends HTMLDivElement {
+class CustomCard extends HTMLElement {
     constructor() {
         super();
         this.isVisible = false;
         this.isInitialized = false;
         this.callbacks = [];
+        // Attach shadow DOM
+        this.attachShadow({ mode: 'open' });
         // Set up IntersectionObserver for lazy loading
         const observer = new IntersectionObserver((entries) => {
             if (entries[0].isIntersecting) {
@@ -147,16 +149,87 @@ class CustomCard extends HTMLDivElement {
                     <a class="button" href="${buttonHref}">${buttonText}</a>
                 `;
 
-            // Set the class and innerHTML directly on this (the div)
-            this.className = mainDivClass;
-            this.innerHTML = `
-                ${backgroundImageHTML || ''}
-                ${overlayHTML}
-                ${contentHTML}
+            // Define styles for the component
+            const styles = `
+                :host {
+                    display: block;
+                    position: relative;
+                }
+                .card {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    padding: 1rem;
+                    box-sizing: border-box;
+                }
+                .background-image {
+                    position: relative;
+                    width: 100%;
+                    height: 100%;
+                }
+                .background-image picture, .background-image img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                }
+                .background-overlay {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 1;
+                }
+                div.padding-medium {
+                    padding: 1rem;
+                }
+                div.space-between {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    height: 100%;
+                }
+                hgroup {
+                    text-align: center;
+                    z-index: 2;
+                }
+                h2 {
+                    margin: 0.5rem 0;
+                    font-size: 1.5rem;
+                }
+                p {
+                    margin: 0.5rem 0;
+                }
+                a.button {
+                    display: inline-block;
+                    padding: 0.5rem 1rem;
+                    text-decoration: none;
+                    color: white;
+                    background-color: #007bff;
+                    border-radius: 4px;
+                    z-index: 2;
+                }
+                a.button:hover {
+                    background-color: #0056b3;
+                }
+            `;
+
+            // Set the shadow DOM content
+            this.shadowRoot.innerHTML = `
+                <style>${styles}</style>
+                <div class="${mainDivClass}">
+                    ${backgroundImageHTML || ''}
+                    ${overlayHTML}
+                    ${contentHTML}
+                </div>
             `;
 
             // Add onerror to the background image for fallback
-            const backgroundImg = this.querySelector('img');
+            const backgroundImg = this.shadowRoot.querySelector('img');
             if (backgroundImg) {
                 backgroundImg.onerror = () => {
                     console.warn(`Failed to load image: ${lightSrc || darkSrc}. Falling back to placeholder.`);
@@ -168,7 +241,7 @@ class CustomCard extends HTMLDivElement {
 
             // Add schema meta if includeSchema and image is present
             if (includeSchema && hasBackgroundImage && backgroundImageHTML) {
-                const figure = this.querySelector('figure');
+                const figure = this.shadowRoot.querySelector('figure');
                 if (figure) {
                     const metaUrl = document.createElement('meta');
                     metaUrl.setAttribute('itemprop', 'url');
@@ -202,13 +275,50 @@ class CustomCard extends HTMLDivElement {
     }
 
     renderFallback() {
-        this.className = 'card';
-        this.innerHTML = `
-            <hgroup>
-                <h2>Error</h2>
-                <p>Failed to render card. Check console for details.</p>
-            </hgroup>
-            <a class="button" href="#">Button</a>
+        const styles = `
+            :host {
+                display: block;
+                position: relative;
+            }
+            .card {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                padding: 1rem;
+                box-sizing: border-box;
+            }
+            hgroup {
+                text-align: center;
+            }
+            h2 {
+                margin: 0.5rem 0;
+                font-size: 1.5rem;
+            }
+            p {
+                margin: 0.5rem 0;
+            }
+            a.button {
+                display: inline-block;
+                padding: 0.5rem 1rem;
+                text-decoration: none;
+                color: white;
+                background-color: #007bff;
+                border-radius: 4px;
+            }
+            a.button:hover {
+                background-color: #0056b3;
+            }
+        `;
+        this.shadowRoot.innerHTML = `
+            <style>${styles}</style>
+            <div class="card">
+                <hgroup>
+                    <h2>Error</h2>
+                    <p>Failed to render card. Check console for details.</p>
+                </hgroup>
+                <a class="button" href="#">Button</a>
+            </div>
         `;
     }
 
@@ -227,7 +337,7 @@ class CustomCard extends HTMLDivElement {
 
 // Register the custom element
 try {
-    customElements.define('custom-card', CustomCard, { extends: 'div' });
+    customElements.define('custom-card', CustomCard);
 } catch (error) {
     console.error('Error defining CustomCard element:', error);
 }
