@@ -63,31 +63,14 @@ class CustomCard extends HTMLDivElement {
             const lightSrc = this.getAttribute('image-light-src') || '';
             const darkSrc = this.getAttribute('image-dark-src') || '';
             const alt = this.getAttribute('image-alt') || '';
-            const width = this.getAttribute('image-width') || '100vw';
-            const aspectRatio = this.getAttribute('image-aspect-ratio') || '';
-            const isDecorative = this.hasAttribute('image-is-decorative');
+            const isDecorative = this.hasAttribute('image-decorative');
             const mobileWidth = this.getAttribute('image-mobile-width') || '100vw';
             const tabletWidth = this.getAttribute('image-tablet-width') || '100vw';
             const desktopWidth = this.getAttribute('image-desktop-width') || '100vw';
-            const loading = this.getAttribute('image-loading') || 'lazy';
-            const fetchPriority = this.getAttribute('image-fetch-priority') || 'auto';
-            const objectFit = this.getAttribute('image-object-fit') || 'cover';
-            const objectPosition = this.getAttribute('image-object-position') || 'center';
+            const aspectRatio = this.getAttribute('image-aspect-ratio') || '';
             const includeSchema = this.hasAttribute('image-include-schema');
-            // Video attributes
-            const videoSrc = this.getAttribute('video-src') || '';
-            const videoSrcLight = this.getAttribute('video-src-light') || '';
-            const videoSrcDark = this.getAttribute('video-src-dark') || '';
-            const videoPoster = this.getAttribute('video-poster') || '';
-            const videoPosterLight = this.getAttribute('video-poster-light') || '';
-            const videoPosterDark = this.getAttribute('video-poster-dark') || '';
-            const videoAlt = this.getAttribute('video-alt') || 'Background video';
-            const videoLoading = this.getAttribute('video-loading') || 'lazy';
-            const videoAutoplay = this.hasAttribute('video-autoplay') ? this.getAttribute('video-autoplay') !== 'false' : true;
-            const videoMuted = this.hasAttribute('video-muted') ? this.getAttribute('video-muted') !== 'false' : true;
-            const videoLoop = this.hasAttribute('video-loop') ? this.getAttribute('video-loop') !== 'false' : true;
-            const videoPlaysinline = this.hasAttribute('video-playsinline') ? this.getAttribute('video-playsinline') !== 'false' : true;
-            const videoDisablePictureInPicture = this.hasAttribute('video-disablepictureinpicture') ? this.getAttribute('video-disablepictureinpicture') !== 'false' : false;
+            const fetchPriority = this.getAttribute('image-fetchpriority') || '';
+            const loading = this.getAttribute('image-loading') || 'lazy';
 
             // Accessibility warning for missing alt text
             if (!alt && !isDecorative && (lightSrc || darkSrc)) {
@@ -116,33 +99,12 @@ class CustomCard extends HTMLDivElement {
                         includeSchema,
                         customClasses: '',
                         loading,
-                        fetchPriority,
-                        objectFit,
-                        objectPosition
+                        fetchPriority
                     });
                     if (!backgroundImageHTML) {
                         console.warn('Failed to generate picture markup for <custom-card>.');
                     }
                 }
-            }
-
-            // Build the card with optional background video
-            let backgroundVideoHTML = '';
-            const hasBackgroundVideo = !!videoSrc;
-            if (hasBackgroundVideo) {
-                backgroundVideoHTML = `<bh-video src="${videoSrc}"`;
-                if (videoSrcLight) backgroundVideoHTML += ` src-light="${videoSrcLight}"`;
-                if (videoSrcDark) backgroundVideoHTML += ` src-dark="${videoSrcDark}"`;
-                if (videoPoster) backgroundVideoHTML += ` poster="${videoPoster}"`;
-                if (videoPosterLight) backgroundVideoHTML += ` poster-light="${videoPosterLight}"`;
-                if (videoPosterDark) backgroundVideoHTML += ` poster-dark="${videoPosterDark}"`;
-                backgroundVideoHTML += ` alt="${videoAlt}" loading="${videoLoading}"`;
-                if (videoAutoplay) backgroundVideoHTML += ` autoplay`;
-                if (videoMuted) backgroundVideoHTML += ` muted`;
-                if (videoLoop) backgroundVideoHTML += ` loop`;
-                if (videoPlaysinline) backgroundVideoHTML += ` playsinline`;
-                if (videoDisablePictureInPicture) backgroundVideoHTML += ` disablepictureinpicture`;
-                backgroundVideoHTML += `></bh-video>`;
             }
 
             // Add the background-overlay div only if the attribute is present
@@ -153,7 +115,6 @@ class CustomCard extends HTMLDivElement {
             // Determine the main div class and content structure
             let mainDivClass = 'card';
             if (hasBackgroundImage) mainDivClass += ' background-image';
-            if (hasBackgroundVideo) mainDivClass += ' background-video';
             mainDivClass += ` ${classes} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`;
 
             // Deduplicate classes
@@ -168,7 +129,7 @@ class CustomCard extends HTMLDivElement {
             if (hasSpaceBetween) innerDivClasses.push('space-between');
             const innerDivClass = innerDivClasses.length > 0 ? innerDivClasses.join(' ') : '';
 
-            const contentHTML = (hasBackgroundImage || hasBackgroundVideo)
+            const contentHTML = hasBackgroundImage
                 ? `
                     <div${innerDivClass ? ` class="${innerDivClass}"` : ''}>
                         <hgroup>
@@ -190,7 +151,6 @@ class CustomCard extends HTMLDivElement {
             this.className = mainDivClass;
             this.innerHTML = `
                 ${backgroundImageHTML || ''}
-                ${backgroundVideoHTML || ''}
                 ${overlayHTML}
                 ${contentHTML}
             `;
@@ -224,13 +184,16 @@ class CustomCard extends HTMLDivElement {
 
             // Clean up background image attributes if rendered
             if (backgroundImg) {
-                backgroundImg.removeAttribute('light-src');
-                backgroundImg.removeAttribute('dark-src');
-                backgroundImg.removeAttribute('aspect-ratio');
-                backgroundImg.removeAttribute('mobile-width');
-                backgroundImg.removeAttribute('tablet-width');
-                backgroundImg.removeAttribute('desktop-width');
-                backgroundImg.removeAttribute('include-schema');
+                backgroundImg.removeAttribute('image-light-src');
+                backgroundImg.removeAttribute('image-dark-src');
+                backgroundImg.removeAttribute('image-aspect-ratio');
+                backgroundImg.removeAttribute('image-mobile-width');
+                backgroundImg.removeAttribute('image-tablet-width');
+                backgroundImg.removeAttribute('image-desktop-width');
+                backgroundImg.removeAttribute('image-include-schema');
+                backgroundImg.removeAttribute('image-fetchpriority');
+                backgroundImg.removeAttribute('image-loading');
+                backgroundImg.removeAttribute('image-decorative');
             }
         } catch (error) {
             console.error('Error rendering CustomCard:', error);
@@ -252,8 +215,7 @@ class CustomCard extends HTMLDivElement {
     static get observedAttributes() {
         return [
             'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-color', 'border', 'border-radius', 'backdrop-filter', 'class',
-            'image-light-src', 'image-dark-src', 'image-alt', 'image-width', 'image-aspect-ratio', 'image-is-decorative', 'image-mobile-width', 'image-tablet-width', 'image-desktop-width', 'image-loading', 'image-fetch-priority', 'image-object-fit', 'image-object-position', 'image-include-schema',
-            'video-src', 'video-src-light', 'video-src-dark', 'video-poster', 'video-poster-light', 'video-poster-dark', 'video-alt', 'video-loading', 'video-autoplay', 'video-muted', 'video-loop', 'video-playsinline', 'video-disablepictureinpicture'
+            'image-light-src', 'image-dark-src', 'image-alt', 'image-decorative', 'image-mobile-width', 'image-tablet-width', 'image-desktop-width', 'image-aspect-ratio', 'image-include-schema', 'image-fetchpriority', 'image-loading'
         ];
     }
 
