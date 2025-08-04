@@ -270,7 +270,7 @@ class CustomImg extends HTMLImageElement {
             this.setAttribute('role', 'img');
         }
 
-        this.waitForImageUtils(() => {
+        this.waitForPictureGenerator(() => {
             try {
                 const lightSrc = this.getAttribute('light-src');
                 const darkSrc = this.getAttribute('dark-src');
@@ -300,12 +300,12 @@ class CustomImg extends HTMLImageElement {
                     return;
                 }
 
-                if (typeof ImageUtils === 'undefined') {
-                    console.error('ImageUtils is not defined. Ensure image-utils.js is loaded.');
+                if (typeof generatePictureMarkup === 'undefined') {
+                    console.error('generatePictureMarkup is not defined. Ensure picture-generator.js is loaded.');
                     return;
                 }
 
-                const pictureHTML = ImageUtils.generatePictureMarkup({
+                const pictureHTML = generatePictureMarkup({
                     src: lightSrc || darkSrc,
                     lightSrc,
                     darkSrc,
@@ -314,7 +314,10 @@ class CustomImg extends HTMLImageElement {
                     mobileWidth,
                     tabletWidth,
                     desktopWidth,
-                    includeSchema
+                    includeSchema,
+                    customClasses,
+                    loading: this.getAttribute('loading') || 'lazy',
+                    fetchPriority: this.getAttribute('fetchpriority') || ''
                 });
 
                 if (!pictureHTML) {
@@ -362,7 +365,7 @@ class CustomImg extends HTMLImageElement {
                 generatedImg.className = [...new Set(generatedImg.className.split(' '))].join(' ').trim();
 
                 this.onerror = () => {
-                    console.warn(`Failed to load primary image: ${lightSrc || darkSrc}. Falling back to ${'https://placehold.co/3000x2000'}.`);
+                    console.warn(`Failed to load primary image: ${lightSrc || darkSrc}. Falling back to https://placehold.co/3000x2000.`);
                     generatedImg.src = 'https://placehold.co/3000x2000';
                     if (!isDecorative) {
                         generatedImg.setAttribute('alt', alt || 'Placeholder image');
@@ -401,20 +404,20 @@ class CustomImg extends HTMLImageElement {
         });
     }
 
-    waitForImageUtils(callback) {
-        if (typeof ImageUtils !== 'undefined') {
+    waitForPictureGenerator(callback) {
+        if (typeof generatePictureMarkup !== 'undefined') {
             callback();
             return;
         }
         const interval = setInterval(() => {
-            if (typeof ImageUtils !== 'undefined') {
+            if (typeof generatePictureMarkup !== 'undefined') {
                 clearInterval(interval);
                 callback();
             }
         }, 50);
         setTimeout(() => {
             clearInterval(interval);
-            console.error('Timed out waiting for ImageUtils to be defined. Ensure image-utils.js is preloaded.');
+            console.error('Timed out waiting for generatePictureMarkup to be defined. Ensure picture-generator.js is preloaded.');
             callback();
         }, 3000);
     }
