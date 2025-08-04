@@ -30,10 +30,10 @@ export function generatePictureMarkup({
         return '';
     }
 
-    // Extract base filenames
-    let baseFilename = src.split('/').pop().split('.')[0].replace(/-\d+(px)?$/, '');
-    let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.')[0].replace(/-\d+(px)?$/, '') : null;
-    let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.')[0].replace(/-\d+(px)?$/, '') : null;
+    // Extract base filenames without removing the numeric suffix (e.g., keep "landscape-photography-1")
+    let baseFilename = src.split('/').pop().split('.')[0];
+    let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.')[0] : null;
+    let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.')[0] : null;
 
     if (lightSrc && !lightBaseFilename) {
         console.error('Invalid "lightSrc" parameter');
@@ -86,7 +86,7 @@ export function generatePictureMarkup({
         const srcset = [
             `./img/responsive/${baseFilename}.${format} 3840w`,
             ...WIDTHS.map(w => `./img/responsive/${baseFilename}-${w}.${format} ${w}w`)
-        ].join(', ');
+            ].join(', ');
         pictureHTML += `<source srcset="${srcset}" sizes="${sizes}" type="image/${format}">`;
     });
 
