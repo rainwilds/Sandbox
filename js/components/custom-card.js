@@ -49,7 +49,6 @@ class CustomCard extends HTMLElement {
         const buttonHref = this.getAttribute('button-href') || '#';
         const buttonText = this.getAttribute('button-text') || 'Button';
         const hasBackgroundOverlay = this.hasAttribute('background-overlay');
-        const backgroundOverlayColor = this.getAttribute('background-overlay') || 'light-dark(var(--color-static-light-4), var(--color-static-dark-2))';
         const hasBackgroundColor = this.hasAttribute('background-color');
         const backgroundColorClass = hasBackgroundColor ? this.getAttribute('background-color') : '';
         const hasBorder = this.hasAttribute('border');
@@ -107,9 +106,9 @@ class CustomCard extends HTMLElement {
             }
         }
 
-        // Add the background-overlay div only if the attribute is present
+        // Add the background-overlay div with only the class if attribute is present
         if (hasBackgroundOverlay) {
-            overlayHTML = `<div class="background-overlay ${backdropFilterClass}" style="background-color: ${backgroundOverlayColor};"></div>`;
+            overlayHTML = `<div class="background-overlay ${backdropFilterClass}"></div>`;
         }
 
         // Determine the main div class and content structure
