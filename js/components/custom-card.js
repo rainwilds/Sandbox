@@ -58,6 +58,7 @@ class CustomCard extends HTMLElement {
         const hasBackdropFilter = this.hasAttribute('backdrop-filter');
         const backdropFilterClass = hasBackdropFilter ? this.getAttribute('backdrop-filter') : '';
         const customClasses = this.getAttribute('class') || '';
+        const styleAttribute = this.getAttribute('style') || '';
         // Image attributes
         const lightSrc = this.getAttribute('image-light-src') || '';
         const darkSrc = this.getAttribute('image-dark-src') || '';
@@ -149,6 +150,9 @@ class CustomCard extends HTMLElement {
         // Create the card element
         const cardElement = document.createElement('div');
         cardElement.className = mainDivClass;
+        if (styleAttribute) {
+            cardElement.setAttribute('style', styleAttribute);
+        }
         cardElement.innerHTML = `
             ${backgroundImageHTML || ''}
             ${overlayHTML}
@@ -214,7 +218,7 @@ class CustomCard extends HTMLElement {
 
     static get observedAttributes() {
         return [
-            'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-color', 'border', 'border-radius', 'backdrop-filter', 'class',
+            'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-color', 'border', 'border-radius', 'backdrop-filter', 'class', 'style',
             'image-light-src', 'image-dark-src', 'image-alt', 'image-decorative', 'image-mobile-width', 'image-tablet-width', 'image-desktop-width', 'image-aspect-ratio', 'image-include-schema', 'image-fetchpriority', 'image-loading'
         ];
     }
