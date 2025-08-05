@@ -42,177 +42,178 @@ class CustomCard extends HTMLElement {
         this.callbacks.push(callback);
     }
 
-render() {
-    // Get attributes
-    const heading = this.getAttribute('heading') || 'Default Heading';
-    const description = this.getAttribute('description') || 'Default description text.';
-    const buttonHref = this.getAttribute('button-href') || '#';
-    const buttonText = this.getAttribute('button-text') || 'Button';
-    const hasBackgroundOverlay = this.hasAttribute('background-overlay');
-    const hasBackgroundColor = this.hasAttribute('background-color');
-    const backgroundColorClass = hasBackgroundColor ? this.getAttribute('background-color') : '';
-    const hasBorder = this.hasAttribute('border');
-    const borderClass = hasBorder ? this.getAttribute('border') : '';
-    const hasBorderRadius = this.hasAttribute('border-radius');
-    const borderRadiusClass = hasBorderRadius && hasBorder ? this.getAttribute('border-radius') : '';
-    const hasBackdropFilter = this.hasAttribute('backdrop-filter');
-    const backdropFilterClass = hasBackdropFilter ? this.getAttribute('backdrop-filter') : '';
-    const customClasses = this.getAttribute('class') || '';
-    const styleAttribute = this.getAttribute('style') || '';
-    // Image attributes
-    const lightSrc = this.getAttribute('image-light-src') || '';
-    const darkSrc = this.getAttribute('image-dark-src') || '';
-    const alt = this.getAttribute('image-alt') || '';
-    const isDecorative = this.hasAttribute('image-decorative');
-    const mobileWidth = this.getAttribute('image-mobile-width') || '100vw';
-    const tabletWidth = this.getAttribute('image-tablet-width') || '100vw';
-    const desktopWidth = this.getAttribute('image-desktop-width') || '100vw';
-    const aspectRatio = this.getAttribute('image-aspect-ratio') || '';
-    const includeSchema = this.hasAttribute('image-include-schema');
-    const fetchPriority = this.getAttribute('image-fetchpriority') || '';
-    const loading = this.getAttribute('image-loading') || 'lazy';
+    render() {
+        // Get attributes
+        const heading = this.getAttribute('heading') || 'Default Heading';
+        const description = this.getAttribute('description') || 'Default description text.';
+        const buttonHref = this.getAttribute('button-href') || '#';
+        const buttonText = this.getAttribute('button-text') || 'Button';
+        const hasBackgroundOverlay = this.hasAttribute('background-overlay');
+        const hasBackgroundColor = this.hasAttribute('background-color');
+        const backgroundColorClass = hasBackgroundColor ? this.getAttribute('background-color') : '';
+        const hasBorder = this.hasAttribute('border');
+        const borderClass = hasBorder ? this.getAttribute('border') : '';
+        const hasBorderRadius = this.hasAttribute('border-radius');
+        const borderRadiusClass = hasBorderRadius && hasBorder ? this.getAttribute('border-radius') : '';
+        const hasBackdropFilter = this.hasAttribute('backdrop-filter');
+        const backdropFilterClass = hasBackdropFilter ? this.getAttribute('backdrop-filter') : '';
+        const customClasses = this.getAttribute('class') || '';
+        const styleAttribute = this.getAttribute('style') || '';
+        // Image attributes
+        const lightSrc = this.getAttribute('image-light-src') || '';
+        const darkSrc = this.getAttribute('image-dark-src') || '';
+        const alt = this.getAttribute('image-alt') || '';
+        const isDecorative = this.hasAttribute('image-decorative');
+        const mobileWidth = this.getAttribute('image-mobile-width') || '100vw';
+        const tabletWidth = this.getAttribute('image-tablet-width') || '100vw';
+        const desktopWidth = this.getAttribute('image-desktop-width') || '100vw';
+        const aspectRatio = this.getAttribute('image-aspect-ratio') || '';
+        const includeSchema = this.hasAttribute('image-include-schema');
+        const fetchPriority = this.getAttribute('image-fetchpriority') || '';
+        const loading = this.getAttribute('image-loading') || 'lazy';
 
-    // Accessibility warning for missing alt text
-    if (!alt && !isDecorative && (lightSrc || darkSrc)) {
-        console.warn(`<custom-card image-light-src="${lightSrc || 'not provided'}" image-dark-src="${darkSrc || 'not provided'}"> is missing an image-alt attribute for accessibility.`);
-    }
+        // Accessibility warning for missing alt text
+        if (!alt && !isDecorative && (lightSrc || darkSrc)) {
+            console.warn(`<custom-card image-light-src="${lightSrc || 'not provided'}" image-dark-src="${darkSrc || 'not provided'}"> is missing an image-alt attribute for accessibility.`);
+        }
 
-    // Build the card with optional background image
-    let backgroundImageHTML = '';
-    let overlayHTML = '';
-    const hasBackgroundImage = !!(lightSrc || darkSrc);
-    if (hasBackgroundImage) {
-        const src = lightSrc || darkSrc;
-        if (!src) {
-            console.warn('No valid image source provided for <custom-card>. Skipping image rendering.');
-        } else {
-            backgroundImageHTML = generatePictureMarkup({
-                src,
-                lightSrc,
-                darkSrc,
-                alt,
-                isDecorative,
-                mobileWidth,
-                tabletWidth,
-                desktopWidth,
-                aspectRatio,
-                includeSchema,
-                customClasses: '',
-                loading,
-                fetchPriority
-            });
-            if (!backgroundImageHTML) {
-                console.warn('Failed to generate picture markup for <custom-card>.');
+        // Build the card with optional background image
+        let backgroundImageHTML = '';
+        let overlayHTML = '';
+        const hasBackgroundImage = !!(lightSrc || darkSrc);
+        if (hasBackgroundImage) {
+            const src = lightSrc || darkSrc;
+            if (!src) {
+                console.warn('No valid image source provided for <custom-card>. Skipping image rendering.');
+            } else {
+                backgroundImageHTML = generatePictureMarkup({
+                    src,
+                    lightSrc,
+                    darkSrc,
+                    alt,
+                    isDecorative,
+                    mobileWidth,
+                    tabletWidth,
+                    desktopWidth,
+                    aspectRatio,
+                    includeSchema,
+                    customClasses: '',
+                    loading,
+                    fetchPriority
+                });
+                if (!backgroundImageHTML) {
+                    console.warn('Failed to generate picture markup for <custom-card>.');
+                }
             }
         }
-    }
 
-    // Add the background-overlay div with conditional background-image-noise class
-    if (hasBackgroundOverlay) {
+        // Add the background-overlay div with conditional background-image-noise class
         const classList = customClasses.split(' ').filter(cls => cls.length > 0);
         const hasBackgroundImageNoise = classList.includes('background-image-noise');
-        if (hasBackgroundImageNoise && !hasBackgroundOverlay) {
-            console.error('Cannot apply background-image-noise class: background-overlay attribute is missing.');
-            overlayHTML = `<div class="background-overlay ${backdropFilterClass}"></div>`;
+        if (hasBackgroundOverlay) {
+            if (hasBackgroundImageNoise) {
+                overlayHTML = `<div class="background-overlay ${backdropFilterClass} background-image-noise"></div>`;
+            } else {
+                overlayHTML = `<div class="background-overlay ${backdropFilterClass}"></div>`;
+            }
         } else if (hasBackgroundImageNoise) {
-            overlayHTML = `<div class="background-overlay ${backdropFilterClass} background-image-noise"></div>`;
-        } else {
-            overlayHTML = `<div class="background-overlay ${backdropFilterClass}"></div>`;
+            console.error('Cannot apply background-image-noise class: background-overlay attribute is missing.');
         }
-    } else if (customClasses.includes('background-image-noise')) {
-        console.error('Cannot apply background-image-noise class: background-overlay attribute is missing.');
-    }
 
-    // Determine the main div class and content structure
-    let mainDivClass = 'card';
-    if (hasBackgroundImage) mainDivClass += ' background-image';
-    mainDivClass += ` ${customClasses} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`;
+        // Determine the main div class, excluding background-image-noise
+        let mainDivClass = 'card';
+        if (hasBackgroundImage) mainDivClass += ' background-image';
+        // Filter out background-image-noise from customClasses for the card div
+        const filteredCustomClasses = classList.filter(cls => cls !== 'background-image-noise').join(' ');
+        mainDivClass += ` ${filteredCustomClasses} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`;
 
-    // Deduplicate classes
-    mainDivClass = [...new Set(mainDivClass.split(' '))].join(' ').trim();
+        // Deduplicate classes
+        mainDivClass = [...new Set(mainDivClass.split(' '))].join(' ').trim();
 
-    // Check if 'space-between' and 'padding-medium' are in the classes attribute
-    const classList = customClasses.split(' ').filter(cls => cls.length > 0);
-    const hasSpaceBetween = classList.includes('space-between');
-    const hasPaddingMedium = classList.includes('padding-medium');
-    const innerDivClasses = [];
-    if (hasPaddingMedium) innerDivClasses.push('padding-medium');
-    if (hasSpaceBetween) innerDivClasses.push('space-between');
-    const innerDivClass = innerDivClasses.length > 0 ? innerDivClasses.join(' ') : '';
+        // Collect padding/margin classes for the inner div when background image is present
+        const hasSpaceBetween = classList.includes('space-between');
+        const hasPaddingMedium = classList.includes('padding-medium');
+        const innerDivClasses = [];
+        if (hasPaddingMedium) innerDivClasses.push('padding-medium');
+        if (hasSpaceBetween) innerDivClasses.push('space-between');
+        const innerDivClass = innerDivClasses.length > 0 ? innerDivClasses.join(' ') : '';
 
-    const contentHTML = hasBackgroundImage
-        ? `
-            <div${innerDivClass ? ` class="${innerDivClass}"` : ''}>
-                <hgroup>
-                    <h2>${heading}</h2>
-                    <p>${description}</p>
-                </hgroup>
-                <a class="button" href="${buttonHref}">${buttonText}</a>
-            </div>
-        `
-        : `
-            <hgroup>
-                <h2>${heading}</h2>
-                <p>${description}</p>
-            </hgroup>
-            <a class="button" href="${buttonHref}">${buttonText}</a>
+        // Apply padding/margin classes to the card div if no background image
+        const contentHTML = hasBackgroundImage
+            ? `
+                <div${innerDivClass ? ` class="${innerDivClass}"` : ''}>
+                    <hgroup>
+                        <h2>${heading}</h2>
+                        <p>${description}</p>
+                    </hgroup>
+                    <a class="button" href="${buttonHref}">${buttonText}</a>
+                </div>
+            `
+            : `
+                <div class="card-content${innerDivClass ? ` ${innerDivClass}` : ''}">
+                    <hgroup>
+                        <h2>${heading}</h2>
+                        <p>${description}</p>
+                    </hgroup>
+                    <a class="button" href="${buttonHref}">${buttonText}</a>
+                </div>
+            `;
+
+        // Create the card element
+        const cardElement = document.createElement('div');
+        cardElement.className = mainDivClass;
+        if (styleAttribute) {
+            cardElement.setAttribute('style', styleAttribute);
+        }
+        cardElement.innerHTML = `
+            ${backgroundImageHTML || ''}
+            ${overlayHTML}
+            ${contentHTML}
         `;
 
-    // Create the card element
-    const cardElement = document.createElement('div');
-    cardElement.className = mainDivClass;
-    if (styleAttribute) {
-        cardElement.setAttribute('style', styleAttribute);
-    }
-    cardElement.innerHTML = `
-        ${backgroundImageHTML || ''}
-        ${overlayHTML}
-        ${contentHTML}
-    `;
-
-    // Add onerror to the background image for fallback
-    const backgroundImg = cardElement.querySelector('img');
-    if (backgroundImg) {
-        backgroundImg.onerror = () => {
-            console.warn(`Failed to load image: ${lightSrc || darkSrc}. Falling back to placeholder.`);
-            backgroundImg.src = 'https://placehold.co/3000x2000';
-            if (!isDecorative) backgroundImg.alt = alt || 'Placeholder image';
-            backgroundImg.onerror = null;
-        };
-    }
-
-    // Add schema meta if includeSchema and image is present
-    if (includeSchema && hasBackgroundImage && backgroundImageHTML) {
-        const figure = cardElement.querySelector('figure');
-        if (figure) {
-            const metaUrl = document.createElement('meta');
-            metaUrl.setAttribute('itemprop', 'url');
-            metaUrl.setAttribute('content', (lightSrc || darkSrc) ? new URL(lightSrc || darkSrc, window.location.origin).href : '');
-            figure.appendChild(metaUrl);
-
-            const metaDescription = document.createElement('meta');
-            metaDescription.setAttribute('itemprop', 'description');
-            metaDescription.setAttribute('content', alt);
-            figure.appendChild(metaDescription);
+        // Add onerror to the background image for fallback
+        const backgroundImg = cardElement.querySelector('img');
+        if (backgroundImg) {
+            backgroundImg.onerror = () => {
+                console.warn(`Failed to load image: ${lightSrc || darkSrc}. Falling back to placeholder.`);
+                backgroundImg.src = 'https://placehold.co/3000x2000';
+                if (!isDecorative) backgroundImg.alt = alt || 'Placeholder image';
+                backgroundImg.onerror = null;
+            };
         }
-    }
 
-    // Clean up background image attributes if rendered
-    if (backgroundImg) {
-        backgroundImg.removeAttribute('image-light-src');
-        backgroundImg.removeAttribute('image-dark-src');
-        backgroundImg.removeAttribute('image-aspect-ratio');
-        backgroundImg.removeAttribute('image-mobile-width');
-        backgroundImg.removeAttribute('image-tablet-width');
-        backgroundImg.removeAttribute('image-desktop-width');
-        backgroundImg.removeAttribute('image-include-schema');
-        backgroundImg.removeAttribute('image-fetchpriority');
-        backgroundImg.removeAttribute('image-loading');
-        backgroundImg.removeAttribute('image-decorative');
-    }
+        // Add schema meta if includeSchema and image is present
+        if (includeSchema && hasBackgroundImage && backgroundImageHTML) {
+            const figure = cardElement.querySelector('figure');
+            if (figure) {
+                const metaUrl = document.createElement('meta');
+                metaUrl.setAttribute('itemprop', 'url');
+                metaUrl.setAttribute('content', (lightSrc || darkSrc) ? new URL(lightSrc || darkSrc, window.location.origin).href : '');
+                figure.appendChild(metaUrl);
 
-    return cardElement;
-}
+                const metaDescription = document.createElement('meta');
+                metaDescription.setAttribute('itemprop', 'description');
+                metaDescription.setAttribute('content', alt);
+                figure.appendChild(metaDescription);
+            }
+        }
+
+        // Clean up background image attributes if rendered
+        if (backgroundImg) {
+            backgroundImg.removeAttribute('image-light-src');
+            backgroundImg.removeAttribute('image-dark-src');
+            backgroundImg.removeAttribute('image-aspect-ratio');
+            backgroundImg.removeAttribute('image-mobile-width');
+            backgroundImg.removeAttribute('image-tablet-width');
+            backgroundImg.removeAttribute('image-desktop-width');
+            backgroundImg.removeAttribute('image-include-schema');
+            backgroundImg.removeAttribute('image-fetchpriority');
+            backgroundImg.removeAttribute('image-loading');
+            backgroundImg.removeAttribute('image-decorative');
+        }
+
+        return cardElement;
+    }
 
     renderFallback() {
         const cardElement = document.createElement('div');
