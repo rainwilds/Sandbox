@@ -955,6 +955,7 @@
         &.background-image> :not(picture) {
             /* Apply display: grid only to non-<picture> elements */
             display: grid;
+            grid-auto-rows: min-content;
 
             >div {
                 margin: 0;
