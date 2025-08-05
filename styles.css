@@ -942,9 +942,15 @@
             margin-top: var(--space-small);
         }
 
+        &.background-image {
+        grid-template-rows: 1fr; /* Single stretchable row */
+        overflow: hidden; /* Clip cropped image parts */
+    }
+
         &.background-image>* {
             /* Apply positioning to all direct children, including <picture> */
-            grid-row: 1 / span 2;
+            /* grid-row: 1 / span 2; */
+            grid-row: 1;
             grid-column: 1;
         }
 
@@ -965,6 +971,14 @@
         &.background-image>*:not(picture) {
             z-index: 1;
         }
+
+        &.background-image picture,
+    &.background-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* Already in reset layer, but reinforce for clarity */
+        aspect-ratio: auto; /* Prevent image’s aspect ratio from interfering */
+    }
 
         /* &.border-1 {
             border: solid var(--border-size-small);
