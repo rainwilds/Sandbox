@@ -94,7 +94,7 @@ class CustomCard extends HTMLElement {
                     mobileWidth,
                     tabletWidth,
                     desktopWidth,
-                    aspectRatio: '', // Do not apply aspect-ratio to the picture/img for background images
+                    aspectRatio,
                     includeSchema,
                     customClasses: '',
                     loading,
@@ -154,11 +154,6 @@ class CustomCard extends HTMLElement {
             ${overlayHTML}
             ${contentHTML}
         `;
-
-        // Apply aspect-ratio class to the card if provided
-        if (aspectRatio) {
-            cardElement.classList.add(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
-        }
 
         // Add onerror to the background image for fallback
         const backgroundImg = cardElement.querySelector('img');
