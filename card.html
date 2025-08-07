@@ -6,6 +6,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <link rel="preload" href="./styles.css" as="style" />
+    <link rel="stylesheet" href="./styles.css" />
+
     <script src="./js/head-generator.js" type="module" defer></script>
 
     <data-bh-head data-components="custom-card" data-title="Photography, Videography & Websites - Behive"
@@ -88,18 +91,13 @@
 
 
 
-        <custom-card
-            heading="Background Image + Noise"
-            description="Card with custom background-image, background-image-noise and padding-medium."
-            button-text="Action"
-            button-href="#"
-            class="background-image-noise padding-medium"
-            background-overlay="light-dark(var(--color-static-light-4), var(--color-static-dark-2))"
-            image-light-src="./img/primary/landscape-photography-1.jpg"
-            image-mobile-width="100vw"
-            image-tablet-width="50vw"
-            image-desktop-width="33vw">
-        </custom-card>
+            <custom-card heading="Background Image + Noise"
+                description="Card with custom background-image, background-image-noise and padding-medium."
+                button-text="Action" button-href="#" class="background-image-noise padding-medium"
+                background-overlay="light-dark(var(--color-static-light-4), var(--color-static-dark-2))"
+                image-light-src="./img/primary/landscape-photography-1.jpg" image-mobile-width="100vw"
+                image-tablet-width="50vw" image-desktop-width="33vw">
+            </custom-card>
 
             <custom-card heading="Styled Card" description="Card with custom background, border, and filter."
                 button-text="Action" button-href="#" class="backdrop-filter-blur-medium"
