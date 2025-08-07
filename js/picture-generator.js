@@ -66,9 +66,7 @@ export function generatePictureMarkup({
     ].join(', ');
 
     // Build picture HTML
-    // let pictureHTML = '<picture class="animate animate-fade-in">';
-    let pictureHTML = `<div style="min-height: ${mobileWidth}; aspect-ratio: ${aspectRatio || 'auto'};">`;
-    pictureHTML += '<picture class="animate animate-fade-in">';
+    let pictureHTML = '<picture class="animate animate-fade-in">';
 
     FORMATS.forEach(format => {
         if (lightSrc && darkSrc) {
@@ -88,10 +86,8 @@ export function generatePictureMarkup({
         const srcset = [
             `./img/responsive/${baseFilename}.${format} 3840w`,
             ...WIDTHS.map(w => `./img/responsive/${baseFilename}-${w}.${format} ${w}w`)
-        ].join(', ');
+            ].join(', ');
         pictureHTML += `<source srcset="${srcset}" sizes="${sizes}" type="image/${format}">`;
-
-        pictureHTML += '</picture></div>';
     });
 
     // Add img element

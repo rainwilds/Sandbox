@@ -950,9 +950,6 @@
             /* Single stretchable row */
             overflow: hidden;
             /* Clip cropped image parts */
-
-                min-height: 200px; /* Adjust based on typical image height */
-    position: relative;
         }
 
         &.background-image>* {
@@ -1020,17 +1017,6 @@
 
         img {
             height: 100%;
-        }
-
-        /* test to fix CLS */
-        h2 {
-            font-size: 1.5rem;
-            min-height: 2em;
-        }
-
-        .button {
-            min-height: 40px;
-            min-width: 100px;
         }
     }
 
