@@ -15,7 +15,7 @@ class CustomCard extends HTMLElement {
                     this.connectedCallback();
                 }
             }
-        }, { rootMargin: '0px' });
+        }, { rootMargin: '50px' });
         observer.observe(this);
     }
 
@@ -25,12 +25,11 @@ class CustomCard extends HTMLElement {
 
         try {
             const cardElement = this.render();
-            this.innerHTML = ''; // Clear only inner content
-            this.appendChild(cardElement);
+            this.replaceWith(cardElement);
             this.callbacks.forEach(callback => callback());
         } catch (error) {
             console.error('Error in CustomCard connectedCallback:', error);
-            this.innerHTML = this.renderFallback().innerHTML;
+            this.replaceWith(this.renderFallback());
         }
     }
 
@@ -60,6 +59,7 @@ class CustomCard extends HTMLElement {
         const backdropFilterClass = hasBackdropFilter ? this.getAttribute('backdrop-filter') : '';
         const customClasses = this.getAttribute('class') || '';
         const styleAttribute = this.getAttribute('style') || '';
+        const minHeight = this.getAttribute('min-height') || '';
         // Image attributes
         const lightSrc = this.getAttribute('image-light-src') || '';
         const darkSrc = this.getAttribute('image-dark-src') || '';
@@ -105,8 +105,6 @@ class CustomCard extends HTMLElement {
                 if (!backgroundImageHTML) {
                     console.warn('Failed to generate picture markup for <custom-card>.');
                 }
-                // Wrap picture with reserved space
-                backgroundImageHTML = `<div style="min-height: ${mobileWidth}; aspect-ratio: ${aspectRatio || 'auto'};">${backgroundImageHTML}</div>`;
             }
         }
 
@@ -153,11 +151,13 @@ class CustomCard extends HTMLElement {
         // Create the card element
         const cardElement = document.createElement('div');
         cardElement.className = mainDivClass;
-        if (styleAttribute) {
-            cardElement.setAttribute('style', styleAttribute);
+        // Combine styleAttribute and minHeight into a single style attribute
+        let combinedStyle = styleAttribute;
+        if (minHeight) {
+            combinedStyle = combinedStyle ? `${styleAttribute}; min-height: ${minHeight}` : `min-height: ${minHeight}`;
         }
-        if (aspectRatio && aspectRatio) {
-            cardElement.style.setProperty('--image-aspect-ratio', aspectRatio.replace('/', ' / '));
+        if (combinedStyle) {
+            cardElement.setAttribute('style', combinedStyle);
         }
         cardElement.innerHTML = `
             ${backgroundImageHTML || ''}
@@ -222,10 +222,37 @@ class CustomCard extends HTMLElement {
         return cardElement;
     }
 
+    static getEstimatedDimensions(attributes = {}, containerWidth = window.innerWidth) {
+        const temp = document.createElement('custom-card');
+        for (const [key, value] of Object.entries(attributes)) {
+            temp.setAttribute(key, value);
+        }
+        // Create an offscreen container to simulate the rendering environment
+        const offscreen = document.createElement('div');
+        offscreen.style.position = 'absolute';
+        offscreen.style.left = '-9999px';
+        offscreen.style.top = '0';
+        offscreen.style.visibility = 'hidden';
+        offscreen.style.width = `${containerWidth}px`; // Simulate parent container width
+        offscreen.style.overflow = 'hidden'; // Prevent any overflow issues
+        offscreen.appendChild(temp);
+        document.body.appendChild(offscreen);
+        // Force visibility and initialization to render
+        temp.isVisible = true;
+        temp.connectedCallback();
+        // After replaceWith, the rendered card is now in offscreen
+        const renderedCard = offscreen.querySelector('.card');
+        const width = renderedCard ? renderedCard.offsetWidth : 0;
+        const height = renderedCard ? renderedCard.offsetHeight : 0;
+        // Clean up
+        offscreen.remove();
+        return { width, height };
+    }
+
     static get observedAttributes() {
         return [
             'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-color', 'border', 'border-radius', 'backdrop-filter', 'class', 'style',
-            'image-light-src', 'image-dark-src', 'image-alt', 'image-decorative', 'image-mobile-width', 'image-tablet-width', 'image-desktop-width', 'image-aspect-ratio', 'image-include-schema', 'image-fetchpriority', 'image-loading'
+            'image-light-src', 'image-dark-src', 'image-alt', 'image-decorative', 'image-mobile-width', 'image-tablet-width', 'image-desktop-width', 'image-aspect-ratio', 'image-include-schema', 'image-fetchpriority', 'image-loading', 'min-height'
         ];
     }
 
