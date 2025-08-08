@@ -74,9 +74,8 @@ function manageHead(attributes = {}, businessInfo = {}) {
         script.src = './js/picture-generator.js';
         script.type = 'module';
         script.defer = true;
-        script.async = true;
         head.appendChild(script);
-        console.log('Added deferred script with async for picture-generator.js');
+        console.log('Added deferred script for picture-generator.js');
     }
 
     // Add essential meta tags (charset, viewport, robots, title, author, etc.)
@@ -413,19 +412,19 @@ function manageHead(attributes = {}, businessInfo = {}) {
     });
 
     // Load additional scripts (scripts.js if needed; components loaded dynamically below)
-    // const commonScripts = [
-    //     { src: './js/scripts.js', defer: true }
-    // ];
-    // commonScripts.forEach(({ src, defer }) => {
-    //     if (!document.querySelector(`script[src="${src}"]`)) {
-    //         const script = document.createElement('script');
-    //         script.src = src;
-    //         script.type = 'module';
-    //         if (defer) script.defer = true;
-    //         head.appendChild(script);
-    //         console.log(`Loaded script: ${src}${defer ? ' (deferred)' : ''}`);
-    //     }
-    // });
+    const commonScripts = [
+        { src: './js/scripts.js', defer: true }
+    ];
+    commonScripts.forEach(({ src, defer }) => {
+        if (!document.querySelector(`script[src="${src}"]`)) {
+            const script = document.createElement('script');
+            script.src = src;
+            script.type = 'module';
+            if (defer) script.defer = true;
+            head.appendChild(script);
+            console.log(`Loaded script: ${src}${defer ? ' (deferred)' : ''}`);
+        }
+    });
 
     // Add favicon links for various devices
     const favicons = [
@@ -565,15 +564,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Fetch business-info.json
-let businessInfo = {};
-    const businessInfoPromise = fetch('./JSON/business-info.json').then(response => {
-        if (response.ok) return response.json();
-        console.warn('Failed to load business-info.json:', response.status);
-        return {};
-    }).catch(error => {
+    let businessInfo = {};
+    try {
+        const response = await fetch('./JSON/business-info.json');
+        if (response.ok) {
+            businessInfo = await response.json();
+            console.log('Loaded business-info.json:', businessInfo);
+        } else {
+            console.warn('Failed to load business-info.json:', response.status);
+        }
+    } catch (error) {
         console.error('Error fetching business-info.json:', error);
-        return {};
-    });
+    }
 
     // Merge attributes from all <data-bh-head> elements
     const attributes = {};
@@ -667,8 +669,6 @@ let businessInfo = {};
         });
     }
 
-// Proceed with manageHead and let businessInfo update later
-    manageHead(attributes, {});
-    businessInfo = await businessInfoPromise;
-    manageHead(attributes, businessInfo); // Update head with fetched data if needed
+    // Pass merged attributes and businessInfo to manageHead
+    manageHead(attributes, businessInfo);
 });
