@@ -15,7 +15,7 @@ class CustomCard extends HTMLElement {
                     this.connectedCallback();
                 }
             }
-        }, { rootMargin: '50px' });
+        }, { rootMargin: '0px' });
         observer.observe(this);
     }
 
@@ -25,11 +25,12 @@ class CustomCard extends HTMLElement {
 
         try {
             const cardElement = this.render();
-            this.replaceWith(cardElement);
+            this.innerHTML = ''; // Clear only inner content
+            this.appendChild(cardElement);
             this.callbacks.forEach(callback => callback());
         } catch (error) {
             console.error('Error in CustomCard connectedCallback:', error);
-            this.replaceWith(this.renderFallback());
+            this.innerHTML = this.renderFallback().innerHTML;
         }
     }
 
@@ -104,6 +105,8 @@ class CustomCard extends HTMLElement {
                 if (!backgroundImageHTML) {
                     console.warn('Failed to generate picture markup for <custom-card>.');
                 }
+                // Wrap picture with reserved space
+                backgroundImageHTML = `<div style="min-height: ${mobileWidth}; aspect-ratio: ${aspectRatio || 'auto'};">${backgroundImageHTML}</div>`;
             }
         }
 
@@ -152,6 +155,9 @@ class CustomCard extends HTMLElement {
         cardElement.className = mainDivClass;
         if (styleAttribute) {
             cardElement.setAttribute('style', styleAttribute);
+        }
+        if (aspectRatio && aspectRatio) {
+            cardElement.style.setProperty('--image-aspect-ratio', aspectRatio.replace('/', ' / '));
         }
         cardElement.innerHTML = `
             ${backgroundImageHTML || ''}
