@@ -74,8 +74,9 @@ function manageHead(attributes = {}, businessInfo = {}) {
         script.src = './js/picture-generator.js';
         script.type = 'module';
         script.defer = true;
+        script.async = true;
         head.appendChild(script);
-        console.log('Added deferred script for picture-generator.js');
+        console.log('Added deferred script with async for picture-generator.js');
     }
 
     // Add essential meta tags (charset, viewport, robots, title, author, etc.)
@@ -564,18 +565,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     // Fetch business-info.json
-    let businessInfo = {};
-    try {
-        const response = await fetch('./JSON/business-info.json');
-        if (response.ok) {
-            businessInfo = await response.json();
-            console.log('Loaded business-info.json:', businessInfo);
-        } else {
-            console.warn('Failed to load business-info.json:', response.status);
-        }
-    } catch (error) {
+let businessInfo = {};
+    const businessInfoPromise = fetch('./JSON/business-info.json').then(response => {
+        if (response.ok) return response.json();
+        console.warn('Failed to load business-info.json:', response.status);
+        return {};
+    }).catch(error => {
         console.error('Error fetching business-info.json:', error);
-    }
+        return {};
+    });
 
     // Merge attributes from all <data-bh-head> elements
     const attributes = {};
@@ -669,6 +667,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // Pass merged attributes and businessInfo to manageHead
-    manageHead(attributes, businessInfo);
+// Proceed with manageHead and let businessInfo update later
+    manageHead(attributes, {});
+    businessInfo = await businessInfoPromise;
+    manageHead(attributes, businessInfo); // Update head with fetched data if needed
 });
