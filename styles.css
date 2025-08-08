@@ -937,6 +937,7 @@
         display: grid;
         grid-auto-rows: min-content;
         height: 100%;
+        min-height: 300px; /* trying to fix CLS */
         /* to ensure web component spans designated height */
         /* overflow: auto; */
         /* needed to make sure that border-radius on background-images works */
