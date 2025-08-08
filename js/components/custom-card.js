@@ -216,33 +216,6 @@ class CustomCard extends HTMLElement {
         return cardElement;
     }
 
-    static getEstimatedDimensions(attributes = {}, containerWidth = window.innerWidth) {
-        const temp = document.createElement('custom-card');
-        for (const [key, value] of Object.entries(attributes)) {
-            temp.setAttribute(key, value);
-        }
-        // Create an offscreen container to simulate the rendering environment
-        const offscreen = document.createElement('div');
-        offscreen.style.position = 'absolute';
-        offscreen.style.left = '-9999px';
-        offscreen.style.top = '0';
-        offscreen.style.visibility = 'hidden';
-        offscreen.style.width = `${containerWidth}px`; // Simulate parent container width
-        offscreen.style.overflow = 'hidden'; // Prevent any overflow issues
-        offscreen.appendChild(temp);
-        document.body.appendChild(offscreen);
-        // Force visibility and initialization to render
-        temp.isVisible = true;
-        temp.connectedCallback();
-        // After replaceWith, the rendered card is now in offscreen
-        const renderedCard = offscreen.querySelector('.card');
-        const width = renderedCard ? renderedCard.offsetWidth : 0;
-        const height = renderedCard ? renderedCard.offsetHeight : 0;
-        // Clean up
-        offscreen.remove();
-        return { width, height };
-    }
-
     static get observedAttributes() {
         return [
             'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-color', 'border', 'border-radius', 'backdrop-filter', 'class', 'style',
