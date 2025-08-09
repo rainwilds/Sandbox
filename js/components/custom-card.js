@@ -1,6 +1,6 @@
 import { generatePictureMarkup } from '../picture-generator.js';
 
-class CustomCard extends HTMLElement {
+export class CustomCard extends HTMLElement {
     constructor() {
         super();
         this.isVisible = false;
