@@ -14,7 +14,10 @@
     <script src="./js/components/custom-card.js" type="module" defer></script>
     <script src="./js/head-generator.js" type="module" defer></script>
 
-    <script>
+<script type="module">
+        // Import custom-card.js to access CustomCard
+        import './js/components/custom-card.js';
+
         // Wait for DOM to load
         document.addEventListener('DOMContentLoaded', () => {
             // Find all custom-card elements
@@ -54,7 +57,7 @@
             });
         });
     </script>
-
+    
     <data-bh-head data-components="custom-card" data-title="Photography, Videography & Websites - Behive"
         data-description="Bespoke media assets and web design for quality brands."
         data-keywords="photography, videography, websites, web design" data-author="David Dufourq"
