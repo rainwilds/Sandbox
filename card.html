@@ -50,7 +50,6 @@
         <h2>Background Colours</h2>
         <section>
 
-            <div style="background-color: gray;" id="card-container">
                 <custom-card
                     heading="Background Colour 1"
                     description="Card with background-color-1, colour-invert and padding-medium."
@@ -59,50 +58,48 @@
                     background-color="background-color-1"
                     class="color-invert padding-medium">
                 </custom-card>
-            </div>
 
 
+            <!-- <custom-card heading="Background Colour 3" description="Card with background-color-1 and padding-medium."
+                button-text="Action" button-href="#" background-color="background-color-3" class="padding-medium">
+
+            </custom-card> -->
+<!-- 
+            <custom-card heading="Border Small" description="Card with border-small, padding-medium and space-between."
+                button-text="Action" button-href="#" class="padding-medium border-small space-between">
+            </custom-card>
+
+
+            </custom-card>
+
+            <custom-card heading="Background Colour 1 w/ Radius"
+                description="Card with background-color-1, color-invert, padding-medium and border-radius-small."
+                button-text="Action" button-href="#" background-color="background-color-1"
+                class="color-invert padding-medium border-radius-small">
+
+            </custom-card>
+
+            <custom-card heading="Background Colour 3 w/ Radius"
+                description="Card with background-color-1, padding-medium and border-radius-medium."
+                button-text="Action" button-href="#" background-color="background-color-3"
+                class="padding-medium border-radius-medium">
+
+            </custom-card>
+
+            <custom-card heading="Background Colour 2"
+                description="Card with background-color-2, color-invert, space-between and padding-large."
+                button-text="Action" button-href="#" background-color="background-color-2"
+                class="color-invert space-between padding-large"
+                style="padding-left: var(--space-small); background-image: var(--background-stripes);">
+            </custom-card>
+
+
+            </custom-card> -->
 
         </section>
   
 
     </main>
-
-
-<script type="module">
-        // Wait for DOM to load
-        document.addEventListener('DOMContentLoaded', () => {
-            // Find the custom-card
-            const card = document.querySelector('custom-card');
-            const container = document.querySelector('#card-container');
-            if (!card || !container) return;
-
-            // Get attributes from the card
-            const attributes = {};
-            for (const attr of card.attributes) {
-                attributes[attr.name] = attr.value;
-            }
-
-            // Get estimated dimensions
-            const containerWidth = container.clientWidth || window.innerWidth;
-            const { width, height } = CustomCard.getEstimatedDimensions(attributes, containerWidth);
-
-            // Apply skeleton class and reserve space
-            card.classList.add('skeleton');
-            card.style.minHeight = `${height}px`; // Prevent layout shift
-            card.style.width = '100%'; // Match container width
-            card.setAttribute('aria-busy', 'true'); // Accessibility
-
-            // Add callback to clean up skeleton after render
-            card.addCallback(() => {
-                const renderedCard = container.querySelector('.card');
-                if (renderedCard) {
-                    renderedCard.classList.remove('skeleton');
-                    renderedCard.removeAttribute('aria-busy');
-                }
-            });
-        });
-    </script>
 
 </body>
 
