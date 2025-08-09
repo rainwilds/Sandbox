@@ -74,7 +74,6 @@ function manageHead(attributes = {}, businessInfo = {}) {
         script.src = './js/picture-generator.js';
         script.type = 'module';
         script.defer = true;
-        script.defer = async;
         head.appendChild(script);
         console.log('Added deferred script for picture-generator.js');
     }
