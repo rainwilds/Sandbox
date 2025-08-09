@@ -8,38 +8,70 @@
 
     <link rel="preload" href="./styles.css" as="style" />
     <link rel="stylesheet" href="./styles.css" />
-    
-    <script src="./testing.js"></script>
+
+    <script>
+        // Wait for DOM to load
+        document.addEventListener('DOMContentLoaded', () => {
+            // Find all custom-card elements
+            const cards = document.querySelectorAll('custom-card');
+            if (cards.length === 0) return;
+
+            cards.forEach(card => {
+                // Get the parent container for each card
+                const parent = card.parentElement;
+                if (!parent) return;
+
+                // Get attributes from the card
+                const attributes = {};
+                for (const attr of card.attributes) {
+                    attributes[attr.name] = attr.value;
+                }
+
+                // Get estimated dimensions using parent's width
+                const containerWidth = parent.clientWidth || window.innerWidth;
+                const { width, height } = CustomCard.getEstimatedDimensions(attributes, containerWidth);
+
+                // Apply skeleton class and reserve space
+                card.classList.add('skeleton');
+                card.style.minHeight = `${height}px`; // Prevent layout shift
+                console.log(card.style.minHeight);
+                card.style.width = '100%'; // Match container width
+                card.setAttribute('aria-busy', 'true'); // Accessibility
+
+                // Add callback to clean up skeleton after render
+                card.addCallback(() => {
+                    const renderedCard = parent.querySelector('.card');
+                    if (renderedCard) {
+                        renderedCard.classList.remove('skeleton');
+                        renderedCard.removeAttribute('aria-busy');
+                    }
+                });
+            });
+        });
+    </script>
+
     <script src="./js/head-generator.js" type="module" defer></script>
 
-    <data-bh-head
-        data-components="custom-card"
-        data-title="Photography, Videography & Websites - Behive"
+    <data-bh-head data-components="custom-card" data-title="Photography, Videography & Websites - Behive"
         data-description="Bespoke media assets and web design for quality brands."
-        data-keywords="photography, videography, websites, web design"
-        data-author="David Dufourq"
+        data-keywords="photography, videography, websites, web design" data-author="David Dufourq"
         data-canonical="https://rainwilds.github.io/Sandbox/"
         data-robots="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
         data-schema-site-name="Behive: Photography, Videography & Websites"
         data-schema-site-url="https://rainwilds.github.io/Sandbox/">
     </data-bh-head>
 
-    <data-bh-head
-        data-og-title="Photography, Videography & Websites - Behive"
+    <data-bh-head data-og-title="Photography, Videography & Websites - Behive"
         data-og-description="Bespoke media assets and web design for quality brands."
         data-og-image="https://rainwilds.github.io/Sandbox/img/preview.jpg"
-        data-og-url="https://rainwilds.github.io/Sandbox/"
-        data-og-type="website"
-        data-og-locale="en_AU"
+        data-og-url="https://rainwilds.github.io/Sandbox/" data-og-type="website" data-og-locale="en_AU"
         data-og-site-name="Behive">
     </data-bh-head>
 
-    <data-bh-head
-        data-x-title="Behive: Photography, Videography & Websites"
+    <data-bh-head data-x-title="Behive: Photography, Videography & Websites"
         data-x-description="Bespoke media assets and web design for quality brands."
         data-x-image="https://rainwilds.github.io/Sandbox/img/preview.jpg"
-        data-x-url="https://rainwilds.github.io/Sandbox/"
-        data-x-domain="rainwilds.github.io"
+        data-x-url="https://rainwilds.github.io/Sandbox/" data-x-domain="rainwilds.github.io"
         data-x-card="summary_large_image">
     </data-bh-head>
 
@@ -52,21 +84,17 @@
         <h2>Background Colours</h2>
         <section>
 
-                <custom-card
-                    heading="Background Colour 1"
-                    description="Card with background-color-1, colour-invert and padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    background-color="background-color-1"
-                    class="color-invert padding-medium">
-                </custom-card>
+            <custom-card heading="Background Colour 1"
+                description="Card with background-color-1, colour-invert and padding-medium." button-text="Action"
+                button-href="#" background-color="background-color-1" class="color-invert padding-medium">
+            </custom-card>
 
 
             <!-- <custom-card heading="Background Colour 3" description="Card with background-color-1 and padding-medium."
                 button-text="Action" button-href="#" background-color="background-color-3" class="padding-medium">
 
             </custom-card> -->
-<!-- 
+            <!-- 
             <custom-card heading="Border Small" description="Card with border-small, padding-medium and space-between."
                 button-text="Action" button-href="#" class="padding-medium border-small space-between">
             </custom-card>
@@ -99,7 +127,7 @@
             </custom-card> -->
 
         </section>
-  
+
 
     </main>
 
