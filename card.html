@@ -9,55 +9,8 @@
     <link rel="preload" href="./styles.css" as="style" />
     <link rel="stylesheet" href="./styles.css" />
 
-
-
-    <script src="./js/components/custom-card.js" type="module" defer></script>
     <script src="./js/head-generator.js" type="module" defer></script>
 
-<script type="module">
-        // Import custom-card.js to access CustomCard
-        import './js/components/custom-card.js';
-
-        // Wait for DOM to load
-        document.addEventListener('DOMContentLoaded', () => {
-            // Find all custom-card elements
-            const cards = document.querySelectorAll('custom-card');
-            if (cards.length === 0) return;
-
-            cards.forEach(card => {
-                // Get the parent container for each card
-                const parent = card.parentElement;
-                if (!parent) return;
-
-                // Get attributes from the card
-                const attributes = {};
-                for (const attr of card.attributes) {
-                    attributes[attr.name] = attr.value;
-                }
-
-                // Get estimated dimensions using parent's width
-                const containerWidth = parent.clientWidth || window.innerWidth;
-                const { width, height } = CustomCard.getEstimatedDimensions(attributes, containerWidth);
-
-                // Apply skeleton class and reserve space
-                card.classList.add('skeleton');
-                card.style.minHeight = `${height}px`; // Prevent layout shift
-                console.log(card.style.minHeight);
-                card.style.width = '100%'; // Match container width
-                card.setAttribute('aria-busy', 'true'); // Accessibility
-
-                // Add callback to clean up skeleton after render
-                card.addCallback(() => {
-                    const renderedCard = parent.querySelector('.card');
-                    if (renderedCard) {
-                        renderedCard.classList.remove('skeleton');
-                        renderedCard.removeAttribute('aria-busy');
-                    }
-                });
-            });
-        });
-    </script>
-    
     <data-bh-head data-components="custom-card" data-title="Photography, Videography & Websites - Behive"
         data-description="Bespoke media assets and web design for quality brands."
         data-keywords="photography, videography, websites, web design" data-author="David Dufourq"
@@ -81,26 +34,26 @@
         data-x-card="summary_large_image">
     </data-bh-head>
 
-
 </head>
 
 <body>
 
     <main>
         <h2>Background Colours</h2>
-        <section>
+        <section style="height: 60vh; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));">
+
 
             <custom-card heading="Background Colour 1"
                 description="Card with background-color-1, colour-invert and padding-medium." button-text="Action"
                 button-href="#" background-color="background-color-1" class="color-invert padding-medium">
+
             </custom-card>
 
-
-            <!-- <custom-card heading="Background Colour 3" description="Card with background-color-1 and padding-medium."
+            <custom-card heading="Background Colour 3" description="Card with background-color-1 and padding-medium."
                 button-text="Action" button-href="#" background-color="background-color-3" class="padding-medium">
 
-            </custom-card> -->
-            <!-- 
+            </custom-card>
+
             <custom-card heading="Border Small" description="Card with border-small, padding-medium and space-between."
                 button-text="Action" button-href="#" class="padding-medium border-small space-between">
             </custom-card>
@@ -130,10 +83,59 @@
             </custom-card>
 
 
-            </custom-card> -->
+            </custom-card>
 
         </section>
+        <h2>Background Image</h2>
+        <section style="height: 60vh; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));">
 
+
+
+            <custom-card heading="Background Image + Noise"
+                description="Card with custom background-image, background-image-noise and padding-medium."
+                button-text="Action" button-href="#" class="background-image-noise padding-medium"
+                background-overlay="light-dark(var(--color-static-light-4), var(--color-static-dark-2))"
+                image-light-src="./img/primary/landscape-photography-1.jpg" image-mobile-width="100vw"
+                image-tablet-width="50vw" image-desktop-width="33vw">
+            </custom-card>
+
+            <custom-card heading="Styled Card" description="Card with custom background, border, and filter."
+                button-text="Action" button-href="#" class="backdrop-filter-blur-medium"
+                image-light-src="./img/primary/landscape-photography-1.jpg" image-mobile-width="100vw"
+                image-tablet-width="50vw" image-desktop-width="33vw">
+            </custom-card>
+
+            <custom-card heading="Styled Card" description="Card with custom background, border, and filter."
+                button-text="Action" button-href="#" class="shadow-light"
+                background-overlay="light-dark(var(--color-static-light-4), var(--color-static-dark-2))"
+                backdrop-filter="backdrop-filter-blur-small backdrop-filter-grayscale-medium"
+                image-light-src="./img/primary/landscape-photography-2.jpg"
+                image-dark-src="./img/primary/landscape-photography-1.jpg" image-mobile-width="100vw"
+                image-tablet-width="50vw" image-desktop-width="33vw">
+            </custom-card>
+
+            <custom-card heading="Styled Card" description="Card with custom background, border, and filter."
+                button-text="Action" button-href="#" class="backdrop-filter-blur-medium aspect-ratio-16-9 space-between"
+                image-light-src="./img/primary/landscape-photography-1.jpg" image-mobile-width="100vw"
+                image-tablet-width="50vw" image-desktop-width="33vw">
+            </custom-card>
+
+            <custom-card heading="Styled Card" description="Card with custom background, border, and filter."
+                button-text="Action" button-href="#" class="backdrop-filter-blur-medium aspect-ratio-16-9"
+                image-light-src="./img/primary/landscape-photography-1.jpg" image-mobile-width="100vw"
+                image-tablet-width="50vw" image-desktop-width="33vw">
+            </custom-card>
+
+            <custom-card heading="Styled Card" description="Card with custom background, border, and filter."
+                button-text="Action" button-href="#" class=" aspect-ratio-16-9"
+                background-overlay="light-dark(var(--color-static-light-4), var(--color-static-dark-2))"
+                backdrop-filter="backdrop-filter-blur-small backdrop-filter-grayscale-medium"
+                image-light-src="./img/primary/landscape-photography-2.jpg"
+                image-dark-src="./img/primary/landscape-photography-1.jpg" image-mobile-width="100vw"
+                image-tablet-width="50vw" image-desktop-width="33vw">
+            </custom-card>
+
+        </section>
 
     </main>
 
