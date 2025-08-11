@@ -660,14 +660,23 @@ document.addEventListener('DOMContentLoaded', async () => {
                 script.src = scriptPath;
                 script.type = 'module';
                 script.defer = true;
-                script.onerror = () => {
-                    console.error(`Failed to load component script: ${scriptPath}`);
-                };
+                script.onerror = () => console.error(`Failed to load component script: ${scriptPath}`);
                 head.appendChild(script);
                 console.log(`Loaded component script: ${scriptPath}`);
             }
         });
+        // Ensure no class manipulation on custom elements
+        document.querySelectorAll('custom-card').forEach(card => {
+            if (card.classList.contains('loaded')) {
+                console.warn('Removing premature "loaded" class from custom-card');
+                card.classList.remove('loaded'); // Remove if added unintentionally
+            }
+        });
     }
+
+
+
+
 
     // Pass merged attributes and businessInfo to manageHead
     manageHead(attributes, businessInfo);

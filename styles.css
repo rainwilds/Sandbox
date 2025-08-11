@@ -230,8 +230,8 @@
         --font-2-size-medium: 18px;
         --font-2-size-large: 22px;
 
-        font-family: var(--font-2-family),
-        serif;
+        font-family: var(--font-2-family); /*CLS*/
+        font-family: 'AdobeAldine-Regular', serif;
         font-size: var(--font-2-size-medium);
 
         /* adobe font requirements */
@@ -934,140 +934,96 @@
 
 
 
-    div.card {
-        display: grid;
-        grid-auto-rows: min-content;
-        height: 100%;
-        min-height: 200px;
-        /* for CLS testing */
-        position: relative;
-        /* CLS */
-        contain-intrinsic-size: 290px 200px;
-        /* to ensure web component spans designated height */
-        /* overflow: auto; */
-        /* needed to make sure that border-radius on background-images works */
+div.card {
+    display: grid;
+    grid-auto-rows: min-content;
+    height: 100%;
+    min-height: 200px;
+    position: relative;
+    contain-intrinsic-size: 290px 200px;
 
-        &:not(.loaded) .skeleton {
-            /* CLS */
-            display: block;
-
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #f0f0f0;
-            animation: pulse 1.5s infinite ease-in-out;
-        }
-
-        div.card:not(.loaded) .skeleton::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-            animation: shimmer 1.5s infinite linear;
-        }
-
-        div.card:not(.loaded) .skeleton::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background:
-                linear-gradient(#ddd 1.5em, transparent 1.5em) 10px 10px no-repeat,
-                linear-gradient(#ddd 1em, transparent 1em) 10px 40px no-repeat,
-                linear-gradient(#ddd 2em, transparent 2em) 10px 90px no-repeat;
-            background-size: 80% 1.5em, 90% 1em, 30% 2em;
-        }
-
-        &.loaded .skeleton {
-            display: none;
-            /* CLS */
-        }
-
-        &:not(.background-image)>picture:first-child+* {
-            margin-top: var(--space-small);
-        }
-
-        &.background-image {
-            grid-template-rows: 1fr;
-            /* Single stretchable row */
-            overflow: hidden;
-            /* Clip cropped image parts */
-        }
-
-        &.background-image>* {
-            /* Apply positioning to all direct children, including <picture> */
-            /* grid-row: 1 / span 2; */
-            grid-row: 1;
-            grid-column: 1;
-        }
-
-        /* &.background-image[class*="border-radius"] *:where(picture, img) {
-            border-radius: inherit;
-        } */
-
-        &.background-image> :not(picture) {
-            /* Apply display: grid only to non-<picture> elements */
-            display: grid;
-            grid-auto-rows: min-content;
-
-            >div {
-                margin: 0;
-            }
-        }
-
-        &.background-image>*:not(picture) {
-            z-index: 1;
-        }
-
-        &.background-image picture,
-        &.background-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            /* Already in reset layer, but reinforce for clarity */
-            aspect-ratio: auto;
-            /* Prevent image’s aspect ratio from interfering */
-        }
-
-        /* &.border-1 {
-            border: solid var(--border-size-small);
-            border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
-        } */
-
-        &>div:not(.background-overlay):has(p) {
-            z-index: 2;
-        }
-
-        &>.background-overlay {
-            background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
-            margin: 0 !important;
-        }
-
-        /* > picture:first-child + * {
-            margin-top: var(--space-small);
-        } */
-
-
-
-        >*:first-child:not(picture):not(figure) {
-            margin-bottom: var(--space-small);
-        }
-
-        a {
-            margin-top: var(--space-tiny);
-        }
-
-        img {
-            height: 100%;
-        }
+    &:not(.background-image)>picture:first-child+* {
+      margin-top: var(--space-small);
     }
+
+    &.background-image {
+      grid-template-rows: 1fr;
+      overflow: hidden;
+    }
+
+    &.background-image>* {
+      grid-row: 1;
+      grid-column: 1;
+    }
+
+    &.background-image> :not(picture) {
+      display: grid;
+      grid-auto-rows: min-content;
+      >div { margin: 0; }
+    }
+
+    &.background-image>*:not(picture) { z-index: 1; }
+    &.background-image picture, &.background-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      aspect-ratio: auto;
+    }
+
+    &>.background-overlay {
+      background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
+      margin: 0 !important;
+    }
+
+    >*:first-child:not(picture):not(figure) { margin-bottom: var(--space-small); }
+    a { margin-top: var(--space-tiny); }
+    img { height: 100%; }
+
+    &:not(.loaded) .skeleton {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #f0f0f0;
+      animation: pulse 1.5s infinite ease-in-out;
+    }
+
+    &:not(.loaded) .skeleton::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      animation: shimmer 1.5s infinite linear;
+    }
+
+    &:not(.loaded) .skeleton::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: 
+        linear-gradient(#ddd 1.5em, transparent 1.5em) 10px 10px no-repeat,
+        linear-gradient(#ddd 1em, transparent 1em) 10px 40px no-repeat,
+        linear-gradient(#ddd 2em, transparent 2em) 10px 90px no-repeat;
+      background-size: 80% 1.5em, 90% 1em, 30% 2em;
+    }
+
+    &.loaded .skeleton {
+      display: none;
+    }
+  }
+
+  custom-card {
+    display: block; /* Fallback if JS fails */
+    min-height: 200px;
+  }
 
 
 
@@ -1596,7 +1552,7 @@ body>* {
         grid-column: 2 / -2;
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-        grid-auto-rows: minmax(200px, auto);
+        grid-auto-rows: minmax(200px, 300px);
         /* for testing CLS reduction */
         gap: var(--space-medium);
 
@@ -2044,8 +2000,3 @@ div#products {
     }
 }
 
-/* Ensure the card respects container constraints */
-custom-card {
-    display: block;
-    min-height: 200px;
-}
