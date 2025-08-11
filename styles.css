@@ -1637,13 +1637,6 @@ footer {
 body {
 
     
-    /* CLS */
- section {
-    
-    /* CLS */
-    content-visibility: auto;
-    contain-intrinsic-size: auto 500px;
- }
 
     transition: filter 0.3s ease;
 
