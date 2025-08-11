@@ -1622,6 +1622,10 @@ main {
     row-gap: var(--space-large);
     margin: var(--space-medium) 0 var(--space-medium) 0;
 
+    /* CLS */
+    content-visibility: auto;
+    contain-intrinsic-size: auto 500px;
+
 }
 
 footer {
