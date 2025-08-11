@@ -1520,7 +1520,7 @@ body>* {
     display: grid;
     grid-template-columns: subgrid;
     grid-column: gutter-left / gutter-right;
-    transition: all ease-in-out 0.25s;
+    transition: all ease-in-out 0.25s; 
 
     >* {
 
@@ -1624,6 +1624,9 @@ main {
     row-gap: var(--space-large);
     margin: var(--space-medium) 0 var(--space-medium) 0;
 
+    >section {
+        min-height: 300px;
+    }
     /* CLS */
     /* height: 100vh; */
 
