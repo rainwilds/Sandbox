@@ -412,19 +412,19 @@ function manageHead(attributes = {}, businessInfo = {}) {
     });
 
     // Load additional scripts (scripts.js if needed; components loaded dynamically below)
-    const commonScripts = [
-        { src: './js/scripts.js', defer: true }
-    ];
-    commonScripts.forEach(({ src, defer }) => {
-        if (!document.querySelector(`script[src="${src}"]`)) {
-            const script = document.createElement('script');
-            script.src = src;
-            script.type = 'module';
-            if (defer) script.defer = true;
-            head.appendChild(script);
-            console.log(`Loaded script: ${src}${defer ? ' (deferred)' : ''}`);
-        }
-    });
+    // const commonScripts = [
+    //     { src: './js/scripts.js', defer: true }
+    // ];
+    // commonScripts.forEach(({ src, defer }) => {
+    //     if (!document.querySelector(`script[src="${src}"]`)) {
+    //         const script = document.createElement('script');
+    //         script.src = src;
+    //         script.type = 'module';
+    //         if (defer) script.defer = true;
+    //         head.appendChild(script);
+    //         console.log(`Loaded script: ${src}${defer ? ' (deferred)' : ''}`);
+    //     }
+    // });
 
     // Add favicon links for various devices
     const favicons = [
