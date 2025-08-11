@@ -1617,7 +1617,7 @@ body>* {
         grid-column: 2 / -2;
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-        grid-auto-rows: minmax(200px, auto)  /* for testing CLS reduction */
+        grid-auto-rows: minmax(200px, auto);  /* for testing CLS reduction */
         gap: var(--space-medium);
 
     }
