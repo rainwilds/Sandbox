@@ -1896,7 +1896,3 @@ div#products {
     }
 }
 
-custom-card {
-            content-visibility: hidden;
-        contain-intrinsic-size: 300px 300px;
-}
