@@ -938,7 +938,8 @@
         overflow: auto;
         /* needed to make sure that border-radius on background-images works */
 
-        content-visibility: auto; contain-intrinsic-size: 300px 300px
+        content-visibility: auto;
+        contain-intrinsic-size: 300px 300px;
 
         &:not(.background-image)>picture:first-child+* {
             margin-top: var(--space-small);
