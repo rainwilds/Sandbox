@@ -1623,7 +1623,7 @@ main {
     margin: var(--space-medium) 0 var(--space-medium) 0;
 
     /* CLS */
-    height: 100vh;
+    /* height: 100vh; */
 
 }
 
