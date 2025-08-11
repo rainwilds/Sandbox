@@ -412,19 +412,19 @@ function manageHead(attributes = {}, businessInfo = {}) {
     });
 
     // Load additional scripts (scripts.js if needed; components loaded dynamically below)
-    // const commonScripts = [
-    //     { src: './js/scripts.js', defer: true }
-    // ];
-    // commonScripts.forEach(({ src, defer }) => {
-    //     if (!document.querySelector(`script[src="${src}"]`)) {
-    //         const script = document.createElement('script');
-    //         script.src = src;
-    //         script.type = 'module';
-    //         if (defer) script.defer = true;
-    //         head.appendChild(script);
-    //         console.log(`Loaded script: ${src}${defer ? ' (deferred)' : ''}`);
-    //     }
-    // });
+    const commonScripts = [
+        { src: './js/scripts.js', defer: true }
+    ];
+    commonScripts.forEach(({ src, defer }) => {
+        if (!document.querySelector(`script[src="${src}"]`)) {
+            const script = document.createElement('script');
+            script.src = src;
+            script.type = 'module';
+            if (defer) script.defer = true;
+            head.appendChild(script);
+            console.log(`Loaded script: ${src}${defer ? ' (deferred)' : ''}`);
+        }
+    });
 
     // Add favicon links for various devices
     const favicons = [
@@ -650,30 +650,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const head = document.head || document.createElement('head');
     if (!document.head) document.documentElement.prepend(head);
 
-    // Remove premature 'loaded' class immediately
-    document.querySelectorAll('custom-card').forEach(card => {
-        if (card.classList.contains('loaded')) {
-            console.warn('Removing premature "loaded" class from custom-card on DOM load');
-            card.classList.remove('loaded');
-        }
-    });
-
-    // Add mutation observer to catch late class additions
-    const observer = new MutationObserver((mutations) => {
-        mutations.forEach((mutation) => {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                const card = mutation.target;
-                if (card.tagName.toLowerCase() === 'custom-card' && card.classList.contains('loaded')) {
-                    console.warn('Removing late "loaded" class from custom-card');
-                    card.classList.remove('loaded');
-                }
-            }
-        });
-    });
-    document.querySelectorAll('custom-card').forEach(card => {
-        observer.observe(card, { attributes: true, attributeFilter: ['class'] });
-    });
-
     // Dynamically load per-page components from data-components
     if (attributes.components) {
         const componentList = attributes.components.split(' ').filter(Boolean);
@@ -684,7 +660,9 @@ document.addEventListener('DOMContentLoaded', async () => {
                 script.src = scriptPath;
                 script.type = 'module';
                 script.defer = true;
-                script.onerror = () => console.error(`Failed to load component script: ${scriptPath}`);
+                script.onerror = () => {
+                    console.error(`Failed to load component script: ${scriptPath}`);
+                };
                 head.appendChild(script);
                 console.log(`Loaded component script: ${scriptPath}`);
             }

@@ -1,278 +1,343 @@
 import { generatePictureMarkup } from '../picture-generator.js';
 
 class CustomCard extends HTMLElement {
-  constructor() {
-    super();
-    this.isVisible = false;
-    this.isInitialized = false;
-    this.callbacks = [];
-    this.attachShadow({ mode: 'open' });
-    this.shadowRoot.innerHTML = `<style>
-      :host {
-        display: block;
-        min-height: 200px;
-        contain-intrinsic-size: 290px 200px;
-        position: relative;
-      }
-      .skeleton {
-        display: block;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: #f0f0f0;
-        animation: pulse 1.5s infinite ease-in-out;
-      }
-      .skeleton::before {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-        animation: shimmer 1.5s infinite linear;
-      }
-      .skeleton::after {
-        content: '';
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(#ddd 1.5em, transparent 1.5em) 10px 10px no-repeat,
-                   linear-gradient(#ddd 1em, transparent 1em) 10px 40px no-repeat,
-                   linear-gradient(#ddd 2em, transparent 2em) 10px 90px no-repeat;
-        background-size: 80% 1.5em, 90% 1em, 30% 2em;
-      }
-      :host(.loaded) .skeleton { display: none; }
-      @keyframes pulse { 50% { background-color: #e0e0e0; } }
-      @keyframes shimmer { 100% { left: 100%; } }
-    </style><div class="skeleton"></div>`;
-    // Check initial visibility
-    const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        this.isVisible = true;
-        observer.disconnect();
-        if (!this.isInitialized) {
-          this.connectedCallback();
+    constructor() {
+        super();
+        this.isVisible = false;
+        this.isInitialized = false;
+        this.callbacks = [];
+        // Attach shadow DOM
+        this.attachShadow({ mode: 'open' });
+        // Set up IntersectionObserver for lazy loading
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                this.isVisible = true;
+                observer.disconnect();
+                if (!this.isInitialized) {
+                    this.connectedCallback();
+                }
+            }
+        }, { rootMargin: '50px' });
+        observer.observe(this);
+    }
+
+    connectedCallback() {
+        if (this.isInitialized || !this.isVisible) return;
+        this.isInitialized = true;
+
+        try {
+            this.render();
+            this.callbacks.forEach(callback => callback());
+        } catch (error) {
+            console.error('Error in CustomCard connectedCallback:', error);
+            this.renderFallback();
         }
-      }
-    }, { rootMargin: '50px' });
-    const isInitiallyVisible = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
-        this.isVisible = true;
-        if (!this.isInitialized) {
-          this.connectedCallback();
+    }
+
+    disconnectedCallback() {
+        this.callbacks = [];
+        this.isInitialized = false; // Reset flag on disconnect
+    }
+
+    addCallback(callback) {
+        this.callbacks.push(callback);
+    }
+
+    render() {
+        try {
+            // Get attributes
+            const heading = this.getAttribute('heading') || 'Default Heading';
+            const description = this.getAttribute('description') || 'Default description text.';
+            const buttonHref = this.getAttribute('button-href') || '#';
+            const buttonText = this.getAttribute('button-text') || 'Button';
+            const hasBackgroundOverlay = this.hasAttribute('background-overlay');
+            const backgroundOverlayColor = this.getAttribute('background-overlay') || 'light-dark(var(--color-static-light-4), var(--color-static-dark-2))';
+            const hasBackgroundColor = this.hasAttribute('background-color');
+            const backgroundColorClass = hasBackgroundColor ? this.getAttribute('background-color') : '';
+            const hasBorder = this.hasAttribute('border');
+            const borderClass = hasBorder ? this.getAttribute('border') : '';
+            const hasBorderRadius = this.hasAttribute('border-radius');
+            const borderRadiusClass = hasBorderRadius && hasBorder ? this.getAttribute('border-radius') : '';
+            const hasBackdropFilter = this.hasAttribute('backdrop-filter');
+            const backdropFilterClass = hasBackdropFilter ? this.getAttribute('backdrop-filter') : '';
+            const classes = this.getAttribute('class') || '';
+            // Image attributes
+            const lightSrc = this.getAttribute('image-light-src') || '';
+            const darkSrc = this.getAttribute('image-dark-src') || '';
+            const alt = this.getAttribute('image-alt') || '';
+            const isDecorative = this.hasAttribute('image-decorative');
+            const mobileWidth = this.getAttribute('image-mobile-width') || '100vw';
+            const tabletWidth = this.getAttribute('image-tablet-width') || '100vw';
+            const desktopWidth = this.getAttribute('image-desktop-width') || '100vw';
+            const aspectRatio = this.getAttribute('image-aspect-ratio') || '';
+            const includeSchema = this.hasAttribute('image-include-schema');
+            const fetchPriority = this.getAttribute('image-fetchpriority') || '';
+            const loading = this.getAttribute('image-loading') || 'lazy';
+
+            // Accessibility warning for missing alt text
+            if (!alt && !isDecorative && (lightSrc || darkSrc)) {
+                console.warn(`<custom-card image-light-src="${lightSrc || 'not provided'}" image-dark-src="${darkSrc || 'not provided'}"> is missing an image-alt attribute for accessibility.`);
+            }
+
+            // Build the card with optional background image
+            let backgroundImageHTML = '';
+            let overlayHTML = '';
+            const hasBackgroundImage = !!(lightSrc || darkSrc);
+            if (hasBackgroundImage) {
+                const src = lightSrc || darkSrc;
+                if (!src) {
+                    console.warn('No valid image source provided for <custom-card>. Skipping image rendering.');
+                } else {
+                    backgroundImageHTML = generatePictureMarkup({
+                        src,
+                        lightSrc,
+                        darkSrc,
+                        alt,
+                        isDecorative,
+                        mobileWidth,
+                        tabletWidth,
+                        desktopWidth,
+                        aspectRatio,
+                        includeSchema,
+                        customClasses: '',
+                        loading,
+                        fetchPriority
+                    });
+                    if (!backgroundImageHTML) {
+                        console.warn('Failed to generate picture markup for <custom-card>.');
+                    }
+                }
+            }
+
+            // Add the background-overlay div only if the attribute is present
+            if (hasBackgroundOverlay) {
+                overlayHTML = `<div class="background-overlay ${backdropFilterClass}" style="background-color: ${backgroundOverlayColor};"></div>`;
+            }
+
+            // Determine the main div class and content structure
+            let mainDivClass = 'card';
+            if (hasBackgroundImage) mainDivClass += ' background-image';
+            mainDivClass += ` ${classes} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`;
+
+            // Deduplicate classes
+            mainDivClass = [...new Set(mainDivClass.split(' '))].join(' ').trim();
+
+            // Check if 'space-between' and 'padding-medium' are in the classes attribute
+            const classList = classes.split(' ').filter(cls => cls.length > 0);
+            const hasSpaceBetween = classList.includes('space-between');
+            const hasPaddingMedium = classList.includes('padding-medium');
+            const innerDivClasses = [];
+            if (hasPaddingMedium) innerDivClasses.push('padding-medium');
+            if (hasSpaceBetween) innerDivClasses.push('space-between');
+            const innerDivClass = innerDivClasses.length > 0 ? innerDivClasses.join(' ') : '';
+
+            const contentHTML = hasBackgroundImage
+                ? `
+                    <div${innerDivClass ? ` class="${innerDivClass}"` : ''}>
+                        <hgroup>
+                            <h2>${heading}</h2>
+                            <p>${description}</p>
+                        </hgroup>
+                        <a class="button" href="${buttonHref}">${buttonText}</a>
+                    </div>
+                `
+                : `
+                    <hgroup>
+                        <h2>${heading}</h2>
+                        <p>${description}</p>
+                    </hgroup>
+                    <a class="button" href="${buttonHref}">${buttonText}</a>
+                `;
+
+            // Define styles for the component
+            const styles = `
+                :host {
+                    display: block;
+                    position: relative;
+                }
+                .card {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    padding: 1rem;
+                    box-sizing: border-box;
+                }
+                .background-image {
+                    position: relative;
+                    width: 100%;
+                    height: 100%;
+                }
+                .background-image picture, .background-image img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                }
+                .background-overlay {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    z-index: 1;
+                }
+                div.padding-medium {
+                    padding: 1rem;
+                }
+                div.space-between {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: space-between;
+                    height: 100%;
+                }
+                hgroup {
+                    text-align: center;
+                    z-index: 2;
+                }
+                h2 {
+                    margin: 0.5rem 0;
+                    font-size: 1.5rem;
+                }
+                p {
+                    margin: 0.5rem 0;
+                }
+                a.button {
+                    display: inline-block;
+                    padding: 0.5rem 1rem;
+                    text-decoration: none;
+                    color: white;
+                    background-color: #007bff;
+                    border-radius: 4px;
+                    z-index: 2;
+                }
+                a.button:hover {
+                    background-color: #0056b3;
+                }
+            `;
+
+            // Set the shadow DOM content
+            this.shadowRoot.innerHTML = `
+                <style>${styles}</style>
+                <div class="${mainDivClass}">
+                    ${backgroundImageHTML || ''}
+                    ${overlayHTML}
+                    ${contentHTML}
+                </div>
+            `;
+
+            // Add onerror to the background image for fallback
+            const backgroundImg = this.shadowRoot.querySelector('img');
+            if (backgroundImg) {
+                backgroundImg.onerror = () => {
+                    console.warn(`Failed to load image: ${lightSrc || darkSrc}. Falling back to placeholder.`);
+                    backgroundImg.src = 'https://placehold.co/3000x2000';
+                    if (!isDecorative) backgroundImg.alt = alt || 'Placeholder image';
+                    backgroundImg.onerror = null;
+                };
+            }
+
+            // Add schema meta if includeSchema and image is present
+            if (includeSchema && hasBackgroundImage && backgroundImageHTML) {
+                const figure = this.shadowRoot.querySelector('figure');
+                if (figure) {
+                    const metaUrl = document.createElement('meta');
+                    metaUrl.setAttribute('itemprop', 'url');
+                    metaUrl.setAttribute('content', (lightSrc || darkSrc) ? new URL(lightSrc || darkSrc, window.location.origin).href : '');
+                    figure.appendChild(metaUrl);
+
+                    const metaDescription = document.createElement('meta');
+                    metaDescription.setAttribute('itemprop', 'description');
+                    metaDescription.setAttribute('content', alt);
+                    figure.appendChild(metaDescription);
+                }
+            }
+
+            // Clean up background image attributes if rendered
+            if (backgroundImg) {
+                backgroundImg.removeAttribute('image-light-src');
+                backgroundImg.removeAttribute('image-dark-src');
+                backgroundImg.removeAttribute('image-aspect-ratio');
+                backgroundImg.removeAttribute('image-mobile-width');
+                backgroundImg.removeAttribute('image-tablet-width');
+                backgroundImg.removeAttribute('image-desktop-width');
+                backgroundImg.removeAttribute('image-include-schema');
+                backgroundImg.removeAttribute('image-fetchpriority');
+                backgroundImg.removeAttribute('image-loading');
+                backgroundImg.removeAttribute('image-decorative');
+            }
+        } catch (error) {
+            console.error('Error rendering CustomCard:', error);
+            this.renderFallback();
         }
-        isInitiallyVisible.disconnect();
-      }
-    }, { rootMargin: '0px' }).observe(this);
-    observer.observe(this);
-  }
-
-  connectedCallback() {
-    if (this.isInitialized || !this.isVisible) return;
-    this.isInitialized = true;
-
-    try {
-      const cardElement = this.render();
-      this.shadowRoot.appendChild(cardElement);
-      this.classList.add('loaded'); // Add to host after rendering
-      this.callbacks.forEach(callback => callback());
-    } catch (error) {
-      console.error('Error in CustomCard connectedCallback:', error);
-      this.shadowRoot.appendChild(this.renderFallback());
-      this.classList.add('loaded'); // Add on fallback
-    }
-  }
-
-  disconnectedCallback() {
-    this.callbacks = [];
-    this.isInitialized = false;
-  }
-
-  addCallback(callback) {
-    this.callbacks.push(callback);
-  }
-
-  render() {
-    const heading = this.getAttribute('heading') || 'Default Heading';
-    const description = this.getAttribute('description') || 'Default description text.';
-    const buttonHref = this.getAttribute('button-href') || '#';
-    const buttonText = this.getAttribute('button-text') || 'Button';
-    const hasBackgroundOverlay = this.hasAttribute('background-overlay');
-    const hasBackgroundColor = this.hasAttribute('background-color');
-    const backgroundColorClass = hasBackgroundColor ? this.getAttribute('background-color') : '';
-    const hasBorder = this.hasAttribute('border');
-    const borderClass = hasBorder ? this.getAttribute('border') : '';
-    const hasBorderRadius = this.hasAttribute('border-radius');
-    const borderRadiusClass = hasBorderRadius && hasBorder ? this.getAttribute('border-radius') : '';
-    const hasBackdropFilter = this.hasAttribute('backdrop-filter');
-    const backdropFilterClass = hasBackdropFilter ? this.getAttribute('backdrop-filter') : '';
-    const customClasses = this.getAttribute('class') || '';
-    const styleAttribute = this.getAttribute('style') || '';
-    const lightSrc = this.getAttribute('image-light-src') || '';
-    const darkSrc = this.getAttribute('image-dark-src') || '';
-    const alt = this.getAttribute('image-alt') || '';
-    const isDecorative = this.hasAttribute('image-decorative');
-    const mobileWidth = this.getAttribute('image-mobile-width') || '100vw';
-    const tabletWidth = this.getAttribute('image-tablet-width') || '100vw';
-    const desktopWidth = this.getAttribute('image-desktop-width') || '100vw';
-    const aspectRatio = this.getAttribute('image-aspect-ratio') || '';
-    const includeSchema = this.hasAttribute('image-include-schema');
-    const fetchPriority = this.getAttribute('image-fetchpriority') || '';
-    const loading = this.getAttribute('image-loading') || 'lazy';
-
-    if (!alt && !isDecorative && (lightSrc || darkSrc)) {
-      console.warn(`<custom-card image-light-src="${lightSrc || 'not provided'}" image-dark-src="${darkSrc || 'not provided'}"> is missing an image-alt attribute for accessibility.`);
     }
 
-    let backgroundImageHTML = '';
-    let overlayHTML = '';
-    const hasBackgroundImage = !!(lightSrc || darkSrc);
-    if (hasBackgroundImage) {
-      const src = lightSrc || darkSrc;
-      if (!src) {
-        console.warn('No valid image source provided for <custom-card>. Skipping image rendering.');
-      } else {
-        backgroundImageHTML = generatePictureMarkup({
-          src,
-          lightSrc,
-          darkSrc,
-          alt,
-          isDecorative,
-          mobileWidth,
-          tabletWidth,
-          desktopWidth,
-          aspectRatio,
-          includeSchema,
-          customClasses: '',
-          loading,
-          fetchPriority
-        });
-        if (!backgroundImageHTML) {
-          console.warn('Failed to generate picture markup for <custom-card>.');
-        }
-      }
+    renderFallback() {
+        const styles = `
+            :host {
+                display: block;
+                position: relative;
+            }
+            .card {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                padding: 1rem;
+                box-sizing: border-box;
+            }
+            hgroup {
+                text-align: center;
+            }
+            h2 {
+                margin: 0.5rem 0;
+                font-size: 1.5rem;
+            }
+            p {
+                margin: 0.5rem 0;
+            }
+            a.button {
+                display: inline-block;
+                padding: 0.5rem 1rem;
+                text-decoration: none;
+                color: white;
+                background-color: #007bff;
+                border-radius: 4px;
+            }
+            a.button:hover {
+                background-color: #0056b3;
+            }
+        `;
+        this.shadowRoot.innerHTML = `
+            <style>${styles}</style>
+            <div class="card">
+                <hgroup>
+                    <h2>Error</h2>
+                    <p>Failed to render card. Check console for details.</p>
+                </hgroup>
+                <a class="button" href="#">Button</a>
+            </div>
+        `;
     }
 
-    if (hasBackgroundOverlay) {
-      overlayHTML = `<div class="background-overlay ${backdropFilterClass}"></div>`;
+    static get observedAttributes() {
+        return [
+            'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-color', 'border', 'border-radius', 'backdrop-filter', 'class',
+            'image-light-src', 'image-dark-src', 'image-alt', 'image-decorative', 'image-mobile-width', 'image-tablet-width', 'image-desktop-width', 'image-aspect-ratio', 'image-include-schema', 'image-fetchpriority', 'image-loading'
+        ];
     }
 
-    let mainDivClass = 'card';
-    if (hasBackgroundImage) mainDivClass += ' background-image';
-    mainDivClass += ` ${customClasses} ${backgroundColorClass} ${borderClass} ${borderRadiusClass}`;
-    mainDivClass = [...new Set(mainDivClass.split(' '))].join(' ').trim();
-
-    const classList = customClasses.split(' ').filter(cls => cls.length > 0);
-    const hasSpaceBetween = classList.includes('space-between');
-    const hasPaddingMedium = classList.includes('padding-medium');
-    const innerDivClasses = [];
-    if (hasPaddingMedium) innerDivClasses.push('padding-medium');
-    if (hasSpaceBetween) innerDivClasses.push('space-between');
-    const innerDivClass = innerDivClasses.length > 0 ? innerDivClasses.join(' ') : '';
-
-    const contentHTML = hasBackgroundImage
-      ? `
-        <div${innerDivClass ? ` class="${innerDivClass}"` : ''}>
-          <hgroup>
-            <h2>${heading}</h2>
-            <p>${description}</p>
-          </hgroup>
-          <a class="button" href="${buttonHref}">${buttonText}</a>
-        </div>
-      `
-      : `
-        <hgroup>
-          <h2>${heading}</h2>
-          <p>${description}</p>
-        </hgroup>
-        <a class="button" href="${buttonHref}">${buttonText}</a>
-      `;
-
-    const cardElement = document.createElement('div');
-    cardElement.className = mainDivClass;
-    if (styleAttribute) {
-      cardElement.setAttribute('style', styleAttribute);
+    attributeChangedCallback() {
+        if (this.isInitialized || !this.isVisible) return;
+        this.connectedCallback();
     }
-    cardElement.innerHTML = `
-      ${backgroundImageHTML || ''}
-      ${overlayHTML}
-      ${contentHTML}
-    `;
-
-    const backgroundImg = cardElement.querySelector('img');
-    if (backgroundImg) {
-      backgroundImg.onerror = () => {
-        console.warn(`Failed to load image: ${lightSrc || darkSrc}. Falling back to placeholder.`);
-        backgroundImg.src = 'https://placehold.co/3000x2000';
-        if (!isDecorative) backgroundImg.alt = alt || 'Placeholder image';
-        backgroundImg.onerror = null;
-      };
-    }
-
-    if (includeSchema && hasBackgroundImage && backgroundImageHTML) {
-      const figure = cardElement.querySelector('figure');
-      if (figure) {
-        const metaUrl = document.createElement('meta');
-        metaUrl.setAttribute('itemprop', 'url');
-        metaUrl.setAttribute('content', (lightSrc || darkSrc) ? new URL(lightSrc || darkSrc, window.location.origin).href : '');
-        figure.appendChild(metaUrl);
-
-        const metaDescription = document.createElement('meta');
-        metaDescription.setAttribute('itemprop', 'description');
-        metaDescription.setAttribute('content', alt);
-        figure.appendChild(metaDescription);
-      }
-    }
-
-    if (backgroundImg) {
-      backgroundImg.removeAttribute('image-light-src');
-      backgroundImg.removeAttribute('image-dark-src');
-      backgroundImg.removeAttribute('image-aspect-ratio');
-      backgroundImg.removeAttribute('image-mobile-width');
-      backgroundImg.removeAttribute('image-tablet-width');
-      backgroundImg.removeAttribute('image-desktop-width');
-      backgroundImg.removeAttribute('image-include-schema');
-      backgroundImg.removeAttribute('image-fetchpriority');
-      backgroundImg.removeAttribute('image-loading');
-      backgroundImg.removeAttribute('image-decorative');
-    }
-
-    return cardElement;
-  }
-
-  renderFallback() {
-    const cardElement = document.createElement('div');
-    cardElement.className = 'card';
-    cardElement.innerHTML = `
-      <hgroup>
-        <h2>Error</h2>
-        <p>Failed to render card. Check console for details.</p>
-      </hgroup>
-      <a class="button" href="#">Button</a>
-    `;
-    return cardElement;
-  }
-
-  static get observedAttributes() {
-    return [
-      'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-color', 'border', 'border-radius', 'backdrop-filter', 'class', 'style',
-      'image-light-src', 'image-dark-src', 'image-alt', 'image-decorative', 'image-mobile-width', 'image-tablet-width', 'image-desktop-width', 'image-aspect-ratio', 'image-include-schema', 'image-fetchpriority', 'image-loading'
-    ];
-  }
-
-  attributeChangedCallback() {
-    if (this.isInitialized || !this.isVisible) return;
-    this.connectedCallback();
-  }
 }
 
+// Register the custom element
 try {
-  customElements.define('custom-card', CustomCard);
+    customElements.define('custom-card', CustomCard);
 } catch (error) {
-  console.error('Error defining CustomCard element:', error);
+    console.error('Error defining CustomCard element:', error);
 }
