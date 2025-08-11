@@ -1,37 +1,82 @@
 import { generatePictureMarkup } from '../picture-generator.js';
 
 class CustomCard extends HTMLElement {
-    constructor() {
-        super();
-        this.isVisible = false;
-        this.isInitialized = false;
-        this.callbacks = [];
-        // Set up IntersectionObserver for lazy loading
-        const observer = new IntersectionObserver((entries) => {
-            if (entries[0].isIntersecting) {
-                this.isVisible = true;
-                observer.disconnect();
-                if (!this.isInitialized) {
-                    this.connectedCallback();
-                }
-            }
-        }, { rootMargin: '50px' });
-        observer.observe(this);
-    }
-
-    connectedCallback() {
-        if (this.isInitialized || !this.isVisible) return;
-        this.isInitialized = true;
-
-        try {
-            const cardElement = this.render();
-            this.replaceWith(cardElement);
-            this.callbacks.forEach(callback => callback());
-        } catch (error) {
-            console.error('Error in CustomCard connectedCallback:', error);
-            this.replaceWith(this.renderFallback());
+  constructor() {
+    super();
+    this.isVisible = false;
+    this.isInitialized = false;
+    this.callbacks = [];
+    this.attachShadow({ mode: 'open' }); // Use Shadow DOM for encapsulation
+    this.shadowRoot.innerHTML = `<style>
+      :host {
+        display: block;
+        min-height: 200px;
+        contain-intrinsic-size: 290px 200px;
+        position: relative;
+      }
+      .skeleton {
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #f0f0f0;
+        animation: pulse 1.5s infinite ease-in-out;
+      }
+      .skeleton::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+        animation: shimmer 1.5s infinite linear;
+      }
+      .skeleton::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(#ddd 1.5em, transparent 1.5em) 10px 10px no-repeat,
+                   linear-gradient(#ddd 1em, transparent 1em) 10px 40px no-repeat,
+                   linear-gradient(#ddd 2em, transparent 2em) 10px 90px no-repeat;
+        background-size: 80% 1.5em, 90% 1em, 30% 2em;
+      }
+      .loaded .skeleton { display: none; }
+      @keyframes pulse { 50% { background-color: #e0e0e0; } }
+      @keyframes shimmer { 100% { left: 100%; } }
+    </style><div class="skeleton"></div>`;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        this.isVisible = true;
+        observer.disconnect();
+        if (!this.isInitialized) {
+          this.connectedCallback();
         }
+      }
+    }, { rootMargin: '50px' });
+    observer.observe(this);
+  }
+
+  connectedCallback() {
+    if (this.isInitialized || !this.isVisible) return;
+    this.isInitialized = true;
+
+    try {
+      const cardElement = this.render();
+      this.shadowRoot.appendChild(cardElement);
+      this.shadowRoot.host.classList.add('loaded');
+      this.callbacks.forEach(callback => callback());
+    } catch (error) {
+      console.error('Error in CustomCard connectedCallback:', error);
+      this.shadowRoot.appendChild(this.renderFallback());
+      this.shadowRoot.host.classList.add('loaded');
     }
+  }
 
     disconnectedCallback() {
         this.callbacks = [];
