@@ -1624,11 +1624,12 @@ main {
     row-gap: var(--space-large);
     margin: var(--space-medium) 0 var(--space-medium) 0;
 
-    >section {
+    >section {  /* CLS */
         min-height: 300px;
+        height: fit-content;
     }
-    /* CLS */
-    /* height: 100vh; */
+   
+
 
 }
 
