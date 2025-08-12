@@ -28,7 +28,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
     // Preload fonts to improve performance
     const fonts = [
         { href: './fonts/acumin_pro_bold.woff2', type: 'font/woff2', crossorigin: 'anonymous' },
-        { href: './fonts/AdobeAldine-Regular.woff2', type: 'font/woff2', crossorigin: 'anonymous' }
+        { href: './fonts/acumin_pro_light.woff2', type: 'font/woff2', crossorigin: 'anonymous' }
     ];
     fonts.forEach(font => {
         if (!document.querySelector(`link[href="${font.href}"]`)) {
