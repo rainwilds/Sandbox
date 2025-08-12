@@ -7,8 +7,8 @@
 }
 
 @font-face {
-    font-family: 'acumin_prolight';
-    src: url('./fonts/acumin_pro_light.woff2') format('woff2');
+    font-family: 'poppinsregular';
+    src: url('./fonts/poppins_regular.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -218,7 +218,7 @@
         /* --font-1-weight-medium: 500; */
         /* --font-1-weight-heavy: 700 PLACEHOLDER; */
 
-        --font-2-family: acumin_prolight;
+        --font-2-family: poppinsregular;
         /* --font-2-weight-light: 300; */
         /* --font-2-weight-medium: 400 PLACEHOLDER; */
         /* --font-2-weight-heavy: 600 PLACEHOLDER; */
