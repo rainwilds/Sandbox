@@ -1,6 +1,6 @@
 export const WIDTHS = [768, 1024, 1366, 1920, 2560];
 export const FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
-export const VALID_ASPECT_RATIOS = ['16/9', '9/16', '3/2', '2/3', '1/1', '21/9'];
+export const VALID_ASPECT_RATIOS = new Set(['16/9', '9/16', '3/2', '2/3', '1/1', '21/9']);
 export const SIZES_BREAKPOINTS = [
     { maxWidth: 768, baseValue: '100vw' },
     { maxWidth: 1024, baseValue: '100vw' },
@@ -8,7 +8,8 @@ export const SIZES_BREAKPOINTS = [
     { maxWidth: 1920, baseValue: '100vw' },
     { maxWidth: 2560, baseValue: '100vw' },
 ];
-export const DEFAULT_SIZE = '3840px';
+export const DEFAULT_SIZE_VALUE = 3840;
+const BASE_PATH = './img/responsive/';
 
 export function generatePictureMarkup({
     src,
@@ -25,15 +26,15 @@ export function generatePictureMarkup({
     loading = 'lazy',
     fetchPriority = ''
 } = {}) {
-    if (!src) {
-        console.error('The "src" parameter is required for generatePictureMarkup');
+    const validExtensions = /\.(jpg|jpeg|png|webp|avif|jxl)$/i;
+    if (!src || !validExtensions.test(src)) {
+        console.error('The "src" parameter must be a valid image path');
         return '';
     }
 
-    // Extract base filenames without removing the numeric suffix (e.g., keep "landscape-photography-1")
-    let baseFilename = src.split('/').pop().split('.')[0];
-    let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.')[0] : null;
-    let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.')[0] : null;
+    let baseFilename = src.split('/').pop().split('.').slice(0, -1).join('.');
+    let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
+    let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
 
     if (lightSrc && !lightBaseFilename) {
         console.error('Invalid "lightSrc" parameter');
@@ -44,70 +45,63 @@ export function generatePictureMarkup({
         return '';
     }
 
-    // Parse widths to percentages
     const parseWidth = (widthStr) => {
         const vwMatch = widthStr.match(/(\d+)vw/);
         if (vwMatch) return parseInt(vwMatch[1]) / 100;
         const pxMatch = widthStr.match(/(\d+)px/);
-        if (pxMatch) return parseInt(pxMatch[1]) / window.innerWidth;
+        if (pxMatch) {
+            const winWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
+            return parseInt(pxMatch[1]) / winWidth;
+        }
         return 1.0;
     };
-    let mobilePercentage = Math.max(0.1, Math.min(2.0, parseWidth(mobileWidth)));
-    let tabletPercentage = Math.max(0.1, Math.min(2.0, parseWidth(tabletWidth)));
-    let desktopPercentage = Math.max(0.1, Math.min(2.0, parseWidth(desktopWidth)));
 
-    // Generate sizes attribute
+    const parsedWidths = {
+        mobile: Math.max(0.1, Math.min(2.0, parseWidth(mobileWidth))),
+        tablet: Math.max(0.1, Math.min(2.0, parseWidth(tabletWidth))),
+        desktop: Math.max(0.1, Math.min(2.0, parseWidth(desktopWidth)))
+    };
+
     const sizes = [
         ...SIZES_BREAKPOINTS.map(bp => {
-            const percentage = bp.maxWidth <= 768 ? mobilePercentage : (bp.maxWidth <= 1024 ? tabletPercentage : desktopPercentage);
+            const percentage = bp.maxWidth <= 768 ? parsedWidths.mobile : (bp.maxWidth <= 1024 ? parsedWidths.tablet : parsedWidths.desktop);
             return `(max-width: ${bp.maxWidth}px) ${percentage * 100}vw`;
         }),
-        `${parseInt(DEFAULT_SIZE) * desktopPercentage}px`
+        `${DEFAULT_SIZE_VALUE * parsedWidths.desktop}px`
     ].join(', ');
 
-    // Build picture HTML
-    let pictureHTML = '<picture class="animate animate-fade-in">';
+    const generateSrcset = (filename, format) =>
+        `${BASE_PATH}${filename}.${format} 3840w, ` +
+        WIDTHS.map(w => `${BASE_PATH}${filename}-${w}.${format} ${w}w`).join(', ');
 
+    let pictureHTML = '<picture class="animate animate-fade-in">';
     FORMATS.forEach(format => {
         if (lightSrc && darkSrc) {
-            const srcsetLight = [
-                `./img/responsive/${lightBaseFilename}.${format} 3840w`,
-                ...WIDTHS.map(w => `./img/responsive/${lightBaseFilename}-${w}.${format} ${w}w`)
-            ].join(', ');
-            pictureHTML += `<source srcset="${srcsetLight}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: light)">`;
-
-            const srcsetDark = [
-                `./img/responsive/${darkBaseFilename}.${format} 3840w`,
-                ...WIDTHS.map(w => `./img/responsive/${darkBaseFilename}-${w}.${format} ${w}w`)
-            ].join(', ');
-            pictureHTML += `<source srcset="${srcsetDark}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: dark)">`;
+            pictureHTML += `<source srcset="${generateSrcset(lightBaseFilename, format)}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: light)">`;
+            pictureHTML += `<source srcset="${generateSrcset(darkBaseFilename, format)}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: dark)">`;
         }
-
-        const srcset = [
-            `./img/responsive/${baseFilename}.${format} 3840w`,
-            ...WIDTHS.map(w => `./img/responsive/${baseFilename}-${w}.${format} ${w}w`)
-            ].join(', ');
-        pictureHTML += `<source srcset="${srcset}" sizes="${sizes}" type="image/${format}">`;
+        pictureHTML += `<source srcset="${generateSrcset(baseFilename, format)}" sizes="${sizes}" type="image/${format}">`;
     });
 
-    // Add img element
-    let imgClasses = [...new Set(customClasses.split(' ').filter(Boolean))];
-    if (aspectRatio && VALID_ASPECT_RATIOS.includes(aspectRatio)) {
+    const imgClasses = [...new Set(customClasses.trim().split(/\s+/).filter(Boolean))];
+    if (aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio)) {
         imgClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
     }
     const imgClassAttr = imgClasses.length ? ` class="${imgClasses.join(' ')}"` : '';
-    const altAttr = alt && !isDecorative ? ` alt="${alt}"` : '';
+    const altAttr = isDecorative ? ' alt=""' : (alt ? ` alt="${alt}"` : '');
     const ariaHiddenAttr = isDecorative ? ' aria-hidden="true"' : '';
-    const loadingAttr = loading ? ` loading="${loading}"` : '';
-    const fetchPriorityAttr = fetchPriority ? ` fetchpriority="${fetchPriority}"` : '';
+    const validLoading = ['eager', 'lazy'].includes(loading) ? loading : 'lazy';
+    const validFetchPriority = ['high', 'low', 'auto'].includes(fetchPriority) ? fetchPriority : '';
+    const loadingAttr = validLoading ? ` loading="${validLoading}"` : '';
+    const fetchPriorityAttr = validFetchPriority ? ` fetchpriority="${validFetchPriority}"` : '';
+
     pictureHTML += `<img src="${src}"${imgClassAttr}${altAttr}${ariaHiddenAttr}${loadingAttr}${fetchPriorityAttr}>`;
     pictureHTML += '</picture>';
 
-    // Wrap in figure if schema included
     if (includeSchema) {
         let figureHTML = '<figure itemscope itemtype="https://schema.org/ImageObject">';
         figureHTML += pictureHTML;
-        if (alt) {
+        if (alt && alt.trim()) {
             figureHTML += `<figcaption itemprop="name">${alt}</figcaption>`;
         }
         figureHTML += '</figure>';
