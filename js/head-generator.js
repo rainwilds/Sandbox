@@ -1,3 +1,5 @@
+console.log('** head-generator.js start... **');
+
 // Manages the <head> section by adding meta tags, styles, scripts, and schema markup
 function manageHead(attributes = {}, businessInfo = {}) {
     console.log('manageHead called with attributes:', attributes);
@@ -6,22 +8,20 @@ function manageHead(attributes = {}, businessInfo = {}) {
     let head = document.head || document.createElement('head');
     if (!document.head) document.documentElement.prepend(head);
 
-    // Add stylesheets
-    const stylesheets = attributes.stylesheets ? attributes.stylesheets.split(',') : ['./styles.css'];
+    // Add stylesheets with combined preload and stylesheet
+    const stylesheets = attributes.stylesheets ? attributes.stylesheets.split(',').map(s => s.trim()).filter(Boolean) : ['./styles.css'];
     stylesheets.forEach(href => {
+        if (!href) {
+            console.warn('Skipping empty stylesheet URL');
+            return;
+        }
         if (!document.querySelector(`link[href="${href}"]`)) {
-            const preloadLink = document.createElement('link');
-            preloadLink.rel = 'preload';
-            preloadLink.href = href.trim();
-            preloadLink.as = 'style';
-            head.appendChild(preloadLink);
-            console.log(`Preloaded stylesheet: ${href}`);
-
-            const styleLink = document.createElement('link');
-            styleLink.rel = 'stylesheet';
-            styleLink.href = href.trim();
-            head.appendChild(styleLink);
-            console.log(`Loaded stylesheet: ${href}`);
+            const link = document.createElement('link');
+            link.rel = 'preload stylesheet';
+            link.href = href;
+            link.as = 'style';
+            head.appendChild(link);
+            console.log(`Added stylesheet with preload: ${href}`);
         }
     });
 
@@ -38,11 +38,11 @@ function manageHead(attributes = {}, businessInfo = {}) {
             link.type = font.type;
             if (font.crossorigin) link.crossOrigin = font.crossorigin;
             head.appendChild(link);
-            console.log(`Preloaded font: ${font.href}`);
+            console.log(`Added font preload: ${font.href}`);
         }
     });
 
-    // Preload Font Awesome styles for icons
+    // Add Font Awesome styles with combined preload and stylesheet
     const fontAwesomeStyles = [
         './fonts/fontawesome/fontawesome.min.css',
         './fonts/fontawesome/sharp-light.min.css',
@@ -51,11 +51,11 @@ function manageHead(attributes = {}, businessInfo = {}) {
     fontAwesomeStyles.forEach(href => {
         if (!document.querySelector(`link[href="${href}"]`)) {
             const link = document.createElement('link');
-            link.rel = 'preload';
+            link.rel = 'preload stylesheet';
             link.href = href;
             link.as = 'style';
             head.appendChild(link);
-            console.log(`Preloaded Font Awesome style: ${href}`);
+            console.log(`Added Font Awesome stylesheet with preload: ${href}`);
         }
     });
 
@@ -67,7 +67,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
         link.as = 'script';
         link.crossOrigin = 'anonymous';
         head.appendChild(link);
-        console.log('Preloaded picture-generator.js');
+        console.log('Added picture-generator.js preload');
     }
     if (!document.querySelector(`script[src="./js/picture-generator.js"]`)) {
         const script = document.createElement('script');
@@ -400,32 +400,6 @@ function manageHead(attributes = {}, businessInfo = {}) {
     head.appendChild(schemaScript);
     console.log('Added JSON-LD schema');
 
-    // Load Font Awesome stylesheets
-    fontAwesomeStyles.forEach(href => {
-        if (!document.querySelector(`link[rel="stylesheet"][href="${href}"]`)) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = href;
-            head.appendChild(link);
-            console.log(`Loaded Font Awesome stylesheet: ${href}`);
-        }
-    });
-
-    // Load additional scripts (scripts.js if needed; components loaded dynamically below)
-    // const commonScripts = [
-    //     { src: './js/scripts.js', defer: true }
-    // ];
-    // commonScripts.forEach(({ src, defer }) => {
-    //     if (!document.querySelector(`script[src="${src}"]`)) {
-    //         const script = document.createElement('script');
-    //         script.src = src;
-    //         script.type = 'module';
-    //         if (defer) script.defer = true;
-    //         head.appendChild(script);
-    //         console.log(`Loaded script: ${src}${defer ? ' (deferred)' : ''}`);
-    //     }
-    // });
-
     // Add favicon links for various devices
     const favicons = [
         { rel: 'apple-touch-icon', sizes: '180x180', href: './img/icons/apple-touch-icon.png' },
@@ -514,10 +488,10 @@ function manageHead(attributes = {}, businessInfo = {}) {
                     })();
                 `;
                 snipcartScript.onload = () => {
-                    console.log('Snipcart script loaded successfully');
+                    console.log('Added Snipcart script successfully');
                 };
                 snipcartScript.onerror = () => {
-                    console.error('Failed to load Snipcart script');
+                    console.error('Failed to add Snipcart script');
                 };
                 document.body.appendChild(snipcartScript);
                 console.log('Added Snipcart script');
@@ -542,12 +516,12 @@ function manageHead(attributes = {}, businessInfo = {}) {
             const erudaScript = document.createElement('script');
             erudaScript.src = 'https://cdn.jsdelivr.net/npm/eruda';
             erudaScript.onload = () => {
-                console.log('Eruda script loaded, initializing...');
+                console.log('Added Eruda script, initializing...');
                 window.eruda.init();
-                console.log('Eruda initialized successfully');
+                console.log('Added Eruda successfully');
             };
             erudaScript.onerror = () => {
-                console.error('Failed to load Eruda script');
+                console.error('Failed to add Eruda script');
             };
             document.head.appendChild(erudaScript);
             console.log('Added Eruda script');
@@ -569,7 +543,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const response = await fetch('./JSON/business-info.json');
         if (response.ok) {
             businessInfo = await response.json();
-            console.log('Loaded business-info.json:', businessInfo);
+            console.log('Added business-info.json:', businessInfo);
         } else {
             console.warn('Failed to load business-info.json:', response.status);
         }
@@ -661,10 +635,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 script.type = 'module';
                 script.defer = true;
                 script.onerror = () => {
-                    console.error(`Failed to load component script: ${scriptPath}`);
+                    console.error(`Failed to add component script: ${scriptPath}`);
                 };
                 head.appendChild(script);
-                console.log(`Loaded component script: ${scriptPath}`);
+                console.log(`Added component script: ${scriptPath}`);
             }
         });
     }
@@ -672,3 +646,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Pass merged attributes and businessInfo to manageHead
     manageHead(attributes, businessInfo);
 });
+
+console.log('** head-generator.js end... **');
