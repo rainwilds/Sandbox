@@ -138,7 +138,7 @@ class CustomCard extends HTMLElement {
                     alt: attrs.alt,
                     isDecorative: attrs.isDecorative,
                     mobileWidth: attrs.mobileWidth,
-                    tabletWidth: attrs.tableWidth,
+                    tabletWidth: attrs.tabletWidth,
                     desktopWidth: attrs.desktopWidth,
                     aspectRatio: attrs.aspectRatio,
                     includeSchema: attrs.includeSchema,
@@ -157,18 +157,27 @@ class CustomCard extends HTMLElement {
             overlayHTML = `<div class="background-overlay ${attrs.backdropFilterClass}"></div>`;
         }
 
+        // Define padding-related classes to exclude from the outer div
+        const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
+        const customClassList = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls));
+        const innerPaddingClasses = attrs.customClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
+
+        // Outer div classes (exclude padding classes)
         const mainDivClassList = ['card'];
         if (hasBackgroundImage) mainDivClassList.push('background-image');
-        mainDivClassList.push(attrs.customClasses, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass);
+        mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass);
         const mainDivClass = mainDivClassList.filter(cls => cls).join(' ').trim();
 
+        // Inner div classes (include padding and space-between classes)
         const innerDivClassList = [];
-        if (!isFallback && attrs.customClasses.includes('padding-medium')) innerDivClassList.push('padding-medium');
-        if (!isFallback && attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
+        if (!isFallback) {
+            innerDivClassList.push(...innerPaddingClasses);
+            if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
+        }
         const innerDivClass = innerDivClassList.join(' ').trim();
 
         const contentHTML = `
-            <div${innerDivClass && !isFallback ? ` class="${innerDivClass}"` : ''} aria-live="polite">
+            <div${innerDivClass ? ` class="${innerDivClass}"` : ''} aria-live="polite">
                 <div role="group">
                     <h2>${attrs.heading}</h2>
                     <p>${attrs.description}</p>
