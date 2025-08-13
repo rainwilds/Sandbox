@@ -7,8 +7,8 @@
 }
 
 @font-face {
-    font-family: 'poppinsregular';
-    src: url('./fonts/poppins_regular.woff2') format('woff2');
+    font-family: 'futura_ptbook';
+    src: url('./fonts/futura_pt_book.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -213,12 +213,12 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
 
-        --font-1-family: acumin_probold;
+        --font-1-family: acumin_probold, Arial, sans-serif;
         /* --font-1-weight-light: 400; PLACEHOLDER */
         /* --font-1-weight-medium: 500; */
         /* --font-1-weight-heavy: 700 PLACEHOLDER; */
 
-        --font-2-family: poppinsregular;
+        --font-2-family: futura_ptbook, Arial, sans-serif;
         /* --font-2-weight-light: 300; */
         /* --font-2-weight-medium: 400 PLACEHOLDER; */
         /* --font-2-weight-heavy: 600 PLACEHOLDER; */
@@ -226,7 +226,7 @@
         --font-2-size-medium: 18px;
         --font-2-size-large: 22px;
 
-        font-family: var(--font-2-family), sans-serif;
+        font-family: var(--font-2-family);
         font-size: var(--font-2-size-medium);
 
         /* adobe font requirements */
