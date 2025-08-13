@@ -1624,10 +1624,10 @@ main {
     row-gap: var(--space-large);
     margin: var(--space-medium) 0 var(--space-medium) 0;
 
-    >section {  /* CLS */
+    /* >section { 
         min-height: 300px;
         height: fit-content;
-    }
+    } */
    
 
 
