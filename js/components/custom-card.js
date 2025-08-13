@@ -162,6 +162,16 @@ class CustomCard extends HTMLElement {
         const customClassList = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls));
         const innerPaddingClasses = attrs.customClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
 
+        // Extract padding-related styles from styleAttribute
+        let outerStyles = attrs.styleAttribute || '';
+        let paddingStyles = '';
+        if (!isFallback && outerStyles) {
+            const paddingRegex = /(padding[^:]*:[^;]+;)/gi;
+            const paddingMatches = outerStyles.match(paddingRegex) || [];
+            paddingStyles = paddingMatches.join(' ').trim();
+            outerStyles = outerStyles.replace(paddingRegex, '').trim();
+        }
+
         // Outer div classes (exclude padding classes)
         const mainDivClassList = ['card'];
         if (hasBackgroundImage) mainDivClassList.push('background-image');
@@ -176,8 +186,11 @@ class CustomCard extends HTMLElement {
         }
         const innerDivClass = innerDivClassList.join(' ').trim();
 
+        // Combine padding styles with any existing inner div styles
+        const innerDivStyle = paddingStyles ? ` style="${paddingStyles}"` : '';
+
         const contentHTML = `
-            <div${innerDivClass ? ` class="${innerDivClass}"` : ''} aria-live="polite">
+            <div${innerDivClass ? ` class="${innerDivClass}"` : ''}${innerDivStyle} aria-live="polite">
                 <div role="group">
                     <h2>${attrs.heading}</h2>
                     <p>${attrs.description}</p>
@@ -188,8 +201,8 @@ class CustomCard extends HTMLElement {
 
         const cardElement = document.createElement('div');
         cardElement.className = mainDivClass;
-        if (attrs.styleAttribute && !isFallback) {
-            cardElement.setAttribute('style', attrs.styleAttribute);
+        if (outerStyles && !isFallback) {
+            cardElement.setAttribute('style', outerStyles);
         }
         cardElement.innerHTML = `
             ${isFallback ? '' : (backgroundImageHTML || '')}
@@ -241,7 +254,7 @@ class CustomCard extends HTMLElement {
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) return;
-        const criticalAttributes = ['heading', 'description', 'button-href', 'button-text', 'img-light-src', 'img-dark-src', 'img-alt'];
+        const criticalAttributes = ['heading', 'description', 'button-href', 'button-text', 'img-light-src', 'img-dark-src', 'img-alt', 'style'];
         if (criticalAttributes.includes(name)) {
             this.initialize();
         }
