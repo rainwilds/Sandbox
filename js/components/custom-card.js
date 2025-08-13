@@ -48,7 +48,13 @@ class CustomCard extends HTMLElement {
             aspectRatio: this.getAttribute('img-aspect-ratio') || '',
             includeSchema: this.hasAttribute('img-include-schema'),
             fetchPriority: validFetchPriorities.includes(fetchPriority) ? fetchPriority : '',
-            loading: this.getAttribute('img-loading') || 'lazy'
+            loading: this.getAttribute('img-loading') || 'lazy',
+            // New attributes for inner <div>
+            innerBackgroundColorClass: this.hasAttribute('inner-background-color') ? this.getAttribute('inner-background-color') : '',
+            innerBorderClass: this.hasAttribute('inner-border') ? this.getAttribute('inner-border') : '',
+            innerBorderRadiusClass: this.hasAttribute('inner-border-radius') && this.hasAttribute('inner-border') ? this.getAttribute('inner-border-radius') : '',
+            innerBackdropFilterClass: this.hasAttribute('inner-backdrop-filter') ? this.getAttribute('inner-backdrop-filter') : '',
+            innerStyle: this.getAttribute('inner-style') || ''
         };
     }
 
@@ -116,7 +122,12 @@ class CustomCard extends HTMLElement {
             aspectRatio: '',
             includeSchema: false,
             fetchPriority: '',
-            loading: 'lazy'
+            loading: 'lazy',
+            innerBackgroundColorClass: '',
+            innerBorderClass: '',
+            innerBorderRadiusClass: '',
+            innerBackdropFilterClass: '',
+            innerStyle: ''
         } : this.getAttributes();
 
         if (!attrs.alt && !attrs.isDecorative && (attrs.lightSrc || attrs.darkSrc)) {
@@ -178,16 +189,24 @@ class CustomCard extends HTMLElement {
         mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass);
         const mainDivClass = mainDivClassList.filter(cls => cls).join(' ').trim();
 
-        // Inner div classes (include padding and space-between classes)
+        // Inner div classes (include padding, space-between, and new inner styles)
         const innerDivClassList = [];
         if (!isFallback) {
             innerDivClassList.push(...innerPaddingClasses);
             if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
+            if (attrs.innerBackgroundColorClass) innerDivClassList.push(attrs.innerBackgroundColorClass);
+            if (attrs.innerBorderClass) innerDivClassList.push(attrs.innerBorderClass);
+            if (attrs.innerBorderRadiusClass) innerDivClassList.push(attrs.innerBorderRadiusClass);
+            if (attrs.innerBackdropFilterClass) innerDivClassList.push(attrs.innerBackdropFilterClass);
         }
         const innerDivClass = innerDivClassList.join(' ').trim();
 
-        // Combine padding styles with any existing inner div styles
-        const innerDivStyle = paddingStyles ? ` style="${paddingStyles}"` : '';
+        // Combine padding styles with inner-style attribute
+        let innerDivStyle = '';
+        if (!isFallback) {
+            const combinedStyles = [paddingStyles, attrs.innerStyle].filter(s => s).join(' ').trim();
+            innerDivStyle = combinedStyles ? ` style="${combinedStyles}"` : '';
+        }
 
         const contentHTML = `
             <div${innerDivClass ? ` class="${innerDivClass}"` : ''}${innerDivStyle} aria-live="polite">
@@ -248,13 +267,17 @@ class CustomCard extends HTMLElement {
     static get observedAttributes() {
         return [
             'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-color', 'border', 'border-radius', 'backdrop-filter', 'class', 'style',
-            'img-light-src', 'img-dark-src', 'img-alt', 'img-decorative', 'img-mobile-width', 'img-tablet-width', 'img-desktop-width', 'img-aspect-ratio', 'img-include-schema', 'img-fetchpriority', 'img-loading'
+            'img-light-src', 'img-dark-src', 'img-alt', 'img-decorative', 'img-mobile-width', 'img-tablet-width', 'img-desktop-width', 'img-aspect-ratio', 'img-include-schema', 'img-fetchpriority', 'img-loading',
+            'inner-background-color', 'inner-border', 'inner-border-radius', 'inner-backdrop-filter', 'inner-style'
         ];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) return;
-        const criticalAttributes = ['heading', 'description', 'button-href', 'button-text', 'img-light-src', 'img-dark-src', 'img-alt', 'style'];
+        const criticalAttributes = [
+            'heading', 'description', 'button-href', 'button-text', 'img-light-src', 'img-dark-src', 'img-alt', 'style',
+            'inner-background-color', 'inner-border', 'inner-border-radius', 'inner-backdrop-filter', 'inner-style'
+        ];
         if (criticalAttributes.includes(name)) {
             this.initialize();
         }
