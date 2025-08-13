@@ -1593,7 +1593,7 @@ body>* {
 
         grid-column: 2 / -2;
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
         gap: var(--space-medium);
 
     }
