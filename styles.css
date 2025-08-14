@@ -1639,10 +1639,6 @@ body>* {
 
     }
 
-    main > *:has(h2, h3, h4, h5, h6) {
-        grid-template-columns: auto;
-        gap: initial;
-    }
 
 }
 
@@ -1737,10 +1733,10 @@ main {
     row-gap: var(--space-large);
     margin: var(--space-medium) 0 var(--space-medium) 0;
 
-    /* >section { 
-        min-height: 300px;
-        height: fit-content;
-    } */
+> *:has(h2, h3, h4, h5, h6) {
+        grid-template-columns: auto;
+        gap: initial;
+    }
 
 
 
