@@ -30,6 +30,12 @@ class CustomCard extends HTMLElement {
             console.warn(`Invalid custom-img-foreground-fetchpriority value "${foregroundFetchPriority}" in <custom-card>. Using default.`);
         }
 
+        const foregroundPosition = this.getAttribute('custom-img-foreground-position') || 'none';
+        const validPositions = ['none', 'above', 'below', 'left', 'right'];
+        if (!validPositions.includes(foregroundPosition)) {
+            console.warn(`Invalid custom-img-foreground-position value "${foregroundPosition}" in <custom-card>. Using default 'none'.`);
+        }
+
         return {
             heading: this.getAttribute('heading') || 'Default Heading',
             description: this.getAttribute('description') || 'Default description text.',
@@ -65,7 +71,7 @@ class CustomCard extends HTMLElement {
             foregroundIncludeSchema: this.hasAttribute('custom-img-foreground-include-schema'),
             foregroundFetchPriority: validFetchPriorities.includes(foregroundFetchPriority) ? foregroundFetchPriority : '',
             foregroundLoading: this.getAttribute('custom-img-foreground-loading') || 'lazy',
-            foregroundPosition: this.getAttribute('custom-img-foreground-position') || 'none',
+            foregroundPosition: validPositions.includes(foregroundPosition) ? foregroundPosition : 'none',
             // Inner div attributes
             innerBackgroundColorClass: this.hasAttribute('inner-background-color') ? this.getAttribute('inner-background-color') : '',
             innerBorderClass: this.hasAttribute('inner-border') ? this.getAttribute('inner-border') : '',
@@ -170,7 +176,7 @@ class CustomCard extends HTMLElement {
         let foregroundImageHTML = '';
         let overlayHTML = '';
         const hasBackgroundImage = !isFallback && !!(attrs.backgroundLightSrc || attrs.backgroundDarkSrc);
-        const hasForegroundImage = !isFallback && !!(attrs.foregroundLightSrc || attrs.foregroundDarkSrc) && (attrs.foregroundPosition === 'above' || attrs.foregroundPosition === 'below');
+        const hasForegroundImage = !isFallback && !!(attrs.foregroundLightSrc || attrs.foregroundDarkSrc) && ['above', 'below', 'left', 'right'].includes(attrs.foregroundPosition);
 
         if (hasBackgroundImage) {
             const src = attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
@@ -248,7 +254,13 @@ class CustomCard extends HTMLElement {
         // Outer div classes
         const mainDivClassList = ['card'];
         if (hasBackgroundImage) mainDivClassList.push('background-image');
-        if (hasForegroundImage) mainDivClassList.push('flex-container');
+        if (hasForegroundImage) {
+            if (attrs.foregroundPosition === 'left' || attrs.foregroundPosition === 'right') {
+                mainDivClassList.push('flex-container-horizontal');
+            } else {
+                mainDivClassList.push('flex-container');
+            }
+        }
         mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass);
         const mainDivClass = mainDivClassList.filter(cls => cls).join(' ').trim();
 
@@ -298,7 +310,13 @@ class CustomCard extends HTMLElement {
         if (hasForegroundImage && attrs.foregroundPosition === 'above') {
             innerHTML += foregroundImageHTML || '';
         }
-        innerHTML += contentHTML;
+        if (hasForegroundImage && attrs.foregroundPosition === 'left') {
+            innerHTML += `<div class="flex-horizontal">${foregroundImageHTML || ''}${contentHTML}</div>`;
+        } else if (hasForegroundImage && attrs.foregroundPosition === 'right') {
+            innerHTML += `<div class="flex-horizontal">${contentHTML}${foregroundImageHTML || ''}</div>`;
+        } else {
+            innerHTML += contentHTML;
+        }
         if (hasForegroundImage && attrs.foregroundPosition === 'below') {
             innerHTML += foregroundImageHTML || '';
         }
@@ -384,7 +402,7 @@ class CustomCard extends HTMLElement {
             // Foreground image attributes
             'custom-img-foreground-light-src', 'custom-img-foreground-dark-src', 'custom-img-foreground-alt', 'custom-img-foreground-decorative',
             'custom-img-foreground-mobile-width', 'custom-img-foreground-tablet-width', 'custom-img-foreground-desktop-width',
-            'custom-img-foreground-aspect-ratio', 'custom-img-foreground-include-schema', 'custom-img-foreground-fetchpriority', 'custom-img-foreground-loading',
+            'custom-img- foreground-aspect-ratio', 'custom-img-foreground-include-schema', 'custom-img-foreground-fetchpriority', 'custom-img-foreground-loading',
             'custom-img-foreground-position',
             // Inner div attributes
             'inner-background-color', 'inner-border', 'inner-border-radius', 'inner-backdrop-filter', 'inner-style'
