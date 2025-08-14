@@ -254,13 +254,6 @@ class CustomCard extends HTMLElement {
         // Outer div classes
         const mainDivClassList = ['card'];
         if (hasBackgroundImage) mainDivClassList.push('background-image');
-        if (hasForegroundImage) {
-            if (attrs.foregroundPosition === 'left' || attrs.foregroundPosition === 'right') {
-                mainDivClassList.push('flex-container-horizontal');
-            } else {
-                mainDivClassList.push('flex-container');
-            }
-        }
         mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass);
         const mainDivClass = mainDivClassList.filter(cls => cls).join(' ').trim();
 
@@ -402,7 +395,7 @@ class CustomCard extends HTMLElement {
             // Foreground image attributes
             'custom-img-foreground-light-src', 'custom-img-foreground-dark-src', 'custom-img-foreground-alt', 'custom-img-foreground-decorative',
             'custom-img-foreground-mobile-width', 'custom-img-foreground-tablet-width', 'custom-img-foreground-desktop-width',
-            'custom-img- foreground-aspect-ratio', 'custom-img-foreground-include-schema', 'custom-img-foreground-fetchpriority', 'custom-img-foreground-loading',
+            'custom-img-foreground-aspect-ratio', 'custom-img-foreground-include-schema', 'custom-img-foreground-fetchpriority', 'custom-img-foreground-loading',
             'custom-img-foreground-position',
             // Inner div attributes
             'inner-background-color', 'inner-border', 'inner-border-radius', 'inner-backdrop-filter', 'inner-style'
