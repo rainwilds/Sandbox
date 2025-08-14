@@ -225,12 +225,16 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
 
-        --font-1-family: acumin_probold, Arial, sans-serif;
+        --font-1-family: acumin_probold,
+        Arial,
+        sans-serif;
         /* --font-1-weight-light: 400; PLACEHOLDER */
         /* --font-1-weight-medium: 500; */
         /* --font-1-weight-heavy: 700 PLACEHOLDER; */
 
-        --font-2-family: futura_ptbook, Arial, sans-serif;
+        --font-2-family: futura_ptbook,
+        Arial,
+        sans-serif;
         /* --font-2-weight-light: 300; */
         /* --font-2-weight-medium: 400 PLACEHOLDER; */
         /* --font-2-weight-heavy: 600 PLACEHOLDER; */
@@ -339,7 +343,7 @@
 
         .backdrop-filter-grayscale-large {
             backdrop-filter: grayscale(var(--grayscale-large));
-        }        
+        }
 
         /* [class*="backdrop-filter-"] {
             backdrop-filter: var(--blur-filter) var(--grayscale-filter);
@@ -768,7 +772,7 @@
 
         } */
 
-                body {
+        body {
 
             display: grid;
             background-color: light-dark(var(--color-background-light), var(--color-background-dark));
@@ -1624,7 +1628,7 @@ body>* {
     display: grid;
     grid-template-columns: subgrid;
     grid-column: gutter-left / gutter-right;
-    transition: all ease-in-out 0.25s; 
+    transition: all ease-in-out 0.25s;
 
     >* {
 
@@ -1633,6 +1637,11 @@ body>* {
         grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
         gap: var(--space-medium);
 
+    }
+
+    >:has(h2, h3, h4, h5, h6) {
+        grid-template-columns: auto;
+        gap: initial;
     }
 
 }
@@ -1732,7 +1741,7 @@ main {
         min-height: 300px;
         height: fit-content;
     } */
-   
+
 
 
 }
@@ -1746,7 +1755,7 @@ footer {
 
 body {
 
-    
+
 
     transition: filter 0.3s ease;
 
@@ -2003,4 +2012,3 @@ div#products {
         transform: translateY(0);
     }
 }
-
