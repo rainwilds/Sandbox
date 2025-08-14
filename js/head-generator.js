@@ -1,4 +1,4 @@
-console.log('** head-generator.js start... **');
+console.log('** head-generator.js start **');
 
 // Manages the <head> section by adding meta tags, styles, scripts, and schema markup
 function manageHead(attributes = {}, businessInfo = {}) {
@@ -648,4 +648,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     manageHead(attributes, businessInfo);
 });
 
-console.log('** head-generator.js end... **');
+console.log('** head-generator.js end **');
