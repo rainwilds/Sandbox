@@ -44,7 +44,13 @@
 <body>
 
     <main>
-        <h2>Background Colours</h2>
+        <section>
+
+            <h2>Background Colours</h2>
+            <p>Cards with background colours</p>
+            
+        </section>
+        
         <section>
 
             <custom-card
@@ -74,6 +80,17 @@
                 class="padding-medium">
             </custom-card>
 
+        </section>
+
+        <section>
+
+            <h2>Borders</h2>
+            <p>Cards with borders only</p>
+            
+        </section>
+
+        <section>
+
             <custom-card
                 heading="Border Small"
                 description="Card with border-small, space-between and padding-medium."
@@ -99,6 +116,17 @@
                 class="padding-medium border-radius-small color-invert">
             </custom-card>
 
+        </section>
+
+        <section>
+
+            <h2>Plain</h2>
+            <p>Cards with just text</p>
+            
+        </section>        
+
+        <section>
+
             <custom-card
                 heading="Plain Card"
                 description="Card with no additional classes."
@@ -114,15 +142,47 @@
                 style="place-self: flex-end;">
             </custom-card>
 
+        </section>
+
+        <section>
+
+            <h2>Background Image</h2>
+            <p>Background image pictures</p>
+            
+        </section> 
+
+        <section>
+
             <custom-card
-                heading="Background Colour 1"
-                description="Card with background-color-1, color-invert and padding-medium."
+                heading="Background Image"
+                description="Card with background image, color-invert, background-overlay-1 padding-medium."
                 button-text="Action"
                 button-href="#"
-                background-color="background-color-1"
                 class="padding-medium color-invert"
+                background-overlay="background-overlay-1"
                 custom-img-background-light-src="./img/primary/landscape-photography-1.jpg">
-            </custom-card>           
+            </custom-card>     
+
+            <custom-card
+                heading="Background Image"
+                description="Card with background image, color-invert, background-overlay-2 padding-medium."
+                button-text="Action"
+                button-href="#"
+                class="padding-medium color-invert"
+                background-overlay="background-overlay-2"
+                custom-img-background-light-src="./img/primary/landscape-photography-1.jpg">
+            </custom-card>  
+            
+        </section>
+
+        <section>
+
+            <h2>Foreground Image</h2>
+            <p>Cards with picture above or below</p>
+            
+        </section> 
+
+        <section>
             
             <custom-card
                 heading="Background Colour 1 and Picture"
