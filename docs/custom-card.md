@@ -1,3 +1,4 @@
+```markdown
 # CustomCard
 
 ## Summary
@@ -5,8 +6,8 @@
 The `CustomCard` is a custom web component that extends `HTMLElement` to create a reusable card component with a customizable layout. It supports lazy loading via `IntersectionObserver`, theme-aware background images, and accessibility features. Key features include:
 
 - **Lazy Loading**: Uses `IntersectionObserver` to initialize the card only when it enters the viewport (with a 50px root margin).
-- **Theme-Aware Background Images**: Supports `image-light-src` and `image-dark-src` for light/dark mode background images, generated via `picture-generator.js`.
-- **Accessibility**: Warns if `image-alt` is missing for non-decorative images and supports Schema.org markup with `image-include-schema`.
+- **Theme-Aware Background Images**: Supports `custom-img-light-src` and `custom-img-dark-src` for light/dark mode background images, generated via `picture-generator.js`.
+- **Accessibility**: Warns if `custom-img-alt` is missing for non-decorative images and supports Schema.org markup with `custom-img-include-schema`.
 - **Customizable Styling**: Allows attributes for background overlay, color, border, border radius, backdrop filter, and custom classes.
 - **Dynamic Content**: Renders a heading, description, and button with customizable text and link.
 - **Error Handling**: Provides a fallback rendering if errors occur during initialization or image loading, with a placeholder image fallback.
@@ -30,28 +31,28 @@ These are standard HTML attributes supported by the component, processed and app
 
 These are non-standard attributes specific to the component, used for configuring content, styling, and background images. Most are not transferred to the final DOM as the original element is replaced.
 
-| Attribute              | Description                                                                 | Type     | Required | Default Value         |
-|------------------------|-----------------------------------------------------------------------------|----------|----------|-----------------------|
-| `heading`              | The card's heading text.                                                    | String   | No       | 'Default Heading'     |
-| `description`          | The card's description text.                                                | String   | No       | 'Default description text.' |
-| `button-href`          | The URL for the card's button link.                                         | String   | No       | '#'                   |
-| `button-text`          | The text for the card's button.                                             | String   | No       | 'Button'              |
-| `background-overlay`   | Adds a background overlay div (with optional backdrop filter).              | Boolean  | No       | False                 |
-| `background-color`     | CSS class for background color (e.g., `bg-blue-500`).                       | String   | No       | None                  |
-| `border`               | CSS class for border (e.g., `border-solid`).                                | String   | No       | None                  |
-| `border-radius`        | CSS class for border radius (e.g., `rounded-lg`). Requires `border`.        | String   | No       | None                  |
-| `backdrop-filter`      | CSS class for backdrop filter (e.g., `backdrop-blur-sm`).                   | String   | No       | None                  |
-| `image-light-src`      | Background image URL for light theme. Conditional with `image-dark-src`.    | String   | Conditional | None                |
-| `image-dark-src`       | Background image URL for dark theme. Conditional with `image-light-src`.    | String   | Conditional | None                |
-| `image-alt`            | Alt text for background image; warns if missing and not `image-decorative`. | String   | No       | ''                    |
-| `image-decorative`     | Marks background image as decorative (no `alt` warning, empty `alt`).       | Boolean  | No       | False                 |
-| `image-mobile-width`   | Width descriptor for mobile devices (used in `sizes` attribute).            | String   | No       | '100vw'               |
-| `image-tablet-width`   | Width descriptor for tablet devices (used in `sizes` attribute).            | String   | No       | '100vw'               |
-| `image-desktop-width`  | Width descriptor for desktop devices (used in `sizes` attribute).           | String   | No       | '100vw'               |
-| `image-aspect-ratio`   | Aspect ratio for the background image (e.g., `16/9`).                      | String   | No       | ''                    |
-| `image-include-schema` | Enables Schema.org markup for the background image.                        | Boolean  | No       | False                 |
-| `image-fetchpriority`  | Fetch priority for the background image (`high`, `low`, or `auto`).        | String   | No       | ''                    |
-| `image-loading`        | Loading behavior for the background image (`lazy` or `eager`).             | String   | No       | 'lazy'                |
+| Attribute                     | Description                                                                 | Type     | Required | Default Value         |
+|-------------------------------|-----------------------------------------------------------------------------|----------|----------|-----------------------|
+| `heading`                     | The card's heading text.                                                    | String   | No       | 'Default Heading'     |
+| `description`                 | The card's description text.                                                | String   | No       | 'Default description text.' |
+| `button-href`                 | The URL for the card's button link.                                         | String   | No       | '#'                   |
+| `button-text`                 | The text for the card's button.                                             | String   | No       | 'Button'              |
+| `background-overlay`          | Adds a background overlay div (with optional backdrop filter).              | Boolean  | No       | False                 |
+| `background-color`            | CSS class for background color (e.g., `bg-blue-500`).                       | String   | No       | None                  |
+| `border`                      | CSS class for border (e.g., `border-solid`).                                | String   | No       | None                  |
+| `border-radius`               | CSS class for border radius (e.g., `rounded-lg`). Requires `border`.        | String   | No       | None                  |
+| `backdrop-filter`             | CSS class for backdrop filter (e.g., `backdrop-blur-sm`).                   | String   | No       | None                  |
+| `custom-img-light-src`        | Background image URL for light theme. Conditional with `custom-img-dark-src`. | String   | Conditional | None                |
+| `custom-img-dark-src`         | Background image URL for dark theme. Conditional with `custom-img-light-src`. | String   | Conditional | None                |
+| `custom-img-alt`              | Alt text for background image; warns if missing and not `custom-img-decorative`. | String   | No       | ''                    |
+| `custom-img-decorative`       | Marks background image as decorative (no `alt` warning, empty `alt`).       | Boolean  | No       | False                 |
+| `custom-img-mobile-width`     | Width descriptor for mobile devices (used in `sizes` attribute).            | String   | No       | '100vw'               |
+| `custom-img-tablet-width`     | Width descriptor for tablet devices (used in `sizes` attribute).            | String   | No       | '100vw'               |
+| `custom-img-desktop-width`    | Width descriptor for desktop devices (used in `sizes` attribute).           | String   | No       | '100vw'               |
+| `custom-img-aspect-ratio`     | Aspect ratio for the background image (e.g., `16/9`).                      | String   | No       | ''                    |
+| `custom-img-include-schema`   | Enables Schema.org markup for the background image.                        | Boolean  | No       | False                 |
+| `custom-img-fetchpriority`    | Fetch priority for the background image (`high`, `low`, or `auto`).        | String   | No       | ''                    |
+| `custom-img-loading`          | Loading behavior for the background image (`lazy` or `eager`).             | String   | No       | 'lazy'                |
 
 ## Example Custom-Card Tags
 
@@ -76,15 +77,15 @@ Here are example usages of the `<custom-card>` tag, demonstrating various attrib
     description="Explore our latest offering with a responsive background."
     button-text="Shop Now"
     button-href="/shop"
-    image-light-src="./img/product-light.jpg"
-    image-dark-src="./img/product-dark.jpg"
-    image-alt="Product image"
-    image-mobile-width="100vw"
-    image-tablet-width="50vw"
-    image-desktop-width="33vw"
-    image-include-schema
-    image-loading="lazy"
-    image-fetchpriority="high"
+    custom-img-light-src="./img/product-light.jpg"
+    custom-img-dark-src="./img/product-dark.jpg"
+    custom-img-alt="Product image"
+    custom-img-mobile-width="100vw"
+    custom-img-tablet-width="50vw"
+    custom-img-desktop-width="33vw"
+    custom-img-include-schema
+    custom-img-loading="lazy"
+    custom-img-fetchpriority="high"
     background-overlay
     backdrop-filter="backdrop-blur-sm"
     class="rounded-lg border-solid border-gray-300"
@@ -99,9 +100,9 @@ Here are example usages of the `<custom-card>` tag, demonstrating various attrib
     description="A card with a decorative background image."
     button-text="Explore"
     button-href="/explore"
-    image-dark-src="./img/decorative-dark.png"
-    image-decorative
-    image-loading="lazy"
+    custom-img-dark-src="./img/decorative-dark.png"
+    custom-img-decorative
+    custom-img-loading="lazy"
     background-color="bg-gray-800"
     class="space-between padding-medium"
 >
@@ -115,9 +116,10 @@ Here are example usages of the `<custom-card>` tag, demonstrating various attrib
     description="A minimal card with a placeholder image."
     button-text="Click Me"
     button-href="#"
-    image-light-src="./img/simple.jpg"
-    image-alt="Simple placeholder"
+    custom-img-light-src="./img/simple.jpg"
+    custom-img-alt="Simple placeholder"
     class="border-dashed"
 >
 </custom-card>
+```
 ```

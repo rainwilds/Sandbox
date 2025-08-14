@@ -1,5 +1,3 @@
-import { generatePictureMarkup } from '../picture-generator.js';
-
 class CustomCard extends HTMLElement {
     constructor() {
         super();
@@ -20,10 +18,14 @@ class CustomCard extends HTMLElement {
     }
 
     getAttributes() {
-        const fetchPriority = this.getAttribute('img-fetchpriority') || '';
+        const backgroundFetchPriority = this.getAttribute('custom-img-background-fetchpriority') || '';
+        const foregroundFetchPriority = this.getAttribute('custom-img-foreground-fetchpriority') || '';
         const validFetchPriorities = ['high', 'low', 'auto', ''];
-        if (!validFetchPriorities.includes(fetchPriority)) {
-            console.warn(`Invalid img-fetchpriority value "${fetchPriority}" in <custom-card>. Using default.`);
+        if (!validFetchPriorities.includes(backgroundFetchPriority)) {
+            console.warn(`Invalid custom-img-background-fetchpriority value "${backgroundFetchPriority}" in <custom-card>. Using default.`);
+        }
+        if (!validFetchPriorities.includes(foregroundFetchPriority)) {
+            console.warn(`Invalid custom-img-foreground-fetchpriority value "${foregroundFetchPriority}" in <custom-card>. Using default.`);
         }
 
         return {
@@ -38,18 +40,32 @@ class CustomCard extends HTMLElement {
             backdropFilterClass: this.hasAttribute('backdrop-filter') ? this.getAttribute('backdrop-filter') : '',
             customClasses: this.getAttribute('class') || '',
             styleAttribute: this.getAttribute('style') || '',
-            lightSrc: this.getAttribute('img-light-src') || '',
-            darkSrc: this.getAttribute('img-dark-src') || '',
-            alt: this.getAttribute('img-alt') || '',
-            isDecorative: this.hasAttribute('img-decorative'),
-            mobileWidth: this.getAttribute('img-mobile-width') || '100vw',
-            tabletWidth: this.getAttribute('img-tablet-width') || '100vw',
-            desktopWidth: this.getAttribute('img-desktop-width') || '100vw',
-            aspectRatio: this.getAttribute('img-aspect-ratio') || '',
-            includeSchema: this.hasAttribute('img-include-schema'),
-            fetchPriority: validFetchPriorities.includes(fetchPriority) ? fetchPriority : '',
-            loading: this.getAttribute('img-loading') || 'lazy',
-            // New attributes for inner <div>
+            // Background image attributes
+            backgroundLightSrc: this.getAttribute('custom-img-background-light-src') || '',
+            backgroundDarkSrc: this.getAttribute('custom-img-background-dark-src') || '',
+            backgroundAlt: this.getAttribute('custom-img-background-alt') || '',
+            backgroundIsDecorative: this.hasAttribute('custom-img-background-decorative'),
+            backgroundMobileWidth: this.getAttribute('custom-img-background-mobile-width') || '100vw',
+            backgroundTabletWidth: this.getAttribute('custom-img-background-tablet-width') || '100vw',
+            backgroundDesktopWidth: this.getAttribute('custom-img-background-desktop-width') || '100vw',
+            backgroundAspectRatio: this.getAttribute('custom-img-background-aspect-ratio') || '',
+            backgroundIncludeSchema: this.hasAttribute('custom-img-background-include-schema'),
+            backgroundFetchPriority: validFetchPriorities.includes(backgroundFetchPriority) ? backgroundFetchPriority : '',
+            backgroundLoading: this.getAttribute('custom-img-background-loading') || 'lazy',
+            // Foreground image attributes
+            foregroundLightSrc: this.getAttribute('custom-img-foreground-light-src') || '',
+            foregroundDarkSrc: this.getAttribute('custom-img-foreground-dark-src') || '',
+            foregroundAlt: this.getAttribute('custom-img-foreground-alt') || '',
+            foregroundIsDecorative: this.hasAttribute('custom-img-foreground-decorative'),
+            foregroundMobileWidth: this.getAttribute('custom-img-foreground-mobile-width') || '100vw',
+            foregroundTabletWidth: this.getAttribute('custom-img-foreground-tablet-width') || '100vw',
+            foregroundDesktopWidth: this.getAttribute('custom-img-foreground-desktop-width') || '100vw',
+            foregroundAspectRatio: this.getAttribute('custom-img-foreground-aspect-ratio') || '',
+            foregroundIncludeSchema: this.hasAttribute('custom-img-foreground-include-schema'),
+            foregroundFetchPriority: validFetchPriorities.includes(foregroundFetchPriority) ? foregroundFetchPriority : '',
+            foregroundLoading: this.getAttribute('custom-img-foreground-loading') || 'lazy',
+            foregroundPosition: this.getAttribute('custom-img-foreground-position') || 'none',
+            // Inner div attributes
             innerBackgroundColorClass: this.hasAttribute('inner-background-color') ? this.getAttribute('inner-background-color') : '',
             innerBorderClass: this.hasAttribute('inner-border') ? this.getAttribute('inner-border') : '',
             innerBorderRadiusClass: this.hasAttribute('inner-border-radius') && this.hasAttribute('inner-border') ? this.getAttribute('inner-border-radius') : '',
@@ -112,17 +128,29 @@ class CustomCard extends HTMLElement {
             backdropFilterClass: '',
             customClasses: '',
             styleAttribute: '',
-            lightSrc: '',
-            darkSrc: '',
-            alt: '',
-            isDecorative: false,
-            mobileWidth: '100vw',
-            tabletWidth: '100vw',
-            desktopWidth: '100vw',
-            aspectRatio: '',
-            includeSchema: false,
-            fetchPriority: '',
-            loading: 'lazy',
+            backgroundLightSrc: '',
+            backgroundDarkSrc: '',
+            backgroundAlt: '',
+            backgroundIsDecorative: false,
+            backgroundMobileWidth: '100vw',
+            backgroundTabletWidth: '100vw',
+            backgroundDesktopWidth: '100vw',
+            backgroundAspectRatio: '',
+            backgroundIncludeSchema: false,
+            backgroundFetchPriority: '',
+            backgroundLoading: 'lazy',
+            foregroundLightSrc: '',
+            foregroundDarkSrc: '',
+            foregroundAlt: '',
+            foregroundIsDecorative: false,
+            foregroundMobileWidth: '100vw',
+            foregroundTabletWidth: '100vw',
+            foregroundDesktopWidth: '100vw',
+            foregroundAspectRatio: '',
+            foregroundIncludeSchema: false,
+            foregroundFetchPriority: '',
+            foregroundLoading: 'lazy',
+            foregroundPosition: 'none',
             innerBackgroundColorClass: '',
             innerBorderClass: '',
             innerBorderRadiusClass: '',
@@ -130,41 +158,75 @@ class CustomCard extends HTMLElement {
             innerStyle: ''
         } : this.getAttributes();
 
-        if (!attrs.alt && !attrs.isDecorative && (attrs.lightSrc || attrs.darkSrc)) {
-            console.warn(`<custom-card img-light-src="${attrs.lightSrc || 'not provided'}" img-dark-src="${attrs.darkSrc || 'not provided'}"> is missing an img-alt attribute for accessibility.`);
+        // Accessibility warnings
+        if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
+            console.warn(`<custom-card custom-img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" custom-img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> is missing a custom-img-background-alt attribute for accessibility.`);
+        }
+        if (!attrs.foregroundAlt && !attrs.foregroundIsDecorative && (attrs.foregroundLightSrc || attrs.foregroundDarkSrc)) {
+            console.warn(`<custom-card custom-img-foreground-light-src="${attrs.foregroundLightSrc || 'not provided'}" custom-img-foreground-dark-src="${attrs.foregroundDarkSrc || 'not provided'}"> is missing a custom-img-foreground-alt attribute for accessibility.`);
         }
 
         let backgroundImageHTML = '';
+        let foregroundImageHTML = '';
         let overlayHTML = '';
-        const hasBackgroundImage = !isFallback && !!(attrs.lightSrc || attrs.darkSrc);
+        const hasBackgroundImage = !isFallback && !!(attrs.backgroundLightSrc || attrs.backgroundDarkSrc);
+        const hasForegroundImage = !isFallback && !!(attrs.foregroundLightSrc || attrs.foregroundDarkSrc) && (attrs.foregroundPosition === 'above' || attrs.foregroundPosition === 'below');
+
         if (hasBackgroundImage) {
-            const src = attrs.lightSrc || attrs.darkSrc;
+            const src = attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
             if (!src) {
-                console.warn('No valid image source provided for <custom-card>. Skipping image rendering.');
+                console.warn('No valid background image source provided for <custom-card>. Skipping background image rendering.');
             } else {
                 backgroundImageHTML = generatePictureMarkup({
                     src,
-                    lightSrc: attrs.lightSrc,
-                    darkSrc: attrs.darkSrc,
-                    alt: attrs.alt,
-                    isDecorative: attrs.isDecorative,
-                    mobileWidth: attrs.mobileWidth,
-                    tabletWidth: attrs.tabletWidth,
-                    desktopWidth: attrs.desktopWidth,
-                    aspectRatio: attrs.aspectRatio,
-                    includeSchema: attrs.includeSchema,
+                    lightSrc: attrs.backgroundLightSrc,
+                    darkSrc: attrs.backgroundDarkSrc,
+                    alt: attrs.backgroundAlt,
+                    isDecorative: attrs.backgroundIsDecorative,
+                    mobileWidth: attrs.backgroundMobileWidth,
+                    tabletWidth: attrs.backgroundTabletWidth,
+                    desktopWidth: attrs.backgroundDesktopWidth,
+                    aspectRatio: attrs.backgroundAspectRatio,
+                    includeSchema: attrs.backgroundIncludeSchema,
                     customClasses: '',
-                    loading: attrs.loading,
-                    fetchPriority: attrs.fetchPriority,
-                    onerror: `this.src='https://placehold.co/3000x2000';${attrs.isDecorative ? '' : `this.alt='${attrs.alt || 'Placeholder image'}';`}this.onerror=null;`
+                    loading: attrs.backgroundLoading,
+                    fetchPriority: attrs.backgroundFetchPriority,
+                    onerror: `this.src='https://placehold.co/3000x2000';${attrs.backgroundIsDecorative ? '' : `this.alt='${attrs.backgroundAlt || 'Placeholder image'}';`}this.onerror=null;`
                 });
                 if (!backgroundImageHTML) {
-                    console.warn('Failed to generate picture markup for <custom-card>.');
+                    console.warn('Failed to generate picture markup for background image in <custom-card>.');
                 }
             }
         }
 
-        if (!isFallback && attrs.hasBackgroundOverlay) {
+        if (hasForegroundImage) {
+            const src = attrs.foregroundLightSrc || attrs.foregroundDarkSrc;
+            if (!src) {
+                console.warn('No valid foreground image source provided for <custom-card>. Skipping foreground image rendering.');
+            } else {
+                foregroundImageHTML = generatePictureMarkup({
+                    src,
+                    lightSrc: attrs.foregroundLightSrc,
+                    darkSrc: attrs.foregroundDarkSrc,
+                    alt: attrs.foregroundAlt,
+                    isDecorative: attrs.foregroundIsDecorative,
+                    mobileWidth: attrs.foregroundMobileWidth,
+                    tabletWidth: attrs.foregroundTabletWidth,
+                    desktopWidth: attrs.foregroundDesktopWidth,
+                    aspectRatio: attrs.foregroundAspectRatio,
+                    includeSchema: attrs.foregroundIncludeSchema,
+                    customClasses: 'foreground-image',
+                    loading: attrs.foregroundLoading,
+                    fetchPriority: attrs.foregroundFetchPriority,
+                    onerror: `this.src='https://placehold.co/3000x2000';${attrs.foregroundIsDecorative ? '' : `this.alt='${attrs.foregroundAlt || 'Placeholder image'}';`}this.onerror=null;`
+                });
+                if (!foregroundImageHTML) {
+                    console.warn('Failed to generate picture markup for foreground image in <custom-card>.');
+                }
+            }
+        }
+
+        if (!isFallback && attrs.hasBackgroundOverlay && hasBackgroundImage) {
             overlayHTML = `<div class="background-overlay ${attrs.backdropFilterClass}"></div>`;
         }
 
@@ -183,13 +245,14 @@ class CustomCard extends HTMLElement {
             outerStyles = outerStyles.replace(paddingRegex, '').trim();
         }
 
-        // Outer div classes (exclude padding classes)
+        // Outer div classes
         const mainDivClassList = ['card'];
         if (hasBackgroundImage) mainDivClassList.push('background-image');
+        if (hasForegroundImage) mainDivClassList.push('flex-container');
         mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass);
         const mainDivClass = mainDivClassList.filter(cls => cls).join(' ').trim();
 
-        // Inner div classes (include padding, space-between, and new inner styles)
+        // Inner div classes
         const innerDivClassList = [];
         if (!isFallback) {
             innerDivClassList.push(...innerPaddingClasses);
@@ -223,38 +286,85 @@ class CustomCard extends HTMLElement {
         if (outerStyles && !isFallback) {
             cardElement.setAttribute('style', outerStyles);
         }
-        cardElement.innerHTML = `
-            ${isFallback ? '' : (backgroundImageHTML || '')}
-            ${isFallback ? '' : overlayHTML}
-            ${contentHTML}
-        `;
 
-        if (!isFallback && attrs.includeSchema && hasBackgroundImage && backgroundImageHTML) {
-            const figure = cardElement.querySelector('figure');
+        // Arrange content based on foregroundPosition
+        let innerHTML = '';
+        if (hasBackgroundImage) {
+            innerHTML += backgroundImageHTML || '';
+        }
+        if (attrs.hasBackgroundOverlay && hasBackgroundImage) {
+            innerHTML += overlayHTML;
+        }
+        if (hasForegroundImage && attrs.foregroundPosition === 'above') {
+            innerHTML += foregroundImageHTML || '';
+        }
+        innerHTML += contentHTML;
+        if (hasForegroundImage && attrs.foregroundPosition === 'below') {
+            innerHTML += foregroundImageHTML || '';
+        }
+
+        cardElement.innerHTML = innerHTML;
+
+        // Schema handling for background image
+        if (!isFallback && attrs.backgroundIncludeSchema && hasBackgroundImage && backgroundImageHTML) {
+            const figure = cardElement.querySelector('figure:not(.foreground-image figure)');
             if (figure) {
                 const metaUrl = document.createElement('meta');
                 metaUrl.setAttribute('itemprop', 'url');
-                metaUrl.setAttribute('content', (attrs.lightSrc || attrs.darkSrc) ? new URL(attrs.lightSrc || attrs.darkSrc, window.location.origin).href : '');
+                metaUrl.setAttribute('content', (attrs.backgroundLightSrc || attrs.backgroundDarkSrc) ? new URL(attrs.backgroundLightSrc || attrs.backgroundDarkSrc, window.location.origin).href : '');
                 figure.appendChild(metaUrl);
 
                 const metaDescription = document.createElement('meta');
                 metaDescription.setAttribute('itemprop', 'description');
-                metaDescription.setAttribute('content', attrs.alt);
+                metaDescription.setAttribute('content', attrs.backgroundAlt);
                 figure.appendChild(metaDescription);
             }
         }
 
+        // Schema handling for foreground image
+        if (!isFallback && attrs.foregroundIncludeSchema && hasForegroundImage && foregroundImageHTML) {
+            const figure = cardElement.querySelector('.foreground-image figure');
+            if (figure) {
+                const metaUrl = document.createElement('meta');
+                metaUrl.setAttribute('itemprop', 'url');
+                metaUrl.setAttribute('content', (attrs.foregroundLightSrc || attrs.foregroundDarkSrc) ? new URL(attrs.foregroundLightSrc || attrs.foregroundDarkSrc, window.location.origin).href : '');
+                figure.appendChild(metaUrl);
+
+                const metaDescription = document.createElement('meta');
+                metaDescription.setAttribute('itemprop', 'description');
+                metaDescription.setAttribute('content', attrs.foregroundAlt);
+                figure.appendChild(metaDescription);
+            }
+        }
+
+        // Clean up image attributes
         if (!isFallback && cardElement.querySelector('img')) {
-            cardElement.querySelector('img').removeAttribute('img-light-src');
-            cardElement.querySelector('img').removeAttribute('img-dark-src');
-            cardElement.querySelector('img').removeAttribute('img-aspect-ratio');
-            cardElement.querySelector('img').removeAttribute('img-mobile-width');
-            cardElement.querySelector('img').removeAttribute('img-tablet-width');
-            cardElement.querySelector('img').removeAttribute('img-desktop-width');
-            cardElement.querySelector('img').removeAttribute('img-include-schema');
-            cardElement.querySelector('img').removeAttribute('img-fetchpriority');
-            cardElement.querySelector('img').removeAttribute('img-loading');
-            cardElement.querySelector('img').removeAttribute('img-decorative');
+            const images = cardElement.querySelectorAll('img');
+            images.forEach(img => {
+                img.removeAttribute('custom-img-background-light-src');
+                img.removeAttribute('custom-img-background-dark-src');
+                img.removeAttribute('custom-img-background-alt');
+                img.removeAttribute('custom-img-background-decorative');
+                img.removeAttribute('custom-img-background-mobile-width');
+                img.removeAttribute('custom-img-background-tablet-width');
+                img.removeAttribute('custom-img-background-desktop-width');
+                img.removeAttribute('custom-img-background-aspect-ratio');
+                img.removeAttribute('custom-img-background-include-schema');
+                img.removeAttribute('custom-img-background-fetchpriority');
+                img.removeAttribute('custom-img-background-loading');
+                img.removeAttribute('custom-img-foreground-light-src');
+                img.removeAttribute('custom-img-foreground-dark-src');
+                img.removeAttribute('custom-img-foreground-alt');
+                img.removeAttribute('custom-img-foreground-decorative');
+                img.removeAttribute('custom-img-foreground-mobile-width');
+                img.removeAttribute('custom-img-foreground-tablet-width');
+                img.removeAttribute('custom-img-foreground-desktop-width');
+                img.removeAttribute('custom-img-foreground-aspect-ratio');
+                img.removeAttribute('custom-img-foreground-include-schema');
+                img.removeAttribute('custom-img-foreground-fetchpriority');
+                img.removeAttribute('custom-img-foreground-loading');
+                img.removeAttribute('custom-img-foreground-position');
+            });
         }
 
         if (!isFallback) {
@@ -267,7 +377,16 @@ class CustomCard extends HTMLElement {
     static get observedAttributes() {
         return [
             'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-color', 'border', 'border-radius', 'backdrop-filter', 'class', 'style',
-            'img-light-src', 'img-dark-src', 'img-alt', 'img-decorative', 'img-mobile-width', 'img-tablet-width', 'img-desktop-width', 'img-aspect-ratio', 'img-include-schema', 'img-fetchpriority', 'img-loading',
+            // Background image attributes
+            'custom-img-background-light-src', 'custom-img-background-dark-src', 'custom-img-background-alt', 'custom-img-background-decorative',
+            'custom-img-background-mobile-width', 'custom-img-background-tablet-width', 'custom-img-background-desktop-width',
+            'custom-img-background-aspect-ratio', 'custom-img-background-include-schema', 'custom-img-background-fetchpriority', 'custom-img-background-loading',
+            // Foreground image attributes
+            'custom-img-foreground-light-src', 'custom-img-foreground-dark-src', 'custom-img-foreground-alt', 'custom-img-foreground-decorative',
+            'custom-img-foreground-mobile-width', 'custom-img-foreground-tablet-width', 'custom-img-foreground-desktop-width',
+            'custom-img-foreground-aspect-ratio', 'custom-img-foreground-include-schema', 'custom-img-foreground-fetchpriority', 'custom-img-foreground-loading',
+            'custom-img-foreground-position',
+            // Inner div attributes
             'inner-background-color', 'inner-border', 'inner-border-radius', 'inner-backdrop-filter', 'inner-style'
         ];
     }
@@ -275,8 +394,11 @@ class CustomCard extends HTMLElement {
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) return;
         const criticalAttributes = [
-            'heading', 'description', 'button-href', 'button-text', 'img-light-src', 'img-dark-src', 'img-alt', 'style',
-            'inner-background-color', 'inner-border', 'inner-border-radius', 'inner-backdrop-filter', 'inner-style'
+            'heading', 'description', 'button-href', 'button-text',
+            'custom-img-background-light-src', 'custom-img-background-dark-src', 'custom-img-background-alt',
+            'custom-img-foreground-light-src', 'custom-img-foreground-dark-src', 'custom-img-foreground-alt',
+            'custom-img-foreground-position', 'style', 'inner-background-color', 'inner-border', 'inner-border-radius',
+            'inner-backdrop-filter', 'inner-style'
         ];
         if (criticalAttributes.includes(name)) {
             this.initialize();
