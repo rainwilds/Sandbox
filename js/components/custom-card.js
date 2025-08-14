@@ -221,7 +221,7 @@ class CustomCard extends HTMLElement {
                     desktopWidth: attrs.foregroundDesktopWidth,
                     aspectRatio: attrs.foregroundAspectRatio,
                     includeSchema: attrs.foregroundIncludeSchema,
-                    customClasses: 'foreground-image',
+                    customClasses: '',
                     loading: attrs.foregroundLoading,
                     fetchPriority: attrs.foregroundFetchPriority,
                     onerror: `this.src='https://placehold.co/3000x2000';${attrs.foregroundIsDecorative ? '' : `this.alt='${attrs.foregroundAlt || 'Placeholder image'}';`}this.onerror=null;`
@@ -291,6 +291,9 @@ class CustomCard extends HTMLElement {
         if (outerStyles && !isFallback) {
             cardElement.setAttribute('style', outerStyles);
         }
+        if (!isFallback) {
+            cardElement.setAttribute('data-foreground-position', attrs.foregroundPosition);
+        }
 
         // Arrange content based on foregroundPosition
         let innerHTML = '';
@@ -304,9 +307,9 @@ class CustomCard extends HTMLElement {
             innerHTML += foregroundImageHTML || '';
         }
         if (hasForegroundImage && attrs.foregroundPosition === 'left') {
-            innerHTML += `<div>${foregroundImageHTML || ''}${contentHTML}</div>`;
+            innerHTML += (foregroundImageHTML || '') + contentHTML;
         } else if (hasForegroundImage && attrs.foregroundPosition === 'right') {
-            innerHTML += `<div>${contentHTML}${foregroundImageHTML || ''}</div>`;
+            innerHTML += contentHTML + (foregroundImageHTML || '');
         } else {
             innerHTML += contentHTML;
         }
@@ -318,7 +321,7 @@ class CustomCard extends HTMLElement {
 
         // Schema handling for background image
         if (!isFallback && attrs.backgroundIncludeSchema && hasBackgroundImage && backgroundImageHTML) {
-            const figure = cardElement.querySelector('figure:not(.foreground-image figure)');
+            const figure = cardElement.querySelector('figure:not(figure > figure)');
             if (figure) {
                 const metaUrl = document.createElement('meta');
                 metaUrl.setAttribute('itemprop', 'url');
@@ -334,16 +337,11 @@ class CustomCard extends HTMLElement {
 
         // Schema handling for foreground image
         if (!isFallback && attrs.foregroundIncludeSchema && hasForegroundImage && foregroundImageHTML) {
-            const figure = cardElement.querySelector('.foreground-image figure');
+            const figure = cardElement.querySelector('figure');
             if (figure) {
                 const metaUrl = document.createElement('meta');
                 metaUrl.setAttribute('itemprop', 'url');
                 metaUrl.setAttribute('content', (attrs.foregroundLightSrc || attrs.foregroundDarkSrc) ? new URL(attrs.foregroundLightSrc || attrs.foregroundDarkSrc, window.location.origin).href : '');
-                figure.appendChild(metaUrl);
-
-                const metaDescription = document.createElement('meta');
-                metaDescription.setAttribute('itemprop', 'description');
-                metaDescription.setAttribute('content', attrs.foregroundAlt);
                 figure.appendChild(metaDescription);
             }
         }
