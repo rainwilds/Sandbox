@@ -304,9 +304,9 @@ class CustomCard extends HTMLElement {
             innerHTML += foregroundImageHTML || '';
         }
         if (hasForegroundImage && attrs.foregroundPosition === 'left') {
-            innerHTML += `<div class="flex-horizontal">${foregroundImageHTML || ''}${contentHTML}</div>`;
+            innerHTML += `<div>${foregroundImageHTML || ''}${contentHTML}</div>`;
         } else if (hasForegroundImage && attrs.foregroundPosition === 'right') {
-            innerHTML += `<div class="flex-horizontal">${contentHTML}${foregroundImageHTML || ''}</div>`;
+            innerHTML += `<div>${contentHTML}${foregroundImageHTML || ''}</div>`;
         } else {
             innerHTML += contentHTML;
         }
