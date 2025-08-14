@@ -39,7 +39,6 @@ class CustomCard extends HTMLElement {
             backgroundColorClass: this.hasAttribute('background-color') ? this.getAttribute('background-color') : '',
             borderClass: this.hasAttribute('border') ? this.getAttribute('border') : '',
             borderRadiusClass: this.hasAttribute('border-radius') && this.hasAttribute('border') ? this.getAttribute('border-radius') : '',
-            backdropFilterClass: this.hasAttribute('backdrop-filter') ? this.getAttribute('backdrop-filter') : '',
             customClasses: this.getAttribute('class') || '',
             styleAttribute: this.getAttribute('style') || '',
             // Background image attributes
@@ -127,7 +126,6 @@ class CustomCard extends HTMLElement {
             backgroundColorClass: '',
             borderClass: '',
             borderRadiusClass: '',
-            backdropFilterClass: '',
             customClasses: '',
             styleAttribute: '',
             backgroundLightSrc: '',
@@ -229,7 +227,7 @@ class CustomCard extends HTMLElement {
         }
 
         if (!isFallback && attrs.hasBackgroundOverlay && hasBackgroundImage) {
-            overlayHTML = `<div class="background-overlay ${attrs.backdropFilterClass}"></div>`;
+            overlayHTML = '<div class="background-overlay-1"></div>';
         }
 
         // Define padding-related classes to exclude from the outer div
@@ -378,7 +376,7 @@ class CustomCard extends HTMLElement {
 
     static get observedAttributes() {
         return [
-            'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-color', 'border', 'border-radius', 'backdrop-filter', 'class', 'style',
+            'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-color', 'border', 'border-radius', 'class', 'style',
             // Background image attributes
             'custom-img-background-light-src', 'custom-img-background-dark-src', 'custom-img-background-alt', 'custom-img-background-decorative',
             'custom-img-background-mobile-width', 'custom-img-background-tablet-width', 'custom-img-background-desktop-width',
