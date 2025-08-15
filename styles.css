@@ -1048,7 +1048,7 @@
 
 
 
-    div.card {
+    div.block {
         display: grid;
         grid-auto-rows: min-content;
         height: 100%;
@@ -1123,6 +1123,54 @@
         img {
             height: 100%;
         }
+
+        /* test */
+        &.hero-header {
+            width: 100%;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            >div {
+                text-align: center;
+                padding: 2rem;
+                background: rgba(0, 0, 0, 0.3);
+                border-radius: 8px;
+            }
+        }
+
+        &.minimal-header {
+            width: 100%;
+            padding: 1rem;
+            background: var(--background-color-1);
+
+            >div {
+                text-align: center;
+            }
+        }
+
+        &.split-header {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: var(--space-small);
+            width: 100%;
+            padding: 1rem;
+
+            >picture {
+                grid-column: 1;
+                grid-row: 1;
+                max-width: 150px;
+            }
+
+            >div {
+                grid-column: 2;
+                grid-row: 1;
+                display: flex;
+                align-items: center;
+            }
+        }
+
     }
 
 
@@ -1654,7 +1702,7 @@ body>* {
         grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
         gap: var(--space-medium);
         margin-bottom: var(--space-large);
-        
+
 
     }
 
@@ -1751,7 +1799,7 @@ main {
     /* row-gap: var(--space-large); */
     margin: var(--space-medium) 0 var(--space-medium) 0;
 
-    >section:has(h2, h3, h4, h5, h6):not(:has(.card)) {
+    >section:has(h2, h3, h4, h5, h6):not(:has(.block)) {
         grid-template-columns: auto;
         gap: initial;
         margin-bottom: var(--space-medium);
@@ -1831,7 +1879,7 @@ body {
 
 
 
-/* Too convert into the .card Web Component */
+/* Too convert into the .block Web Component */
 div#products {
     display: grid !important;
     /* Ensure grid applies, for debugging */

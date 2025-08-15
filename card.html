@@ -9,7 +9,7 @@
     <script src="./js/head-generator.js" type="module"></script>
 
     <data-bh-head
-        data-components="custom-card custom-img"
+        data-components="custom-block custom-img"
         data-title="Photography, Videography & Websites - Behive"
         data-description="Bespoke media assets and web design for quality brands."
         data-keywords="photography, videography, websites, web design"
@@ -43,6 +43,47 @@
 
 <body>
 
+    <header>
+        <h1>Header Examples</h1>
+        <p>Headers using CustomBlock</p>
+        <section>
+            <custom-block
+                heading="Hero Header with Overlay"
+                description="Welcome to Behive Media, your source for stunning visuals."
+                button-text="Explore Now"
+                button-href="#"
+                class="hero-header padding-large"
+                background-overlay="background-overlay-1"
+                backdrop-filter="backdrop-filter-blur-large backdrop-filter-grayscale-small"
+                custom-img-background-light-src="./img/primary/landscape-photography-1.jpg"
+                custom-img-background-alt="Scenic landscape"
+                inner-style="text-align: center; padding: 2rem;">
+            </custom-block>
+            <custom-block
+                heading="Minimalist Header with Noise"
+                description="Professional media solutions."
+                button-text="Learn More"
+                button-href="#"
+                class="minimal-header padding-medium"
+                background-color="background-color-1"
+                background-image-noise
+                inner-style="text-align: center;">
+            </custom-block>
+            <custom-block
+                heading="Image-Text Split Header"
+                description="Capture your brand's essence."
+                button-text="Get Started"
+                button-href="#"
+                class="split-header padding-medium"
+                custom-img-foreground-light-src="./img/primary/logo.png"
+                custom-img-foreground-alt="Behive logo"
+                custom-img-foreground-position="left"
+                inner-backdrop-filter="backdrop-filter-blur-medium"
+                inner-style="display: flex; align-items: center;">
+            </custom-block>
+        </section>
+    </header>    
+
     <main>
         <section>
 
@@ -53,32 +94,32 @@
         
         <section>
 
-            <custom-card
+            <custom-block
                 heading="Background Colour 1"
                 description="Card with background-color-1, color-invert and padding-medium."
                 button-text="Action"
                 button-href="#"
                 background-color="background-color-1"
                 class="padding-medium color-invert">
-            </custom-card>
+            </custom-block>
 
-            <custom-card
+            <custom-block
                 heading="Background Colour 2"
                 description="Card with background-color-2, color-invert and padding-medium."
                 button-text="Action"
                 button-href="#"
                 background-color="background-color-2"
                 class="padding-medium color-invert">
-            </custom-card>
+            </custom-block>
 
-            <custom-card
+            <custom-block
                 heading="Background Colour 3"
                 description="Card with background-color-3 and padding-medium."
                 button-text="Action"
                 button-href="#"
                 background-color="background-color-3"
                 class="padding-medium">
-            </custom-card>
+            </custom-block>
 
         </section>
 
@@ -91,29 +132,29 @@
 
         <section>
 
-            <custom-card
+            <custom-block
                 heading="Border Small"
                 description="Card with border-small, space-between and padding-medium."
                 button-text="Action"
                 button-href="#"
                 class="padding-medium border-small space-between">
-            </custom-card>
+            </custom-block>
 
-            <custom-card
+            <custom-block
                 heading="Border Small wtih Border Radius"
                 description="Card with border-small, space-between, border-radius-medium padding-medium."
                 button-text="Action"
                 button-href="#"
                 class="padding-medium border-small border-radius-medium space-between">
-            </custom-card>
+            </custom-block>
 
-            <custom-card
+            <custom-block
                 heading="Border Medium wtih Border Radius"
                 description="Card with border-,medium, border-radius-small, and padding-medium."
                 button-text="Action"
                 button-href="#"
                 class="padding-medium border-medium border-radius-small">
-            </custom-card>
+            </custom-block>
 
         </section>
 
@@ -126,28 +167,28 @@
 
         <section>
 
-            <custom-card
+            <custom-block
                 heading="Plain Card"
                 description="Card with no additional classes."
                 button-text="Action"
                 button-href="#">
-            </custom-card>
+            </custom-block>
 
-            <custom-card
+            <custom-block
                 heading="Plain Card"
                 description="Card with no additional classes."
                 button-text="Action"
                 button-href="#"
                 style="place-self: center; text-align: center;">
-            </custom-card>
+            </custom-block>
 
-            <custom-card
+            <custom-block
                 heading="Plain Card with place-self."
                 description="Card with custom style place flex-end."
                 button-text="Action"
                 button-href="#"
                 style="place-self: flex-end;">
-            </custom-card>
+            </custom-block>
 
         </section>
 
@@ -160,7 +201,7 @@
 
         <section style="grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));">
 
-            <custom-card
+            <custom-block
                 heading="Background Image"
                 description="Card with background image, background-overlay-1 padding-medium."
                 button-text="Action"
@@ -168,9 +209,9 @@
                 class="padding-medium"
                 background-overlay="background-overlay-1"
                 custom-img-background-light-src="./img/primary/landscape-photography-1.jpg">
-            </custom-card>     
+            </custom-block>     
 
-            <custom-card
+            <custom-block
                 heading="Background Image"
                 description="Card with background image, background-overlay-2 padding-medium."
                 button-text="Action"
@@ -178,9 +219,9 @@
                 class="padding-medium"
                 background-overlay="background-overlay-2"
                 custom-img-background-light-src="./img/primary/landscape-photography-1.jpg">
-            </custom-card>  
+            </custom-block>  
 
-            <custom-card
+            <custom-block
                 heading="Background Image"
                 description="Card with background image, background-overlay-1 padding-medium."
                 button-text="Action"
@@ -189,9 +230,9 @@
                 background-overlay="background-overlay-1"
                 custom-img-background-light-src="./img/primary/landscape-photography-1.jpg"
                 inner-style="place-self: end; width: 100%;">
-            </custom-card>     
+            </custom-block>     
 
-            <custom-card
+            <custom-block
                 heading="Background Image"
                 description="Card with background image, background-overlay-2 padding-medium."
                 button-text="Action"
@@ -200,7 +241,7 @@
                 background-overlay="background-overlay-2"
                 custom-img-background-light-src="./img/primary/landscape-photography-1.jpg"
                 inner-style="width: 60%; text-align: right; place-items: self-end; place-self: self-end;">
-            </custom-card>             
+            </custom-block>             
             
         </section>
 
@@ -213,7 +254,7 @@
 
         <section style="grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));">
 
-            <custom-card
+            <custom-block
                 heading="Background Image with Noise"
                 description="Card with custom background-image, background-image-noise and padding-medium."
                 button-text="Action"
@@ -225,9 +266,9 @@
                 custom-img-background-mobile-width="100vw"
                 custom-img-background-tablet-width="50vw"
                 custom-img-background-desktop-width="33vw">
-            </custom-card>
+            </custom-block>
 
-            <custom-card
+            <custom-block
                 heading="Background Image with Inner Noise"
                 description="Card with custom background-image, background-image-noise and padding-medium."
                 button-text="Action"
@@ -240,9 +281,9 @@
                 custom-img-background-tablet-width="50vw"
                 custom-img-background-desktop-width="33vw"
                 inner-background-image-noise>
-            </custom-card>
+            </custom-block>
 
-            <custom-card
+            <custom-block
                 heading="Background Image with Noise (both)"
                 description="Card with custom background-image, background-image-noise and padding-medium."
                 button-text="Action"
@@ -257,7 +298,7 @@
                 custom-img-background-tablet-width="50vw"
                 custom-img-background-desktop-width="33vw"
                 inner-background-image-noise>
-            </custom-card>            
+            </custom-block>            
 
         </section>        
 
@@ -270,7 +311,7 @@
 
         <section>
             
-            <custom-card
+            <custom-block
                 heading="Background Colour 1 and Picture"
                 description="Card with background-color-1, picture, color-invert and padding-medium."
                 button-text="Action"
@@ -279,9 +320,9 @@
                 class="padding-medium color-invert"
                 custom-img-foreground-light-src="./img/primary/landscape-photography-2.jpg"
                 custom-img-foreground-position="above">
-            </custom-card>
+            </custom-block>
 
-            <custom-card
+            <custom-block
                 heading="Background Colour 1 and Picture"
                 description="Card with background-color-1, picture, color-invert and padding-medium."
                 button-text="Action"
@@ -290,9 +331,9 @@
                 class="padding-medium color-invert"
                 custom-img-foreground-light-src="./img/primary/landscape-photography-1.jpg"
                 custom-img-foreground-position="below">
-            </custom-card>         
+            </custom-block>         
             
-            <custom-card
+            <custom-block
                 heading="Picture and Border"
                 description="Card with picture, border-small and padding-medium."
                 button-text="Action"
@@ -300,9 +341,9 @@
                 class="padding-medium border-small"
                 custom-img-foreground-light-src="./img/primary/landscape-photography-1.jpg"
                 custom-img-foreground-position="below">
-            </custom-card>
+            </custom-block>
             
-            <custom-card
+            <custom-block
                 heading="Background Colour 1 and Picture 1/1"
                 description="Card with background-color-1, picture, color-invert and padding-medium."
                 button-text="Action"
@@ -312,7 +353,7 @@
                 custom-img-foreground-light-src="./img/primary/landscape-photography-2.jpg"
                 custom-img-foreground-position="above"
                 custom-img-foreground-aspect-ratio="1/1">
-            </custom-card>            
+            </custom-block>            
 
         </section>
 
@@ -325,7 +366,7 @@
 
         <section>
             
-            <custom-card
+            <custom-block
                 heading="Background Colour 1 and Picture"
                 description="Card with background-color-1, picture, color-invert and padding-medium."
                 button-text="Action"
@@ -334,9 +375,9 @@
                 class="padding-medium color-invert"
                 custom-img-foreground-light-src="./img/primary/landscape-photography-1.jpg"
                 custom-img-foreground-position="left">
-            </custom-card>            
+            </custom-block>            
 
-            <custom-card
+            <custom-block
                 heading="Background Colour 2 and Picture"
                 description="Card with background-color-2, picture, color-invert and padding-medium."
                 button-text="Action"
@@ -345,7 +386,7 @@
                 class="padding-medium color-invert"
                 custom-img-foreground-light-src="./img/primary/landscape-photography-1.jpg"
                 custom-img-foreground-position="right">
-            </custom-card>             
+            </custom-block>             
 
         </section>
 
