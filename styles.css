@@ -210,6 +210,10 @@
             background-color: light-dark(var(--color-static-light-8), var(--color-static-dark-6));
         }
 
+        .background-image-noise {
+            background-image: var(--background-noise);
+        }
+
         .shadow-light {
             box-shadow: 0 2px 4px light-dark(var(--color-background-dark), var(--color-accent-light-secondary));
         }

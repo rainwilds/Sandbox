@@ -55,6 +55,8 @@ class CustomCard extends HTMLElement {
             buttonText: this.getAttribute('button-text') || 'Button',
             hasBackgroundOverlay: !!backgroundOverlay,
             backgroundOverlayClass,
+            backgroundImageNoise: this.hasAttribute('background-image-noise'),
+            backdropFilterClass: this.hasAttribute('backdrop-filter') ? this.getAttribute('backdrop-filter') : '',
             backgroundColorClass: this.hasAttribute('background-color') ? this.getAttribute('background-color') : '',
             borderClass: this.hasAttribute('border') ? this.getAttribute('border') : '',
             borderRadiusClass: this.hasAttribute('border-radius') && this.hasAttribute('border') ? this.getAttribute('border-radius') : '',
@@ -87,6 +89,7 @@ class CustomCard extends HTMLElement {
             foregroundPosition: validPositions.includes(foregroundPosition) ? foregroundPosition : 'none',
             // Inner div attributes
             innerBackgroundColorClass: this.hasAttribute('inner-background-color') ? this.getAttribute('inner-background-color') : '',
+            innerBackgroundImageNoise: this.hasAttribute('inner-background-image-noise'),
             innerBorderClass: this.hasAttribute('inner-border') ? this.getAttribute('inner-border') : '',
             innerBorderRadiusClass: this.hasAttribute('inner-border-radius') && this.hasAttribute('inner-border') ? this.getAttribute('inner-border-radius') : '',
             innerBackdropFilterClass: this.hasAttribute('inner-backdrop-filter') ? this.getAttribute('inner-backdrop-filter') : '',
@@ -143,6 +146,8 @@ class CustomCard extends HTMLElement {
             buttonText: 'Button',
             hasBackgroundOverlay: false,
             backgroundOverlayClass: '',
+            backgroundImageNoise: false,
+            backdropFilterClass: '',
             backgroundColorClass: '',
             borderClass: '',
             borderRadiusClass: '',
@@ -172,6 +177,7 @@ class CustomCard extends HTMLElement {
             foregroundLoading: 'lazy',
             foregroundPosition: 'none',
             innerBackgroundColorClass: '',
+            innerBackgroundImageNoise: false,
             innerBorderClass: '',
             innerBorderRadiusClass: '',
             innerBackdropFilterClass: '',
@@ -247,7 +253,14 @@ class CustomCard extends HTMLElement {
         }
 
         if (!isFallback && attrs.hasBackgroundOverlay && hasBackgroundImage) {
-            overlayHTML = `<div class="${attrs.backgroundOverlayClass}"></div>`;
+            const overlayClasses = [attrs.backgroundOverlayClass];
+            if (attrs.backgroundImageNoise) {
+                overlayClasses.push('background-image-noise');
+            }
+            if (attrs.backdropFilterClass) {
+                overlayClasses.push(attrs.backdropFilterClass);
+            }
+            overlayHTML = `<div class="${overlayClasses.filter(cls => cls).join(' ')}"></div>`;
         }
 
         // Define padding-related classes to exclude from the outer div
@@ -265,18 +278,13 @@ class CustomCard extends HTMLElement {
             outerStyles = outerStyles.replace(paddingRegex, '').trim();
         }
 
-        // Outer div classes
-        const mainDivClassList = ['card'];
-        if (hasBackgroundImage) mainDivClassList.push('background-image');
-        mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass);
-        const mainDivClass = mainDivClassList.filter(cls => cls).join(' ').trim();
-
         // Inner div classes
         const innerDivClassList = [];
         if (!isFallback) {
             innerDivClassList.push(...innerPaddingClasses);
             if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
             if (attrs.innerBackgroundColorClass) innerDivClassList.push(attrs.innerBackgroundColorClass);
+            if (attrs.innerBackgroundImageNoise) innerDivClassList.push('background-image-noise');
             if (attrs.innerBorderClass) innerDivClassList.push(attrs.innerBorderClass);
             if (attrs.innerBorderRadiusClass) innerDivClassList.push(attrs.innerBorderRadiusClass);
             if (attrs.innerBackdropFilterClass) innerDivClassList.push(attrs.innerBackdropFilterClass);
@@ -299,6 +307,12 @@ class CustomCard extends HTMLElement {
                 <a class="button" href="${attrs.buttonHref || '#'}"${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${attrs.buttonText}</a>
             </div>
         `;
+
+        // Outer div classes
+        const mainDivClassList = ['card'];
+        if (hasBackgroundImage) mainDivClassList.push('background-image');
+        mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass);
+        const mainDivClass = mainDivClassList.filter(cls => cls).join(' ').trim();
 
         const cardElement = document.createElement('div');
         cardElement.className = mainDivClass;
@@ -399,7 +413,7 @@ class CustomCard extends HTMLElement {
 
     static get observedAttributes() {
         return [
-            'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-color', 'border', 'border-radius', 'class', 'style',
+            'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-image-noise', 'backdrop-filter', 'background-color', 'border', 'border-radius', 'class', 'style',
             // Background image attributes
             'custom-img-background-light-src', 'custom-img-background-dark-src', 'custom-img-background-alt', 'custom-img-background-decorative',
             'custom-img-background-mobile-width', 'custom-img-background-tablet-width', 'custom-img-background-desktop-width',
@@ -410,17 +424,17 @@ class CustomCard extends HTMLElement {
             'custom-img-foreground-aspect-ratio', 'custom-img-foreground-include-schema', 'custom-img-foreground-fetchpriority', 'custom-img-foreground-loading',
             'custom-img-foreground-position',
             // Inner div attributes
-            'inner-background-color', 'inner-border', 'inner-border-radius', 'inner-backdrop-filter', 'inner-style'
+            'inner-background-color', 'inner-background-image-noise', 'inner-border', 'inner-border-radius', 'inner-backdrop-filter', 'inner-style'
         ];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) return;
         const criticalAttributes = [
-            'heading', 'description', 'button-href', 'button-text', 'background-overlay',
+            'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-image-noise', 'backdrop-filter',
             'custom-img-background-light-src', 'custom-img-background-dark-src', 'custom-img-background-alt',
             'custom-img-foreground-light-src', 'custom-img-foreground-dark-src', 'custom-img-foreground-alt',
-            'custom-img-foreground-position', 'style', 'inner-background-color', 'inner-border', 'inner-border-radius',
+            'custom-img-foreground-position', 'style', 'inner-background-color', 'inner-background-image-noise', 'inner-border', 'inner-border-radius',
             'inner-backdrop-filter', 'inner-style'
         ];
         if (criticalAttributes.includes(name)) {
