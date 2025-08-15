@@ -1047,9 +1047,9 @@
 
 
 
-        &:not(.background-image)>picture:first-child+* {
+        /* &:not(.background-image)>picture:first-child+* {
             margin-top: var(--space-small);
-        }
+        } */
 
         &:where([data-foreground-position="left"],[data-foreground-position="right"]) {
             grid-template-columns: 1fr 1fr;
