@@ -1051,7 +1051,7 @@
             margin-top: var(--space-small);
         }
 
-        &:has{[data-foreground-position="left"],[data-foreground-position="right"]} {
+        &:where([data-foreground-position="left"],[data-foreground-position="right"]) {
             grid-template-columns: 1fr 1fr;
             height: min-content;
         }        
