@@ -19,20 +19,6 @@ class CustomCard extends HTMLElement {
         this.observer.observe(this);
     }
 
-    // Map filter names to CSS backdrop-filter values
-    static filterMap = {
-        'blur-large': 'blur(8px)',
-        'blur-small': 'blur(4px)',
-        'grayscale-large': 'grayscale(50%)',
-        'grayscale-small': 'grayscale(25%)',
-        'sepia-large': 'sepia(60%)',
-        'sepia-small': 'sepia(30%)',
-        'contrast-large': 'contrast(150%)',
-        'contrast-small': 'contrast(120%)',
-        'brightness-large': 'brightness(150%)',
-        'brightness-small': 'brightness(120%)'
-    };
-
     getAttributes() {
         const backgroundFetchPriority = this.getAttribute('custom-img-background-fetchpriority') || '';
         const foregroundFetchPriority = this.getAttribute('custom-img-foreground-fetchpriority') || '';
@@ -62,51 +48,9 @@ class CustomCard extends HTMLElement {
             }
         }
 
-        // Process backdrop-filter and inner-backdrop-filter as space-separated filter names
-        const backdropFilter = this.getAttribute('backdrop-filter') || '';
-        const innerBackdropFilter = this.getAttribute('inner-backdrop-filter') || '';
-        let backdropFilterStyle = '';
-        let innerBackdropFilterStyle = '';
-
-        if (backdropFilter) {
-            const filters = backdropFilter.split(' ').filter(f => f);
-            const validFilters = [];
-            const invalidFilters = [];
-            filters.forEach(filter => {
-                if (CustomCard.filterMap[filter]) {
-                    validFilters.push(CustomCard.filterMap[filter]);
-                } else {
-                    invalidFilters.push(filter);
-                }
-            });
-            backdropFilterStyle = validFilters.join(' ');
-            if (invalidFilters.length > 0) {
-                console.warn(`Invalid backdrop-filter value(s) "${invalidFilters.join(', ')}" in <custom-card>. Valid options: ${Object.keys(CustomCard.filterMap).join(', ')}.`);
-            }
-            if (!backdropFilterStyle) {
-                console.warn(`No valid backdrop-filter values found in "${backdropFilter}" for <custom-card>.`);
-            }
-        }
-
-        if (innerBackdropFilter) {
-            const filters = innerBackdropFilter.split(' ').filter(f => f);
-            const validFilters = [];
-            const invalidFilters = [];
-            filters.forEach(filter => {
-                if (CustomCard.filterMap[filter]) {
-                    validFilters.push(CustomCard.filterMap[filter]);
-                } else {
-                    invalidFilters.push(filter);
-                }
-            });
-            innerBackdropFilterStyle = validFilters.join(' ');
-            if (invalidFilters.length > 0) {
-                console.warn(`Invalid inner-backdrop-filter value(s) "${invalidFilters.join(', ')}" in <custom-card>. Valid options: ${Object.keys(CustomCard.filterMap).join(', ')}.`);
-            }
-            if (!innerBackdropFilterStyle) {
-                console.warn(`No valid inner-backdrop-filter values found in "${innerBackdropFilter}" for <custom-card>.`);
-            }
-        }
+        // Process backdrop-filter and inner-backdrop-filter as space-separated class names
+        const backdropFilterClasses = this.getAttribute('backdrop-filter')?.split(' ').filter(cls => cls) || [];
+        const innerBackdropFilterClasses = this.getAttribute('inner-backdrop-filter')?.split(' ').filter(cls => cls) || [];
 
         return {
             heading: this.getAttribute('heading') || 'Default Heading',
@@ -116,7 +60,7 @@ class CustomCard extends HTMLElement {
             hasBackgroundOverlay: !!backgroundOverlay,
             backgroundOverlayClass,
             backgroundImageNoise: this.hasAttribute('background-image-noise'),
-            backdropFilterStyle,
+            backdropFilterClasses,
             backgroundColorClass: this.hasAttribute('background-color') ? this.getAttribute('background-color') : '',
             borderClass: this.hasAttribute('border') ? this.getAttribute('border') : '',
             borderRadiusClass: this.hasAttribute('border-radius') && this.hasAttribute('border') ? this.getAttribute('border-radius') : '',
@@ -150,7 +94,7 @@ class CustomCard extends HTMLElement {
             // Inner div attributes
             innerBackgroundColorClass: this.hasAttribute('inner-background-color') ? this.getAttribute('inner-background-color') : '',
             innerBackgroundImageNoise: this.hasAttribute('inner-background-image-noise'),
-            innerBackdropFilterStyle,
+            innerBackdropFilterClasses,
             innerBorderClass: this.hasAttribute('inner-border') ? this.getAttribute('inner-border') : '',
             innerBorderRadiusClass: this.hasAttribute('inner-border-radius') && this.hasAttribute('inner-border') ? this.getAttribute('inner-border-radius') : '',
             innerStyle: this.getAttribute('inner-style') || ''
@@ -207,7 +151,7 @@ class CustomCard extends HTMLElement {
             hasBackgroundOverlay: false,
             backgroundOverlayClass: '',
             backgroundImageNoise: false,
-            backdropFilterStyle: '',
+            backdropFilterClasses: [],
             backgroundColorClass: '',
             borderClass: '',
             borderRadiusClass: '',
@@ -238,7 +182,7 @@ class CustomCard extends HTMLElement {
             foregroundPosition: 'none',
             innerBackgroundColorClass: '',
             innerBackgroundImageNoise: false,
-            innerBackdropFilterStyle: '',
+            innerBackdropFilterClasses: [],
             innerBorderClass: '',
             innerBorderRadiusClass: '',
             innerStyle: ''
@@ -317,8 +261,8 @@ class CustomCard extends HTMLElement {
             if (attrs.backgroundImageNoise) {
                 overlayClasses.push('background-image-noise');
             }
-            const overlayStyles = attrs.backdropFilterStyle ? ` style="backdrop-filter: ${attrs.backdropFilterStyle}"` : '';
-            overlayHTML = `<div class="${overlayClasses.filter(cls => cls).join(' ')}"${overlayStyles}></div>`;
+            overlayClasses.push(...attrs.backdropFilterClasses);
+            overlayHTML = `<div class="${overlayClasses.filter(cls => cls).join(' ')}"></div>`;
         }
 
         // Define padding-related classes to exclude from the outer div
@@ -345,13 +289,14 @@ class CustomCard extends HTMLElement {
             if (attrs.innerBackgroundImageNoise) innerDivClassList.push('background-image-noise');
             if (attrs.innerBorderClass) innerDivClassList.push(attrs.innerBorderClass);
             if (attrs.innerBorderRadiusClass) innerDivClassList.push(attrs.innerBorderRadiusClass);
+            innerDivClassList.push(...attrs.innerBackdropFilterClasses);
         }
         const innerDivClass = innerDivClassList.join(' ').trim();
 
-        // Combine inner styles with backdrop-filter
+        // Combine inner styles
         let innerDivStyle = '';
         if (!isFallback) {
-            const combinedStyles = [paddingStyles, attrs.innerStyle, attrs.innerBackdropFilterStyle ? `backdrop-filter: ${attrs.innerBackdropFilterStyle}` : ''].filter(s => s).join('; ').trim();
+            const combinedStyles = [paddingStyles, attrs.innerStyle].filter(s => s).join('; ').trim();
             innerDivStyle = combinedStyles ? ` style="${combinedStyles}"` : '';
         }
 
