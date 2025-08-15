@@ -1653,7 +1653,7 @@ body>* {
         grid-template-columns: subgrid;
         margin-bottom: var(--space-large);
 
-        &:has(h2, h3, h4, h5, h6):not(:has(.block)) {
+        &:where([data-text="true"]) {
 
             grid-template-columns: auto;
             gap: initial;

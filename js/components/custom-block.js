@@ -319,6 +319,10 @@ class CustomBlock extends HTMLElement {
         if (!isFallback && hasForegroundImage) {
             blockElement.setAttribute('data-foreground-position', attrs.foregroundPosition);
         }
+        // Add data-text attribute for text-only blocks
+        if (!isFallback && !hasBackgroundImage && !hasForegroundImage && !overlayHTML) {
+            blockElement.setAttribute('data-text', 'true');
+        }
 
         let innerHTML = '';
         if (hasBackgroundImage) {
