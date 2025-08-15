@@ -1654,9 +1654,9 @@ body>* {
         grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
         gap: var(--space-medium);
         margin-bottom: var(--space-large);
+        
 
     }
-
 
 }
 

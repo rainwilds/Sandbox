@@ -1,6 +1,6 @@
 import { generatePictureMarkup } from '../picture-generator.js';
 
-class CustomCard extends HTMLElement {
+class CustomBlock extends HTMLElement {
     constructor() {
         super();
         this.isVisible = false;
@@ -24,16 +24,16 @@ class CustomCard extends HTMLElement {
         const foregroundFetchPriority = this.getAttribute('custom-img-foreground-fetchpriority') || '';
         const validFetchPriorities = ['high', 'low', 'auto', ''];
         if (!validFetchPriorities.includes(backgroundFetchPriority)) {
-            console.warn(`Invalid custom-img-background-fetchpriority value "${backgroundFetchPriority}" in <custom-card>. Using default.`);
+            console.warn(`Invalid custom-img-background-fetchpriority value "${backgroundFetchPriority}" in <custom-block>. Using default.`);
         }
         if (!validFetchPriorities.includes(foregroundFetchPriority)) {
-            console.warn(`Invalid custom-img-foreground-fetchpriority value "${foregroundFetchPriority}" in <custom-card>. Using default.`);
+            console.warn(`Invalid custom-img-foreground-fetchpriority value "${foregroundFetchPriority}" in <custom-block>. Using default.`);
         }
 
         const foregroundPosition = this.getAttribute('custom-img-foreground-position') || 'none';
         const validPositions = ['none', 'above', 'below', 'left', 'right'];
         if (!validPositions.includes(foregroundPosition)) {
-            console.warn(`Invalid custom-img-foreground-position value "${foregroundPosition}" in <custom-card>. Using default 'none'.`);
+            console.warn(`Invalid custom-img-foreground-position value "${foregroundPosition}" in <custom-block>. Using default 'none'.`);
         }
 
         const backgroundOverlay = this.getAttribute('background-overlay') || '';
@@ -43,12 +43,11 @@ class CustomCard extends HTMLElement {
             if (match) {
                 backgroundOverlayClass = `background-overlay-${match[1]}`;
             } else {
-                console.warn(`Invalid background-overlay value "${backgroundOverlay}" in <custom-card>. Expected format: background-overlay-[number]. Using default 'background-overlay-1'.`);
+                console.warn(`Invalid background-overlay value "${backgroundOverlay}" in <custom-block>. Expected format: background-overlay-[number]. Using default 'background-overlay-1'.`);
                 backgroundOverlayClass = 'background-overlay-1';
             }
         }
 
-        // Process backdrop-filter and inner-backdrop-filter as space-separated class names
         const backdropFilterClasses = this.getAttribute('backdrop-filter')?.split(' ').filter(cls => cls) || [];
         const innerBackdropFilterClasses = this.getAttribute('inner-backdrop-filter')?.split(' ').filter(cls => cls) || [];
 
@@ -66,7 +65,6 @@ class CustomCard extends HTMLElement {
             borderRadiusClass: this.hasAttribute('border-radius') && this.hasAttribute('border') ? this.getAttribute('border-radius') : '',
             customClasses: this.getAttribute('class') || '',
             styleAttribute: this.getAttribute('style') || '',
-            // Background image attributes
             backgroundLightSrc: this.getAttribute('custom-img-background-light-src') || '',
             backgroundDarkSrc: this.getAttribute('custom-img-background-dark-src') || '',
             backgroundAlt: this.getAttribute('custom-img-background-alt') || '',
@@ -78,7 +76,6 @@ class CustomCard extends HTMLElement {
             backgroundIncludeSchema: this.hasAttribute('custom-img-background-include-schema'),
             backgroundFetchPriority: validFetchPriorities.includes(backgroundFetchPriority) ? backgroundFetchPriority : '',
             backgroundLoading: this.getAttribute('custom-img-background-loading') || 'lazy',
-            // Foreground image attributes
             foregroundLightSrc: this.getAttribute('custom-img-foreground-light-src') || '',
             foregroundDarkSrc: this.getAttribute('custom-img-foreground-dark-src') || '',
             foregroundAlt: this.getAttribute('custom-img-foreground-alt') || '',
@@ -91,7 +88,6 @@ class CustomCard extends HTMLElement {
             foregroundFetchPriority: validFetchPriorities.includes(foregroundFetchPriority) ? foregroundFetchPriority : '',
             foregroundLoading: this.getAttribute('custom-img-foreground-loading') || 'lazy',
             foregroundPosition: validPositions.includes(foregroundPosition) ? foregroundPosition : 'none',
-            // Inner div attributes
             innerBackgroundColorClass: this.hasAttribute('inner-background-color') ? this.getAttribute('inner-background-color') : '',
             innerBackgroundImageNoise: this.hasAttribute('inner-background-image-noise'),
             innerBackdropFilterClasses,
@@ -103,17 +99,17 @@ class CustomCard extends HTMLElement {
 
     initialize() {
         if (this.isInitialized || !this.isVisible) return;
-        console.log('** CustomCard start... **');
+        console.log('** CustomBlock start... **');
         this.isInitialized = true;
         try {
             const cardElement = this.render();
             this.replaceWith(cardElement);
             this.callbacks.forEach(callback => callback());
         } catch (error) {
-            console.error('Error initializing CustomCard:', error);
+            console.error('Error initializing CustomBlock:', error);
             this.replaceWith(this.render(true));
         }
-        console.log('** CustomCard end... **');
+        console.log('** CustomBlock end... **');
     }
 
     connectedCallback() {
@@ -145,7 +141,7 @@ class CustomCard extends HTMLElement {
 
         const attrs = isFallback ? {
             heading: 'Error',
-            description: 'Failed to render card. Check console for details.',
+            description: 'Failed to render block. Check console for details.',
             buttonHref: '#',
             buttonText: 'Button',
             hasBackgroundOverlay: false,
@@ -188,12 +184,11 @@ class CustomCard extends HTMLElement {
             innerStyle: ''
         } : this.getAttributes();
 
-        // Accessibility warnings
         if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
-            console.warn(`<custom-card custom-img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" custom-img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> is missing a custom-img-background-alt attribute for accessibility.`);
+            console.warn(`<custom-block custom-img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" custom-img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> is missing a custom-img-background-alt attribute for accessibility.`);
         }
         if (!attrs.foregroundAlt && !attrs.foregroundIsDecorative && (attrs.foregroundLightSrc || attrs.foregroundDarkSrc)) {
-            console.warn(`<custom-card custom-img-foreground-light-src="${attrs.foregroundLightSrc || 'not provided'}" custom-img-foreground-dark-src="${attrs.foregroundDarkSrc || 'not provided'}"> is missing a custom-img-foreground-alt attribute for accessibility.`);
+            console.warn(`<custom-block custom-img-foreground-light-src="${attrs.foregroundLightSrc || 'not provided'}" custom-img-foreground-dark-src="${attrs.foregroundDarkSrc || 'not provided'}"> is missing a custom-img-foreground-alt attribute for accessibility.`);
         }
 
         let backgroundImageHTML = '';
@@ -205,7 +200,7 @@ class CustomCard extends HTMLElement {
         if (hasBackgroundImage) {
             const src = attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
             if (!src) {
-                console.warn('No valid background image source provided for <custom-card>. Skipping background image rendering.');
+                console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
             } else {
                 backgroundImageHTML = generatePictureMarkup({
                     src,
@@ -224,7 +219,7 @@ class CustomCard extends HTMLElement {
                     onerror: `this.src='https://placehold.co/3000x2000';${attrs.backgroundIsDecorative ? '' : `this.alt='${attrs.backgroundAlt || 'Placeholder image'}';`}this.onerror=null;`
                 });
                 if (!backgroundImageHTML) {
-                    console.warn('Failed to generate picture markup for background image in <custom-card>.');
+                    console.warn('Failed to generate picture markup for background image in <custom-block>.');
                 }
             }
         }
@@ -232,7 +227,7 @@ class CustomCard extends HTMLElement {
         if (hasForegroundImage) {
             const src = attrs.foregroundLightSrc || attrs.foregroundDarkSrc;
             if (!src) {
-                console.warn('No valid foreground image source provided for <custom-card>. Skipping foreground image rendering.');
+                console.warn('No valid foreground image source provided for <custom-block>. Skipping foreground image rendering.');
             } else {
                 foregroundImageHTML = generatePictureMarkup({
                     src,
@@ -251,7 +246,7 @@ class CustomCard extends HTMLElement {
                     onerror: `this.src='https://placehold.co/3000x2000';${attrs.foregroundIsDecorative ? '' : `this.alt='${attrs.foregroundAlt || 'Placeholder image'}';`}this.onerror=null;`
                 });
                 if (!foregroundImageHTML) {
-                    console.warn('Failed to generate picture markup for foreground image in <custom-card>.');
+                    console.warn('Failed to generate picture markup for foreground image in <custom-block>.');
                 }
             }
         }
@@ -265,12 +260,10 @@ class CustomCard extends HTMLElement {
             overlayHTML = `<div class="${overlayClasses.filter(cls => cls).join(' ')}"></div>`;
         }
 
-        // Define padding-related classes to exclude from the outer div
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
         const customClassList = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls));
         const innerPaddingClasses = attrs.customClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
 
-        // Extract padding-related styles from styleAttribute
         let outerStyles = attrs.styleAttribute || '';
         let paddingStyles = '';
         if (!isFallback && outerStyles) {
@@ -280,7 +273,6 @@ class CustomCard extends HTMLElement {
             outerStyles = outerStyles.replace(paddingRegex, '').trim();
         }
 
-        // Inner div classes
         const innerDivClassList = [];
         if (!isFallback) {
             innerDivClassList.push(...innerPaddingClasses);
@@ -293,7 +285,6 @@ class CustomCard extends HTMLElement {
         }
         const innerDivClass = innerDivClassList.join(' ').trim();
 
-        // Combine inner styles
         let innerDivStyle = '';
         if (!isFallback) {
             const combinedStyles = [paddingStyles, attrs.innerStyle].filter(s => s).join('; ').trim();
@@ -310,22 +301,20 @@ class CustomCard extends HTMLElement {
             </div>
         `;
 
-        // Outer div classes
-        const mainDivClassList = ['card'];
+        const mainDivClassList = ['block'];
         if (hasBackgroundImage) mainDivClassList.push('background-image');
         mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass);
         const mainDivClass = mainDivClassList.filter(cls => cls).join(' ').trim();
 
-        const cardElement = document.createElement('div');
-        cardElement.className = mainDivClass;
+        const blockElement = document.createElement('div');
+        blockElement.className = mainDivClass;
         if (outerStyles && !isFallback) {
-            cardElement.setAttribute('style', outerStyles);
+            blockElement.setAttribute('style', outerStyles);
         }
         if (!isFallback && hasForegroundImage) {
-            cardElement.setAttribute('data-foreground-position', attrs.foregroundPosition);
+            blockElement.setAttribute('data-foreground-position', attrs.foregroundPosition);
         }
 
-        // Arrange content based on foregroundPosition
         let innerHTML = '';
         if (hasBackgroundImage) {
             innerHTML += backgroundImageHTML || '';
@@ -347,11 +336,10 @@ class CustomCard extends HTMLElement {
             innerHTML += foregroundImageHTML || '';
         }
 
-        cardElement.innerHTML = innerHTML;
+        blockElement.innerHTML = innerHTML;
 
-        // Schema handling for background image
         if (!isFallback && attrs.backgroundIncludeSchema && hasBackgroundImage && backgroundImageHTML) {
-            const figure = cardElement.querySelector('figure:not(figure > figure)');
+            const figure = blockElement.querySelector('figure:not(figure > figure)');
             if (figure) {
                 const metaUrl = document.createElement('meta');
                 metaUrl.setAttribute('itemprop', 'url');
@@ -365,9 +353,8 @@ class CustomCard extends HTMLElement {
             }
         }
 
-        // Schema handling for foreground image
         if (!isFallback && attrs.foregroundIncludeSchema && hasForegroundImage && foregroundImageHTML) {
-            const figure = cardElement.querySelector('figure');
+            const figure = blockElement.querySelector('figure');
             if (figure) {
                 const metaUrl = document.createElement('meta');
                 metaUrl.setAttribute('itemprop', 'url');
@@ -376,9 +363,8 @@ class CustomCard extends HTMLElement {
             }
         }
 
-        // Clean up image attributes
-        if (!isFallback && cardElement.querySelector('img')) {
-            const images = cardElement.querySelectorAll('img');
+        if (!isFallback && blockElement.querySelector('img')) {
+            const images = blockElement.querySelectorAll('img');
             images.forEach(img => {
                 img.removeAttribute('custom-img-background-light-src');
                 img.removeAttribute('custom-img-background-dark-src');
@@ -407,25 +393,22 @@ class CustomCard extends HTMLElement {
         }
 
         if (!isFallback) {
-            this.renderCache = cardElement.cloneNode(true);
+            this.renderCache = blockElement.cloneNode(true);
             this.lastAttributes = JSON.stringify(attrs);
         }
-        return cardElement;
+        return blockElement;
     }
 
     static get observedAttributes() {
         return [
             'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-image-noise', 'backdrop-filter', 'background-color', 'border', 'border-radius', 'class', 'style',
-            // Background image attributes
             'custom-img-background-light-src', 'custom-img-background-dark-src', 'custom-img-background-alt', 'custom-img-background-decorative',
             'custom-img-background-mobile-width', 'custom-img-background-tablet-width', 'custom-img-background-desktop-width',
             'custom-img-background-aspect-ratio', 'custom-img-background-include-schema', 'custom-img-background-fetchpriority', 'custom-img-background-loading',
-            // Foreground image attributes
             'custom-img-foreground-light-src', 'custom-img-foreground-dark-src', 'custom-img-foreground-alt', 'custom-img-foreground-decorative',
             'custom-img-foreground-mobile-width', 'custom-img-foreground-tablet-width', 'custom-img-foreground-desktop-width',
             'custom-img-foreground-aspect-ratio', 'custom-img-foreground-include-schema', 'custom-img-foreground-fetchpriority', 'custom-img-foreground-loading',
             'custom-img-foreground-position',
-            // Inner div attributes
             'inner-background-color', 'inner-background-image-noise', 'inner-border', 'inner-border-radius', 'inner-backdrop-filter', 'inner-style'
         ];
     }
@@ -446,7 +429,7 @@ class CustomCard extends HTMLElement {
 }
 
 try {
-    customElements.define('custom-card', CustomCard);
+    customElements.define('custom-block', CustomBlock);
 } catch (error) {
-    console.error('Error defining CustomCard element:', error);
+    console.error('Error defining CustomBlock element:', error);
 }
