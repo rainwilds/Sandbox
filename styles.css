@@ -1101,9 +1101,9 @@
 
 
 
-        >*:first-child:not(picture):not(figure) {
+        /* >*:first-child:not(picture):not(figure) {
             margin-bottom: var(--space-small);
-        }
+        } */
 
         a {
             margin-top: var(--space-tiny);

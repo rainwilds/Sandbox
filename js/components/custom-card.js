@@ -36,12 +36,25 @@ class CustomCard extends HTMLElement {
             console.warn(`Invalid custom-img-foreground-position value "${foregroundPosition}" in <custom-card>. Using default 'none'.`);
         }
 
+        const backgroundOverlay = this.getAttribute('background-overlay') || '';
+        let backgroundOverlayClass = '';
+        if (backgroundOverlay) {
+            const match = backgroundOverlay.match(/^background-overlay-(\d+)$/);
+            if (match) {
+                backgroundOverlayClass = `background-overlay-${match[1]}`;
+            } else {
+                console.warn(`Invalid background-overlay value "${backgroundOverlay}" in <custom-card>. Expected format: background-overlay-[number]. Using default 'background-overlay-1'.`);
+                backgroundOverlayClass = 'background-overlay-1';
+            }
+        }
+
         return {
             heading: this.getAttribute('heading') || 'Default Heading',
             description: this.getAttribute('description') || 'Default description text.',
             buttonHref: this.getAttribute('button-href') || '#',
             buttonText: this.getAttribute('button-text') || 'Button',
-            hasBackgroundOverlay: this.hasAttribute('background-overlay'),
+            hasBackgroundOverlay: !!backgroundOverlay,
+            backgroundOverlayClass,
             backgroundColorClass: this.hasAttribute('background-color') ? this.getAttribute('background-color') : '',
             borderClass: this.hasAttribute('border') ? this.getAttribute('border') : '',
             borderRadiusClass: this.hasAttribute('border-radius') && this.hasAttribute('border') ? this.getAttribute('border-radius') : '',
@@ -129,6 +142,7 @@ class CustomCard extends HTMLElement {
             buttonHref: '#',
             buttonText: 'Button',
             hasBackgroundOverlay: false,
+            backgroundOverlayClass: '',
             backgroundColorClass: '',
             borderClass: '',
             borderRadiusClass: '',
@@ -233,7 +247,7 @@ class CustomCard extends HTMLElement {
         }
 
         if (!isFallback && attrs.hasBackgroundOverlay && hasBackgroundImage) {
-            overlayHTML = '<div class="background-overlay-1"></div>';
+            overlayHTML = `<div class="${attrs.backgroundOverlayClass}"></div>`;
         }
 
         // Define padding-related classes to exclude from the outer div
@@ -324,7 +338,7 @@ class CustomCard extends HTMLElement {
             const figure = cardElement.querySelector('figure:not(figure > figure)');
             if (figure) {
                 const metaUrl = document.createElement('meta');
-                метаUrl.setAttribute('itemprop', 'url');
+                metaUrl.setAttribute('itemprop', 'url');
                 metaUrl.setAttribute('content', (attrs.backgroundLightSrc || attrs.backgroundDarkSrc) ? new URL(attrs.backgroundLightSrc || attrs.backgroundDarkSrc, window.location.origin).href : '');
                 figure.appendChild(metaUrl);
 
@@ -403,7 +417,7 @@ class CustomCard extends HTMLElement {
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) return;
         const criticalAttributes = [
-            'heading', 'description', 'button-href', 'button-text',
+            'heading', 'description', 'button-href', 'button-text', 'background-overlay',
             'custom-img-background-light-src', 'custom-img-background-dark-src', 'custom-img-background-alt',
             'custom-img-foreground-light-src', 'custom-img-foreground-dark-src', 'custom-img-foreground-alt',
             'custom-img-foreground-position', 'style', 'inner-background-color', 'inner-border', 'inner-border-radius',
