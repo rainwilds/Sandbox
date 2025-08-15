@@ -846,6 +846,13 @@
         @media (max-width: 768px) {
 
             &:root {
+
+                --space-tiny: 0.8rem;
+                --space-small: 1.7rem;
+                --space-medium: 2.3rem;
+                --space-large: 6rem;
+                --space-huge: 8rem;
+
                 --font-2-size-small: 17px;
                 --font-2-size-medium: 20px;
                 --font-2-size-large: 22px;
@@ -1055,10 +1062,10 @@
             margin-top: var(--space-small);
         } */
 
-        &:where([data-foreground-position="left"],[data-foreground-position="right"]) {
+        &:where([data-foreground-position="left"], [data-foreground-position="right"]) {
             grid-template-columns: 1fr 1fr;
             height: min-content;
-        }        
+        }
 
         &.background-image>* {
             /* Apply positioning to all direct children, including <picture> */
