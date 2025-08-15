@@ -1653,12 +1653,6 @@ body>* {
         grid-template-columns: subgrid;
         margin-bottom: var(--space-large);
 
-        &:has([data-text="true"]) {
-
-            margin-bottom: var(--space-medium);
-
-        }
-
         >div {
 
             grid-column: 2 / -2;
