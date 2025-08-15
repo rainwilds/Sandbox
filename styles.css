@@ -1656,6 +1656,13 @@ body>* {
 
         margin-bottom: var(--space-large);
 
+        &:has(h2, h3, h4, h5, h6):not(:has(.block)) {
+            grid-template-columns: auto;
+            gap: initial;
+            margin-bottom: var(--space-medium);
+
+        }
+
         >div {
 
             grid-column: 2 / -2;
@@ -1663,12 +1670,7 @@ body>* {
             grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
             gap: var(--space-medium);
 
-            &:has(h2, h3, h4, h5, h6):not(:has(.block)) {
-                grid-template-columns: auto;
-                gap: initial;
-                margin-bottom: var(--space-medium);
 
-            }
         }
 
     }
