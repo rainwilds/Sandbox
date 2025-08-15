@@ -1653,7 +1653,7 @@ body>* {
         grid-template-columns: subgrid;
         margin-bottom: var(--space-large);
 
-        &:where([data-text="true"]) {
+        &:has([data-text="true"]) {
 
             grid-template-columns: auto;
             gap: initial;
