@@ -26,8 +26,11 @@ class CustomCard extends HTMLElement {
         'grayscale-large': 'grayscale(50%)',
         'grayscale-small': 'grayscale(25%)',
         'sepia-large': 'sepia(60%)',
-        'sepia-small': 'sepia(30%)'
-        // Add more filter mappings as needed
+        'sepia-small': 'sepia(30%)',
+        'contrast-large': 'contrast(150%)',
+        'contrast-small': 'contrast(120%)',
+        'brightness-large': 'brightness(150%)',
+        'brightness-small': 'brightness(120%)'
     };
 
     getAttributes() {
@@ -67,23 +70,41 @@ class CustomCard extends HTMLElement {
 
         if (backdropFilter) {
             const filters = backdropFilter.split(' ').filter(f => f);
-            backdropFilterStyle = filters
-                .map(filter => CustomCard.filterMap[filter] || '')
-                .filter(f => f)
-                .join(' ');
+            const validFilters = [];
+            const invalidFilters = [];
+            filters.forEach(filter => {
+                if (CustomCard.filterMap[filter]) {
+                    validFilters.push(CustomCard.filterMap[filter]);
+                } else {
+                    invalidFilters.push(filter);
+                }
+            });
+            backdropFilterStyle = validFilters.join(' ');
+            if (invalidFilters.length > 0) {
+                console.warn(`Invalid backdrop-filter value(s) "${invalidFilters.join(', ')}" in <custom-card>. Valid options: ${Object.keys(CustomCard.filterMap).join(', ')}.`);
+            }
             if (!backdropFilterStyle) {
-                console.warn(`Invalid backdrop-filter value(s) "${backdropFilter}" in <custom-card>. No valid filters found.`);
+                console.warn(`No valid backdrop-filter values found in "${backdropFilter}" for <custom-card>.`);
             }
         }
 
         if (innerBackdropFilter) {
             const filters = innerBackdropFilter.split(' ').filter(f => f);
-            innerBackdropFilterStyle = filters
-                .map(filter => CustomCard.filterMap[filter] || '')
-                .filter(f => f)
-                .join(' ');
+            const validFilters = [];
+            const invalidFilters = [];
+            filters.forEach(filter => {
+                if (CustomCard.filterMap[filter]) {
+                    validFilters.push(CustomCard.filterMap[filter]);
+                } else {
+                    invalidFilters.push(filter);
+                }
+            });
+            innerBackdropFilterStyle = validFilters.join(' ');
+            if (invalidFilters.length > 0) {
+                console.warn(`Invalid inner-backdrop-filter value(s) "${invalidFilters.join(', ')}" in <custom-card>. Valid options: ${Object.keys(CustomCard.filterMap).join(', ')}.`);
+            }
             if (!innerBackdropFilterStyle) {
-                console.warn(`Invalid inner-backdrop-filter value(s) "${innerBackdropFilter}" in <custom-card>. No valid filters found.`);
+                console.warn(`No valid inner-backdrop-filter values found in "${innerBackdropFilter}" for <custom-card>.`);
             }
         }
 
