@@ -52,6 +52,7 @@ class CustomBlock extends HTMLElement {
         const innerBackdropFilterClasses = this.getAttribute('inner-backdrop-filter')?.split(' ').filter(cls => cls) || [];
 
         return {
+            title: this.getAttribute('title') || '', // Added title attribute
             heading: this.getAttribute('heading') || 'Default Heading',
             description: this.getAttribute('description') || 'Default description text.',
             buttonHref: this.getAttribute('button-href') || '#',
@@ -140,6 +141,7 @@ class CustomBlock extends HTMLElement {
         }
 
         const attrs = isFallback ? {
+            title: '', // Added to fallback attributes
             heading: 'Error',
             description: 'Failed to render block. Check console for details.',
             buttonHref: '#',
@@ -270,7 +272,7 @@ class CustomBlock extends HTMLElement {
             const paddingRegex = /(padding[^:]*:[^;]+;)/gi;
             const paddingMatches = outerStyles.match(paddingRegex) || [];
             paddingStyles = paddingMatches.join(' ').trim();
-            outerStyles = outerStyles.replace(padingRegex, '').trim();
+            outerStyles = outerStyles.replace(paddingRegex, '').trim();
         }
 
         const innerDivClassList = [];
@@ -318,6 +320,10 @@ class CustomBlock extends HTMLElement {
         }
         if (!isFallback && hasForegroundImage) {
             blockElement.setAttribute('data-foreground-position', attrs.foregroundPosition);
+        }
+        // Add data-title attribute when title attribute is provided
+        if (!isFallback && attrs.title) {
+            blockElement.setAttribute('data-title', 'true');
         }
 
         let innerHTML = '';
@@ -411,6 +417,7 @@ class CustomBlock extends HTMLElement {
 
     static get observedAttributes() {
         return [
+            'title', // Added to observed attributes
             'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-image-noise', 'backdrop-filter', 'background-color', 'border', 'border-radius', 'class', 'style',
             'custom-img-background-light-src', 'custom-img-background-dark-src', 'custom-img-background-alt', 'custom-img-background-decorative',
             'custom-img-background-mobile-width', 'custom-img-background-tablet-width', 'custom-img-background-desktop-width',
@@ -426,6 +433,7 @@ class CustomBlock extends HTMLElement {
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) return;
         const criticalAttributes = [
+            'title', // Added to critical attributes
             'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-image-noise', 'backdrop-filter',
             'custom-img-background-light-src', 'custom-img-background-dark-src', 'custom-img-background-alt',
             'custom-img-foreground-light-src', 'custom-img-foreground-dark-src', 'custom-img-foreground-alt',
