@@ -1652,14 +1652,15 @@ body>* {
 
         grid-column: 1 / -1;
         display: grid;
-        gap: var(--space-medium);
+
         margin-bottom: var(--space-large);
         
         >div {
 
             grid-column: 2 / -2;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));         
+            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); 
+            gap: var(--space-medium);        
 
         }
     }
