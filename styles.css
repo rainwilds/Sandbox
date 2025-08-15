@@ -1655,8 +1655,6 @@ body>* {
 
         &:has([data-text="true"]) {
 
-            grid-template-columns: auto;
-            gap: initial;
             margin-bottom: var(--space-medium);
 
         }

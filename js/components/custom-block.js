@@ -281,7 +281,7 @@ class CustomBlock extends HTMLElement {
             if (attrs.innerBackgroundImageNoise) innerDivClassList.push('background-image-noise');
             if (attrs.innerBorderClass) innerDivClassList.push(attrs.innerBorderClass);
             if (attrs.innerBorderRadiusClass) innerDivClassList.push(attrs.innerBorderRadiusClass);
-            innerDivClassList.push(...attrs.innerBackdropFilterClasses);
+            innerDivClassList empujadas(...attrs.innerBackdropFilterClasses);
         }
         const innerDivClass = innerDivClassList.join(' ').trim();
 
@@ -319,8 +319,8 @@ class CustomBlock extends HTMLElement {
         if (!isFallback && hasForegroundImage) {
             blockElement.setAttribute('data-foreground-position', attrs.foregroundPosition);
         }
-        // Add data-text attribute for text-only blocks
-        if (!isFallback && !hasBackgroundImage && !hasForegroundImage && !overlayHTML) {
+        // Add data-text attribute for text-only blocks (no images, no overlay, no button)
+        if (!isFallback && !hasBackgroundImage && !hasForegroundImage && !overlayHTML && !attrs.buttonText) {
             blockElement.setAttribute('data-text', 'true');
         }
 
