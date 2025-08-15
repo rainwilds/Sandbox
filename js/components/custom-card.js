@@ -19,6 +19,17 @@ class CustomCard extends HTMLElement {
         this.observer.observe(this);
     }
 
+    // Map filter names to CSS backdrop-filter values
+    static filterMap = {
+        'blur-large': 'blur(8px)',
+        'blur-small': 'blur(4px)',
+        'grayscale-large': 'grayscale(50%)',
+        'grayscale-small': 'grayscale(25%)',
+        'sepia-large': 'sepia(60%)',
+        'sepia-small': 'sepia(30%)'
+        // Add more filter mappings as needed
+    };
+
     getAttributes() {
         const backgroundFetchPriority = this.getAttribute('custom-img-background-fetchpriority') || '';
         const foregroundFetchPriority = this.getAttribute('custom-img-foreground-fetchpriority') || '';
@@ -48,6 +59,34 @@ class CustomCard extends HTMLElement {
             }
         }
 
+        // Process backdrop-filter and inner-backdrop-filter as space-separated filter names
+        const backdropFilter = this.getAttribute('backdrop-filter') || '';
+        const innerBackdropFilter = this.getAttribute('inner-backdrop-filter') || '';
+        let backdropFilterStyle = '';
+        let innerBackdropFilterStyle = '';
+
+        if (backdropFilter) {
+            const filters = backdropFilter.split(' ').filter(f => f);
+            backdropFilterStyle = filters
+                .map(filter => CustomCard.filterMap[filter] || '')
+                .filter(f => f)
+                .join(' ');
+            if (!backdropFilterStyle) {
+                console.warn(`Invalid backdrop-filter value(s) "${backdropFilter}" in <custom-card>. No valid filters found.`);
+            }
+        }
+
+        if (innerBackdropFilter) {
+            const filters = innerBackdropFilter.split(' ').filter(f => f);
+            innerBackdropFilterStyle = filters
+                .map(filter => CustomCard.filterMap[filter] || '')
+                .filter(f => f)
+                .join(' ');
+            if (!innerBackdropFilterStyle) {
+                console.warn(`Invalid inner-backdrop-filter value(s) "${innerBackdropFilter}" in <custom-card>. No valid filters found.`);
+            }
+        }
+
         return {
             heading: this.getAttribute('heading') || 'Default Heading',
             description: this.getAttribute('description') || 'Default description text.',
@@ -56,7 +95,7 @@ class CustomCard extends HTMLElement {
             hasBackgroundOverlay: !!backgroundOverlay,
             backgroundOverlayClass,
             backgroundImageNoise: this.hasAttribute('background-image-noise'),
-            backdropFilterClass: this.hasAttribute('backdrop-filter') ? this.getAttribute('backdrop-filter') : '',
+            backdropFilterStyle,
             backgroundColorClass: this.hasAttribute('background-color') ? this.getAttribute('background-color') : '',
             borderClass: this.hasAttribute('border') ? this.getAttribute('border') : '',
             borderRadiusClass: this.hasAttribute('border-radius') && this.hasAttribute('border') ? this.getAttribute('border-radius') : '',
@@ -90,9 +129,9 @@ class CustomCard extends HTMLElement {
             // Inner div attributes
             innerBackgroundColorClass: this.hasAttribute('inner-background-color') ? this.getAttribute('inner-background-color') : '',
             innerBackgroundImageNoise: this.hasAttribute('inner-background-image-noise'),
+            innerBackdropFilterStyle,
             innerBorderClass: this.hasAttribute('inner-border') ? this.getAttribute('inner-border') : '',
             innerBorderRadiusClass: this.hasAttribute('inner-border-radius') && this.hasAttribute('inner-border') ? this.getAttribute('inner-border-radius') : '',
-            innerBackdropFilterClass: this.hasAttribute('inner-backdrop-filter') ? this.getAttribute('inner-backdrop-filter') : '',
             innerStyle: this.getAttribute('inner-style') || ''
         };
     }
@@ -147,7 +186,7 @@ class CustomCard extends HTMLElement {
             hasBackgroundOverlay: false,
             backgroundOverlayClass: '',
             backgroundImageNoise: false,
-            backdropFilterClass: '',
+            backdropFilterStyle: '',
             backgroundColorClass: '',
             borderClass: '',
             borderRadiusClass: '',
@@ -178,9 +217,9 @@ class CustomCard extends HTMLElement {
             foregroundPosition: 'none',
             innerBackgroundColorClass: '',
             innerBackgroundImageNoise: false,
+            innerBackdropFilterStyle: '',
             innerBorderClass: '',
             innerBorderRadiusClass: '',
-            innerBackdropFilterClass: '',
             innerStyle: ''
         } : this.getAttributes();
 
@@ -257,10 +296,8 @@ class CustomCard extends HTMLElement {
             if (attrs.backgroundImageNoise) {
                 overlayClasses.push('background-image-noise');
             }
-            if (attrs.backdropFilterClass) {
-                overlayClasses.push(attrs.backdropFilterClass);
-            }
-            overlayHTML = `<div class="${overlayClasses.filter(cls => cls).join(' ')}"></div>`;
+            const overlayStyles = attrs.backdropFilterStyle ? ` style="backdrop-filter: ${attrs.backdropFilterStyle}"` : '';
+            overlayHTML = `<div class="${overlayClasses.filter(cls => cls).join(' ')}"${overlayStyles}></div>`;
         }
 
         // Define padding-related classes to exclude from the outer div
@@ -287,14 +324,13 @@ class CustomCard extends HTMLElement {
             if (attrs.innerBackgroundImageNoise) innerDivClassList.push('background-image-noise');
             if (attrs.innerBorderClass) innerDivClassList.push(attrs.innerBorderClass);
             if (attrs.innerBorderRadiusClass) innerDivClassList.push(attrs.innerBorderRadiusClass);
-            if (attrs.innerBackdropFilterClass) innerDivClassList.push(attrs.innerBackdropFilterClass);
         }
         const innerDivClass = innerDivClassList.join(' ').trim();
 
-        // Combine padding styles with inner-style attribute
+        // Combine inner styles with backdrop-filter
         let innerDivStyle = '';
         if (!isFallback) {
-            const combinedStyles = [paddingStyles, attrs.innerStyle].filter(s => s).join(' ').trim();
+            const combinedStyles = [paddingStyles, attrs.innerStyle, attrs.innerBackdropFilterStyle ? `backdrop-filter: ${attrs.innerBackdropFilterStyle}` : ''].filter(s => s).join('; ').trim();
             innerDivStyle = combinedStyles ? ` style="${combinedStyles}"` : '';
         }
 
