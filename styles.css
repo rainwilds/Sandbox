@@ -1655,17 +1655,26 @@ body>* {
         grid-template-columns: subgrid;
 
         margin-bottom: var(--space-large);
-        
+
         >div {
 
             grid-column: 2 / -2;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); 
-            gap: var(--space-medium);        
+            grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+            gap: var(--space-medium);
 
+            &:has(h2, h3, h4, h5, h6):not(:has(.block)) {
+                grid-template-columns: auto;
+                gap: initial;
+                margin-bottom: var(--space-medium);
+
+            }
         }
+
     }
 
+
+    >section
 }
 
 header {
@@ -1759,11 +1768,7 @@ main {
     /* row-gap: var(--space-large); */
     margin: var(--space-medium) 0 var(--space-medium) 0;
 
-    >section:has(h2, h3, h4, h5, h6):not(:has(.block)) {
-        grid-template-columns: auto;
-        gap: initial;
-        margin-bottom: var(--space-medium);
-    }
+
 
 
 
