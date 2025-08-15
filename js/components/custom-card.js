@@ -291,7 +291,7 @@ class CustomCard extends HTMLElement {
         if (outerStyles && !isFallback) {
             cardElement.setAttribute('style', outerStyles);
         }
-        if (!isFallback) {
+        if (!isFallback && hasForegroundImage) {
             cardElement.setAttribute('data-foreground-position', attrs.foregroundPosition);
         }
 
@@ -324,7 +324,7 @@ class CustomCard extends HTMLElement {
             const figure = cardElement.querySelector('figure:not(figure > figure)');
             if (figure) {
                 const metaUrl = document.createElement('meta');
-                metaUrl.setAttribute('itemprop', 'url');
+                метаUrl.setAttribute('itemprop', 'url');
                 metaUrl.setAttribute('content', (attrs.backgroundLightSrc || attrs.backgroundDarkSrc) ? new URL(attrs.backgroundLightSrc || attrs.backgroundDarkSrc, window.location.origin).href : '');
                 figure.appendChild(metaUrl);
 

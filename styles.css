@@ -120,9 +120,9 @@
 
         --space-tiny: 1rem;
         --space-small: 2rem;
-        --space-medium: 3rem;
-        --space-large: 7rem;
-        --space-huge: 10rem;
+        --space-medium: 2.8rem;
+        --space-large: 6.7rem;
+        --space-huge: 9rem;
 
         --side-gutter: 5vw;
 
@@ -1051,6 +1051,11 @@
             margin-top: var(--space-small);
         }
 
+        &:has{[data-foreground-position="left"],[data-foreground-position="right"]} {
+            grid-template-columns: 1fr 1fr;
+            height: min-content;
+        }        
+
         &.background-image>* {
             /* Apply positioning to all direct children, including <picture> */
             grid-row: 1 / span 2;
@@ -1092,6 +1097,7 @@
         /* > picture:first-child + * {
             margin-top: var(--space-small);
         } */
+
 
 
 
