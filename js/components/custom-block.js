@@ -291,15 +291,20 @@ class CustomBlock extends HTMLElement {
             innerDivStyle = combinedStyles ? ` style="${combinedStyles}"` : '';
         }
 
+        // Conditionally include the button only if button-text is provided
+        const buttonHTML = attrs.buttonText ?
+            `<a class="button" href="${attrs.buttonHref || '#'}"${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${attrs.buttonText}</a>` :
+            '';
+
         const contentHTML = `
-            <div${innerDivClass ? ` class="${innerDivClass}"` : ''}${innerDivStyle} aria-live="polite">
-                <div role="group">
-                    <h2>${attrs.heading}</h2>
-                    <p>${attrs.description}</p>
-                </div>
-                <a class="button" href="${attrs.buttonHref || '#'}"${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${attrs.buttonText}</a>
+        <div${innerDivClass ? ` class="${innerDivClass}"` : ''}${innerDivStyle} aria-live="polite">
+            <div role="group">
+                <h2>${attrs.heading}</h2>
+                <p>${attrs.description}</p>
             </div>
-        `;
+            ${buttonHTML}
+        </div>
+    `;
 
         const mainDivClassList = ['block'];
         if (hasBackgroundImage) mainDivClassList.push('background-image');
@@ -359,6 +364,11 @@ class CustomBlock extends HTMLElement {
                 const metaUrl = document.createElement('meta');
                 metaUrl.setAttribute('itemprop', 'url');
                 metaUrl.setAttribute('content', (attrs.foregroundLightSrc || attrs.foregroundDarkSrc) ? new URL(attrs.foregroundLightSrc || attrs.foregroundDarkSrc, window.location.origin).href : '');
+                figure.appendChild(metaUrl);
+
+                const metaDescription = document.createElement('meta');
+                metaDescription.setAttribute('itemprop', 'description');
+                metaDescription.setAttribute('content', attrs.foregroundAlt);
                 figure.appendChild(metaDescription);
             }
         }
