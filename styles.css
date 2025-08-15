@@ -1646,6 +1646,7 @@ body>* {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
         gap: var(--space-medium);
+        margin-bottom: var(--space-large);
 
     }
 
@@ -1740,12 +1741,13 @@ header {
 
 main {
 
-    row-gap: var(--space-large);
+    /* row-gap: var(--space-large); */
     margin: var(--space-medium) 0 var(--space-medium) 0;
 
     >section:has(h2, h3, h4, h5, h6):not(:has(.card)) {
         grid-template-columns: auto;
         gap: initial;
+        margin-bottom: var(--space-medium);
     }
 
 
