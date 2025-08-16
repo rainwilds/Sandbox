@@ -1653,6 +1653,7 @@ body>* {
         grid-template-columns: subgrid;
         margin-bottom: var(--space-large);
 
+        /* for when custom-block is used for text headings/paragraphs */
         &:has([data-section-title="true"]) {
 
             margin-bottom: var(--space-medium);
@@ -1674,8 +1675,8 @@ body>* {
 
 header {
 
-    display: contents;
-    background-color: darkgoldenrod;
+    /* display: contents;
+    background-color: darkgoldenrod; */
 
     >* {
 
@@ -1683,18 +1684,18 @@ header {
         grid-column: gutter-left / gutter-right;
 
     }
-
+/* 
     >picture {
         display: block;
     }
 
     >div:first-of-type {
-        /* background-overlay */
+ 
 
         z-index: 1;
         background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
 
-    }
+    } */
 
     >div:has(nav) {
         /* navigation bar */
@@ -1731,20 +1732,20 @@ header {
     >section {
         /* heading and paragraph */
 
-        justify-items: center;
+        /* justify-items: center; */
         /* text-align: center;X */
-        align-self: center;
+        /* align-self: center; */
         z-index: 2;
-        max-width: var(--max-width-medium);
+        /* max-width: var(--max-width-medium); */
         height: 100%;
 
-        >div {
+        /* >div { */
 
-            background: #79554899;
+            /* background: #79554899; */
             /*clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%); creates shape */
-            align-content: end;
-            justify-self: baseline;
-            padding: var(--side-gutter);
+            /* align-content: end; */
+            /* justify-self: baseline; */
+            /* padding: var(--side-gutter);
 
             >div {
                 display: flex;
@@ -1752,7 +1753,7 @@ header {
                 margin-top: var(--space-small);
             }
 
-        }
+        } */
 
     }
 

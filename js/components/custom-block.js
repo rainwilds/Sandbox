@@ -51,9 +51,16 @@ class CustomBlock extends HTMLElement {
         const backdropFilterClasses = this.getAttribute('backdrop-filter')?.split(' ').filter(cls => cls) || [];
         const innerBackdropFilterClasses = this.getAttribute('inner-backdrop-filter')?.split(' ').filter(cls => cls) || [];
 
+        const headingTag = this.getAttribute('heading-tag') || 'h2';
+        const validHeadingTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+        if (!validHeadingTags.includes(headingTag.toLowerCase())) {
+            console.warn(`Invalid heading-tag value "${headingTag}" in <custom-block>. Must be one of ${validHeadingTags.join(', ')}. Using default 'h2'.`);
+        }
+
         return {
-            sectionTitle: this.hasAttribute('section-title'), // Changed to section-title, use hasAttribute
+            sectionTitle: this.hasAttribute('section-title'),
             heading: this.getAttribute('heading') || 'Default Heading',
+            headingTag: validHeadingTags.includes(headingTag.toLowerCase()) ? headingTag.toLowerCase() : 'h2',
             description: this.getAttribute('description') || 'Default description text.',
             buttonHref: this.getAttribute('button-href') || '#',
             buttonText: this.getAttribute('button-text') || '',
@@ -141,8 +148,9 @@ class CustomBlock extends HTMLElement {
         }
 
         const attrs = isFallback ? {
-            sectionTitle: false, // Changed to section-title
+            sectionTitle: false,
             heading: 'Error',
+            headingTag: 'h2',
             description: 'Failed to render block. Check console for details.',
             buttonHref: '#',
             buttonText: '',
@@ -293,7 +301,6 @@ class CustomBlock extends HTMLElement {
             innerDivStyle = combinedStyles ? ` style="${combinedStyles}"` : '';
         }
 
-        // Conditionally include the button only if button-text is provided
         const buttonHTML = attrs.buttonText ?
             `<a class="button" href="${attrs.buttonHref || '#'}"${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${attrs.buttonText}</a>` :
             '';
@@ -301,7 +308,7 @@ class CustomBlock extends HTMLElement {
         const contentHTML = `
         <div${innerDivClass ? ` class="${innerDivClass}"` : ''}${innerDivStyle} aria-live="polite">
             <div role="group">
-                <h2>${attrs.heading}</h2>
+                <${attrs.headingTag}>${attrs.heading}</${attrs.headingTag}>
                 <p>${attrs.description}</p>
             </div>
             ${buttonHTML}
@@ -321,7 +328,6 @@ class CustomBlock extends HTMLElement {
         if (!isFallback && hasForegroundImage) {
             blockElement.setAttribute('data-foreground-position', attrs.foregroundPosition);
         }
-        // Add data-section-title attribute when section-title attribute is present
         if (!isFallback && attrs.sectionTitle) {
             blockElement.setAttribute('data-section-title', 'true');
         }
@@ -417,28 +423,78 @@ class CustomBlock extends HTMLElement {
 
     static get observedAttributes() {
         return [
-            'section-title', // Changed to section-title
-            'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-image-noise', 'backdrop-filter', 'background-color', 'border', 'border-radius', 'class', 'style',
-            'custom-img-background-light-src', 'custom-img-background-dark-src', 'custom-img-background-alt', 'custom-img-background-decorative',
-            'custom-img-background-mobile-width', 'custom-img-background-tablet-width', 'custom-img-background-desktop-width',
-            'custom-img-background-aspect-ratio', 'custom-img-background-include-schema', 'custom-img-background-fetchpriority', 'custom-img-background-loading',
-            'custom-img-foreground-light-src', 'custom-img-foreground-dark-src', 'custom-img-foreground-alt', 'custom-img-foreground-decorative',
-            'custom-img-foreground-mobile-width', 'custom-img-foreground-tablet-width', 'custom-img-foreground-desktop-width',
-            'custom-img-foreground-aspect-ratio', 'custom-img-foreground-include-schema', 'custom-img-foreground-fetchpriority', 'custom-img-foreground-loading',
+            'section-title',
+            'heading',
+            'heading-tag',
+            'description',
+            'button-href',
+            'button-text',
+            'background-overlay',
+            'background-image-noise',
+            'backdrop-filter',
+            'background-color',
+            'border',
+            'border-radius',
+            'class',
+            'style',
+            'custom-img-background-light-src',
+            'custom-img-background-dark-src',
+            'custom-img-background-alt',
+            'custom-img-background-decorative',
+            'custom-img-background-mobile-width',
+            'custom-img-background-tablet-width',
+            'custom-img-background-desktop-width',
+            'custom-img-background-aspect-ratio',
+            'custom-img-background-include-schema',
+            'custom-img-background-fetchpriority',
+            'custom-img-background-loading',
+            'custom-img-foreground-light-src',
+            'custom-img-foreground-dark-src',
+            'custom-img-foreground-alt',
+            'custom-img-foreground-decorative',
+            'custom-img-foreground-mobile-width',
+            'custom-img-foreground-tablet-width',
+            'custom-img-foreground-desktop-width',
+            'custom-img-foreground-aspect-ratio',
+            'custom-img-foreground-include-schema',
+            'custom-img-foreground-fetchpriority',
+            'custom-img-foreground-loading',
             'custom-img-foreground-position',
-            'inner-background-color', 'inner-background-image-noise', 'inner-border', 'inner-border-radius', 'inner-backdrop-filter', 'inner-style'
+            'inner-background-color',
+            'inner-background-image-noise',
+            'inner-border',
+            'inner-border-radius',
+            'inner-backdrop-filter',
+            'inner-style'
         ];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) return;
         const criticalAttributes = [
-            'section-title', // Changed to section-title
-            'heading', 'description', 'button-href', 'button-text', 'background-overlay', 'background-image-noise', 'backdrop-filter',
-            'custom-img-background-light-src', 'custom-img-background-dark-src', 'custom-img-background-alt',
-            'custom-img-foreground-light-src', 'custom-img-foreground-dark-src', 'custom-img-foreground-alt',
-            'custom-img-foreground-position', 'style', 'inner-background-color', 'inner-background-image-noise', 'inner-border', 'inner-border-radius',
-            'inner-backdrop-filter', 'inner-style'
+            'section-title',
+            'heading',
+            'heading-tag',
+            'description',
+            'button-href',
+            'button-text',
+            'background-overlay',
+            'background-image-noise',
+            'backdrop-filter',
+            'custom-img-background-light-src',
+            'custom-img-background-dark-src',
+            'custom-img-background-alt',
+            'custom-img-foreground-light-src',
+            'custom-img-foreground-dark-src',
+            'custom-img-foreground-alt',
+            'custom-img-foreground-position',
+            'style',
+            'inner-background-color',
+            'inner-background-image-noise',
+            'inner-border',
+            'inner-border-radius',
+            'inner-backdrop-filter',
+            'inner-style'
         ];
         if (criticalAttributes.includes(name)) {
             this.initialize();
