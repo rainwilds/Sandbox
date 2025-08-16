@@ -1739,6 +1739,10 @@ header {
         /* max-width: var(--max-width-medium); */
         height: 100%;
 
+        >div {
+            grid-column: 1/1;
+        }
+
         /* >div { */
 
             /* background: #79554899; */
