@@ -784,7 +784,7 @@
             @media (min-width: 550px) and (max-width: 980px) and (orientation: landscape) {
 
                 & {
-                    grid-template: 100vh auto / var(--side-gutter) repeat(12, 1fr) var(--side-gutter) !important;
+                    grid-template: 100vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter) !important;
                     grid-template-areas:
                         "gutter-left header header header header header header header header header header header header gutter-right"
                         "gutter-left main main main main main main main main main main main main gutter-right"
@@ -796,7 +796,7 @@
             @media (max-width: 768px) {
 
                 & {
-                    grid-template: 100vh auto / var(--side-gutter) repeat(12, 1fr) var(--side-gutter) !important;
+                    grid-template: 100vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter) !important;
                     grid-template-areas:
                         "gutter-left header header header header header header header header header header header header gutter-right"
                         "gutter-left main main main main main main main main main main main main gutter-right"
@@ -808,7 +808,7 @@
             @media (max-width: 1200px) {
 
                 & {
-                    grid-template: 100vh auto / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
+                    grid-template: 100vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
                     grid-template-areas:
                         "gutter-left header header header header header header header header header header header header gutter-right"
                         "gutter-left main main main main main main main main main main main main gutter-right"
@@ -820,7 +820,7 @@
             @media (min-width: 1201px) and (max-width: 1919px) {
 
                 & {
-                    grid-template: 100vh auto / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
+                    grid-template: 100vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
                     grid-template-areas:
                         "gutter-left header header header header header header header header header header header header gutter-right"
                         "gutter-left main main main main main main main main main main main main gutter-right"
@@ -832,7 +832,7 @@
             @media (min-width: 1920px) {
 
                 & {
-                    grid-template: 100vh auto / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
+                    grid-template: 100vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
                     grid-template-areas:
                         "gutter-left header header header header header header header header header header header header gutter-right"
                         "gutter-left main main main main main main main main main main main main gutter-right"
