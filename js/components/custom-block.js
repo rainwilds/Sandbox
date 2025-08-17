@@ -69,15 +69,15 @@ class CustomBlock extends HTMLElement {
             console.warn(`Invalid heading-tag value "${headingTag}" in <custom-block>. Must be one of ${validHeadingTags.join(', ')}. Using default 'h2'.`);
         }
 
-        const innerAlign = this.getAttribute('inner-align') || 'center';
+        const innerAlign = this.getAttribute('inner-align') || '';
         const validAlignments = [
             'center', 'top', 'bottom', 'left', 'right',
             'top-left', 'top-center', 'top-right',
             'bottom-left', 'bottom-center', 'bottom-right',
             'center-left', 'center-right'
         ];
-        if (!validAlignments.includes(innerAlign)) {
-            console.warn(`Invalid inner-align value "${innerAlign}" in <custom-block>. Must be one of ${validAlignments.join(', ')}. Using default 'center'.`);
+        if (innerAlign && !validAlignments.includes(innerAlign)) {
+            console.warn(`Invalid inner-align value "${innerAlign}" in <custom-block>. Must be one of ${validAlignments.join(', ')}. Ignoring alignment.`);
         }
 
         return {
@@ -126,7 +126,7 @@ class CustomBlock extends HTMLElement {
             innerBorderClass: this.hasAttribute('inner-border') ? this.getAttribute('inner-border') : '',
             innerBorderRadiusClass: this.hasAttribute('inner-border-radius') && this.hasAttribute('inner-border') ? this.getAttribute('inner-border-radius') : '',
             innerStyle: this.getAttribute('inner-style') || '',
-            innerAlign: validAlignments.includes(innerAlign) ? innerAlign : 'center'
+            innerAlign: innerAlign && validAlignments.includes(innerAlign) ? innerAlign : ''
         };
     }
 
@@ -218,7 +218,7 @@ class CustomBlock extends HTMLElement {
             innerBorderClass: '',
             innerBorderRadiusClass: '',
             innerStyle: '',
-            innerAlign: 'center'
+            innerAlign: ''
         } : this.getAttributes();
 
         if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
@@ -340,7 +340,6 @@ class CustomBlock extends HTMLElement {
             outerStyles = outerStyles.replace(paddingRegex, '').trim();
         }
 
-        // Map inner-align to place-self values
         const alignMap = {
             'center': 'center',
             'top': 'start',
@@ -357,7 +356,7 @@ class CustomBlock extends HTMLElement {
             'center-right': 'center end'
         };
 
-        const innerAlignStyle = `place-self: ${alignMap[attrs.innerAlign]};`;
+        const innerAlignStyle = attrs.innerAlign ? `place-self: ${alignMap[attrs.innerAlign]};` : '';
 
         const innerDivClassList = [];
         if (!isFallback) {
