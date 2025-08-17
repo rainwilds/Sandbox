@@ -297,42 +297,13 @@ class CustomBlock extends HTMLElement {
         }
 
         if (!isFallback && attrs.hasBackgroundOverlay && hasBackgroundImage) {
-            const backdropFilterMap = {
-                'backdrop-filter-blur-small': 'blur(var(--blur-small))',
-                'backdrop-filter-blur-medium': 'blur(var(--blur-medium))',
-                'backdrop-filter-blur-large': 'blur(var(--blur-large))',
-                'backdrop-filter-grayscale-small': 'grayscale(var(--grayscale-small))',
-                'backdrop-filter-grayscale-medium': 'grayscale(var(--grayscale-medium))',
-                'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))',
-                'backdrop-filter-sepia': 'sepia(100%)',
-                'backdrop-filter-brightness': 'brightness(0.5)',
-            };
-
-            const backdropFilterValues = attrs.backdropFilterClasses
-                .filter(cls => cls.startsWith('backdrop-filter-'))
-                .map(cls => {
-                    const value = backdropFilterMap[cls];
-                    if (!value) console.warn(`No backdrop-filter mapping for class "${cls}" in <custom-block>.`);
-                    return value || '';
-                })
-                .filter(val => val);
-
-            const backdropFilterStyle = backdropFilterValues.length > 0
-                ? `backdrop-filter: ${backdropFilterValues.join(' ')};`
-                : '';
-
             const overlayClasses = [attrs.backgroundOverlayClass];
             if (attrs.backgroundImageNoise) {
                 overlayClasses.push('background-image-noise');
             }
-            const nonBackdropClasses = attrs.backdropFilterClasses
-                .filter(cls => !cls.startsWith('backdrop-filter-'));
-
-            overlayClasses.push(...nonBackdropClasses);
-
+            overlayClasses.push(...attrs.backdropFilterClasses);
             const overlayClassString = overlayClasses.filter(cls => cls).join(' ').trim();
-            const overlayStyle = backdropFilterStyle ? ` style="${backdropFilterStyle}"` : '';
-            overlayHTML = `<div class="${overlayClassString}"${overlayStyle}></div>`;
+            overlayHTML = `<div class="${overlayClassString}"></div>`;
         }
 
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
@@ -345,34 +316,30 @@ class CustomBlock extends HTMLElement {
             const paddingRegex = /(padding[^:]*:[^;]+;)/gi;
             const paddingMatches = outerStyles.match(paddingRegex) || [];
             paddingStyles = paddingMatches.join(' ').trim();
-            outerStyles = outerStyles.replace(paddingRegex, '').trim();
+            outerStyles = outerStyles.replace(padingRegex, '').trim();
         }
 
         const alignMap = {
-            'center': 'center',
-            'top': 'start',
-            'bottom': 'end',
-            'left': 'start',
-            'right': 'end',
-            'top-left': 'start start',
-            'top-center': 'start center',
-            'top-right': 'start end',
-            'bottom-left': 'end start',
-            'bottom-center': 'end center',
-            'bottom-right': 'end end',
-            'center-left': 'center start',
-            'center-right': 'center end'
+            'center': 'place-self-center',
+            'top': 'place-self-top',
+            'bottom': 'place-self-bottom',
+            'left': 'place-self-left',
+            'right': 'place-self-right',
+            'top-left': 'place-self-top-left',
+            'top-center': 'place-self-top-center',
+            'top-right': 'place-self-top-right',
+            'bottom-left': 'place-self-bottom-left',
+            'bottom-center': 'place-self-bottom-center',
+            'bottom-right': 'place-self-bottom-right',
+            'center-left': 'place-self-center-left',
+            'center-right': 'place-self-center-right'
         };
 
         const textAlignMap = {
-            'left': 'start',
-            'center': 'center',
-            'right': 'end'
+            'left': 'flex-column-left text-align-left',
+            'center': 'flex-column-center text-align-center',
+            'right': 'flex-column-right text-align-right'
         };
-
-        const innerAlignStyle = attrs.innerAlign ? `place-self: ${alignMap[attrs.innerAlign]};` : '';
-        const innerTextAlignStyle = attrs.innerTextAlign ? `display: flex; flex-direction: column; align-items: ${textAlignMap[attrs.innerTextAlign]};` : '';
-        const groupTextAlignStyle = attrs.innerTextAlign ? `text-align: ${attrs.innerTextAlign};` : '';
 
         const innerDivClassList = [];
         if (!isFallback) {
@@ -383,44 +350,16 @@ class CustomBlock extends HTMLElement {
             if (attrs.innerBorderClass) innerDivClassList.push(attrs.innerBorderClass);
             if (attrs.innerBorderRadiusClass) innerDivClassList.push(attrs.innerBorderRadiusClass);
             if (attrs.innerBackgroundOverlayClass) innerDivClassList.push(attrs.innerBackgroundOverlayClass);
-            const nonInnerBackdropClasses = attrs.innerBackdropFilterClasses
-                .filter(cls => !cls.startsWith('backdrop-filter-'));
-            innerDivClassList.push(...nonInnerBackdropClasses);
+            innerDivClassList.push(...attrs.innerBackdropFilterClasses);
+            if (attrs.innerAlign) innerDivClassList.push(alignMap[attrs.innerAlign]);
+            if (attrs.innerTextAlign) innerDivClassList.push(textAlignMap[attrs.innerTextAlign].split(' ')[0]); // Add flex-column-* class
         }
-
-        const backdropFilterMap = {
-            'backdrop-filter-blur-small': 'blur(var(--blur-small))',
-            'backdrop-filter-blur-medium': 'blur(var(--blur-medium))',
-            'backdrop-filter-blur-large': 'blur(var(--blur-large))',
-            'backdrop-filter-grayscale-small': 'grayscale(var(--grayscale-small))',
-            'backdrop-filter-grayscale-medium': 'grayscale(var(--grayscale-medium))',
-            'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))',
-            'backdrop-filter-sepia': 'sepia(100%)',
-            'backdrop-filter-brightness': 'brightness(0.5)',
-        };
-
-        const innerBackdropFilterValues = attrs.innerBackdropFilterClasses
-            .filter(cls => cls.startsWith('backdrop-filter-'))
-            .map(cls => {
-                const value = backdropFilterMap[cls];
-                if (!value) console.warn(`No backdrop-filter mapping for class "${cls}" in <custom-block>.`);
-                return value || '';
-            })
-            .filter(val => val);
-
-        const innerBackdropFilterStyle = innerBackdropFilterValues.length > 0
-            ? `backdrop-filter: ${innerBackdropFilterValues.join(' ')};`
-            : '';
 
         const innerDivClass = innerDivClassList.join(' ').trim();
 
         let innerDivStyle = '';
-        if (!isFallback) {
-            const combinedStyles = [paddingStyles, attrs.innerStyle, innerBackdropFilterStyle, innerAlignStyle, innerTextAlignStyle]
-                .filter(s => s)
-                .join('; ')
-                .trim();
-            innerDivStyle = combinedStyles ? ` style="${combinedStyles}"` : '';
+        if (!isFallback && attrs.innerStyle) {
+            innerDivStyle = ` style="${attrs.innerStyle}"`;
         }
 
         const buttonHTML = attrs.buttonText ?
@@ -429,7 +368,7 @@ class CustomBlock extends HTMLElement {
 
         const contentHTML = `
         <div${innerDivClass ? ` class="${innerDivClass}"` : ''}${innerDivStyle} aria-live="polite">
-            <div role="group"${attrs.innerTextAlign ? ` style="${groupTextAlignStyle}"` : ''}>
+            <div role="group"${attrs.innerTextAlign ? ` class="${textAlignMap[attrs.innerTextAlign].split(' ')[1]}"` : ''}>
                 <${attrs.headingTag}>${attrs.heading}</${attrs.headingTag}>
                 <p>${attrs.description}</p>
             </div>
