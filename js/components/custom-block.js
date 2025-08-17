@@ -80,6 +80,12 @@ class CustomBlock extends HTMLElement {
             console.warn(`Invalid inner-align value "${innerAlign}" in <custom-block>. Must be one of ${validAlignments.join(', ')}. Ignoring alignment.`);
         }
 
+        const innerTextAlign = this.getAttribute('inner-text-align') || '';
+        const validTextAlignments = ['left', 'center', 'right'];
+        if (innerTextAlign && !validTextAlignments.includes(innerTextAlign)) {
+            console.warn(`Invalid inner-text-align value "${innerTextAlign}" in <custom-block>. Must be one of ${validTextAlignments.join(', ')}. Ignoring text alignment.`);
+        }
+
         return {
             sectionTitle: this.hasAttribute('section-title'),
             heading: this.getAttribute('heading') || 'Default Heading',
@@ -126,7 +132,8 @@ class CustomBlock extends HTMLElement {
             innerBorderClass: this.hasAttribute('inner-border') ? this.getAttribute('inner-border') : '',
             innerBorderRadiusClass: this.hasAttribute('inner-border-radius') && this.hasAttribute('inner-border') ? this.getAttribute('inner-border-radius') : '',
             innerStyle: this.getAttribute('inner-style') || '',
-            innerAlign: innerAlign && validAlignments.includes(innerAlign) ? innerAlign : ''
+            innerAlign: innerAlign && validAlignments.includes(innerAlign) ? innerAlign : '',
+            innerTextAlign: innerTextAlign && validTextAlignments.includes(innerTextAlign) ? innerTextAlign : ''
         };
     }
 
@@ -218,7 +225,8 @@ class CustomBlock extends HTMLElement {
             innerBorderClass: '',
             innerBorderRadiusClass: '',
             innerStyle: '',
-            innerAlign: ''
+            innerAlign: '',
+            innerTextAlign: ''
         } : this.getAttributes();
 
         if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
@@ -357,6 +365,7 @@ class CustomBlock extends HTMLElement {
         };
 
         const innerAlignStyle = attrs.innerAlign ? `place-self: ${alignMap[attrs.innerAlign]};` : '';
+        const innerTextAlignStyle = attrs.innerTextAlign ? `text-align: ${attrs.innerTextAlign};` : '';
 
         const innerDivClassList = [];
         if (!isFallback) {
@@ -400,7 +409,7 @@ class CustomBlock extends HTMLElement {
 
         let innerDivStyle = '';
         if (!isFallback) {
-            const combinedStyles = [paddingStyles, attrs.innerStyle, innerBackdropFilterStyle, innerAlignStyle]
+            const combinedStyles = [paddingStyles, attrs.innerStyle, innerBackdropFilterStyle, innerAlignStyle, innerTextAlignStyle]
                 .filter(s => s)
                 .join('; ')
                 .trim();
@@ -573,7 +582,8 @@ class CustomBlock extends HTMLElement {
             'inner-border-radius',
             'inner-backdrop-filter',
             'inner-style',
-            'inner-align'
+            'inner-align',
+            'inner-text-align'
         ];
     }
 
@@ -604,7 +614,8 @@ class CustomBlock extends HTMLElement {
             'inner-border-radius',
             'inner-backdrop-filter',
             'inner-style',
-            'inner-align'
+            'inner-align',
+            'inner-text-align'
         ];
         if (criticalAttributes.includes(name)) {
             this.initialize();
