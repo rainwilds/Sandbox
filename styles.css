@@ -1161,14 +1161,14 @@
             border-radius: inherit;
         } */
 
-        &.background-image> :not(picture) {
+        /* &.background-image> :not(picture) { */
             /* Apply display: grid only to non-<picture> elements */
-            display: grid;
+            /* display: grid;
 
             >div {
                 margin: 0;
             }
-        }
+        } */
 
         &.background-image>*:not(picture) {
             z-index: 1;
