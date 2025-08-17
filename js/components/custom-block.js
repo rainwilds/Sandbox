@@ -262,12 +262,42 @@ class CustomBlock extends HTMLElement {
         }
 
         if (!isFallback && attrs.hasBackgroundOverlay && hasBackgroundImage) {
+            // Map backdrop-filter classes to CSS values
+            const backdropFilterMap = {
+                'backdrop-filter-blur-small': 'blur(2px)',
+                'backdrop-filter-blur-medium': 'blur(5px)',
+                'backdrop-filter-blur-large': 'blur(10px)',
+                'backdrop-filter-grayscale': 'grayscale(100%)',
+                'backdrop-filter-sepia': 'sepia(100%)',
+                'backdrop-filter-brightness': 'brightness(0.5)',
+                // Add more mappings as needed
+            };
+
+            // Filter out backdrop-filter classes and combine their CSS values
+            const backdropFilterValues = attrs.backdropFilterClasses
+                .filter(cls => cls.startsWith('backdrop-filter-'))
+                .map(cls => backdropFilterMap[cls] || '')
+                .filter(val => val);
+
+            // Combine into a single backdrop-filter rule
+            const backdropFilterStyle = backdropFilterValues.length > 0
+                ? `backdrop-filter: ${backdropFilterValues.join(' ')};`
+                : '';
+
+            // Keep non-backdrop-filter classes
             const overlayClasses = [attrs.backgroundOverlayClass];
             if (attrs.backgroundImageNoise) {
                 overlayClasses.push('background-image-noise');
             }
-            overlayClasses.push(...attrs.backdropFilterClasses);
-            overlayHTML = `<div class="${overlayClasses.filter(cls => cls).join(' ')}"></div>`;
+            // Only include non-backdrop-filter classes
+            const nonBackdropClasses = attrs.backdropFilterClasses
+                .filter(cls => !cls.startsWith('backdrop-filter-'));
+
+            overlayClasses.push(...nonBackdropClasses);
+
+            const overlayClassString = overlayClasses.filter(cls => cls).join(' ').trim();
+            const overlayStyle = backdropFilterStyle ? ` style="${backdropFilterStyle}"` : '';
+            overlayHTML = `<div class="${overlayClassString}"${overlayStyle}></div>`;
         }
 
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
