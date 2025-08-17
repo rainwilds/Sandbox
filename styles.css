@@ -1658,6 +1658,7 @@ body>* {
         &:has([data-section-title="true"]) {
 
             margin-bottom: var(--space-medium);
+            height: initial;
 
         }
 
