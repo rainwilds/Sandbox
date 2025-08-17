@@ -48,6 +48,18 @@ class CustomBlock extends HTMLElement {
             }
         }
 
+        const innerBackgroundOverlay = this.getAttribute('inner-background-overlay') || '';
+        let innerBackgroundOverlayClass = '';
+        if (innerBackgroundOverlay) {
+            const match = innerBackgroundOverlay.match(/^background-overlay-(\d+)$/);
+            if (match) {
+                innerBackgroundOverlayClass = `background-overlay-${match[1]}`;
+            } else {
+                console.warn(`Invalid inner-background-overlay value "${innerBackgroundOverlay}" in <custom-block>. Expected format: background-overlay-[number]. Using default 'background-overlay-1'.`);
+                innerBackgroundOverlayClass = 'background-overlay-1';
+            }
+        }
+
         const backdropFilterClasses = this.getAttribute('backdrop-filter')?.split(' ').filter(cls => cls) || [];
         const innerBackdropFilterClasses = this.getAttribute('inner-backdrop-filter')?.split(' ').filter(cls => cls) || [];
 
@@ -66,6 +78,7 @@ class CustomBlock extends HTMLElement {
             buttonText: this.getAttribute('button-text') || '',
             hasBackgroundOverlay: !!backgroundOverlay,
             backgroundOverlayClass,
+            innerBackgroundOverlayClass,
             backgroundImageNoise: this.hasAttribute('background-image-noise'),
             backdropFilterClasses,
             backgroundColorClass: this.hasAttribute('background-color') ? this.getAttribute('background-color') : '',
@@ -156,6 +169,7 @@ class CustomBlock extends HTMLElement {
             buttonText: '',
             hasBackgroundOverlay: false,
             backgroundOverlayClass: '',
+            innerBackgroundOverlayClass: '',
             backgroundImageNoise: false,
             backdropFilterClasses: [],
             backgroundColorClass: '',
@@ -262,7 +276,6 @@ class CustomBlock extends HTMLElement {
         }
 
         if (!isFallback && attrs.hasBackgroundOverlay && hasBackgroundImage) {
-            // Map backdrop-filter classes to CSS values
             const backdropFilterMap = {
                 'backdrop-filter-blur-small': 'blur(var(--blur-small))',
                 'backdrop-filter-blur-medium': 'blur(var(--blur-medium))',
@@ -272,10 +285,8 @@ class CustomBlock extends HTMLElement {
                 'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))',
                 'backdrop-filter-sepia': 'sepia(100%)',
                 'backdrop-filter-brightness': 'brightness(0.5)',
-                // Add more mappings as needed
             };
 
-            // Filter out backdrop-filter classes and combine their CSS values
             const backdropFilterValues = attrs.backdropFilterClasses
                 .filter(cls => cls.startsWith('backdrop-filter-'))
                 .map(cls => {
@@ -285,12 +296,10 @@ class CustomBlock extends HTMLElement {
                 })
                 .filter(val => val);
 
-            // Combine into a single backdrop-filter rule
             const backdropFilterStyle = backdropFilterValues.length > 0
                 ? `backdrop-filter: ${backdropFilterValues.join(' ')};`
                 : '';
 
-            // Keep non-backdrop-filter classes
             const overlayClasses = [attrs.backgroundOverlayClass];
             if (attrs.backgroundImageNoise) {
                 overlayClasses.push('background-image-noise');
@@ -326,12 +335,12 @@ class CustomBlock extends HTMLElement {
             if (attrs.innerBackgroundImageNoise) innerDivClassList.push('background-image-noise');
             if (attrs.innerBorderClass) innerDivClassList.push(attrs.innerBorderClass);
             if (attrs.innerBorderRadiusClass) innerDivClassList.push(attrs.innerBorderRadiusClass);
+            if (attrs.innerBackgroundOverlayClass) innerDivClassList.push(attrs.innerBackgroundOverlayClass);
             const nonInnerBackdropClasses = attrs.innerBackdropFilterClasses
                 .filter(cls => !cls.startsWith('backdrop-filter-'));
             innerDivClassList.push(...nonInnerBackdropClasses);
         }
 
-        // Map inner backdrop-filter classes to CSS values
         const backdropFilterMap = {
             'backdrop-filter-blur-small': 'blur(var(--blur-small))',
             'backdrop-filter-blur-medium': 'blur(var(--blur-medium))',
@@ -341,7 +350,6 @@ class CustomBlock extends HTMLElement {
             'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))',
             'backdrop-filter-sepia': 'sepia(100%)',
             'backdrop-filter-brightness': 'brightness(0.5)',
-            // Add more mappings as needed
         };
 
         const innerBackdropFilterValues = attrs.innerBackdropFilterClasses
@@ -497,6 +505,7 @@ class CustomBlock extends HTMLElement {
             'button-href',
             'button-text',
             'background-overlay',
+            'inner-background-overlay',
             'background-image-noise',
             'backdrop-filter',
             'background-color',
@@ -546,6 +555,7 @@ class CustomBlock extends HTMLElement {
             'button-href',
             'button-text',
             'background-overlay',
+            'inner-background-overlay',
             'background-image-noise',
             'backdrop-filter',
             'custom-img-background-light-src',
