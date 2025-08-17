@@ -1733,7 +1733,7 @@ body>* {
         display: grid;
         grid-template-columns: subgrid;
         margin-bottom: var(--space-large);
-        min-height: 50vh;
+        /* min-height: 50vh; */
 
         /* for when custom-block is used for text headings/paragraphs */
         &:has([data-section-title="true"]) {
