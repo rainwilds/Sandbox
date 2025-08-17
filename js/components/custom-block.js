@@ -365,7 +365,7 @@ class CustomBlock extends HTMLElement {
         };
 
         const innerAlignStyle = attrs.innerAlign ? `place-self: ${alignMap[attrs.innerAlign]};` : '';
-        const innerTextAlignStyle = attrs.innerTextAlign ? `text-align: ${attrs.innerTextAlign};` : '';
+        const innerTextAlignStyle = attrs.innerTextAlign ? `display: flex; flex-direction: column; justify-content: ${attrs.innerTextAlign};` : '';
 
         const innerDivClassList = [];
         if (!isFallback) {
