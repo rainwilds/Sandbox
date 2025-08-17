@@ -516,4 +516,122 @@ class CustomBlock extends HTMLElement {
                 img.removeAttribute('custom-img-background-decorative');
                 img.removeAttribute('custom-img-background-mobile-width');
                 img.removeAttribute('custom-img-background-tablet-width');
-                img.remove
+                img.removeAttribute('custom-img-background-desktop-width');
+                img.removeAttribute('custom-img-background-aspect-ratio');
+                img.removeAttribute('custom-img-background-include-schema');
+                img.removeAttribute('custom-img-background-fetchpriority');
+                img.removeAttribute('custom-img-background-loading');
+                img.removeAttribute('custom-img-foreground-light-src');
+                img.removeAttribute('custom-img-foreground-dark-src');
+                img.removeAttribute('custom-img-foreground-alt');
+                img.removeAttribute('custom-img-foreground-decorative');
+                img.removeAttribute('custom-img-foreground-mobile-width');
+                img.removeAttribute('custom-img-foreground-tablet-width');
+                img.removeAttribute('custom-img-foreground-desktop-width');
+                img.removeAttribute('custom-img-foreground-aspect-ratio');
+                img.removeAttribute('custom-img-foreground-include-schema');
+                img.removeAttribute('custom-img-foreground-fetchpriority');
+                img.removeAttribute('custom-img-foreground-loading');
+                img.removeAttribute('custom-img-foreground-position');
+            });
+        }
+
+        if (!isFallback) {
+            this.renderCache = blockElement.cloneNode(true);
+            this.lastAttributes = JSON.stringify(attrs);
+        }
+        return blockElement;
+    }
+
+    static get observedAttributes() {
+        return [
+            'section-title',
+            'heading',
+            'heading-tag',
+            'description',
+            'button-href',
+            'button-text',
+            'background-overlay',
+            'inner-background-overlay',
+            'background-image-noise',
+            'backdrop-filter',
+            'background-color',
+            'border',
+            'border-radius',
+            'class',
+            'style',
+            'custom-img-background-light-src',
+            'custom-img-background-dark-src',
+            'custom-img-background-alt',
+            'custom-img-background-decorative',
+            'custom-img-background-mobile-width',
+            'custom-img-background-tablet-width',
+            'custom-img-background-desktop-width',
+            'custom-img-background-aspect-ratio',
+            'custom-img-background-include-schema',
+            'custom-img-background-fetchpriority',
+            'custom-img-background-loading',
+            'custom-img-foreground-light-src',
+            'custom-img-foreground-dark-src',
+            'custom-img-foreground-alt',
+            'custom-img-foreground-decorative',
+            'custom-img-foreground-mobile-width',
+            'custom-img-foreground-tablet-width',
+            'custom-img-foreground-desktop-width',
+            'custom-img-foreground-aspect-ratio',
+            'custom-img-foreground-include-schema',
+            'custom-img-foreground-fetchpriority',
+            'custom-img-foreground-loading',
+            'custom-img-foreground-position',
+            'inner-background-color',
+            'inner-background-image-noise',
+            'inner-border',
+            'inner-border-radius',
+            'inner-backdrop-filter',
+            'inner-style',
+            'inner-align',
+            'inner-text-align'
+        ];
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (!this.isInitialized || !this.isVisible) return;
+        const criticalAttributes = [
+            'section-title',
+            'heading',
+            'heading-tag',
+            'description',
+            'button-href',
+            'button-text',
+            'background-overlay',
+            'inner-background-overlay',
+            'background-image-noise',
+            'backdrop-filter',
+            'custom-img-background-light-src',
+            'custom-img-background-dark-src',
+            'custom-img-background-alt',
+            'custom-img-foreground-light-src',
+            'custom-img-foreground-dark-src',
+            'custom-img-foreground-alt',
+            'custom-img-foreground-position',
+            'style',
+            'inner-background-color',
+            'inner-background-image-noise',
+            'inner-border',
+            'inner-border-radius',
+            'inner-backdrop-filter',
+            'inner-style',
+            'inner-align',
+            'inner-text-align'
+        ];
+        if (criticalAttributes.includes(name)) {
+            this.initialize();
+        }
+    }
+}
+
+try {
+    customElements.define('custom-block', CustomBlock);
+} catch (error) {
+    console.error('Error defining CustomBlock element:', error);
+}
