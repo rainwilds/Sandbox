@@ -364,8 +364,14 @@ class CustomBlock extends HTMLElement {
             'center-right': 'center end'
         };
 
+        const textAlignMap = {
+            'left': 'start',
+            'center': 'center',
+            'right': 'end'
+        };
+
         const innerAlignStyle = attrs.innerAlign ? `place-self: ${alignMap[attrs.innerAlign]};` : '';
-        const innerTextAlignStyle = attrs.innerTextAlign ? `display: flex; flex-direction: column; justify-content: ${attrs.innerTextAlign};` : '';
+        const innerTextAlignStyle = attrs.innerTextAlign ? `display: flex; flex-direction: column; align-items: ${textAlignMap[attrs.innerTextAlign]};` : '';
 
         const innerDivClassList = [];
         if (!isFallback) {
