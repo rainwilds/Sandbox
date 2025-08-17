@@ -1050,7 +1050,7 @@
 
     div.block {
         display: grid;
-        grid-auto-rows: min-content;
+        /* grid-auto-rows: min-content; */
         height: 100%;
         /* to ensure web component spans designated height */
         overflow: auto;
@@ -1064,7 +1064,7 @@
 
         &:where([data-foreground-position="left"], [data-foreground-position="right"]) {
             grid-template-columns: 1fr 1fr;
-            height: min-content;
+            /* height: min-content; */
         }
 
         &.background-image>* {
@@ -1120,9 +1120,6 @@
             margin-top: var(--space-tiny);
         }
 
-        img {
-            height: 100%;
-        }
 
     }
 
@@ -1658,7 +1655,7 @@ body>* {
         &:has([data-section-title="true"]) {
 
             margin-bottom: var(--space-medium);
-            height: initial;
+            min-height: initial;
 
         }
 
