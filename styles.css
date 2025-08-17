@@ -429,6 +429,11 @@
             place-self: center;
         }
 
+        .bottom {
+            place-content: end;
+            place-self: end;
+        }
+
         .font-size-small {
             font-size: 0.8rem;
         }
@@ -441,10 +446,7 @@
             font-size: 1.8rem;
         }
 
-        .bottom {
-            place-content: end;
-            place-self: end;
-        }
+
 
         .max-width-small {
             max-width: var(--max-width-small);
@@ -1683,7 +1685,8 @@ header {
         grid-column: gutter-left / gutter-right;
 
     }
-/* 
+
+    /* 
     >picture {
         display: block;
     }
@@ -1744,11 +1747,11 @@ header {
 
         /* >div { */
 
-            /* background: #79554899; */
-            /*clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%); creates shape */
-            /* align-content: end; */
-            /* justify-self: baseline; */
-            /* padding: var(--side-gutter);
+        /* background: #79554899; */
+        /*clip-path: polygon(0 0, 100% 0%, 75% 100%, 0% 100%); creates shape */
+        /* align-content: end; */
+        /* justify-self: baseline; */
+        /* padding: var(--side-gutter);
 
             >div {
                 display: flex;
