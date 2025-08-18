@@ -143,8 +143,13 @@ class CustomBlock extends HTMLElement {
         this.isInitialized = true;
         try {
             const cardElement = this.render();
-            this.replaceWith(cardElement);
-            this.callbacks.forEach(callback => callback());
+            if (cardElement) {
+                this.replaceWith(cardElement);
+                this.callbacks.forEach(callback => callback());
+            } else {
+                console.error('Failed to render CustomBlock: cardElement is null or invalid.');
+                this.replaceWith(this.render(true));
+            }
         } catch (error) {
             console.error('Error initializing CustomBlock:', error);
             this.replaceWith(this.render(true));
@@ -175,6 +180,7 @@ class CustomBlock extends HTMLElement {
         if (!isFallback) {
             const attrString = JSON.stringify(this.getAttributes());
             if (this.renderCache && this.lastAttributes === attrString) {
+                console.log('Using cached render for CustomBlock.');
                 return this.renderCache.cloneNode(true);
             }
         }
@@ -274,8 +280,8 @@ class CustomBlock extends HTMLElement {
                     fetchPriority: attrs.backgroundFetchPriority,
                     onerror: `this.src='https://placehold.co/3000x2000';${attrs.backgroundIsDecorative ? '' : `this.alt='${attrs.backgroundAlt || 'Placeholder image'}';`}this.onerror=null;`
                 });
-                if (!backgroundImageHTML) {
-                    console.warn('Failed to generate picture markup for background image in <custom-block>.');
+                if (!backgroundImageHTML || backgroundImageHTML.trim() === '') {
+                    console.error('generatePictureMarkup returned invalid or empty HTML for background image.');
                 }
             }
         }
@@ -301,8 +307,8 @@ class CustomBlock extends HTMLElement {
                     fetchPriority: attrs.foregroundFetchPriority,
                     onerror: `this.src='https://placehold.co/3000x2000';${attrs.foregroundIsDecorative ? '' : `this.alt='${attrs.foregroundAlt || 'Placeholder image'}';`}this.onerror=null;`
                 });
-                if (!foregroundImageHTML) {
-                    console.warn('Failed to generate picture markup for foreground image in <custom-block>.');
+                if (!foregroundImageHTML || foregroundImageHTML.trim() === '') {
+                    console.error('generatePictureMarkup returned invalid or empty HTML for foreground image.');
                 }
             }
         }
@@ -348,6 +354,11 @@ class CustomBlock extends HTMLElement {
                     metaDescription.setAttribute('content', attrs.backgroundAlt);
                     figure.appendChild(metaDescription);
                 }
+            }
+
+            if (!isFallback && !blockElement.innerHTML.trim()) {
+                console.error('Image-only block has no valid content.');
+                return this.render(true); // Fallback if no valid HTML
             }
 
             if (!isFallback) {
@@ -524,6 +535,11 @@ class CustomBlock extends HTMLElement {
                 img.removeAttribute('custom-img-foreground-loading');
                 img.removeAttribute('custom-img-foreground-position');
             });
+        }
+
+        if (!isFallback && !blockElement.innerHTML.trim()) {
+            console.error('Block has no valid content, falling back.');
+            return this.render(true);
         }
 
         if (!isFallback) {
