@@ -157,6 +157,10 @@ class CustomVideo extends HTMLVideoElement {
 
 customElements.define('custom-video', CustomVideo, { extends: 'video' });
 
+
+
+
+
 class Footer extends HTMLElement {
     connectedCallback() {
         this.innerHTML = `
@@ -171,6 +175,9 @@ class Footer extends HTMLElement {
 }
 
 customElements.define('bh-footer', Footer);
+
+
+
 
 class Nav extends HTMLElement {
     connectedCallback() {

@@ -9,7 +9,7 @@
     <script src="./js/head-generator.js" type="module"></script>
 
     <data-bh-head
-        data-components="custom-block custom-img"
+        data-components="custom-block custom-video"
         data-title="Photography, Videography & Websites - Behive"
         data-description="Bespoke media assets and web design for quality brands."
         data-keywords="photography, videography, websites, web design"
@@ -426,7 +426,37 @@
                 </custom-block>
             </div>
 
-        </section>        
+        </section>   
+        
+        
+        <section>
+
+            <div>
+                <custom-block
+                    heading="Image Only"
+                    description="Cards with a background image and effects applied to the inner div."
+                    section-title>
+                </custom-block>
+            </div>
+
+        </section>
+
+        <section>
+
+            <div style="grid-template-columns: 1fr;">
+                <video
+                    is="custom-video"
+                    light-src="./video/video1.mp4"
+                    autoplay
+                    muted
+                    loop
+                    playsinline
+                    loading="lazy">
+                </video>
+            </div>
+
+        </section> 
+
 
     </main>
 
