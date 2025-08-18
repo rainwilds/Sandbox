@@ -449,9 +449,14 @@
                     description="Card with background-color-2, picture, color-invert and padding-medium."
                     button-text="Action"
                     button-href="#"
-                    background-color="background-color-2"
                     class="padding-medium color-invert"
-                    inner-align="center">
+                    inner-align="center"
+                    style="grid-row: 1; grid-column: 1;"
+
+                    inner-background-image-noise
+                    inner-align="center"
+                    inner-text-align="center"
+                    inner-backdrop-filter="backdrop-filter-blur-large">
                 </custom-block>                
                 <video
                     is="custom-video"
@@ -460,7 +465,8 @@
                     muted
                     loop
                     playsinline
-                    loading="lazy">
+                    loading="lazy"
+                    style="grid-row: 1; grid-column: 1;">
                 </video>
             </div>
 
