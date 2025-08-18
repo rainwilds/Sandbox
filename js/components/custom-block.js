@@ -126,6 +126,7 @@ class CustomBlock extends HTMLElement {
             foregroundFetchPriority: validFetchPriorities.includes(foregroundFetchPriority) ? foregroundFetchPriority : '',
             foregroundLoading: this.getAttribute('custom-img-foreground-loading') || 'lazy',
             foregroundPosition: validPositions.includes(foregroundPosition) ? foregroundPosition : 'none',
+            videoBackgroundSrc: this.getAttribute('custom-video-background-src') || '', // New attribute for video
             innerBackgroundColorClass: this.hasAttribute('inner-background-color') ? this.getAttribute('inner-background-color') : '',
             innerBackgroundImageNoise: this.hasAttribute('inner-background-image-noise'),
             innerBackdropFilterClasses,
@@ -139,7 +140,7 @@ class CustomBlock extends HTMLElement {
 
     initialize() {
         if (this.isInitialized || !this.isVisible) return;
-        console.log('** CustomBlock start... **');
+        console.log('** CustomBlock start...', this.outerHTML);
         this.isInitialized = true;
         try {
             const cardElement = this.render();
@@ -147,14 +148,14 @@ class CustomBlock extends HTMLElement {
                 this.replaceWith(cardElement);
                 this.callbacks.forEach(callback => callback());
             } else {
-                console.error('Failed to render CustomBlock: cardElement is null or invalid.');
+                console.error('Failed to render CustomBlock: cardElement is null or invalid.', this.outerHTML);
                 this.replaceWith(this.render(true));
             }
         } catch (error) {
-            console.error('Error initializing CustomBlock:', error);
+            console.error('Error initializing CustomBlock:', error, this.outerHTML);
             this.replaceWith(this.render(true));
         }
-        console.log('** CustomBlock end... **');
+        console.log('** CustomBlock end...');
     }
 
     connectedCallback() {
@@ -180,7 +181,7 @@ class CustomBlock extends HTMLElement {
         if (!isFallback) {
             const attrString = JSON.stringify(this.getAttributes());
             if (this.renderCache && this.lastAttributes === attrString) {
-                console.log('Using cached render for CustomBlock.');
+                console.log('Using cached render for CustomBlock:', this.outerHTML);
                 return this.renderCache.cloneNode(true);
             }
         }
@@ -225,6 +226,7 @@ class CustomBlock extends HTMLElement {
             foregroundFetchPriority: '',
             foregroundLoading: 'lazy',
             foregroundPosition: 'none',
+            videoBackgroundSrc: '',
             innerBackgroundColorClass: '',
             innerBackgroundImageNoise: false,
             innerBackdropFilterClasses: [],
@@ -235,6 +237,8 @@ class CustomBlock extends HTMLElement {
             innerTextAlign: ''
         } : this.getAttributes();
 
+        console.log('Rendering CustomBlock with attrs:', attrs);
+
         if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
             console.warn(`<custom-block custom-img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" custom-img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> is missing a custom-img-background-alt attribute for accessibility.`);
         }
@@ -242,29 +246,30 @@ class CustomBlock extends HTMLElement {
             console.warn(`<custom-block custom-img-foreground-light-src="${attrs.foregroundLightSrc || 'not provided'}" custom-img-foreground-dark-src="${attrs.foregroundDarkSrc || 'not provided'}"> is missing a custom-img-foreground-alt attribute for accessibility.`);
         }
 
-        let backgroundImageHTML = '';
+        let backgroundContentHTML = '';
         let foregroundImageHTML = '';
         let overlayHTML = '';
         const hasBackgroundImage = !isFallback && !!(attrs.backgroundLightSrc || attrs.backgroundDarkSrc);
+        const hasVideoBackground = !isFallback && !!attrs.videoBackgroundSrc;
         const hasForegroundImage = !isFallback && !!(attrs.foregroundLightSrc || attrs.foregroundDarkSrc) && ['above', 'below', 'left', 'right'].includes(attrs.foregroundPosition);
 
-        // Check if only image-related attributes are provided (mimic custom-img behavior)
-        const isImageOnly = !isFallback &&
+        // Check if only image or video-related attributes are provided
+        const isMediaOnly = !isFallback &&
             !this.hasAttribute('heading') &&
             !this.hasAttribute('description') &&
             !this.hasAttribute('button-text') &&
-            (attrs.backgroundLightSrc || attrs.backgroundDarkSrc);
+            (hasBackgroundImage || hasVideoBackground);
 
-        // Filter out padding classes for image markup
+        // Filter out padding classes for image/video markup
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
-        const imageCustomClasses = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls)).join(' ');
+        const mediaCustomClasses = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls)).join(' ');
 
         if (hasBackgroundImage) {
             const src = attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
             if (!src) {
                 console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
             } else {
-                backgroundImageHTML = generatePictureMarkup({
+                backgroundContentHTML = generatePictureMarkup({
                     src,
                     lightSrc: attrs.backgroundLightSrc,
                     darkSrc: attrs.backgroundDarkSrc,
@@ -275,14 +280,33 @@ class CustomBlock extends HTMLElement {
                     desktopWidth: attrs.backgroundDesktopWidth,
                     aspectRatio: attrs.backgroundAspectRatio,
                     includeSchema: attrs.backgroundIncludeSchema,
-                    customClasses: isImageOnly ? attrs.customClasses : imageCustomClasses, // Apply all classes in image-only mode
+                    customClasses: isMediaOnly ? attrs.customClasses : mediaCustomClasses,
                     loading: attrs.backgroundLoading,
                     fetchPriority: attrs.backgroundFetchPriority,
                     onerror: `this.src='https://placehold.co/3000x2000';${attrs.backgroundIsDecorative ? '' : `this.alt='${attrs.backgroundAlt || 'Placeholder image'}';`}this.onerror=null;`
                 });
-                if (!backgroundImageHTML || backgroundImageHTML.trim() === '') {
+                if (!backgroundContentHTML || backgroundContentHTML.trim() === '') {
                     console.error('generatePictureMarkup returned invalid or empty HTML for background image.');
                 }
+            }
+        } else if (hasVideoBackground) {
+            // Placeholder for video support (assuming generateVideoMarkup is defined)
+            try {
+                const generateVideoMarkup = typeof window.generateVideoMarkup === 'function' ? window.generateVideoMarkup : null;
+                if (generateVideoMarkup) {
+                    backgroundContentHTML = generateVideoMarkup({
+                        src: attrs.videoBackgroundSrc,
+                        customClasses: isMediaOnly ? attrs.customClasses : mediaCustomClasses,
+                        controls: true,
+                        preload: 'metadata'
+                    });
+                } else {
+                    console.error('generateVideoMarkup is not defined. Using fallback image.');
+                    backgroundContentHTML = `<img src="https://placehold.co/3000x2000" alt="Video placeholder" class="${isMediaOnly ? attrs.customClasses : mediaCustomClasses}">`;
+                }
+            } catch (error) {
+                console.error('Error generating video markup:', error);
+                backgroundContentHTML = `<img src="https://placehold.co/3000x2000" alt="Video fallback" class="${isMediaOnly ? attrs.customClasses : mediaCustomClasses}">`;
             }
         }
 
@@ -302,7 +326,7 @@ class CustomBlock extends HTMLElement {
                     desktopWidth: attrs.foregroundDesktopWidth,
                     aspectRatio: attrs.foregroundAspectRatio,
                     includeSchema: attrs.foregroundIncludeSchema,
-                    customClasses: imageCustomClasses, // No padding classes for foreground image
+                    customClasses: mediaCustomClasses,
                     loading: attrs.foregroundLoading,
                     fetchPriority: attrs.foregroundFetchPriority,
                     onerror: `this.src='https://placehold.co/3000x2000';${attrs.foregroundIsDecorative ? '' : `this.alt='${attrs.foregroundAlt || 'Placeholder image'}';`}this.onerror=null;`
@@ -313,7 +337,7 @@ class CustomBlock extends HTMLElement {
             }
         }
 
-        if (!isFallback && attrs.hasBackgroundOverlay && hasBackgroundImage) {
+        if (!isFallback && attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
             const overlayClasses = [attrs.backgroundOverlayClass];
             if (attrs.backgroundImageNoise) {
                 overlayClasses.push('background-image-noise');
@@ -323,10 +347,10 @@ class CustomBlock extends HTMLElement {
             overlayHTML = `<div class="${overlayClassString}"></div>`;
         }
 
-        // If image-only mode, return just the background image with optional overlay
-        if (isImageOnly && !hasForegroundImage) {
+        // If media-only mode, return just the background content with optional overlay
+        if (isMediaOnly && !hasForegroundImage) {
             const blockElement = document.createElement('div');
-            blockElement.className = ['block', 'background-image', attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass].filter(cls => cls).join(' ').trim();
+            blockElement.className = ['block', hasBackgroundImage ? 'background-image' : 'background-video', attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass].filter(cls => cls).join(' ').trim();
             if (attrs.styleAttribute && !isFallback) {
                 blockElement.setAttribute('style', attrs.styleAttribute);
             }
@@ -334,14 +358,14 @@ class CustomBlock extends HTMLElement {
                 blockElement.setAttribute('data-section-title', 'true');
             }
 
-            let innerHTML = backgroundImageHTML || '';
-            if (attrs.hasBackgroundOverlay && hasBackgroundImage) {
+            let innerHTML = backgroundContentHTML || '';
+            if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
                 innerHTML += overlayHTML;
             }
 
             blockElement.innerHTML = innerHTML;
 
-            if (!isFallback && attrs.backgroundIncludeSchema && hasBackgroundImage && backgroundImageHTML) {
+            if (!isFallback && (attrs.backgroundIncludeSchema && hasBackgroundImage) && backgroundContentHTML) {
                 const figure = blockElement.querySelector('figure:not(figure > figure)');
                 if (figure) {
                     const metaUrl = document.createElement('meta');
@@ -357,8 +381,8 @@ class CustomBlock extends HTMLElement {
             }
 
             if (!isFallback && !blockElement.innerHTML.trim()) {
-                console.error('Image-only block has no valid content.');
-                return this.render(true); // Fallback if no valid HTML
+                console.error('Media-only block has no valid content:', this.outerHTML);
+                return this.render(true);
             }
 
             if (!isFallback) {
@@ -414,7 +438,7 @@ class CustomBlock extends HTMLElement {
             if (attrs.innerBackgroundOverlayClass) innerDivClassList.push(attrs.innerBackgroundOverlayClass);
             innerDivClassList.push(...attrs.innerBackdropFilterClasses);
             if (attrs.innerAlign) innerDivClassList.push(alignMap[attrs.innerAlign]);
-            if (attrs.innerTextAlign) innerDivClassList.push(textAlignMap[attrs.innerTextAlign].split(' ')[0]); // Add flex-column-* class
+            if (attrs.innerTextAlign) innerDivClassList.push(textAlignMap[attrs.innerTextAlign].split(' ')[0]);
         }
 
         const innerDivClass = innerDivClassList.join(' ').trim();
@@ -440,6 +464,7 @@ class CustomBlock extends HTMLElement {
 
         const mainDivClassList = ['block'];
         if (hasBackgroundImage) mainDivClassList.push('background-image');
+        else if (hasVideoBackground) mainDivClassList.push('background-video');
         mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass);
         const mainDivClass = mainDivClassList.filter(cls => cls).join(' ').trim();
 
@@ -456,10 +481,10 @@ class CustomBlock extends HTMLElement {
         }
 
         let innerHTML = '';
-        if (hasBackgroundImage) {
-            innerHTML += backgroundImageHTML || '';
+        if (hasBackgroundImage || hasVideoBackground) {
+            innerHTML += backgroundContentHTML || '';
         }
-        if (attrs.hasBackgroundOverlay && hasBackgroundImage) {
+        if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
             innerHTML += overlayHTML;
         }
         if (hasForegroundImage && attrs.foregroundPosition === 'above') {
@@ -478,7 +503,7 @@ class CustomBlock extends HTMLElement {
 
         blockElement.innerHTML = innerHTML;
 
-        if (!isFallback && attrs.backgroundIncludeSchema && hasBackgroundImage && backgroundImageHTML) {
+        if (!isFallback && attrs.backgroundIncludeSchema && hasBackgroundImage && backgroundContentHTML) {
             const figure = blockElement.querySelector('figure:not(figure > figure)');
             if (figure) {
                 const metaUrl = document.createElement('meta');
@@ -538,7 +563,7 @@ class CustomBlock extends HTMLElement {
         }
 
         if (!isFallback && !blockElement.innerHTML.trim()) {
-            console.error('Block has no valid content, falling back.');
+            console.error('Block has no valid content, falling back:', this.outerHTML);
             return this.render(true);
         }
 
@@ -589,6 +614,7 @@ class CustomBlock extends HTMLElement {
             'custom-img-foreground-fetchpriority',
             'custom-img-foreground-loading',
             'custom-img-foreground-position',
+            'custom-video-background-src', // New attribute for video
             'inner-background-color',
             'inner-background-image-noise',
             'inner-border',
@@ -620,6 +646,7 @@ class CustomBlock extends HTMLElement {
             'custom-img-foreground-dark-src',
             'custom-img-foreground-alt',
             'custom-img-foreground-position',
+            'custom-video-background-src',
             'style',
             'inner-background-color',
             'inner-background-image-noise',
