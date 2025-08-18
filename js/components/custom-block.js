@@ -126,7 +126,7 @@ class CustomBlock extends HTMLElement {
             foregroundFetchPriority: validFetchPriorities.includes(foregroundFetchPriority) ? foregroundFetchPriority : '',
             foregroundLoading: this.getAttribute('custom-img-foreground-loading') || 'lazy',
             foregroundPosition: validPositions.includes(foregroundPosition) ? foregroundPosition : 'none',
-            videoBackgroundSrc: this.getAttribute('custom-video-background-src') || '', // New attribute for video
+            videoBackgroundSrc: this.getAttribute('custom-video-background-src') || '', // For video support
             innerBackgroundColorClass: this.hasAttribute('inner-background-color') ? this.getAttribute('inner-background-color') : '',
             innerBackgroundImageNoise: this.hasAttribute('inner-background-image-noise'),
             innerBackdropFilterClasses,
@@ -260,7 +260,7 @@ class CustomBlock extends HTMLElement {
             !this.hasAttribute('button-text') &&
             (hasBackgroundImage || hasVideoBackground);
 
-        // Filter out padding classes for image/video markup
+        // Filter out padding classes for media markup
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
         const mediaCustomClasses = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls)).join(' ');
 
@@ -290,7 +290,7 @@ class CustomBlock extends HTMLElement {
                 }
             }
         } else if (hasVideoBackground) {
-            // Placeholder for video support (assuming generateVideoMarkup is defined)
+            // Placeholder for video support (assuming generateVideoMarkup is defined elsewhere)
             try {
                 const generateVideoMarkup = typeof window.generateVideoMarkup === 'function' ? window.generateVideoMarkup : null;
                 if (generateVideoMarkup) {
@@ -392,7 +392,6 @@ class CustomBlock extends HTMLElement {
             return blockElement;
         }
 
-        const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
         const customClassList = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls));
         const innerPaddingClasses = attrs.customClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
 
@@ -614,7 +613,7 @@ class CustomBlock extends HTMLElement {
             'custom-img-foreground-fetchpriority',
             'custom-img-foreground-loading',
             'custom-img-foreground-position',
-            'custom-video-background-src', // New attribute for video
+            'custom-video-background-src', // For video support
             'inner-background-color',
             'inner-background-image-noise',
             'inner-border',
