@@ -244,9 +244,9 @@ class CustomBlock extends HTMLElement {
 
         // Check if only image-related attributes are provided (mimic custom-img behavior)
         const isImageOnly = !isFallback &&
-            !attrs.heading && !this.hasAttribute('heading') &&
-            !attrs.description && !this.hasAttribute('description') &&
-            !attrs.buttonText && !this.hasAttribute('button-text') &&
+            !this.hasAttribute('heading') &&
+            !this.hasAttribute('description') &&
+            !this.hasAttribute('button-text') &&
             (attrs.backgroundLightSrc || attrs.backgroundDarkSrc);
 
         if (hasBackgroundImage) {
