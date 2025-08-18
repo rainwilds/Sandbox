@@ -242,6 +242,13 @@ class CustomBlock extends HTMLElement {
         const hasBackgroundImage = !isFallback && !!(attrs.backgroundLightSrc || attrs.backgroundDarkSrc);
         const hasForegroundImage = !isFallback && !!(attrs.foregroundLightSrc || attrs.foregroundDarkSrc) && ['above', 'below', 'left', 'right'].includes(attrs.foregroundPosition);
 
+        // Check if only image-related attributes are provided (mimic custom-img behavior)
+        const isImageOnly = !isFallback &&
+            !attrs.heading && !this.hasAttribute('heading') &&
+            !attrs.description && !this.hasAttribute('description') &&
+            !attrs.buttonText && !this.hasAttribute('button-text') &&
+            (attrs.backgroundLightSrc || attrs.backgroundDarkSrc);
+
         if (hasBackgroundImage) {
             const src = attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
             if (!src) {
@@ -258,7 +265,7 @@ class CustomBlock extends HTMLElement {
                     desktopWidth: attrs.backgroundDesktopWidth,
                     aspectRatio: attrs.backgroundAspectRatio,
                     includeSchema: attrs.backgroundIncludeSchema,
-                    customClasses: '',
+                    customClasses: attrs.customClasses, // Apply custom classes to image
                     loading: attrs.backgroundLoading,
                     fetchPriority: attrs.backgroundFetchPriority,
                     onerror: `this.src='https://placehold.co/3000x2000';${attrs.backgroundIsDecorative ? '' : `this.alt='${attrs.backgroundAlt || 'Placeholder image'}';`}this.onerror=null;`
@@ -306,6 +313,46 @@ class CustomBlock extends HTMLElement {
             overlayHTML = `<div class="${overlayClassString}"></div>`;
         }
 
+        // If image-only mode, return just the background image with optional overlay
+        if (isImageOnly && !hasForegroundImage) {
+            const blockElement = document.createElement('div');
+            blockElement.className = ['block', 'background-image', attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass].filter(cls => cls).join(' ').trim();
+            if (attrs.styleAttribute && !isFallback) {
+                blockElement.setAttribute('style', attrs.styleAttribute);
+            }
+            if (!isFallback && attrs.sectionTitle) {
+                blockElement.setAttribute('data-section-title', 'true');
+            }
+
+            let innerHTML = backgroundImageHTML || '';
+            if (attrs.hasBackgroundOverlay && hasBackgroundImage) {
+                innerHTML += overlayHTML;
+            }
+
+            blockElement.innerHTML = innerHTML;
+
+            if (!isFallback && attrs.backgroundIncludeSchema && hasBackgroundImage && backgroundImageHTML) {
+                const figure = blockElement.querySelector('figure:not(figure > figure)');
+                if (figure) {
+                    const metaUrl = document.createElement('meta');
+                    metaUrl.setAttribute('itemprop', 'url');
+                    metaUrl.setAttribute('content', (attrs.backgroundLightSrc || attrs.backgroundDarkSrc) ? new URL(attrs.backgroundLightSrc || attrs.backgroundDarkSrc, window.location.origin).href : '');
+                    figure.appendChild(metaUrl);
+
+                    const metaDescription = document.createElement('meta');
+                    metaDescription.setAttribute('itemprop', 'description');
+                    metaDescription.setAttribute('content', attrs.backgroundAlt);
+                    figure.appendChild(metaDescription);
+                }
+            }
+
+            if (!isFallback) {
+                this.renderCache = blockElement.cloneNode(true);
+                this.lastAttributes = JSON.stringify(attrs);
+            }
+            return blockElement;
+        }
+
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
         const customClassList = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls));
         const innerPaddingClasses = attrs.customClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
@@ -316,7 +363,7 @@ class CustomBlock extends HTMLElement {
             const paddingRegex = /(padding[^:]*:[^;]+;)/gi;
             const paddingMatches = outerStyles.match(paddingRegex) || [];
             paddingStyles = paddingMatches.join(' ').trim();
-            outerStyles = outerStyles.replace(padingRegex, '').trim();
+            outerStyles = outerStyles.replace(paddingRegex, '').trim();
         }
 
         const alignMap = {
@@ -432,7 +479,7 @@ class CustomBlock extends HTMLElement {
         }
 
         if (!isFallback && attrs.foregroundIncludeSchema && hasForegroundImage && foregroundImageHTML) {
-            const figure = blockElement.querySelector('figure');
+            const figure = blockElement.querySelector('figure:not(figure > figure):last-child');
             if (figure) {
                 const metaUrl = document.createElement('meta');
                 metaUrl.setAttribute('itemprop', 'url');
