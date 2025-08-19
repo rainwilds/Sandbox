@@ -17,6 +17,26 @@ class CustomBlock extends HTMLElement {
         this.observer.observe(this);
     }
 
+    // Fallback implementation for generatePictureMarkup
+    generatePictureMarkup({ src, lightSrc, darkSrc, alt, isDecorative, customClasses, loading, fetchPriority, extraClasses }) {
+        const classList = [customClasses, ...extraClasses].filter(cls => cls).join(' ').trim();
+        const sources = [];
+        if (lightSrc) sources.push(`<source srcset="${lightSrc}" media="(prefers-color-scheme: light)">`);
+        if (darkSrc) sources.push(`<source srcset="${darkSrc}" media="(prefers-color-scheme: dark)">`);
+        if (src) sources.push(`<source srcset="${src}">`);
+        return `
+            <picture>
+                ${sources.join('')}
+                <img src="${src || lightSrc || darkSrc || 'https://placehold.co/3000x2000'}" 
+                     alt="${isDecorative ? '' : alt || 'Placeholder image'}" 
+                     loading="${loading || 'lazy'}" 
+                     ${fetchPriority ? `fetchpriority="${fetchPriority}"` : ''} 
+                     class="${classList}" 
+                     onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${alt || 'Placeholder image'}';`}this.onerror=null;">
+            </picture>
+        `;
+    }
+
     getAttributes() {
         const backgroundFetchPriority = this.getAttribute('custom-img-background-fetchpriority') || '';
         const foregroundFetchPriority = this.getAttribute('custom-img-foreground-fetchpriority') || '';
@@ -291,7 +311,7 @@ class CustomBlock extends HTMLElement {
             if (!src) {
                 console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
             } else {
-                backgroundContentHTML = generatePictureMarkup({
+                backgroundContentHTML = this.generatePictureMarkup({
                     src,
                     lightSrc: attrs.backgroundLightSrc,
                     darkSrc: attrs.backgroundDarkSrc,
@@ -305,8 +325,7 @@ class CustomBlock extends HTMLElement {
                     customClasses: isMediaOnly ? attrs.customClasses : mediaCustomClasses,
                     loading: attrs.backgroundLoading,
                     fetchPriority: attrs.backgroundFetchPriority,
-                    extraClasses: [],
-                    onerror: `this.src='https://placehold.co/3000x2000';${attrs.backgroundIsDecorative ? '' : `this.alt='${attrs.backgroundAlt || 'Placeholder image'}';`}this.onerror=null;`
+                    extraClasses: []
                 });
                 if (!backgroundContentHTML || backgroundContentHTML.trim() === '') {
                     console.error('generatePictureMarkup returned invalid or empty HTML for background image.');
@@ -338,7 +357,7 @@ class CustomBlock extends HTMLElement {
             if (!src) {
                 console.warn('No valid foreground image source provided for <custom-block>. Skipping foreground image rendering.');
             } else {
-                foregroundImageHTML = generatePictureMarkup({
+                foregroundImageHTML = this.generatePictureMarkup({
                     src,
                     lightSrc: attrs.foregroundLightSrc,
                     darkSrc: attrs.foregroundDarkSrc,
@@ -352,8 +371,7 @@ class CustomBlock extends HTMLElement {
                     customClasses: mediaCustomClasses,
                     loading: attrs.foregroundLoading,
                     fetchPriority: attrs.foregroundFetchPriority,
-                    extraClasses: [],
-                    onerror: `this.src='https://placehold.co/3000x2000';${attrs.foregroundIsDecorative ? '' : `this.alt='${attrs.foregroundAlt || 'Placeholder image'}';`}this.onerror=null;`
+                    extraClasses: []
                 });
                 if (!foregroundImageHTML || foregroundImageHTML.trim() === '') {
                     console.error('generatePictureMarkup returned invalid or empty HTML for foreground image.');
