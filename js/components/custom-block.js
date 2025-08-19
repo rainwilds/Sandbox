@@ -147,6 +147,17 @@ class CustomBlock extends HTMLElement {
             console.warn(`Invalid inner-text-align value "${innerTextAlign}" in <custom-block>. Must be one of ${validTextAlignments.join(', ')}. Ignoring text alignment.`);
         }
 
+        const innerBackgroundColor = this.getAttribute('inner-background-color') || '';
+        let innerBackgroundColorClass = '';
+        if (innerBackgroundColor) {
+            const match = innerBackgroundColor.match(/^background-color-(\d+)$/);
+            if (match) {
+                innerBackgroundColorClass = `background-color-${match[1]}`;
+            } else {
+                console.warn(`Invalid inner-background-color value "${innerBackgroundColor}" in <custom-block>. Expected format: background-color-[number]. Ignoring.`);
+            }
+        }
+
         return {
             sectionTitle: this.hasAttribute('section-title'),
             heading: this.getAttribute('heading') || 'Default Heading',
@@ -190,7 +201,7 @@ class CustomBlock extends HTMLElement {
             foregroundLoading: this.getAttribute('custom-img-foreground-loading') || 'lazy',
             foregroundPosition: validPositions.includes(foregroundPosition) ? foregroundPosition : 'none',
             videoBackgroundSrc: this.getAttribute('custom-video-background-src') || '',
-            innerBackgroundColorClass: this.getAttribute('inner-background-color') || '',
+            innerBackgroundColorClass,
             innerBackgroundImageNoise: this.hasAttribute('inner-background-image-noise'),
             innerBackdropFilterClasses,
             innerBorderClass: this.getAttribute('inner-border') || '',
