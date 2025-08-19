@@ -200,8 +200,6 @@
 
         .background-overlay-1 {
             background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
-            grid-row: 1;
-            grid-column: 1;
         }
 
         .background-overlay-2 {
@@ -1193,11 +1191,12 @@
             z-index: 1;
         }
 
-        &:where(.background-video>video,.background-video>div) {
+
+        &>:where(video, div) {
             grid-row: 1;
             grid-column: 1;
         }
-      
+
 
         /* &.border-1 {
             border: solid var(--border-size-small);
