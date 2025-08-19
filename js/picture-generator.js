@@ -24,7 +24,8 @@ export function generatePictureMarkup({
     includeSchema = false,
     customClasses = '',
     loading = 'lazy',
-    fetchPriority = ''
+    fetchPriority = '',
+    extraClasses = [] // Added to support background-gradient
 } = {}) {
     const validExtensions = /\.(jpg|jpeg|png|webp|avif|jxl)$/i;
     if (!src || !validExtensions.test(src)) {
@@ -74,7 +75,19 @@ export function generatePictureMarkup({
         `${BASE_PATH}${filename}.${format} 3840w, ` +
         WIDTHS.map(w => `${BASE_PATH}${filename}-${w}.${format} ${w}w`).join(', ');
 
-    let pictureHTML = '<picture class="animate animate-fade-in">';
+    // Combine customClasses and extraClasses for the picture or figure element
+    const allClasses = [
+        ...new Set([
+            ...customClasses.trim().split(/\s+/).filter(Boolean),
+            ...extraClasses
+        ])
+    ];
+    if (aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio)) {
+        allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
+    }
+    const classAttr = allClasses.length ? ` class="${allClasses.join(' ')} animate animate-fade-in"` : ' class="animate animate-fade-in"';
+
+    let pictureHTML = `<picture${classAttr}>`;
     FORMATS.forEach(format => {
         if (lightSrc && darkSrc) {
             pictureHTML += `<source srcset="${generateSrcset(lightBaseFilename, format)}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: light)">`;
@@ -83,11 +96,6 @@ export function generatePictureMarkup({
         pictureHTML += `<source srcset="${generateSrcset(baseFilename, format)}" sizes="${sizes}" type="image/${format}">`;
     });
 
-    const imgClasses = [...new Set(customClasses.trim().split(/\s+/).filter(Boolean))];
-    if (aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio)) {
-        imgClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
-    }
-    const imgClassAttr = imgClasses.length ? ` class="${imgClasses.join(' ')}"` : '';
     const altAttr = isDecorative ? ' alt=""' : (alt ? ` alt="${alt}"` : '');
     const ariaHiddenAttr = isDecorative ? ' aria-hidden="true"' : '';
     const validLoading = ['eager', 'lazy'].includes(loading) ? loading : 'lazy';
@@ -95,11 +103,11 @@ export function generatePictureMarkup({
     const loadingAttr = validLoading ? ` loading="${validLoading}"` : '';
     const fetchPriorityAttr = validFetchPriority ? ` fetchpriority="${validFetchPriority}"` : '';
 
-    pictureHTML += `<img src="${src}"${imgClassAttr}${altAttr}${ariaHiddenAttr}${loadingAttr}${fetchPriorityAttr}>`;
+    pictureHTML += `<img src="${src}"${altAttr}${ariaHiddenAttr}${loadingAttr}${fetchPriorityAttr}>`;
     pictureHTML += '</picture>';
 
     if (includeSchema) {
-        let figureHTML = '<figure itemscope itemtype="https://schema.org/ImageObject">';
+        let figureHTML = `<figure${classAttr} itemscope itemtype="https://schema.org/ImageObject">`;
         figureHTML += pictureHTML;
         if (alt && alt.trim()) {
             figureHTML += `<figcaption itemprop="name">${alt}</figcaption>`;
