@@ -200,6 +200,8 @@
 
         .background-overlay-1 {
             background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
+            grid-row: 1;
+            grid-column: 1;
         }
 
         .background-overlay-2 {
