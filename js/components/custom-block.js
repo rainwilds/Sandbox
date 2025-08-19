@@ -17,7 +17,7 @@ class CustomBlock extends HTMLElement {
         this.observer.observe(this);
     }
 
-    // Fallback implementation for generatePictureMarkup
+    // Existing generatePictureMarkup (unchanged)
     generatePictureMarkup({ src, lightSrc, darkSrc, alt, isDecorative, customClasses, loading, fetchPriority, extraClasses }) {
         const classList = [customClasses, ...extraClasses].filter(cls => cls).join(' ').trim();
         const sources = [];
@@ -34,6 +34,27 @@ class CustomBlock extends HTMLElement {
                      class="${classList}" 
                      onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${alt || 'Placeholder image'}';`}this.onerror=null;">
             </picture>
+        `;
+    }
+
+    // New generateVideoMarkup
+    generateVideoMarkup({ src, customClasses, extraClasses, controls, preload }) {
+        const classList = [customClasses, ...extraClasses].filter(cls => cls).join(' ').trim();
+        return `
+            <video 
+                autoplay 
+                muted 
+                loop 
+                playsinline 
+                loading="lazy" 
+                preload="${preload || 'metadata'}" 
+                class="${classList}"
+                title="Video content" 
+                aria-label="Video content">
+                <source src="${src}" type="video/mp4">
+                <source src="${src.replace('.mp4', '.webm')}" type="video/webm">
+                <p>Your browser does not support the video tag. <a href="${src}">Download video</a></p>
+            </video>
         `;
     }
 
@@ -333,19 +354,13 @@ class CustomBlock extends HTMLElement {
             }
         } else if (hasVideoBackground) {
             try {
-                const generateVideoMarkup = typeof window.generateVideoMarkup === 'function' ? window.generateVideoMarkup : null;
-                if (generateVideoMarkup) {
-                    backgroundContentHTML = generateVideoMarkup({
-                        src: attrs.videoBackgroundSrc,
-                        customClasses: isMediaOnly ? attrs.customClasses : mediaCustomClasses,
-                        extraClasses: [],
-                        controls: true,
-                        preload: 'metadata'
-                    });
-                } else {
-                    console.error('generateVideoMarkup is not defined. Using fallback image.');
-                    backgroundContentHTML = `<img src="https://placehold.co/3000x2000" alt="Video placeholder" class="${isMediaOnly ? attrs.customClasses : mediaCustomClasses}">`;
-                }
+                backgroundContentHTML = this.generateVideoMarkup({
+                    src: attrs.videoBackgroundSrc,
+                    customClasses: isMediaOnly ? attrs.customClasses : mediaCustomClasses,
+                    extraClasses: [],
+                    controls: true,
+                    preload: 'metadata'
+                });
             } catch (error) {
                 console.error('Error generating video markup:', error);
                 backgroundContentHTML = `<img src="https://placehold.co/3000x2000" alt="Video fallback" class="${isMediaOnly ? attrs.customClasses : mediaCustomClasses}">`;
