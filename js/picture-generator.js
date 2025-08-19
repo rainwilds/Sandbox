@@ -25,7 +25,7 @@ export function generatePictureMarkup({
     customClasses = '',
     loading = 'lazy',
     fetchPriority = '',
-    extraClasses = [] // Added to support background-gradient
+    extraClasses = []
 } = {}) {
     const validExtensions = /\.(jpg|jpeg|png|webp|avif|jxl)$/i;
     if (!src || !validExtensions.test(src)) {
@@ -75,7 +75,6 @@ export function generatePictureMarkup({
         `${BASE_PATH}${filename}.${format} 3840w, ` +
         WIDTHS.map(w => `${BASE_PATH}${filename}-${w}.${format} ${w}w`).join(', ');
 
-    // Combine customClasses and extraClasses for the picture or figure element
     const allClasses = [
         ...new Set([
             ...customClasses.trim().split(/\s+/).filter(Boolean),
