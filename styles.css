@@ -210,15 +210,26 @@
             background-color: light-dark(var(--color-static-light-8), var(--color-static-dark-6));
         }
 
-        .background-gradient-1::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: linear-gradient(180deg, transparent 0%, var(--color-background-dark) 100%);       
-        }
+.background-gradient-1 {
+    position: relative; /* Ensure pseudo-element can be positioned */
+}
+
+.background-gradient-1::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(180deg, transparent 0%, var(--color-background-dark) 100%);
+    z-index: 1; /* Ensure the gradient is above the video */
+}
+
+/* Ensure video content is not obscured */
+video.background-gradient-1 {
+    position: relative;
+    z-index: 0; /* Video stays below the gradient */
+}
 
         .background-gradient-2 {
             background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--ff-primary-background-color-dark) 100%);            
