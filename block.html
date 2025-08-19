@@ -472,6 +472,49 @@
 
         </section> 
 
+        <section>
+
+            <div>
+                <custom-block
+                    heading="Image Only"
+                    description="Cards with a background image and effects applied to the inner div."
+                    section-title>
+                </custom-block>
+            </div>
+
+        </section>
+
+        <section>
+
+            <div style="grid-template-columns: 1fr;">
+                <custom-block
+                    heading="Background Colour 2 and Picture"
+                    description="Card with background-color-2, picture, color-invert and padding-medium."
+                    button-text="Action"
+                    button-href="#"
+                    class="padding-medium color-invert"
+                    inner-align="center"
+                    style="grid-row: 1; grid-column: 1;"
+
+                    inner-background-image-noise
+                    inner-align="center"
+                    inner-text-align="center"
+                    inner-backdrop-filter="backdrop-filter-blur-large">
+                </custom-block>                
+                <video
+                    is="custom-video"
+                    light-src="./video/video1.mp4"
+                    autoplay
+                    muted
+                    loop
+                    playsinline
+                    loading="lazy"
+                    style="grid-row: 1; grid-column: 1; background-image: linear-gradient(180deg, transparent 0%, var(--color-background-darkk) 100%)">
+                </video>
+            </div>
+
+        </section>         
+
 
     </main>
 
