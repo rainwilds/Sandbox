@@ -1193,6 +1193,12 @@
             z-index: 1;
         }
 
+        &:where(.background-video>video,.background-video>div) {
+            grid-row: 1;
+            grid-column: 1;
+        }
+      
+
         /* &.border-1 {
             border: solid var(--border-size-small);
             border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
