@@ -60,6 +60,28 @@ class CustomBlock extends HTMLElement {
             }
         }
 
+        const backgroundGradient = this.getAttribute('background-gradient') || '';
+        let backgroundGradientClass = '';
+        if (backgroundGradient) {
+            const match = backgroundGradient.match(/^background-gradient-(\d+)$/);
+            if (match) {
+                backgroundGradientClass = `background-gradient-${match[1]}`;
+            } else {
+                console.warn(`Invalid background-gradient value "${backgroundGradient}" in <custom-block>. Expected format: background-gradient-[number]. Ignoring.`);
+            }
+        }
+
+        const innerBackgroundGradient = this.getAttribute('inner-background-gradient') || '';
+        let innerBackgroundGradientClass = '';
+        if (innerBackgroundGradient) {
+            const match = innerBackgroundGradient.match(/^background-gradient-(\d+)$/);
+            if (match) {
+                innerBackgroundGradientClass = `background-gradient-${match[1]}`;
+            } else {
+                console.warn(`Invalid inner-background-gradient value "${innerBackgroundGradient}" in <custom-block>. Expected format: background-gradient-[number]. Ignoring.`);
+            }
+        }
+
         const backdropFilterClasses = this.getAttribute('backdrop-filter')?.split(' ').filter(cls => cls) || [];
         const innerBackdropFilterClasses = this.getAttribute('inner-backdrop-filter')?.split(' ').filter(cls => cls) || [];
 
@@ -96,6 +118,8 @@ class CustomBlock extends HTMLElement {
             hasBackgroundOverlay: !!backgroundOverlay,
             backgroundOverlayClass,
             innerBackgroundOverlayClass,
+            backgroundGradientClass,
+            innerBackgroundGradientClass,
             backgroundImageNoise: this.hasAttribute('background-image-noise'),
             backdropFilterClasses,
             backgroundColorClass: this.hasAttribute('background-color') ? this.getAttribute('background-color') : '',
@@ -126,7 +150,7 @@ class CustomBlock extends HTMLElement {
             foregroundFetchPriority: validFetchPriorities.includes(foregroundFetchPriority) ? foregroundFetchPriority : '',
             foregroundLoading: this.getAttribute('custom-img-foreground-loading') || 'lazy',
             foregroundPosition: validPositions.includes(foregroundPosition) ? foregroundPosition : 'none',
-            videoBackgroundSrc: this.getAttribute('custom-video-background-src') || '', // For video support
+            videoBackgroundSrc: this.getAttribute('custom-video-background-src') || '',
             innerBackgroundColorClass: this.hasAttribute('inner-background-color') ? this.getAttribute('inner-background-color') : '',
             innerBackgroundImageNoise: this.hasAttribute('inner-background-image-noise'),
             innerBackdropFilterClasses,
@@ -174,7 +198,7 @@ class CustomBlock extends HTMLElement {
     }
 
     addCallback(callback) {
-        this.callbacks.push(callback);
+        this callbacks.push(callback);
     }
 
     render(isFallback = false) {
@@ -196,6 +220,8 @@ class CustomBlock extends HTMLElement {
             hasBackgroundOverlay: false,
             backgroundOverlayClass: '',
             innerBackgroundOverlayClass: '',
+            backgroundGradientClass: '',
+            innerBackgroundGradientClass: '',
             backgroundImageNoise: false,
             backdropFilterClasses: [],
             backgroundColorClass: '',
@@ -253,14 +279,12 @@ class CustomBlock extends HTMLElement {
         const hasVideoBackground = !isFallback && !!attrs.videoBackgroundSrc;
         const hasForegroundImage = !isFallback && !!(attrs.foregroundLightSrc || attrs.foregroundDarkSrc) && ['above', 'below', 'left', 'right'].includes(attrs.foregroundPosition);
 
-        // Check if only image or video-related attributes are provided
         const isMediaOnly = !isFallback &&
             !this.hasAttribute('heading') &&
             !this.hasAttribute('description') &&
             !this.hasAttribute('button-text') &&
             (hasBackgroundImage || hasVideoBackground);
 
-        // Filter out padding classes for media markup
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
         const mediaCustomClasses = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls)).join(' ');
 
@@ -283,30 +307,31 @@ class CustomBlock extends HTMLElement {
                     customClasses: isMediaOnly ? attrs.customClasses : mediaCustomClasses,
                     loading: attrs.backgroundLoading,
                     fetchPriority: attrs.backgroundFetchPriority,
+                    extraClasses: attrs.backgroundGradientClass ? [attrs.backgroundGradientClass] : [],
                     onerror: `this.src='https://placehold.co/3000x2000';${attrs.backgroundIsDecorative ? '' : `this.alt='${attrs.backgroundAlt || 'Placeholder image'}';`}this.onerror=null;`
                 });
                 if (!backgroundContentHTML || backgroundContentHTML.trim() === '') {
                     console.error('generatePictureMarkup returned invalid or empty HTML for background image.');
                 }
             }
-        } else if (hasVideoBackground) {
-            // Placeholder for video support (assuming generateVideoMarkup is defined elsewhere)
+        } else if (hasVideo_) {
             try {
                 const generateVideoMarkup = typeof window.generateVideoMarkup === 'function' ? window.generateVideoMarkup : null;
                 if (generateVideoMarkup) {
                     backgroundContentHTML = generateVideoMarkup({
                         src: attrs.videoBackgroundSrc,
                         customClasses: isMediaOnly ? attrs.customClasses : mediaCustomClasses,
+                        extraClasses: attrs.backgroundGradientClass ? [attrs.backgroundGradientClass] : [],
                         controls: true,
                         preload: 'metadata'
                     });
                 } else {
                     console.error('generateVideoMarkup is not defined. Using fallback image.');
-                    backgroundContentHTML = `<img src="https://placehold.co/3000x2000" alt="Video placeholder" class="${isMediaOnly ? attrs.customClasses : mediaCustomClasses}">`;
+                    backgroundContentHTML = `<img src="https://placehold.co/3000x2000" alt="Video placeholder" class="${isMediaOnly ? attrs.customClasses : mediaCustomClasses} ${attrs.backgroundGradientClass || ''}">`;
                 }
             } catch (error) {
                 console.error('Error generating video markup:', error);
-                backgroundContentHTML = `<img src="https://placehold.co/3000x2000" alt="Video fallback" class="${isMediaOnly ? attrs.customClasses : mediaCustomClasses}">`;
+                backgroundContentHTML = `<img src="https://placehold.co/3000x2000" alt="Video fallback" class="${isMediaOnly ? attrs.customClasses : mediaCustomClasses} ${attrs.backgroundGradientClass || ''}">`;
             }
         }
 
@@ -347,7 +372,6 @@ class CustomBlock extends HTMLElement {
             overlayHTML = `<div class="${overlayClassString}"></div>`;
         }
 
-        // If media-only mode, return just the background content with optional overlay
         if (isMediaOnly && !hasForegroundImage) {
             const blockElement = document.createElement('div');
             blockElement.className = ['block', hasBackgroundImage ? 'background-image' : 'background-video', attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass].filter(cls => cls).join(' ').trim();
@@ -435,6 +459,7 @@ class CustomBlock extends HTMLElement {
             if (attrs.innerBorderClass) innerDivClassList.push(attrs.innerBorderClass);
             if (attrs.innerBorderRadiusClass) innerDivClassList.push(attrs.innerBorderRadiusClass);
             if (attrs.innerBackgroundOverlayClass) innerDivClassList.push(attrs.innerBackgroundOverlayClass);
+            if (attrs.innerBackgroundGradientClass) innerDivClassList.push(attrs.innerBackgroundGradientClass);
             innerDivClassList.push(...attrs.innerBackdropFilterClasses);
             if (attrs.innerAlign) innerDivClassList.push(alignMap[attrs.innerAlign]);
             if (attrs.innerTextAlign) innerDivClassList.push(textAlignMap[attrs.innerTextAlign].split(' ')[0]);
@@ -583,6 +608,8 @@ class CustomBlock extends HTMLElement {
             'button-text',
             'background-overlay',
             'inner-background-overlay',
+            'background-gradient',
+            'inner-background-gradient',
             'background-image-noise',
             'backdrop-filter',
             'background-color',
@@ -613,7 +640,7 @@ class CustomBlock extends HTMLElement {
             'custom-img-foreground-fetchpriority',
             'custom-img-foreground-loading',
             'custom-img-foreground-position',
-            'custom-video-background-src', // For video support
+            'custom-video-background-src',
             'inner-background-color',
             'inner-background-image-noise',
             'inner-border',
@@ -636,6 +663,8 @@ class CustomBlock extends HTMLElement {
             'button-text',
             'background-overlay',
             'inner-background-overlay',
+            'background-gradient',
+            'inner-background-gradient',
             'background-image-noise',
             'backdrop-filter',
             'custom-img-background-light-src',
