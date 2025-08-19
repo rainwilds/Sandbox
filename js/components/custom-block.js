@@ -198,10 +198,11 @@ class CustomBlock extends HTMLElement {
     }
 
     addCallback(callback) {
-        this callbacks.push(callback);
+        this.callbacks.push(callback);
     }
 
     render(isFallback = false) {
+        console.log('Before attrs assignment');
         if (!isFallback) {
             const attrString = JSON.stringify(this.getAttributes());
             if (this.renderCache && this.lastAttributes === attrString) {
@@ -262,6 +263,7 @@ class CustomBlock extends HTMLElement {
             innerAlign: '',
             innerTextAlign: ''
         } : this.getAttributes();
+        console.log('After attrs assignment');
 
         console.log('Rendering CustomBlock with attrs:', attrs);
 
@@ -314,7 +316,7 @@ class CustomBlock extends HTMLElement {
                     console.error('generatePictureMarkup returned invalid or empty HTML for background image.');
                 }
             }
-        } else if (hasVideo_) {
+        } else if (hasVideoBackground) {
             try {
                 const generateVideoMarkup = typeof window.generateVideoMarkup === 'function' ? window.generateVideoMarkup : null;
                 if (generateVideoMarkup) {
@@ -354,6 +356,7 @@ class CustomBlock extends HTMLElement {
                     customClasses: mediaCustomClasses,
                     loading: attrs.foregroundLoading,
                     fetchPriority: attrs.foregroundFetchPriority,
+                    extraClasses: [], // Foreground image doesn't use background-gradient
                     onerror: `this.src='https://placehold.co/3000x2000';${attrs.foregroundIsDecorative ? '' : `this.alt='${attrs.foregroundAlt || 'Placeholder image'}';`}this.onerror=null;`
                 });
                 if (!foregroundImageHTML || foregroundImageHTML.trim() === '') {
@@ -696,3 +699,5 @@ try {
 } catch (error) {
     console.error('Error defining CustomBlock element:', error);
 }
+
+console.log('CustomBlock version: 2025-08-19');
