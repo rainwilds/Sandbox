@@ -85,20 +85,20 @@ class CustomBlock extends HTMLElement {
     }
 
     getAttributes() {
-        const backgroundFetchPriority = this.getAttribute('custom-img-background-fetchpriority') || '';
-        const foregroundFetchPriority = this.getAttribute('custom-img-foreground-fetchpriority') || '';
+        const backgroundFetchPriority = this.getAttribute('img-background-fetchpriority') || '';
+        const foregroundFetchPriority = this.getAttribute('img-foreground-fetchpriority') || '';
         const validFetchPriorities = ['high', 'low', 'auto', ''];
         if (!validFetchPriorities.includes(backgroundFetchPriority)) {
-            console.warn(`Invalid custom-img-background-fetchpriority value "${backgroundFetchPriority}" in <custom-block>. Using default.`);
+            console.warn(`Invalid img-background-fetchpriority value "${backgroundFetchPriority}" in <custom-block>. Using default.`);
         }
         if (!validFetchPriorities.includes(foregroundFetchPriority)) {
-            console.warn(`Invalid custom-img-foreground-fetchpriority value "${foregroundFetchPriority}" in <custom-block>. Using default.`);
+            console.warn(`Invalid img-foreground-fetchpriority value "${foregroundFetchPriority}" in <custom-block>. Using default.`);
         }
 
-        const foregroundPosition = this.getAttribute('custom-img-foreground-position') || 'none';
+        const foregroundPosition = this.getAttribute('img-foreground-position') || 'none';
         const validPositions = ['none', 'above', 'below', 'left', 'right'];
         if (!validPositions.includes(foregroundPosition)) {
-            console.warn(`Invalid custom-img-foreground-position value "${foregroundPosition}" in <custom-block>. Using default 'none'.`);
+            console.warn(`Invalid img-foreground-position value "${foregroundPosition}" in <custom-block>. Using default 'none'.`);
         }
 
         const backgroundOverlay = this.getAttribute('background-overlay') || '';
@@ -188,7 +188,7 @@ class CustomBlock extends HTMLElement {
             sectionTitle: this.hasAttribute('section-title'),
             heading: this.getAttribute('heading') || 'Default Heading',
             headingTag: validHeadingTags.includes(headingTag.toLowerCase()) ? headingTag.toLowerCase() : 'h2',
-            description: this.getAttribute('description') || 'Default description text.',
+            text: this.getAttribute('text') || 'Default description text.',
             buttonHref: this.getAttribute('button-href') || '#',
             buttonText: this.getAttribute('button-text') || '',
             hasBackgroundOverlay: !!backgroundOverlay,
@@ -202,43 +202,44 @@ class CustomBlock extends HTMLElement {
             borderClass: this.getAttribute('border') || '',
             borderRadiusClass: this.hasAttribute('border-radius') && this.hasAttribute('border') ? this.getAttribute('border-radius') : '',
             customClasses: this.getAttribute('class') || '',
+            innerCustomClasses: this.getAttribute('inner-class') || '',
             styleAttribute: this.getAttribute('style') || '',
-            backgroundLightSrc: this.getAttribute('custom-img-background-light-src') || '',
-            backgroundDarkSrc: this.getAttribute('custom-img-background-dark-src') || '',
-            backgroundAlt: this.getAttribute('custom-img-background-alt') || '',
-            backgroundIsDecorative: this.hasAttribute('custom-img-background-decorative'),
-            backgroundMobileWidth: this.getAttribute('custom-img-background-mobile-width') || '100vw',
-            backgroundTabletWidth: this.getAttribute('custom-img-background-tablet-width') || '100vw',
-            backgroundDesktopWidth: this.getAttribute('custom-img-background-desktop-width') || '100vw',
-            backgroundAspectRatio: this.getAttribute('custom-img-background-aspect-ratio') || '',
-            backgroundIncludeSchema: this.hasAttribute('custom-img-background-include-schema'),
+            backgroundLightSrc: this.getAttribute('img-background-light-src') || '',
+            backgroundDarkSrc: this.getAttribute('img-background-dark-src') || '',
+            backgroundAlt: this.getAttribute('img-background-alt') || '',
+            backgroundIsDecorative: this.hasAttribute('img-background-decorative'),
+            backgroundMobileWidth: this.getAttribute('img-background-mobile-width') || '100vw',
+            backgroundTabletWidth: this.getAttribute('img-background-tablet-width') || '100vw',
+            backgroundDesktopWidth: this.getAttribute('img-background-desktop-width') || '100vw',
+            backgroundAspectRatio: this.getAttribute('img-background-aspect-ratio') || '',
+            backgroundIncludeSchema: this.hasAttribute('img-background-include-schema'),
             backgroundFetchPriority: validFetchPriorities.includes(backgroundFetchPriority) ? backgroundFetchPriority : '',
-            backgroundLoading: this.getAttribute('custom-img-background-loading') || 'lazy',
-            foregroundLightSrc: this.getAttribute('custom-img-foreground-light-src') || '',
-            foregroundDarkSrc: this.getAttribute('custom-img-foreground-dark-src') || '',
-            foregroundAlt: this.getAttribute('custom-img-foreground-alt') || '',
-            foregroundIsDecorative: this.hasAttribute('custom-img-foreground-decorative'),
-            foregroundMobileWidth: this.getAttribute('custom-img-foreground-mobile-width') || '100vw',
-            foregroundTabletWidth: this.getAttribute('custom-img-foreground-tablet-width') || '100vw',
-            foregroundDesktopWidth: this.getAttribute('custom-img-foreground-desktop-width') || '100vw',
-            foregroundAspectRatio: this.getAttribute('custom-img-foreground-aspect-ratio') || '',
-            foregroundIncludeSchema: this.hasAttribute('custom-img-foreground-include-schema'),
+            backgroundLoading: this.getAttribute('img-background-loading') || 'lazy',
+            foregroundLightSrc: this.getAttribute('img-foreground-light-src') || '',
+            foregroundDarkSrc: this.getAttribute('img-foreground-dark-src') || '',
+            foregroundAlt: this.getAttribute('img-foreground-alt') || '',
+            foregroundIsDecorative: this.hasAttribute('img-foreground-decorative'),
+            foregroundMobileWidth: this.getAttribute('img-foreground-mobile-width') || '100vw',
+            foregroundTabletWidth: this.getAttribute('img-foreground-tablet-width') || '100vw',
+            foregroundDesktopWidth: this.getAttribute('img-foreground-desktop-width') || '100vw',
+            foregroundAspectRatio: this.getAttribute('img-foreground-aspect-ratio') || '',
+            foregroundIncludeSchema: this.hasAttribute('img-foreground-include-schema'),
             foregroundFetchPriority: validFetchPriorities.includes(foregroundFetchPriority) ? foregroundFetchPriority : '',
-            foregroundLoading: this.getAttribute('custom-img-foreground-loading') || 'lazy',
+            foregroundLoading: this.getAttribute('img-foreground-loading') || 'lazy',
             foregroundPosition: validPositions.includes(foregroundPosition) ? foregroundPosition : 'none',
-            videoBackgroundSrc: this.getAttribute('custom-video-background-src') || '',
-            videoBackgroundLightSrc: this.getAttribute('custom-video-background-light-src') || '',
-            videoBackgroundDarkSrc: this.getAttribute('custom-video-background-dark-src') || '',
-            videoBackgroundPoster: this.getAttribute('custom-video-background-poster') || '',
-            videoBackgroundLightPoster: this.getAttribute('custom-video-background-light-poster') || '',
-            videoBackgroundDarkPoster: this.getAttribute('custom-video-background-dark-poster') || '',
-            videoBackgroundAlt: this.getAttribute('custom-video-background-alt') || 'Video content',
-            videoBackgroundLoading: this.getAttribute('custom-video-background-loading') || 'lazy',
-            videoBackgroundAutoplay: this.getAttribute('custom-video-background-autoplay') !== 'false',
-            videoBackgroundMuted: this.getAttribute('custom-video-background-muted') !== 'false',
-            videoBackgroundLoop: this.getAttribute('custom-video-background-loop') !== 'false',
-            videoBackgroundPlaysinline: this.getAttribute('custom-video-background-playsinline') !== 'false',
-            videoBackgroundDisablePictureInPicture: this.getAttribute('custom-video-background-disablepictureinpicture') === 'true',
+            videoBackgroundSrc: this.getAttribute('video-background-src') || '',
+            videoBackgroundLightSrc: this.getAttribute('video-background-light-src') || '',
+            videoBackgroundDarkSrc: this.getAttribute('video-background-dark-src') || '',
+            videoBackgroundPoster: this.getAttribute('video-background-poster') || '',
+            videoBackgroundLightPoster: this.getAttribute('video-background-light-poster') || '',
+            videoBackgroundDarkPoster: this.getAttribute('video-background-dark-poster') || '',
+            videoBackgroundAlt: this.getAttribute('video-background-alt') || 'Video content',
+            videoBackgroundLoading: this.getAttribute('video-background-loading') || 'lazy',
+            videoBackgroundAutoplay: this.getAttribute('video-background-autoplay') !== 'false',
+            videoBackgroundMuted: this.getAttribute('video-background-muted') !== 'false',
+            videoBackgroundLoop: this.getAttribute('video-background-loop') !== 'false',
+            videoBackgroundPlaysinline: this.getAttribute('video-background-playsinline') !== 'false',
+            videoBackgroundDisablePictureInPicture: this.getAttribute('video-background-disablepictureinpicture') === 'true',
             innerBackgroundColorClass,
             innerBackgroundImageNoise: this.hasAttribute('inner-background-image-noise'),
             innerBackdropFilterClasses,
@@ -302,7 +303,7 @@ class CustomBlock extends HTMLElement {
             sectionTitle: false,
             heading: 'Default Heading',
             headingTag: 'h2',
-            description: 'Default description text.',
+            text: 'Default description text.',
             buttonHref: '#',
             buttonText: '',
             hasBackgroundOverlay: false,
@@ -316,6 +317,7 @@ class CustomBlock extends HTMLElement {
             borderClass: '',
             borderRadiusClass: '',
             customClasses: '',
+            innerCustomClasses: '',
             styleAttribute: '',
             backgroundLightSrc: '',
             backgroundDarkSrc: '',
@@ -366,10 +368,10 @@ class CustomBlock extends HTMLElement {
         console.log('Rendering CustomBlock with attrs:', attrs);
 
         if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
-            console.warn(`<custom-block custom-img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" custom-img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> is missing a custom-img-background-alt attribute for accessibility.`);
+            console.warn(`<custom-block img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> is missing a img-background-alt attribute for accessibility.`);
         }
         if (!attrs.foregroundAlt && !attrs.foregroundIsDecorative && (attrs.foregroundLightSrc || attrs.foregroundDarkSrc)) {
-            console.warn(`<custom-block custom-img-foreground-light-src="${attrs.foregroundLightSrc || 'not provided'}" custom-img-foreground-dark-src="${attrs.foregroundDarkSrc || 'not provided'}"> is missing a custom-img-foreground-alt attribute for accessibility.`);
+            console.warn(`<custom-block img-foreground-light-src="${attrs.foregroundLightSrc || 'not provided'}" img-foreground-dark-src="${attrs.foregroundDarkSrc || 'not provided'}"> is missing a img-foreground-alt attribute for accessibility.`);
         }
 
         let backgroundContentHTML = '';
@@ -381,12 +383,13 @@ class CustomBlock extends HTMLElement {
 
         const isMediaOnly = !isFallback &&
             !this.hasAttribute('heading') &&
-            !this.hasAttribute('description') &&
+            !this.hasAttribute('text') &&
             !this.hasAttribute('button-text') &&
             (hasBackgroundImage || hasVideoBackground);
 
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
         const mediaCustomClasses = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls)).join(' ');
+        const innerCustomClassesList = attrs.innerCustomClasses.split(' ').filter(cls => cls);
 
         if (hasBackgroundImage) {
             const src = attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
@@ -602,7 +605,7 @@ class CustomBlock extends HTMLElement {
 
         const innerDivClassList = [];
         if (!isFallback) {
-            innerDivClassList.push(...innerPaddingClasses);
+            innerDivClassList.push(...innerPaddingClasses, ...innerCustomClassesList);
             if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
             if (attrs.innerBackgroundColorClass) innerDivClassList.push(attrs.innerBackgroundColorClass);
             if (attrs.innerBackgroundImageNoise) innerDivClassList.push('background-image-noise');
@@ -629,7 +632,7 @@ class CustomBlock extends HTMLElement {
         <div${innerDivClass ? ` class="${innerDivClass}"` : ''}${innerDivStyle} aria-live="polite">
             <div role="group"${attrs.textAlignment ? ` class="${textAlignMap[attrs.textAlignment]}"` : ''}>
                 <${attrs.headingTag}>${attrs.heading}</${attrs.headingTag}>
-                <p>${attrs.description}</p>
+                <p>${attrs.text}</p>
             </div>
             ${buttonHTML}
         </div>
@@ -679,29 +682,29 @@ class CustomBlock extends HTMLElement {
         if (!isFallback && blockElement.querySelector('img')) {
             const images = blockElement.querySelectorAll('img');
             images.forEach(img => {
-                img.removeAttribute('custom-img-background-light-src');
-                img.removeAttribute('custom-img-background-dark-src');
-                img.removeAttribute('custom-img-background-alt');
-                img.removeAttribute('custom-img-background-decorative');
-                img.removeAttribute('custom-img-background-mobile-width');
-                img.removeAttribute('custom-img-background-tablet-width');
-                img.removeAttribute('custom-img-background-desktop-width');
-                img.removeAttribute('custom-img-background-aspect-ratio');
-                img.removeAttribute('custom-img-background-include-schema');
-                img.removeAttribute('custom-img-background-fetchpriority');
-                img.removeAttribute('custom-img-background-loading');
-                img.removeAttribute('custom-img-foreground-light-src');
-                img.removeAttribute('custom-img-foreground-dark-src');
-                img.removeAttribute('custom-img-foreground-alt');
-                img.removeAttribute('custom-img-foreground-decorative');
-                img.removeAttribute('custom-img-foreground-mobile-width');
-                img.removeAttribute('custom-img-foreground-tablet-width');
-                img.removeAttribute('custom-img-foreground-desktop-width');
-                img.removeAttribute('custom-img-foreground-aspect-ratio');
-                img.removeAttribute('custom-img-foreground-include-schema');
-                img.removeAttribute('custom-img-foreground-fetchpriority');
-                img.removeAttribute('custom-img-foreground-loading');
-                img.removeAttribute('custom-img-foreground-position');
+                img.removeAttribute('img-background-light-src');
+                img.removeAttribute('img-background-dark-src');
+                img.removeAttribute('img-background-alt');
+                img.removeAttribute('img-background-decorative');
+                img.removeAttribute('img-background-mobile-width');
+                img.removeAttribute('img-background-tablet-width');
+                img.removeAttribute('img-background-desktop-width');
+                img.removeAttribute('img-background-aspect-ratio');
+                img.removeAttribute('img-background-include-schema');
+                img.removeAttribute('img-background-fetchpriority');
+                img.removeAttribute('img-background-loading');
+                img.removeAttribute('img-foreground-light-src');
+                img.removeAttribute('img-foreground-dark-src');
+                img.removeAttribute('img-foreground-alt');
+                img.removeAttribute('img-foreground-decorative');
+                img.removeAttribute('img-foreground-mobile-width');
+                img.removeAttribute('img-foreground-tablet-width');
+                img.removeAttribute('img-foreground-desktop-width');
+                img.removeAttribute('img-foreground-aspect-ratio');
+                img.removeAttribute('img-foreground-include-schema');
+                img.removeAttribute('img-foreground-fetchpriority');
+                img.removeAttribute('img-foreground-loading');
+                img.removeAttribute('img-foreground-position');
             });
         }
 
@@ -722,7 +725,7 @@ class CustomBlock extends HTMLElement {
             'section-title',
             'heading',
             'heading-tag',
-            'description',
+            'text',
             'button-href',
             'button-text',
             'background-overlay',
@@ -736,42 +739,42 @@ class CustomBlock extends HTMLElement {
             'border-radius',
             'class',
             'style',
-            'custom-img-background-light-src',
-            'custom-img-background-dark-src',
-            'custom-img-background-alt',
-            'custom-img-background-decorative',
-            'custom-img-background-mobile-width',
-            'custom-img-background-tablet-width',
-            'custom-img-background-desktop-width',
-            'custom-img-background-aspect-ratio',
-            'custom-img-background-include-schema',
-            'custom-img-background-fetchpriority',
-            'custom-img-background-loading',
-            'custom-img-foreground-light-src',
-            'custom-img-foreground-dark-src',
-            'custom-img-foreground-alt',
-            'custom-img-foreground-decorative',
-            'custom-img-foreground-mobile-width',
-            'custom-img-foreground-tablet-width',
-            'custom-img-foreground-desktop-width',
-            'custom-img-foreground-aspect-ratio',
-            'custom-img-foreground-include-schema',
-            'custom-img-foreground-fetchpriority',
-            'custom-img-foreground-loading',
-            'custom-img-foreground-position',
-            'custom-video-background-src',
-            'custom-video-background-light-src',
-            'custom-video-background-dark-src',
-            'custom-video-background-poster',
-            'custom-video-background-light-poster',
-            'custom-video-background-dark-poster',
-            'custom-video-background-alt',
-            'custom-video-background-loading',
-            'custom-video-background-autoplay',
-            'custom-video-background-muted',
-            'custom-video-background-loop',
-            'custom-video-background-playsinline',
-            'custom-video-background-disablepictureinpicture',
+            'img-background-light-src',
+            'img-background-dark-src',
+            'img-background-alt',
+            'img-background-decorative',
+            'img-background-mobile-width',
+            'img-background-tablet-width',
+            'img-background-desktop-width',
+            'img-background-aspect-ratio',
+            'img-background-include-schema',
+            'img-background-fetchpriority',
+            'img-background-loading',
+            'img-foreground-light-src',
+            'img-foreground-dark-src',
+            'img-foreground-alt',
+            'img-foreground-decorative',
+            'img-foreground-mobile-width',
+            'img-foreground-tablet-width',
+            'img-foreground-desktop-width',
+            'img-foreground-aspect-ratio',
+            'img-foreground-include-schema',
+            'img-foreground-fetchpriority',
+            'img-foreground-loading',
+            'img-foreground-position',
+            'video-background-src',
+            'video-background-light-src',
+            'video-background-dark-src',
+            'video-background-poster',
+            'video-background-light-poster',
+            'video-background-dark-poster',
+            'video-background-alt',
+            'video-background-loading',
+            'video-background-autoplay',
+            'video-background-muted',
+            'video-background-loop',
+            'video-background-playsinline',
+            'video-background-disablepictureinpicture',
             'inner-background-color',
             'inner-background-image-noise',
             'inner-border',
@@ -779,7 +782,8 @@ class CustomBlock extends HTMLElement {
             'inner-backdrop-filter',
             'inner-style',
             'inner-alignment',
-            'text-alignment'
+            'text-alignment',
+            'inner-class'
         ];
     }
 
@@ -789,7 +793,7 @@ class CustomBlock extends HTMLElement {
             'section-title',
             'heading',
             'heading-tag',
-            'description',
+            'text',
             'button-href',
             'button-text',
             'background-overlay',
@@ -798,26 +802,26 @@ class CustomBlock extends HTMLElement {
             'inner-background-gradient',
             'background-image-noise',
             'backdrop-filter',
-            'custom-img-background-light-src',
-            'custom-img-background-dark-src',
-            'custom-img-background-alt',
-            'custom-img-foreground-light-src',
-            'custom-img-foreground-dark-src',
-            'custom-img-foreground-alt',
-            'custom-img-foreground-position',
-            'custom-video-background-src',
-            'custom-video-background-light-src',
-            'custom-video-background-dark-src',
-            'custom-video-background-poster',
-            'custom-video-background-light-poster',
-            'custom-video-background-dark-poster',
-            'custom-video-background-alt',
-            'custom-video-background-loading',
-            'custom-video-background-autoplay',
-            'custom-video-background-muted',
-            'custom-video-background-loop',
-            'custom-video-background-playsinline',
-            'custom-video-background-disablepictureinpicture',
+            'img-background-light-src',
+            'img-background-dark-src',
+            'img-background-alt',
+            'img-foreground-light-src',
+            'img-foreground-dark-src',
+            'img-foreground-alt',
+            'img-foreground-position',
+            'video-background-src',
+            'video-background-light-src',
+            'video-background-dark-src',
+            'video-background-poster',
+            'video-background-light-poster',
+            'video-background-dark-poster',
+            'video-background-alt',
+            'video-background-loading',
+            'video-background-autoplay',
+            'video-background-muted',
+            'video-background-loop',
+            'video-background-playsinline',
+            'video-background-disablepictureinpicture',
             'style',
             'inner-background-color',
             'inner-background-image-noise',
@@ -826,7 +830,8 @@ class CustomBlock extends HTMLElement {
             'inner-backdrop-filter',
             'inner-style',
             'inner-alignment',
-            'text-alignment'
+            'text-alignment',
+            'inner-class'
         ];
         if (criticalAttributes.includes(name)) {
             this.initialize();
