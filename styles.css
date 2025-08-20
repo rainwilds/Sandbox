@@ -1770,7 +1770,7 @@ body>* {
             gap: var(--space-medium);
 
             /* for when custom-block is used for text headings/paragraphs */
-            &:has([data-section-title="true"]) {
+            >div:has([data-section-title="true"]) {
 
                 margin-bottom: var(--space-medium);
                 min-height: initial;
