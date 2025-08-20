@@ -1795,6 +1795,10 @@ header {
 
     }
 
+    >div.block {
+        min-height: inherit;
+    }
+
     /* 
     >picture {
         display: block;
@@ -1808,9 +1812,7 @@ header {
 
     } */
 
-    &.block {
-        min-height: initial;
-    }
+
 
     >div:has(nav) {
         /* navigation bar */
