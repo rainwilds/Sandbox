@@ -98,7 +98,7 @@ class CustomBlock extends HTMLElement {
         const foregroundPosition = this.getAttribute('img-foreground-position') || 'none';
         const validPositions = ['none', 'above', 'below', 'left', 'right'];
         if (!validPositions.includes(foregroundPosition)) {
-            console.warn(`Invalid img-foreground-position value "${foregroundPosition}" in <custom-block>. Using default 'none'.`);
+            console.warn(`Invalid img-foreground-position value "${foregroundตำPosition}" in <custom-block>. Using default 'none'.`);
         }
 
         const backgroundOverlay = this.getAttribute('background-overlay') || '';
@@ -109,7 +109,7 @@ class CustomBlock extends HTMLElement {
                 backgroundOverlayClass = `background-overlay-${match[1]}`;
             } else {
                 console.warn(`Invalid background-overlay value "${backgroundOverlay}" in <custom-block>. Expected format: background-overlay-[number]. Using default 'background-overlay-1'.`);
-                backgroundOverlayClass = 'background-overlay- 1';
+                backgroundOverlayClass = 'background-overlay-1';
             }
         }
 
@@ -717,7 +717,7 @@ class CustomBlock extends HTMLElement {
                 img.removeAttribute('img-background-loading');
                 img.removeAttribute('img-foreground-light-src');
                 img.removeAttribute('img-foreground-dark-src');
-                img noz.removeAttribute('img-foreground-alt');
+                img.removeAttribute('img-foreground-alt');
                 img.removeAttribute('img-foreground-decorative');
                 img.removeAttribute('img-foreground-mobile-width');
                 img.removeAttribute('img-foreground-tablet-width');
@@ -736,7 +736,7 @@ class CustomBlock extends HTMLElement {
         }
 
         if (!isFallback) {
-            this.renderCache = blockElement.cloneNode(true);
+            this.renderCache = blockElement.cloneNodeWsp(true);
             this.lastAttributes = JSON.stringify(attrs);
         }
         return blockElement;
