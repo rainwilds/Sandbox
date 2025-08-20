@@ -59,7 +59,7 @@ class CustomBlock extends HTMLElement {
         if (lightSrc) innerHTML += addSourcesHTML(lightSrc, '(prefers-color-scheme: light)');
         if (darkSrc) innerHTML += addSourcesHTML(darkSrc, '(prefers-color-scheme: dark)');
         const defaultSrc = lightSrc || darkSrc || src;
-        inner_effects: innerHTML += addSourcesHTML(defaultSrc);
+        innerHTML += addSourcesHTML(defaultSrc);
         innerHTML += `<p>Your browser does not support the video tag. <a href="${defaultSrc}">Download video</a></p>`;
 
         const posterAttr = poster ? `poster="${poster}"` : '';
@@ -156,15 +156,15 @@ class CustomBlock extends HTMLElement {
             console.warn(`Invalid heading-tag value "${headingTag}" in <custom-block>. Must be one of ${validHeadingTags.join(', ')}. Using default 'h2'.`);
         }
 
-        const innerAlign = this.getAttribute('inner-align') || '';
+        const innerAlignment = this.getAttribute('inner-alignment') || '';
         const validAlignments = [
             'center', 'top', 'bottom', 'left', 'right',
             'top-left', 'top-center', 'top-right',
             'bottom-left', 'bottom-center', 'bottom-right',
             'center-left', 'center-right'
         ];
-        if (innerAlign && !validAlignments.includes(innerAlign)) {
-            console.warn(`Invalid inner-align value "${innerAlign}" in <custom-block>. Must be one of ${validAlignments.join(', ')}. Ignoring alignment.`);
+        if (innerAlignment && !validAlignments.includes(innerAlignment)) {
+            console.warn(`Invalid inner-alignment value "${innerAlignment}" in <custom-block>. Must be one of ${validAlignments.join(', ')}. Ignoring alignment.`);
         }
 
         const textAlignment = this.getAttribute('text-alignment') || '';
@@ -245,7 +245,7 @@ class CustomBlock extends HTMLElement {
             innerBorderClass: this.getAttribute('inner-border') || '',
             innerBorderRadiusClass: this.hasAttribute('inner-border-radius') && this.hasAttribute('inner-border') ? this.getAttribute('inner-border-radius') : '',
             innerStyle: this.getAttribute('inner-style') || '',
-            innerAlign: innerAlign && validAlignments.includes(innerAlign) ? innerAlign : '',
+            innerAlignment: innerAlignment && validAlignments.includes(innerAlignment) ? innerAlignment : '',
             textAlignment: textAlignment && validTextAlignments.includes(textAlignment) ? textAlignment : ''
         };
     }
@@ -359,7 +359,7 @@ class CustomBlock extends HTMLElement {
             innerBorderClass: '',
             innerBorderRadiusClass: '',
             innerStyle: '',
-            innerAlign: '',
+            innerAlignment: '',
             textAlignment: ''
         } : this.getAttributes();
 
@@ -611,7 +611,7 @@ class CustomBlock extends HTMLElement {
             if (attrs.innerBackgroundOverlayClass) innerDivClassList.push(attrs.innerBackgroundOverlayClass);
             if (attrs.innerBackgroundGradientClass) innerDivClassList.push(attrs.innerBackgroundGradientClass);
             innerDivClassList.push(...attrs.innerBackdropFilterClasses);
-            if (attrs.innerAlign) innerDivClassList.push(alignMap[attrs.innerAlign]);
+            if (attrs.innerAlignment) innerDivClassList.push(alignMap[attrs.innerAlignment]);
         }
 
         const innerDivClass = innerDivClassList.join(' ').trim();
@@ -778,7 +778,7 @@ class CustomBlock extends HTMLElement {
             'inner-border-radius',
             'inner-backdrop-filter',
             'inner-style',
-            'inner-align',
+            'inner-alignment',
             'text-alignment'
         ];
     }
@@ -825,7 +825,7 @@ class CustomBlock extends HTMLElement {
             'inner-border-radius',
             'inner-backdrop-filter',
             'inner-style',
-            'inner-align',
+            'inner-alignment',
             'text-alignment'
         ];
         if (criticalAttributes.includes(name)) {
