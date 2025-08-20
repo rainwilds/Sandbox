@@ -98,7 +98,7 @@ class CustomBlock extends HTMLElement {
         const foregroundPosition = this.getAttribute('img-foreground-position') || 'none';
         const validPositions = ['none', 'above', 'below', 'left', 'right'];
         if (!validPositions.includes(foregroundPosition)) {
-            console.warn(`Invalid img-foreground-position value "${foregroundตำPosition}" in <custom-block>. Using default 'none'.`);
+            console.warn(`Invalid img-foreground-position value "${foregroundPosition}" in <custom-block>. Using default 'none'.`);
         }
 
         const backgroundOverlay = this.getAttribute('background-overlay') || '';
@@ -736,7 +736,7 @@ class CustomBlock extends HTMLElement {
         }
 
         if (!isFallback) {
-            this.renderCache = blockElement.cloneNodeWsp(true);
+            this.renderCache = blockElement.cloneNode(true);
             this.lastAttributes = JSON.stringify(attrs);
         }
         return blockElement;
