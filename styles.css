@@ -1156,6 +1156,7 @@
         /* to ensure web component spans designated height */
         overflow: auto;
         /* needed to make sure that border-radius on background-images works */
+        min-height: max(330px, 33vh);
 
 
 
