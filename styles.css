@@ -1790,7 +1790,7 @@ header {
 
     >* {
 
-        grid-row: header;
+        /* grid-row: header; */
         grid-column: gutter-left / gutter-right;
 
     }
