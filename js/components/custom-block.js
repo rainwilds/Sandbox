@@ -17,7 +17,6 @@ class CustomBlock extends HTMLElement {
         this.observer.observe(this);
     }
 
-    // Existing generatePictureMarkup (unchanged)
     generatePictureMarkup({ src, lightSrc, darkSrc, alt, isDecorative, customClasses, loading, fetchPriority, extraClasses }) {
         const classList = [customClasses, ...extraClasses].filter(cls => cls).join(' ').trim();
         const sources = [];
@@ -37,7 +36,6 @@ class CustomBlock extends HTMLElement {
         `;
     }
 
-    // Updated generateVideoMarkup
     generateVideoMarkup({ src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses, extraClasses, loading, autoplay, muted, loop, playsinline, disablepictureinpicture, preload, controls }) {
         const classList = [customClasses, ...extraClasses].filter(cls => cls).join(' ').trim();
         const validExtensions = ['mp4', 'webm'];
@@ -61,7 +59,7 @@ class CustomBlock extends HTMLElement {
         if (lightSrc) innerHTML += addSourcesHTML(lightSrc, '(prefers-color-scheme: light)');
         if (darkSrc) innerHTML += addSourcesHTML(darkSrc, '(prefers-color-scheme: dark)');
         const defaultSrc = lightSrc || darkSrc || src;
-        innerHTML += addSourcesHTML(defaultSrc);
+        inner_effects: innerHTML += addSourcesHTML(defaultSrc);
         innerHTML += `<p>Your browser does not support the video tag. <a href="${defaultSrc}">Download video</a></p>`;
 
         const posterAttr = poster ? `poster="${poster}"` : '';
@@ -169,10 +167,10 @@ class CustomBlock extends HTMLElement {
             console.warn(`Invalid inner-align value "${innerAlign}" in <custom-block>. Must be one of ${validAlignments.join(', ')}. Ignoring alignment.`);
         }
 
-        const innerTextAlign = this.getAttribute('inner-text-align') || '';
+        const textAlignment = this.getAttribute('text-alignment') || '';
         const validTextAlignments = ['left', 'center', 'right'];
-        if (innerTextAlign && !validTextAlignments.includes(innerTextAlign)) {
-            console.warn(`Invalid inner-text-align value "${innerTextAlign}" in <custom-block>. Must be one of ${validTextAlignments.join(', ')}. Ignoring text alignment.`);
+        if (textAlignment && !validTextAlignments.includes(textAlignment)) {
+            console.warn(`Invalid text-alignment value "${textAlignment}" in <custom-block>. Must be one of ${validTextAlignments.join(', ')}. Ignoring text alignment.`);
         }
 
         const innerBackgroundColor = this.getAttribute('inner-background-color') || '';
@@ -248,7 +246,7 @@ class CustomBlock extends HTMLElement {
             innerBorderRadiusClass: this.hasAttribute('inner-border-radius') && this.hasAttribute('inner-border') ? this.getAttribute('inner-border-radius') : '',
             innerStyle: this.getAttribute('inner-style') || '',
             innerAlign: innerAlign && validAlignments.includes(innerAlign) ? innerAlign : '',
-            innerTextAlign: innerTextAlign && validTextAlignments.includes(innerTextAlign) ? innerTextAlign : ''
+            textAlignment: textAlignment && validTextAlignments.includes(textAlignment) ? textAlignment : ''
         };
     }
 
@@ -301,8 +299,68 @@ class CustomBlock extends HTMLElement {
         }
 
         const attrs = isFallback ? {
-            // fallback attrs...
-            // (omitted for brevity, same as before)
+            sectionTitle: false,
+            heading: 'Default Heading',
+            headingTag: 'h2',
+            description: 'Default description text.',
+            buttonHref: '#',
+            buttonText: '',
+            hasBackgroundOverlay: false,
+            backgroundOverlayClass: '',
+            innerBackgroundOverlayClass: '',
+            backgroundGradientClass: '',
+            innerBackgroundGradientClass: '',
+            backgroundImageNoise: false,
+            backdropFilterClasses: [],
+            backgroundColorClass: '',
+            borderClass: '',
+            borderRadiusClass: '',
+            customClasses: '',
+            styleAttribute: '',
+            backgroundLightSrc: '',
+            backgroundDarkSrc: '',
+            backgroundAlt: '',
+            backgroundIsDecorative: false,
+            backgroundMobileWidth: '100vw',
+            backgroundTabletWidth: '100vw',
+            backgroundDesktopWidth: '100vw',
+            backgroundAspectRatio: '',
+            backgroundIncludeSchema: false,
+            backgroundFetchPriority: '',
+            backgroundLoading: 'lazy',
+            foregroundLightSrc: '',
+            foregroundDarkSrc: '',
+            foregroundAlt: '',
+            foregroundIsDecorative: false,
+            foregroundMobileWidth: '100vw',
+            foregroundTabletWidth: '100vw',
+            foregroundDesktopWidth: '100vw',
+            foregroundAspectRatio: '',
+            foregroundIncludeSchema: false,
+            foregroundFetchPriority: '',
+            foregroundLoading: 'lazy',
+            foregroundPosition: 'none',
+            videoBackgroundSrc: '',
+            videoBackgroundLightSrc: '',
+            videoBackgroundDarkSrc: '',
+            videoBackgroundPoster: '',
+            videoBackgroundLightPoster: '',
+            videoBackgroundDarkPoster: '',
+            videoBackgroundAlt: 'Video content',
+            videoBackgroundLoading: 'lazy',
+            videoBackgroundAutoplay: true,
+            videoBackgroundMuted: true,
+            videoBackgroundLoop: true,
+            videoBackgroundPlaysinline: true,
+            videoBackgroundDisablePictureInPicture: false,
+            innerBackgroundColorClass: '',
+            innerBackgroundImageNoise: false,
+            innerBackdropFilterClasses: [],
+            innerBorderClass: '',
+            innerBorderRadiusClass: '',
+            innerStyle: '',
+            innerAlign: '',
+            textAlignment: ''
         } : this.getAttributes();
 
         console.log('Rendering CustomBlock with attrs:', attrs);
@@ -372,7 +430,6 @@ class CustomBlock extends HTMLElement {
 
             backgroundContentHTML = videoMarkup;
 
-            // Add dynamic script if needed
             if (attrs.videoBackgroundLightPoster || attrs.videoBackgroundDarkPoster || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc) {
                 const scriptContent = `
                     (function() {
@@ -538,9 +595,9 @@ class CustomBlock extends HTMLElement {
         };
 
         const textAlignMap = {
-            'left': 'flex-column-left text-align-left',
-            'center': 'flex-column-center text-align-center',
-            'right': 'flex-column-right text-align-right'
+            'left': 'text-align-left',
+            'center': 'text-align-center',
+            'right': 'text-align-right'
         };
 
         const innerDivClassList = [];
@@ -555,7 +612,6 @@ class CustomBlock extends HTMLElement {
             if (attrs.innerBackgroundGradientClass) innerDivClassList.push(attrs.innerBackgroundGradientClass);
             innerDivClassList.push(...attrs.innerBackdropFilterClasses);
             if (attrs.innerAlign) innerDivClassList.push(alignMap[attrs.innerAlign]);
-            if (attrs.innerTextAlign) innerDivClassList.push(textAlignMap[attrs.innerTextAlign].split(' ')[0]);
         }
 
         const innerDivClass = innerDivClassList.join(' ').trim();
@@ -571,7 +627,7 @@ class CustomBlock extends HTMLElement {
 
         const contentHTML = `
         <div${innerDivClass ? ` class="${innerDivClass}"` : ''}${innerDivStyle} aria-live="polite">
-            <div role="group"${attrs.innerTextAlign ? ` class="${textAlignMap[attrs.innerTextAlign].split(' ')[1]}"` : ''}>
+            <div role="group"${attrs.textAlignment ? ` class="${textAlignMap[attrs.textAlignment]}"` : ''}>
                 <${attrs.headingTag}>${attrs.heading}</${attrs.headingTag}>
                 <p>${attrs.description}</p>
             </div>
@@ -623,8 +679,29 @@ class CustomBlock extends HTMLElement {
         if (!isFallback && blockElement.querySelector('img')) {
             const images = blockElement.querySelectorAll('img');
             images.forEach(img => {
-                // remove custom attrs...
-                // (omitted for brevity, same as before)
+                img.removeAttribute('custom-img-background-light-src');
+                img.removeAttribute('custom-img-background-dark-src');
+                img.removeAttribute('custom-img-background-alt');
+                img.removeAttribute('custom-img-background-decorative');
+                img.removeAttribute('custom-img-background-mobile-width');
+                img.removeAttribute('custom-img-background-tablet-width');
+                img.removeAttribute('custom-img-background-desktop-width');
+                img.removeAttribute('custom-img-background-aspect-ratio');
+                img.removeAttribute('custom-img-background-include-schema');
+                img.removeAttribute('custom-img-background-fetchpriority');
+                img.removeAttribute('custom-img-background-loading');
+                img.removeAttribute('custom-img-foreground-light-src');
+                img.removeAttribute('custom-img-foreground-dark-src');
+                img.removeAttribute('custom-img-foreground-alt');
+                img.removeAttribute('custom-img-foreground-decorative');
+                img.removeAttribute('custom-img-foreground-mobile-width');
+                img.removeAttribute('custom-img-foreground-tablet-width');
+                img.removeAttribute('custom-img-foreground-desktop-width');
+                img.removeAttribute('custom-img-foreground-aspect-ratio');
+                img.removeAttribute('custom-img-foreground-include-schema');
+                img.removeAttribute('custom-img-foreground-fetchpriority');
+                img.removeAttribute('custom-img-foreground-loading');
+                img.removeAttribute('custom-img-foreground-position');
             });
         }
 
@@ -702,7 +779,7 @@ class CustomBlock extends HTMLElement {
             'inner-backdrop-filter',
             'inner-style',
             'inner-align',
-            'inner-text-align'
+            'text-alignment'
         ];
     }
 
@@ -749,7 +826,7 @@ class CustomBlock extends HTMLElement {
             'inner-backdrop-filter',
             'inner-style',
             'inner-align',
-            'inner-text-align'
+            'text-alignment'
         ];
         if (criticalAttributes.includes(name)) {
             this.initialize();
@@ -763,4 +840,4 @@ try {
     console.error('Error defining CustomBlock element:', error);
 }
 
-console.log('CustomBlock version: 2025-08-19');
+console.log('CustomBlock version: 2025-08-20');
