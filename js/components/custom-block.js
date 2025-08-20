@@ -109,7 +109,7 @@ class CustomBlock extends HTMLElement {
                 backgroundOverlayClass = `background-overlay-${match[1]}`;
             } else {
                 console.warn(`Invalid background-overlay value "${backgroundOverlay}" in <custom-block>. Expected format: background-overlay-[number]. Using default 'background-overlay-1'.`);
-                backgroundOverlayClass = 'background-overlay-1';
+                backgroundOverlayClass = 'background-overlay- 1';
             }
         }
 
@@ -184,6 +184,23 @@ class CustomBlock extends HTMLElement {
             }
         }
 
+        const shadow = this.getAttribute('shadow') || '';
+        let shadowClass = '';
+        const validShadowClasses = ['shadow-light', 'shadow-medium', 'shadow-heavy'];
+        if (shadow && validShadowClasses.includes(shadow)) {
+            shadowClass = shadow;
+        } else if (shadow) {
+            console.warn(`Invalid shadow value "${shadow}" in <custom-block>. Must be one of ${validShadowClasses.join(', ')}. Ignoring.`);
+        }
+
+        const innerShadow = this.getAttribute('inner-shadow') || '';
+        let innerShadowClass = '';
+        if (innerShadow && validShadowClasses.includes(innerShadow)) {
+            innerShadowClass = innerShadow;
+        } else if (innerShadow) {
+            console.warn(`Invalid inner-shadow value "${innerShadow}" in <custom-block>. Must be one of ${validShadowClasses.join(', ')}. Ignoring.`);
+        }
+
         return {
             sectionTitle: this.hasAttribute('section-title'),
             heading: this.getAttribute('heading') || 'Default Heading',
@@ -200,7 +217,7 @@ class CustomBlock extends HTMLElement {
             backdropFilterClasses,
             backgroundColorClass: this.getAttribute('background-color') || '',
             borderClass: this.getAttribute('border') || '',
-            borderRadiusClass: this.hasAttribute('border-radius') && this.hasAttribute('border') ? this.getAttribute('border-radius') : '',
+            borderRadiusClass: this.hasAttribute('border') && this.hasAttribute('border-radius') ? this.getAttribute('border-radius') : '',
             customClasses: this.getAttribute('class') || '',
             innerCustomClasses: this.getAttribute('inner-class') || '',
             styleAttribute: this.getAttribute('style') || '',
@@ -244,10 +261,12 @@ class CustomBlock extends HTMLElement {
             innerBackgroundImageNoise: this.hasAttribute('inner-background-image-noise'),
             innerBackdropFilterClasses,
             innerBorderClass: this.getAttribute('inner-border') || '',
-            innerBorderRadiusClass: this.hasAttribute('inner-border-radius') && this.hasAttribute('inner-border') ? this.getAttribute('inner-border-radius') : '',
+            innerBorderRadiusClass: this.hasAttribute('inner-border') && this.hasAttribute('inner-border-radius') ? this.getAttribute('inner-border-radius') : '',
             innerStyle: this.getAttribute('inner-style') || '',
             innerAlignment: innerAlignment && validAlignments.includes(innerAlignment) ? innerAlignment : '',
-            textAlignment: textAlignment && validTextAlignments.includes(textAlignment) ? textAlignment : ''
+            textAlignment: textAlignment && validTextAlignments.includes(textAlignment) ? textAlignment : '',
+            shadowClass,
+            innerShadowClass
         };
     }
 
@@ -362,7 +381,9 @@ class CustomBlock extends HTMLElement {
             innerBorderRadiusClass: '',
             innerStyle: '',
             innerAlignment: '',
-            textAlignment: ''
+            textAlignment: '',
+            shadowClass: '',
+            innerShadowClass: ''
         } : this.getAttributes();
 
         console.log('Rendering CustomBlock with attrs:', attrs);
@@ -542,7 +563,7 @@ class CustomBlock extends HTMLElement {
 
         if (isMediaOnly && !hasForegroundImage) {
             const blockElement = document.createElement('div');
-            blockElement.className = ['block', hasBackgroundImage ? 'background-image' : 'background-video', attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass].filter(cls => cls).join(' ').trim();
+            blockElement.className = ['block', hasBackgroundImage ? 'background-image' : 'background-video', attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass].filter(cls => cls).join(' ').trim();
             if (attrs.styleAttribute && !isFallback) {
                 blockElement.setAttribute('style', attrs.styleAttribute);
             }
@@ -615,6 +636,7 @@ class CustomBlock extends HTMLElement {
             if (attrs.innerBackgroundGradientClass) innerDivClassList.push(attrs.innerBackgroundGradientClass);
             innerDivClassList.push(...attrs.innerBackdropFilterClasses);
             if (attrs.innerAlignment) innerDivClassList.push(alignMap[attrs.innerAlignment]);
+            if (attrs.innerShadowClass) innerDivClassList.push(attrs.innerShadowClass);
         }
 
         const innerDivClass = innerDivClassList.join(' ').trim();
@@ -641,7 +663,7 @@ class CustomBlock extends HTMLElement {
         const mainDivClassList = ['block'];
         if (hasBackgroundImage) mainDivClassList.push('background-image');
         else if (hasVideoBackground) mainDivClassList.push('background-video');
-        mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass);
+        mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass);
         const mainDivClass = mainDivClassList.filter(cls => cls).join(' ').trim();
 
         const blockElement = document.createElement('div');
@@ -695,7 +717,7 @@ class CustomBlock extends HTMLElement {
                 img.removeAttribute('img-background-loading');
                 img.removeAttribute('img-foreground-light-src');
                 img.removeAttribute('img-foreground-dark-src');
-                img.removeAttribute('img-foreground-alt');
+                img noz.removeAttribute('img-foreground-alt');
                 img.removeAttribute('img-foreground-decorative');
                 img.removeAttribute('img-foreground-mobile-width');
                 img.removeAttribute('img-foreground-tablet-width');
@@ -783,7 +805,9 @@ class CustomBlock extends HTMLElement {
             'inner-style',
             'inner-alignment',
             'text-alignment',
-            'inner-class'
+            'inner-class',
+            'shadow',
+            'inner-shadow'
         ];
     }
 
@@ -831,7 +855,9 @@ class CustomBlock extends HTMLElement {
             'inner-style',
             'inner-alignment',
             'text-alignment',
-            'inner-class'
+            'inner-class',
+            'shadow',
+            'inner-shadow'
         ];
         if (criticalAttributes.includes(name)) {
             this.initialize();

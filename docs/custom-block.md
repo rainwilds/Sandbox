@@ -1,219 +1,78 @@
-```markdown
-# CustomBlock
+# Custom Block Documentation
 
-## Summary
+The `<custom-block>` is a versatile Web Component designed to create customizable content blocks with support for background images, foreground images, videos, text, and buttons. It provides a range of attributes to control styling, layout, and media rendering. Below is a detailed explanation of all attributes, grouped into General, Image, and Video categories, presented in alphabetical order within each group.
 
-The `CustomBlock` is a custom web component that extends `HTMLElement` to create a versatile, reusable block component with customizable layout, supporting both image and video backgrounds. It features lazy loading, theme-aware media, accessibility enhancements, and robust error handling. Key features include:
+## General Attributes
 
-- **Lazy Loading**: Uses `IntersectionObserver` to initialize the block only when it enters the viewport (with a 50px root margin).
-- **Theme-Aware Media**: Supports `custom-img-*-light-src` and `custom-img-*-dark-src` for images, and `custom-video-background-light-src` and `custom-video-background-dark-src` for videos, adapting to light/dark mode via `prefers-color-scheme`.
-- **Video Support**: Generates `<video>` elements with theme-specific sources, poster images, and customizable playback options (e.g., `autoplay`, `muted`, `loop`).
-- **Accessibility**: Warns if `custom-img-*-alt` is missing for non-decorative images, supports custom `custom-video-background-alt` for videos, and includes Schema.org markup via `custom-img-*-include-schema`.
-- **Customizable Styling**: Offers attributes for background overlays, gradients, noise textures, backdrop filters, borders, and custom classes for both outer and inner containers.
-- **Dynamic Content**: Renders heading, description, and button with customizable text, alignment, and styling.
-- **Error Handling**: Falls back to a placeholder image or error state if media fails to load, with detailed console warnings.
-- **DOM Replacement**: Replaces the `<custom-block>` element with a fully constructed `<div>` containing the block's content.
+| Attribute Name | Description | Default Value | Expected Format |
+|----------------|-------------|---------------|-----------------|
+| background-color | Sets the background color of the entire block using a predefined class. | `''` (empty) | `background-color-[number]` (e.g., `background-color-1`) |
+| background-gradient | Applies a gradient overlay to the block's background. | `''` (empty) | `background-gradient-[number]` (e.g., `background-gradient-1`) |
+| background-image-noise | Adds a noise texture to the block's background when present. | Not set (false) | Boolean attribute (presence indicates `true`) |
+| background-overlay | Applies an overlay effect over the background image or video. | `''` (empty) | `background-overlay-[number]` (e.g., `background-overlay-1`) |
+| border | Sets the border style for the block. | `''` (empty) | CSS class name (e.g., `border-solid`) |
+| border-radius | Sets the border radius for the block, requires `border` to be set. | `''` (empty) | CSS class name (e.g., `rounded-md`) |
+| button-href | Specifies the URL for the button's link. | `'#'` | Valid URL or anchor (e.g., `https://example.com`) |
+| button-text | Defines the text displayed on the button. | `''` (empty) | Plain text (e.g., `Click Here`) |
+| class | Adds custom CSS classes to the outer block element. | `''` (empty) | Space-separated class names (e.g., `custom-class another-class`) |
+| heading | Sets the text for the heading element. | `'Default Heading'` | Plain text (e.g., `Welcome`) |
+| heading-tag | Specifies the HTML tag for the heading. | `'h2'` | One of: `h1`, `h2`, `h3`, `h4`, `h5`, `h6` |
+| inner-alignment | Controls the alignment of the inner content div. | `''` (empty) | One of: `center`, `top`, `bottom`, `left`, `right`, `top-left`, `top-center`, `top-right`, `bottom-left`, `bottom-center`, `bottom-right`, `center-left`, `center-right` |
+| inner-background-color | Sets the background color for the inner content div. | `''` (empty) | `background-color-[number]` (e.g., `background-color-2`) |
+| inner-background-gradient | Applies a gradient overlay to the inner content div. | `''` (empty) | `background-gradient-[number]` (e.g., `background-gradient-2`) |
+| inner-background-image-noise | Adds a noise texture to the inner content div when present. | Not set (false) | Boolean attribute (presence indicates `true`) |
+| inner-background-overlay | Applies an overlay effect to the inner content div. | `''` (empty) | `background-overlay-[number]` (e.g., `background-overlay-2`) |
+| inner-border | Sets the border style for the inner content div. | `''` (empty) | CSS class name (e.g., `border-dashed`) |
+| inner-border-radius | Sets the border radius for the inner content div, requires `inner-border`. | `''` (empty) | CSS class name (e.g., `rounded-lg`) |
+| inner-class | Adds custom CSS classes to the inner content div. | `''` (empty) | Space-separated class names (e.g., `inner-custom inner-style`) |
+| inner-style | Applies inline CSS styles to the inner content div. | `''` (empty) | CSS style string (e.g., `background: blue; padding: 10px;`) |
+| section-title | Marks the block as a section title when present. | Not set (false) | Boolean attribute (presence indicates `true`) |
+| style | Applies inline CSS styles to the outer block element. | `''` (empty) | CSS style string (e.g., `background: red; margin: 10px;`) |
+| text | Defines the text content for the paragraph in the block. | `'Default description text.'` | Plain text (e.g., `This is a description.`) |
+| text-alignment | Sets the text alignment for the inner content group. | `''` (empty) | One of: `left`, `center`, `right` |
 
-The component requires no external dependencies for basic functionality, as image and video markup generation is handled internally. It supports a wide range of attributes for flexible styling, media, and content configuration.
+## Image Attributes
 
-## Dependencies
+| Attribute Name | Description | Default Value | Expected Format |
+|----------------|-------------|---------------|-----------------|
+| img-background-alt | Provides the alt text for the background image for accessibility. | `''` (empty) | Plain text (e.g., `Background scene`) |
+| img-background-aspect-ratio | Sets the aspect ratio for the background image. | `''` (empty) | CSS aspect ratio (e.g., `16/9`) |
+| img-background-dark-src | Specifies the source URL for the background image in dark mode. | `''` (empty) | Valid image URL (e.g., `image-dark.jpg`) |
+| img-background-decorative | Marks the background image as decorative (no alt text) when present. | Not set (false) | Boolean attribute (presence indicates `true`) |
+| img-background-desktop-width | Sets the width of the background image on desktop screens. | `'100vw'` | CSS width value (e.g., `1200px`) |
+| img-background-fetchpriority | Defines the fetch priority for the background image. | `''` (empty) | One of: `high`, `low`, `auto` |
+| img-background-include-schema | Includes schema markup for the background image when present. | Not set (false) | Boolean attribute (presence indicates `true`) |
+| img-background-light-src | Specifies the source URL for the background image in light mode. | `''` (empty) | Valid image URL (e.g., `image-light.jpg`) |
+| img-background-loading | Sets the loading strategy for the background image. | `'lazy'` | One of: `lazy`, `eager` |
+| img-background-mobile-width | Sets the width of the background image on mobile screens. | `'100vw'` | CSS width value (e.g., `600px`) |
+| img-background-tablet-width | Sets the width of the background image on tablet screens. | `'100vw'` | CSS width value (e.g., `800px`) |
+| img-foreground-alt | Provides the alt text for the foreground image for accessibility. | `''` (empty) | Plain text (e.g., `Foreground logo`) |
+| img-foreground-aspect-ratio | Sets the aspect ratio for the foreground image. | `''` (empty) | CSS aspect ratio (e.g., `1/1`) |
+| img-foreground-dark-src | Specifies the source URL for the foreground image in dark mode. | `''` (empty) | Valid image URL (e.g., `foreground-dark.jpg`) |
+| img-foreground-decorative | Marks the foreground image as decorative (no alt text) when present. | Not set (false) | Boolean attribute (presence indicates `true`) |
+| img-foreground-desktop-width | Sets the width of the foreground image on desktop screens. | `'100vw'` | CSS width value (e.g., `1200px`) |
+| img-foreground-fetchpriority | Defines the fetch priority for the foreground image. | `''` (empty) | One of: `high`, `low`, `auto` |
+| img-foreground-include-schema | Includes schema markup for the foreground image when present. | Not set (false) | Boolean attribute (presence indicates `true`) |
+| img-foreground-light-src | Specifies the source URL for the foreground image in light mode. | `''` (empty) | Valid image URL (e.g., `foreground-light.jpg`) |
+| img-foreground-loading | Sets the loading strategy for the foreground image. | `'lazy'` | One of: `lazy`, `eager` |
+| img-foreground-mobile-width | Sets the width of the foreground image on mobile screens. | `'100vw'` | CSS width value (e.g., `600px`) |
+| img-foreground-position | Specifies the position of the foreground image relative to content. | `'none'` | One of: `none`, `above`, `below`, `left`, `right` |
+| img-foreground-tablet-width | Sets the width of the foreground image on tablet screens. | `'100vw'` | CSS width value (e.g., `800px`) |
 
-None. The `CustomBlock` component is self-contained, with image and video markup generation logic embedded in the class. Previously, `CustomCard` relied on `picture-generator.js` for image markup, but `CustomBlock` integrates this functionality directly.
+## Video Attributes
 
-## Standard Attributes
-
-These are standard HTML attributes supported by the component, applied to the rendered block or its sub-elements.
-
-| Attribute       | Description                                                                 | Type     | Required | Default Value |
-|-----------------|-----------------------------------------------------------------------------|----------|----------|---------------|
-| `class`         | CSS classes for styling the block container.                                | String   | No       | ''            |
-| `style`         | Inline CSS styles for the block container.                                  | String   | No       | ''            |
-
-## Custom Attributes
-
-These are non-standard attributes specific to the component, used for configuring content, styling, images, and videos. Most are not transferred to the final DOM as the original element is replaced.
-
-| Attribute                             | Description                                                                 | Type     | Required | Default Value         |
-|---------------------------------------|-----------------------------------------------------------------------------|----------|----------|-----------------------|
-| `section-title`                       | Marks the block as a section title (adds `data-section-title` attribute).   | Boolean  | No       | False                 |
-| `heading`                             | The block's heading text.                                                  | String   | No       | 'Default Heading'     |
-| `heading-tag`                         | HTML tag for the heading (e.g., `h1`, `h2`). Must be `h1`-`h6`.             | String   | No       | 'h2'                  |
-| `description`                         | The block's description text.                                              | String   | No       | 'Default description text.' |
-| `button-href`                         | The URL for the block's button link.                                       | String   | No       | '#'                   |
-| `button-text`                         | The text for the block's button.                                           | String   | No       | ''                    |
-| `background-overlay`                  | Adds a background overlay (format: `background-overlay-[number]`).          | String   | No       | ''                    |
-| `background-gradient`                 | Adds a gradient overlay to the background (format: `background-gradient-[number]`). | String   | No       | ''                    |
-| `background-image-noise`              | Adds a noise texture to the background overlay.                            | Boolean  | No       | False                 |
-| `backdrop-filter`                     | CSS classes for backdrop filter (e.g., `blur-5`).                          | String   | No       | ''                    |
-| `background-color`                    | CSS class for background color (e.g., `bg-blue-500`).                      | String   | No       | ''                    |
-| `border`                              | CSS class for border (e.g., `border-solid`).                               | String   | No       | ''                    |
-| `border-radius`                       | CSS class for border radius (e.g., `rounded-lg`). Requires `border`.        | String   | No       | ''                    |
-| `inner-background-overlay`            | Adds an overlay to the inner container (format: `background-overlay-[number]`). | String   | No       | ''                    |
-| `inner-background-gradient`           | Adds a gradient to the inner container (format: `background-gradient-[number]`). | String   | No       | ''                    |
-| `inner-background-image-noise`        | Adds a noise texture to the inner container.                               | Boolean  | No       | False                 |
-| `inner-backdrop-filter`               | CSS classes for inner container backdrop filter (e.g., `blur-5`).          | String   | No       | ''                    |
-| `inner-background-color`              | CSS class for inner container background color (e.g., `background-color-1`). | String   | No       | ''                    |
-| `inner-border`                        | CSS class for inner container border (e.g., `border-solid`).               | String   | No       | ''                    |
-| `inner-border-radius`                 | CSS class for inner container border radius (e.g., `rounded-lg`). Requires `inner-border`. | String   | No       | ''                    |
-| `inner-style`                         | Inline CSS styles for the inner container.                                 | String   | No       | ''                    |
-| `inner-align`                         | Alignment of inner content (e.g., `center`, `top-left`, `bottom-right`).   | String   | No       | ''                    |
-| `inner-text-align`                    | Text alignment for inner content (e.g., `left`, `center`, `right`).        | String   | No       | ''                    |
-| `custom-img-background-light-src`     | Background image URL for light theme. Conditional with `custom-img-background-dark-src`. | String   | Conditional | ''                |
-| `custom-img-background-dark-src`      | Background image URL for dark theme. Conditional with `custom-img-background-light-src`. | String   | Conditional | ''                |
-| `custom-img-background-alt`           | Alt text for background image; warns if missing and not `custom-img-background-decorative`. | String   | No       | ''                    |
-| `custom-img-background-decorative`    | Marks background image as decorative (no `alt` warning, empty `alt`).       | Boolean  | No       | False                 |
-| `custom-img-background-mobile-width`  | Width descriptor for mobile devices (used in `sizes` attribute).            | String   | No       | '100vw'               |
-| `custom-img-background-tablet-width`  | Width descriptor for tablet devices (used in `sizes` attribute).            | String   | No       | '100vw'               |
-| `custom-img-background-desktop-width` | Width descriptor for desktop devices (used in `sizes` attribute).           | String   | No       | '100vw'               |
-| `custom-img-background-aspect-ratio`  | Aspect ratio for background image (e.g., `16/9`).                          | String   | No       | ''                    |
-| `custom-img-background-include-schema`| Enables Schema.org markup for background image.                            | Boolean  | No       | False                 |
-| `custom-img-background-fetchpriority` | Fetch priority for background image (`high`, `low`, `auto`).               | String   | No       | ''                    |
-| `custom-img-background-loading`       | Loading behavior for background image (`lazy`, `eager`).                   | String   | No       | 'lazy'                |
-| `custom-img-foreground-light-src`     | Foreground image URL for light theme. Conditional with `custom-img-foreground-dark-src`. | String   | Conditional | ''                |
-| `custom-img-foreground-dark-src`      | Foreground image URL for dark theme. Conditional with `custom-img-foreground-light-src`. | String   | Conditional | ''                |
-| `custom-img-foreground-alt`           | Alt text for foreground image; warns if missing and not `custom-img-foreground-decorative`. | String   | No       | ''                    |
-| `custom-img-foreground-decorative`    | Marks foreground image as decorative (no `alt` warning, empty `alt`).       | Boolean  | No       | False                 |
-| `custom-img-foreground-mobile-width`  | Width descriptor for mobile devices (used in `sizes` attribute).            | String   | No       | '100vw'               |
-| `custom-img-foreground-tablet-width`  | Width descriptor for tablet devices (used in `sizes` attribute).            | String   | No       | '100vw'               |
-| `custom-img-foreground-desktop-width` | Width descriptor for desktop devices (used in `sizes` attribute).           | String   | No       | '100vw'               |
-| `custom-img-foreground-aspect-ratio`  | Aspect ratio for foreground image (e.g., `16/9`).                          | String   | No       | ''                    |
-| `custom-img-foreground-include-schema`| Enables Schema.org markup for foreground image.                            | Boolean  | No       | False                 |
-| `custom-img-foreground-fetchpriority` | Fetch priority for foreground image (`high`, `low`, `auto`).               | String   | No       | ''                    |
-| `custom-img-foreground-loading`       | Loading behavior for foreground image (`lazy`, `eager`).                   | String   | No       | 'lazy'                |
-| `custom-img-foreground-position`      | Position of foreground image (`none`, `above`, `below`, `left`, `right`).  | String   | No       | 'none'                |
-| `custom-video-background-src`         | Default video source URL (used if theme-specific sources are unavailable). | String   | Conditional | ''                    |
-| `custom-video-background-light-src`   | Video source URL for light theme. Conditional with other video sources.    | String   | Conditional | ''                    |
-| `custom-video-background-dark-src`    | Video source URL for dark theme. Conditional with other video sources.     | String   | Conditional | ''                    |
-| `custom-video-background-poster`      | Default poster image URL for the video.                                    | String   | No       | ''                    |
-| `custom-video-background-light-poster`| Poster image URL for light theme.                                         | String   | No       | ''                    |
-| `custom-video-background-dark-poster` | Poster image URL for dark theme.                                          | String   | No       | ''                    |
-| `custom-video-background-alt`         | Accessibility text for the video (`title` and `aria-label`).               | String   | No       | 'Video content'       |
-| `custom-video-background-loading`     | Loading behavior for the video (`lazy`, `auto`).                           | String   | No       | 'lazy'                |
-| `custom-video-background-autoplay`    | Enables automatic video playback.                                          | Boolean  | No       | True                  |
-| `custom-video-background-muted`       | Mutes the video.                                                          | Boolean  | No       | True                  |
-| `custom-video-background-loop`        | Loops the video.                                                          | Boolean  | No       | True                  |
-| `custom-video-background-playsinline` | Enables inline playback (e.g., for mobile devices).                        | Boolean  | No       | True                  |
-| `custom-video-background-disablepictureinpicture` | Disables picture-in-picture mode.                             | Boolean  | No       | False                 |
-
-## Notes
-- **Conditional Attributes**: At least one of `custom-img-background-light-src`, `custom-img-background-dark-src`, `custom-img-foreground-light-src`, `custom-img-foreground-dark-src`, `custom-video-background-src`, `custom-video-background-light-src`, or `custom-video-background-dark-src` is required for media rendering.
-- **Theme-Aware Media**: For images and videos, `light-src` and `dark-src` (or their equivalents) enable theme-specific rendering based on `prefers-color-scheme`. If only one is provided, it serves as the default.
-- **Video Playback**: Videos include both `.mp4` and `.webm` sources for compatibility. A dynamic script handles theme changes for `custom-video-background-light-src` and `dark-src`, preserving playback state.
-- **Accessibility**: Missing `custom-img-*-alt` for non-decorative images triggers console warnings. Videos use `custom-video-background-alt` for `title` and `aria-label`.
-- **Styling**: Attributes like `background-overlay`, `background-gradient`, and `backdrop-filter` apply to the media layer, while `inner-*` attributes style the content container.
-
-## Example Custom-Block Tags
-
-Here are example usages of the `<custom-block>` tag, demonstrating various attribute combinations for text, images, and videos.
-
-### Basic Example (Text Only, No Media)
-```html
-<custom-block
-    heading="Welcome Block"
-    heading-tag="h1"
-    description="A simple block with centered text content."
-    button-text="Learn More"
-    button-href="/learn"
-    class="padding-medium"
-    inner-align="center"
-    inner-text-align="center"
->
-</custom-block>
-```
-
-### Example with Theme-Aware Background Image
-```html
-<custom-block
-    heading="Featured Product"
-    description="Explore our latest offering with a responsive background."
-    button-text="Shop Now"
-    button-href="/shop"
-    custom-img-background-light-src="./img/product-light.jpg"
-    custom-img-background-dark-src="./img/product-dark.jpg"
-    custom-img-background-alt="Product image"
-    custom-img-background-mobile-width="100vw"
-    custom-img-background-tablet-width="50vw"
-    custom-img-background-desktop-width="33vw"
-    custom-img-background-include-schema
-    custom-img-background-loading="eager"
-    custom-img-background-fetchpriority="high"
-    background-overlay="background-overlay-1"
-    backdrop-filter="blur-5"
-    class="rounded-lg border-solid border-gray-300"
->
-</custom-block>
-```
-
-### Example with Theme-Aware Video Background
-```html
-<custom-block
-    heading="Video Showcase"
-    description="Watch our theme-aware promotional video."
-    button-text="Discover More"
-    button-href="/discover"
-    custom-video-background-light-src="./video/light-video.mp4"
-    custom-video-background-dark-src="./video/dark-video.mp4"
-    custom-video-background-light-poster="./img/light-poster.jpg"
-    custom-video-background-dark-poster="./img/dark-poster.jpg"
-    custom-video-background-alt="Promotional video for new feature"
-    custom-video-background-loading="auto"
-    custom-video-background-autoplay="true"
-    custom-video-background-muted="true"
-    custom-video-background-loop="true"
-    custom-video-background-playsinline="true"
-    background-gradient="background-gradient-2"
-    background-overlay="background-overlay-2"
-    class="hero-section padding-large"
-    style="max-width: 1400px; margin: auto;"
->
-</custom-block>
-```
-
-### Detailed Example with Video, Foreground Image, and Inner Styling
-```html
-<custom-block
-    heading="Interactive Tutorial"
-    heading-tag="h1"
-    description="Learn with our interactive video and foreground image."
-    button-text="Start Tutorial"
-    button-href="/tutorial"
-    custom-video-background-light-src="./video/tutorial-light.mp4"
-    custom-video-background-dark-src="./video/tutorial-dark.mp4"
-    custom-video-background-poster="./img/default-poster.jpg"
-    custom-video-background-light-poster="./img/light-poster.jpg"
-    custom-video-background-dark-poster="./img/dark-poster.jpg"
-    custom-video-background-alt="Interactive tutorial video"
-    custom-video-background-loading="lazy"
-    custom-video-background-autoplay="true"
-    custom-video-background-muted="true"
-    custom-video-background-loop="false"
-    custom-video-background-playsinline="true"
-    custom-video-background-disablepictureinpicture="true"
-    custom-img-foreground-light-src="./img/foreground-light.jpg"
-    custom-img-foreground-dark-src="./img/foreground-dark.jpg"
-    custom-img-foreground-alt="Tutorial illustration"
-    custom-img-foreground-position="right"
-    custom-img-foreground-loading="lazy"
-    background-overlay="background-overlay-3"
-    background-gradient="background-gradient-1"
-    background-image-noise
-    backdrop-filter="blur-10"
-    inner-align="center-left"
-    inner-text-align="left"
-    inner-background-color="background-color-2"
-    inner-background-gradient="background-gradient-2"
-    inner-background-image-noise
-    class="tutorial-block padding-large border-solid"
-    style="max-width: 1600px; margin: auto;"
->
-</custom-block>
-```
-
-## Implementation Notes
-- **Lazy Loading**: Videos and images with `loading="lazy"` use `IntersectionObserver` for playback or loading when in view.
-- **Theme Switching**: For videos with `custom-video-background-light-src` or `dark-src`, a script is generated to handle theme changes, updating sources and posters while preserving playback state.
-- **Error Handling**: Invalid video extensions or failed loads trigger console warnings and fallback to a placeholder image or error state.
-- **Performance**: Caches rendered output to avoid redundant DOM manipulation when attributes remain unchanged.
-
-This documentation reflects the `CustomBlock` component as of 2025-08-19, providing a comprehensive guide to its usage for both image and video-based layouts.
-```
+| Attribute Name | Description | Default Value | Expected Format |
+|----------------|-------------|---------------|-----------------|
+| video-background-alt | Provides the accessibility description for the background video. | `'Video content'` | Plain text (e.g., `Background video scene`) |
+| video-background-autoplay | Enables autoplay for the background video when not set to `false`. | `true` | `true` or `false` |
+| video-background-dark-poster | Specifies the poster image URL for the background video in dark mode. | `''` (empty) | Valid image URL (e.g., `poster-dark.jpg`) |
+| video-background-dark-src | Specifies the source URL for the background video in dark mode. | `''` (empty) | Valid video URL (e.g., `video-dark.mp4`) |
+| video-background-disablepictureinpicture | Disables picture-in-picture mode for the video when set to `true`. | `false` | `true` or `false` |
+| video-background-light-poster | Specifies the poster image URL for the background video in light mode. | `''` (empty) | Valid image URL (e.g., `poster-light.jpg`) |
+| video-background-light-src | Specifies the source URL for the background video in light mode. | `''` (empty) | Valid video URL (e.g., `video-light.mp4`) |
+| video-background-loading | Sets the loading strategy for the background video. | `'lazy'` | One of: `lazy`, `eager` |
+| video-background-loop | Enables looping for the background video when not set to `false`. | `true` | `true` or `false` |
+| video-background-muted | Mutes the background video when not set to `false`. | `true` | `true` or `false` |
+| video-background-playsinline | Enables inline playback for the video when not set to `false`. | `true` | `true` or `false` |
+| video-background-poster | Specifies the default poster image URL for the background video. | `''` (empty) | Valid image URL (e.g., `poster.jpg`) |
+| video-background-src | Specifies the default source URL for the background video. | `''` (empty) | Valid video URL (e.g., `video.mp4`) |
