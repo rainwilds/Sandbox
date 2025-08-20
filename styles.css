@@ -1760,13 +1760,7 @@ body>* {
         margin-bottom: var(--space-large);
         /* min-height: 50vh; */
 
-        /* for when custom-block is used for text headings/paragraphs */
-        &:has([data-section-title="true"]) {
 
-            margin-bottom: var(--space-medium);
-            min-height: initial;
-
-        }
 
         >div {
 
@@ -1774,6 +1768,14 @@ body>* {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
             gap: var(--space-medium);
+
+            /* for when custom-block is used for text headings/paragraphs */
+            &:has([data-section-title="true"]) {
+
+                margin-bottom: var(--space-medium);
+                min-height: initial;
+
+            }
 
         }
 
