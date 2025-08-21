@@ -86,19 +86,19 @@ class CustomBlock extends HTMLElement {
 
     getAttributes() {
         const backgroundFetchPriority = this.getAttribute('img-background-fetchpriority') || '';
-        const foregroundFetchPriority = this.getAttribute('img-foreground-fetchpriority') || '';
+        const primaryFetchPriority = this.getAttribute('img-primary-fetchpriority') || '';
         const validFetchPriorities = ['high', 'low', 'auto', ''];
         if (!validFetchPriorities.includes(backgroundFetchPriority)) {
             console.warn(`Invalid img-background-fetchpriority value "${backgroundFetchPriority}" in <custom-block>. Using default.`);
         }
-        if (!validFetchPriorities.includes(foregroundFetchPriority)) {
-            console.warn(`Invalid img-foreground-fetchpriority value "${foregroundFetchPriority}" in <custom-block>. Using default.`);
+        if (!validFetchPriorities.includes(primaryFetchPriority)) {
+            console.warn(`Invalid img-primary-fetchpriority value "${primaryFetchPriority}" in <custom-block>. Using default.`);
         }
 
-        const foregroundPosition = this.getAttribute('img-foreground-position') || 'none';
+        const primaryPosition = this.getAttribute('img-primary-position') || 'none';
         const validPositions = ['none', 'above', 'below', 'left', 'right'];
-        if (!validPositions.includes(foregroundPosition)) {
-            console.warn(`Invalid img-foreground-position value "${foregroundPosition}" in <custom-block>. Using default 'none'.`);
+        if (!validPositions.includes(primaryPosition)) {
+            console.warn(`Invalid img-primary-position value "${primaryPosition}" in <custom-block>. Using default 'none'.`);
         }
 
         const backgroundOverlay = this.getAttribute('background-overlay') || '';
@@ -232,18 +232,18 @@ class CustomBlock extends HTMLElement {
             backgroundIncludeSchema: this.hasAttribute('img-background-include-schema'),
             backgroundFetchPriority: validFetchPriorities.includes(backgroundFetchPriority) ? backgroundFetchPriority : '',
             backgroundLoading: this.getAttribute('img-background-loading') || 'lazy',
-            foregroundLightSrc: this.getAttribute('img-foreground-light-src') || '',
-            foregroundDarkSrc: this.getAttribute('img-foreground-dark-src') || '',
-            foregroundAlt: this.getAttribute('img-foreground-alt') || '',
-            foregroundIsDecorative: this.hasAttribute('img-foreground-decorative'),
-            foregroundMobileWidth: this.getAttribute('img-foreground-mobile-width') || '100vw',
-            foregroundTabletWidth: this.getAttribute('img-foreground-tablet-width') || '100vw',
-            foregroundDesktopWidth: this.getAttribute('img-foreground-desktop-width') || '100vw',
-            foregroundAspectRatio: this.getAttribute('img-foreground-aspect-ratio') || '',
-            foregroundIncludeSchema: this.hasAttribute('img-foreground-include-schema'),
-            foregroundFetchPriority: validFetchPriorities.includes(foregroundFetchPriority) ? foregroundFetchPriority : '',
-            foregroundLoading: this.getAttribute('img-foreground-loading') || 'lazy',
-            foregroundPosition: validPositions.includes(foregroundPosition) ? foregroundPosition : 'none',
+            primaryLightSrc: this.getAttribute('img-primary-light-src') || '',
+            primaryDarkSrc: this.getAttribute('img-primary-dark-src') || '',
+            primaryAlt: this.getAttribute('img-primary-alt') || '',
+            primaryIsDecorative: this.hasAttribute('img-primary-decorative'),
+            primaryMobileWidth: this.getAttribute('img-primary-mobile-width') || '100vw',
+            primaryTabletWidth: this.getAttribute('img-primary-tablet-width') || '100vw',
+            primaryDesktopWidth: this.getAttribute('img-primary-desktop-width') || '100vw',
+            primaryAspectRatio: this.getAttribute('img-primary-aspect-ratio') || '',
+            primaryIncludeSchema: this.hasAttribute('img-primary-include-schema'),
+            primaryFetchPriority: validFetchPriorities.includes(primaryFetchPriority) ? primaryFetchPriority : '',
+            primaryLoading: this.getAttribute('img-primary-loading') || 'lazy',
+            primaryPosition: validPositions.includes(primaryPosition) ? primaryPosition : 'none',
             videoBackgroundSrc: this.getAttribute('video-background-src') || '',
             videoBackgroundLightSrc: this.getAttribute('video-background-light-src') || '',
             videoBackgroundDarkSrc: this.getAttribute('video-background-dark-src') || '',
@@ -349,18 +349,18 @@ class CustomBlock extends HTMLElement {
             backgroundIncludeSchema: false,
             backgroundFetchPriority: '',
             backgroundLoading: 'lazy',
-            foregroundLightSrc: '',
-            foregroundDarkSrc: '',
-            foregroundAlt: '',
-            foregroundIsDecorative: false,
-            foregroundMobileWidth: '100vw',
-            foregroundTabletWidth: '100vw',
-            foregroundDesktopWidth: '100vw',
-            foregroundAspectRatio: '',
-            foregroundIncludeSchema: false,
-            foregroundFetchPriority: '',
-            foregroundLoading: 'lazy',
-            foregroundPosition: 'none',
+            primaryLightSrc: '',
+            primaryDarkSrc: '',
+            primaryAlt: '',
+            primaryIsDecorative: false,
+            primaryMobileWidth: '100vw',
+            primaryTabletWidth: '100vw',
+            primaryDesktopWidth: '100vw',
+            primaryAspectRatio: '',
+            primaryIncludeSchema: false,
+            primaryFetchPriority: '',
+            primaryLoading: 'lazy',
+            primaryPosition: 'none',
             videoBackgroundSrc: '',
             videoBackgroundLightSrc: '',
             videoBackgroundDarkSrc: '',
@@ -391,16 +391,16 @@ class CustomBlock extends HTMLElement {
         if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
             console.warn(`<custom-block img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> is missing a img-background-alt attribute for accessibility.`);
         }
-        if (!attrs.foregroundAlt && !attrs.foregroundIsDecorative && (attrs.foregroundLightSrc || attrs.foregroundDarkSrc)) {
-            console.warn(`<custom-block img-foreground-light-src="${attrs.foregroundLightSrc || 'not provided'}" img-foreground-dark-src="${attrs.foregroundDarkSrc || 'not provided'}"> is missing a img-foreground-alt attribute for accessibility.`);
+        if (!attrs.primaryAlt && !attrs.primaryIsDecorative && (attrs.primaryLightSrc || attrs.primaryDarkSrc)) {
+            console.warn(`<custom-block img-primary-light-src="${attrs.primaryLightSrc || 'not provided'}" img-primary-dark-src="${attrs.primaryDarkSrc || 'not provided'}"> is missing a img-primary-alt attribute for accessibility.`);
         }
 
         let backgroundContentHTML = '';
-        let foregroundImageHTML = '';
+        let primaryImageHTML = '';
         let overlayHTML = '';
         const hasBackgroundImage = !isFallback && !!(attrs.backgroundLightSrc || attrs.backgroundDarkSrc);
         const hasVideoBackground = !isFallback && !!(attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc || attrs.videoBackgroundSrc);
-        const hasForegroundImage = !isFallback && !!(attrs.foregroundLightSrc || attrs.foregroundDarkSrc) && ['above', 'below', 'left', 'right'].includes(attrs.foregroundPosition);
+        const hasPrimaryImage = !isFallback && !!(attrs.primaryLightSrc || attrs.primaryDarkSrc) && ['above', 'below', 'left', 'right'].includes(attrs.primaryPosition);
 
         const isMediaOnly = !isFallback &&
             !this.hasAttribute('heading') &&
@@ -529,20 +529,20 @@ class CustomBlock extends HTMLElement {
             }
         }
 
-        if (hasForegroundImage) {
-            const src = attrs.foregroundLightSrc || attrs.foregroundDarkSrc;
+        if (hasPrimaryImage) {
+            const src = attrs.primaryLightSrc || attrs.primaryDarkSrc;
             if (!src) {
-                console.warn('No valid foreground image source provided for <custom-block>. Skipping foreground image rendering.');
+                console.warn('No valid primary image source provided for <custom-block>. Skipping primary image rendering.');
             } else {
-                foregroundImageHTML = this.generatePictureMarkup({
+                primaryImageHTML = this.generatePictureMarkup({
                     src,
-                    lightSrc: attrs.foregroundLightSrc,
-                    darkSrc: attrs.foregroundDarkSrc,
-                    alt: attrs.foregroundAlt,
-                    isDecorative: attrs.foregroundIsDecorative,
+                    lightSrc: attrs.primaryLightSrc,
+                    darkSrc: attrs.primaryDarkSrc,
+                    alt: attrs.primaryAlt,
+                    isDecorative: attrs.primaryIsDecorative,
                     customClasses: mediaCustomClasses,
-                    loading: attrs.foregroundLoading,
-                    fetchPriority: attrs.foregroundFetchPriority,
+                    loading: attrs.primaryLoading,
+                    fetchPriority: attrs.primaryFetchPriority,
                     extraClasses: []
                 });
             }
@@ -561,7 +561,7 @@ class CustomBlock extends HTMLElement {
             overlayHTML = `<div class="${overlayClassString}"></div>`;
         }
 
-        if (isMediaOnly && !hasForegroundImage) {
+        if (isMediaOnly && !hasPrimaryImage) {
             const blockElement = document.createElement('div');
             blockElement.className = ['block', hasBackgroundImage ? 'background-image' : 'background-video', attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass].filter(cls => cls).join(' ').trim();
             if (attrs.styleAttribute && !isFallback) {
@@ -671,8 +671,8 @@ class CustomBlock extends HTMLElement {
         if (outerStyles && !isFallback) {
             blockElement.setAttribute('style', outerStyles);
         }
-        if (!isFallback && hasForegroundImage) {
-            blockElement.setAttribute('data-foreground-position', attrs.foregroundPosition);
+        if (!isFallback && hasPrimaryImage) {
+            blockElement.setAttribute('data-primary-position', attrs.primaryPosition);
         }
         if (!isFallback && attrs.sectionTitle) {
             blockElement.setAttribute('data-section-title', 'true');
@@ -685,18 +685,18 @@ class CustomBlock extends HTMLElement {
         if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
             innerHTML += overlayHTML;
         }
-        if (hasForegroundImage && attrs.foregroundPosition === 'above') {
-            innerHTML += foregroundImageHTML || '';
+        if (hasPrimaryImage && attrs.primaryPosition === 'above') {
+            innerHTML += primaryImageHTML || '';
         }
-        if (hasForegroundImage && attrs.foregroundPosition === 'left') {
-            innerHTML += (foregroundImageHTML || '') + contentHTML;
-        } else if (hasForegroundImage && attrs.foregroundPosition === 'right') {
-            innerHTML += contentHTML + (foregroundImageHTML || '');
+        if (hasPrimaryImage && attrs.primaryPosition === 'left') {
+            innerHTML += (primaryImageHTML || '') + contentHTML;
+        } else if (hasPrimaryImage && attrs.primaryPosition === 'right') {
+            innerHTML += contentHTML + (primaryImageHTML || '');
         } else {
             innerHTML += contentHTML;
         }
-        if (hasForegroundImage && attrs.foregroundPosition === 'below') {
-            innerHTML += foregroundImageHTML || '';
+        if (hasPrimaryImage && attrs.primaryPosition === 'below') {
+            innerHTML += primaryImageHTML || '';
         }
 
         blockElement.innerHTML = innerHTML;
@@ -715,18 +715,18 @@ class CustomBlock extends HTMLElement {
                 img.removeAttribute('img-background-include-schema');
                 img.removeAttribute('img-background-fetchpriority');
                 img.removeAttribute('img-background-loading');
-                img.removeAttribute('img-foreground-light-src');
-                img.removeAttribute('img-foreground-dark-src');
-                img.removeAttribute('img-foreground-alt');
-                img.removeAttribute('img-foreground-decorative');
-                img.removeAttribute('img-foreground-mobile-width');
-                img.removeAttribute('img-foreground-tablet-width');
-                img.removeAttribute('img-foreground-desktop-width');
-                img.removeAttribute('img-foreground-aspect-ratio');
-                img.removeAttribute('img-foreground-include-schema');
-                img.removeAttribute('img-foreground-fetchpriority');
-                img.removeAttribute('img-foreground-loading');
-                img.removeAttribute('img-foreground-position');
+                img.removeAttribute('img-primary-light-src');
+                img.removeAttribute('img-primary-dark-src');
+                img.removeAttribute('img-primary-alt');
+                img.removeAttribute('img-primary-decorative');
+                img.removeAttribute('img-primary-mobile-width');
+                img.removeAttribute('img-primary-tablet-width');
+                img.removeAttribute('img-primary-desktop-width');
+                img.removeAttribute('img-primary-aspect-ratio');
+                img.removeAttribute('img-primary-include-schema');
+                img.removeAttribute('img-primary-fetchpriority');
+                img.removeAttribute('img-primary-loading');
+                img.removeAttribute('img-primary-position');
             });
         }
 
@@ -772,18 +772,18 @@ class CustomBlock extends HTMLElement {
             'img-background-include-schema',
             'img-background-fetchpriority',
             'img-background-loading',
-            'img-foreground-light-src',
-            'img-foreground-dark-src',
-            'img-foreground-alt',
-            'img-foreground-decorative',
-            'img-foreground-mobile-width',
-            'img-foreground-tablet-width',
-            'img-foreground-desktop-width',
-            'img-foreground-aspect-ratio',
-            'img-foreground-include-schema',
-            'img-foreground-fetchpriority',
-            'img-foreground-loading',
-            'img-foreground-position',
+            'img-primary-light-src',
+            'img-primary-dark-src',
+            'img-primary-alt',
+            'img-primary-decorative',
+            'img-primary-mobile-width',
+            'img-primary-tablet-width',
+            'img-primary-desktop-width',
+            'img-primary-aspect-ratio',
+            'img-primary-include-schema',
+            'img-primary-fetchpriority',
+            'img-primary-loading',
+            'img-primary-position',
             'video-background-src',
             'video-background-light-src',
             'video-background-dark-src',
@@ -829,10 +829,10 @@ class CustomBlock extends HTMLElement {
             'img-background-light-src',
             'img-background-dark-src',
             'img-background-alt',
-            'img-foreground-light-src',
-            'img-foreground-dark-src',
-            'img-foreground-alt',
-            'img-foreground-position',
+            'img-primary-light-src',
+            'img-primary-dark-src',
+            'img-primary-alt',
+            'img-primary-position',
             'video-background-src',
             'video-background-light-src',
             'video-background-dark-src',
