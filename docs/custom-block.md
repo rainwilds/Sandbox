@@ -10,8 +10,8 @@ The `<custom-block>` is a versatile Web Component designed to create customizabl
 | background-gradient | Applies a gradient overlay to the block's background. | `''` (empty) | `background-gradient-[number]` (e.g., `background-gradient-1`) |
 | background-image-noise | Adds a noise texture to the block's background when present. | Not set (false) | Boolean attribute (presence indicates `true`) |
 | background-overlay | Applies an overlay effect over the background image or video. | `''` (empty) | `background-overlay-[number]` (e.g., `background-overlay-1`) |
-| border | Sets the border style for the block. | `''` (empty) | CSS class name (e.g., `border-solid`) |
-| border-radius | Sets the border radius for the block, requires `border` to be set. | `''` (empty) | CSS class name (e.g., `rounded-md`) |
+| border | Sets the border style for the block. | `''` (empty) | CSS class name (e.g., `border-small`) |
+| border-radius | Sets the border radius for the block, requires `border` to be set. | `''` (empty) | CSS class name (e.g., `border-radius-small`) |
 | button-href | Specifies the URL for the button's link. | `'#'` | Valid URL or anchor (e.g., `https://example.com`) |
 | button-text | Defines the text displayed on the button. | `''` (empty) | Plain text (e.g., `Click Here`) |
 | class | Adds custom CSS classes to the outer block element. | `''` (empty) | Space-separated class names (e.g., `custom-class another-class`) |
@@ -23,7 +23,7 @@ The `<custom-block>` is a versatile Web Component designed to create customizabl
 | inner-background-image-noise | Adds a noise texture to the inner content div when present. | Not set (false) | Boolean attribute (presence indicates `true`) |
 | inner-background-overlay | Applies an overlay effect to the inner content div. | `''` (empty) | `background-overlay-[number]` (e.g., `background-overlay-2`) |
 | inner-border | Sets the border style for the inner content div. | `''` (empty) | CSS class name (e.g., `border-dashed`) |
-| inner-border-radius | Sets the border radius for the inner content div, requires `inner-border`. | `''` (empty) | CSS class name (e.g., `rounded-lg`) |
+| inner-border-radius | Sets the border radius for the inner content div, requires `inner-border`. | `''` (empty) | CSS class name (e.g., `border-radius-small`) |
 | inner-class | Adds custom CSS classes to the inner content div. | `''` (empty) | Space-separated class names (e.g., `inner-custom inner-style`) |
 | inner-style | Applies inline CSS styles to the inner content div. | `''` (empty) | CSS style string (e.g., `background: blue; padding: 10px;`) |
 | section-title | Marks the block as a section title when present. | Not set (false) | Boolean attribute (presence indicates `true`) |
