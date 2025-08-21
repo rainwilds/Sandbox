@@ -36,7 +36,7 @@ class CustomBlock extends HTMLElement {
         `;
     }
 
-    generateVideoMarkup({ src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses, extraClasses, loading, autoplay, muted, loop, playsinline, disablepictureinpicture, preload, controls }) {
+    generateVideoMarkup({ src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses, extraClasses, loading, autoplay, muted, loop, playsinline, disablePip, preload, controls }) {
         const classList = [customClasses, ...extraClasses].filter(cls => cls).join(' ').trim();
         const validExtensions = ['mp4', 'webm'];
 
@@ -71,7 +71,7 @@ class CustomBlock extends HTMLElement {
                 ${muted ? 'muted' : ''} 
                 ${loop ? 'loop' : ''} 
                 ${playsinline ? 'playsinline' : ''} 
-                ${disablepictureinpicture ? 'disablepictureinpicture' : ''} 
+                ${disablePip ? 'disablepictureinpicture' : ''} 
                 ${controls ? 'controls' : ''} 
                 preload="${preload || 'metadata'}" 
                 loading="${loading || 'lazy'}" 
@@ -201,13 +201,15 @@ class CustomBlock extends HTMLElement {
             console.warn(`Invalid inner-shadow value "${innerShadow}" in <custom-block>. Must be one of ${validShadowClasses.join(', ')}. Ignoring.`);
         }
 
+        const sectionTitle = this.hasAttribute('heading');
+
         return {
-            sectionTitle: this.hasAttribute('section-title'),
+            sectionTitle,
             heading: this.getAttribute('heading') || 'Default Heading',
             headingTag: validHeadingTags.includes(headingTag.toLowerCase()) ? headingTag.toLowerCase() : 'h2',
             text: this.getAttribute('text') || 'Default description text.',
             buttonHref: this.getAttribute('button-href') || '#',
-            buttonText: this.getAttribute('button-text') || '',
+            buttonText: this.getAttribute('button-text') || 'Button',
             hasBackgroundOverlay: !!backgroundOverlay,
             backgroundOverlayClass,
             innerBackgroundOverlayClass,
@@ -252,11 +254,11 @@ class CustomBlock extends HTMLElement {
             videoBackgroundDarkPoster: this.getAttribute('video-background-dark-poster') || '',
             videoBackgroundAlt: this.getAttribute('video-background-alt') || 'Video content',
             videoBackgroundLoading: this.getAttribute('video-background-loading') || 'lazy',
-            videoBackgroundAutoplay: this.getAttribute('video-background-autoplay') !== 'false',
+            videoBackgroundAutoplay: this.hasAttribute('video-background-autoplay'),
             videoBackgroundMuted: this.getAttribute('video-background-muted') !== 'false',
             videoBackgroundLoop: this.getAttribute('video-background-loop') !== 'false',
             videoBackgroundPlaysinline: this.getAttribute('video-background-playsinline') !== 'false',
-            videoBackgroundDisablePictureInPicture: this.getAttribute('video-background-disablepictureinpicture') === 'true',
+            videoBackgroundDisablePip: this.hasAttribute('video-background-disable-pip'),
             innerBackgroundColorClass,
             innerBackgroundImageNoise: this.hasAttribute('inner-background-image-noise'),
             innerBackdropFilterClasses,
@@ -324,7 +326,7 @@ class CustomBlock extends HTMLElement {
             headingTag: 'h2',
             text: 'Default description text.',
             buttonHref: '#',
-            buttonText: '',
+            buttonText: 'Button',
             hasBackgroundOverlay: false,
             backgroundOverlayClass: '',
             innerBackgroundOverlayClass: '',
@@ -369,11 +371,11 @@ class CustomBlock extends HTMLElement {
             videoBackgroundDarkPoster: '',
             videoBackgroundAlt: 'Video content',
             videoBackgroundLoading: 'lazy',
-            videoBackgroundAutoplay: true,
+            videoBackgroundAutoplay: false,
             videoBackgroundMuted: true,
             videoBackgroundLoop: true,
             videoBackgroundPlaysinline: true,
-            videoBackgroundDisablePictureInPicture: false,
+            videoBackgroundDisablePip: false,
             innerBackgroundColorClass: '',
             innerBackgroundImageNoise: false,
             innerBackdropFilterClasses: [],
@@ -388,19 +390,20 @@ class CustomBlock extends HTMLElement {
 
         console.log('Rendering CustomBlock with attrs:', attrs);
 
-        if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
-            console.warn(`<custom-block img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> is missing a img-background-alt attribute for accessibility.`);
-        }
-        if (!attrs.primaryAlt && !attrs.primaryIsDecorative && (attrs.primaryLightSrc || attrs.primaryDarkSrc)) {
-            console.warn(`<custom-block img-primary-light-src="${attrs.primaryLightSrc || 'not provided'}" img-primary-dark-src="${attrs.primaryDarkSrc || 'not provided'}"> is missing a img-primary-alt attribute for accessibility.`);
-        }
-
         let backgroundContentHTML = '';
         let primaryImageHTML = '';
         let overlayHTML = '';
         const hasBackgroundImage = !isFallback && !!(attrs.backgroundLightSrc || attrs.backgroundDarkSrc);
         const hasVideoBackground = !isFallback && !!(attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc || attrs.videoBackgroundSrc);
         const hasPrimaryImage = !isFallback && !!(attrs.primaryLightSrc || attrs.primaryDarkSrc) && ['above', 'below', 'left', 'right'].includes(attrs.primaryPosition);
+
+        if (hasBackgroundImage && !attrs.backgroundIsDecorative && !attrs.backgroundAlt && (attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
+            console.error(`<custom-block img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> requires an img-background-alt attribute for accessibility unless img-background-decorative is present.`);
+        }
+
+        if (hasPrimaryImage && !attrs.primaryIsDecorative && !attrs.primaryAlt && (attrs.primaryLightSrc || attrs.primaryDarkSrc)) {
+            console.error(`<custom-block img-primary-light-src="${attrs.primaryLightSrc || 'not provided'}" img-primary-dark-src="${attrs.primaryDarkSrc || 'not provided'}"> requires an img-primary-alt attribute for accessibility unless img-primary-decorative is present.`);
+        }
 
         const isMediaOnly = !isFallback &&
             !this.hasAttribute('heading') &&
@@ -412,7 +415,7 @@ class CustomBlock extends HTMLElement {
         const mediaCustomClasses = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls)).join(' ');
         const innerCustomClassesList = attrs.innerCustomClasses.split(' ').filter(cls => cls);
 
-        if (hasBackgroundImage) {
+        if (hasBackgroundImage && (attrs.backgroundIsDecorative || attrs.backgroundAlt || isFallback)) {
             const src = attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
             if (!src) {
                 console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
@@ -446,7 +449,7 @@ class CustomBlock extends HTMLElement {
                 muted: attrs.videoBackgroundMuted,
                 loop: attrs.videoBackgroundLoop,
                 playsinline: attrs.videoBackgroundPlaysinline,
-                disablepictureinpicture: attrs.videoBackgroundDisablePictureInPicture,
+                disablePip: attrs.videoBackgroundDisablePip,
                 preload: attrs.videoBackgroundLoading === 'lazy' ? 'metadata' : attrs.videoBackgroundLoading,
                 controls: false
             });
@@ -529,7 +532,7 @@ class CustomBlock extends HTMLElement {
             }
         }
 
-        if (hasPrimaryImage) {
+        if (hasPrimaryImage && (attrs.primaryIsDecorative || attrs.primaryAlt || isFallback)) {
             const src = attrs.primaryLightSrc || attrs.primaryDarkSrc;
             if (!src) {
                 console.warn('No valid primary image source provided for <custom-block>. Skipping primary image rendering.');
@@ -679,7 +682,7 @@ class CustomBlock extends HTMLElement {
         }
 
         let innerHTML = '';
-        if (hasBackgroundImage || hasVideoBackground) {
+        if (hasBackgroundImage) {
             innerHTML += backgroundContentHTML || '';
         }
         if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
@@ -796,7 +799,7 @@ class CustomBlock extends HTMLElement {
             'video-background-muted',
             'video-background-loop',
             'video-background-playsinline',
-            'video-background-disablepictureinpicture',
+            'video-background-disable-pip',
             'inner-background-color',
             'inner-background-image-noise',
             'inner-border',
@@ -845,7 +848,7 @@ class CustomBlock extends HTMLElement {
             'video-background-muted',
             'video-background-loop',
             'video-background-playsinline',
-            'video-background-disablepictureinpicture',
+            'video-background-disable-pip',
             'style',
             'inner-background-color',
             'inner-background-image-noise',
@@ -871,4 +874,4 @@ try {
     console.error('Error defining CustomBlock element:', error);
 }
 
-console.log('CustomBlock version: 2025-08-20');
+console.log('CustomBlock version: 2025-08-21');
