@@ -1024,7 +1024,7 @@
         width: max-content;
         background-image: var(--background-noise);
         padding: calc(var(--space-tiny) / 2) var(--space-tiny);
-        display: block;
+        display: inline-block;
         backdrop-filter: var(--blur-medium);
 
         &:hover {

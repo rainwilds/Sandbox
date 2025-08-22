@@ -63,12 +63,14 @@ class CustomBlock extends HTMLElement {
         innerHTML += `<p>Your browser does not support the video tag. <a href="${defaultSrc}">Download video</a></p>`;
 
         const posterAttr = poster ? `poster="${poster}"` : '';
+        // Automatically add muted if autoplay is present
+        const isMuted = autoplay || muted ? 'muted' : '';
 
         return `
             <video 
                 id="{VIDEO_ID_PLACEHOLDER}" 
                 ${autoplay ? 'autoplay' : ''} 
-                ${muted ? 'muted' : ''} 
+                ${isMuted} 
                 ${loop ? 'loop' : ''} 
                 ${playsinline ? 'playsinline' : ''} 
                 ${disablePip ? 'disablepictureinpicture' : ''} 
@@ -271,7 +273,7 @@ class CustomBlock extends HTMLElement {
             videoBackgroundAlt: this.getAttribute('video-background-alt') || 'Video content',
             videoBackgroundLoading: this.getAttribute('video-background-loading') || 'lazy',
             videoBackgroundAutoplay: this.hasAttribute('video-background-autoplay'),
-            videoBackgroundMuted: this.hasAttribute('video-background-muted'),
+            videoBackgroundMuted: this.hasAttribute('video-background-muted') || this.hasAttribute('video-background-autoplay'), // Add muted if autoplay is present
             videoBackgroundLoop: this.hasAttribute('video-background-loop'),
             videoBackgroundPlaysinline: this.hasAttribute('video-background-playsinline'),
             videoBackgroundDisablePip: this.hasAttribute('video-background-disable-pip'),
@@ -284,7 +286,7 @@ class CustomBlock extends HTMLElement {
             videoPrimaryAlt: this.getAttribute('video-primary-alt') || 'Video content',
             videoPrimaryLoading: this.getAttribute('video-primary-loading') || 'lazy',
             videoPrimaryAutoplay: this.hasAttribute('video-primary-autoplay'),
-            videoPrimaryMuted: this.hasAttribute('video-primary-muted'),
+            videoPrimaryMuted: this.hasAttribute('video-primary-muted') || this.hasAttribute('video-primary-autoplay'), // Add muted if autoplay is present
             videoPrimaryLoop: this.hasAttribute('video-primary-loop'),
             videoPrimaryPlaysinline: this.hasAttribute('video-primary-playsinline'),
             videoPrimaryDisablePip: this.hasAttribute('video-primary-disable-pip'),
@@ -747,9 +749,9 @@ class CustomBlock extends HTMLElement {
             'center-right': 'place-self-center-right'
         };
         const textAlignMap = {
-            'left': 'text-align-left',
-            'center': 'text-align-center',
-            'right': 'text-align-right'
+            'left': 'flex-column-left text-align-left',
+            'center': 'flex-column-center text-align-center',
+            'right': 'flex-column-right text-align-right'
         };
         const innerDivClassList = [];
         if (!isFallback) {
@@ -778,8 +780,8 @@ class CustomBlock extends HTMLElement {
             <div role="group"${attrs.textAlignment ? ` class="${textAlignMap[attrs.textAlignment]}"` : ''}>
                 <${attrs.headingTag}>${attrs.heading}</${attrs.headingTag}>
                 <p>${attrs.text}</p>
+                ${buttonHTML}
             </div>
-            ${buttonHTML}
         </div>
     `;
         const mainDivClassList = ['block'];
@@ -996,7 +998,7 @@ class CustomBlock extends HTMLElement {
             'inner-background-color',
             'inner-background-image-noise',
             'inner-border',
-            'inner-border-radius',
+            'inner-border-runner',
             'inner-backdrop-filter',
             'inner-style',
             'inner-alignment',
@@ -1017,4 +1019,4 @@ try {
     console.error('Error defining CustomBlock element:', error);
 }
 
-console.log('CustomBlock version: 2025-08-21');
+console.log('CustomBlock version: 2025-08-22');
