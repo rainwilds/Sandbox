@@ -1184,6 +1184,10 @@
             grid-template-columns: 1fr 1fr;
         }
 
+        /* &:where([data-*|="top"], [data-*|="bottom"]) {
+            grid-template-columns: 1fr 1fr;
+        }         */
+
         
 
         &.background-image>* {
