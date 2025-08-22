@@ -1176,9 +1176,8 @@
             margin-top: var(--space-small);
         } */
 
-        &:where([data-foreground-position="left"], [data-foreground-position="right"]) {
+        &:where([data-primary-position],[data-position]) {
             grid-template-columns: 1fr 1fr;
-            /* height: min-content; */
         }
 
         &.background-image>* {
