@@ -1176,7 +1176,7 @@
             margin-top: var(--space-small);
         } */
 
-        &:where([data-primary-position],[data-position]) {
+        &:where([data-primary-position="left"],[data-position="right"]) {
             grid-template-columns: 1fr 1fr;
         }
 
