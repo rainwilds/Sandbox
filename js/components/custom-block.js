@@ -17,14 +17,14 @@ class CustomBlock extends HTMLElement {
         this.observer.observe(this);
     }
 
-    generatePictureMarkup({ src, lightSrc, darkSrc, alt, isDecorative, customClasses, loading, fetchPriority, extraClasses }) {
+    generatePictureMarkup({ src, lightSrc, darkSrc, alt, isDecorative, customClasses, loading, fetchPriority, extraClasses, primaryPosition }) {
         const classList = [customClasses, ...extraClasses].filter(cls => cls).join(' ').trim();
         const sources = [];
         if (lightSrc) sources.push(`<source srcset="${lightSrc}" media="(prefers-color-scheme: light)">`);
         if (darkSrc) sources.push(`<source srcset="${darkSrc}" media="(prefers-color-scheme: dark)">`);
         if (src) sources.push(`<source srcset="${src}">`);
         return `
-            <picture${attrs.primaryPosition === 'top' ? ' style="grid-row: 1;"' : ''}>
+            <picture${primaryPosition === 'top' ? ' style="grid-row: 1;"' : primaryPosition === 'bottom' ? ' style="grid-row: 2;"' : ''}>
                 ${sources.join('')}
                 <img src="${src || lightSrc || darkSrc || 'https://placehold.co/3000x2000'}" 
                      alt="${isDecorative ? '' : alt || 'Placeholder image'}" 
@@ -36,7 +36,7 @@ class CustomBlock extends HTMLElement {
         `;
     }
 
-    generateVideoMarkup({ src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses, extraClasses, loading, autoplay, muted, loop, playsinline, disablePip, preload, controls }) {
+    generateVideoMarkup({ src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses, extraClasses, loading, autoplay, muted, loop, playsinline, disablePip, preload, controls, primaryPosition }) {
         const classList = [customClasses, ...extraClasses].filter(cls => cls).join(' ').trim();
         const validExtensions = ['mp4', 'webm'];
 
@@ -79,7 +79,7 @@ class CustomBlock extends HTMLElement {
                 class="${classList}"
                 title="${alt}" 
                 aria-label="${alt}"
-                ${posterAttr}${attrs.primaryPosition === 'top' ? ' style="grid-row: 1;"' : ''}>
+                ${posterAttr}${primaryPosition === 'top' ? ' style="grid-row: 1;"' : primaryPosition === 'bottom' ? ' style="grid-row: 2;"' : ''}>
                 ${innerHTML}
             </video>
         `;
@@ -95,10 +95,14 @@ class CustomBlock extends HTMLElement {
         if (!validFetchPriorities.includes(primaryFetchPriority)) {
             console.warn(`Invalid img-primary-fetchpriority value "${primaryFetchPriority}" in <custom-block>. Using default.`);
         }
-        const primaryPosition = this.getAttribute('img-primary-position') || 'none';
-        const validPositions = ['none', 'top', 'below', 'left', 'right'];
+        let primaryPosition = this.getAttribute('img-primary-position') || 'none';
+        // Map legacy values for backward compatibility
+        if (primaryPosition === 'above') primaryPosition = 'top';
+        if (primaryPosition === 'below') primaryPosition = 'bottom';
+        const validPositions = ['none', 'top', 'bottom', 'left', 'right'];
         if (!validPositions.includes(primaryPosition)) {
             console.warn(`Invalid img-primary-position value "${primaryPosition}" in <custom-block>. Using default 'none'.`);
+            primaryPosition = 'none';
         }
         const backgroundOverlay = this.getAttribute('background-overlay') || '';
         let backgroundOverlayClass = '';
@@ -260,7 +264,7 @@ class CustomBlock extends HTMLElement {
             primaryIncludeSchema: this.hasAttribute('img-primary-include-schema'),
             primaryFetchPriority: validFetchPriorities.includes(primaryFetchPriority) ? primaryFetchPriority : '',
             primaryLoading: this.getAttribute('img-primary-loading') || 'lazy',
-            primaryPosition: validPositions.includes(primaryPosition) ? primaryPosition : 'none',
+            primaryPosition,
             videoBackgroundSrc: videoBackgroundSrc || (videoBackgroundLightSrc && videoBackgroundDarkSrc ? '' : null),
             videoBackgroundLightSrc: videoBackgroundLightSrc,
             videoBackgroundDarkSrc: videoBackgroundDarkSrc,
@@ -445,8 +449,8 @@ class CustomBlock extends HTMLElement {
         let overlayHTML = '';
         const hasVideoBackground = !isFallback && !!(attrs.videoBackgroundSrc || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc);
         const hasBackgroundImage = !isFallback && !!(attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc) && !hasVideoBackground;
-        const hasPrimaryImage = !isFallback && !!(attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc) && ['top', 'below', 'left', 'right'].includes(attrs.primaryPosition);
-        const hasVideoPrimary = !isFallback && !!(attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc) && ['top', 'below', 'left', 'right'].includes(attrs.primaryPosition);
+        const hasPrimaryImage = !isFallback && !!(attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc) && ['top', 'bottom', 'left', 'right'].includes(attrs.primaryPosition);
+        const hasVideoPrimary = !isFallback && !!(attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc) && ['top', 'bottom', 'left', 'right'].includes(attrs.primaryPosition);
 
         const isMediaOnly = !isFallback &&
             !this.hasAttribute('heading') &&
@@ -567,7 +571,8 @@ class CustomBlock extends HTMLElement {
                     customClasses: isMediaOnly ? attrs.customClasses : mediaCustomClasses,
                     loading: attrs.backgroundLoading,
                     fetchPriority: attrs.backgroundFetchPriority,
-                    extraClasses: []
+                    extraClasses: [],
+                    primaryPosition: attrs.primaryPosition
                 });
             }
         }
@@ -585,7 +590,8 @@ class CustomBlock extends HTMLElement {
                     customClasses: mediaCustomClasses,
                     loading: attrs.primaryLoading,
                     fetchPriority: attrs.primaryFetchPriority,
-                    extraClasses: []
+                    extraClasses: [],
+                    primaryPosition: attrs.primaryPosition
                 });
             } else if (hasVideoPrimary) {
                 const videoId = 'custom-video-' + Math.random().toString(36).substring(2, 11);
@@ -606,7 +612,8 @@ class CustomBlock extends HTMLElement {
                     playsinline: attrs.videoPrimaryPlaysinline,
                     disablePip: attrs.videoPrimaryDisablePip,
                     preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
-                    controls: false
+                    controls: false,
+                    primaryPosition: attrs.primaryPosition
                 });
                 videoMarkup = videoMarkup.replace('{VIDEO_ID_PLACEHOLDER}', videoId);
                 primaryImageHTML = videoMarkup;
@@ -767,8 +774,8 @@ class CustomBlock extends HTMLElement {
         const innerDivClass = innerDivClassList.join(' ').trim();
         let innerDivStyle = '';
         if (!isFallback && attrs.innerStyle) {
-            innerDivStyle = ` style="${attrs.innerStyle}${attrs.primaryPosition === 'top' ? ';grid-row: 2;' : ''}"`;
-        } else if (!isFallback && attrs.primaryPosition === 'top') {
+            innerDivStyle = ` style="${attrs.innerStyle}${attrs.primaryPosition === 'top' || attrs.primaryPosition === 'bottom' ? ';grid-row: 2;' : ''}"`;
+        } else if (!isFallback && (attrs.primaryPosition === 'top' || attrs.primaryPosition === 'bottom')) {
             innerDivStyle = ` style="grid-row: 2;"`;
         }
         const buttonHTML = attrs.buttonText ?
@@ -816,7 +823,7 @@ class CustomBlock extends HTMLElement {
         } else {
             innerHTML += contentHTML;
         }
-        if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'below') {
+        if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'bottom') {
             innerHTML += primaryImageHTML || '';
         }
         blockElement.innerHTML = innerHTML;
@@ -997,7 +1004,7 @@ class CustomBlock extends HTMLElement {
             'inner-background-color',
             'inner-background-image-noise',
             'inner-border',
-            'inner-border-runner',
+            'inner-border-radius',
             'inner-backdrop-filter',
             'inner-style',
             'inner-alignment',
