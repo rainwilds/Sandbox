@@ -1176,9 +1176,15 @@
             margin-top: var(--space-small);
         } */
 
-        &:where([data-primary-position="left"],[data-position="right"]) {
+        /* &:where([data-primary-position],[data-background-position]) {
+            grid-template-columns: 1fr 1fr;
+        } */
+
+        &:where([data-*|="left"], [data-*|="right"]) {
             grid-template-columns: 1fr 1fr;
         }
+
+        
 
         &.background-image>* {
             /* Apply positioning to all direct children, including <picture> */
