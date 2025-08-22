@@ -102,7 +102,7 @@ export function generatePictureMarkup({
     const loadingAttr = validLoading ? ` loading="${validLoading}"` : '';
     const fetchPriorityAttr = validFetchPriority ? ` fetchpriority="${validFetchPriority}"` : '';
 
-    pictureHTML += `<img src="${src}"${altAttr}${ariaHiddenAttr}${loadingAttr}${fetchPriorityAttr}>`;
+    pictureHTML += `<img src="${src}"${altAttr}${ariaHiddenAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${alt || 'Placeholder image'}';`}this.onerror=null;">`;
     pictureHTML += '</picture>';
 
     if (includeSchema) {

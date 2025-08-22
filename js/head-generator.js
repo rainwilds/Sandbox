@@ -60,25 +60,6 @@ function manageHead(attributes = {}, businessInfo = {}) {
         }
     });
 
-    // Preload picture-generator.js to ensure availability for components
-    if (!document.querySelector(`link[href="./js/picture-generator.js"]`)) {
-        const link = document.createElement('link');
-        link.rel = 'preload';
-        link.href = './js/picture-generator.js';
-        link.as = 'script';
-        link.crossOrigin = 'anonymous';
-        head.appendChild(link);
-        console.log('Added picture-generator.js preload');
-    }
-    if (!document.querySelector(`script[src="./js/picture-generator.js"]`)) {
-        const script = document.createElement('script');
-        script.src = './js/picture-generator.js';
-        script.type = 'module';
-        script.defer = true;
-        head.appendChild(script);
-        console.log('Added deferred script for picture-generator.js');
-    }
-
     // Add essential meta tags (charset, viewport, robots, title, author, etc.)
     if (!document.querySelector('meta[charset]')) {
         const metaCharset = document.createElement('meta');
@@ -510,24 +491,6 @@ function manageHead(attributes = {}, businessInfo = {}) {
         }
     }
 
-    // Initialize Eruda for debugging if enabled
-    if (attributes['include-e-commerce']) {
-        console.log('Eruda initialization triggered');
-        if (!document.querySelector('script[src="https://cdn.jsdelivr.net/npm/eruda"]')) {
-            const erudaScript = document.createElement('script');
-            erudaScript.src = 'https://cdn.jsdelivr.net/npm/eruda';
-            erudaScript.onload = () => {
-                console.log('Added Eruda script, initializing...');
-                window.eruda.init();
-                console.log('Added Eruda successfully');
-            };
-            erudaScript.onerror = () => {
-                console.error('Failed to add Eruda script');
-            };
-            document.head.appendChild(erudaScript);
-            console.log('Added Eruda script');
-        }
-    }
 }
 
 // Initialize head management on DOM load, processing <data-bh-head> attributes
@@ -542,14 +505,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     let businessInfo = {};
     try {
         const response = await fetch('./JSON/business-info.json');
-        if (response.ok) {
-            businessInfo = await response.json();
-            console.log('Added business-info.json:', businessInfo);
-        } else {
-            console.warn('Failed to load business-info.json:', response.status);
+        if (!response.ok) {
+            throw new Error(`Failed to load business-info.json: HTTP ${response.status} - ${response.statusText}`);
         }
+        businessInfo = await response.json();
+        console.log('Added business-info.json:', businessInfo);
     } catch (error) {
-        console.error('Error fetching business-info.json:', error);
+        console.error('Critical Error: Unable to load business-info.json. Page rendering halted.', error);
+        document.body.innerHTML = '<div style="color: red; font-size: 2em; text-align: center;">Error: Failed to load business information. Please check the console for details.</div>';
+        throw error; // Halt further execution
     }
 
     // Merge attributes from all <data-bh-head> elements
@@ -606,7 +570,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             'theme-color-light': dataHead.dataset.themeColorLight,
             'theme-color-dark': dataHead.dataset.themeColorDark,
             'include-e-commerce': dataHead.hasAttribute('data-include-e-commerce') || attributes['include-e-commerce'],
-            'include-eruda': dataHead.hasAttribute('data-include-eruda') || attributes['include-eruda'],
             components: dataHead.dataset.components || attributes.components
         });
     });
