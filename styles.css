@@ -1180,13 +1180,9 @@
             grid-template-columns: 1fr 1fr;
         } */
 
-        &:where([data-*|="left"], [data-*|="right"]) {
+        &:where([data-primary-position],[data-background-position]) {
             grid-template-columns: 1fr 1fr;
         }
-
-        /* &:where([data-*|="top"], [data-*|="bottom"]) {
-            grid-template-columns: 1fr 1fr;
-        }         */
 
         
 
