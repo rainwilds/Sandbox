@@ -94,13 +94,11 @@ class CustomBlock extends HTMLElement {
         if (!validFetchPriorities.includes(primaryFetchPriority)) {
             console.warn(`Invalid img-primary-fetchpriority value "${primaryFetchPriority}" in <custom-block>. Using default.`);
         }
-
         const primaryPosition = this.getAttribute('img-primary-position') || 'none';
         const validPositions = ['none', 'above', 'below', 'left', 'right'];
         if (!validPositions.includes(primaryPosition)) {
             console.warn(`Invalid img-primary-position value "${primaryPosition}" in <custom-block>. Using default 'none'.`);
         }
-
         const backgroundOverlay = this.getAttribute('background-overlay') || '';
         let backgroundOverlayClass = '';
         if (backgroundOverlay) {
@@ -112,7 +110,6 @@ class CustomBlock extends HTMLElement {
                 backgroundOverlayClass = 'background-overlay-1';
             }
         }
-
         const innerBackgroundOverlay = this.getAttribute('inner-background-overlay') || '';
         let innerBackgroundOverlayClass = '';
         if (innerBackgroundOverlay) {
@@ -124,7 +121,6 @@ class CustomBlock extends HTMLElement {
                 innerBackgroundOverlayClass = 'background-overlay-1';
             }
         }
-
         const backgroundGradient = this.getAttribute('background-gradient') || '';
         let backgroundGradientClass = '';
         if (backgroundGradient) {
@@ -135,7 +131,6 @@ class CustomBlock extends HTMLElement {
                 console.warn(`Invalid background-gradient value "${backgroundGradient}" in <custom-block>. Expected format: background-gradient-[number]. Ignoring.`);
             }
         }
-
         const innerBackgroundGradient = this.getAttribute('inner-background-gradient') || '';
         let innerBackgroundGradientClass = '';
         if (innerBackgroundGradient) {
@@ -146,16 +141,13 @@ class CustomBlock extends HTMLElement {
                 console.warn(`Invalid inner-background-gradient value "${innerBackgroundGradient}" in <custom-block>. Expected format: background-gradient-[number]. Ignoring.`);
             }
         }
-
         const backdropFilterClasses = this.getAttribute('backdrop-filter')?.split(' ').filter(cls => cls) || [];
         const innerBackdropFilterClasses = this.getAttribute('inner-backdrop-filter')?.split(' ').filter(cls => cls) || [];
-
         const headingTag = this.getAttribute('heading-tag') || 'h2';
         const validHeadingTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
         if (!validHeadingTags.includes(headingTag.toLowerCase())) {
             console.warn(`Invalid heading-tag value "${headingTag}" in <custom-block>. Must be one of ${validHeadingTags.join(', ')}. Using default 'h2'.`);
         }
-
         const innerAlignment = this.getAttribute('inner-alignment') || '';
         const validAlignments = [
             'center', 'top', 'bottom', 'left', 'right',
@@ -166,13 +158,11 @@ class CustomBlock extends HTMLElement {
         if (innerAlignment && !validAlignments.includes(innerAlignment)) {
             console.warn(`Invalid inner-alignment value "${innerAlignment}" in <custom-block>. Must be one of ${validAlignments.join(', ')}. Ignoring alignment.`);
         }
-
         const textAlignment = this.getAttribute('text-alignment') || '';
         const validTextAlignments = ['left', 'center', 'right'];
         if (textAlignment && !validTextAlignments.includes(textAlignment)) {
             console.warn(`Invalid text-alignment value "${textAlignment}" in <custom-block>. Must be one of ${validTextAlignments.join(', ')}. Ignoring text alignment.`);
         }
-
         const innerBackgroundColor = this.getAttribute('inner-background-color') || '';
         let innerBackgroundColorClass = '';
         if (innerBackgroundColor) {
@@ -183,7 +173,6 @@ class CustomBlock extends HTMLElement {
                 console.warn(`Invalid inner-background-color value "${innerBackgroundColor}" in <custom-block>. Expected format: background-color-[number]. Ignoring.`);
             }
         }
-
         const shadow = this.getAttribute('shadow') || '';
         let shadowClass = '';
         const validShadowClasses = ['shadow-light', 'shadow-medium', 'shadow-heavy'];
@@ -192,7 +181,6 @@ class CustomBlock extends HTMLElement {
         } else if (shadow) {
             console.warn(`Invalid shadow value "${shadow}" in <custom-block>. Must be one of ${validShadowClasses.join(', ')}. Ignoring.`);
         }
-
         const innerShadow = this.getAttribute('inner-shadow') || '';
         let innerShadowClass = '';
         if (innerShadow && validShadowClasses.includes(innerShadow)) {
@@ -201,10 +189,36 @@ class CustomBlock extends HTMLElement {
             console.warn(`Invalid inner-shadow value "${innerShadow}" in <custom-block>. Must be one of ${validShadowClasses.join(', ')}. Ignoring.`);
         }
 
-        const sectionTitle = this.hasAttribute('heading');
+        // Image source validation
+        const backgroundSrc = this.getAttribute('img-background-src') || '';
+        const backgroundLightSrc = this.getAttribute('img-background-light-src') || '';
+        const backgroundDarkSrc = this.getAttribute('img-background-dark-src') || '';
+        if ((backgroundLightSrc && !backgroundDarkSrc) || (!backgroundLightSrc && backgroundDarkSrc)) {
+            throw new Error('Both img-background-light-src and img-background-dark-src must be present when using light/dark themes, or use img-background-src alone.');
+        }
+        const primarySrc = this.getAttribute('img-primary-src') || '';
+        const primaryLightSrc = this.getAttribute('img-primary-light-src') || '';
+        const primaryDarkSrc = this.getAttribute('img-primary-dark-src') || '';
+        if ((primaryLightSrc && !primaryDarkSrc) || (!primaryLightSrc && primaryDarkSrc)) {
+            throw new Error('Both img-primary-light-src and img-primary-dark-src must be present when using light/dark themes, or use img-primary-src alone.');
+        }
+
+        // Video source validation
+        const videoBackgroundSrc = this.getAttribute('video-background-src') || '';
+        const videoBackgroundLightSrc = this.getAttribute('video-background-light-src') || '';
+        const videoBackgroundDarkSrc = this.getAttribute('video-background-dark-src') || '';
+        if ((videoBackgroundLightSrc && !videoBackgroundDarkSrc) || (!videoBackgroundLightSrc && videoBackgroundDarkSrc)) {
+            throw new Error('Both video-background-light-src and video-background-dark-src must be present when using light/dark themes, or use video-background-src alone.');
+        }
+        const videoPrimarySrc = this.getAttribute('video-primary-src') || '';
+        const videoPrimaryLightSrc = this.getAttribute('video-primary-light-src') || '';
+        const videoPrimaryDarkSrc = this.getAttribute('video-primary-dark-src') || '';
+        if ((videoPrimaryLightSrc && !videoPrimaryDarkSrc) || (!videoPrimaryLightSrc && videoPrimaryDarkSrc)) {
+            throw new Error('Both video-primary-light-src and video-primary-dark-src must be present when using light/dark themes, or use video-primary-src alone.');
+        }
 
         return {
-            sectionTitle,
+            sectionTitle: this.hasAttribute('heading'),
             heading: this.getAttribute('heading') || 'Default Heading',
             headingTag: validHeadingTags.includes(headingTag.toLowerCase()) ? headingTag.toLowerCase() : 'h2',
             text: this.getAttribute('text') || 'Default description text.',
@@ -223,8 +237,9 @@ class CustomBlock extends HTMLElement {
             customClasses: this.getAttribute('class') || '',
             innerCustomClasses: this.getAttribute('inner-class') || '',
             styleAttribute: this.getAttribute('style') || '',
-            backgroundLightSrc: this.getAttribute('img-background-light-src') || '',
-            backgroundDarkSrc: this.getAttribute('img-background-dark-src') || '',
+            backgroundSrc: backgroundSrc || (backgroundLightSrc && backgroundDarkSrc ? '' : null), // Use only if no light/dark
+            backgroundLightSrc: backgroundLightSrc,
+            backgroundDarkSrc: backgroundDarkSrc,
             backgroundAlt: this.getAttribute('img-background-alt') || '',
             backgroundIsDecorative: this.hasAttribute('img-background-decorative'),
             backgroundMobileWidth: this.getAttribute('img-background-mobile-width') || '100vw',
@@ -234,8 +249,9 @@ class CustomBlock extends HTMLElement {
             backgroundIncludeSchema: this.hasAttribute('img-background-include-schema'),
             backgroundFetchPriority: validFetchPriorities.includes(backgroundFetchPriority) ? backgroundFetchPriority : '',
             backgroundLoading: this.getAttribute('img-background-loading') || 'lazy',
-            primaryLightSrc: this.getAttribute('img-primary-light-src') || '',
-            primaryDarkSrc: this.getAttribute('img-primary-dark-src') || '',
+            primarySrc: primarySrc || (primaryLightSrc && primaryDarkSrc ? '' : null), // Use only if no light/dark
+            primaryLightSrc: primaryLightSrc,
+            primaryDarkSrc: primaryDarkSrc,
             primaryAlt: this.getAttribute('img-primary-alt') || '',
             primaryIsDecorative: this.hasAttribute('img-primary-decorative'),
             primaryMobileWidth: this.getAttribute('img-primary-mobile-width') || '100vw',
@@ -246,9 +262,9 @@ class CustomBlock extends HTMLElement {
             primaryFetchPriority: validFetchPriorities.includes(primaryFetchPriority) ? primaryFetchPriority : '',
             primaryLoading: this.getAttribute('img-primary-loading') || 'lazy',
             primaryPosition: validPositions.includes(primaryPosition) ? primaryPosition : 'none',
-            videoBackgroundSrc: this.getAttribute('video-background-src') || '',
-            videoBackgroundLightSrc: this.getAttribute('video-background-light-src') || '',
-            videoBackgroundDarkSrc: this.getAttribute('video-background-dark-src') || '',
+            videoBackgroundSrc: videoBackgroundSrc || (videoBackgroundLightSrc && videoBackgroundDarkSrc ? '' : null), // Use only if no light/dark
+            videoBackgroundLightSrc: videoBackgroundLightSrc,
+            videoBackgroundDarkSrc: videoBackgroundDarkSrc,
             videoBackgroundPoster: this.getAttribute('video-background-poster') || '',
             videoBackgroundLightPoster: this.getAttribute('video-background-light-poster') || '',
             videoBackgroundDarkPoster: this.getAttribute('video-background-dark-poster') || '',
@@ -259,6 +275,19 @@ class CustomBlock extends HTMLElement {
             videoBackgroundLoop: this.hasAttribute('video-background-loop'),
             videoBackgroundPlaysinline: this.hasAttribute('video-background-playsinline'),
             videoBackgroundDisablePip: this.hasAttribute('video-background-disable-pip'),
+            videoPrimarySrc: videoPrimarySrc || (videoPrimaryLightSrc && videoPrimaryDarkSrc ? '' : null), // Use only if no light/dark
+            videoPrimaryLightSrc: videoPrimaryLightSrc,
+            videoPrimaryDarkSrc: videoPrimaryDarkSrc,
+            videoPrimaryPoster: this.getAttribute('video-primary-poster') || '',
+            videoPrimaryLightPoster: this.getAttribute('video-primary-light-poster') || '',
+            videoPrimaryDarkPoster: this.getAttribute('video-primary-dark-poster') || '',
+            videoPrimaryAlt: this.getAttribute('video-primary-alt') || 'Video content',
+            videoPrimaryLoading: this.getAttribute('video-primary-loading') || 'lazy',
+            videoPrimaryAutoplay: this.hasAttribute('video-primary-autoplay'),
+            videoPrimaryMuted: this.hasAttribute('video-primary-muted'),
+            videoPrimaryLoop: this.hasAttribute('video-primary-loop'),
+            videoPrimaryPlaysinline: this.hasAttribute('video-primary-playsinline'),
+            videoPrimaryDisablePip: this.hasAttribute('video-primary-disable-pip'),
             innerBackgroundColorClass,
             innerBackgroundImageNoise: this.hasAttribute('inner-background-image-noise'),
             innerBackdropFilterClasses,
@@ -319,7 +348,6 @@ class CustomBlock extends HTMLElement {
                 return this.renderCache.cloneNode(true);
             }
         }
-
         const attrs = isFallback ? {
             sectionTitle: false,
             heading: 'Default Heading',
@@ -340,6 +368,7 @@ class CustomBlock extends HTMLElement {
             customClasses: '',
             innerCustomClasses: '',
             styleAttribute: '',
+            backgroundSrc: '',
             backgroundLightSrc: '',
             backgroundDarkSrc: '',
             backgroundAlt: '',
@@ -351,6 +380,7 @@ class CustomBlock extends HTMLElement {
             backgroundIncludeSchema: false,
             backgroundFetchPriority: '',
             backgroundLoading: 'lazy',
+            primarySrc: '',
             primaryLightSrc: '',
             primaryDarkSrc: '',
             primaryAlt: '',
@@ -376,6 +406,19 @@ class CustomBlock extends HTMLElement {
             videoBackgroundLoop: false,
             videoBackgroundPlaysinline: false,
             videoBackgroundDisablePip: false,
+            videoPrimarySrc: '',
+            videoPrimaryLightSrc: '',
+            videoPrimaryDarkSrc: '',
+            videoPrimaryPoster: '',
+            videoPrimaryLightPoster: '',
+            videoPrimaryDarkPoster: '',
+            videoPrimaryAlt: 'Video content',
+            videoPrimaryLoading: 'lazy',
+            videoPrimaryAutoplay: false,
+            videoPrimaryMuted: false,
+            videoPrimaryLoop: false,
+            videoPrimaryPlaysinline: false,
+            videoPrimaryDisablePip: false,
             innerBackgroundColorClass: '',
             innerBackgroundImageNoise: false,
             innerBackdropFilterClasses: [],
@@ -390,49 +433,33 @@ class CustomBlock extends HTMLElement {
 
         console.log('Rendering CustomBlock with attrs:', attrs);
 
+        if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
+            console.error(`<custom-block img-background-src="${attrs.backgroundSrc || 'not provided'}" img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> requires an img-background-alt attribute for accessibility unless img-background-decorative is present.`);
+        }
+
+        if (!attrs.primaryAlt && !attrs.primaryIsDecorative && (attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc)) {
+            console.error(`<custom-block img-primary-src="${attrs.primarySrc || 'not provided'}" img-primary-light-src="${attrs.primaryLightSrc || 'not provided'}" img-primary-dark-src="${attrs.primaryDarkSrc || 'not provided'}"> requires an img-primary-alt attribute for accessibility unless img-primary-decorative is present.`);
+        }
+
         let backgroundContentHTML = '';
         let primaryImageHTML = '';
         let overlayHTML = '';
-        const hasBackgroundImage = !isFallback && !!(attrs.backgroundLightSrc || attrs.backgroundDarkSrc);
-        const hasVideoBackground = !isFallback && !!(attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc || attrs.videoBackgroundSrc);
-        const hasPrimaryImage = !isFallback && !!(attrs.primaryLightSrc || attrs.primaryDarkSrc) && ['above', 'below', 'left', 'right'].includes(attrs.primaryPosition);
-
-        if (hasBackgroundImage && !attrs.backgroundIsDecorative && !attrs.backgroundAlt && (attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
-            console.error(`<custom-block img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> requires an img-background-alt attribute for accessibility unless img-background-decorative is present.`);
-        }
-
-        if (hasPrimaryImage && !attrs.primaryIsDecorative && !attrs.primaryAlt && (attrs.primaryLightSrc || attrs.primaryDarkSrc)) {
-            console.error(`<custom-block img-primary-light-src="${attrs.primaryLightSrc || 'not provided'}" img-primary-dark-src="${attrs.primaryDarkSrc || 'not provided'}"> requires an img-primary-alt attribute for accessibility unless img-primary-decorative is present.`);
-        }
+        const hasVideoBackground = !isFallback && !!(attrs.videoBackgroundSrc || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc);
+        const hasBackgroundImage = !isFallback && !!(attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc) && !hasVideoBackground;
+        const hasPrimaryImage = !isFallback && !!(attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc) && ['above', 'below', 'left', 'right'].includes(attrs.primaryPosition);
+        const hasVideoPrimary = !isFallback && !!(attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc) && ['above', 'below', 'left', 'right'].includes(attrs.primaryPosition);
 
         const isMediaOnly = !isFallback &&
             !this.hasAttribute('heading') &&
             !this.hasAttribute('text') &&
             !this.hasAttribute('button-text') &&
-            (hasBackgroundImage || hasVideoBackground);
+            (hasBackgroundImage || hasVideoBackground || hasVideoPrimary);
 
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
         const mediaCustomClasses = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls)).join(' ');
         const innerCustomClassesList = attrs.innerCustomClasses.split(' ').filter(cls => cls);
 
-        if (hasBackgroundImage && (attrs.backgroundIsDecorative || attrs.backgroundAlt || isFallback)) {
-            const src = attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
-            if (!src) {
-                console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
-            } else {
-                backgroundContentHTML = this.generatePictureMarkup({
-                    src,
-                    lightSrc: attrs.backgroundLightSrc,
-                    darkSrc: attrs.backgroundDarkSrc,
-                    alt: attrs.backgroundAlt,
-                    isDecorative: attrs.backgroundIsDecorative,
-                    customClasses: isMediaOnly ? attrs.customClasses : mediaCustomClasses,
-                    loading: attrs.backgroundLoading,
-                    fetchPriority: attrs.backgroundFetchPriority,
-                    extraClasses: []
-                });
-            }
-        } else if (hasVideoBackground) {
+        if (hasVideoBackground) {
             const videoId = 'custom-video-' + Math.random().toString(36).substring(2, 11);
             let videoMarkup = this.generateVideoMarkup({
                 src: attrs.videoBackgroundSrc,
@@ -454,7 +481,6 @@ class CustomBlock extends HTMLElement {
                 controls: false
             });
             videoMarkup = videoMarkup.replace('{VIDEO_ID_PLACEHOLDER}', videoId);
-
             backgroundContentHTML = videoMarkup;
 
             if (attrs.videoBackgroundLightPoster || attrs.videoBackgroundDarkPoster || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc) {
@@ -469,7 +495,6 @@ class CustomBlock extends HTMLElement {
                         const defaultSrc = '${attrs.videoBackgroundSrc || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc || ''}';
                         const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
                         const validExtensions = ['mp4', 'webm'];
-
                         function addSources(video, videoSrc, mediaQuery) {
                             if (!videoSrc) return;
                             const ext = videoSrc.split('.').pop().toLowerCase();
@@ -487,7 +512,6 @@ class CustomBlock extends HTMLElement {
                             if (mediaQuery) mp4Source.media = mediaQuery;
                             video.appendChild(mp4Source);
                         }
-
                         function updateVideo() {
                             const prefersDark = prefersDarkQuery.matches;
                             const newPoster = prefersDark ? darkPoster : lightPoster;
@@ -530,17 +554,33 @@ class CustomBlock extends HTMLElement {
                 `;
                 backgroundContentHTML += `<script>${scriptContent}</script>`;
             }
-        }
-
-        if (hasPrimaryImage && (attrs.primaryIsDecorative || attrs.primaryAlt || isFallback)) {
-            const src = attrs.primaryLightSrc || attrs.primaryDarkSrc;
+        } else if (hasBackgroundImage) {
+            const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
             if (!src) {
-                console.warn('No valid primary image source provided for <custom-block>. Skipping primary image rendering.');
+                console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
             } else {
+                backgroundContentHTML = this.generatePictureMarkup({
+                    src: src,
+                    lightSrc: attrs.backgroundLightSrc || attrs.backgroundSrc,
+                    darkSrc: attrs.backgroundDarkSrc || attrs.backgroundSrc,
+                    alt: attrs.backgroundAlt,
+                    isDecorative: attrs.backgroundIsDecorative,
+                    customClasses: isMediaOnly ? attrs.customClasses : mediaCustomClasses,
+                    loading: attrs.backgroundLoading,
+                    fetchPriority: attrs.backgroundFetchPriority,
+                    extraClasses: []
+                });
+            }
+        }
+        if (hasPrimaryImage || hasVideoPrimary) {
+            const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
+            if (!src) {
+                console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
+            } else if (hasPrimaryImage) {
                 primaryImageHTML = this.generatePictureMarkup({
-                    src,
-                    lightSrc: attrs.primaryLightSrc,
-                    darkSrc: attrs.primaryDarkSrc,
+                    src: src,
+                    lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
+                    darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
                     alt: attrs.primaryAlt,
                     isDecorative: attrs.primaryIsDecorative,
                     customClasses: mediaCustomClasses,
@@ -548,9 +588,103 @@ class CustomBlock extends HTMLElement {
                     fetchPriority: attrs.primaryFetchPriority,
                     extraClasses: []
                 });
+            } else if (hasVideoPrimary) {
+                const videoId = 'custom-video-' + Math.random().toString(36).substring(2, 11);
+                let videoMarkup = this.generateVideoMarkup({
+                    src: attrs.videoPrimarySrc,
+                    lightSrc: attrs.videoPrimaryLightSrc,
+                    darkSrc: attrs.videoPrimaryDarkSrc,
+                    poster: attrs.videoPrimaryPoster,
+                    lightPoster: attrs.videoPrimaryLightPoster,
+                    darkPoster: attrs.videoPrimaryDarkPoster,
+                    alt: attrs.videoPrimaryAlt,
+                    customClasses: mediaCustomClasses,
+                    extraClasses: [],
+                    loading: attrs.videoPrimaryLoading,
+                    autoplay: attrs.videoPrimaryAutoplay,
+                    muted: attrs.videoPrimaryMuted,
+                    loop: attrs.videoPrimaryLoop,
+                    playsinline: attrs.videoPrimaryPlaysinline,
+                    disablePip: attrs.videoPrimaryDisablePip,
+                    preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                    controls: false
+                });
+                videoMarkup = videoMarkup.replace('{VIDEO_ID_PLACEHOLDER}', videoId);
+                primaryImageHTML = videoMarkup;
+
+                if (attrs.videoPrimaryLightPoster || attrs.videoPrimaryDarkPoster || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc) {
+                    const scriptContent = `
+                        (function() {
+                            const video = document.getElementById('${videoId}');
+                            if (!video) return;
+                            const lightPoster = '${attrs.videoPrimaryLightPoster || attrs.videoPrimaryPoster || ''}';
+                            const darkPoster = '${attrs.videoPrimaryDarkPoster || attrs.videoPrimaryPoster || ''}';
+                            const lightSrc = '${attrs.videoPrimaryLightSrc || ''}';
+                            const darkSrc = '${attrs.videoPrimaryDarkSrc || ''}';
+                            const defaultSrc = '${attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc || ''}';
+                            const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                            const validExtensions = ['mp4', 'webm'];
+                            function addSources(video, videoSrc, mediaQuery) {
+                                if (!videoSrc) return;
+                                const ext = videoSrc.split('.').pop().toLowerCase();
+                                if (!validExtensions.includes(ext)) return;
+                                const baseSrc = videoSrc.slice(0, -(ext.length + 1));
+                                const mediaAttr = mediaQuery ? \` media="\${mediaQuery}"\` : '';
+                                const webmSource = document.createElement('source');
+                                webmSource.src = \`\${baseSrc}.webm\`;
+                                webmSource.type = 'video/webm';
+                                if (mediaQuery) webmSource.media = mediaQuery;
+                                video.appendChild(webmSource);
+                                const mp4Source = document.createElement('source');
+                                mp4Source.src = \`\${baseSrc}.mp4\`;
+                                mp4Source.type = 'video/mp4';
+                                if (mediaQuery) mp4Source.media = mediaQuery;
+                                video.appendChild(mp4Source);
+                            }
+                            function updateVideo() {
+                                const prefersDark = prefersDarkQuery.matches;
+                                const newPoster = prefersDark ? darkPoster : lightPoster;
+                                if (newPoster && video.poster !== newPoster) {
+                                    video.poster = newPoster;
+                                }
+                                const activeSrc = prefersDark ? (darkSrc || lightSrc) : (lightSrc || darkSrc);
+                                if (activeSrc && video.currentSrc.indexOf(activeSrc) === -1) {
+                                    const wasPlaying = !video.paused;
+                                    const currentTime = video.currentTime;
+                                    while (video.firstChild) {
+                                        video.removeChild(video.firstChild);
+                                    }
+                                    if (lightSrc) addSources(video, lightSrc, '(prefers-color-scheme: light)');
+                                    if (darkSrc) addSources(video, darkSrc, '(prefers-color-scheme: dark)');
+                                    addSources(video, defaultSrc);
+                                    const fallbackP = document.createElement('p');
+                                    fallbackP.innerHTML = \`Your browser does not support the video tag. <a href="\${defaultSrc}">Download video</a>\`;
+                                    video.appendChild(fallbackP);
+                                    video.load();
+                                    video.currentTime = currentTime;
+                                    if (wasPlaying) video.play().catch(() => console.warn('Auto-play failed after theme change'));
+                                }
+                            }
+                            updateVideo();
+                            prefersDarkQuery.addEventListener('change', updateVideo);
+                            if ('${attrs.videoPrimaryLoading}' === 'lazy' && ${attrs.videoPrimaryAutoplay}) {
+                                const observer = new IntersectionObserver((entries) => {
+                                    if (entries[0].isIntersecting) {
+                                        video.play().catch(() => console.warn('Auto-play failed on lazy load'));
+                                        observer.disconnect();
+                                    }
+                                });
+                                observer.observe(video);
+                            }
+                            video.addEventListener('error', () => {
+                                console.warn(\`Video source "\${video.currentSrc}" failed to load.\`);
+                            });
+                        })();
+                    `;
+                    primaryImageHTML += `<script>${scriptContent}</script>`;
+                }
             }
         }
-
         if (!isFallback && attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
             const overlayClasses = [attrs.backgroundOverlayClass];
             if (attrs.backgroundImageNoise) {
@@ -563,8 +697,7 @@ class CustomBlock extends HTMLElement {
             const overlayClassString = overlayClasses.filter(cls => cls).join(' ').trim();
             overlayHTML = `<div class="${overlayClassString}"></div>`;
         }
-
-        if (isMediaOnly && !hasPrimaryImage) {
+        if (isMediaOnly && !hasPrimaryImage && !hasVideoPrimary) {
             const blockElement = document.createElement('div');
             blockElement.className = ['block', hasBackgroundImage ? 'background-image' : 'background-video', attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass].filter(cls => cls).join(' ').trim();
             if (attrs.styleAttribute && !isFallback) {
@@ -573,29 +706,23 @@ class CustomBlock extends HTMLElement {
             if (!isFallback && attrs.sectionTitle) {
                 blockElement.setAttribute('data-section-title', 'true');
             }
-
             let innerHTML = backgroundContentHTML || '';
             if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
                 innerHTML += overlayHTML;
             }
-
             blockElement.innerHTML = innerHTML;
-
             if (!isFallback && !blockElement.innerHTML.trim()) {
                 console.error('Media-only block has no valid content:', this.outerHTML);
                 return this.render(true);
             }
-
             if (!isFallback) {
                 this.renderCache = blockElement.cloneNode(true);
                 this.lastAttributes = JSON.stringify(attrs);
             }
             return blockElement;
         }
-
         const customClassList = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls));
         const innerPaddingClasses = attrs.customClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
-
         let outerStyles = attrs.styleAttribute || '';
         let paddingStyles = '';
         if (!isFallback && outerStyles) {
@@ -604,7 +731,6 @@ class CustomBlock extends HTMLElement {
             paddingStyles = paddingMatches.join(' ').trim();
             outerStyles = outerStyles.replace(paddingRegex, '').trim();
         }
-
         const alignMap = {
             'center': 'place-self-center',
             'top': 'place-self-top',
@@ -620,13 +746,11 @@ class CustomBlock extends HTMLElement {
             'center-left': 'place-self-center-left',
             'center-right': 'place-self-center-right'
         };
-
         const textAlignMap = {
             'left': 'text-align-left',
             'center': 'text-align-center',
             'right': 'text-align-right'
         };
-
         const innerDivClassList = [];
         if (!isFallback) {
             innerDivClassList.push(...innerPaddingClasses, ...innerCustomClassesList);
@@ -641,18 +765,14 @@ class CustomBlock extends HTMLElement {
             if (attrs.innerAlignment) innerDivClassList.push(alignMap[attrs.innerAlignment]);
             if (attrs.innerShadowClass) innerDivClassList.push(attrs.innerShadowClass);
         }
-
         const innerDivClass = innerDivClassList.join(' ').trim();
-
         let innerDivStyle = '';
         if (!isFallback && attrs.innerStyle) {
             innerDivStyle = ` style="${attrs.innerStyle}"`;
         }
-
         const buttonHTML = attrs.buttonText ?
             `<a class="button" href="${attrs.buttonHref || '#'}"${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${attrs.buttonText}</a>` :
             '';
-
         const contentHTML = `
         <div${innerDivClass ? ` class="${innerDivClass}"` : ''}${innerDivStyle} aria-live="polite">
             <div role="group"${attrs.textAlignment ? ` class="${textAlignMap[attrs.textAlignment]}"` : ''}>
@@ -662,48 +782,43 @@ class CustomBlock extends HTMLElement {
             ${buttonHTML}
         </div>
     `;
-
         const mainDivClassList = ['block'];
         if (hasBackgroundImage) mainDivClassList.push('background-image');
-        else if (hasVideoBackground) mainDivClassList.push('background-video');
+        else if (hasVideoBackground || hasVideoPrimary) mainDivClassList.push('background-video');
         mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass);
         const mainDivClass = mainDivClassList.filter(cls => cls).join(' ').trim();
-
         const blockElement = document.createElement('div');
         blockElement.className = mainDivClass;
         if (outerStyles && !isFallback) {
             blockElement.setAttribute('style', outerStyles);
         }
-        if (!isFallback && hasPrimaryImage) {
+        if (!isFallback && (hasPrimaryImage || hasVideoPrimary)) {
             blockElement.setAttribute('data-primary-position', attrs.primaryPosition);
         }
         if (!isFallback && attrs.sectionTitle) {
             blockElement.setAttribute('data-section-title', 'true');
         }
-
         let innerHTML = '';
-        if (hasBackgroundImage) {
+        if (hasBackgroundImage || hasVideoBackground) {
             innerHTML += backgroundContentHTML || '';
         }
         if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
             innerHTML += overlayHTML;
         }
-        if (hasPrimaryImage && attrs.primaryPosition === 'above') {
+        if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'above') {
             innerHTML += primaryImageHTML || '';
         }
-        if (hasPrimaryImage && attrs.primaryPosition === 'left') {
+        if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'left') {
             innerHTML += (primaryImageHTML || '') + contentHTML;
-        } else if (hasPrimaryImage && attrs.primaryPosition === 'right') {
+        } else if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'right') {
             innerHTML += contentHTML + (primaryImageHTML || '');
         } else {
             innerHTML += contentHTML;
         }
-        if (hasPrimaryImage && attrs.primaryPosition === 'below') {
+        if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'below') {
             innerHTML += primaryImageHTML || '';
         }
-
         blockElement.innerHTML = innerHTML;
-
         if (!isFallback && blockElement.querySelector('img')) {
             const images = blockElement.querySelectorAll('img');
             images.forEach(img => {
@@ -732,12 +847,10 @@ class CustomBlock extends HTMLElement {
                 img.removeAttribute('img-primary-position');
             });
         }
-
         if (!isFallback && !blockElement.innerHTML.trim()) {
             console.error('Block has no valid content, falling back:', this.outerHTML);
             return this.render(true);
         }
-
         if (!isFallback) {
             this.renderCache = blockElement.cloneNode(true);
             this.lastAttributes = JSON.stringify(attrs);
@@ -764,6 +877,7 @@ class CustomBlock extends HTMLElement {
             'border-radius',
             'class',
             'style',
+            'img-background-src',
             'img-background-light-src',
             'img-background-dark-src',
             'img-background-alt',
@@ -775,6 +889,7 @@ class CustomBlock extends HTMLElement {
             'img-background-include-schema',
             'img-background-fetchpriority',
             'img-background-loading',
+            'img-primary-src',
             'img-primary-light-src',
             'img-primary-dark-src',
             'img-primary-alt',
@@ -800,6 +915,19 @@ class CustomBlock extends HTMLElement {
             'video-background-loop',
             'video-background-playsinline',
             'video-background-disable-pip',
+            'video-primary-src',
+            'video-primary-light-src',
+            'video-primary-dark-src',
+            'video-primary-poster',
+            'video-primary-light-poster',
+            'video-primary-dark-poster',
+            'video-primary-alt',
+            'video-primary-loading',
+            'video-primary-autoplay',
+            'video-primary-muted',
+            'video-primary-loop',
+            'video-primary-playsinline',
+            'video-primary-disable-pip',
             'inner-background-color',
             'inner-background-image-noise',
             'inner-border',
@@ -829,9 +957,11 @@ class CustomBlock extends HTMLElement {
             'inner-background-gradient',
             'background-image-noise',
             'backdrop-filter',
+            'img-background-src',
             'img-background-light-src',
             'img-background-dark-src',
             'img-background-alt',
+            'img-primary-src',
             'img-primary-light-src',
             'img-primary-dark-src',
             'img-primary-alt',
@@ -849,6 +979,19 @@ class CustomBlock extends HTMLElement {
             'video-background-loop',
             'video-background-playsinline',
             'video-background-disable-pip',
+            'video-primary-src',
+            'video-primary-light-src',
+            'video-primary-dark-src',
+            'video-primary-poster',
+            'video-primary-light-poster',
+            'video-primary-dark-poster',
+            'video-primary-alt',
+            'video-primary-loading',
+            'video-primary-autoplay',
+            'video-primary-muted',
+            'video-primary-loop',
+            'video-primary-playsinline',
+            'video-primary-disable-pip',
             'style',
             'inner-background-color',
             'inner-background-image-noise',
