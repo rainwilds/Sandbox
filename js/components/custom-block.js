@@ -24,7 +24,7 @@ class CustomBlock extends HTMLElement {
         if (darkSrc) sources.push(`<source srcset="${darkSrc}" media="(prefers-color-scheme: dark)">`);
         if (src) sources.push(`<source srcset="${src}">`);
         return `
-            <picture>
+            <picture${attrs.primaryPosition === 'top' ? ' style="grid-row: 1;"' : ''}>
                 ${sources.join('')}
                 <img src="${src || lightSrc || darkSrc || 'https://placehold.co/3000x2000'}" 
                      alt="${isDecorative ? '' : alt || 'Placeholder image'}" 
@@ -63,7 +63,6 @@ class CustomBlock extends HTMLElement {
         innerHTML += `<p>Your browser does not support the video tag. <a href="${defaultSrc}">Download video</a></p>`;
 
         const posterAttr = poster ? `poster="${poster}"` : '';
-        // Automatically add muted if autoplay is present
         const isMuted = autoplay || muted ? 'muted' : '';
 
         return `
@@ -80,7 +79,7 @@ class CustomBlock extends HTMLElement {
                 class="${classList}"
                 title="${alt}" 
                 aria-label="${alt}"
-                ${posterAttr}>
+                ${posterAttr}${attrs.primaryPosition === 'top' ? ' style="grid-row: 1;"' : ''}>
                 ${innerHTML}
             </video>
         `;
@@ -97,7 +96,7 @@ class CustomBlock extends HTMLElement {
             console.warn(`Invalid img-primary-fetchpriority value "${primaryFetchPriority}" in <custom-block>. Using default.`);
         }
         const primaryPosition = this.getAttribute('img-primary-position') || 'none';
-        const validPositions = ['none', 'above', 'below', 'left', 'right'];
+        const validPositions = ['none', 'top', 'below', 'left', 'right'];
         if (!validPositions.includes(primaryPosition)) {
             console.warn(`Invalid img-primary-position value "${primaryPosition}" in <custom-block>. Using default 'none'.`);
         }
@@ -191,7 +190,6 @@ class CustomBlock extends HTMLElement {
             console.warn(`Invalid inner-shadow value "${innerShadow}" in <custom-block>. Must be one of ${validShadowClasses.join(', ')}. Ignoring.`);
         }
 
-        // Image source validation
         const backgroundSrc = this.getAttribute('img-background-src') || '';
         const backgroundLightSrc = this.getAttribute('img-background-light-src') || '';
         const backgroundDarkSrc = this.getAttribute('img-background-dark-src') || '';
@@ -205,7 +203,6 @@ class CustomBlock extends HTMLElement {
             throw new Error('Both img-primary-light-src and img-primary-dark-src must be present when using light/dark themes, or use img-primary-src alone.');
         }
 
-        // Video source validation
         const videoBackgroundSrc = this.getAttribute('video-background-src') || '';
         const videoBackgroundLightSrc = this.getAttribute('video-background-light-src') || '';
         const videoBackgroundDarkSrc = this.getAttribute('video-background-dark-src') || '';
@@ -273,7 +270,7 @@ class CustomBlock extends HTMLElement {
             videoBackgroundAlt: this.getAttribute('video-background-alt') || 'Video content',
             videoBackgroundLoading: this.getAttribute('video-background-loading') || 'lazy',
             videoBackgroundAutoplay: this.hasAttribute('video-background-autoplay'),
-            videoBackgroundMuted: this.hasAttribute('video-background-muted') || this.hasAttribute('video-background-autoplay'), // Add muted if autoplay is present
+            videoBackgroundMuted: this.hasAttribute('video-background-muted') || this.hasAttribute('video-background-autoplay'),
             videoBackgroundLoop: this.hasAttribute('video-background-loop'),
             videoBackgroundPlaysinline: this.hasAttribute('video-background-playsinline'),
             videoBackgroundDisablePip: this.hasAttribute('video-background-disable-pip'),
@@ -286,7 +283,7 @@ class CustomBlock extends HTMLElement {
             videoPrimaryAlt: this.getAttribute('video-primary-alt') || 'Video content',
             videoPrimaryLoading: this.getAttribute('video-primary-loading') || 'lazy',
             videoPrimaryAutoplay: this.hasAttribute('video-primary-autoplay'),
-            videoPrimaryMuted: this.hasAttribute('video-primary-muted') || this.hasAttribute('video-primary-autoplay'), // Add muted if autoplay is present
+            videoPrimaryMuted: this.hasAttribute('video-primary-muted') || this.hasAttribute('video-primary-autoplay'),
             videoPrimaryLoop: this.hasAttribute('video-primary-loop'),
             videoPrimaryPlaysinline: this.hasAttribute('video-primary-playsinline'),
             videoPrimaryDisablePip: this.hasAttribute('video-primary-disable-pip'),
@@ -448,8 +445,8 @@ class CustomBlock extends HTMLElement {
         let overlayHTML = '';
         const hasVideoBackground = !isFallback && !!(attrs.videoBackgroundSrc || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc);
         const hasBackgroundImage = !isFallback && !!(attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc) && !hasVideoBackground;
-        const hasPrimaryImage = !isFallback && !!(attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc) && ['above', 'below', 'left', 'right'].includes(attrs.primaryPosition);
-        const hasVideoPrimary = !isFallback && !!(attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc) && ['above', 'below', 'left', 'right'].includes(attrs.primaryPosition);
+        const hasPrimaryImage = !isFallback && !!(attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc) && ['top', 'below', 'left', 'right'].includes(attrs.primaryPosition);
+        const hasVideoPrimary = !isFallback && !!(attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc) && ['top', 'below', 'left', 'right'].includes(attrs.primaryPosition);
 
         const isMediaOnly = !isFallback &&
             !this.hasAttribute('heading') &&
@@ -770,7 +767,9 @@ class CustomBlock extends HTMLElement {
         const innerDivClass = innerDivClassList.join(' ').trim();
         let innerDivStyle = '';
         if (!isFallback && attrs.innerStyle) {
-            innerDivStyle = ` style="${attrs.innerStyle}"`;
+            innerDivStyle = ` style="${attrs.innerStyle}${attrs.primaryPosition === 'top' ? ';grid-row: 2;' : ''}"`;
+        } else if (!isFallback && attrs.primaryPosition === 'top') {
+            innerDivStyle = ` style="grid-row: 2;"`;
         }
         const buttonHTML = attrs.buttonText ?
             `<a class="button" href="${attrs.buttonHref || '#'}"${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${attrs.buttonText}</a>` :
@@ -807,7 +806,7 @@ class CustomBlock extends HTMLElement {
         if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
             innerHTML += overlayHTML;
         }
-        if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'above') {
+        if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'top') {
             innerHTML += primaryImageHTML || '';
         }
         if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'left') {
