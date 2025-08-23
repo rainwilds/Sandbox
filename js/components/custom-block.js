@@ -17,14 +17,14 @@ class CustomBlock extends HTMLElement {
         this.observer.observe(this);
     }
 
-    generatePictureMarkup({ src, lightSrc, darkSrc, alt, isDecorative, customClasses, loading, fetchPriority, extraClasses, primaryPosition }) {
+    generatePictureMarkup({ src, lightSrc, darkSrc, alt, isDecorative, customClasses, loading, fetchPriority, extraClasses }) {
         const classList = [customClasses, ...extraClasses].filter(cls => cls).join(' ').trim();
         const sources = [];
         if (lightSrc) sources.push(`<source srcset="${lightSrc}" media="(prefers-color-scheme: light)">`);
         if (darkSrc) sources.push(`<source srcset="${darkSrc}" media="(prefers-color-scheme: dark)">`);
         if (src) sources.push(`<source srcset="${src}">`);
         return `
-            <picture${primaryPosition === 'top' ? ' style="grid-row: 1;"' : primaryPosition === 'bottom' ? ' style="grid-row: 2;"' : ''}>
+            <picture>
                 ${sources.join('')}
                 <img src="${src || lightSrc || darkSrc || 'https://placehold.co/3000x2000'}" 
                      alt="${isDecorative ? '' : alt || 'Placeholder image'}" 
@@ -36,7 +36,7 @@ class CustomBlock extends HTMLElement {
         `;
     }
 
-    generateVideoMarkup({ src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses, extraClasses, loading, autoplay, muted, loop, playsinline, disablePip, preload, controls, primaryPosition }) {
+    generateVideoMarkup({ src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses, extraClasses, loading, autoplay, muted, loop, playsinline, disablePip, preload, controls }) {
         const classList = [customClasses, ...extraClasses].filter(cls => cls).join(' ').trim();
         const validExtensions = ['mp4', 'webm'];
 
@@ -79,7 +79,7 @@ class CustomBlock extends HTMLElement {
                 class="${classList}"
                 title="${alt}" 
                 aria-label="${alt}"
-                ${posterAttr}${primaryPosition === 'top' ? ' style="grid-row: 1;"' : primaryPosition === 'bottom' ? ' style="grid-row: 2;"' : ''}>
+                ${posterAttr}>
                 ${innerHTML}
             </video>
         `;
@@ -571,8 +571,7 @@ class CustomBlock extends HTMLElement {
                     customClasses: isMediaOnly ? attrs.customClasses : mediaCustomClasses,
                     loading: attrs.backgroundLoading,
                     fetchPriority: attrs.backgroundFetchPriority,
-                    extraClasses: [],
-                    primaryPosition: attrs.primaryPosition
+                    extraClasses: []
                 });
             }
         }
@@ -590,8 +589,7 @@ class CustomBlock extends HTMLElement {
                     customClasses: mediaCustomClasses,
                     loading: attrs.primaryLoading,
                     fetchPriority: attrs.primaryFetchPriority,
-                    extraClasses: [],
-                    primaryPosition: attrs.primaryPosition
+                    extraClasses: []
                 });
             } else if (hasVideoPrimary) {
                 const videoId = 'custom-video-' + Math.random().toString(36).substring(2, 11);
@@ -612,8 +610,7 @@ class CustomBlock extends HTMLElement {
                     playsinline: attrs.videoPrimaryPlaysinline,
                     disablePip: attrs.videoPrimaryDisablePip,
                     preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
-                    controls: false,
-                    primaryPosition: attrs.primaryPosition
+                    controls: false
                 });
                 videoMarkup = videoMarkup.replace('{VIDEO_ID_PLACEHOLDER}', videoId);
                 primaryImageHTML = videoMarkup;
@@ -772,14 +769,7 @@ class CustomBlock extends HTMLElement {
             if (attrs.innerShadowClass) innerDivClassList.push(attrs.innerShadowClass);
         }
         const innerDivClass = innerDivClassList.join(' ').trim();
-        let innerDivStyle = '';
-        if (!isFallback) {
-            let gridRowStyle = '';
-            if (attrs.primaryPosition === 'left' || attrs.primaryPosition === 'right') {
-                gridRowStyle = 'grid-row: 1;';
-            }
-            innerDivStyle = attrs.innerStyle ? `${attrs.innerStyle}${gridRowStyle ? ';' + gridRowStyle : ''}` : gridRowStyle;
-        }
+        const innerDivStyle = !isFallback ? attrs.innerStyle : '';
         const buttonHTML = attrs.buttonText ?
             `<a class="button" href="${attrs.buttonHref || '#'}"${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${attrs.buttonText}</a>` :
             '';
@@ -851,7 +841,7 @@ class CustomBlock extends HTMLElement {
                 img.removeAttribute('img-primary-tablet-width');
                 img.removeAttribute('img-primary-desktop-width');
                 img.removeAttribute('img-primary-aspect-ratio');
- filmstrip:            img.removeAttribute('img-primary-include-schema');
+                img.removeAttribute('img-primary-include-schema');
                 img.removeAttribute('img-primary-fetchpriority');
                 img.removeAttribute('img-primary-loading');
                 img.removeAttribute('img-primary-position');
