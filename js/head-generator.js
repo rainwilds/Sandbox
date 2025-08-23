@@ -102,9 +102,11 @@ function manageHead(attributes = {}, businessInfo = {}) {
     if (attributes.description && !document.querySelector('meta[name="description"]')) {
         const metaDesc = document.createElement('meta');
         metaDesc.name = 'description';
-        metaDesc.content = attributes.description || '';
+        metaDesc.content = attributes.description;
         head.appendChild(metaDesc);
-        console.log('Added description meta');
+        console.log('Added description meta with content:', attributes.description);
+    } else {
+        console.log('Skipped adding meta description. attributes.description:', attributes.description, 'Existing meta:', !!document.querySelector('meta[name="description"]'));
     }
 
     if (attributes.keywords && !document.querySelector('meta[name="keywords"]')) {
@@ -182,7 +184,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
         ogDescription.setAttribute('property', 'og:description');
         ogDescription.setAttribute('content', attributes['og-description'] || attributes.description || '');
         head.appendChild(ogDescription);
-        console.log('Added og:description meta');
+        console.log('Added og:description meta with content:', attributes['og-description'] || attributes.description);
     }
     if (!document.querySelector('meta[property="og:image"]')) {
         const ogImage = document.createElement('meta');
@@ -233,7 +235,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
         xDescription.setAttribute('name', 'x:description');
         xDescription.setAttribute('content', attributes['x-description'] || attributes.description || '');
         head.appendChild(xDescription);
-        console.log('Added x:description meta');
+        console.log('Added x:description meta with content:', attributes['x-description'] || attributes.description);
     }
     if (!document.querySelector('meta[name="x:image"]')) {
         const xImage = document.createElement('meta');
@@ -513,28 +515,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch (error) {
         console.error('Critical Error: Unable to load business-info.json. Page rendering halted.', error);
         document.body.innerHTML = '<div style="color: red; font-size: 2em; text-align: center;">Error: Failed to load business information. Please check the console for details.</div>';
-        throw error; // Halt further execution
+        throw error;
     }
 
-    // Merge attributes from all <data-bh-head> elements
+    // Merge attributes from all <data-bh-head> elements, prioritizing non-empty values
     const attributes = {};
     dataHeads.forEach(dataHead => {
-        Object.assign(attributes, {
+        const newAttributes = {
             title: dataHead.dataset.title,
-            description: dataHead.dataset.description,
+            description: dataHead.dataset.description, // Changed from data-text to data-description
             keywords: dataHead.dataset.keywords,
             author: dataHead.dataset.author,
             canonical: dataHead.dataset.canonical,
             robots: dataHead.dataset.robots,
             'og-title': dataHead.dataset.ogTitle,
-            'og-description': dataHead.dataset.ogDescription,
+            'og-description': dataHead.dataset.ogDescription, // Changed from ogText to ogDescription
             'og-image': dataHead.dataset.ogImage,
             'og-url': dataHead.dataset.ogUrl,
             'og-type': dataHead.dataset.ogType,
             'og-locale': dataHead.dataset.ogLocale,
             'og-site-name': dataHead.dataset.ogSiteName,
             'x-title': dataHead.dataset.xTitle,
-            'x-description': dataHead.dataset.xDescription,
+            'x-description': dataHead.dataset.xDescription, // Changed from xText to xDescription
             'x-image': dataHead.dataset.xImage,
             'x-url': dataHead.dataset.xUrl,
             'x-domain': dataHead.dataset.xDomain,
@@ -571,6 +573,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             'theme-color-dark': dataHead.dataset.themeColorDark,
             'include-e-commerce': dataHead.hasAttribute('data-include-e-commerce') || attributes['include-e-commerce'],
             components: dataHead.dataset.components || attributes.components
+        };
+
+        // Only overwrite attributes if the new value is defined and non-empty
+        Object.keys(newAttributes).forEach(key => {
+            if (newAttributes[key] !== undefined && newAttributes[key] !== '') {
+                attributes[key] = newAttributes[key];
+            }
         });
     });
 
