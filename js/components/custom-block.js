@@ -773,16 +773,20 @@ class CustomBlock extends HTMLElement {
         }
         const innerDivClass = innerDivClassList.join(' ').trim();
         let innerDivStyle = '';
-        if (!isFallback && attrs.innerStyle) {
-            innerDivStyle = ` style="${attrs.innerStyle}${attrs.primaryPosition === 'top' || attrs.primaryPosition === 'bottom' ? ';grid-row: 2;' : ''}"`;
-        } else if (!isFallback && (attrs.primaryPosition === 'top' || attrs.primaryPosition === 'bottom')) {
-            innerDivStyle = ` style="grid-row: 2;"`;
+        if (!isFallback) {
+            let gridRowStyle = '';
+            if (attrs.primaryPosition === 'left' || attrs.primaryPosition === 'right') {
+                gridRowStyle = 'grid-row: 1;';
+            } else if (attrs.primaryPosition === 'top' || attrs.primaryPosition === 'bottom') {
+                gridRowStyle = 'grid-row: 2;';
+            }
+            innerDivStyle = attrs.innerStyle ? `${attrs.innerStyle};${gridRowStyle}` : gridRowStyle;
         }
         const buttonHTML = attrs.buttonText ?
             `<a class="button" href="${attrs.buttonHref || '#'}"${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${attrs.buttonText}</a>` :
             '';
         const contentHTML = `
-        <div${innerDivClass ? ` class="${innerDivClass}"` : ''}${innerDivStyle} aria-live="polite">
+        <div${innerDivClass ? ` class="${innerDivClass}"` : ''}${innerDivStyle ? ` style="${innerDivStyle}"` : ''} aria-live="polite">
             <div role="group"${attrs.textAlignment ? ` class="${textAlignMap[attrs.textAlignment]}"` : ''}>
                 <${attrs.headingTag}>${attrs.heading}</${attrs.headingTag}>
                 <p>${attrs.text}</p>

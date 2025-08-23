@@ -1789,7 +1789,7 @@ body>* {
             /* for when custom-block is used for text headings/paragraphs */
             >div:is([data-section-title="true"]) {
 
-                margin: var(--space-large) 0 var(--space-medium) 0;
+                /* margin: var(--space-large) 0 var(--space-medium) 0; */
                 min-height: initial;
 
             }
