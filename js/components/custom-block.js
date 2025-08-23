@@ -777,10 +777,8 @@ class CustomBlock extends HTMLElement {
             let gridRowStyle = '';
             if (attrs.primaryPosition === 'left' || attrs.primaryPosition === 'right') {
                 gridRowStyle = 'grid-row: 1;';
-            } else if (attrs.primaryPosition === 'top' || attrs.primaryPosition === 'bottom') {
-                gridRowStyle = 'grid-row: 2;';
             }
-            innerDivStyle = attrs.innerStyle ? `${attrs.innerStyle};${gridRowStyle}` : gridRowStyle;
+            innerDivStyle = attrs.innerStyle ? `${attrs.innerStyle}${gridRowStyle ? ';' + gridRowStyle : ''}` : gridRowStyle;
         }
         const buttonHTML = attrs.buttonText ?
             `<a class="button" href="${attrs.buttonHref || '#'}"${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${attrs.buttonText}</a>` :
@@ -853,7 +851,7 @@ class CustomBlock extends HTMLElement {
                 img.removeAttribute('img-primary-tablet-width');
                 img.removeAttribute('img-primary-desktop-width');
                 img.removeAttribute('img-primary-aspect-ratio');
-                img.removeAttribute('img-primary-include-schema');
+ filmstrip:            img.removeAttribute('img-primary-include-schema');
                 img.removeAttribute('img-primary-fetchpriority');
                 img.removeAttribute('img-primary-loading');
                 img.removeAttribute('img-primary-position');
