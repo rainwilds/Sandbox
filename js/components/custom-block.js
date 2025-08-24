@@ -37,6 +37,16 @@ class CustomBlock extends HTMLElement {
     static #DEFAULT_SIZE_VALUE = 3840;
     static #BASE_PATH = './img/responsive/';
 
+    // Map for backdrop-filter classes to their CSS values
+    static #BACKDROP_FILTER_MAP = {
+        'backdrop-filter-blur-small': 'blur(var(--blur-small))',
+        'backdrop-filter-blur-medium': 'blur(var(--blur-medium))',
+        'backdrop-filter-blur-large': 'blur(var(--blur-large))',
+        'backdrop-filter-grayscale-small': 'grayscale(var(--grayscale-small))',
+        'backdrop-filter-grayscale-medium': 'grayscale(var(--grayscale-medium))',
+        'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))'
+    };
+
     generatePictureMarkup({
         src,
         lightSrc = '',
@@ -838,9 +848,18 @@ class CustomBlock extends HTMLElement {
             if (attrs.backgroundGradientClass) {
                 overlayClasses.push(attrs.backgroundGradientClass);
             }
-            overlayClasses.push(...attrs.backdropFilterClasses);
-            const overlayClassString = overlayClasses.filter(cls => cls).join(' ').trim();
-            overlayHTML = `<div class="${overlayClassString}"></div>`;
+            // Filter out backdrop-filter classes and combine their values
+            const backdropFilterValues = attrs.backdropFilterClasses
+                .filter(cls => cls.startsWith('backdrop-filter'))
+                .map(cls => CustomBlock.#BACKDROP_FILTER_MAP[cls] || '')
+                .filter(val => val);
+            const filteredOverlayClasses = attrs.backdropFilterClasses
+                .filter(cls => !cls.startsWith('backdrop-filter'))
+                .concat(overlayClasses)
+                .filter(cls => cls);
+            const overlayClassString = filteredOverlayClasses.join(' ').trim();
+            const backdropFilterStyle = backdropFilterValues.length > 0 ? `backdrop-filter: ${backdropFilterValues.join(' ')}` : '';
+            overlayHTML = `<div${overlayClassString ? ` class="${overlayClassString}"` : ''}${backdropFilterStyle ? ` style="${backdropFilterStyle}"` : ''}></div>`;
         }
         if (isMediaOnly && !hasPrimaryImage && !hasVideoPrimary) {
             const blockElement = document.createElement('div');
@@ -897,8 +916,16 @@ class CustomBlock extends HTMLElement {
             'right': 'flex-column-right text-align-right'
         };
         const innerDivClassList = [];
+        let innerDivStyle = !isFallback ? attrs.innerStyle : '';
         if (!isFallback) {
-            innerDivClassList.push(...innerPaddingClasses, ...innerCustomClassesList);
+            // Filter out inner backdrop-filter classes and combine their values
+            const innerBackdropFilterValues = attrs.innerBackdropFilterClasses
+                .filter(cls => cls.startsWith('backdrop-filter'))
+                .map(cls => CustomBlock.#BACKDROP_FILTER_MAP[cls] || '')
+                .filter(val => val);
+            const filteredInnerBackdropClasses = attrs.innerBackdropFilterClasses
+                .filter(cls => !cls.startsWith('backdrop-filter'));
+            innerDivClassList.push(...innerPaddingClasses, ...innerCustomClassesList, ...filteredInnerBackdropClasses);
             if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
             if (attrs.innerBackgroundColorClass) innerDivClassList.push(attrs.innerBackgroundColorClass);
             if (attrs.innerBackgroundImageNoise) innerDivClassList.push('background-image-noise');
@@ -906,12 +933,14 @@ class CustomBlock extends HTMLElement {
             if (attrs.innerBorderRadiusClass) innerDivClassList.push(attrs.innerBorderRadiusClass);
             if (attrs.innerBackgroundOverlayClass) innerDivClassList.push(attrs.innerBackgroundOverlayClass);
             if (attrs.innerBackgroundGradientClass) innerDivClassList.push(attrs.innerBackgroundGradientClass);
-            innerDivClassList.push(...attrs.innerBackdropFilterClasses);
             if (attrs.innerAlignment) innerDivClassList.push(alignMap[attrs.innerAlignment]);
             if (attrs.innerShadowClass) innerDivClassList.push(attrs.innerShadowClass);
+            if (innerBackdropFilterValues.length > 0) {
+                const backdropFilterStyle = `backdrop-filter: ${innerBackdropFilterValues.join(' ')}`;
+                innerDivStyle = innerDivStyle ? `${innerDivStyle}; ${backdropFilterStyle}` : backdropFilterStyle;
+            }
         }
         const innerDivClass = innerDivClassList.join(' ').trim();
-        const innerDivStyle = !isFallback ? attrs.innerStyle : '';
         const buttonHTML = attrs.buttonText ?
             `<a class="button" href="${attrs.buttonHref || '#'}"${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${attrs.buttonText}</a>` :
             '';

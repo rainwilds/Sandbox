@@ -1,179 +1,62 @@
-<html>
-
-<head>
-    <link rel="preload" href="./styles.css" as="style">
-    <link rel="stylesheet" href="./styles.css">
-    <script src="./js/head.js" defer=""></script>
-    <meta charset="utf-8">
-    <title>Page Title</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="preload" href="./fonts/AdobeAldine-Regular.woff2" as="font" type="font/woff2">
-    <link rel="preload" href="./fonts/fontawesome/fontawesome.min.css" as="style">
-    <link rel="preload" href="./fonts/fontawesome/sharp-light.min.css" as="style">
-    <link rel="preload" href="./fonts/fontawesome/brands.min.css" as="style">
-    <meta http-equiv="Permissions-Policy" content="">
-    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
-    <meta name="author" content="David Dufourq">
-    <meta name="theme-color" content="#141b32">
-    <meta property="og:locale" content="en_AU">
-    <meta property="og:url" content="https://rainwilds.github.io/Sandbox/">
-    <meta property="og:type" content="website">
-    <meta property="og:title" content="Behive">
-    <meta property="og:description" content="">
-    <meta property="og:image" content="https://rainwilds.github.io/Sandbox/img/preview.jpg">
-    <meta property="og:site_name" content="Behive">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta property="twitter:domain" content="rainwilds.github.io">
-    <meta property="twitter:url" content="https://rainwilds.github.io/Sandbox/">
-    <meta name="twitter:title" content="Behive">
-    <meta name="twitter:description" content="">
-    <meta name="twitter:image" content="https://rainwilds.github.io/Sandbox/img/preview.jpg">
-    <script type="application/ld+json"> {
-
-    "@context":"https://schema.org",
-    "@graph":[ {
-
-        "@type":"WebSite",
-        "@id":"https://rainwilds.github.io/Sandbox/#website",
-        "name":"Behive Media",
-        "url":"https://rainwilds.github.io/Sandbox/",
-        "description":"Behive Media offers professional photography, videography, and website services in Australia.",
-        "inLanguage":"en-AU",
-        "publisher": {
-            "@id": "https://rainwilds.github.io/Sandbox/#business"
-        }
-
-        ,
-        "potentialAction":[ {
-
-            "@type":"SearchAction",
-            "target": {
-                "@type":"EntryPoint",
-                "urlTemplate":"https://rainwilds.github.io/Sandbox/?s={search_term_string}"
-            }
-
-            ,
-            "query-input": {
-                "@type": "PropertyValueSpecification", "valueRequired":true, "valueName":"search_term_string"
-            }
-        }
-
-        ]
-    }
-
-    ,
-    {
-
-    "@type":"LocalBusiness",
-    "@id":"https://rainwilds.github.io/Sandbox/#business",
-    "name":"Behive Media",
-    "url":"https://rainwilds.github.io/Sandbox/",
-    "telephone":"+61-3-9876-5432",
-    "address": {
-        "@type": "PostalAddress", "streetAddress":"456 Creative Lane", "addressLocality":"Melbourne", "addressRegion":"VIC", "postalCode":"3000", "addressCountry":"AU"
-    }
-
-    ,
-    "geo": {
-        "@type": "GeoCoordinates", "latitude":-37.8136, "longitude":144.9631
-    }
-
-    ,
-    "openingHours":"Mo-Fr 09:00-18:00",
-    "image":"https://rainwilds.github.io/Sandbox/img/logo.jpg",
-    "logo":"https://rainwilds.github.io/Sandbox/img/logo.jpg",
-    "sameAs":["https://www.facebook.com/behive",
-    "https://www.instagram.com/behive"]
-}
-
-,
-{
-
-"@type":"BreadcrumbList",
-"itemListElement":[ {
-    "@type": "ListItem", "position":1, "name":"Home", "item":"https://rainwilds.github.io/Sandbox/"
-}
-
-]
-}
-
-]
-}
-
-</script>
-    <link rel="stylesheet" href="./fonts/fontawesome/fontawesome.min.css">
-    <link rel="stylesheet" href="./fonts/fontawesome/sharp-light.min.css">
-    <link rel="stylesheet" href="./fonts/fontawesome/brands.min.css">
-    <script src="./js/image-utils.js"></script>
-    <script src="./js/components.js" defer=""></script>
-    <script src="./js/scripts.js" defer=""></script>
-    <link rel="apple-touch-icon" href="./images/icons/apple-touch-icon.png" sizes="180x180">
-    <link rel="icon" href="./images/icons/favicon-32x32.png" sizes="32x32" type="image/png">
-    <link rel="icon" href="./images/icons/favicon-16x16.png" sizes="16x16" type="image/png">
-    <link rel="icon" href="./favicon.ico" type="image/x-icon">
-</head>
-
-<body>
-    <main>
-        <section>
-            <picture class="animate animate-fade-in">
-                <source
-                    srcset="./img/responsive/image1-768.avif 768w, ./img/responsive/image1-980.avif 980w, ./img/responsive/image1-1366.avif 1366w, ./img/responsive/image1-1920.avif 1920w, ./img/responsive/image1-2560.avif 2560w, ./img/responsive/image1-3840.avif 3840w"
-                    sizes="(max-width: 768px) 50vw, (max-width: 980px) 50vw, (max-width: 1366px) 50vw, (max-width: 1920px) 50vw, (max-width: 2560px) 50vw, (max-width: 3840px) 50vw, 1920px"
-                    type="image/avif" media="(prefers-color-scheme: light)">
-                <source
-                    srcset="./img/responsive/image2-768.avif 768w, ./img/responsive/image2-980.avif 980w, ./img/responsive/image2-1366.avif 1366w, ./img/responsive/image2-1920.avif 1920w, ./img/responsive/image2-2560.avif 2560w, ./img/responsive/image2-3840.avif 3840w"
-                    sizes="(max-width: 768px) 50vw, (max-width: 980px) 50vw, (max-width: 1366px) 50vw, (max-width: 1920px) 50vw, (max-width: 2560px) 50vw, (max-width: 3840px) 50vw, 1920px"
-                    type="image/avif" media="(prefers-color-scheme: dark)">
-                <source
-                    srcset="./img/responsive/image1-768.avif 768w, ./img/responsive/image1-980.avif 980w, ./img/responsive/image1-1366.avif 1366w, ./img/responsive/image1-1920.avif 1920w, ./img/responsive/image1-2560.avif 2560w, ./img/responsive/image1-3840.avif 3840w"
-                    sizes="(max-width: 768px) 50vw, (max-width: 980px) 50vw, (max-width: 1366px) 50vw, (max-width: 1920px) 50vw, (max-width: 2560px) 50vw, (max-width: 3840px) 50vw, 1920px"
-                    type="image/avif">
-                <source
-                    srcset="./img/responsive/image1-768.webp 768w, ./img/responsive/image1-980.webp 980w, ./img/responsive/image1-1366.webp 1366w, ./img/responsive/image1-1920.webp 1920w, ./img/responsive/image1-2560.webp 2560w, ./img/responsive/image1-3840.webp 3840w"
-                    sizes="(max-width: 768px) 50vw, (max-width: 980px) 50vw, (max-width: 1366px) 50vw, (max-width: 1920px) 50vw, (max-width: 2560px) 50vw, (max-width: 3840px) 50vw, 1920px"
-                    type="image/webp" media="(prefers-color-scheme: light)">
-                <source
-                    srcset="./img/responsive/image2-768.webp 768w, ./img/responsive/image2-980.webp 980w, ./img/responsive/image2-1366.webp 1366w, ./img/responsive/image2-1920.webp 1920w, ./img/responsive/image2-2560.webp 2560w, ./img/responsive/image2-3840.webp 3840w"
-                    sizes="(max-width: 768px) 50vw, (max-width: 980px) 50vw, (max-width: 1366px) 50vw, (max-width: 1920px) 50vw, (max-width: 2560px) 50vw, (max-width: 3840px) 50vw, 1920px"
-                    type="image/webp" media="(prefers-color-scheme: dark)">
-                <source
-                    srcset="./img/responsive/image1-768.webp 768w, ./img/responsive/image1-980.webp 980w, ./img/responsive/image1-1366.webp 1366w, ./img/responsive/image1-1920.webp 1920w, ./img/responsive/image1-2560.webp 2560w, ./img/responsive/image1-3840.webp 3840w"
-                    sizes="(max-width: 768px) 50vw, (max-width: 980px) 50vw, (max-width: 1366px) 50vw, (max-width: 1920px) 50vw, (max-width: 2560px) 50vw, (max-width: 3840px) 50vw, 1920px"
-                    type="image/webp">
-                <source
-                    srcset="./img/responsive/image1-768.jpeg 768w, ./img/responsive/image1-980.jpeg 980w, ./img/responsive/image1-1366.jpeg 1366w, ./img/responsive/image1-1920.jpeg 1920w, ./img/responsive/image1-2560.jpeg 2560w, ./img/responsive/image1-3840.jpeg 3840w"
-                    sizes="(max-width: 768px) 50vw, (max-width: 980px) 50vw, (max-width: 1366px) 50vw, (max-width: 1920px) 50vw, (max-width: 2560px) 50vw, (max-width: 3840px) 50vw, 1920px"
-                    type="image/jpeg" media="(prefers-color-scheme: light)">
-                <source
-                    srcset="./img/responsive/image2-768.jpeg 768w, ./img/responsive/image2-980.jpeg 980w, ./img/responsive/image2-1366.jpeg 1366w, ./img/responsive/image2-1920.jpeg 1920w, ./img/responsive/image2-2560.jpeg 2560w, ./img/responsive/image2-3840.jpeg 3840w"
-                    sizes="(max-width: 768px) 50vw, (max-width: 980px) 50vw, (max-width: 1366px) 50vw, (max-width: 1920px) 50vw, (max-width: 2560px) 50vw, (max-width: 3840px) 50vw, 1920px"
-                    type="image/jpeg" media="(prefers-color-scheme: dark)">
-                <source
-                    srcset="./img/responsive/image1-768.jpeg 768w, ./img/responsive/image1-980.jpeg 980w, ./img/responsive/image1-1366.jpeg 1366w, ./img/responsive/image1-1920.jpeg 1920w, ./img/responsive/image1-2560.jpeg 2560w, ./img/responsive/image1-3840.jpeg 3840w"
-                    sizes="(max-width: 768px) 50vw, (max-width: 980px) 50vw, (max-width: 1366px) 50vw, (max-width: 1920px) 50vw, (max-width: 2560px) 50vw, (max-width: 3840px) 50vw, 1920px"
-                    type="image/jpeg"><img src="./img/primary/image1.jpg" class="aspect-ratio-16-9 border-radius-medium"
-                    alt="Business service in Location" loading="lazy">
-            </picture>
-        </section>
-        <section>
-            <picture class="animate animate-fade-in">
-                <source
-                    srcset="./img/responsive/image1-768.avif 768w, ./img/responsive/image1-980.avif 980w, ./img/responsive/image1-1366.avif 1366w, ./img/responsive/image1-1920.avif 1920w, ./img/responsive/image1-2560.avif 2560w, ./img/responsive/image1-3840.avif 3840w"
-                    sizes="(max-width: 768px) 50vw, (max-width: 980px) 50vw, (max-width: 1366px) 50vw, (max-width: 1920px) 50vw, (max-width: 2560px) 50vw, (max-width: 3840px) 50vw, 1920px"
-                    type="image/avif">
-                <source
-                    srcset="./img/responsive/image1-768.webp 768w, ./img/responsive/image1-980.webp 980w, ./img/responsive/image1-1366.webp 1366w, ./img/responsive/image1-1920.webp 1920w, ./img/responsive/image1-2560.webp 2560w, ./img/responsive/image1-3840.webp 3840w"
-                    sizes="(max-width: 768px) 50vw, (max-width: 980px) 50vw, (max-width: 1366px) 50vw, (max-width: 1920px) 50vw, (max-width: 2560px) 50vw, (max-width: 3840px) 50vw, 1920px"
-                    type="image/webp">
-                <source
-                    srcset="./img/responsive/image1-768.jpeg 768w, ./img/responsive/image1-980.jpeg 980w, ./img/responsive/image1-1366.jpeg 1366w, ./img/responsive/image1-1920.jpeg 1920w, ./img/responsive/image1-2560.jpeg 2560w, ./img/responsive/image1-3840.jpeg 3840w"
-                    sizes="(max-width: 768px) 50vw, (max-width: 980px) 50vw, (max-width: 1366px) 50vw, (max-width: 1920px) 50vw, (max-width: 2560px) 50vw, (max-width: 3840px) 50vw, 1920px"
-                    type="image/jpeg"><img src="./img/primary/image1.jpg" alt="Business service in Location"
-                    loading="lazy">
-            </picture>
-        </section>
-    </main>
-</body>
-
-</html>
+<div class="block background-image">
+    <picture class="animate animate-fade-in">
+        <source
+            srcset="./img/responsive/tourism-photography-light-1.jxl 3840w, ./img/responsive/tourism-photography-light-1-768.jxl 768w, ./img/responsive/tourism-photography-light-1-1024.jxl 1024w, ./img/responsive/tourism-photography-light-1-1366.jxl 1366w, ./img/responsive/tourism-photography-light-1-1920.jxl 1920w, ./img/responsive/tourism-photography-light-1-2560.jxl 2560w"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px"
+            type="image/jxl" media="(prefers-color-scheme: light)">
+        <source
+            srcset="./img/responsive/tourism-photography-light-1.jxl 3840w, ./img/responsive/tourism-photography-light-1-768.jxl 768w, ./img/responsive/tourism-photography-light-1-1024.jxl 1024w, ./img/responsive/tourism-photography-light-1-1366.jxl 1366w, ./img/responsive/tourism-photography-light-1-1920.jxl 1920w, ./img/responsive/tourism-photography-light-1-2560.jxl 2560w"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px"
+            type="image/jxl" media="(prefers-color-scheme: dark)">
+        <source
+            srcset="./img/responsive/tourism-photography-light-1.jxl 3840w, ./img/responsive/tourism-photography-light-1-768.jxl 768w, ./img/responsive/tourism-photography-light-1-1024.jxl 1024w, ./img/responsive/tourism-photography-light-1-1366.jxl 1366w, ./img/responsive/tourism-photography-light-1-1920.jxl 1920w, ./img/responsive/tourism-photography-light-1-2560.jxl 2560w"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px"
+            type="image/jxl">
+        <source
+            srcset="./img/responsive/tourism-photography-light-1.avif 3840w, ./img/responsive/tourism-photography-light-1-768.avif 768w, ./img/responsive/tourism-photography-light-1-1024.avif 1024w, ./img/responsive/tourism-photography-light-1-1366.avif 1366w, ./img/responsive/tourism-photography-light-1-1920.avif 1920w, ./img/responsive/tourism-photography-light-1-2560.avif 2560w"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px"
+            type="image/avif" media="(prefers-color-scheme: light)">
+        <source
+            srcset="./img/responsive/tourism-photography-light-1.avif 3840w, ./img/responsive/tourism-photography-light-1-768.avif 768w, ./img/responsive/tourism-photography-light-1-1024.avif 1024w, ./img/responsive/tourism-photography-light-1-1366.avif 1366w, ./img/responsive/tourism-photography-light-1-1920.avif 1920w, ./img/responsive/tourism-photography-light-1-2560.avif 2560w"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px"
+            type="image/avif" media="(prefers-color-scheme: dark)">
+        <source
+            srcset="./img/responsive/tourism-photography-light-1.avif 3840w, ./img/responsive/tourism-photography-light-1-768.avif 768w, ./img/responsive/tourism-photography-light-1-1024.avif 1024w, ./img/responsive/tourism-photography-light-1-1366.avif 1366w, ./img/responsive/tourism-photography-light-1-1920.avif 1920w, ./img/responsive/tourism-photography-light-1-2560.avif 2560w"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px"
+            type="image/avif">
+        <source
+            srcset="./img/responsive/tourism-photography-light-1.webp 3840w, ./img/responsive/tourism-photography-light-1-768.webp 768w, ./img/responsive/tourism-photography-light-1-1024.webp 1024w, ./img/responsive/tourism-photography-light-1-1366.webp 1366w, ./img/responsive/tourism-photography-light-1-1920.webp 1920w, ./img/responsive/tourism-photography-light-1-2560.webp 2560w"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px"
+            type="image/webp" media="(prefers-color-scheme: light)">
+        <source
+            srcset="./img/responsive/tourism-photography-light-1.webp 3840w, ./img/responsive/tourism-photography-light-1-768.webp 768w, ./img/responsive/tourism-photography-light-1-1024.webp 1024w, ./img/responsive/tourism-photography-light-1-1366.webp 1366w, ./img/responsive/tourism-photography-light-1-1920.webp 1920w, ./img/responsive/tourism-photography-light-1-2560.webp 2560w"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px"
+            type="image/webp" media="(prefers-color-scheme: dark)">
+        <source
+            srcset="./img/responsive/tourism-photography-light-1.webp 3840w, ./img/responsive/tourism-photography-light-1-768.webp 768w, ./img/responsive/tourism-photography-light-1-1024.webp 1024w, ./img/responsive/tourism-photography-light-1-1366.webp 1366w, ./img/responsive/tourism-photography-light-1-1920.webp 1920w, ./img/responsive/tourism-photography-light-1-2560.webp 2560w"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px"
+            type="image/webp">
+        <source
+            srcset="./img/responsive/tourism-photography-light-1.jpeg 3840w, ./img/responsive/tourism-photography-light-1-768.jpeg 768w, ./img/responsive/tourism-photography-light-1-1024.jpeg 1024w, ./img/responsive/tourism-photography-light-1-1366.jpeg 1366w, ./img/responsive/tourism-photography-light-1-1920.jpeg 1920w, ./img/responsive/tourism-photography-light-1-2560.jpeg 2560w"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px"
+            type="image/jpeg" media="(prefers-color-scheme: light)">
+        <source
+            srcset="./img/responsive/tourism-photography-light-1.jpeg 3840w, ./img/responsive/tourism-photography-light-1-768.jpeg 768w, ./img/responsive/tourism-photography-light-1-1024.jpeg 1024w, ./img/responsive/tourism-photography-light-1-1366.jpeg 1366w, ./img/responsive/tourism-photography-light-1-1920.jpeg 1920w, ./img/responsive/tourism-photography-light-1-2560.jpeg 2560w"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px"
+            type="image/jpeg" media="(prefers-color-scheme: dark)">
+        <source
+            srcset="./img/responsive/tourism-photography-light-1.jpeg 3840w, ./img/responsive/tourism-photography-light-1-768.jpeg 768w, ./img/responsive/tourism-photography-light-1-1024.jpeg 1024w, ./img/responsive/tourism-photography-light-1-1366.jpeg 1366w, ./img/responsive/tourism-photography-light-1-1920.jpeg 1920w, ./img/responsive/tourism-photography-light-1-2560.jpeg 2560w"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px"
+            type="image/jpeg"><img src="./img/primary/tourism-photography-light-1.jpg"
+            alt="Tourism photography background" loading="lazy"
+            onerror="this.src='https://placehold.co/3000x2000';this.alt='Tourism photography background';this.onerror=null;">
+    </picture>
+    <div class="background-overlay-1"></div>
+    <div class="padding-medium" aria-live="polite">
+        <div role="group">
+            <h2>Background Image</h2>
+            <p>Card with background image,
+                background-overlay-1 padding-medium.</p><a class="button" href="#">Action</a>
+        </div>
+    </div>
+</div>
