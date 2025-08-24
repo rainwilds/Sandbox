@@ -1239,10 +1239,11 @@
             margin-bottom: var(--space-small);
         } */
 
-        &>video, video ~ div {
+        &>video,
+        video~div {
             grid-column: 1;
             grid-row: 1;
-        }        
+        }
 
         a {
             margin-top: var(--space-tiny);
@@ -1800,6 +1801,10 @@ body>* {
 
         }
 
+    }
+
+    >section:has(data-section-title) {
+        margin: var(--space-large) 0 var(--space-medium) 0;
     }
 
 }
