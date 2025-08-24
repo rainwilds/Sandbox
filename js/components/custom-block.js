@@ -96,7 +96,6 @@ class CustomBlock extends HTMLElement {
             console.warn(`Invalid img-primary-fetchpriority value "${primaryFetchPriority}" in <custom-block>. Using default.`);
         }
         let primaryPosition = this.getAttribute('img-primary-position') || 'none';
-        // Map legacy values for backward compatibility
         if (primaryPosition === 'above') primaryPosition = 'top';
         if (primaryPosition === 'below') primaryPosition = 'bottom';
         const validPositions = ['none', 'top', 'bottom', 'left', 'right'];
@@ -221,7 +220,7 @@ class CustomBlock extends HTMLElement {
         }
 
         return {
-            sectionTitle: this.hasAttribute('heading'),
+            sectionTitle: this.hasAttribute('heading') && !this.hasAttribute('button-text'),
             heading: this.getAttribute('heading') || 'Default Heading',
             headingTag: validHeadingTags.includes(headingTag.toLowerCase()) ? headingTag.toLowerCase() : 'h2',
             text: this.getAttribute('text') || 'Default description text.',
@@ -706,7 +705,7 @@ class CustomBlock extends HTMLElement {
             if (attrs.styleAttribute && !isFallback) {
                 blockElement.setAttribute('style', attrs.styleAttribute);
             }
-            if (!isFallback && attrs.sectionTitle) {
+            if (!isFallback && attrs.sectionTitle && !attrs.buttonText) {
                 blockElement.setAttribute('data-section-title', 'true');
             }
             let innerHTML = backgroundContentHTML || '';
@@ -795,7 +794,7 @@ class CustomBlock extends HTMLElement {
         if (!isFallback && (hasPrimaryImage || hasVideoPrimary)) {
             blockElement.setAttribute('data-primary-position', attrs.primaryPosition);
         }
-        if (!isFallback && attrs.sectionTitle) {
+        if (!isFallback && attrs.sectionTitle && !attrs.buttonText) {
             blockElement.setAttribute('data-section-title', 'true');
         }
         let innerHTML = '';
