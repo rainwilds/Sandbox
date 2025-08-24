@@ -1180,11 +1180,11 @@
             grid-template-columns: 1fr 1fr;
         } */
 
-        &:where([data-primary-position="left"],[data-primary-position="right"]) {
+        &:where([data-primary-position="left"], [data-primary-position="right"]) {
             grid-template-columns: 1fr 1fr;
         }
 
-        
+
 
         &.background-image>* {
             /* Apply positioning to all direct children, including <picture> */
@@ -1210,16 +1210,17 @@
         }
 
 
-        &>:where(video) {
-            grid-row: 1;
-            grid-column: 1;
-        }
-
 
         /* &.border-1 {
             border: solid var(--border-size-small);
             border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
         } */
+
+        &>div:has(+ video),
+        div+video {
+            grid-column: 1;
+            grid-row: 1;
+        }
 
         &>div:not(.background-overlay):has(p) {
             z-index: 2;
