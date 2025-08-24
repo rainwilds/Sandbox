@@ -1239,15 +1239,16 @@
             margin-bottom: var(--space-small);
         } */
 
+        &>video, video + div {
+            grid-column: 1;
+            grid-row: 1;
+        }        
+
         a {
             margin-top: var(--space-tiny);
         }
 
-        div:has(+ video),
-        div+video {
-            grid-column: 1;
-            grid-row: 1;
-        }
+
 
 
     }
