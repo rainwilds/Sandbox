@@ -1239,7 +1239,7 @@
             margin-bottom: var(--space-small);
         } */
 
-        &>video, video + div {
+        &>video, video ~ div {
             grid-column: 1;
             grid-row: 1;
         }        
