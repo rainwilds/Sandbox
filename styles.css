@@ -1180,7 +1180,7 @@
             grid-template-columns: 1fr 1fr;
         } */
 
-        &:where([data-primary-position],[data-background-position]) {
+        &:where([data-primary-position="left"],[data-primary-position="right"]) {
             grid-template-columns: 1fr 1fr;
         }
 
