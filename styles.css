@@ -1216,11 +1216,7 @@
             border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
         } */
 
-        &>div:has(+ video),
-        div+video {
-            grid-column: 1;
-            grid-row: 1;
-        }
+
 
         &>div:not(.background-overlay):has(p) {
             z-index: 2;
@@ -1245,6 +1241,12 @@
 
         a {
             margin-top: var(--space-tiny);
+        }
+
+        div:has(+ video),
+        div+video {
+            grid-column: 1;
+            grid-row: 1;
         }
 
 
