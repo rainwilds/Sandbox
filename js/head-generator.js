@@ -1,8 +1,45 @@
-console.log('** head-generator.js start **');
+/* global document, window, fetch, MutationObserver, console */
+
+// Debug mode toggle (set to false in production)
+const DEBUG_MODE = true;
+
+// Centralized logging function
+function log(...args) {
+    if (DEBUG_MODE) {
+        console.log('[HeadGenerator]', ...args);
+    }
+}
+
+// Error logging function
+function logError(...args) {
+    console.error('[HeadGenerator]', ...args);
+}
+
+// Deep clone utility to avoid circular references
+function deepClone(obj, seen = new WeakMap()) {
+    if (obj === null || typeof obj !== 'object') return obj;
+    if (seen.has(obj)) return null; // Prevent circular refs
+    seen.set(obj, true);
+
+    if (Array.isArray(obj)) {
+        return obj.map(item => deepClone(item, seen)).filter(item => item !== null);
+    }
+
+    const cloned = {};
+    for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            const value = deepClone(obj[key], seen);
+            if (value !== null) {
+                cloned[key] = value;
+            }
+        }
+    }
+    return cloned;
+}
 
 // Manages the <head> section by adding meta tags, styles, scripts, and schema markup
-function manageHead(attributes = {}, businessInfo = {}) {
-    console.log('manageHead called with attributes:', attributes);
+async function manageHead(attributes = {}, businessInfo = {}) {
+    log('manageHead called with attributes:', attributes);
 
     // Ensure <head> exists, creating one if necessary
     let head = document.head || document.createElement('head');
@@ -12,7 +49,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
     const stylesheets = attributes.stylesheets ? attributes.stylesheets.split(',').map(s => s.trim()).filter(Boolean) : ['./styles.css'];
     stylesheets.forEach(href => {
         if (!href) {
-            console.warn('Skipping empty stylesheet URL');
+            log('Skipping empty stylesheet URL');
             return;
         }
         if (!document.querySelector(`link[href="${href}"]`)) {
@@ -21,7 +58,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
             link.href = href;
             link.as = 'style';
             head.appendChild(link);
-            console.log(`Added stylesheet with preload: ${href}`);
+            log(`Added stylesheet with preload: ${href}`);
         }
     });
 
@@ -39,7 +76,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
             link.type = font.type;
             if (font.crossorigin) link.crossOrigin = font.crossorigin;
             head.appendChild(link);
-            console.log(`Added font preload: ${font.href}`);
+            log(`Added font preload: ${font.href}`);
         }
     });
 
@@ -56,7 +93,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
             link.href = href;
             link.as = 'style';
             head.appendChild(link);
-            console.log(`Added Font Awesome stylesheet with preload: ${href}`);
+            log(`Added Font Awesome stylesheet with preload: ${href}`);
         }
     });
 
@@ -65,7 +102,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
         const metaCharset = document.createElement('meta');
         metaCharset.setAttribute('charset', 'UTF-8');
         head.appendChild(metaCharset);
-        console.log('Added charset meta');
+        log('Added charset meta');
     }
 
     if (!document.querySelector('meta[name="viewport"]')) {
@@ -73,7 +110,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
         metaViewport.name = 'viewport';
         metaViewport.content = 'width=device-width, initial-scale=1';
         head.appendChild(metaViewport);
-        console.log('Added viewport meta');
+        log('Added viewport meta');
     }
 
     if (!document.querySelector('meta[name="robots"]')) {
@@ -81,14 +118,14 @@ function manageHead(attributes = {}, businessInfo = {}) {
         metaRobots.name = 'robots';
         metaRobots.content = attributes.robots || 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
         head.appendChild(metaRobots);
-        console.log('Added robots meta');
+        log('Added robots meta');
     }
 
     if (!document.querySelector('title')) {
         const title = document.createElement('title');
         title.textContent = attributes.title || 'Behive';
         head.appendChild(title);
-        console.log('Added title');
+        log('Added title');
     }
 
     if (!document.querySelector('meta[name="author"]')) {
@@ -96,7 +133,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
         metaAuthor.name = 'author';
         metaAuthor.content = attributes.author || 'David Dufourq';
         head.appendChild(metaAuthor);
-        console.log('Added author meta');
+        log('Added author meta');
     }
 
     if (attributes.description && !document.querySelector('meta[name="description"]')) {
@@ -104,9 +141,9 @@ function manageHead(attributes = {}, businessInfo = {}) {
         metaDesc.name = 'description';
         metaDesc.content = attributes.description;
         head.appendChild(metaDesc);
-        console.log('Added description meta with content:', attributes.description);
+        log('Added description meta with content:', attributes.description);
     } else {
-        console.log('Skipped adding meta description. attributes.description:', attributes.description, 'Existing meta:', !!document.querySelector('meta[name="description"]'));
+        log('Skipped adding meta description. attributes.description:', attributes.description, 'Existing meta:', !!document.querySelector('meta[name="description"]'));
     }
 
     if (attributes.keywords && !document.querySelector('meta[name="keywords"]')) {
@@ -114,7 +151,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
         metaKeywords.name = 'keywords';
         metaKeywords.content = attributes.keywords || '';
         head.appendChild(metaKeywords);
-        console.log('Added keywords meta');
+        log('Added keywords meta');
     }
 
     if (attributes.canonical && !document.querySelector('link[rel="canonical"]')) {
@@ -122,7 +159,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
         linkCanonical.rel = 'canonical';
         linkCanonical.href = attributes.canonical || '';
         head.appendChild(linkCanonical);
-        console.log('Added canonical link');
+        log('Added canonical link');
     }
 
     // Add theme-color meta tag with dynamic light/dark support using CSS variables
@@ -140,7 +177,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
         const lightColor = attributes['theme-color-light'] || rootStyle.getPropertyValue('--color-background-light').trim() || '#ffffff';
         const darkColor = attributes['theme-color-dark'] || rootStyle.getPropertyValue('--color-background-dark').trim() || '#000000';
         metaThemeColor.content = isDark ? darkColor : lightColor;
-        console.log('Updated theme-color:', metaThemeColor.content);
+        log('Updated theme-color:', metaThemeColor.content);
     };
 
     updateThemeColor();
@@ -156,49 +193,49 @@ function manageHead(attributes = {}, businessInfo = {}) {
         ogLocale.setAttribute('property', 'og:locale');
         ogLocale.setAttribute('content', attributes['og-locale'] || 'en_AU');
         head.appendChild(ogLocale);
-        console.log('Added og:locale meta');
+        log('Added og:locale meta');
     }
     if (!document.querySelector('meta[property="og:url"]')) {
         const ogUrl = document.createElement('meta');
         ogUrl.setAttribute('property', 'og:url');
         ogUrl.setAttribute('content', attributes['og-url'] || 'https://rainwilds.github.io/Sandbox/');
         head.appendChild(ogUrl);
-        console.log('Added og:url meta');
+        log('Added og:url meta');
     }
     if (!document.querySelector('meta[property="og:type"]')) {
         const ogType = document.createElement('meta');
         ogType.setAttribute('property', 'og:type');
         ogType.setAttribute('content', attributes['og-type'] || 'website');
         head.appendChild(ogType);
-        console.log('Added og:type meta');
+        log('Added og:type meta');
     }
     if (!document.querySelector('meta[property="og:title"]')) {
         const ogTitle = document.createElement('meta');
         ogTitle.setAttribute('property', 'og:title');
         ogTitle.setAttribute('content', attributes['og-title'] || attributes.title || 'Behive');
         head.appendChild(ogTitle);
-        console.log('Added og:title meta');
+        log('Added og:title meta');
     }
     if (!document.querySelector('meta[property="og:description"]')) {
         const ogDescription = document.createElement('meta');
         ogDescription.setAttribute('property', 'og:description');
         ogDescription.setAttribute('content', attributes['og-description'] || attributes.description || '');
         head.appendChild(ogDescription);
-        console.log('Added og:description meta with content:', attributes['og-description'] || attributes.description);
+        log('Added og:description meta with content:', attributes['og-description'] || attributes.description);
     }
     if (!document.querySelector('meta[property="og:image"]')) {
         const ogImage = document.createElement('meta');
         ogImage.setAttribute('property', 'og:image');
         ogImage.setAttribute('content', attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg');
         head.appendChild(ogImage);
-        console.log('Added og:image meta');
+        log('Added og:image meta');
     }
     if (!document.querySelector('meta[property="og:site_name"]')) {
         const ogSiteName = document.createElement('meta');
         ogSiteName.setAttribute('property', 'og:site_name');
         ogSiteName.setAttribute('content', attributes['og-site-name'] || 'Behive');
         head.appendChild(ogSiteName);
-        console.log('Added og:site_name meta');
+        log('Added og:site_name meta');
     }
 
     // Add X meta tags for social media sharing
@@ -207,45 +244,45 @@ function manageHead(attributes = {}, businessInfo = {}) {
         xCard.setAttribute('name', 'x:card');
         xCard.setAttribute('content', attributes['x-card'] || 'summary_large_image');
         head.appendChild(xCard);
-        console.log('Added x:card meta');
+        log('Added x:card meta');
     }
     if (!document.querySelector('meta[property="x:domain"]')) {
         const xDomain = document.createElement('meta');
         xDomain.setAttribute('property', 'x:domain');
         xDomain.setAttribute('content', attributes['x-domain'] || 'rainwilds.github.io');
         head.appendChild(xDomain);
-        console.log('Added x:domain meta');
+        log('Added x:domain meta');
     }
     if (!document.querySelector('meta[property="x:url"]')) {
         const xUrl = document.createElement('meta');
         xUrl.setAttribute('property', 'x:url');
         xUrl.setAttribute('content', attributes['x-url'] || 'https://rainwilds.github.io/Sandbox/');
         head.appendChild(xUrl);
-        console.log('Added x:url meta');
+        log('Added x:url meta');
     }
     if (!document.querySelector('meta[name="x:title"]')) {
         const xTitle = document.createElement('meta');
         xTitle.setAttribute('name', 'x:title');
         xTitle.setAttribute('content', attributes['x-title'] || attributes.title || 'Behive');
         head.appendChild(xTitle);
-        console.log('Added x:title meta');
+        log('Added x:title meta');
     }
     if (!document.querySelector('meta[name="x:description"]')) {
         const xDescription = document.createElement('meta');
         xDescription.setAttribute('name', 'x:description');
         xDescription.setAttribute('content', attributes['x-description'] || attributes.description || '');
         head.appendChild(xDescription);
-        console.log('Added x:description meta with content:', attributes['x-description'] || attributes.description);
+        log('Added x:description meta with content:', attributes['x-description'] || attributes.description);
     }
     if (!document.querySelector('meta[name="x:image"]')) {
         const xImage = document.createElement('meta');
         xImage.setAttribute('name', 'x:image');
         xImage.setAttribute('content', attributes['x-image'] || attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg');
         head.appendChild(xImage);
-        console.log('Added x:image meta');
+        log('Added x:image meta');
     }
 
-    // Add JSON-LD schema markup for SEO (WebSite, LocalBusiness, BreadcrumbList, Product/CollectionPage)
+    // Add JSON-LD schema markup for SEO
     const schemaScript = document.createElement('script');
     schemaScript.type = 'application/ld+json';
     const schemas = {
@@ -318,10 +355,12 @@ function manageHead(attributes = {}, businessInfo = {}) {
     // Handle Product or CollectionPage schema based on attributes
     if (attributes['include-e-commerce']) {
         if (attributes['products']) {
-            console.log('Adding CollectionPage schema');
+            log('Adding CollectionPage schema');
             let products = [];
-            if (attributes['products']) {
+            try {
                 products = JSON.parse(attributes['products']);
+            } catch (error) {
+                logError('Failed to parse products JSON:', error);
             }
             const collectionSchema = {
                 "@type": "CollectionPage",
@@ -356,7 +395,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
             };
             schemas["@graph"].push(collectionSchema);
         } else if (attributes['product-name']) {
-            console.log('Adding Product schema');
+            log('Adding Product schema');
             const productSchema = {
                 "@type": "Product",
                 "name": attributes['product-name'] || 'Behive Premium Video Production Package',
@@ -380,9 +419,13 @@ function manageHead(attributes = {}, businessInfo = {}) {
         }
     }
 
-    schemaScript.textContent = JSON.stringify(schemas, (key, value) => value === undefined ? null : value);
-    head.appendChild(schemaScript);
-    console.log('Added JSON-LD schema');
+    try {
+        schemaScript.textContent = JSON.stringify(deepClone(schemas));
+        head.appendChild(schemaScript);
+        log('Added JSON-LD schema');
+    } catch (error) {
+        logError('Failed to serialize JSON-LD schema:', error);
+    }
 
     // Add favicon links for various devices
     const favicons = [
@@ -399,18 +442,18 @@ function manageHead(attributes = {}, businessInfo = {}) {
             if (favicon.sizes) link.sizes = favicon.sizes;
             if (favicon.type) link.type = favicon.type;
             head.appendChild(link);
-            console.log(`Added favicon: ${favicon.href}`);
+            log(`Added favicon: ${favicon.href}`);
         }
     });
 
     // Initialize Snipcart for e-commerce functionality only if enabled
     if (attributes['include-e-commerce']) {
-        console.log('Snipcart initialization triggered');
+        log('Snipcart initialization triggered');
         if (!document.querySelector('script[data-snipcart]')) {
-            const addSnipcartScripts = () => {
+            const addSnipcartScripts = async () => {
                 if (!document.body) {
-                    setTimeout(addSnipcartScripts, 100);
-                    return;
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    return addSnipcartScripts();
                 }
 
                 const snipcartSettings = document.createElement('script');
@@ -425,7 +468,7 @@ function manageHead(attributes = {}, businessInfo = {}) {
                     };
                 `;
                 document.body.appendChild(snipcartSettings);
-                console.log('Added Snipcart settings');
+                log('Added Snipcart settings');
 
                 const snipcartScript = document.createElement('script');
                 snipcartScript.dataset.snipcart = 'true';
@@ -472,13 +515,13 @@ function manageHead(attributes = {}, businessInfo = {}) {
                     })();
                 `;
                 snipcartScript.onload = () => {
-                    console.log('Added Snipcart script successfully');
+                    log('Added Snipcart script successfully');
                 };
                 snipcartScript.onerror = () => {
-                    console.error('Failed to add Snipcart script');
+                    logError('Failed to add Snipcart script');
                 };
                 document.body.appendChild(snipcartScript);
-                console.log('Added Snipcart script');
+                log('Added Snipcart script');
             };
 
             if (!document.querySelector('link[href="https://cdn.snipcart.com"]')) {
@@ -486,57 +529,53 @@ function manageHead(attributes = {}, businessInfo = {}) {
                 preconnect.rel = 'preconnect';
                 preconnect.href = 'https://cdn.snipcart.com';
                 head.appendChild(preconnect);
-                console.log('Added Snipcart preconnect');
+                log('Added Snipcart preconnect');
             }
 
-            addSnipcartScripts();
+            await addSnipcartScripts();
         }
     }
-
 }
 
 // Initialize head management on DOM load, processing <data-bh-head> attributes
 document.addEventListener('DOMContentLoaded', async () => {
     const dataHeads = document.querySelectorAll('data-bh-head');
-    console.log('Found data-bh-head elements:', dataHeads.length);
-    dataHeads.forEach((dataHead, index) => {
-        console.log(`data-bh-head[${index}] outerHTML:`, dataHead.outerHTML);
-    });
+    log('Found data-bh-head elements:', dataHeads.length);
 
-    // Fetch business-info.json
+    // Fetch business-info.json with async/await
     let businessInfo = {};
     try {
         const response = await fetch('./JSON/business-info.json');
         if (!response.ok) {
-            throw new Error(`Failed to load business-info.json: HTTP ${response.status} - ${response.statusText}`);
+            throw new Error(`HTTP ${response.status} - ${response.statusText}`);
         }
         businessInfo = await response.json();
-        console.log('Added business-info.json:', businessInfo);
+        log('Loaded business-info.json:', businessInfo);
     } catch (error) {
-        console.error('Critical Error: Unable to load business-info.json. Page rendering halted.', error);
+        logError('Failed to load business-info.json:', error);
         document.body.innerHTML = '<div style="color: red; font-size: 2em; text-align: center;">Error: Failed to load business information. Please check the console for details.</div>';
         throw error;
     }
 
-    // Merge attributes from all <data-bh-head> elements, prioritizing non-empty values
+    // Merge attributes from all <data-bh-head> elements
     const attributes = {};
     dataHeads.forEach(dataHead => {
         const newAttributes = {
             title: dataHead.dataset.title,
-            description: dataHead.dataset.description, // Changed from data-text to data-description
+            description: dataHead.dataset.description,
             keywords: dataHead.dataset.keywords,
             author: dataHead.dataset.author,
             canonical: dataHead.dataset.canonical,
             robots: dataHead.dataset.robots,
             'og-title': dataHead.dataset.ogTitle,
-            'og-description': dataHead.dataset.ogDescription, // Changed from ogText to ogDescription
+            'og-description': dataHead.dataset.ogDescription,
             'og-image': dataHead.dataset.ogImage,
             'og-url': dataHead.dataset.ogUrl,
             'og-type': dataHead.dataset.ogType,
             'og-locale': dataHead.dataset.ogLocale,
             'og-site-name': dataHead.dataset.ogSiteName,
             'x-title': dataHead.dataset.xTitle,
-            'x-description': dataHead.dataset.xDescription, // Changed from xText to xDescription
+            'x-description': dataHead.dataset.xDescription,
             'x-image': dataHead.dataset.xImage,
             'x-url': dataHead.dataset.xUrl,
             'x-domain': dataHead.dataset.xDomain,
@@ -575,7 +614,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             components: dataHead.dataset.components || attributes.components
         };
 
-        // Only overwrite attributes if the new value is defined and non-empty
         Object.keys(newAttributes).forEach(key => {
             if (newAttributes[key] !== undefined && newAttributes[key] !== '') {
                 attributes[key] = newAttributes[key];
@@ -583,24 +621,24 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    console.log('Merged attributes:', attributes);
+    log('Merged attributes:', attributes);
 
-    // Remove all <data-bh-head> elements to prevent parsing issues
+    // Remove all <data-bh-head> elements
     dataHeads.forEach(dataHead => {
         if (dataHead.parentNode) {
             dataHead.parentNode.removeChild(dataHead);
-            console.log('Removed data-bh-head element');
+            log('Removed data-bh-head element');
         }
     });
 
-    // Define head in this scope for component loading
+    // Define head for component loading
     const head = document.head || document.createElement('head');
     if (!document.head) document.documentElement.prepend(head);
 
-    // Dynamically load per-page components from data-components
+    // Dynamically load per-page components
     if (attributes.components) {
         const componentList = attributes.components.split(' ').filter(Boolean);
-        componentList.forEach(component => {
+        for (const component of componentList) {
             const scriptPath = `./js/components/${component}.js`;
             if (!document.querySelector(`script[src="${scriptPath}"]`)) {
                 const script = document.createElement('script');
@@ -608,16 +646,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 script.type = 'module';
                 script.defer = true;
                 script.onerror = () => {
-                    console.error(`Failed to add component script: ${scriptPath}`);
+                    logError(`Failed to load component script: ${scriptPath}`);
                 };
                 head.appendChild(script);
-                console.log(`Added component script: ${scriptPath}`);
+                log(`Added component script: ${scriptPath}`);
             }
-        });
+        }
     }
 
     // Pass merged attributes and businessInfo to manageHead
-    manageHead(attributes, businessInfo);
+    await manageHead(attributes, businessInfo);
 });
-
-console.log('** head-generator.js end **');
