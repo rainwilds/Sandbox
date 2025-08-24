@@ -226,7 +226,7 @@ class CustomBlock extends HTMLElement {
             headingTag: validHeadingTags.includes(headingTag.toLowerCase()) ? headingTag.toLowerCase() : 'h2',
             text: this.getAttribute('text') || 'Default description text.',
             buttonHref: this.getAttribute('button-href') || '#',
-            buttonText: this.getAttribute('button-text') || 'Button',
+            buttonText: this.hasAttribute('button-text') ? (this.getAttribute('button-text') || 'Default') : '',
             hasBackgroundOverlay: !!backgroundOverlay,
             backgroundOverlayClass,
             innerBackgroundOverlayClass,
@@ -357,7 +357,7 @@ class CustomBlock extends HTMLElement {
             headingTag: 'h2',
             text: 'Default description text.',
             buttonHref: '#',
-            buttonText: 'Button',
+            buttonText: '',
             hasBackgroundOverlay: false,
             backgroundOverlayClass: '',
             innerBackgroundOverlayClass: '',
@@ -1017,4 +1017,4 @@ try {
     console.error('Error defining CustomBlock element:', error);
 }
 
-console.log('CustomBlock version: 2025-08-22');
+console.log('CustomBlock version: 2025-08-24');

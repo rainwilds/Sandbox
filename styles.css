@@ -1803,9 +1803,6 @@ body>* {
 
     }
 
-    >section:has(data-section-title) {
-        margin: var(--space-large) 0 var(--space-medium) 0;
-    }
 
 }
 
@@ -1916,6 +1913,9 @@ main {
     margin: var(--space-medium) 0 var(--space-medium) 0;
 
 
+    >section:has(data-section-title):not(:has(video)) {
+        margin: var(--space-large) 0 var(--space-medium) 0;
+    }
 
 
 
