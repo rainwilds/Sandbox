@@ -1803,10 +1803,10 @@ body>* {
 
     }
 
+ 
     >section:has(data-section-title):not(:has(video)) {
         margin: var(--space-large) 0 var(--space-medium) 0;
-    }    
-
+    }   
     
 
 
