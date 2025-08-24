@@ -23,23 +23,125 @@ class CustomBlock extends HTMLElement {
     // WeakMap for per-instance caching of render results
     static #renderCacheMap = new WeakMap();
 
-    generatePictureMarkup({ src, lightSrc, darkSrc, alt, isDecorative, customClasses, loading, fetchPriority, extraClasses }) {
-        const classList = [customClasses, ...extraClasses].filter(cls => cls).join(' ').trim();
-        const sources = [];
-        if (lightSrc) sources.push(`<source srcset="${lightSrc}" media="(prefers-color-scheme: light)">`);
-        if (darkSrc) sources.push(`<source srcset="${darkSrc}" media="(prefers-color-scheme: dark)">`);
-        if (src) sources.push(`<source srcset="${src}">`);
-        return `
-            <picture>
-                ${sources.join('')}
-                <img src="${src || lightSrc || darkSrc || 'https://placehold.co/3000x2000'}" 
-                     alt="${isDecorative ? '' : alt || 'Placeholder image'}" 
-                     loading="${loading || 'lazy'}" 
-                     ${fetchPriority ? `fetchpriority="${fetchPriority}"` : ''} 
-                     class="${classList}" 
-                     onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${alt || 'Placeholder image'}';`}this.onerror=null;">
-            </picture>
-        `;
+    // Constants for responsive image generation
+    static #WIDTHS = [768, 1024, 1366, 1920, 2560];
+    static #FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
+    static #VALID_ASPECT_RATIOS = new Set(['16/9', '9/16', '3/2', '2/3', '1/1', '21/9']);
+    static #SIZES_BREAKPOINTS = [
+        { maxWidth: 768, baseValue: '100vw' },
+        { maxWidth: 1024, baseValue: '100vw' },
+        { maxWidth: 1366, baseValue: '100vw' },
+        { maxWidth: 1920, baseValue: '100vw' },
+        { maxWidth: 2560, baseValue: '100vw' },
+    ];
+    static #DEFAULT_SIZE_VALUE = 3840;
+    static #BASE_PATH = './img/responsive/';
+
+    generatePictureMarkup({
+        src,
+        lightSrc = '',
+        darkSrc = '',
+        alt = '',
+        isDecorative = false,
+        mobileWidth = '100vw',
+        tabletWidth = '100vw',
+        desktopWidth = '100vw',
+        aspectRatio = '',
+        includeSchema = false,
+        customClasses = '',
+        loading = 'lazy',
+        fetchPriority = '',
+        extraClasses = []
+    } = {}) {
+        const validExtensions = /\.(jpg|jpeg|png|webp|avif|jxl)$/i;
+        if (!src || !validExtensions.test(src)) {
+            console.error('The "src" parameter must be a valid image path');
+            return '';
+        }
+
+        let baseFilename = src.split('/').pop().split('.').slice(0, -1).join('.');
+        let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
+        let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
+
+        if (lightSrc && !lightBaseFilename) {
+            console.error('Invalid "lightSrc" parameter');
+            return '';
+        }
+        if (darkSrc && !darkBaseFilename) {
+            console.error('Invalid "darkSrc" parameter');
+            return '';
+        }
+
+        const parseWidth = (widthStr) => {
+            const vwMatch = widthStr.match(/(\d+)vw/);
+            if (vwMatch) return parseInt(vwMatch[1]) / 100;
+            const pxMatch = widthStr.match(/(\d+)px/);
+            if (pxMatch) {
+                const winWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
+                return parseInt(pxMatch[1]) / winWidth;
+            }
+            return 1.0;
+        };
+
+        const parsedWidths = {
+            mobile: Math.max(0.1, Math.min(2.0, parseWidth(mobileWidth))),
+            tablet: Math.max(0.1, Math.min(2.0, parseWidth(tabletWidth))),
+            desktop: Math.max(0.1, Math.min(2.0, parseWidth(desktopWidth)))
+        };
+
+        const sizes = [
+            ...CustomBlock.#SIZES_BREAKPOINTS.map(bp => {
+                const percentage = bp.maxWidth <= 768 ? parsedWidths.mobile : (bp.maxWidth <= 1024 ? parsedWidths.tablet : parsedWidths.desktop);
+                return `(max-width: ${bp.maxWidth}px) ${percentage * 100}vw`;
+            }),
+            `${CustomBlock.#DEFAULT_SIZE_VALUE * parsedWidths.desktop}px`
+        ].join(', ');
+
+        const generateSrcset = (filename, format) =>
+            `${CustomBlock.#BASE_PATH}${filename}.${format} 3840w, ` +
+            CustomBlock.#WIDTHS.map(w => `${CustomBlock.#BASE_PATH}${filename}-${w}.${format} ${w}w`).join(', ');
+
+        const allClasses = [
+            ...new Set([
+                ...customClasses.trim().split(/\s+/).filter(Boolean),
+                ...extraClasses
+            ])
+        ];
+        if (aspectRatio && CustomBlock.#VALID_ASPECT_RATIOS.has(aspectRatio)) {
+            allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
+        }
+        const classAttr = allClasses.length ? ` class="${allClasses.join(' ')} animate animate-fade-in"` : ' class="animate animate-fade-in"';
+
+        let pictureHTML = `<picture${classAttr}>`;
+        CustomBlock.#FORMATS.forEach(format => {
+            if (lightSrc && darkSrc) {
+                pictureHTML += `<source srcset="${generateSrcset(lightBaseFilename, format)}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: light)">`;
+                pictureHTML += `<source srcset="${generateSrcset(darkBaseFilename, format)}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: dark)">`;
+            }
+            pictureHTML += `<source srcset="${generateSrcset(baseFilename, format)}" sizes="${sizes}" type="image/${format}">`;
+        });
+
+        const altAttr = isDecorative ? ' alt=""' : (alt ? ` alt="${alt}"` : '');
+        const ariaHiddenAttr = isDecorative ? ' aria-hidden="true"' : '';
+        const validLoading = ['eager', 'lazy'].includes(loading) ? loading : 'lazy';
+        const validFetchPriority = ['high', 'low', 'auto'].includes(fetchPriority) ? fetchPriority : '';
+        const loadingAttr = validLoading ? ` loading="${validLoading}"` : '';
+        const fetchPriorityAttr = validFetchPriority ? ` fetchpriority="${validFetchPriority}"` : '';
+
+        pictureHTML += `<img src="${src}"${altAttr}${ariaHiddenAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${alt || 'Placeholder image'}';`}this.onerror=null;">`;
+        pictureHTML += '</picture>';
+
+        if (includeSchema) {
+            let figureHTML = `<figure${classAttr} itemscope itemtype="https://schema.org/ImageObject">`;
+            figureHTML += pictureHTML;
+            if (alt && alt.trim()) {
+                figureHTML += `<figcaption itemprop="name">${alt}</figcaption>`;
+            }
+            figureHTML += '</figure>';
+            return figureHTML;
+        }
+
+        return pictureHTML;
     }
 
     generateVideoMarkup({ src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses, extraClasses, loading, autoplay, muted, loop, playsinline, disablePip, preload, controls }) {
@@ -593,7 +695,12 @@ class CustomBlock extends HTMLElement {
                     customClasses: isMediaOnly ? attrs.customClasses : mediaCustomClasses,
                     loading: attrs.backgroundLoading,
                     fetchPriority: attrs.backgroundFetchPriority,
-                    extraClasses: []
+                    extraClasses: [],
+                    mobileWidth: attrs.backgroundMobileWidth,
+                    tabletWidth: attrs.backgroundTabletWidth,
+                    desktopWidth: attrs.backgroundDesktopWidth,
+                    aspectRatio: attrs.backgroundAspectRatio,
+                    includeSchema: attrs.backgroundIncludeSchema
                 });
             }
         }
@@ -611,7 +718,12 @@ class CustomBlock extends HTMLElement {
                     customClasses: mediaCustomClasses,
                     loading: attrs.primaryLoading,
                     fetchPriority: attrs.primaryFetchPriority,
-                    extraClasses: []
+                    extraClasses: [],
+                    mobileWidth: attrs.primaryMobileWidth,
+                    tabletWidth: attrs.primaryTabletWidth,
+                    desktopWidth: attrs.primaryDesktopWidth,
+                    aspectRatio: attrs.primaryAspectRatio,
+                    includeSchema: attrs.primaryIncludeSchema
                 });
             } else if (hasVideoPrimary) {
                 const videoId = 'custom-video-' + Math.random().toString(36).substring(2, 11);
