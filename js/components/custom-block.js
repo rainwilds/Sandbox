@@ -1,3 +1,5 @@
+/* global HTMLElement, IntersectionObserver, document, window, JSON, console */
+
 class CustomBlock extends HTMLElement {
     constructor() {
         super();
@@ -6,6 +8,7 @@ class CustomBlock extends HTMLElement {
         this.callbacks = [];
         this.renderCache = null;
         this.lastAttributes = null;
+        this.cachedAttributes = null; // Cache for getAttributes()
         this.observer = new IntersectionObserver((entries) => {
             if (entries[0].isIntersecting) {
                 this.isVisible = true;
@@ -16,6 +19,9 @@ class CustomBlock extends HTMLElement {
         }, { rootMargin: '50px' });
         this.observer.observe(this);
     }
+
+    // WeakMap for per-instance caching of render results
+    static #renderCacheMap = new WeakMap();
 
     generatePictureMarkup({ src, lightSrc, darkSrc, alt, isDecorative, customClasses, loading, fetchPriority, extraClasses }) {
         const classList = [customClasses, ...extraClasses].filter(cls => cls).join(' ').trim();
@@ -86,6 +92,11 @@ class CustomBlock extends HTMLElement {
     }
 
     getAttributes() {
+        // Return cached attributes if available
+        if (this.cachedAttributes) {
+            return this.cachedAttributes;
+        }
+
         const backgroundFetchPriority = this.getAttribute('img-background-fetchpriority') || '';
         const primaryFetchPriority = this.getAttribute('img-primary-fetchpriority') || '';
         const validFetchPriorities = ['high', 'low', 'auto', ''];
@@ -219,7 +230,8 @@ class CustomBlock extends HTMLElement {
             throw new Error('Both video-primary-light-src and video-primary-dark-src must be present when using light/dark themes, or use video-primary-src alone.');
         }
 
-        return {
+        // Cache attributes
+        this.cachedAttributes = {
             sectionTitle: this.hasAttribute('heading') && !this.hasAttribute('button-text'),
             heading: this.getAttribute('heading') || 'Default Heading',
             headingTag: validHeadingTags.includes(headingTag.toLowerCase()) ? headingTag.toLowerCase() : 'h2',
@@ -301,6 +313,7 @@ class CustomBlock extends HTMLElement {
             shadowClass,
             innerShadowClass
         };
+        return this.cachedAttributes;
     }
 
     initialize() {
@@ -336,6 +349,8 @@ class CustomBlock extends HTMLElement {
         }
         this.callbacks = [];
         this.renderCache = null;
+        this.cachedAttributes = null; // Clear cached attributes
+        CustomBlock.#renderCacheMap.delete(this); // Clear WeakMap cache
     }
 
     addCallback(callback) {
@@ -345,9 +360,9 @@ class CustomBlock extends HTMLElement {
     render(isFallback = false) {
         if (!isFallback) {
             const attrString = JSON.stringify(this.getAttributes());
-            if (this.renderCache && this.lastAttributes === attrString) {
+            if (CustomBlock.#renderCacheMap.has(this) && this.lastAttributes === attrString) {
                 console.log('Using cached render for CustomBlock:', this.outerHTML);
-                return this.renderCache.cloneNode(true);
+                return CustomBlock.#renderCacheMap.get(this).cloneNode(true);
             }
         }
         const attrs = isFallback ? {
@@ -550,7 +565,15 @@ class CustomBlock extends HTMLElement {
                             observer.observe(video);
                         }
                         video.addEventListener('error', () => {
-                            console.warn(\`Video source "\${video.currentSrc}" failed to load.\`);
+                            console.warn(\`Video source "\${video.currentSrc}" failed to load. Falling back to poster.\`);
+                            if (newPoster) {
+                                const img = document.createElement('img');
+                                img.src = newPoster;
+                                img.alt = '${attrs.videoBackgroundAlt}';
+                                img.className = video.className;
+                                img.loading = '${attrs.videoBackgroundLoading}';
+                                video.replaceWith(img);
+                            }
                         });
                     })();
                 `;
@@ -679,7 +702,15 @@ class CustomBlock extends HTMLElement {
                                 observer.observe(video);
                             }
                             video.addEventListener('error', () => {
-                                console.warn(\`Video source "\${video.currentSrc}" failed to load.\`);
+                                console.warn(\`Video source "\${video.currentSrc}" failed to load. Falling back to poster.\`);
+                                if (newPoster) {
+                                    const img = document.createElement('img');
+                                    img.src = newPoster;
+                                    img.alt = '${attrs.videoPrimaryAlt}';
+                                    img.className = video.className;
+                                    img.loading = '${attrs.videoPrimaryLoading}';
+                                    video.replaceWith(img);
+                                }
                             });
                         })();
                     `;
@@ -718,7 +749,7 @@ class CustomBlock extends HTMLElement {
                 return this.render(true);
             }
             if (!isFallback) {
-                this.renderCache = blockElement.cloneNode(true);
+                CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
                 this.lastAttributes = JSON.stringify(attrs);
             }
             return blockElement;
@@ -851,7 +882,7 @@ class CustomBlock extends HTMLElement {
             return this.render(true);
         }
         if (!isFallback) {
-            this.renderCache = blockElement.cloneNode(true);
+            CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
             this.lastAttributes = JSON.stringify(attrs);
         }
         return blockElement;
@@ -943,6 +974,7 @@ class CustomBlock extends HTMLElement {
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) return;
+        this.cachedAttributes = null; // Invalidate attribute cache on change
         const criticalAttributes = [
             'section-title',
             'heading',
