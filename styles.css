@@ -1210,7 +1210,7 @@
         }
 
 
-        &>:where(video, div) {
+        &>:where(video) {
             grid-row: 1;
             grid-column: 1;
         }
