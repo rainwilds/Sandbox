@@ -1209,6 +1209,11 @@
             z-index: 1;
         }
 
+        &.icon {
+            font-size: 2rem;
+            margin-bottom: var(--space-tiny);
+        }
+
 
 
         /* &.border-1 {
@@ -1803,9 +1808,9 @@ body>* {
 
     }
 
- 
-  
-    
+
+
+
 
 
 }
@@ -1918,7 +1923,7 @@ main {
 
     >section:has([data-section-title]):not(:has(video)) {
         margin: var(--space-large) 0 var(--space-medium) 0;
-    } 
+    }
 
 
 
