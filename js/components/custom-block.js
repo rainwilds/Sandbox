@@ -688,7 +688,7 @@ class CustomBlock extends HTMLElement {
                 backgroundContentHTML += `<script>${scriptContent}</script>`;
             }
         } else if (hasBackgroundImage) {
-            const src = attrs.backgroundSrc || attrs.backgroundLight.JS
+            const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
             if (!src) {
                 console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
             } else {
