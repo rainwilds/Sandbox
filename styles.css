@@ -1166,9 +1166,9 @@
         /* grid-auto-rows: min-content; */
         height: 100%;
         /* to ensure web component spans designated height */
-        overflow: auto;
+        /* overflow: auto; */
         /* needed to make sure that border-radius on background-images works */
-        min-height: max(330px, 33vh);
+        /* min-height: max(330px, 33vh); */
 
 
 
