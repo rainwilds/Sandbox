@@ -322,6 +322,8 @@ class CustomBlock extends HTMLElement {
         // Validate and sanitize icon attribute
         let icon = this.getAttribute('icon') || '';
         if (icon) {
+            // Remove any HTML entities or quotes to prevent injection
+            icon = icon.replace(/['"]/g, '&quot;').replace(/[<>]/g, m => ({'<': '&lt;', '>': '&gt;'}[m]));
             const parser = new DOMParser();
             const doc = parser.parseFromString(icon, 'text/html');
             const iElement = doc.body.querySelector('i');
@@ -529,7 +531,7 @@ class CustomBlock extends HTMLElement {
             videoBackgroundAlt: 'Video content',
             videoBackgroundLoading: 'lazy',
             videoBackgroundAutoplay: false,
-            videoBackgroundMuted: false,
+            singleBackgroundMuted: false,
             videoBackgroundLoop: false,
             videoBackgroundPlaysinline: false,
             videoBackgroundDisablePip: false,
@@ -1182,4 +1184,6 @@ class CustomBlock extends HTMLElement {
 try {
     customElements.define('custom-block', CustomBlock);
 } catch (error) {
-    console.error('Error defining CustomBlock element
+    console.error('Error defining CustomBlock element:', error);
+}
+console.log('CustomBlock version: 2025-08-24');
