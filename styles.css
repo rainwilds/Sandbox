@@ -1209,7 +1209,7 @@
             z-index: 1;
         }
 
-        &.icon {
+        span.icon {
             font-size: 2rem;
             margin-bottom: var(--space-tiny);
         }
