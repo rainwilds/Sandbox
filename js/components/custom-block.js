@@ -319,6 +319,26 @@ class CustomBlock extends HTMLElement {
         if ((videoPrimaryLightSrc || videoPrimaryDarkSrc) && !(videoPrimaryLightSrc && videoPrimaryDarkSrc) && !videoPrimarySrc) {
             throw new Error('Both video-primary-light-src and video-primary-dark-src must be present when using light/dark themes, or use video-primary-src alone.');
         }
+        // Validate and sanitize icon attribute
+        let icon = this.getAttribute('icon') || '';
+        if (icon) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(icon, 'text/html');
+            const iElement = doc.body.querySelector('i');
+            if (!iElement || !iElement.className.includes('fa-')) {
+                console.warn(`Invalid icon attribute in <custom-block>. Must be a valid Font Awesome <i> tag (e.g., '<i class="fa-chisel fa-regular fa-house"></i>'). Ignoring.`);
+                icon = '';
+            } else {
+                // Ensure only <i> tag with Font Awesome classes is used
+                const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
+                if (validClasses.length === 0) {
+                    console.warn(`Icon attribute in <custom-block> contains no valid Font Awesome classes. Ignoring.`);
+                    icon = '';
+                } else {
+                    icon = `<i class="${validClasses.join(' ')}"></i>`;
+                }
+            }
+        }
         // Cache attributes
         this.cachedAttributes = {
             sectionTitle: this.hasAttribute('heading') && !this.hasAttribute('button-text'),
@@ -326,6 +346,7 @@ class CustomBlock extends HTMLElement {
             headingTag: validHeadingTags.includes(headingTag.toLowerCase()) ? headingTag.toLowerCase() : 'h2',
             subHeading: this.getAttribute('sub-heading') || '',
             subHeadingTag: validHeadingTags.includes(subHeadingTag.toLowerCase()) ? subHeadingTag.toLowerCase() : 'h3',
+            icon,
             text: this.getAttribute('text') || 'Default description text.',
             buttonHref: this.getAttribute('button-href') || '#',
             buttonText: this.hasAttribute('button-text') ? (this.getAttribute('button-text') || 'Default') : '',
@@ -457,6 +478,7 @@ class CustomBlock extends HTMLElement {
             headingTag: 'h2',
             subHeading: '',
             subHeadingTag: 'h3',
+            icon: '',
             text: 'Default description text.',
             buttonHref: '#',
             buttonText: '',
@@ -552,6 +574,7 @@ class CustomBlock extends HTMLElement {
         const isMediaOnly = !isFallback &&
             !this.hasAttribute('heading') &&
             !this.hasAttribute('sub-heading') &&
+            !this.hasAttribute('icon') &&
             !this.hasAttribute('text') &&
             !this.hasAttribute('button-text') &&
             (hasBackgroundImage || hasVideoBackground || hasVideoPrimary);
@@ -915,6 +938,7 @@ class CustomBlock extends HTMLElement {
         const contentHTML = `
         <div${innerDivClass ? ` class="${innerDivClass}"` : ''}${innerDivStyle ? ` style="${innerDivStyle}"` : ''} aria-live="polite">
             <div role="group"${attrs.textAlignment ? ` class="${textAlignMap[attrs.textAlignment]}"` : ''}>
+                ${attrs.icon ? `<span class="icon">${attrs.icon}</span>` : ''}
                 ${attrs.subHeading ? `<${attrs.subHeadingTag}>${attrs.subHeading}</${attrs.subHeadingTag}>` : ''}
                 <${attrs.headingTag}>${attrs.heading}</${attrs.headingTag}>
                 <p>${attrs.text}</p>
@@ -999,6 +1023,7 @@ class CustomBlock extends HTMLElement {
     }
     static get observedAttributes() {
         return [
+            'icon',
             'sub-heading',
             'sub-heading-tag',
             'section-title',
@@ -1086,6 +1111,7 @@ class CustomBlock extends HTMLElement {
         if (!this.isInitialized || !this.isVisible) return;
         this.cachedAttributes = null; // Invalidate attribute cache on change
         const criticalAttributes = [
+            'icon',
             'sub-heading',
             'sub-heading-tag',
             'section-title',
@@ -1156,6 +1182,4 @@ class CustomBlock extends HTMLElement {
 try {
     customElements.define('custom-block', CustomBlock);
 } catch (error) {
-    console.error('Error defining CustomBlock element:', error);
-}
-console.log('CustomBlock version: 2025-08-24');
+    console.error('Error defining CustomBlock element

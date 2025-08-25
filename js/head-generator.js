@@ -45,6 +45,36 @@ async function manageHead(attributes = {}, businessInfo = {}) {
     let head = document.head || document.createElement('head');
     if (!document.head) document.documentElement.prepend(head);
 
+    // Add Font Awesome Kit script
+    const fontAwesomeKitUrl = 'https://kit.fontawesome.com/85d1e578b1.js';
+    if (!document.querySelector(`script[src="${fontAwesomeKitUrl}"]`)) {
+        const script = document.createElement('script');
+        script.src = fontAwesomeKitUrl;
+        script.crossOrigin = 'anonymous';
+        script.async = true; // Load asynchronously to avoid blocking
+        head.appendChild(script);
+        log(`Added Font Awesome Kit script: ${fontAwesomeKitUrl}`);
+    }
+
+    // Comment out original Font Awesome styles
+    /*
+    const fontAwesomeStyles = [
+        './fonts/fontawesome/fontawesome.min.css',
+        './fonts/fontawesome/sharp-light.min.css',
+        './fonts/fontawesome/brands.min.css'
+    ];
+    fontAwesomeStyles.forEach(href => {
+        if (!document.querySelector(`link[href="${href}"]`)) {
+            const link = document.createElement('link');
+            link.rel = 'preload stylesheet';
+            link.href = href;
+            link.as = 'style';
+            head.appendChild(link);
+            log(`Added Font Awesome stylesheet with preload: ${href}`);
+        }
+    });
+    */
+
     // Add stylesheets with combined preload and stylesheet
     const stylesheets = attributes.stylesheets ? attributes.stylesheets.split(',').map(s => s.trim()).filter(Boolean) : ['./styles.css'];
     stylesheets.forEach(href => {
@@ -77,23 +107,6 @@ async function manageHead(attributes = {}, businessInfo = {}) {
             if (font.crossorigin) link.crossOrigin = font.crossorigin;
             head.appendChild(link);
             log(`Added font preload: ${font.href}`);
-        }
-    });
-
-    // Add Font Awesome styles with combined preload and stylesheet
-    const fontAwesomeStyles = [
-        './fonts/fontawesome/fontawesome.min.css',
-        './fonts/fontawesome/sharp-light.min.css',
-        './fonts/fontawesome/brands.min.css'
-    ];
-    fontAwesomeStyles.forEach(href => {
-        if (!document.querySelector(`link[href="${href}"]`)) {
-            const link = document.createElement('link');
-            link.rel = 'preload stylesheet';
-            link.href = href;
-            link.as = 'style';
-            head.appendChild(link);
-            log(`Added Font Awesome stylesheet with preload: ${href}`);
         }
     });
 
