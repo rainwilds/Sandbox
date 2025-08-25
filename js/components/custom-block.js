@@ -322,10 +322,12 @@ class CustomBlock extends HTMLElement {
         // Validate and sanitize icon attribute
         let icon = this.getAttribute('icon') || '';
         if (icon) {
-            // Remove any HTML entities or quotes to prevent injection
-            icon = icon.replace(/['"]/g, '&quot;').replace(/[<>]/g, m => ({'<': '&lt;', '>': '&gt;'}[m]));
+            // Replace quotes to prevent attribute injection
+            icon = icon.replace(/['"]/g, '&quot;');
             const parser = new DOMParser();
-            const doc = parser.parseFromString(icon, 'text/html');
+            // Decode HTML entities before parsing
+            const decodedIcon = icon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+            const doc = parser.parseFromString(decodedIcon, 'text/html');
             const iElement = doc.body.querySelector('i');
             if (!iElement || !iElement.className.includes('fa-')) {
                 console.warn(`Invalid icon attribute in <custom-block>. Must be a valid Font Awesome <i> tag (e.g., '<i class="fa-chisel fa-regular fa-house"></i>'). Ignoring.`);
@@ -531,7 +533,7 @@ class CustomBlock extends HTMLElement {
             videoBackgroundAlt: 'Video content',
             videoBackgroundLoading: 'lazy',
             videoBackgroundAutoplay: false,
-            singleBackgroundMuted: false,
+            videoBackgroundMuted: false,
             videoBackgroundLoop: false,
             videoBackgroundPlaysinline: false,
             videoBackgroundDisablePip: false,
@@ -686,7 +688,7 @@ class CustomBlock extends HTMLElement {
                 backgroundContentHTML += `<script>${scriptContent}</script>`;
             }
         } else if (hasBackgroundImage) {
-            const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
+            const src = attrs.backgroundSrc || attrs.backgroundLight.JS
             if (!src) {
                 console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
             } else {
