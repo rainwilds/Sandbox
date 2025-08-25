@@ -1212,6 +1212,7 @@
         span.icon {
             font-size: 2rem;
             margin-bottom: var(--space-tiny);
+            display: inline-block;
         }
 
 
