@@ -960,15 +960,17 @@
 
             &:root {
 
-                --space-tiny: 0.8rem;
-                --space-small: 1.7rem;
-                --space-medium: 2.3rem;
+                --space-tiny: 0.6rem;
+                --space-small: 1.5rem;
+                --space-medium: 2rem;
                 --space-large: 6rem;
-                --space-huge: 8rem;
+                --space-huge: 7rem;
 
-                --font-2-size-small: 17px;
+                /* --font-2-size-small: 17px;
                 --font-2-size-medium: 20px;
-                --font-2-size-large: 22px;
+                --font-2-size-large: 22px; */
+
+                
 
                 .max-width-small,
                 .max-width-medium,
