@@ -1,6 +1,6 @@
 @font-face {
-    font-family: 'acumin_probold';
-    src: url('./fonts/acumin_pro_bold.woff2') format('woff2');
+    font-family: 'BlackBeard_Regular';
+    src: url('./fonts/BlackBeard_Regular.woff2') format('woff2');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -258,7 +258,7 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
 
-        --font-1-family: acumin_probold,
+        --font-1-family: BlackBeard_Regular,
         Arial,
         sans-serif;
         /* --font-1-weight-light: 400; PLACEHOLDER */
