@@ -1,7 +1,7 @@
 /* global document, window, fetch, MutationObserver, console */
 
 // Debug mode toggle (set to false in production)
-const DEBUG_MODE = false;
+const DEBUG_MODE = true; // Set to true for debugging
 
 // Centralized logging function
 function log(...args) {
@@ -76,7 +76,7 @@ async function manageHead(attributes = {}, businessInfo = {}) {
     }
 
     // Add stylesheets with combined preload and stylesheet
-    const stylesheets = attributes.stylesheets ? attributes.stylesheets.split(',').map(s => s.trim()).filter(Boolean) : ['./styles.css', './css/custom-header.css'];
+    const stylesheets = attributes.stylesheets ? attributes.stylesheets.split(',').map(s => s.trim()).filter(Boolean) : ['./styles.css'];
     stylesheets.forEach(href => {
         if (!href) {
             log('Skipping empty stylesheet URL');
@@ -94,8 +94,8 @@ async function manageHead(attributes = {}, businessInfo = {}) {
 
     // Preload fonts to improve performance
     const fonts = [
-        { href: './fonts/acumin_pro_bold.woff2', type: 'font/woff2', crossorigin: 'anonymous' },
-        { href: './fonts/futura_pt_book.woff2', type: 'font/woff2', crossorigin: 'anonymous' }
+        { href: './Sandbox/fonts/acumin_pro_bold.woff2', type: 'font/woff2', crossorigin: 'anonymous' },
+        { href: './Sandbox/fonts/futura_pt_book.woff2', type: 'font/woff2', crossorigin: 'anonymous' }
     ];
     fonts.forEach(font => {
         if (!document.querySelector(`link[href="${font.href}"]`)) {
