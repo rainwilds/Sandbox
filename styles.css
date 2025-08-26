@@ -1167,6 +1167,7 @@
         display: grid;
         /* grid-auto-rows: min-content; */
         height: 100%;
+        max-height: 100vh;
         /* to ensure web component spans designated height */
         /* overflow: auto; */
         /* needed to make sure that border-radius on background-images works */
