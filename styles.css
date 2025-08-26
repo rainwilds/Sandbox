@@ -970,7 +970,7 @@
                 --font-2-size-medium: 20px;
                 --font-2-size-large: 22px; */
 
-                
+
 
                 .max-width-small,
                 .max-width-medium,
@@ -1805,10 +1805,10 @@ body>* {
 
                 @media (max-width: 768px) {
                     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                }                
+                }
 
 
-                
+
             }
 
             /* for when custom-block is used for text headings/paragraphs */
@@ -1862,15 +1862,40 @@ header {
         background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
 
     } */
+    nav[aria-label="Main navigation"] {
+        margin-top: 1rem;
+
+        & ul.nav-links {
+            list-style: none;
+            display: flex;
+            gap: 1rem;
+            margin: 0;
+            padding: 0;
+
+            & li {
+                & a {
+                    text-decoration: none;
+                    color: var(--text-color, #333);
+                    padding: 0.5rem 1rem;
+                    transition: background-color 0.3s;
+
+                    &:hover {
+                        background-color: var(--hover-bg, #f0f0f0);
+                    }
+
+                    &[aria-disabled="true"] {
+                        opacity: 0.5;
+                        cursor: not-allowed;
+                    }
+                }
+            }
+        }
+    }
 
 
-
-    >div:has(nav) {
-        /* navigation bar */
+    /* >div:has(nav) {
 
         height: min-content;
-        /* background: light-dark(var(--color-static-dark-2), var(--color-static-light-2));X */
-        /* backdrop-filter: var(--blur-large); X*/
         display: inline-grid;
         grid-template-columns: repeat(2, min-content);
         grid-column: gutter-left / gutter-right;
@@ -1895,7 +1920,7 @@ header {
             }
         }
 
-    }
+    } */
 
     >section {
         /* heading and paragraph */
