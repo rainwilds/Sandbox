@@ -73,7 +73,7 @@ class CustomHeader extends CustomBlock {
                         alt: attrs.logoAlt,
                         isDecorative: !attrs.logoAlt,
                         customClasses: `logo logo-${attrs.navPosition}`,
-                        loading: 'eager', // Load logo eagerly for branding
+                        loading: 'eager',
                         fetchPriority: 'high'
                     })}
                 </a>
@@ -97,24 +97,18 @@ class CustomHeader extends CustomBlock {
         // Combine content based on nav-position
         let innerHTML = '';
         if (attrs.navPosition === 'above') {
-            innerHTML = navHTML + blockElement.innerHTML + logoHTML;
+            innerHTML = navHTML + logoHTML + blockElement.innerHTML;
         } else if (attrs.navPosition === 'below') {
             innerHTML = logoHTML + blockElement.innerHTML + navHTML;
-        } else if (attrs.navPosition === 'left') {
-            innerHTML = `<div class="header-content">${navHTML}${logoHTML}${blockElement.innerHTML}</div>`;
-        } else if (attrs.navPosition === 'center') {
-            innerHTML = `<div class="header-content">${logoHTML}${navHTML}${blockElement.innerHTML}</div>`;
         } else {
-            innerHTML = `<div class="header-content">${logoHTML}${blockElement.innerHTML}${navHTML}</div>`;
+            innerHTML = `<div class="header-content nav-${attrs.navPosition}">${logoHTML}${blockElement.innerHTML}${navHTML}</div>`;
         }
 
         headerElement.innerHTML = innerHTML;
 
         // Cache the result in the parent class
         if (!isFallback) {
-            // Instead of accessing #renderCacheMap directly, let super.render handle caching
-            // Ensure parent class caches the result by calling super.render again if needed
-            super.render(isFallback); // Ensure parent caching is triggered
+            super.render(isFallback); // Ensure parent caching
         }
 
         return headerElement;

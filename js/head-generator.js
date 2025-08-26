@@ -37,6 +37,25 @@ function deepClone(obj, seen = new WeakMap()) {
     return cloned;
 }
 
+// Load a script and return a promise that resolves when loaded
+async function loadScript(src, type = 'module', defer = true) {
+    return new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = src;
+        script.type = type;
+        if (defer) script.defer = true;
+        script.onload = () => {
+            log(`Loaded script: ${src}`);
+            resolve();
+        };
+        script.onerror = () => {
+            logError(`Failed to load script: ${src}`);
+            reject(new Error(`Failed to load script: ${src}`));
+        };
+        document.head.appendChild(script);
+    });
+}
+
 // Manages the <head> section by adding meta tags, styles, scripts, and schema markup
 async function manageHead(attributes = {}, businessInfo = {}) {
     log('manageHead called with attributes:', attributes);
@@ -51,32 +70,13 @@ async function manageHead(attributes = {}, businessInfo = {}) {
         const script = document.createElement('script');
         script.src = fontAwesomeKitUrl;
         script.crossOrigin = 'anonymous';
-        script.async = true; // Load asynchronously to avoid blocking
+        script.async = true;
         head.appendChild(script);
         log(`Added Font Awesome Kit script: ${fontAwesomeKitUrl}`);
     }
 
-    // Comment out original Font Awesome styles
-    /*
-    const fontAwesomeStyles = [
-        './fonts/fontawesome/fontawesome.min.css',
-        './fonts/fontawesome/sharp-light.min.css',
-        './fonts/fontawesome/brands.min.css'
-    ];
-    fontAwesomeStyles.forEach(href => {
-        if (!document.querySelector(`link[href="${href}"]`)) {
-            const link = document.createElement('link');
-            link.rel = 'preload stylesheet';
-            link.href = href;
-            link.as = 'style';
-            head.appendChild(link);
-            log(`Added Font Awesome stylesheet with preload: ${href}`);
-        }
-    });
-    */
-
     // Add stylesheets with combined preload and stylesheet
-    const stylesheets = attributes.stylesheets ? attributes.stylesheets.split(',').map(s => s.trim()).filter(Boolean) : ['./styles.css'];
+    const stylesheets = attributes.stylesheets ? attributes.stylesheets.split(',').map(s => s.trim()).filter(Boolean) : ['./styles.css', './css/custom-header.css'];
     stylesheets.forEach(href => {
         if (!href) {
             log('Skipping empty stylesheet URL');
@@ -110,7 +110,7 @@ async function manageHead(attributes = {}, businessInfo = {}) {
         }
     });
 
-    // Add essential meta tags (charset, viewport, robots, title, author, etc.)
+    // Add essential meta tags
     if (!document.querySelector('meta[charset]')) {
         const metaCharset = document.createElement('meta');
         metaCharset.setAttribute('charset', 'UTF-8');
@@ -155,8 +155,6 @@ async function manageHead(attributes = {}, businessInfo = {}) {
         metaDesc.content = attributes.description;
         head.appendChild(metaDesc);
         log('Added description meta with content:', attributes.description);
-    } else {
-        log('Skipped adding meta description. attributes.description:', attributes.description, 'Existing meta:', !!document.querySelector('meta[name="description"]'));
     }
 
     if (attributes.keywords && !document.querySelector('meta[name="keywords"]')) {
@@ -175,7 +173,7 @@ async function manageHead(attributes = {}, businessInfo = {}) {
         log('Added canonical link');
     }
 
-    // Add theme-color meta tag with dynamic light/dark support using CSS variables
+    // Add theme-color meta tag
     const updateThemeColor = () => {
         let metaThemeColor = document.querySelector('meta[name="theme-color"]');
         if (!metaThemeColor) {
@@ -200,7 +198,7 @@ async function manageHead(attributes = {}, businessInfo = {}) {
     bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeColor);
 
-    // Add Open Graph (OG) meta tags for social media sharing
+    // Add Open Graph meta tags
     if (!document.querySelector('meta[property="og:locale"]')) {
         const ogLocale = document.createElement('meta');
         ogLocale.setAttribute('property', 'og:locale');
@@ -251,7 +249,7 @@ async function manageHead(attributes = {}, businessInfo = {}) {
         log('Added og:site_name meta');
     }
 
-    // Add X meta tags for social media sharing
+    // Add X meta tags
     if (!document.querySelector('meta[name="x:card"]')) {
         const xCard = document.createElement('meta');
         xCard.setAttribute('name', 'x:card');
@@ -295,7 +293,7 @@ async function manageHead(attributes = {}, businessInfo = {}) {
         log('Added x:image meta');
     }
 
-    // Add JSON-LD schema markup for SEO
+    // Add JSON-LD schema markup
     const schemaScript = document.createElement('script');
     schemaScript.type = 'application/ld+json';
     const schemas = {
@@ -365,73 +363,6 @@ async function manageHead(attributes = {}, businessInfo = {}) {
         ]
     };
 
-    // Handle Product or CollectionPage schema based on attributes
-    if (attributes['include-e-commerce']) {
-        if (attributes['products']) {
-            log('Adding CollectionPage schema');
-            let products = [];
-            try {
-                products = JSON.parse(attributes['products']);
-            } catch (error) {
-                logError('Failed to parse products JSON:', error);
-            }
-            const collectionSchema = {
-                "@type": "CollectionPage",
-                "@id": (attributes['canonical'] || attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/') + "#collectionpage",
-                "url": attributes['canonical'] || attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/',
-                "name": attributes['collection-name'] || attributes.title || 'Behive Shop',
-                "description": attributes['collection-description'] || attributes.description || 'Browse our curated selection of products.',
-                "isPartOf": { "@id": (attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/') + "#website" },
-                "inLanguage": attributes['og-locale'] || 'en-AU',
-                "mainEntity": {
-                    "@type": "ItemList",
-                    "itemListElement": products.map(product => ({
-                        "@type": "Product",
-                        "name": product.name || 'Unnamed Product',
-                        "url": product.url || '',
-                        "image": product.image || attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/product.jpg',
-                        "description": product.description || attributes.description || '',
-                        "sku": product.sku || '',
-                        "brand": {
-                            "@type": "Brand",
-                            "name": product.brand || 'Behive'
-                        },
-                        "offers": {
-                            "@type": "Offer",
-                            "priceCurrency": product.priceCurrency || 'AUD',
-                            "price": product.price || '0.00',
-                            "availability": product.availability || 'https://schema.org/InStock',
-                            "url": product.url || ''
-                        }
-                    }))
-                }
-            };
-            schemas["@graph"].push(collectionSchema);
-        } else if (attributes['product-name']) {
-            log('Adding Product schema');
-            const productSchema = {
-                "@type": "Product",
-                "name": attributes['product-name'] || 'Behive Premium Video Production Package',
-                "url": attributes['product-url'] || 'https://rainwilds.github.io/Sandbox/products/video-package',
-                "description": attributes['product-description'] || attributes.description || 'Professional video production services for events and marketing.',
-                "image": attributes['product-image'] || attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/video-package.jpg',
-                "sku": attributes['product-sku'] || 'BH-VIDEO-002',
-                "brand": {
-                    "@type": "Brand",
-                    "name": attributes['product-brand'] || 'Behive'
-                },
-                "offers": {
-                    "@type": "Offer",
-                    "priceCurrency": attributes['product-price-currency'] || 'AUD',
-                    "price": attributes['product-price'] || '1500.00',
-                    "availability": attributes['product-availability'] || 'https://schema.org/InStock',
-                    "url": attributes['product-url'] || 'https://rainwilds.github.io/Sandbox/products/video-package'
-                }
-            };
-            schemas["@graph"].push(productSchema);
-        }
-    }
-
     try {
         schemaScript.textContent = JSON.stringify(deepClone(schemas));
         head.appendChild(schemaScript);
@@ -442,10 +373,10 @@ async function manageHead(attributes = {}, businessInfo = {}) {
 
     // Add favicon links for various devices
     const favicons = [
-        { rel: 'apple-touch-icon', sizes: '180x180', href: './img/icons/apple-touch-icon.png' },
-        { rel: 'icon', type: 'image/png', sizes: '32x32', href: './img/icons/favicon-32x32.png' },
-        { rel: 'icon', type: 'image/png', sizes: '16x16', href: './img/icons/favicon-16x16.png' },
-        { rel: 'icon', type: 'image/x-icon', href: './img/icons/favicon.ico' }
+        { rel: 'apple-touch-icon', sizes: '180x180', href: './Sandbox/img/icons/apple-touch-icon.png' },
+        { rel: 'icon', type: 'image/png', sizes: '32x32', href: './Sandbox/img/icons/favicon-32x32.png' },
+        { rel: 'icon', type: 'image/png', sizes: '16x16', href: './Sandbox/img/icons/favicon-16x16.png' },
+        { rel: 'icon', type: 'image/x-icon', href: './Sandbox/img/icons/favicon.ico' }
     ];
     favicons.forEach(favicon => {
         if (!document.querySelector(`link[href="${favicon.href}"]`)) {
@@ -459,7 +390,7 @@ async function manageHead(attributes = {}, businessInfo = {}) {
         }
     });
 
-    // Initialize Snipcart for e-commerce functionality only if enabled
+    // Initialize Snipcart if enabled
     if (attributes['include-e-commerce']) {
         log('Snipcart initialization triggered');
         if (!document.querySelector('script[data-snipcart]')) {
@@ -476,7 +407,7 @@ async function manageHead(attributes = {}, businessInfo = {}) {
                         publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
                         loadStrategy: 'on-user-interaction',
                         version: '3.7.3',
-                        templatesUrl: '/Sandbox//plugins/snipcart.html',
+                        templatesUrl: '/Sandbox/plugins/snipcart.html',
                         modalStyle: 'side',
                     };
                 `;
@@ -550,12 +481,12 @@ async function manageHead(attributes = {}, businessInfo = {}) {
     }
 }
 
-// Initialize head management on DOM load, processing <data-bh-head> attributes
+// Initialize head management on DOM load
 document.addEventListener('DOMContentLoaded', async () => {
     const dataHeads = document.querySelectorAll('data-bh-head');
     log('Found data-bh-head elements:', dataHeads.length);
 
-    // Fetch business-info.json with async/await
+    // Fetch business-info.json
     let businessInfo = {};
     try {
         const response = await fetch('./JSON/business-info.json');
@@ -644,25 +575,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Define head for component loading
-    const head = document.head || document.createElement('head');
-    if (!document.head) document.documentElement.prepend(head);
-
-    // Dynamically load per-page components
+    // Load components sequentially
     if (attributes.components) {
         const componentList = attributes.components.split(' ').filter(Boolean);
         for (const component of componentList) {
             const scriptPath = `./js/components/${component}.js`;
             if (!document.querySelector(`script[src="${scriptPath}"]`)) {
-                const script = document.createElement('script');
-                script.src = scriptPath;
-                script.type = 'module';
-                script.defer = true;
-                script.onerror = () => {
-                    logError(`Failed to load component script: ${scriptPath}`);
-                };
-                head.appendChild(script);
-                log(`Added component script: ${scriptPath}`);
+                await loadScript(scriptPath, 'module', true);
             }
         }
     }
