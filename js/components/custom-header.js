@@ -18,12 +18,12 @@
             }
 
             static get observedAttributes() {
-                return [...super.observedAttributes, 'nav', 'sticky', 'logo-primary-src', 'logo-light-src', 'logo-dark-src', 'logo-primary-alt', 'logo-light-alt', 'logo-dark-alt', 'nav-position'];
+                return [...super.observedAttributes, 'nav-links', 'sticky', 'logo-primary-src', 'logo-light-src', 'logo-dark-src', 'logo-primary-alt', 'logo-light-alt', 'logo-dark-alt', 'nav-position'];
             }
 
             getAttributes() {
                 const attrs = super.getAttributes();
-                attrs.nav = this.getAttribute('nav') ? JSON.parse(this.getAttribute('nav')) : null;
+                attrs.navLinks = this.getAttribute('nav-links') ? JSON.parse(this.getAttribute('nav-links')) : null;
                 attrs.sticky = this.hasAttribute('sticky'); // Makes the header fixed at the top of the viewport with z-index 1000
                 attrs.logoPrimarySrc = this.getAttribute('logo-primary-src') || '';
                 attrs.logoLightSrc = this.getAttribute('logo-light-src') || '';
@@ -46,23 +46,8 @@
                     console.error('logo-dark-alt is required when logo-dark-src is provided.');
                 }
                 attrs.navPosition = this.getAttribute('nav-position') || 'right';
-                // Use alignMap from CustomBlock for valid nav-position options
-                const alignMap = {
-                    'center': 'place-self-center',
-                    'top': 'place-self-top',
-                    'bottom': 'place-self-bottom',
-                    'left': 'place-self-left',
-                    'right': 'place-self-right',
-                    'top-left': 'place-self-top-left',
-                    'top-center': 'place-self-top-center',
-                    'top-right': 'place-self-top-right',
-                    'bottom-left': 'place-self-bottom-left',
-                    'bottom-center': 'place-self-bottom-center',
-                    'bottom-right': 'place-self-bottom-right',
-                    'center-left': 'place-self-center-left',
-                    'center-right': 'place-self-center-right'
-                };
-                const validNavPositions = Object.keys(alignMap);
+                // Define valid nav-position options for structural placement
+                const validNavPositions = ['above', 'below', 'right', 'left', 'center'];
                 if (!validNavPositions.includes(attrs.navPosition)) {
                     console.warn(`Invalid nav-position "${attrs.navPosition}" in <custom-header>. Must be one of ${validNavPositions.join(', ')}. Defaulting to 'right'.`);
                     attrs.navPosition = 'right';
@@ -122,16 +107,16 @@
                     `;
                 }
 
-                // Generate navigation markup with hamburger toggle
+                // Generate navigation markup with hamburger toggle, no nav-position class
                 let navHTML = '';
-                if (attrs.nav && Array.isArray(attrs.nav) && !isFallback) {
+                if (attrs.navLinks && Array.isArray(attrs.navLinks) && !isFallback) {
                     navHTML = `
-                        <div><nav aria-label="Main navigation" class="nav-${attrs.navPosition}">
+                        <div><nav aria-label="Main navigation">
                             <button class="hamburger" aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
                                 <span class="hamburger-icon">☰</span>
                             </button>
                             <ul class="nav-links" id="nav-menu">
-                                ${attrs.nav.map(link => `
+                                ${attrs.navLinks.map(link => `
                                     <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
                                 `).join('')}
                             </ul>
@@ -139,19 +124,19 @@
                     `;
                 }
 
-                // Combine content based on nav-position
+                // Combine content based on nav-position for structural placement
                 let innerHTML = blockElement.innerHTML; // Start with existing content
                 if (attrs.navPosition === 'above') {
                     innerHTML = navHTML + logoHTML + innerHTML;
                 } else if (attrs.navPosition === 'below') {
                     innerHTML = logoHTML + innerHTML + navHTML;
                 } else {
-                    innerHTML = logoHTML + innerHTML + navHTML; // No header-content wrapper
+                    innerHTML = logoHTML + innerHTML + navHTML; // Side-by-side or default layout
                 }
                 blockElement.innerHTML = innerHTML;
 
                 // Add event listener for hamburger menu
-                if (attrs.nav && !isFallback) {
+                if (attrs.navLinks && !isFallback) {
                     const hamburger = blockElement.querySelector('.hamburger');
                     const navMenu = blockElement.querySelector('#nav-menu');
                     if (hamburger && navMenu) {
@@ -182,7 +167,7 @@
 
             attributeChangedCallback(name, oldValue, newValue) {
                 super.attributeChangedCallback(name, oldValue, newValue);
-                if (['nav', 'sticky', 'logo-primary-src', 'logo-light-src', 'logo-dark-src', 'logo-primary-alt', 'logo-light-alt', 'logo-dark-alt', 'nav-position'].includes(name) && this.isInitialized && this.isVisible) {
+                if (['nav-links', 'sticky', 'logo-primary-src', 'logo-light-src', 'logo-dark-src', 'logo-primary-alt', 'logo-light-alt', 'logo-dark-alt', 'nav-position'].includes(name) && this.isInitialized && this.isVisible) {
                     this.initialize();
                 }
             }
