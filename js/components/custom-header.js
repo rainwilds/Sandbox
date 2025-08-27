@@ -1,8 +1,9 @@
 /* global HTMLElement, document */
+
 (async () => {
     try {
-        // Dynamically import custom-block.js with absolute path
-        const { CustomBlock } = await import('https://rainwilds.github.io/Sandbox/js/components/custom-block.js');
+        // Import CustomBlock from the local file
+        const { CustomBlock } = await import('./custom-block.js');
         console.log('Successfully imported CustomBlock');
 
         class CustomHeader extends CustomBlock {

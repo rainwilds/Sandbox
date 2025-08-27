@@ -1,4 +1,5 @@
 /* global HTMLElement, IntersectionObserver, document, window, JSON, console */
+
 class CustomBlock extends HTMLElement {
     constructor() {
         super();
@@ -1183,9 +1184,14 @@ class CustomBlock extends HTMLElement {
         }
     }
 }
+
 try {
     customElements.define('custom-block', CustomBlock);
 } catch (error) {
     console.error('Error defining CustomBlock element:', error);
 }
+
 console.log('CustomBlock version: 2025-08-24');
+
+// Export the CustomBlock class
+export { CustomBlock };
