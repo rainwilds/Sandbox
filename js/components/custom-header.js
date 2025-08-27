@@ -18,12 +18,12 @@
             }
 
             static get observedAttributes() {
-                return [...super.observedAttributes, 'nav-links', 'sticky', 'logo-primary-src', 'logo-light-src', 'logo-dark-src', 'logo-primary-alt', 'logo-light-alt', 'logo-dark-alt', 'nav-position'];
+                return [...super.observedAttributes, 'nav', 'sticky', 'logo-primary-src', 'logo-light-src', 'logo-dark-src', 'logo-primary-alt', 'logo-light-alt', 'logo-dark-alt', 'nav-position'];
             }
 
             getAttributes() {
                 const attrs = super.getAttributes();
-                attrs.navLinks = this.getAttribute('nav-links') ? JSON.parse(this.getAttribute('nav-links')) : null;
+                attrs.nav = this.getAttribute('nav') ? JSON.parse(this.getAttribute('nav')) : null;
                 attrs.sticky = this.hasAttribute('sticky'); // Makes the header fixed at the top of the viewport with z-index 1000
                 attrs.logoPrimarySrc = this.getAttribute('logo-primary-src') || '';
                 attrs.logoLightSrc = this.getAttribute('logo-light-src') || '';
@@ -107,16 +107,16 @@
                     `;
                 }
 
-                // Generate navigation markup with hamburger toggle, no nav-position class
+                // Generate navigation markup with hamburger toggle
                 let navHTML = '';
-                if (attrs.navLinks && Array.isArray(attrs.navLinks) && !isFallback) {
+                if (attrs.nav && Array.isArray(attrs.nav) && !isFallback) {
                     navHTML = `
                         <div><nav aria-label="Main navigation">
                             <button class="hamburger" aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
                                 <span class="hamburger-icon">☰</span>
                             </button>
                             <ul class="nav-links" id="nav-menu">
-                                ${attrs.navLinks.map(link => `
+                                ${attrs.nav.map(link => `
                                     <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
                                 `).join('')}
                             </ul>
@@ -125,18 +125,18 @@
                 }
 
                 // Combine content based on nav-position for structural placement
-                let innerHTML = blockElement.innerHTML; // Start with existing content
+                let innerHTML = blockElement.innerHTML; // Start with existing content from super.render
                 if (attrs.navPosition === 'above') {
-                    innerHTML = navHTML + logoHTML + innerHTML;
+                    innerHTML = navHTML + innerHTML; // Nav before existing content (video, etc.)
                 } else if (attrs.navPosition === 'below') {
-                    innerHTML = logoHTML + innerHTML + navHTML;
+                    innerHTML = innerHTML + navHTML; // Nav after existing content
                 } else {
-                    innerHTML = logoHTML + innerHTML + navHTML; // Side-by-side or default layout
+                    innerHTML = innerHTML + navHTML; // Nav as sibling, appended after video and other content
                 }
                 blockElement.innerHTML = innerHTML;
 
                 // Add event listener for hamburger menu
-                if (attrs.navLinks && !isFallback) {
+                if (attrs.nav && !isFallback) {
                     const hamburger = blockElement.querySelector('.hamburger');
                     const navMenu = blockElement.querySelector('#nav-menu');
                     if (hamburger && navMenu) {
@@ -167,7 +167,7 @@
 
             attributeChangedCallback(name, oldValue, newValue) {
                 super.attributeChangedCallback(name, oldValue, newValue);
-                if (['nav-links', 'sticky', 'logo-primary-src', 'logo-light-src', 'logo-dark-src', 'logo-primary-alt', 'logo-light-alt', 'logo-dark-alt', 'nav-position'].includes(name) && this.isInitialized && this.isVisible) {
+                if (['nav', 'sticky', 'logo-primary-src', 'logo-light-src', 'logo-dark-src', 'logo-primary-alt', 'logo-light-alt', 'logo-dark-alt', 'nav-position'].includes(name) && this.isInitialized && this.isVisible) {
                     this.initialize();
                 }
             }
