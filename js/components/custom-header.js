@@ -78,9 +78,10 @@
                     blockElement = document.createElement('div'); // Fallback to a div if rendering fails
                 }
 
-                // Set role and classes directly on the blockElement, avoiding extra wrapper
+                // Set role and classes directly on the blockElement
                 blockElement.setAttribute('role', 'banner');
                 const headerClasses = [
+                    'block', // Explicitly set 'block' class as per desired output
                     attrs.backgroundColorClass,
                     attrs.borderClass,
                     attrs.borderRadiusClass,
@@ -106,7 +107,7 @@
                 let logoHTML = '';
                 if (attrs.logoPrimarySrc && !isFallback) {
                     logoHTML = `
-                        <a href="/" class="logo-link">
+                        <div><a href="/" class="logo-link">
                             ${this.generatePictureMarkup({
                                 src: attrs.logoPrimarySrc,
                                 lightSrc: attrs.logoLightSrc || attrs.logoPrimarySrc,
@@ -117,7 +118,7 @@
                                 loading: 'eager',
                                 fetchPriority: 'high'
                             })}
-                        </a>
+                        </a></div>
                     `;
                 }
 
@@ -125,7 +126,7 @@
                 let navHTML = '';
                 if (attrs.nav && Array.isArray(attrs.nav) && !isFallback) {
                     navHTML = `
-                        <nav aria-label="Main navigation" class="nav-${attrs.navPosition}">
+                        <div><nav aria-label="Main navigation" class="nav-${attrs.navPosition}">
                             <button class="hamburger" aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
                                 <span class="hamburger-icon">☰</span>
                             </button>
@@ -134,7 +135,7 @@
                                     <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
                                 `).join('')}
                             </ul>
-                        </nav>
+                        </nav></div>
                     `;
                 }
 
@@ -145,7 +146,7 @@
                 } else if (attrs.navPosition === 'below') {
                     innerHTML = logoHTML + innerHTML + navHTML;
                 } else {
-                    innerHTML = `${logoHTML}${innerHTML}${navHTML}`; // Removed the header-content div wrapper
+                    innerHTML = logoHTML + innerHTML + navHTML; // No header-content wrapper
                 }
                 blockElement.innerHTML = innerHTML;
 
