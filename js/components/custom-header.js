@@ -14,7 +14,7 @@
                 this.setAttribute('inner-alignment', this.getAttribute('inner-alignment') || 'center');
                 this.setAttribute('text-alignment', this.getAttribute('text-alignment') || 'center');
                 this.setAttribute('class', this.getAttribute('class') || 'padding-large');
-                this.setAttribute('role', 'banner');
+                this.setAttribute('role', 'banner'); // Set role on the custom element itself
             }
 
             static get observedAttributes() {
@@ -72,17 +72,14 @@
 
             render(isFallback = false) {
                 const attrs = this.getAttributes();
-                const headerElement = document.createElement('header');
-                headerElement.setAttribute('role', 'banner');
-
-                // Get the base block content from CustomBlock
-                const blockElement = super.render(isFallback);
+                const blockElement = super.render(isFallback); // Use the base element from CustomBlock
                 if (!blockElement) {
                     console.error('Failed to render base CustomBlock for CustomHeader');
-                    return headerElement;
+                    return document.createElement('div'); // Fallback to a div if rendering fails
                 }
 
-                // Combine header classes
+                // Set role and classes directly on the blockElement
+                blockElement.setAttribute('role', 'banner');
                 const headerClasses = [
                     attrs.backgroundColorClass,
                     attrs.borderClass,
@@ -92,12 +89,12 @@
                     ...attrs.customClasses.split(' ').filter(cls => cls)
                 ].filter(cls => cls).join(' ').trim();
                 if (headerClasses) {
-                    headerElement.className = headerClasses;
+                    blockElement.className = headerClasses;
                 }
 
                 // Transfer styles from block to header
                 if (attrs.styleAttribute && !isFallback) {
-                    headerElement.setAttribute('style', attrs.styleAttribute);
+                    blockElement.setAttribute('style', attrs.styleAttribute);
                 }
 
                 // Generate logo markup
@@ -137,21 +134,20 @@
                 }
 
                 // Combine content based on nav-position
-                let innerHTML = '';
+                let innerHTML = blockElement.innerHTML; // Start with existing content
                 if (attrs.navPosition === 'above') {
-                    innerHTML = navHTML + logoHTML + blockElement.innerHTML;
+                    innerHTML = navHTML + logoHTML + innerHTML;
                 } else if (attrs.navPosition === 'below') {
-                    innerHTML = logoHTML + blockElement.innerHTML + navHTML;
+                    innerHTML = logoHTML + innerHTML + navHTML;
                 } else {
-                    innerHTML = `<div class="header-content nav-${attrs.navPosition}">${logoHTML}${blockElement.innerHTML}${navHTML}</div>`;
+                    innerHTML = `<div class="header-content nav-${attrs.navPosition}">${logoHTML}${innerHTML}${navHTML}</div>`;
                 }
-
-                headerElement.innerHTML = innerHTML;
+                blockElement.innerHTML = innerHTML;
 
                 // Add event listener for hamburger menu
                 if (attrs.nav && !isFallback) {
-                    const hamburger = headerElement.querySelector('.hamburger');
-                    const navMenu = headerElement.querySelector('#nav-menu');
+                    const hamburger = blockElement.querySelector('.hamburger');
+                    const navMenu = blockElement.querySelector('#nav-menu');
                     if (hamburger && navMenu) {
                         hamburger.addEventListener('click', () => {
                             const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
@@ -166,7 +162,7 @@
                     super.render(isFallback); // Ensure parent caching
                 }
 
-                return headerElement;
+                return blockElement; // Return the modified blockElement instead of a new header
             }
 
             connectedCallback() {
