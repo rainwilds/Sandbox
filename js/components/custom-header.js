@@ -72,13 +72,13 @@
 
             render(isFallback = false) {
                 const attrs = this.getAttributes();
-                const blockElement = super.render(isFallback); // Use the base element from CustomBlock
+                let blockElement = super.render(isFallback); // Get the base element from CustomBlock
                 if (!blockElement) {
                     console.error('Failed to render base CustomBlock for CustomHeader');
-                    return document.createElement('div'); // Fallback to a div if rendering fails
+                    blockElement = document.createElement('div'); // Fallback to a div if rendering fails
                 }
 
-                // Set role and classes directly on the blockElement
+                // Set role and classes directly on the blockElement, avoiding extra wrapper
                 blockElement.setAttribute('role', 'banner');
                 const headerClasses = [
                     attrs.backgroundColorClass,
@@ -86,7 +86,7 @@
                     attrs.borderRadiusClass,
                     attrs.shadowClass,
                     attrs.sticky ? 'sticky' : '',
-                    ...attrs.customClasses.split(' ').filter(cls => cls)
+                    ...attrs.customClasses.split(' ').filter(cls => cls && cls !== 'padding-medium') // Exclude padding-medium to avoid redundancy
                 ].filter(cls => cls).join(' ').trim();
                 if (headerClasses) {
                     blockElement.className = headerClasses;
@@ -95,6 +95,11 @@
                 // Transfer styles from block to header
                 if (attrs.styleAttribute && !isFallback) {
                     blockElement.setAttribute('style', attrs.styleAttribute);
+                }
+
+                // Remove any existing data-section-title if not needed
+                if (blockElement.hasAttribute('data-section-title')) {
+                    blockElement.removeAttribute('data-section-title');
                 }
 
                 // Generate logo markup
@@ -162,7 +167,7 @@
                     super.render(isFallback); // Ensure parent caching
                 }
 
-                return blockElement; // Return the modified blockElement instead of a new header
+                return blockElement; // Return the modified blockElement
             }
 
             connectedCallback() {
