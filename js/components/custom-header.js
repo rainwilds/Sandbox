@@ -18,30 +18,54 @@
             }
 
             static get observedAttributes() {
-                return [...super.observedAttributes, 'nav-links', 'sticky', 'logo-src', 'logo-alt', 'nav-position', 'mobile-menu-breakpoint', 'search-enabled'];
+                return [...super.observedAttributes, 'nav', 'sticky', 'logo-primary-src', 'logo-light-src', 'logo-dark-src', 'logo-primary-alt', 'logo-light-alt', 'logo-dark-alt', 'nav-position'];
             }
 
             getAttributes() {
                 const attrs = super.getAttributes();
-                attrs.navLinks = this.getAttribute('nav-links') ? JSON.parse(this.getAttribute('nav-links')) : null;
-                attrs.sticky = this.hasAttribute('sticky');
-                attrs.logoSrc = this.getAttribute('logo-src') || '';
-                attrs.logoAlt = this.getAttribute('logo-alt') || '';
+                attrs.nav = this.getAttribute('nav') ? JSON.parse(this.getAttribute('nav')) : null;
+                attrs.sticky = this.hasAttribute('sticky'); // Makes the header fixed at the top of the viewport with z-index 1000
+                attrs.logoPrimarySrc = this.getAttribute('logo-primary-src') || '';
+                attrs.logoLightSrc = this.getAttribute('logo-light-src') || '';
+                attrs.logoDarkSrc = this.getAttribute('logo-dark-src') || '';
+                // Validate logo-light-src and logo-dark-src: both required if either is present
+                if ((attrs.logoLightSrc || attrs.logoDarkSrc) && !(attrs.logoLightSrc && attrs.logoDarkSrc)) {
+                    console.error('Both logo-light-src and logo-dark-src must be provided when using light/dark themes for the logo.');
+                }
+                attrs.logoPrimaryAlt = this.getAttribute('logo-primary-alt') || '';
+                attrs.logoLightAlt = this.getAttribute('logo-light-alt') || '';
+                attrs.logoDarkAlt = this.getAttribute('logo-dark-alt') || '';
+                // Validate alt attributes: error if any alt is missing when corresponding src is provided
+                if (attrs.logoPrimarySrc && !attrs.logoPrimaryAlt) {
+                    console.error('logo-primary-alt is required when logo-primary-src is provided.');
+                }
+                if (attrs.logoLightSrc && !attrs.logoLightAlt) {
+                    console.error('logo-light-alt is required when logo-light-src is provided.');
+                }
+                if (attrs.logoDarkSrc && !attrs.logoDarkAlt) {
+                    console.error('logo-dark-alt is required when logo-dark-src is provided.');
+                }
                 attrs.navPosition = this.getAttribute('nav-position') || 'right';
-                attrs.mobileMenuBreakpoint = this.getAttribute('mobile-menu-breakpoint') || '768px';
-                attrs.searchEnabled = this.hasAttribute('search-enabled');
-                const validNavPositions = ['left', 'center', 'right', 'below', 'above'];
+                // Use alignMap from CustomBlock for valid nav-position options
+                const alignMap = {
+                    'center': 'place-self-center',
+                    'top': 'place-self-top',
+                    'bottom': 'place-self-bottom',
+                    'left': 'place-self-left',
+                    'right': 'place-self-right',
+                    'top-left': 'place-self-top-left',
+                    'top-center': 'place-self-top-center',
+                    'top-right': 'place-self-top-right',
+                    'bottom-left': 'place-self-bottom-left',
+                    'bottom-center': 'place-self-bottom-center',
+                    'bottom-right': 'place-self-bottom-right',
+                    'center-left': 'place-self-center-left',
+                    'center-right': 'place-self-center-right'
+                };
+                const validNavPositions = Object.keys(alignMap);
                 if (!validNavPositions.includes(attrs.navPosition)) {
                     console.warn(`Invalid nav-position "${attrs.navPosition}" in <custom-header>. Must be one of ${validNavPositions.join(', ')}. Defaulting to 'right'.`);
                     attrs.navPosition = 'right';
-                }
-                if (!/^\d+px$/.test(attrs.mobileMenuBreakpoint)) {
-                    console.warn(`Invalid mobile-menu-breakpoint "${attrs.mobileMenuBreakpoint}" in <custom-header>. Must be a pixel value (e.g., "768px"). Defaulting to "768px".`);
-                    attrs.mobileMenuBreakpoint = '768px';
-                }
-                if (attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc) {
-                    console.warn('Primary images or videos are not recommended for headers in <custom-header>. Consider using background media.');
-                    attrs.primaryPosition = 'none';
                 }
                 return attrs;
             }
@@ -76,20 +100,17 @@
                     headerElement.setAttribute('style', attrs.styleAttribute);
                 }
 
-                // Set CSS variable for mobile menu breakpoint
-                if (attrs.mobileMenuBreakpoint && !isFallback) {
-                    headerElement.style.setProperty('--mobile-menu-breakpoint', attrs.mobileMenuBreakpoint);
-                }
-
                 // Generate logo markup
                 let logoHTML = '';
-                if (attrs.logoSrc && !isFallback) {
+                if (attrs.logoPrimarySrc && !isFallback) {
                     logoHTML = `
                         <a href="/" class="logo-link">
                             ${this.generatePictureMarkup({
-                                src: attrs.logoSrc,
-                                alt: attrs.logoAlt,
-                                isDecorative: !attrs.logoAlt,
+                                src: attrs.logoPrimarySrc,
+                                lightSrc: attrs.logoLightSrc || attrs.logoPrimarySrc,
+                                darkSrc: attrs.logoDarkSrc || attrs.logoPrimarySrc,
+                                alt: attrs.logoPrimaryAlt,
+                                isDecorative: !attrs.logoPrimaryAlt,
                                 customClasses: `logo logo-${attrs.navPosition}`,
                                 loading: 'eager',
                                 fetchPriority: 'high'
@@ -100,14 +121,14 @@
 
                 // Generate navigation markup with hamburger toggle
                 let navHTML = '';
-                if (attrs.navLinks && Array.isArray(attrs.navLinks) && !isFallback) {
+                if (attrs.nav && Array.isArray(attrs.nav) && !isFallback) {
                     navHTML = `
                         <nav aria-label="Main navigation" class="nav-${attrs.navPosition}">
                             <button class="hamburger" aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
                                 <span class="hamburger-icon">☰</span>
                             </button>
                             <ul class="nav-links" id="nav-menu">
-                                ${attrs.navLinks.map(link => `
+                                ${attrs.nav.map(link => `
                                     <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
                                 `).join('')}
                             </ul>
@@ -115,32 +136,20 @@
                     `;
                 }
 
-                // Generate search form
-                let searchHTML = '';
-                if (attrs.searchEnabled && !isFallback) {
-                    const searchUrl = attrs['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/';
-                    searchHTML = `
-                        <form action="${searchUrl}?s=" class="search-form">
-                            <input type="search" name="s" placeholder="Search..." aria-label="Search the site">
-                            <button type="submit" aria-label="Submit search">🔍</button>
-                        </form>
-                    `;
-                }
-
                 // Combine content based on nav-position
                 let innerHTML = '';
                 if (attrs.navPosition === 'above') {
-                    innerHTML = navHTML + logoHTML + blockElement.innerHTML + searchHTML;
+                    innerHTML = navHTML + logoHTML + blockElement.innerHTML;
                 } else if (attrs.navPosition === 'below') {
-                    innerHTML = logoHTML + blockElement.innerHTML + navHTML + searchHTML;
+                    innerHTML = logoHTML + blockElement.innerHTML + navHTML;
                 } else {
-                    innerHTML = `<div class="header-content nav-${attrs.navPosition}">${logoHTML}${blockElement.innerHTML}${navHTML}${searchHTML}</div>`;
+                    innerHTML = `<div class="header-content nav-${attrs.navPosition}">${logoHTML}${blockElement.innerHTML}${navHTML}</div>`;
                 }
 
                 headerElement.innerHTML = innerHTML;
 
                 // Add event listener for hamburger menu
-                if (attrs.navLinks && !isFallback) {
+                if (attrs.nav && !isFallback) {
                     const hamburger = headerElement.querySelector('.hamburger');
                     const navMenu = headerElement.querySelector('#nav-menu');
                     if (hamburger && navMenu) {
@@ -171,7 +180,7 @@
 
             attributeChangedCallback(name, oldValue, newValue) {
                 super.attributeChangedCallback(name, oldValue, newValue);
-                if (['nav-links', 'sticky', 'logo-src', 'logo-alt', 'nav-position', 'mobile-menu-breakpoint', 'search-enabled'].includes(name) && this.isInitialized && this.isVisible) {
+                if (['nav', 'sticky', 'logo-primary-src', 'logo-light-src', 'logo-dark-src', 'logo-primary-alt', 'logo-light-alt', 'logo-dark-alt', 'nav-position'].includes(name) && this.isInitialized && this.isVisible) {
                     this.initialize();
                 }
             }
