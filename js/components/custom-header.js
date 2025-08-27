@@ -145,7 +145,7 @@
                 } else if (attrs.navPosition === 'below') {
                     innerHTML = logoHTML + innerHTML + navHTML;
                 } else {
-                    innerHTML = `<div class="header-content nav-${attrs.navPosition}">${logoHTML}${innerHTML}${navHTML}</div>`;
+                    innerHTML = `${logoHTML}${innerHTML}${navHTML}`; // Removed the header-content div wrapper
                 }
                 blockElement.innerHTML = innerHTML;
 
