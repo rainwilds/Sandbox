@@ -1,6 +1,6 @@
 # Custom Block Documentation
 
-The `<custom-block>` is a versatile Web Component designed to create customizable content blocks with support for background images, primary images, videos, text, icons, and buttons. It provides a range of attributes to control styling, layout, and media rendering. Below is a detailed explanation of all attributes, grouped into General, Image, and Video categories, presented in alphabetical order within each group.
+The `<custom-block>` is a versatile Web Component designed to create customizable content blocks with support for background images, primary images, videos, text, icons, and buttons. It provides a range of attributes to control styling, layout, and media rendering. Below is a detailed explanation of all attributes, grouped into General, Image, Video, and Icon categories, presented in alphabetical order within each group.
 
 ## General Attributes
 
@@ -18,7 +18,6 @@ The `<custom-block>` is a versatile Web Component designed to create customizabl
 | class | Adds custom CSS classes to the outer block element. | `''` (empty) | Space-separated class names (e.g., `custom-class another-class`) |
 | heading | Sets the text for the heading element. | `'Default Heading'` | Plain text (e.g., `Welcome`) |
 | heading-tag | Specifies the HTML tag for the heading. | `'h2'` | One of: `h1`, `h2`, `h3`, `h4`, `h5`, `h6` |
-| icon | Specifies a Font Awesome icon to display. | `''` (empty) | Valid Font Awesome `<i>` tag (e.g., `<i class="fa-regular fa-house"></i>`) |
 | inner-alignment | Controls the alignment of the inner content div. | `''` (empty) | One of: `center`, `top`, `bottom`, `left`, `right`, `top-left`, `top-center`, `top-right`, `bottom-left`, `bottom-center`, `bottom-right`, `center-left`, `center-right` |
 | inner-background-color | Sets the background color for the inner content div. | `''` (empty) | `background-color-[number]` (e.g., `background-color-2`) |
 | inner-background-gradient | Applies a gradient overlay to the inner content div. | `''` (empty) | `background-gradient-[number]` (e.g., `background-gradient-2`) |
@@ -37,6 +36,15 @@ The `<custom-block>` is a versatile Web Component designed to create customizabl
 | sub-heading-tag | Specifies the HTML tag for the sub-heading. | `'h3'` | One of: `h1`, `h2`, `h3`, `h4`, `h5`, `h6` |
 | text | Defines the text content for the paragraph in the block. | `'Default description text.'` | Plain text (e.g., `This is a description.`) |
 | text-alignment | Sets the text alignment for the inner content group. | `''` (empty) | One of: `left`, `center`, `right` |
+
+## Icon Attributes
+
+| Attribute Name | Description | Default Value | Expected Format |
+|----------------|-------------|---------------|-----------------|
+| icon | Specifies a Font Awesome icon to display. | `''` (empty) | Valid Font Awesome `<i>` tag (e.g., `<i class="fa-regular fa-house"></i>`) |
+| icon-class | Adds custom CSS classes to the icon element. | `''` (empty) | Space-separated class names (e.g., `icon-large icon-custom`) |
+| icon-size | Sets the font size of the Font Awesome icon. | `''` (empty) | Valid CSS rem value (e.g., `2rem`) |
+| icon-style | Applies inline CSS styles to the icon element. | `''` (empty) | CSS style string (e.g., `color: blue; margin: 5px;`) |
 
 ## Image Attributes
 
