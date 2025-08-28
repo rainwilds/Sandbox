@@ -271,9 +271,9 @@
         /* --font-2-weight-light: 300; */
         /* --font-2-weight-medium: 400 PLACEHOLDER; */
         /* --font-2-weight-heavy: 600 PLACEHOLDER; */
-        --font-2-size-small: 14px;
-        --font-2-size-medium: 18px;
-        --font-2-size-large: 22px;
+        --font-2-size-small: 16px;
+        --font-2-size-medium: 20px;
+        --font-2-size-large: 24px;
 
         font-family: var(--font-2-family);
         font-size: var(--font-2-size-medium);
@@ -752,27 +752,27 @@
         }
 
         h1 {
-            font-size: 3.8rem;
+            font-size: 3.5rem;
         }
 
         h2 {
-            font-size: 2.3rem;
+            font-size: 1.76rem;
         }
 
         h3 {
-            font-size: 2rem;
+            font-size: 1.4rem;
         }
 
         h4 {
-            font-size: 2rem;
+            font-size: 1.4rem;
         }
 
         h5 {
-            font-size: 1.8rem;
+            font-size: 1.2rem;
         }
 
         h6 {
-            font-size: 1.8rem;
+            font-size: 1.2rem;
         }
 
         p:not(:last-of-type) {
@@ -966,9 +966,9 @@
                 --space-large: 6rem;
                 --space-huge: 7rem;
 
-                /* --font-2-size-small: 17px;
-                --font-2-size-medium: 20px;
-                --font-2-size-large: 22px; */
+                --font-2-size-small: 12px;
+                --font-2-size-medium: 16px;
+                --font-2-size-large: 20px;
 
 
 
@@ -1951,7 +1951,7 @@ header {
                 margin-left: auto;
             }
         }
-    }    
+    }
 
     nav[aria-label="Main navigation"] {
         &.nav-above {
