@@ -322,10 +322,8 @@ class CustomBlock extends HTMLElement {
         // Validate and sanitize icon attribute
         let icon = this.getAttribute('icon') || '';
         if (icon) {
-            // Replace quotes to prevent attribute injection
             icon = icon.replace(/['"]/g, '&quot;');
             const parser = new DOMParser();
-            // Decode HTML entities before parsing
             const decodedIcon = icon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
             const doc = parser.parseFromString(decodedIcon, 'text/html');
             const iElement = doc.body.querySelector('i');
@@ -333,7 +331,6 @@ class CustomBlock extends HTMLElement {
                 console.warn(`Invalid icon attribute in <custom-block>. Must be a valid Font Awesome <i> tag (e.g., '<i class="fa-chisel fa-regular fa-house"></i>'). Ignoring.`);
                 icon = '';
             } else {
-                // Ensure only <i> tag with Font Awesome classes is used
                 const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
                 if (validClasses.length === 0) {
                     console.warn(`Icon attribute in <custom-block> contains no valid Font Awesome classes. Ignoring.`);
@@ -347,7 +344,6 @@ class CustomBlock extends HTMLElement {
         const iconStyle = this.getAttribute('icon-style') || '';
         let sanitizedIconStyle = '';
         if (iconStyle) {
-            // Sanitize CSS to prevent injection
             const allowedStyles = ['color', 'font-size', 'margin', 'padding', 'display', 'text-align', 'vertical-align', 'line-height', 'width', 'height'];
             const styleParts = iconStyle.split(';').map(s => s.trim()).filter(s => s);
             sanitizedIconStyle = styleParts.filter(part => {
@@ -362,7 +358,6 @@ class CustomBlock extends HTMLElement {
         const iconClass = this.getAttribute('icon-class') || '';
         let sanitizedIconClass = '';
         if (iconClass) {
-            // Allow only alphanumeric, hyphens, and underscores in class names
             sanitizedIconClass = iconClass.split(/\s+/).filter(cls => /^[a-zA-Z0-9\-_]+$/.test(cls)).join(' ');
             if (sanitizedIconClass !== iconClass) {
                 console.warn(`Invalid characters in icon-class attribute: "${iconClass}". Using sanitized classes: "${sanitizedIconClass}".`);
@@ -372,7 +367,6 @@ class CustomBlock extends HTMLElement {
         const iconSize = this.getAttribute('icon-size') || '';
         let sanitizedIconSize = '';
         if (iconSize) {
-            // Ensure icon-size is a valid rem value (e.g., "2rem")
             const remMatch = iconSize.match(/^(\d*\.?\d+)rem$/);
             if (remMatch) {
                 sanitizedIconSize = iconSize;
@@ -380,10 +374,106 @@ class CustomBlock extends HTMLElement {
                 console.warn(`Invalid icon-size value "${iconSize}" in <custom-block>. Must be a valid rem value (e.g., "2rem"). Ignoring.`);
             }
         }
+        // Validate button-class
+        const buttonClass = this.getAttribute('button-class') || '';
+        let sanitizedButtonClass = '';
+        if (buttonClass) {
+            sanitizedButtonClass = buttonClass.split(/\s+/).filter(cls => /^[a-zA-Z0-9\-_]+$/.test(cls)).join(' ');
+            if (sanitizedButtonClass !== buttonClass) {
+                console.warn(`Invalid characters in button-class attribute: "${buttonClass}". Using sanitized classes: "${sanitizedButtonClass}".`);
+            }
+        }
+        // Validate button-style
+        const buttonStyle = this.getAttribute('button-style') || '';
+        let sanitizedButtonStyle = '';
+        if (buttonStyle) {
+            const allowedStyles = ['color', 'background-color', 'border', 'border-radius', 'padding', 'margin', 'font-size', 'font-weight', 'text-align', 'display', 'width', 'height'];
+            const styleParts = buttonStyle.split(';').map(s => s.trim()).filter(s => s);
+            sanitizedButtonStyle = styleParts.filter(part => {
+                const [property] = part.split(':').map(s => s.trim());
+                return allowedStyles.includes(property);
+            }).join('; ');
+            if (sanitizedButtonStyle !== buttonStyle) {
+                console.warn(`Invalid or unsafe CSS in button-style attribute: "${buttonStyle}". Using sanitized styles: "${sanitizedButtonStyle}".`);
+            }
+        }
+        // Validate button-rel
+        const buttonRel = this.getAttribute('button-rel') || '';
+        let sanitizedButtonRel = '';
+        if (buttonRel) {
+            const validRels = ['alternate', 'author', 'bookmark', 'external', 'help', 'license', 'next', 'nofollow', 'noopener', 'noreferrer', 'prev', 'search', 'tag'];
+            sanitizedButtonRel = buttonRel.split(/\s+/).filter(rel => validRels.includes(rel)).join(' ');
+            if (sanitizedButtonRel !== buttonRel) {
+                console.warn(`Invalid button-rel value "${buttonRel}" in <custom-block>. Must be one of ${validRels.join(', ')}. Using sanitized: "${sanitizedButtonRel}".`);
+            }
+        }
+        // Validate button-type
+        const buttonType = this.getAttribute('button-type') || 'button';
+        const validButtonTypes = ['button', 'submit', 'reset'];
+        let sanitizedButtonType = 'button';
+        if (buttonType && validButtonTypes.includes(buttonType)) {
+            sanitizedButtonType = buttonType;
+        } else if (buttonType) {
+            console.warn(`Invalid button-type value "${buttonType}" in <custom-block>. Must be one of ${validButtonTypes.join(', ')}. Using default 'button'.`);
+        }
+        // Validate button-icon
+        let buttonIcon = this.getAttribute('button-icon') || '';
+        if (buttonIcon) {
+            buttonIcon = buttonIcon.replace(/['"]/g, '&quot;');
+            const parser = new DOMParser();
+            const decodedIcon = buttonIcon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+            const doc = parser.parseFromString(decodedIcon, 'text/html');
+            const iElement = doc.body.querySelector('i');
+            if (!iElement || !iElement.className.includes('fa-')) {
+                console.warn(`Invalid button-icon attribute in <custom-block>. Must be a valid Font Awesome <i> tag (e.g., '<i class="fa-chisel fa-regular fa-house"></i>'). Ignoring.`);
+                buttonIcon = '';
+            } else {
+                const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
+                if (validClasses.length === 0) {
+                    console.warn(`Button-icon attribute in <custom-block> contains no valid Font Awesome classes. Ignoring.`);
+                    buttonIcon = '';
+                } else {
+                    buttonIcon = `<i class="${validClasses.join(' ')}"></i>`;
+                }
+            }
+        }
+        // Validate button-icon-position
+        const buttonIconPosition = this.getAttribute('button-icon-position') || '';
+        let sanitizedButtonIconPosition = '';
+        if (buttonIconPosition) {
+            const validPositions = ['left', 'right'];
+            if (validPositions.includes(buttonIconPosition)) {
+                sanitizedButtonIconPosition = buttonIconPosition;
+            } else {
+                console.warn(`Invalid button-icon-position value "${buttonIconPosition}" in <custom-block>. Must be 'left' or 'right'. Ignoring.`);
+            }
+        }
+        // Validate button-icon-offset
+        const buttonIconOffset = this.getAttribute('button-icon-offset') || '';
+        let sanitizedButtonIconOffset = '';
+        if (buttonIconOffset && sanitizedButtonIconPosition) {
+            const validOffset = buttonIconOffset.match(/^var\(--space-[a-z]+\)$/);
+            if (validOffset) {
+                sanitizedButtonIconOffset = buttonIconOffset;
+            } else {
+                console.warn(`Invalid button-icon-offset value "${buttonIconOffset}" in <custom-block>. Must be a CSS variable like 'var(--space-tiny)'. Ignoring.`);
+            }
+        }
+        // Validate button-icon-size
+        const buttonIconSize = this.getAttribute('button-icon-size') || '';
+        let sanitizedButtonIconSize = '';
+        if (buttonIconSize) {
+            const remMatch = buttonIconSize.match(/^(\d*\.?\d+)rem$/);
+            if (remMatch) {
+                sanitizedButtonIconSize = buttonIconSize;
+            } else {
+                console.warn(`Invalid button-icon-size value "${buttonIconSize}" in <custom-block>. Must be a valid rem value (e.g., "2rem"). Ignoring.`);
+            }
+        }
         // Cache attributes
         this.cachedAttributes = {
             sectionTitle: this.hasAttribute('heading') && !this.hasAttribute('button-text'),
-            heading: this.getAttribute('heading') || 'Default Heading',
+            heading: this.getAttribute('heading') || '',
             headingTag: validHeadingTags.includes(headingTag.toLowerCase()) ? headingTag.toLowerCase() : 'h2',
             subHeading: this.getAttribute('sub-heading') || '',
             subHeadingTag: validHeadingTags.includes(subHeadingTag.toLowerCase()) ? subHeadingTag.toLowerCase() : 'h3',
@@ -391,9 +481,19 @@ class CustomBlock extends HTMLElement {
             iconStyle: sanitizedIconStyle,
             iconClass: sanitizedIconClass,
             iconSize: sanitizedIconSize,
-            text: this.getAttribute('text') || 'Default description text.',
+            text: this.getAttribute('text') || '',
             buttonHref: this.getAttribute('button-href') || '#',
             buttonText: this.hasAttribute('button-text') ? (this.getAttribute('button-text') || 'Default') : '',
+            buttonClass: sanitizedButtonClass,
+            buttonStyle: sanitizedButtonStyle,
+            buttonTarget: this.getAttribute('button-target') || '',
+            buttonRel: sanitizedButtonRel,
+            buttonAriaLabel: this.getAttribute('button-aria-label') || '',
+            buttonType: sanitizedButtonType,
+            buttonIcon,
+            buttonIconPosition: sanitizedButtonIconPosition,
+            buttonIconOffset: sanitizedButtonIconOffset,
+            buttonIconSize: sanitizedButtonIconSize,
             hasBackgroundOverlay: !!backgroundOverlay,
             backgroundOverlayClass,
             innerBackgroundOverlayClass,
@@ -518,7 +618,7 @@ class CustomBlock extends HTMLElement {
         }
         const attrs = isFallback ? {
             sectionTitle: false,
-            heading: 'Default Heading',
+            heading: '',
             headingTag: 'h2',
             subHeading: '',
             subHeadingTag: 'h3',
@@ -526,9 +626,19 @@ class CustomBlock extends HTMLElement {
             iconStyle: '',
             iconClass: '',
             iconSize: '',
-            text: 'Default description text.',
+            text: '',
             buttonHref: '#',
             buttonText: '',
+            buttonClass: '',
+            buttonStyle: '',
+            buttonTarget: '',
+            buttonRel: '',
+            buttonAriaLabel: '',
+            buttonType: 'button',
+            buttonIcon: '',
+            buttonIconPosition: '',
+            buttonIconOffset: '',
+            buttonIconSize: '',
             hasBackgroundOverlay: false,
             backgroundOverlayClass: '',
             innerBackgroundOverlayClass: '',
@@ -625,6 +735,17 @@ class CustomBlock extends HTMLElement {
             !this.hasAttribute('text') &&
             !this.hasAttribute('button-text') &&
             (hasBackgroundImage || hasVideoBackground || hasVideoPrimary);
+        const isButtonOnly = !isFallback &&
+            !this.hasAttribute('heading') &&
+            !this.hasAttribute('sub-heading') &&
+            !this.hasAttribute('icon') &&
+            !this.hasAttribute('text') &&
+            !hasBackgroundImage &&
+            !hasVideoBackground &&
+            !hasPrimaryImage &&
+            !hasVideoPrimary &&
+            this.hasAttribute('button-text') &&
+            attrs.buttonText;
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
         const mediaCustomClasses = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls)).join(' ');
         const innerCustomClassesList = attrs.innerCustomClasses.split(' ').filter(cls => cls);
@@ -886,7 +1007,6 @@ class CustomBlock extends HTMLElement {
             if (attrs.backgroundGradientClass) {
                 overlayClasses.push(attrs.backgroundGradientClass);
             }
-            // Filter out backdrop-filter classes and combine their values
             const backdropFilterValues = attrs.backdropFilterClasses
                 .filter(cls => cls.startsWith('backdrop-filter'))
                 .map(cls => CustomBlock.#BACKDROP_FILTER_MAP[cls] || '')
@@ -917,6 +1037,34 @@ class CustomBlock extends HTMLElement {
                 console.error('Media-only block has no valid content:', this.outerHTML);
                 return this.render(true);
             }
+            if (!isFallback) {
+                CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
+                this.lastAttributes = JSON.stringify(attrs);
+            }
+            return blockElement;
+        }
+        if (isButtonOnly) {
+            const blockElement = document.createElement('div');
+            blockElement.className = ['block', attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass].filter(cls => cls).join(' ').trim();
+            if (attrs.styleAttribute && !isFallback) {
+                blockElement.setAttribute('style', attrs.styleAttribute);
+            }
+            // Generate button HTML
+            const buttonClasses = ['button', attrs.buttonClass].filter(cls => cls).join(' ');
+            let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
+            if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
+                const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
+                buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
+            }
+            const buttonContent = attrs.buttonIcon && attrs.buttonIconPosition === 'left'
+                ? `<span class="button-icon"${buttonIconStyle ? ` style="${buttonIconStyle}"` : ''}>${attrs.buttonIcon}</span>${attrs.buttonText}`
+                : attrs.buttonIcon && attrs.buttonIconPosition === 'right'
+                ? `${attrs.buttonText}<span class="button-icon"${buttonIconStyle ? ` style="${buttonIconStyle}"` : ''}>${attrs.buttonIcon}</span>`
+                : attrs.buttonText;
+            const buttonElement = attrs.buttonType === 'button'
+                ? `<button type="${attrs.buttonType}" class="${buttonClasses}"${attrs.buttonStyle ? ` style="${attrs.buttonStyle}"` : ''}${attrs.buttonTarget ? ` formtarget="${attrs.buttonTarget}"` : ''}${attrs.buttonRel ? ` rel="${attrs.buttonRel}"` : ''}${attrs.buttonAriaLabel ? ` aria-label="${attrs.buttonAriaLabel}"` : ''}${attrs.buttonHref && !isFallback ? '' : ' disabled'}>${buttonContent}</button>`
+                : `<a href="${attrs.buttonHref || '#'}" class="${buttonClasses}"${attrs.buttonStyle ? ` style="${attrs.buttonStyle}"` : ''}${attrs.buttonTarget ? ` target="${attrs.buttonTarget}"` : ''}${attrs.buttonRel ? ` rel="${attrs.buttonRel}"` : ''}${attrs.buttonAriaLabel ? ` aria-label="${attrs.buttonAriaLabel}"` : ''}${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${buttonContent}</a>`;
+            blockElement.innerHTML = buttonElement;
             if (!isFallback) {
                 CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
                 this.lastAttributes = JSON.stringify(attrs);
@@ -956,7 +1104,6 @@ class CustomBlock extends HTMLElement {
         const innerDivClassList = [];
         let innerDivStyle = !isFallback ? attrs.innerStyle : '';
         if (!isFallback) {
-            // Filter out inner backdrop-filter classes and combine their values
             const innerBackdropFilterValues = attrs.innerBackdropFilterClasses
                 .filter(cls => cls.startsWith('backdrop-filter'))
                 .map(cls => CustomBlock.#BACKDROP_FILTER_MAP[cls] || '')
@@ -979,9 +1126,24 @@ class CustomBlock extends HTMLElement {
             }
         }
         const innerDivClass = innerDivClassList.join(' ').trim();
-        const buttonHTML = attrs.buttonText ?
-            `<a class="button" href="${attrs.buttonHref || '#'}"${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${attrs.buttonText}</a>` :
-            '';
+        // Generate button HTML with icon support
+        let buttonHTML = '';
+        if (attrs.buttonText) {
+            const buttonClasses = ['button', attrs.buttonClass].filter(cls => cls).join(' ');
+            let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
+            if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
+                const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
+                buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
+            }
+            const buttonContent = attrs.buttonIcon && attrs.buttonIconPosition === 'left'
+                ? `<span class="button-icon"${buttonIconStyle ? ` style="${buttonIconStyle}"` : ''}>${attrs.buttonIcon}</span>${attrs.buttonText}`
+                : attrs.buttonIcon && attrs.buttonIconPosition === 'right'
+                ? `${attrs.buttonText}<span class="button-icon"${buttonIconStyle ? ` style="${buttonIconStyle}"` : ''}>${attrs.buttonIcon}</span>`
+                : attrs.buttonText;
+            buttonHTML = attrs.buttonType === 'button'
+                ? `<button type="${attrs.buttonType}" class="${buttonClasses}"${attrs.buttonStyle ? ` style="${attrs.buttonStyle}"` : ''}${attrs.buttonTarget ? ` formtarget="${attrs.buttonTarget}"` : ''}${attrs.buttonRel ? ` rel="${attrs.buttonRel}"` : ''}${attrs.buttonAriaLabel ? ` aria-label="${attrs.buttonAriaLabel}"` : ''}${attrs.buttonHref && !isFallback ? '' : ' disabled'}>${buttonContent}</button>`
+                : `<a href="${attrs.buttonHref || '#'}" class="${buttonClasses}"${attrs.buttonStyle ? ` style="${attrs.buttonStyle}"` : ''}${attrs.buttonTarget ? ` target="${attrs.buttonTarget}"` : ''}${attrs.buttonRel ? ` rel="${attrs.buttonRel}"` : ''}${attrs.buttonAriaLabel ? ` aria-label="${attrs.buttonAriaLabel}"` : ''}${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${buttonContent}</a>`;
+        }
         // Combine icon styles
         let iconStyles = attrs.iconStyle || '';
         if (attrs.iconSize) {
@@ -993,8 +1155,8 @@ class CustomBlock extends HTMLElement {
             <div role="group"${attrs.textAlignment ? ` class="${textAlignMap[attrs.textAlignment]}"` : ''}>
                 ${attrs.icon ? `<span class="icon${iconClassAttr}"${iconStyles ? ` style="${iconStyles}"` : ''}>${attrs.icon}</span>` : ''}
                 ${attrs.subHeading ? `<${attrs.subHeadingTag}>${attrs.subHeading}</${attrs.subHeadingTag}>` : ''}
-                <${attrs.headingTag}>${attrs.heading}</${attrs.headingTag}>
-                <p>${attrs.text}</p>
+                ${attrs.heading ? `<${attrs.headingTag}>${attrs.heading}</${attrs.headingTag}>` : ''}
+                ${attrs.text ? `<p>${attrs.text}</p>` : ''}
                 ${buttonHTML}
             </div>
         </div>
@@ -1088,6 +1250,16 @@ class CustomBlock extends HTMLElement {
             'text',
             'button-href',
             'button-text',
+            'button-class',
+            'button-style',
+            'button-target',
+            'button-rel',
+            'button-aria-label',
+            'button-type',
+            'button-icon',
+            'button-icon-position',
+            'button-icon-offset',
+            'button-icon-size',
             'background-overlay',
             'inner-background-overlay',
             'background-gradient',
@@ -1179,6 +1351,16 @@ class CustomBlock extends HTMLElement {
             'text',
             'button-href',
             'button-text',
+            'button-class',
+            'button-style',
+            'button-target',
+            'button-rel',
+            'button-aria-label',
+            'button-type',
+            'button-icon',
+            'button-icon-position',
+            'button-icon-offset',
+            'button-icon-size',
             'background-overlay',
             'inner-background-overlay',
             'background-gradient',
@@ -1243,6 +1425,6 @@ try {
 } catch (error) {
     console.error('Error defining CustomBlock element:', error);
 }
-console.log('CustomBlock version: 2025-08-24');
+console.log('CustomBlock version: 2025-08-28');
 // Export the CustomBlock class
 export { CustomBlock };
