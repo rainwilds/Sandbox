@@ -1,5 +1,4 @@
 /* global HTMLElement, IntersectionObserver, document, window, JSON, console */
-
 class CustomBlock extends HTMLElement {
     constructor() {
         super();
@@ -344,6 +343,43 @@ class CustomBlock extends HTMLElement {
                 }
             }
         }
+        // Validate and sanitize icon-style attribute
+        const iconStyle = this.getAttribute('icon-style') || '';
+        let sanitizedIconStyle = '';
+        if (iconStyle) {
+            // Sanitize CSS to prevent injection
+            const allowedStyles = ['color', 'font-size', 'margin', 'padding', 'display', 'text-align', 'vertical-align', 'line-height', 'width', 'height'];
+            const styleParts = iconStyle.split(';').map(s => s.trim()).filter(s => s);
+            sanitizedIconStyle = styleParts.filter(part => {
+                const [property] = part.split(':').map(s => s.trim());
+                return allowedStyles.includes(property);
+            }).join('; ');
+            if (sanitizedIconStyle !== iconStyle) {
+                console.warn(`Invalid or unsafe CSS in icon-style attribute: "${iconStyle}". Using sanitized styles: "${sanitizedIconStyle}".`);
+            }
+        }
+        // Validate icon-class attribute
+        const iconClass = this.getAttribute('icon-class') || '';
+        let sanitizedIconClass = '';
+        if (iconClass) {
+            // Allow only alphanumeric, hyphens, and underscores in class names
+            sanitizedIconClass = iconClass.split(/\s+/).filter(cls => /^[a-zA-Z0-9\-_]+$/.test(cls)).join(' ');
+            if (sanitizedIconClass !== iconClass) {
+                console.warn(`Invalid characters in icon-class attribute: "${iconClass}". Using sanitized classes: "${sanitizedIconClass}".`);
+            }
+        }
+        // Validate icon-size attribute
+        const iconSize = this.getAttribute('icon-size') || '';
+        let sanitizedIconSize = '';
+        if (iconSize) {
+            // Ensure icon-size is a valid rem value (e.g., "2rem")
+            const remMatch = iconSize.match(/^(\d*\.?\d+)rem$/);
+            if (remMatch) {
+                sanitizedIconSize = iconSize;
+            } else {
+                console.warn(`Invalid icon-size value "${iconSize}" in <custom-block>. Must be a valid rem value (e.g., "2rem"). Ignoring.`);
+            }
+        }
         // Cache attributes
         this.cachedAttributes = {
             sectionTitle: this.hasAttribute('heading') && !this.hasAttribute('button-text'),
@@ -352,6 +388,9 @@ class CustomBlock extends HTMLElement {
             subHeading: this.getAttribute('sub-heading') || '',
             subHeadingTag: validHeadingTags.includes(subHeadingTag.toLowerCase()) ? subHeadingTag.toLowerCase() : 'h3',
             icon,
+            iconStyle: sanitizedIconStyle,
+            iconClass: sanitizedIconClass,
+            iconSize: sanitizedIconSize,
             text: this.getAttribute('text') || 'Default description text.',
             buttonHref: this.getAttribute('button-href') || '#',
             buttonText: this.hasAttribute('button-text') ? (this.getAttribute('button-text') || 'Default') : '',
@@ -484,6 +523,9 @@ class CustomBlock extends HTMLElement {
             subHeading: '',
             subHeadingTag: 'h3',
             icon: '',
+            iconStyle: '',
+            iconClass: '',
+            iconSize: '',
             text: 'Default description text.',
             buttonHref: '#',
             buttonText: '',
@@ -940,10 +982,16 @@ class CustomBlock extends HTMLElement {
         const buttonHTML = attrs.buttonText ?
             `<a class="button" href="${attrs.buttonHref || '#'}"${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${attrs.buttonText}</a>` :
             '';
+        // Combine icon styles
+        let iconStyles = attrs.iconStyle || '';
+        if (attrs.iconSize) {
+            iconStyles = iconStyles ? `${iconStyles}; font-size: ${attrs.iconSize}` : `font-size: ${attrs.iconSize}`;
+        }
+        const iconClassAttr = attrs.iconClass ? ` ${attrs.iconClass}` : '';
         const contentHTML = `
         <div${innerDivClass ? ` class="${innerDivClass}"` : ''}${innerDivStyle ? ` style="${innerDivStyle}"` : ''} aria-live="polite">
             <div role="group"${attrs.textAlignment ? ` class="${textAlignMap[attrs.textAlignment]}"` : ''}>
-                ${attrs.icon ? `<span class="icon">${attrs.icon}</span>` : ''}
+                ${attrs.icon ? `<span class="icon${iconClassAttr}"${iconStyles ? ` style="${iconStyles}"` : ''}>${attrs.icon}</span>` : ''}
                 ${attrs.subHeading ? `<${attrs.subHeadingTag}>${attrs.subHeading}</${attrs.subHeadingTag}>` : ''}
                 <${attrs.headingTag}>${attrs.heading}</${attrs.headingTag}>
                 <p>${attrs.text}</p>
@@ -1029,6 +1077,9 @@ class CustomBlock extends HTMLElement {
     static get observedAttributes() {
         return [
             'icon',
+            'icon-style',
+            'icon-class',
+            'icon-size',
             'sub-heading',
             'sub-heading-tag',
             'section-title',
@@ -1117,6 +1168,9 @@ class CustomBlock extends HTMLElement {
         this.cachedAttributes = null; // Invalidate attribute cache on change
         const criticalAttributes = [
             'icon',
+            'icon-style',
+            'icon-class',
+            'icon-size',
             'sub-heading',
             'sub-heading-tag',
             'section-title',
@@ -1184,14 +1238,11 @@ class CustomBlock extends HTMLElement {
         }
     }
 }
-
 try {
     customElements.define('custom-block', CustomBlock);
 } catch (error) {
     console.error('Error defining CustomBlock element:', error);
 }
-
 console.log('CustomBlock version: 2025-08-24');
-
 // Export the CustomBlock class
 export { CustomBlock };
