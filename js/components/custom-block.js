@@ -344,7 +344,11 @@ class CustomBlock extends HTMLElement {
         const iconStyle = this.getAttribute('icon-style') || '';
         let sanitizedIconStyle = '';
         if (iconStyle) {
-            const allowedStyles = ['color', 'font-size', 'margin', 'padding', 'display', 'text-align', 'vertical-align', 'line-height', 'width', 'height'];
+            const allowedStyles = [
+                'color', 'font-size', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+                'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+                'display', 'text-align', 'vertical-align', 'line-height', 'width', 'height'
+            ];
             const styleParts = iconStyle.split(';').map(s => s.trim()).filter(s => s);
             sanitizedIconStyle = styleParts.filter(part => {
                 const [property] = part.split(':').map(s => s.trim());
@@ -1059,8 +1063,8 @@ class CustomBlock extends HTMLElement {
             const buttonContent = attrs.buttonIcon && attrs.buttonIconPosition === 'left'
                 ? `<span class="button-icon"${buttonIconStyle ? ` style="${buttonIconStyle}"` : ''}>${attrs.buttonIcon}</span>${attrs.buttonText}`
                 : attrs.buttonIcon && attrs.buttonIconPosition === 'right'
-                ? `${attrs.buttonText}<span class="button-icon"${buttonIconStyle ? ` style="${buttonIconStyle}"` : ''}>${attrs.buttonIcon}</span>`
-                : attrs.buttonText;
+                    ? `${attrs.buttonText}<span class="button-icon"${buttonIconStyle ? ` style="${buttonIconStyle}"` : ''}>${attrs.buttonIcon}</span>`
+                    : attrs.buttonText;
             const buttonElement = attrs.buttonType === 'button'
                 ? `<button type="${attrs.buttonType}" class="${buttonClasses}"${attrs.buttonStyle ? ` style="${attrs.buttonStyle}"` : ''}${attrs.buttonTarget ? ` formtarget="${attrs.buttonTarget}"` : ''}${attrs.buttonRel ? ` rel="${attrs.buttonRel}"` : ''}${attrs.buttonAriaLabel ? ` aria-label="${attrs.buttonAriaLabel}"` : ''}${attrs.buttonHref && !isFallback ? '' : ' disabled'}>${buttonContent}</button>`
                 : `<a href="${attrs.buttonHref || '#'}" class="${buttonClasses}"${attrs.buttonStyle ? ` style="${attrs.buttonStyle}"` : ''}${attrs.buttonTarget ? ` target="${attrs.buttonTarget}"` : ''}${attrs.buttonRel ? ` rel="${attrs.buttonRel}"` : ''}${attrs.buttonAriaLabel ? ` aria-label="${attrs.buttonAriaLabel}"` : ''}${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${buttonContent}</a>`;
@@ -1138,8 +1142,8 @@ class CustomBlock extends HTMLElement {
             const buttonContent = attrs.buttonIcon && attrs.buttonIconPosition === 'left'
                 ? `<span class="button-icon"${buttonIconStyle ? ` style="${buttonIconStyle}"` : ''}>${attrs.buttonIcon}</span>${attrs.buttonText}`
                 : attrs.buttonIcon && attrs.buttonIconPosition === 'right'
-                ? `${attrs.buttonText}<span class="button-icon"${buttonIconStyle ? ` style="${buttonIconStyle}"` : ''}>${attrs.buttonIcon}</span>`
-                : attrs.buttonText;
+                    ? `${attrs.buttonText}<span class="button-icon"${buttonIconStyle ? ` style="${buttonIconStyle}"` : ''}>${attrs.buttonIcon}</span>`
+                    : attrs.buttonText;
             buttonHTML = attrs.buttonType === 'button'
                 ? `<button type="${attrs.buttonType}" class="${buttonClasses}"${attrs.buttonStyle ? ` style="${attrs.buttonStyle}"` : ''}${attrs.buttonTarget ? ` formtarget="${attrs.buttonTarget}"` : ''}${attrs.buttonRel ? ` rel="${attrs.buttonRel}"` : ''}${attrs.buttonAriaLabel ? ` aria-label="${attrs.buttonAriaLabel}"` : ''}${attrs.buttonHref && !isFallback ? '' : ' disabled'}>${buttonContent}</button>`
                 : `<a href="${attrs.buttonHref || '#'}" class="${buttonClasses}"${attrs.buttonStyle ? ` style="${attrs.buttonStyle}"` : ''}${attrs.buttonTarget ? ` target="${attrs.buttonTarget}"` : ''}${attrs.buttonRel ? ` rel="${attrs.buttonRel}"` : ''}${attrs.buttonAriaLabel ? ` aria-label="${attrs.buttonAriaLabel}"` : ''}${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${buttonContent}</a>`;
