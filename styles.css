@@ -1183,6 +1183,14 @@
             grid-template-columns: 1fr 1fr;
         } */
 
+        &:has([role="banner"]) picture,
+        picture~div {
+
+            grid-column: 1;
+            grid-row: 1;
+
+        }
+
         &:where([data-primary-position="left"], [data-primary-position="right"]) {
             grid-template-columns: 1fr 1fr;
         }
@@ -1247,12 +1255,12 @@
         } */
 
         &>video,
-        video~div, picture, picture~div {
+        video~div {
             grid-column: 1;
             grid-row: 1;
         }
 
-        
+
 
         a {
             margin-top: var(--space-tiny);
