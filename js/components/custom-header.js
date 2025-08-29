@@ -65,7 +65,7 @@
 
                 // Set role and classes directly on the blockElement
                 blockElement.setAttribute('role', 'banner');
-                // Check for background image (similar to CustomBlock's hasBackgroundImage)
+                // Check for background image and video
                 const hasVideoBackground = !isFallback && !!(attrs.videoBackgroundSrc || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc);
                 const hasBackgroundImage = !isFallback && !!(attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc) && !hasVideoBackground;
                 const headerClasses = [
@@ -75,7 +75,8 @@
                     attrs.borderRadiusClass,
                     attrs.shadowClass,
                     attrs.sticky ? 'sticky' : '',
-                    hasBackgroundImage ? 'background-image' : '', // Add background-image if applicable
+                    hasBackgroundImage ? 'background-image' : '',
+                    hasVideoBackground ? 'background-video' : '', // Add background-video if applicable
                     ...attrs.customClasses.split(' ').filter(cls => cls && cls !== 'padding-medium') // Exclude padding-medium to avoid redundancy
                 ].filter(cls => cls).join(' ').trim();
                 if (headerClasses) {
