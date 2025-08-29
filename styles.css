@@ -1878,27 +1878,21 @@ header {
     & nav[aria-label="Main navigation"] {
 
 
-        & ul {
+        & >ul {
             list-style: none;
             display: flex;
             gap: var(--space-small);
 
-            & >li {
-                & >a {
+            &>li {
+                &>a {
                     text-decoration: none;
-                    color: var(--text-color, #333);
-                    padding: 0.5rem 1rem;
-                    transition: background-color 0.3s;
-
-                    &:hover {
-                        background-color: var(--hover-bg, #f0f0f0);
-                    }
-
-                    &[aria-disabled="true"] {
-                        opacity: 0.5;
-                        cursor: not-allowed;
-                    }
                 }
+            }
+        }
+
+        &>button {
+            @media (min-width: 769px) {
+                display: none;
             }
         }
     }
