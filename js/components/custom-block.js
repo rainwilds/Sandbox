@@ -412,13 +412,14 @@ class CustomBlock extends HTMLElement {
             }
         }
         // Validate button-type
-        const buttonType = this.getAttribute('button-type') || 'button';
+        const buttonType = this.getAttribute('button-type') || '';
+        const buttonHref = this.getAttribute('button-href') || '';
         const validButtonTypes = ['button', 'submit', 'reset'];
-        let sanitizedButtonType = 'button';
+        let sanitizedButtonType = buttonHref && !buttonType ? 'link' : 'button';
         if (buttonType && validButtonTypes.includes(buttonType)) {
             sanitizedButtonType = buttonType;
         } else if (buttonType) {
-            console.warn(`Invalid button-type value "${buttonType}" in <custom-block>. Must be one of ${validButtonTypes.join(', ')}. Using default 'button'.`);
+            console.warn(`Invalid button-type value "${buttonType}" in <custom-block>. Must be one of ${validButtonTypes.join(', ')}. Using default ${buttonHref ? "'link'" : "'button'"}.`);
         }
         // Validate button-icon
         let buttonIcon = this.getAttribute('button-icon') || '';
