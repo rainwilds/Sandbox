@@ -1876,6 +1876,34 @@ header {
 
     } */
     & nav[aria-label="Main navigation"] {
+
+
+        & ul {
+            list-style: none;
+            display: flex;
+            gap: var(--space-small);
+
+            & >li {
+                & >a {
+                    text-decoration: none;
+                    color: var(--text-color, #333);
+                    padding: 0.5rem 1rem;
+                    transition: background-color 0.3s;
+
+                    &:hover {
+                        background-color: var(--hover-bg, #f0f0f0);
+                    }
+
+                    &[aria-disabled="true"] {
+                        opacity: 0.5;
+                        cursor: not-allowed;
+                    }
+                }
+            }
+        }
+    }
+
+    /* nav[aria-label="Main navigation"] {
         &.nav-above {
             margin-bottom: 1rem;
         }
@@ -1921,9 +1949,10 @@ header {
                 }
             }
         }
-    }
+    } */
 
-    & .header-content {
+
+    /* & .header-content {
         display: flex;
         align-items: center;
         gap: 1rem;
@@ -1942,7 +1971,7 @@ header {
             flex-direction: row;
             justify-content: flex-end;
         }
-    }
+    } */
 
     & .logo-link {
         display: inline-block;
@@ -1966,53 +1995,7 @@ header {
         }
     }
 
-    nav[aria-label="Main navigation"] {
-        &.nav-above {
-            margin-bottom: 1rem;
-        }
 
-        &.nav-below {
-            margin-top: 1rem;
-        }
-
-        &.nav-left {
-            order: -1;
-        }
-
-        &.nav-center {
-            order: 0;
-        }
-
-        &.nav-right {
-            order: 1;
-        }
-
-        & ul.nav-links {
-            list-style: none;
-            display: flex;
-            gap: 1rem;
-            margin: 0;
-            padding: 0;
-
-            & li {
-                & a {
-                    text-decoration: none;
-                    color: var(--text-color, #333);
-                    padding: 0.5rem 1rem;
-                    transition: background-color 0.3s;
-
-                    &:hover {
-                        background-color: var(--hover-bg, #f0f0f0);
-                    }
-
-                    &[aria-disabled="true"] {
-                        opacity: 0.5;
-                        cursor: not-allowed;
-                    }
-                }
-            }
-        }
-    }
 
 
     /* >div:has(nav) {
