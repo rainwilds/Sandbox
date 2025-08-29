@@ -1247,10 +1247,12 @@
         } */
 
         &>video,
-        video~div {
+        video~div, picture, picture~div {
             grid-column: 1;
             grid-row: 1;
         }
+
+        
 
         a {
             margin-top: var(--space-tiny);
