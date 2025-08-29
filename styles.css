@@ -1183,13 +1183,13 @@
             grid-template-columns: 1fr 1fr;
         } */
 
-        &[role="banner"]>* {
+        /* &[role="banner"]>* {
 
             grid-column: 1;
             grid-row: 1;
             max-height: 100vh;
 
-        }
+        } */
 
         &:where([data-primary-position="left"], [data-primary-position="right"]) {
             grid-template-columns: 1fr 1fr;
@@ -1199,7 +1199,7 @@
 
         &.background-image>* {
             /* Apply positioning to all direct children, including <picture> */
-            grid-row: 1 / span 2;
+            grid-row: 1;
             grid-column: 1;
         }
 
