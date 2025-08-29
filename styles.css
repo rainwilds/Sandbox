@@ -1183,7 +1183,7 @@
             grid-template-columns: 1fr 1fr;
         } */
 
-        &[role="banner"] > * {
+        &[role="banner"]>* {
 
             grid-column: 1;
             grid-row: 1;
@@ -1217,6 +1217,11 @@
 
         &.background-image>*:not(picture) {
             z-index: 1;
+        }
+
+        &.background-video>* {
+            grid-column: 1;
+            grid-row: 1;
         }
 
         span.icon {
