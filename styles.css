@@ -1183,7 +1183,7 @@
             grid-template-columns: 1fr 1fr;
         } */
 
-        &:[role="banner"] > * {
+        &[role="banner"] > * {
 
             grid-column: 1;
             grid-row: 1;
