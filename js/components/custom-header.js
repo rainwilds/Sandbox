@@ -205,8 +205,8 @@
                         `nav-${attrs.navOrientation}`
                     ].filter(cls => cls).join(' ').trim();
                     navHTML = `
-                        <div${navAlignClass ? ` class="${navAlignClass}"` : ''}>
-                            <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${attrs.navStyle ? ` style="${attrs.navStyle}"` : ''}>
+                        <div${navAlignClass ? ` class="${navAlignClass}"` : ''}${attrs.navStyle ? ` style="${attrs.navStyle}"` : ''}>
+                            <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}>
                                 <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
                                     <span class="hamburger-icon">${attrs.navToggleIcon}</span>
                                 </button>
