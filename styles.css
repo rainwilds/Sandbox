@@ -1191,6 +1191,10 @@
 
         } */
 
+        &:has(nav)>div {
+            z-index: 1;
+        }
+
         &:where([data-primary-position="left"], [data-primary-position="right"]) {
             grid-template-columns: 1fr 1fr;
         }
@@ -1878,7 +1882,7 @@ header {
     & nav[aria-label="Main navigation"] {
 
 
-        & >ul {
+        &>ul {
             list-style: none;
             display: flex;
             gap: var(--space-small);
