@@ -163,7 +163,7 @@
                 if (attrs.nav && Array.isArray(attrs.nav) && !isFallback) {
                     const navAlignClass = alignMap[attrs.navPosition] || '';
                     navHTML = `
-                        <div class="nav-container ${navAlignClass}">
+                        <div${navAlignClass ? ` class="${navAlignClass}"` : ''}>
                             <nav aria-label="Main navigation"${attrs.navClass ? ` class="${attrs.navClass}"` : ''}${attrs.navStyle ? ` style="${attrs.navStyle}"` : ''}>
                                 <button class="hamburger" aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
                                     <span class="hamburger-icon">☰</span>
@@ -178,14 +178,13 @@
                     `;
                 }
 
-                // Combine content, preserving CustomBlock's background and overlay
-                let innerHTML = blockElement.innerHTML; // Contains background video/image, overlay, and content
+                let innerHTML = blockElement.innerHTML;
                 if (attrs.navPosition === 'above') {
                     innerHTML = navHTML + logoHTML + innerHTML;
                 } else if (attrs.navPosition === 'below') {
                     innerHTML = logoHTML + innerHTML + navHTML;
                 } else {
-                    innerHTML = logoHTML + navHTML + innerHTML; // Navigation and logo before content
+                    innerHTML = logoHTML + navHTML + innerHTML;
                 }
                 blockElement.innerHTML = innerHTML;
 
