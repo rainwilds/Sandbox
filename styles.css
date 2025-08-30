@@ -1191,6 +1191,19 @@
 
         } */
 
+        nav {
+            &.nav-horizontal ul {
+                display: flex;
+                flex-direction: initial;
+                gap: var(--space-small);
+            }
+            &.nav-vertical ul {
+                display: flex;
+                flex-direction: column;
+                gap: var(--space-small);
+            }
+        }
+
         &:has(nav)>div {
             z-index: 1;
         }
