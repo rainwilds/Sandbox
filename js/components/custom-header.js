@@ -207,7 +207,7 @@
                     navHTML = `
                         <div${navAlignClass ? ` class="${navAlignClass}"` : ''}>
                             <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${attrs.navStyle ? ` style="${attrs.navStyle}"` : ''}>
-                                <button class="hamburger${attrs.navToggleClass ? ` ${attrs.navToggleClass}` : ''}" aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
+                                <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
                                     <span class="hamburger-icon">${attrs.navToggleIcon}</span>
                                 </button>
                                 <ul class="nav-links" id="nav-menu">
@@ -231,7 +231,7 @@
                 blockElement.innerHTML = innerHTML;
 
                 if (attrs.nav && !isFallback) {
-                    const hamburger = blockElement.querySelector('.hamburger');
+                    const hamburger = blockElement.querySelector(`.${attrs.navToggleClass || 'button[aria-controls="nav-menu"]'}`);
                     const navMenu = blockElement.querySelector('#nav-menu');
                     if (hamburger && navMenu) {
                         hamburger.addEventListener('click', () => {

@@ -1192,11 +1192,19 @@
         } */
 
         nav {
+
+            &>button {
+                @media (min-width: 769px) {
+                    display: none;
+                }
+            }
+
             &.nav-horizontal ul {
                 display: flex;
                 flex-direction: initial;
                 gap: var(--space-small);
             }
+
             &.nav-vertical ul {
                 display: flex;
                 flex-direction: column;
@@ -1907,11 +1915,7 @@ header {
             }
         }
 
-        &>button {
-            @media (min-width: 769px) {
-                display: none;
-            }
-        }
+
     }
 
     /* nav[aria-label="Main navigation"] {
