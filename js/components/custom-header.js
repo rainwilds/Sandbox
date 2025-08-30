@@ -1,4 +1,4 @@
-/* global HTMLElement, document */
+/* global HTMLElement, document, DOMParser */
 
 (async () => {
     try {
@@ -30,7 +30,11 @@
                     'logo-dark-alt',
                     'nav-position',
                     'nav-class',
-                    'nav-style'
+                    'nav-style',
+                    'nav-aria-label',
+                    'nav-toggle-class',
+                    'nav-toggle-icon',
+                    'nav-orientation'
                 ];
             }
 
@@ -85,6 +89,40 @@
                         console.warn(`Invalid or unsafe CSS in nav-style attribute: "${attrs.navStyle}". Using sanitized styles: "${sanitizedNavStyle}".`);
                         attrs.navStyle = sanitizedNavStyle;
                     }
+                }
+                attrs.navAriaLabel = this.getAttribute('nav-aria-label') || 'Main navigation';
+                attrs.navToggleClass = this.getAttribute('nav-toggle-class') || '';
+                if (attrs.navToggleClass) {
+                    const sanitizedNavToggleClass = attrs.navToggleClass.split(/\s+/).filter(cls => /^[a-zA-Z0-9\-_]+$/.test(cls)).join(' ');
+                    if (sanitizedNavToggleClass !== attrs.navToggleClass) {
+                        console.warn(`Invalid characters in nav-toggle-class attribute: "${attrs.navToggleClass}". Using sanitized classes: "${sanitizedNavToggleClass}".`);
+                        attrs.navToggleClass = sanitizedNavToggleClass;
+                    }
+                }
+                attrs.navToggleIcon = this.getAttribute('nav-toggle-icon') || '<i class="fa-light fa-bars"></i>';
+                if (attrs.navToggleIcon) {
+                    const parser = new DOMParser();
+                    const decodedIcon = attrs.navToggleIcon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+                    const doc = parser.parseFromString(decodedIcon, 'text/html');
+                    const iElement = doc.body.querySelector('i');
+                    if (!iElement || !iElement.className.includes('fa-')) {
+                        console.warn(`Invalid nav-toggle-icon attribute in <custom-header>. Must be a valid Font Awesome <i> tag. Defaulting to <i class="fa-light fa-bars"></i>.`);
+                        attrs.navToggleIcon = '<i class="fa-light fa-bars"></i>';
+                    } else {
+                        const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
+                        if (validClasses.length === 0) {
+                            console.warn(`nav-toggle-icon attribute contains no valid Font Awesome classes. Defaulting to <i class="fa-light fa-bars"></i>.`);
+                            attrs.navToggleIcon = '<i class="fa-light fa-bars"></i>';
+                        } else {
+                            attrs.navToggleIcon = `<i class="${validClasses.join(' ')}"></i>`;
+                        }
+                    }
+                }
+                attrs.navOrientation = this.getAttribute('nav-orientation') || 'horizontal';
+                const validOrientations = ['horizontal', 'vertical'];
+                if (!validOrientations.includes(attrs.navOrientation)) {
+                    console.warn(`Invalid nav-orientation "${attrs.navOrientation}" in <custom-header>. Must be 'horizontal' or 'vertical'. Defaulting to 'horizontal'.`);
+                    attrs.navOrientation = 'horizontal';
                 }
                 return attrs;
             }
@@ -162,11 +200,15 @@
                 let navHTML = '';
                 if (attrs.nav && Array.isArray(attrs.nav) && !isFallback) {
                     const navAlignClass = alignMap[attrs.navPosition] || '';
+                    const navClasses = [
+                        attrs.navClass,
+                        `nav-${attrs.navOrientation}`
+                    ].filter(cls => cls).join(' ').trim();
                     navHTML = `
                         <div${navAlignClass ? ` class="${navAlignClass}"` : ''}>
-                            <nav aria-label="Main navigation"${attrs.navClass ? ` class="${attrs.navClass}"` : ''}${attrs.navStyle ? ` style="${attrs.navStyle}"` : ''}>
-                                <button class="hamburger" aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
-                                    <span class="hamburger-icon">☰</span>
+                            <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${attrs.navStyle ? ` style="${attrs.navStyle}"` : ''}>
+                                <button class="hamburger${attrs.navToggleClass ? ` ${attrs.navToggleClass}` : ''}" aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
+                                    <span class="hamburger-icon">${attrs.navToggleIcon}</span>
                                 </button>
                                 <ul class="nav-links" id="nav-menu">
                                     ${attrs.nav.map(link => `
@@ -229,7 +271,11 @@
                     'logo-dark-alt',
                     'nav-position',
                     'nav-class',
-                    'nav-style'
+                    'nav-style',
+                    'nav-aria-label',
+                    'nav-toggle-class',
+                    'nav-toggle-icon',
+                    'nav-orientation'
                 ].includes(name) && this.isInitialized && this.isVisible) {
                     this.initialize();
                 }
