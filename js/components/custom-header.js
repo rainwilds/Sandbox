@@ -18,24 +18,35 @@
             }
 
             static get observedAttributes() {
-                return [...super.observedAttributes, 'nav', 'sticky', 'logo-primary-src', 'logo-light-src', 'logo-dark-src', 'logo-primary-alt', 'logo-light-alt', 'logo-dark-alt', 'nav-position'];
+                return [
+                    ...super.observedAttributes,
+                    'nav',
+                    'sticky',
+                    'logo-primary-src',
+                    'logo-light-src',
+                    'logo-dark-src',
+                    'logo-primary-alt',
+                    'logo-light-alt',
+                    'logo-dark-alt',
+                    'nav-position',
+                    'nav-class',
+                    'nav-style'
+                ];
             }
 
             getAttributes() {
                 const attrs = super.getAttributes();
                 attrs.nav = this.getAttribute('nav') ? JSON.parse(this.getAttribute('nav')) : null;
-                attrs.sticky = this.hasAttribute('sticky'); // Makes the header fixed at the top of the viewport with z-index 1000
+                attrs.sticky = this.hasAttribute('sticky');
                 attrs.logoPrimarySrc = this.getAttribute('logo-primary-src') || '';
                 attrs.logoLightSrc = this.getAttribute('logo-light-src') || '';
                 attrs.logoDarkSrc = this.getAttribute('logo-dark-src') || '';
-                // Validate logo-light-src and logo-dark-src: both required if either is present
                 if ((attrs.logoLightSrc || attrs.logoDarkSrc) && !(attrs.logoLightSrc && attrs.logoDarkSrc)) {
                     console.error('Both logo-light-src and logo-dark-src must be provided when using light/dark themes for the logo.');
                 }
                 attrs.logoPrimaryAlt = this.getAttribute('logo-primary-alt') || '';
                 attrs.logoLightAlt = this.getAttribute('logo-light-alt') || '';
                 attrs.logoDarkAlt = this.getAttribute('logo-dark-alt') || '';
-                // Validate alt attributes: error if any alt is missing when corresponding src is provided
                 if (attrs.logoPrimarySrc && !attrs.logoPrimaryAlt) {
                     console.error('logo-primary-alt is required when logo-primary-src is provided.');
                 }
@@ -47,25 +58,49 @@
                 }
                 attrs.navPosition = this.getAttribute('nav-position') || 'right';
                 // Define valid nav-position options for structural placement
-                const validNavPositions = ['above', 'below', 'right', 'left', 'center'];
+                const validNavPositions = ['center', 'top', 'bottom', 'left', 'right', 'top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right', 'center-left', 'center-right', 'above', 'below'];
                 if (!validNavPositions.includes(attrs.navPosition)) {
                     console.warn(`Invalid nav-position "${attrs.navPosition}" in <custom-header>. Must be one of ${validNavPositions.join(', ')}. Defaulting to 'right'.`);
                     attrs.navPosition = 'right';
+                }
+                // Add nav-class and nav-style
+                attrs.navClass = this.getAttribute('nav-class') || '';
+                if (attrs.navClass) {
+                    const sanitizedNavClass = attrs.navClass.split(/\s+/).filter(cls => /^[a-zA-Z0-9\-_]+$/.test(cls)).join(' ');
+                    if (sanitizedNavClass !== attrs.navClass) {
+                        console.warn(`Invalid characters in nav-class attribute: "${attrs.navClass}". Using sanitized classes: "${sanitizedNavClass}".`);
+                        attrs.navClass = sanitizedNavClass;
+                    }
+                }
+                attrs.navStyle = this.getAttribute('nav-style') || '';
+                if (attrs.navStyle) {
+                    const allowedStyles = [
+                        'color', 'background-color', 'border', 'border-radius', 'padding', 'margin', 'font-size', 'font-weight',
+                        'text-align', 'display', 'width', 'height', 'flex', 'justify-content', 'align-items'
+                    ];
+                    const styleParts = attrs.navStyle.split(';').map(s => s.trim()).filter(s => s);
+                    const sanitizedNavStyle = styleParts.filter(part => {
+                        const [property] = part.split(':').map(s => s.trim());
+                        return allowedStyles.includes(property);
+                    }).join('; ');
+                    if (sanitizedNavStyle !== attrs.navStyle) {
+                        console.warn(`Invalid or unsafe CSS in nav-style attribute: "${attrs.navStyle}". Using sanitized styles: "${sanitizedNavStyle}".`);
+                        attrs.navStyle = sanitizedNavStyle;
+                    }
                 }
                 return attrs;
             }
 
             render(isFallback = false) {
                 const attrs = this.getAttributes();
-                let blockElement = super.render(isFallback); // Get the base element from CustomBlock
+                let blockElement = super.render(isFallback);
                 if (!blockElement) {
                     console.error('Failed to render base CustomBlock for CustomHeader');
-                    blockElement = document.createElement('div'); // Fallback to a div if rendering fails
+                    blockElement = document.createElement('div');
                 }
 
                 // Set role and classes directly on the blockElement
                 blockElement.setAttribute('role', 'banner');
-                // Check for background image and video
                 const hasVideoBackground = !isFallback && !!(attrs.videoBackgroundSrc || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc);
                 const hasBackgroundImage = !isFallback && !!(attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc) && !hasVideoBackground;
                 const headerClasses = [
@@ -76,8 +111,8 @@
                     attrs.shadowClass,
                     attrs.sticky ? 'sticky' : '',
                     hasBackgroundImage ? 'background-image' : '',
-                    hasVideoBackground ? 'background-video' : '', // Add background-video if applicable
-                    ...attrs.customClasses.split(' ').filter(cls => cls && cls !== 'padding-medium') // Exclude padding-medium to avoid redundancy
+                    hasVideoBackground ? 'background-video' : '',
+                    ...attrs.customClasses.split(' ').filter(cls => cls && cls !== 'padding-medium')
                 ].filter(cls => cls).join(' ').trim();
                 if (headerClasses) {
                     blockElement.className = headerClasses;
@@ -93,50 +128,74 @@
                     blockElement.removeAttribute('data-section-title');
                 }
 
+                // Define alignMap consistent with CustomBlock
+                const alignMap = {
+                    'center': 'place-self-center',
+                    'top': 'place-self-top',
+                    'bottom': 'place-self-bottom',
+                    'left': 'place-self-left',
+                    'right': 'place-self-right',
+                    'top-left': 'place-self-top-left',
+                    'top-center': 'place-self-top-center',
+                    'top-right': 'place-self-top-right',
+                    'bottom-left': 'place-self-bottom-left',
+                    'bottom-center': 'place-self-bottom-center',
+                    'bottom-right': 'place-self-bottom-right',
+                    'center-left': 'place-self-center-left',
+                    'center-right': 'place-self-center-right'
+                };
+
                 // Generate logo markup
                 let logoHTML = '';
                 if (attrs.logoPrimarySrc && !isFallback) {
                     logoHTML = `
-                        <div><a href="/" class="logo-link">
-                            ${this.generatePictureMarkup({
-                                src: attrs.logoPrimarySrc,
-                                lightSrc: attrs.logoLightSrc || attrs.logoPrimarySrc,
-                                darkSrc: attrs.logoDarkSrc || attrs.logoPrimarySrc,
-                                alt: attrs.logoPrimaryAlt,
-                                isDecorative: !attrs.logoPrimaryAlt,
-                                customClasses: `logo logo-${attrs.navPosition}`,
-                                loading: 'eager',
-                                fetchPriority: 'high'
-                            })}
-                        </a></div>
+                        <div class="logo-container ${alignMap[attrs.navPosition] || ''}">
+                            <a href="/" class="logo-link">
+                                ${this.generatePictureMarkup({
+                                    src: attrs.logoPrimarySrc,
+                                    lightSrc: attrs.logoLightSrc || attrs.logoPrimarySrc,
+                                    darkSrc: attrs.logoDarkSrc || attrs.logoPrimarySrc,
+                                    alt: attrs.logoPrimaryAlt,
+                                    isDecorative: !attrs.logoPrimaryAlt,
+                                    customClasses: `logo logo-${attrs.navPosition}`,
+                                    loading: 'eager',
+                                    fetchPriority: 'high'
+                                })}
+                            </a>
+                        </div>
                     `;
                 }
 
                 // Generate navigation markup with hamburger toggle
                 let navHTML = '';
                 if (attrs.nav && Array.isArray(attrs.nav) && !isFallback) {
+                    const navAlignClass = alignMap[attrs.navPosition] || '';
                     navHTML = `
-                        <div><nav aria-label="Main navigation">
-                            <button class="hamburger" aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
-                                <span class="hamburger-icon">☰</span>
-                            </button>
-                            <ul class="nav-links" id="nav-menu">
-                                ${attrs.nav.map(link => `
-                                    <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
-                                `).join('')}
-                            </ul>
-                        </nav></div>
+                        <div class="nav-container ${navAlignClass}">
+                            <nav aria-label="Main navigation"${attrs.navClass ? ` class="${attrs.navClass}"` : ''}${attrs.navStyle ? ` style="${attrs.navStyle}"` : ''}>
+                                <button class="hamburger" aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
+                                    <span class="hamburger-icon">☰</span>
+                                </button>
+                                <ul class="nav-links" id="nav-menu">
+                                    ${attrs.nav.map(link => `
+                                        <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
+                                    `).join('')}
+                                </ul>
+                            </nav>
+                        </div>
                     `;
                 }
 
                 // Combine content based on nav-position for structural placement
-                let innerHTML = blockElement.innerHTML; // Start with existing content from super.render
+                let innerHTML = blockElement.innerHTML;
                 if (attrs.navPosition === 'above') {
-                    innerHTML = navHTML + innerHTML; // Nav before existing content (video, etc.)
+                    innerHTML = logoHTML + navHTML + innerHTML;
                 } else if (attrs.navPosition === 'below') {
-                    innerHTML = innerHTML + navHTML; // Nav after existing content
+                    innerHTML = logoHTML + innerHTML + navHTML;
+                } else if (['left', 'right', 'center', 'top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right', 'center-left', 'center-right'].includes(attrs.navPosition)) {
+                    innerHTML = `<div class="header-content ${alignMap[attrs.navPosition] || ''}">${logoHTML}${navHTML}${innerHTML}</div>`;
                 } else {
-                    innerHTML = innerHTML + navHTML; // Nav as sibling, appended after video and other content
+                    innerHTML = logoHTML + innerHTML + navHTML;
                 }
                 blockElement.innerHTML = innerHTML;
 
@@ -155,10 +214,10 @@
 
                 // Cache the result in the parent class
                 if (!isFallback) {
-                    super.render(isFallback); // Ensure parent caching
+                    super.render(isFallback);
                 }
 
-                return blockElement; // Return the modified blockElement
+                return blockElement;
             }
 
             connectedCallback() {
@@ -172,7 +231,19 @@
 
             attributeChangedCallback(name, oldValue, newValue) {
                 super.attributeChangedCallback(name, oldValue, newValue);
-                if (['nav', 'sticky', 'logo-primary-src', 'logo-light-src', 'logo-dark-src', 'logo-primary-alt', 'logo-light-alt', 'logo-dark-alt', 'nav-position'].includes(name) && this.isInitialized && this.isVisible) {
+                if ([
+                    'nav',
+                    'sticky',
+                    'logo-primary-src',
+                    'logo-light-src',
+                    'logo-dark-src',
+                    'logo-primary-alt',
+                    'logo-light-alt',
+                    'logo-dark-alt',
+                    'nav-position',
+                    'nav-class',
+                    'nav-style'
+                ].includes(name) && this.isInitialized && this.isVisible) {
                     this.initialize();
                 }
             }
