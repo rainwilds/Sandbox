@@ -14,7 +14,7 @@
                 this.setAttribute('inner-alignment', this.getAttribute('inner-alignment') || 'center');
                 this.setAttribute('text-alignment', this.getAttribute('text-alignment') || 'center');
                 this.setAttribute('class', this.getAttribute('class') || 'padding-large');
-                this.setAttribute('role', 'banner'); // Set role on the custom element itself
+                this.setAttribute('role', 'banner');
             }
 
             static get observedAttributes() {
@@ -57,13 +57,11 @@
                     console.error('logo-dark-alt is required when logo-dark-src is provided.');
                 }
                 attrs.navPosition = this.getAttribute('nav-position') || 'right';
-                // Define valid nav-position options for structural placement
                 const validNavPositions = ['center', 'top', 'bottom', 'left', 'right', 'top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right', 'center-left', 'center-right', 'above', 'below'];
                 if (!validNavPositions.includes(attrs.navPosition)) {
                     console.warn(`Invalid nav-position "${attrs.navPosition}" in <custom-header>. Must be one of ${validNavPositions.join(', ')}. Defaulting to 'right'.`);
                     attrs.navPosition = 'right';
                 }
-                // Add nav-class and nav-style
                 attrs.navClass = this.getAttribute('nav-class') || '';
                 if (attrs.navClass) {
                     const sanitizedNavClass = attrs.navClass.split(/\s+/).filter(cls => /^[a-zA-Z0-9\-_]+$/.test(cls)).join(' ');
@@ -99,7 +97,6 @@
                     blockElement = document.createElement('div');
                 }
 
-                // Set role and classes directly on the blockElement
                 blockElement.setAttribute('role', 'banner');
                 const hasVideoBackground = !isFallback && !!(attrs.videoBackgroundSrc || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc);
                 const hasBackgroundImage = !isFallback && !!(attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc) && !hasVideoBackground;
@@ -118,17 +115,14 @@
                     blockElement.className = headerClasses;
                 }
 
-                // Transfer styles from block to header
                 if (attrs.styleAttribute && !isFallback) {
                     blockElement.setAttribute('style', attrs.styleAttribute);
                 }
 
-                // Remove any existing data-section-title if not needed
                 if (blockElement.hasAttribute('data-section-title')) {
                     blockElement.removeAttribute('data-section-title');
                 }
 
-                // Define alignMap consistent with CustomBlock
                 const alignMap = {
                     'center': 'place-self-center',
                     'top': 'place-self-top',
@@ -145,7 +139,6 @@
                     'center-right': 'place-self-center-right'
                 };
 
-                // Generate logo markup
                 let logoHTML = '';
                 if (attrs.logoPrimarySrc && !isFallback) {
                     logoHTML = `
@@ -166,7 +159,6 @@
                     `;
                 }
 
-                // Generate navigation markup with hamburger toggle
                 let navHTML = '';
                 if (attrs.nav && Array.isArray(attrs.nav) && !isFallback) {
                     const navAlignClass = alignMap[attrs.navPosition] || '';
@@ -186,20 +178,17 @@
                     `;
                 }
 
-                // Combine content based on nav-position for structural placement
-                let innerHTML = blockElement.innerHTML;
+                // Combine content, preserving CustomBlock's background and overlay
+                let innerHTML = blockElement.innerHTML; // Contains background video/image, overlay, and content
                 if (attrs.navPosition === 'above') {
-                    innerHTML = logoHTML + navHTML + innerHTML;
+                    innerHTML = navHTML + logoHTML + innerHTML;
                 } else if (attrs.navPosition === 'below') {
                     innerHTML = logoHTML + innerHTML + navHTML;
-                } else if (['left', 'right', 'center', 'top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right', 'center-left', 'center-right'].includes(attrs.navPosition)) {
-                    innerHTML = `<div class="header-content ${alignMap[attrs.navPosition] || ''}">${logoHTML}${navHTML}${innerHTML}</div>`;
                 } else {
-                    innerHTML = logoHTML + innerHTML + navHTML;
+                    innerHTML = logoHTML + navHTML + innerHTML; // Navigation and logo before content
                 }
                 blockElement.innerHTML = innerHTML;
 
-                // Add event listener for hamburger menu
                 if (attrs.nav && !isFallback) {
                     const hamburger = blockElement.querySelector('.hamburger');
                     const navMenu = blockElement.querySelector('#nav-menu');
@@ -212,7 +201,6 @@
                     }
                 }
 
-                // Cache the result in the parent class
                 if (!isFallback) {
                     super.render(isFallback);
                 }
