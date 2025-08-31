@@ -77,7 +77,7 @@
                 attrs.navStyle = this.getAttribute('nav-style') || '';
                 if (attrs.navStyle) {
                     const allowedStyles = [
-                        'color', 'background', 'background-image', 'background-color', 'border', 'border-radius', 'padding', 'margin', 'font-size', 'font-weight',
+                        'color', 'background', 'background-color', 'border', 'border-radius', 'padding', 'margin', 'font-size', 'font-weight',
                         'text-align', 'display', 'width', 'height', 'flex', 'justify-content', 'align-items'
                     ];
                     const styleParts = attrs.navStyle.split(';').map(s => s.trim()).filter(s => s);
@@ -183,15 +183,15 @@
                         <div class="logo-container ${alignMap[attrs.navPosition] || ''}">
                             <a href="/" class="logo-link">
                                 ${this.generatePictureMarkup({
-                                    src: attrs.logoPrimarySrc,
-                                    lightSrc: attrs.logoLightSrc || attrs.logoPrimarySrc,
-                                    darkSrc: attrs.logoDarkSrc || attrs.logoPrimarySrc,
-                                    alt: attrs.logoPrimaryAlt,
-                                    isDecorative: !attrs.logoPrimaryAlt,
-                                    customClasses: `logo logo-${attrs.navPosition}`,
-                                    loading: 'eager',
-                                    fetchPriority: 'high'
-                                })}
+                        src: attrs.logoPrimarySrc,
+                        lightSrc: attrs.logoLightSrc || attrs.logoPrimarySrc,
+                        darkSrc: attrs.logoDarkSrc || attrs.logoPrimarySrc,
+                        alt: attrs.logoPrimaryAlt,
+                        isDecorative: !attrs.logoPrimaryAlt,
+                        customClasses: `logo logo-${attrs.navPosition}`,
+                        loading: 'eager',
+                        fetchPriority: 'high'
+                    })}
                             </a>
                         </div>
                     `;
