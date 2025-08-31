@@ -77,7 +77,7 @@
                 attrs.navStyle = this.getAttribute('nav-style') || '';
                 if (attrs.navStyle) {
                     const allowedStyles = [
-                        'color', 'background-color', 'border', 'border-radius', 'padding', 'margin', 'font-size', 'font-weight',
+                        'color', 'background', 'background-image', 'background-color', 'border', 'border-radius', 'padding', 'margin', 'font-size', 'font-weight',
                         'text-align', 'display', 'width', 'height', 'flex', 'justify-content', 'align-items'
                     ];
                     const styleParts = attrs.navStyle.split(';').map(s => s.trim()).filter(s => s);
