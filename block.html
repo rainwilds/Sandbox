@@ -71,6 +71,31 @@
     </header>
 
     <main>
+        <div id="container"></div>
+  <script>
+    const container = document.getElementById('container');
+    const instanceCount = 50; // Adjust to 50-100 for testing
+    for (let i = 0; i < instanceCount; i++) {
+      const block = document.createElement('custom-block');
+      // Set varied attributes to test different code paths
+      block.setAttribute('heading', `Block ${i + 1}`);
+      block.setAttribute('sub-heading', `Subheading ${i + 1}`);
+      block.setAttribute('img-primary-src', `./img/sample${i % 5}.jpg`);
+      block.setAttribute('img-primary-alt', `Image ${i + 1}`);
+      block.setAttribute('img-primary-position', ['top', 'bottom', 'left', 'right'][i % 4]);
+      if (i % 10 === 0) {
+        block.setAttribute('video-background-src', `./video/sample${i % 3}.mp4`);
+        block.setAttribute('video-background-alt', `Video ${i + 1}`);
+        block.setAttribute('video-background-autoplay', '');
+      }
+      if (i % 5 === 0) {
+        block.setAttribute('icon', `<i class="fa-chisel fa-regular fa-star"></i>`);
+      }
+      block.setAttribute('button-text', `Button ${i + 1}`);
+      block.setAttribute('button-href', `#${i + 1}`);
+      container.appendChild(block);
+    }
+  </script>
         <section>
 
             <div>
