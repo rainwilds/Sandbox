@@ -1027,7 +1027,7 @@ class CustomBlock extends HTMLElement {
             }
             const backdropFilterValues = attrs.backdropFilterClasses
                 .filter(cls => cls.startsWith('backdrop-filter'))
-                .map(cls => CustomBlock.#BACKDROP_FILTER_MAP[cls] || '')
+                .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
                 .filter(val => val);
             const filteredOverlayClasses = attrs.backdropFilterClasses
                 .filter(cls => !cls.startsWith('backdrop-filter'))
@@ -1124,7 +1124,7 @@ class CustomBlock extends HTMLElement {
         if (!isFallback) {
             const innerBackdropFilterValues = attrs.innerBackdropFilterClasses
                 .filter(cls => cls.startsWith('backdrop-filter'))
-                .map(cls => CustomBlock.#BACKDROP_FILTER_MAP[cls] || '')
+                .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
                 .filter(val => val);
             const filteredInnerBackdropClasses = attrs.innerBackdropFilterClasses
                 .filter(cls => !cls.startsWith('backdrop-filter'));

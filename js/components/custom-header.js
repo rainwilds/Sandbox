@@ -297,7 +297,7 @@
                     // Handle backdrop-filter for nav
                     const navBackdropFilterValues = attrs.navBackdropFilterClasses
                         .filter(cls => cls.startsWith('backdrop-filter'))
-                        .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '') // Updated to use public property
+                        .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
                         .filter(val => val);
                     const navBackdropFilterStyle = navBackdropFilterValues.length > 0 ? `backdrop-filter: ${navBackdropFilterValues.join(' ')}` : '';
                     const navStyle = [attrs.navStyle, navBackdropFilterStyle].filter(s => s).join('; ').trim();
@@ -317,7 +317,7 @@
             `;
                     } else {
                         navHTML = `
-                <div${navAlignClass ? ` class="${navAlignClass}"` : ''}${attrs.navStyle ? ` style="${navStyle}"` : ''}>
+                <div${navAlignClass ? ` class="${navAlignClass}"` : ''}${navStyle ? ` style="${navStyle}"` : ''}>
                     <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${navStyle ? ` style="${navStyle}"` : ''}>
                         <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
                             <span class="hamburger-icon">${attrs.navToggleIcon}</span>
