@@ -36,11 +36,11 @@
                     'logo-placement',
                     'nav-container-class',
                     'nav-container-style',
-                    'nav-background-color', // New
-                    'nav-background-image-noise', // New
-                    'nav-border', // New
-                    'nav-border-radius', // New
-                    'nav-backdrop-filter' // New
+                    'nav-background-color',
+                    'nav-background-image-noise',
+                    'nav-border',
+                    'nav-border-radius',
+                    'nav-backdrop-filter'
                 ];
             }
 
@@ -261,23 +261,22 @@
 
                 let logoHTML = '';
                 if ((attrs.logoPrimarySrc || (attrs.logoLightSrc && attrs.logoDarkSrc)) && !isFallback) {
-                    // Simplified and reformatted to avoid parsing issues
-                    const logoPictureMarkup = this.generatePictureMarkup({
+                    const logoMarkup = this.generatePictureMarkup({
                         src: attrs.logoPrimarySrc || attrs.logoLightSrc,
                         lightSrc: attrs.logoLightSrc || attrs.logoPrimarySrc,
                         darkSrc: attrs.logoDarkSrc || attrs.logoPrimarySrc,
                         alt: attrs.logoPrimaryAlt || attrs.logoLightAlt,
                         isDecorative: !attrs.logoPrimaryAlt && !attrs.logoLightAlt,
-                        customClasses: `logo logo-${attrs.navPosition}`,
+                        customClasses: `logo logo-${attrs.navPosition || 'right'}`,
                         loading: 'eager',
                         fetchPriority: 'high',
                         noResponsive: true
                     });
                     logoHTML = `
-            <div${attrs.logoPosition ? ` class="${alignMap[attrs.logoPosition]}"` : ''} style="z-index: 100;">
-                <a href="/">${logoPictureMarkup}</a>
-            </div>
-        `;
+                        <div${attrs.logoPosition ? ` class="${alignMap[attrs.logoPosition]}"` : ''} style="z-index: 100;">
+                            <a href="/">${logoMarkup}</a>
+                        </div>
+                    `;
                 }
 
                 let navHTML = '';
@@ -302,32 +301,32 @@
 
                     if (attrs.logoPlacement === 'nav') {
                         navHTML = `
-                <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${navStyle ? ` style="${navStyle}"` : ''}>
-                    <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
-                        <span class="hamburger-icon">${attrs.navToggleIcon}</span>
-                    </button>
-                    <ul class="nav-links" id="nav-menu">
-                        ${attrs.nav.map(link => `
-                            <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
-                        `).join('')}
-                    </ul>
-                </nav>
-            `;
+                            <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${navStyle ? ` style="${navStyle}"` : ''}>
+                                <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
+                                    <span class="hamburger-icon">${attrs.navToggleIcon}</span>
+                                </button>
+                                <ul class="nav-links" id="nav-menu">
+                                    ${attrs.nav.map(link => `
+                                        <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
+                                    `).join('')}
+                                </ul>
+                            </nav>
+                        `;
                     } else {
                         navHTML = `
-                <div${navAlignClass ? ` class="${navAlignClass}"` : ''}>
-                    <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${navStyle ? ` style="${navStyle}"` : ''}>
-                        <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
-                            <span class="hamburger-icon">${attrs.navToggleIcon}</span>
-                        </button>
-                        <ul class="nav-links" id="nav-menu">
-                            ${attrs.nav.map(link => `
-                                <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
-                            `).join('')}
-                        </ul>
-                    </nav>
-                </div>
-            `;
+                            <div${navAlignClass ? ` class="${navAlignClass}"` : ''}>
+                                <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${navStyle ? ` style="${navStyle}"` : ''}>
+                                    <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
+                                        <span class="hamburger-icon">${attrs.navToggleIcon}</span>
+                                    </button>
+                                    <ul class="nav-links" id="nav-menu">
+                                        ${attrs.nav.map(link => `
+                                            <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
+                                        `).join('')}
+                                    </ul>
+                                </nav>
+                            </div>
+                        `;
                     }
                 }
 
@@ -337,12 +336,12 @@
                     const containerClasses = [navContainerClass, attrs.navContainerClass].filter(cls => cls).join(' ').trim();
                     const containerStyle = attrs.navContainerStyle ? `${attrs.navContainerStyle}` : '';
                     innerHTML = `
-            <div${containerClasses ? ` class="${containerClasses}"` : ''}${containerStyle ? ` style="${containerStyle}"` : ''}>
-                ${logoHTML}
-                ${navHTML}
-            </div>
-            ${innerHTML}
-        `;
+                        <div${containerClasses ? ` class="${containerClasses}"` : ''}${containerStyle ? ` style="${containerStyle}"` : ''}>
+                            ${logoHTML}
+                            ${navHTML}
+                        </div>
+                        ${innerHTML}
+                    `;
                 } else {
                     if (attrs.navPosition === 'above') {
                         innerHTML = navHTML + logoHTML + innerHTML;
@@ -372,6 +371,48 @@
 
                 return blockElement;
             }
+
+            connectedCallback() {
+                super.connectedCallback();
+                if (this.hasAttribute('sticky')) {
+                    this.style.position = 'sticky';
+                    this.style.top = '0';
+                    this.style.zIndex = '1000';
+                }
+            }
+
+            attributeChangedCallback(name, oldValue, newValue) {
+                super.attributeChangedCallback(name, oldValue, newValue);
+                if ([
+                    'nav',
+                    'sticky',
+                    'logo-primary-src',
+                    'logo-light-src',
+                    'logo-dark-src',
+                    'logo-primary-alt',
+                    'logo-light-alt',
+                    'logo-dark-alt',
+                    'nav-position',
+                    'nav-class',
+                    'nav-style',
+                    'nav-aria-label',
+                    'nav-toggle-class',
+                    'nav-toggle-icon',
+                    'nav-orientation',
+                    'logo-position',
+                    'logo-placement',
+                    'nav-container-class',
+                    'nav-container-style',
+                    'nav-background-color',
+                    'nav-background-image-noise',
+                    'nav-border',
+                    'nav-border-radius',
+                    'nav-backdrop-filter'
+                ].includes(name) && this.isInitialized && this.isVisible) {
+                    this.initialize();
+                }
+            }
+        }
 
         try {
             customElements.define('custom-header', CustomHeader);
