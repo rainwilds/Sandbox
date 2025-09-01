@@ -35,8 +35,8 @@
                     'nav-orientation',
                     'logo-position',
                     'logo-placement',
-                    'nav-container-class', // New attribute
-                    'nav-container-style' // New attribute
+                    'nav-container-class',
+                    'nav-container-style'
                 ];
             }
 
@@ -137,7 +137,7 @@
                     console.warn(`Invalid nav-orientation "${attrs.navOrientation}" in <custom-header>. Must be 'horizontal' or 'vertical'. Defaulting to 'horizontal'.`);
                     attrs.navOrientation = 'horizontal';
                 }
-                attrs.navContainerClass = this.getAttribute('nav-container-class') || ''; // New attribute
+                attrs.navContainerClass = this.getAttribute('nav-container-class') || '';
                 if (attrs.navContainerClass) {
                     const sanitizedNavContainerClass = attrs.navContainerClass.split(/\s+/).filter(cls => /^[a-zA-Z0-9\-_]+$/.test(cls)).join(' ');
                     if (sanitizedNavContainerClass !== attrs.navContainerClass) {
@@ -145,7 +145,7 @@
                         attrs.navContainerClass = sanitizedNavContainerClass;
                     }
                 }
-                attrs.navContainerStyle = this.getAttribute('nav-container-style') || ''; // New attribute
+                attrs.navContainerStyle = this.getAttribute('nav-container-style') || '';
                 if (attrs.navContainerStyle) {
                     const allowedStyles = [
                         'color', 'background', 'background-color', 'border', 'border-radius', 'padding', 'margin', 'font-size', 'font-weight',
@@ -278,7 +278,7 @@
                 if (attrs.logoPlacement === 'nav' && navHTML && logoHTML) {
                     const navContainerClass = attrs.navPosition ? alignMap[attrs.navPosition] : '';
                     const containerClasses = [navContainerClass, attrs.navContainerClass].filter(cls => cls).join(' ').trim();
-                    const containerStyle = `display: flex; align-items: center;${attrs.navContainerStyle ? ` ${attrs.navContainerStyle}` : ''}`;
+                    const containerStyle = attrs.navContainerStyle ? `${attrs.navContainerStyle}` : '';
                     innerHTML = `
                         <div${containerClasses ? ` class="${containerClasses}"` : ''}${containerStyle ? ` style="${containerStyle}"` : ''}>
                             ${logoHTML}
@@ -345,8 +345,8 @@
                     'nav-orientation',
                     'logo-position',
                     'logo-placement',
-                    'nav-container-class', // Trigger re-render on change
-                    'nav-container-style' // Trigger re-render on change
+                    'nav-container-class',
+                    'nav-container-style'
                 ].includes(name) && this.isInitialized && this.isVisible) {
                     this.initialize();
                 }
