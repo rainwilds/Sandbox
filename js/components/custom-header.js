@@ -178,24 +178,24 @@
                 };
 
                 let logoHTML = '';
-                // Modified condition to include logo-light-src and logo-dark-src
                 if ((attrs.logoPrimarySrc || (attrs.logoLightSrc && attrs.logoDarkSrc)) && !isFallback) {
                     logoHTML = `
-            <div class="logo-container ${alignMap[attrs.navPosition] || ''}">
-                <a href="/" class="logo-link">
-                    ${this.generatePictureMarkup({
-                        src: attrs.logoPrimarySrc || attrs.logoLightSrc, // Fallback to logoLightSrc if logoPrimarySrc is absent
-                        lightSrc: attrs.logoLightSrc || attrs.logoPrimarySrc,
-                        darkSrc: attrs.logoDarkSrc || attrs.logoPrimarySrc,
-                        alt: attrs.logoPrimaryAlt || attrs.logoLightAlt, // Use logoLightAlt as fallback
-                        isDecorative: !attrs.logoPrimaryAlt && !attrs.logoLightAlt,
-                        customClasses: `logo logo-${attrs.navPosition}`,
-                        loading: 'eager',
-                        fetchPriority: 'high'
-                    })}
-                </a>
-            </div>
-        `;
+                        <div class="logo-container ${alignMap[attrs.navPosition] || ''}" style="z-index: 100;">
+                            <a href="/" class="logo-link">
+                                ${this.generatePictureMarkup({
+                                    src: attrs.logoPrimarySrc || attrs.logoLightSrc,
+                                    lightSrc: attrs.logoLightSrc || attrs.logoPrimarySrc,
+                                    darkSrc: attrs.logoDarkSrc || attrs.logoPrimarySrc,
+                                    alt: attrs.logoPrimaryAlt || attrs.logoLightAlt,
+                                    isDecorative: !attrs.logoPrimaryAlt && !attrs.logoLightAlt,
+                                    customClasses: `logo logo-${attrs.navPosition}`,
+                                    loading: 'eager',
+                                    fetchPriority: 'high',
+                                    noResponsive: true // Use non-responsive mode for logo
+                                })}
+                            </a>
+                        </div>
+                    `;
                 }
 
                 let navHTML = '';
@@ -206,19 +206,19 @@
                         `nav-${attrs.navOrientation}`
                     ].filter(cls => cls).join(' ').trim();
                     navHTML = `
-            <div${navAlignClass ? ` class="${navAlignClass}"` : ''}${attrs.navStyle ? ` style="${attrs.navStyle}"` : ''}>
-                <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}>
-                    <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
-                        <span class="hamburger-icon">${attrs.navToggleIcon}</span>
-                    </button>
-                    <ul class="nav-links" id="nav-menu">
-                        ${attrs.nav.map(link => `
-                            <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
-                        `).join('')}
-                    </ul>
-                </nav>
-            </div>
-        `;
+                        <div${navAlignClass ? ` class="${navAlignClass}"` : ''}${attrs.navStyle ? ` style="${attrs.navStyle}"` : ''}>
+                            <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}>
+                                <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
+                                    <span class="hamburger-icon">${attrs.navToggleIcon}</span>
+                                </button>
+                                <ul class="nav-links" id="nav-menu">
+                                    ${attrs.nav.map(link => `
+                                        <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
+                                    `).join('')}
+                                </ul>
+                            </nav>
+                        </div>
+                    `;
                 }
 
                 let innerHTML = blockElement.innerHTML;

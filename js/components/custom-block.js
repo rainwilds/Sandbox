@@ -56,9 +56,10 @@ class CustomBlock extends HTMLElement {
         customClasses = '',
         loading = 'lazy',
         fetchPriority = '',
-        extraClasses = []
+        extraClasses = [],
+        noResponsive = false // New parameter to disable responsive sizes
     } = {}) {
-        const validExtensions = /\.(jpg|jpeg|png|webp|avif|jxl)$/i;
+        const validExtensions = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i; // Added SVG support
         if (!src || !validExtensions.test(src)) {
             console.error('The "src" parameter must be a valid image path');
             return '';
@@ -74,31 +75,6 @@ class CustomBlock extends HTMLElement {
             console.error('Invalid "darkSrc" parameter');
             return '';
         }
-        const parseWidth = (widthStr) => {
-            const vwMatch = widthStr.match(/(\d+)vw/);
-            if (vwMatch) return parseInt(vwMatch[1]) / 100;
-            const pxMatch = widthStr.match(/(\d+)px/);
-            if (pxMatch) {
-                const winWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
-                return parseInt(pxMatch[1]) / winWidth;
-            }
-            return 1.0;
-        };
-        const parsedWidths = {
-            mobile: Math.max(0.1, Math.min(2.0, parseWidth(mobileWidth))),
-            tablet: Math.max(0.1, Math.min(2.0, parseWidth(tabletWidth))),
-            desktop: Math.max(0.1, Math.min(2.0, parseWidth(desktopWidth)))
-        };
-        const sizes = [
-            ...CustomBlock.#SIZES_BREAKPOINTS.map(bp => {
-                const percentage = bp.maxWidth <= 768 ? parsedWidths.mobile : (bp.maxWidth <= 1024 ? parsedWidths.tablet : parsedWidths.desktop);
-                return `(max-width: ${bp.maxWidth}px) ${percentage * 100}vw`;
-            }),
-            `${CustomBlock.#DEFAULT_SIZE_VALUE * parsedWidths.desktop}px`
-        ].join(', ');
-        const generateSrcset = (filename, format) =>
-            `${CustomBlock.#BASE_PATH}${filename}.${format} 3840w, ` +
-            CustomBlock.#WIDTHS.map(w => `${CustomBlock.#BASE_PATH}${filename}-${w}.${format} ${w}w`).join(', ');
         const allClasses = [
             ...new Set([
                 ...customClasses.trim().split(/\s+/).filter(Boolean),
@@ -109,21 +85,58 @@ class CustomBlock extends HTMLElement {
             allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
         }
         const classAttr = allClasses.length ? ` class="${allClasses.join(' ')} animate animate-fade-in"` : ' class="animate animate-fade-in"';
-        let pictureHTML = `<picture${classAttr}>`;
-        CustomBlock.#FORMATS.forEach(format => {
-            if (lightSrc && darkSrc) {
-                pictureHTML += `<source srcset="${generateSrcset(lightBaseFilename, format)}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: light)">`;
-                pictureHTML += `<source srcset="${generateSrcset(darkBaseFilename, format)}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: dark)">`;
-            }
-            pictureHTML += `<source srcset="${generateSrcset(baseFilename, format)}" sizes="${sizes}" type="image/${format}">`;
-        });
-        const altAttr = isDecorative ? ' alt=""' : (alt ? ` alt="${alt}"` : '');
-        const ariaHiddenAttr = isDecorative ? ' aria-hidden="true"' : '';
+        const altAttr = isDecorative ? ' alt="" role="presentation"' : (alt ? ` alt="${alt}"` : '');
         const validLoading = ['eager', 'lazy'].includes(loading) ? loading : 'lazy';
         const validFetchPriority = ['high', 'low', 'auto'].includes(fetchPriority) ? fetchPriority : '';
         const loadingAttr = validLoading ? ` loading="${validLoading}"` : '';
         const fetchPriorityAttr = validFetchPriority ? ` fetchpriority="${validFetchPriority}"` : '';
-        pictureHTML += `<img src="${src}"${altAttr}${ariaHiddenAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${alt || 'Placeholder image'}';`}this.onerror=null;">`;
+        let pictureHTML = `<picture${classAttr}>`;
+
+        if (noResponsive) {
+            // Non-responsive mode: simple <picture> with theme-switching sources
+            if (lightSrc) {
+                pictureHTML += `<source media="(prefers-color-scheme: light)" srcset="${lightSrc}">`;
+            }
+            if (darkSrc) {
+                pictureHTML += `<source media="(prefers-color-scheme: dark)" srcset="${darkSrc}">`;
+            }
+            pictureHTML += `<img src="${src}"${altAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${alt || 'Placeholder image'}';`}this.onerror=null;">`;
+        } else {
+            // Responsive mode: include srcset and sizes
+            const parseWidth = (widthStr) => {
+                const vwMatch = widthStr.match(/(\d+)vw/);
+                if (vwMatch) return parseInt(vwMatch[1]) / 100;
+                const pxMatch = widthStr.match(/(\d+)px/);
+                if (pxMatch) {
+                    const winWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
+                    return parseInt(pxMatch[1]) / winWidth;
+                }
+                return 1.0;
+            };
+            const parsedWidths = {
+                mobile: Math.max(0.1, Math.min(2.0, parseWidth(mobileWidth))),
+                tablet: Math.max(0.1, Math.min(2.0, parseWidth(tabletWidth))),
+                desktop: Math.max(0.1, Math.min(2.0, parseWidth(desktopWidth)))
+            };
+            const sizes = [
+                ...CustomBlock.#SIZES_BREAKPOINTS.map(bp => {
+                    const percentage = bp.maxWidth <= 768 ? parsedWidths.mobile : (bp.maxWidth <= 1024 ? parsedWidths.tablet : parsedWidths.desktop);
+                    return `(max-width: ${bp.maxWidth}px) ${percentage * 100}vw`;
+                }),
+                `${CustomBlock.#DEFAULT_SIZE_VALUE * parsedWidths.desktop}px`
+            ].join(', ');
+            const generateSrcset = (filename, format) =>
+                `${CustomBlock.#BASE_PATH}${filename}.${format} 3840w, ` +
+                CustomBlock.#WIDTHS.map(w => `${CustomBlock.#BASE_PATH}${filename}-${w}.${format} ${w}w`).join(', ');
+            CustomBlock.#FORMATS.forEach(format => {
+                if (lightSrc && darkSrc) {
+                    pictureHTML += `<source srcset="${generateSrcset(lightBaseFilename, format)}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: light)">`;
+                    pictureHTML += `<source srcset="${generateSrcset(darkBaseFilename, format)}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: dark)">`;
+                }
+                pictureHTML += `<source srcset="${generateSrcset(baseFilename, format)}" sizes="${sizes}" type="image/${format}">`;
+            });
+            pictureHTML += `<img src="${src}"${altAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${alt || 'Placeholder image'}';`}this.onerror=null;">`;
+        }
         pictureHTML += '</picture>';
         if (includeSchema) {
             let figureHTML = `<figure${classAttr} itemscope itemtype="https://schema.org/ImageObject">`;
