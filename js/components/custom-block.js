@@ -34,7 +34,7 @@ class CustomBlock extends HTMLElement {
     static #DEFAULT_SIZE_VALUE = 3840;
     static #BASE_PATH = './img/responsive/';
     // Map for backdrop-filter classes to their CSS values
-    static #BACKDROP_FILTER_MAP = {
+    static BACKDROP_FILTER_MAP = {
         'backdrop-filter-blur-small': 'blur(var(--blur-small))',
         'backdrop-filter-blur-medium': 'blur(var(--blur-medium))',
         'backdrop-filter-blur-large': 'blur(var(--blur-large))',

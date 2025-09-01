@@ -297,7 +297,7 @@
                     // Handle backdrop-filter for nav
                     const navBackdropFilterValues = attrs.navBackdropFilterClasses
                         .filter(cls => cls.startsWith('backdrop-filter'))
-                        .map(cls => CustomBlock.#BACKDROP_FILTER_MAP[cls] || '')
+                        .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '') // Updated to use public property
                         .filter(val => val);
                     const navBackdropFilterStyle = navBackdropFilterValues.length > 0 ? `backdrop-filter: ${navBackdropFilterValues.join(' ')}` : '';
                     const navStyle = [attrs.navStyle, navBackdropFilterStyle].filter(s => s).join('; ').trim();
@@ -317,7 +317,7 @@
             `;
                     } else {
                         navHTML = `
-                <div${navAlignClass ? ` class="${navAlignClass}"` : ''}${attrs.navStyle ? ` style="${attrs.navStyle}"` : ''}>
+                <div${navAlignClass ? ` class="${navAlignClass}"` : ''}${attrs.navStyle ? ` style="${navStyle}"` : ''}>
                     <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${navStyle ? ` style="${navStyle}"` : ''}>
                         <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
                             <span class="hamburger-icon">${attrs.navToggleIcon}</span>
@@ -335,48 +335,44 @@
 
                 let innerHTML = blockElement.innerHTML;
                 if (attrs.logoPlacement === 'nav' && navHTML && logoHTML) {
-                    const navContainerClass = attrs.navPosition ?
+                    const navContainerClass = attrs.navPosition ? alignMap[attrs.navPosition] : '';
+                    const containerClasses = [navContainerClass, attrs.navContainerClass].filter(cls => cls).join(' ').trim();
+                    const containerStyle = attrs.navContainerStyle ? `${attrs.navContainerStyle}` : '';
+                    innerHTML = `
+            <div${containerClasses ? ` class="${containerClasses}"` : ''}${containerStyle ? ` style="${containerStyle}"` : ''}>
+                ${logoHTML}
+                ${navHTML}
+            </div>
+            ${innerHTML}
+        `;
+                } else {
+                    if (attrs.navPosition === 'above') {
+                        innerHTML = navHTML + logoHTML + innerHTML;
+                    } else if (attrs.navPosition === 'below') {
+                        innerHTML = logoHTML + innerHTML + navHTML;
+                    } else {
+                        innerHTML = logoHTML + navHTML + innerHTML;
+                    }
+                }
+                blockElement.innerHTML = innerHTML;
 
-                        connectedCallback() {
-                            super.connectedCallback();
-                    if (this.hasAttribute('sticky')) {
-                        this.style.position = 'sticky';
-                        this.style.top = '0';
-                        this.style.zIndex = '1000';
+                if (attrs.nav && !isFallback) {
+                    const hamburger = blockElement.querySelector(`.${attrs.navToggleClass || 'button[aria-controls="nav-menu"]'}`);
+                    const navMenu = blockElement.querySelector('#nav-menu');
+                    if (hamburger && navMenu) {
+                        hamburger.addEventListener('click', () => {
+                            const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
+                            hamburger.setAttribute('aria-expanded', !isExpanded);
+                            navMenu.style.display = isExpanded ? 'none' : 'block';
+                        });
                     }
                 }
 
-                attributeChangedCallback(name, oldValue, newValue) {
-                    super.attributeChangedCallback(name, oldValue, newValue);
-                    if ([
-                        'nav',
-                        'sticky',
-                        'logo-primary-src',
-                        'logo-light-src',
-                        'logo-dark-src',
-                        'logo-primary-alt',
-                        'logo-light-alt',
-                        'logo-dark-alt',
-                        'nav-position',
-                        'nav-class',
-                        'nav-style',
-                        'nav-aria-label',
-                        'nav-toggle-class',
-                        'nav-toggle-icon',
-                        'nav-orientation',
-                        'logo-position',
-                        'logo-placement',
-                        'nav-container-class',
-                        'nav-container-style',
-                        'nav-background-color', // New
-                        'nav-background-image-noise', // New
-                        'nav-border', // New
-                        'nav-border-radius', // New
-                        'nav-backdrop-filter' // New
-                    ].includes(name) && this.isInitialized && this.isVisible) {
-                        this.initialize();
-                    }
+                if (!isFallback) {
+                    super.render(isFallback);
                 }
+
+                return blockElement;
             }
 
         try {
