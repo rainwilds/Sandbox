@@ -37,8 +37,6 @@
 
                 heading="Header 1"
                 heading-tag="H1"
-                sub-heading="Web Component"
-                sub-heading-tag="H3"
                 inner-alignment="center"
                 text-alignment="center"
 
@@ -50,16 +48,17 @@
                 background-overlay="background-color-2"
                 background-image-noise
 
-                inner-border="border-small"
                 nav='[{"text": "Home", "href": "/"}, {"text": "About", "href": "/about"}, {"text": "Contact", "href": "/contact"}]'
 
                 nav-position="top-center"
                 nav-icon='<i class="fa-solid fa-bars"></i>'
                 nav-aria-label="Primary site navigation"
                 nav-orientation="horizontal"
-                nav-style="background: black; padding: var(--space-small);"
-                nav-container-style="width: 100%; height: min-content; background: black; justify-content: space-between; display: flex;"
-                
+                nav-style="padding: var(--space-tiny);"
+                nav-container-style="height: min-content; justify-content: space-between; display: flex;"
+                nav-background-image-noise
+                nav-border="border-small"
+                nav-backdrop-filter="backdrop-filter-blur-large"
                 >
             </custom-header>          
 

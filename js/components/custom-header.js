@@ -35,12 +35,19 @@
                     'logo-position',
                     'logo-placement',
                     'nav-container-class',
-                    'nav-container-style'
+                    'nav-container-style',
+                    'nav-background-color', // New
+                    'nav-background-image-noise', // New
+                    'nav-border', // New
+                    'nav-border-radius', // New
+                    'nav-backdrop-filter' // New
                 ];
             }
 
             getAttributes() {
                 const attrs = super.getAttributes();
+
+                // Existing attributes...
                 attrs.nav = this.getAttribute('nav') ? JSON.parse(this.getAttribute('nav')) : null;
                 attrs.sticky = this.hasAttribute('sticky');
                 attrs.logoPrimarySrc = this.getAttribute('logo-primary-src') || '';
@@ -160,6 +167,45 @@
                         attrs.navContainerStyle = sanitizedNavContainerStyle;
                     }
                 }
+
+                // New nav attributes, reusing logic from custom-block.js
+                attrs.navBackgroundColor = this.getAttribute('nav-background-color') || '';
+                attrs.navBackgroundColorClass = '';
+                if (attrs.navBackgroundColor) {
+                    const match = attrs.navBackgroundColor.match(/^background-color-(\d+)$/);
+                    if (match) {
+                        attrs.navBackgroundColorClass = `background-color-${match[1]}`;
+                    } else {
+                        console.warn(`Invalid nav-background-color value "${attrs.navBackgroundColor}" in <custom-header>. Expected format: background-color-[number]. Ignoring.`);
+                    }
+                }
+
+                attrs.navBackgroundImageNoise = this.hasAttribute('nav-background-image-noise');
+
+                attrs.navBorder = this.getAttribute('nav-border') || '';
+                attrs.navBorderClass = '';
+                if (attrs.navBorder) {
+                    const validBorders = ['border-thin', 'border-medium', 'border-thick']; // Adjust based on your CSS
+                    if (validBorders.includes(attrs.navBorder)) {
+                        attrs.navBorderClass = attrs.navBorder;
+                    } else {
+                        console.warn(`Invalid nav-border value "${attrs.navBorder}" in <custom-header>. Must be one of ${validBorders.join(', ')}. Ignoring.`);
+                    }
+                }
+
+                attrs.navBorderRadius = this.hasAttribute('nav-border') && this.hasAttribute('nav-border-radius') ? this.getAttribute('nav-border-radius') : '';
+                attrs.navBorderRadiusClass = '';
+                if (attrs.navBorderRadius) {
+                    const validRadii = ['border-radius-small', 'border-radius-medium', 'border-radius-large']; // Adjust based on your CSS
+                    if (validRadii.includes(attrs.navBorderRadius)) {
+                        attrs.navBorderRadiusClass = attrs.navBorderRadius;
+                    } else {
+                        console.warn(`Invalid nav-border-radius value "${attrs.navBorderRadius}" in <custom-header>. Must be one of ${validRadii.join(', ')}. Ignoring.`);
+                    }
+                }
+
+                attrs.navBackdropFilterClasses = this.getAttribute('nav-backdrop-filter')?.split(' ').filter(cls => cls) || [];
+
                 return attrs;
             }
 
@@ -216,141 +262,122 @@
                 let logoHTML = '';
                 if ((attrs.logoPrimarySrc || (attrs.logoLightSrc && attrs.logoDarkSrc)) && !isFallback) {
                     logoHTML = `
-                        <div${attrs.logoPosition ? ` class="${alignMap[attrs.logoPosition]}"` : ''} style="z-index: 100;">
-                            <a href="/">
-                                ${this.generatePictureMarkup({
-                                    src: attrs.logoPrimarySrc || attrs.logoLightSrc,
-                                    lightSrc: attrs.logoLightSrc || attrs.logoPrimarySrc,
-                                    darkSrc: attrs.logoDarkSrc || attrs.logoPrimarySrc,
-                                    alt: attrs.logoPrimaryAlt || attrs.logoLightAlt,
-                                    isDecorative: !attrs.logoPrimaryAlt && !attrs.logoLightAlt,
-                                    customClasses: `logo logo-${attrs.navPosition}`,
-                                    loading: 'eager',
-                                    fetchPriority: 'high',
-                                    noResponsive: true
-                                })}
-                            </a>
-                        </div>
-                    `;
+            <div${attrs.logoPosition ? ` class="${alignMap[attrs.logoPosition]}"` : ''} style="z-index: 100;">
+                <a href="/">
+                    ${this.generatePictureMarkup({
+                        src: attrs.logoPrimarySrc || attrs.logoLightSrc,
+                        lightSrc: attrs.logoLightSrc || attrs.logoPrimarySrc,
+                        darkSrc: attrs.logoDarkSrc || attrs.logoPrimarySrc,
+                        alt: attrs.logoPrimaryAlt || attrs.logoLightAlt,
+                        isDecorative: !attrs.logoPrimaryAlt && !attrs.logoLightAlt,
+                        customClasses: `logo logo-${attrs.navPosition}`,
+                        loading: 'eager',
+                        fetchPriority: 'high',
+                        noResponsive: true
+                    })}
+                </a>
+            </div>
+        `;
                 }
 
                 let navHTML = '';
                 if (attrs.nav && Array.isArray(attrs.nav) && !isFallback) {
                     const navAlignClass = alignMap[attrs.navPosition] || '';
+                    // Apply new nav attributes to the <nav> element
                     const navClasses = [
                         attrs.navClass,
-                        `nav-${attrs.navOrientation}`
+                        `nav-${attrs.navOrientation}`,
+                        attrs.navBackgroundColorClass,
+                        attrs.navBackgroundImageNoise ? 'background-image-noise' : '',
+                        attrs.navBorderClass,
+                        attrs.navBorderRadiusClass,
+                        ...attrs.navBackdropFilterClasses.filter(cls => !cls.startsWith('backdrop-filter'))
                     ].filter(cls => cls).join(' ').trim();
-                    
+
+                    // Handle backdrop-filter for nav
+                    const navBackdropFilterValues = attrs.navBackdropFilterClasses
+                        .filter(cls => cls.startsWith('backdrop-filter'))
+                        .map(cls => CustomBlock.#BACKDROP_FILTER_MAP[cls] || '')
+                        .filter(val => val);
+                    const navBackdropFilterStyle = navBackdropFilterValues.length > 0 ? `backdrop-filter: ${navBackdropFilterValues.join(' ')}` : '';
+                    const navStyle = [attrs.navStyle, navBackdropFilterStyle].filter(s => s).join('; ').trim();
+
                     if (attrs.logoPlacement === 'nav') {
                         navHTML = `
-                            <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${attrs.navStyle ? ` style="${attrs.navStyle}"` : ''}>
-                                <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
-                                    <span class="hamburger-icon">${attrs.navToggleIcon}</span>
-                                </button>
-                                <ul class="nav-links" id="nav-menu">
-                                    ${attrs.nav.map(link => `
-                                        <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
-                                    `).join('')}
-                                </ul>
-                            </nav>
-                        `;
+                <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${navStyle ? ` style="${navStyle}"` : ''}>
+                    <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
+                        <span class="hamburger-icon">${attrs.navToggleIcon}</span>
+                    </button>
+                    <ul class="nav-links" id="nav-menu">
+                        ${attrs.nav.map(link => `
+                            <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
+                        `).join('')}
+                    </ul>
+                </nav>
+            `;
                     } else {
                         navHTML = `
-                            <div${navAlignClass ? ` class="${navAlignClass}"` : ''}${attrs.navStyle ? ` style="${attrs.navStyle}"` : ''}>
-                                <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}>
-                                    <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
-                                        <span class="hamburger-icon">${attrs.navToggleIcon}</span>
-                                    </button>
-                                    <ul class="nav-links" id="nav-menu">
-                                        ${attrs.nav.map(link => `
-                                            <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
-                                        `).join('')}
-                                    </ul>
-                                </nav>
-                            </div>
-                        `;
+                <div${navAlignClass ? ` class="${navAlignClass}"` : ''}${attrs.navStyle ? ` style="${attrs.navStyle}"` : ''}>
+                    <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${navStyle ? ` style="${navStyle}"` : ''}>
+                        <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
+                            <span class="hamburger-icon">${attrs.navToggleIcon}</span>
+                        </button>
+                        <ul class="nav-links" id="nav-menu">
+                            ${attrs.nav.map(link => `
+                                <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
+                            `).join('')}
+                        </ul>
+                    </nav>
+                </div>
+            `;
                     }
                 }
 
                 let innerHTML = blockElement.innerHTML;
                 if (attrs.logoPlacement === 'nav' && navHTML && logoHTML) {
-                    const navContainerClass = attrs.navPosition ? alignMap[attrs.navPosition] : '';
-                    const containerClasses = [navContainerClass, attrs.navContainerClass].filter(cls => cls).join(' ').trim();
-                    const containerStyle = attrs.navContainerStyle ? `${attrs.navContainerStyle}` : '';
-                    innerHTML = `
-                        <div${containerClasses ? ` class="${containerClasses}"` : ''}${containerStyle ? ` style="${containerStyle}"` : ''}>
-                            ${logoHTML}
-                            ${navHTML}
-                        </div>
-                        ${innerHTML}
-                    `;
-                } else {
-                    if (attrs.navPosition === 'above') {
-                        innerHTML = navHTML + logoHTML + innerHTML;
-                    } else if (attrs.navPosition === 'below') {
-                        innerHTML = logoHTML + innerHTML + navHTML;
-                    } else {
-                        innerHTML = logoHTML + navHTML + innerHTML;
-                    }
-                }
-                blockElement.innerHTML = innerHTML;
+                    const navContainerClass = attrs.navPosition ?
 
-                if (attrs.nav && !isFallback) {
-                    const hamburger = blockElement.querySelector(`.${attrs.navToggleClass || 'button[aria-controls="nav-menu"]'}`);
-                    const navMenu = blockElement.querySelector('#nav-menu');
-                    if (hamburger && navMenu) {
-                        hamburger.addEventListener('click', () => {
-                            const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
-                            hamburger.setAttribute('aria-expanded', !isExpanded);
-                            navMenu.style.display = isExpanded ? 'none' : 'block';
-                        });
+                        connectedCallback() {
+                            super.connectedCallback();
+                    if (this.hasAttribute('sticky')) {
+                        this.style.position = 'sticky';
+                        this.style.top = '0';
+                        this.style.zIndex = '1000';
                     }
                 }
 
-                if (!isFallback) {
-                    super.render(isFallback);
-                }
-
-                return blockElement;
-            }
-
-            connectedCallback() {
-                super.connectedCallback();
-                if (this.hasAttribute('sticky')) {
-                    this.style.position = 'sticky';
-                    this.style.top = '0';
-                    this.style.zIndex = '1000';
-                }
-            }
-
-            attributeChangedCallback(name, oldValue, newValue) {
-                super.attributeChangedCallback(name, oldValue, newValue);
-                if ([
-                    'nav',
-                    'sticky',
-                    'logo-primary-src',
-                    'logo-light-src',
-                    'logo-dark-src',
-                    'logo-primary-alt',
-                    'logo-light-alt',
-                    'logo-dark-alt',
-                    'nav-position',
-                    'nav-class',
-                    'nav-style',
-                    'nav-aria-label',
-                    'nav-toggle-class',
-                    'nav-toggle-icon',
-                    'nav-orientation',
-                    'logo-position',
-                    'logo-placement',
-                    'nav-container-class',
-                    'nav-container-style'
-                ].includes(name) && this.isInitialized && this.isVisible) {
-                    this.initialize();
+                attributeChangedCallback(name, oldValue, newValue) {
+                    super.attributeChangedCallback(name, oldValue, newValue);
+                    if ([
+                        'nav',
+                        'sticky',
+                        'logo-primary-src',
+                        'logo-light-src',
+                        'logo-dark-src',
+                        'logo-primary-alt',
+                        'logo-light-alt',
+                        'logo-dark-alt',
+                        'nav-position',
+                        'nav-class',
+                        'nav-style',
+                        'nav-aria-label',
+                        'nav-toggle-class',
+                        'nav-toggle-icon',
+                        'nav-orientation',
+                        'logo-position',
+                        'logo-placement',
+                        'nav-container-class',
+                        'nav-container-style',
+                        'nav-background-color', // New
+                        'nav-background-image-noise', // New
+                        'nav-border', // New
+                        'nav-border-radius', // New
+                        'nav-backdrop-filter' // New
+                    ].includes(name) && this.isInitialized && this.isVisible) {
+                        this.initialize();
+                    }
                 }
             }
-        }
 
         try {
             customElements.define('custom-header', CustomHeader);
