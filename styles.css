@@ -1097,10 +1097,6 @@
 
     nav {
 
-        :where(&) {
-            z-index: 2;
-        }
-
         &.nav-horizontal ul {
             display: flex;
             flex-direction: initial;
