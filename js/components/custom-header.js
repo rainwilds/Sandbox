@@ -35,7 +35,8 @@
                     'nav-toggle-class',
                     'nav-toggle-icon',
                     'nav-orientation',
-                    'logo-position'
+                    'logo-position',
+                    'logo-placement' // Add logo-placement to observed attributes
                 ];
             }
 
@@ -71,6 +72,12 @@
                 if (attrs.logoPosition && !validNavPositions.includes(attrs.logoPosition)) {
                     console.warn(`Invalid logo-position "${attrs.logoPosition}" in <custom-header>. Must be one of ${validNavPositions.join(', ')}. Ignoring.`);
                     attrs.logoPosition = '';
+                }
+                attrs.logoPlacement = this.getAttribute('logo-placement') || 'independent'; // Default to 'independent'
+                const validLogoPlacements = ['independent', 'nav'];
+                if (!validLogoPlacements.includes(attrs.logoPlacement)) {
+                    console.warn(`Invalid logo-placement "${attrs.logoPlacement}" in <custom-header>. Must be 'independent' or 'nav'. Defaulting to 'independent'.`);
+                    attrs.logoPlacement = 'independent';
                 }
                 attrs.navClass = this.getAttribute('nav-class') || '';
                 if (attrs.navClass) {
@@ -228,12 +235,25 @@
                 }
 
                 let innerHTML = blockElement.innerHTML;
-                if (attrs.navPosition === 'above') {
-                    innerHTML = navHTML + logoHTML + innerHTML;
-                } else if (attrs.navPosition === 'below') {
-                    innerHTML = logoHTML + innerHTML + navHTML;
+                if (attrs.logoPlacement === 'nav' && navHTML && logoHTML) {
+                    // When logo-placement is 'nav', wrap logo and nav in a container to make them siblings
+                    const navContainerClass = attrs.navPosition ? alignMap[attrs.navPosition] : '';
+                    innerHTML = `
+            <div${navContainerClass ? ` class="${navContainerClass}"` : ''} style="display: flex; align-items: center;">
+                ${logoHTML}
+                ${navHTML}
+            </div>
+            ${innerHTML}
+        `;
                 } else {
-                    innerHTML = logoHTML + navHTML + innerHTML;
+                    // When logo-placement is 'independent' (default), maintain original order
+                    if (attrs.navPosition === 'above') {
+                        innerHTML = navHTML + logoHTML + innerHTML;
+                    } else if (attrs.navPosition === 'below') {
+                        innerHTML = logoHTML + innerHTML + navHTML;
+                    } else {
+                        innerHTML = logoHTML + navHTML + innerHTML;
+                    }
                 }
                 blockElement.innerHTML = innerHTML;
 
@@ -283,7 +303,8 @@
                     'nav-toggle-class',
                     'nav-toggle-icon',
                     'nav-orientation',
-                    'logo-position' // Add logo-position to trigger re-render
+                    'logo-position',
+                    'logo-placement' // Add logo-placement to trigger re-render
                 ].includes(name) && this.isInitialized && this.isVisible) {
                     this.initialize();
                 }
