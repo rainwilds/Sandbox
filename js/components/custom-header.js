@@ -11,7 +11,6 @@
                 this.setAttribute('heading-tag', this.getAttribute('heading-tag') || 'h1');
                 this.setAttribute('inner-alignment', this.getAttribute('inner-alignment') || 'center');
                 this.setAttribute('text-alignment', this.getAttribute('text-alignment') || 'center');
-                this.setAttribute('class', this.getAttribute('class') || 'padding-large');
                 this.setAttribute('role', 'banner');
             }
 
@@ -184,7 +183,7 @@
                     attrs.sticky ? 'sticky' : '',
                     hasBackgroundImage ? 'background-image' : '',
                     hasVideoBackground ? 'background-video' : '',
-                    ...attrs.customClasses.split(' ').filter(cls => cls && cls !== 'padding-medium')
+                    ...attrs.customClasses.split(' ').filter(cls => cls)
                 ].filter(cls => cls).join(' ').trim();
                 if (headerClasses) {
                     blockElement.className = headerClasses;
