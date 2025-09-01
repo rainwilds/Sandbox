@@ -244,11 +244,11 @@
                 }
 
                 const alignMap = {
-                    'center': 'place-self-center',
-                    'top': 'place-self-top',
-                    'bottom': 'place-self-bottom',
-                    'left': 'place-self-left',
-                    'right': 'place-self-right',
+                    center: 'place-self-center',
+                    top: 'place-self-top',
+                    bottom: 'place-self-bottom',
+                    left: 'place-self-left',
+                    right: 'place-self-right',
                     'top-left': 'place-self-top-left',
                     'top-center': 'place-self-top-center',
                     'top-right': 'place-self-top-right',
@@ -261,10 +261,8 @@
 
                 let logoHTML = '';
                 if ((attrs.logoPrimarySrc || (attrs.logoLightSrc && attrs.logoDarkSrc)) && !isFallback) {
-                    logoHTML = `
-            <div${attrs.logoPosition ? ` class="${alignMap[attrs.logoPosition]}"` : ''} style="z-index: 100;">
-                <a href="/">
-                    ${this.generatePictureMarkup({
+                    // Simplified and reformatted to avoid parsing issues
+                    const logoPictureMarkup = this.generatePictureMarkup({
                         src: attrs.logoPrimarySrc || attrs.logoLightSrc,
                         lightSrc: attrs.logoLightSrc || attrs.logoPrimarySrc,
                         darkSrc: attrs.logoDarkSrc || attrs.logoPrimarySrc,
@@ -274,8 +272,10 @@
                         loading: 'eager',
                         fetchPriority: 'high',
                         noResponsive: true
-                    })}
-                </a>
+                    });
+                    logoHTML = `
+            <div${attrs.logoPosition ? ` class="${alignMap[attrs.logoPosition]}"` : ''} style="z-index: 100;">
+                <a href="/">${logoPictureMarkup}</a>
             </div>
         `;
                 }
@@ -283,7 +283,6 @@
                 let navHTML = '';
                 if (attrs.nav && Array.isArray(attrs.nav) && !isFallback) {
                     const navAlignClass = alignMap[attrs.navPosition] || '';
-                    // Apply new nav attributes to the <nav> element
                     const navClasses = [
                         attrs.navClass,
                         `nav-${attrs.navOrientation}`,
@@ -294,7 +293,6 @@
                         ...attrs.navBackdropFilterClasses.filter(cls => !cls.startsWith('backdrop-filter'))
                     ].filter(cls => cls).join(' ').trim();
 
-                    // Handle backdrop-filter for nav
                     const navBackdropFilterValues = attrs.navBackdropFilterClasses
                         .filter(cls => cls.startsWith('backdrop-filter'))
                         .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
@@ -317,7 +315,7 @@
             `;
                     } else {
                         navHTML = `
-                <div${navAlignClass ? ` class="${navAlignClass}"` : ''}${navStyle ? ` style="${navStyle}"` : ''}>
+                <div${navAlignClass ? ` class="${navAlignClass}"` : ''}>
                     <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${navStyle ? ` style="${navStyle}"` : ''}>
                         <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
                             <span class="hamburger-icon">${attrs.navToggleIcon}</span>
