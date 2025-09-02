@@ -26,7 +26,7 @@
     <header>
         <div>
 
-            <custom-header
+            <!-- <custom-header
 
                 logo-light-src="img/logos/logo-full-light-1.svg"
                 logo-light-alt="Logo light"
@@ -59,7 +59,42 @@
                 nav-background-image-noise
                 nav-border="border-small"
                 >
-            </custom-header>          
+            </custom-header>           -->
+
+        <custom-header
+            heading="Header 1"
+            heading-tag="H1"
+            inner-alignment="center"
+            text-alignment="center"
+            img-background-light-src="img/primary/tourism-photography-light-4.jpg"
+            img-background-light-alt="Light image"
+            img-background-dark-src="img/primary/tourism-photography-dark-6.jpg"
+            img-background-dark-alt="Dark image"
+            background-overlay="background-overlay-2"
+            logo-placement="nav"
+        >
+            <custom-logo
+                logo-light-src="img/logos/logo-full-light-1.svg"
+                logo-light-alt="Logo light"
+                logo-dark-src="img/logos/logo-full-dark-1.svg"
+                logo-dark-alt="Logo dark"
+                logo-position="center"
+            ></custom-logo>
+
+            <custom-nav
+                nav='[{"text": "Home", "href": "/"}, {"text": "About", "href": "/about"}, {"text": "Services", "href": "/services"}, {"text": "Contact", "href": "/contact"}]'
+                nav-position="top-center"
+                nav-style="display: flex; justify-content: center; align-items: center;"
+                nav-toggle-icon='<i class="fa-solid fa-bars"></i>'
+                nav-aria-label="Primary site navigation"
+                nav-orientation="horizontal"
+                nav-container-style="height: min-content; width: 100%; justify-content: space-between; display: flex; padding: var(--space-tiny);"
+                nav-container-class="background-image-noise background-overlay-2 backdrop-filter-blur-large"
+                nav-background-image-noise
+                nav-border="border-small"
+            ></custom-nav>
+            
+        </custom-header>          
 
         </div>
     </header>
