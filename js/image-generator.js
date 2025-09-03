@@ -1,4 +1,3 @@
-// Constants for responsive image generation
 const WIDTHS = [768, 1024, 1366, 1920, 2560];
 const FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
 const VALID_ASPECT_RATIOS = new Set(['16/9', '9/16', '3/2', '2/3', '1/1', '21/9']);
@@ -10,7 +9,7 @@ const SIZES_BREAKPOINTS = [
     { maxWidth: 2560, baseValue: '100vw' },
 ];
 const DEFAULT_SIZE_VALUE = 3840;
-const BASE_PATH = './img/responsive/';
+const BASE_PATH = './img/responsive/'; // Adjust based on your project structure
 
 export function generatePictureMarkup({
     src,
@@ -34,6 +33,10 @@ export function generatePictureMarkup({
         console.error('The "src" parameter must be a valid image path');
         return '';
     }
+    if (!isDecorative && !alt) {
+        console.error('An alt attribute is required for non-decorative images');
+        return '';
+    }
     let baseFilename = src.split('/').pop().split('.').slice(0, -1).join('.');
     let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
     let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
@@ -45,12 +48,7 @@ export function generatePictureMarkup({
         console.error('Invalid "darkSrc" parameter');
         return '';
     }
-    const allClasses = [
-        ...new Set([
-            ...customClasses.trim().split(/\s+/).filter(Boolean),
-            ...extraClasses
-        ])
-    ];
+    const allClasses = [...new Set([...customClasses.trim().split(/\s+/).filter(Boolean), ...extraClasses])];
     if (aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio)) {
         allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
     }
@@ -62,16 +60,10 @@ export function generatePictureMarkup({
     const fetchPriorityAttr = validFetchPriority ? ` fetchpriority="${validFetchPriority}"` : '';
     let pictureHTML = `<picture${classAttr}>`;
     if (noResponsive) {
-        // Non-responsive mode: simple <picture> with theme-switching sources
-        if (lightSrc) {
-            pictureHTML += `<source media="(prefers-color-scheme: light)" srcset="${lightSrc}">`;
-        }
-        if (darkSrc) {
-            pictureHTML += `<source media="(prefers-color-scheme: dark)" srcset="${darkSrc}">`;
-        }
+        if (lightSrc) pictureHTML += `<source media="(prefers-color-scheme: light)" srcset="${lightSrc}">`;
+        if (darkSrc) pictureHTML += `<source media="(prefers-color-scheme: dark)" srcset="${darkSrc}">`;
         pictureHTML += `<img src="${src}"${altAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${alt || 'Placeholder image'}';`}this.onerror=null;">`;
     } else {
-        // Responsive mode: include srcset and sizes
         const parseWidth = (widthStr) => {
             const vwMatch = widthStr.match(/(\d+)vw/);
             if (vwMatch) return parseInt(vwMatch[1]) / 100;
@@ -110,9 +102,7 @@ export function generatePictureMarkup({
     if (includeSchema) {
         let figureHTML = `<figure${classAttr} itemscope itemtype="https://schema.org/ImageObject">`;
         figureHTML += pictureHTML;
-        if (alt && alt.trim()) {
-            figureHTML += `<figcaption itemprop="name">${alt}</figcaption>`;
-        }
+        if (alt && alt.trim()) figureHTML += `<figcaption itemprop="name">${alt}</figcaption>`;
         figureHTML += '</figure>';
         return figureHTML;
     }
@@ -143,7 +133,10 @@ export function generateLogoMarkup({
         console.error('At least one valid logo source must be provided');
         return '';
     }
-    // Validation for light/dark pairs
+    if (!isDecorative && !alt) {
+        console.error('An alt attribute is required for non-decorative logos');
+        return '';
+    }
     const validatePair = (light, dark, label) => {
         if ((light || dark) && !(light && dark)) {
             console.error(`Both ${label}-light-src and ${label}-dark-src must be provided if one is specified.`);
@@ -156,12 +149,7 @@ export function generateLogoMarkup({
         !validatePair(tabletLightSrc, tabletDarkSrc, 'logo-tablet')) {
         return '';
     }
-    const allClasses = [
-        ...new Set([
-            ...customClasses.trim().split(/\s+/).filter(Boolean),
-            ...extraClasses
-        ])
-    ].join(' ');
+    const allClasses = [...new Set([...customClasses.trim().split(/\s+/).filter(Boolean), ...extraClasses])].join(' ');
     const classAttr = allClasses ? ` class="${allClasses} animate animate-fade-in"` : ' class="animate animate-fade-in"';
     const altAttr = isDecorative ? ' alt="" role="presentation"' : (alt ? ` alt="${alt}"` : '');
     const validLoading = ['eager', 'lazy'].includes(loading) ? loading : 'eager';
@@ -170,54 +158,28 @@ export function generateLogoMarkup({
     const fetchPriorityAttr = ` fetchpriority="${validFetchPriority}"`;
 
     let pictureHTML = `<picture${classAttr}>`;
-
     // Mobile sources (max-width: 767px)
-    if (mobileSrc || mobileLightSrc || mobileDarkSrc) {
-        if (mobileLightSrc) {
-            pictureHTML += `<source media="(prefers-color-scheme: light) and (max-width: 767px)" srcset="${mobileLightSrc}">`;
-        }
-        if (mobileDarkSrc) {
-            pictureHTML += `<source media="(prefers-color-scheme: dark) and (max-width: 767px)" srcset="${mobileDarkSrc}">`;
-        }
-        if (mobileSrc) {
-            pictureHTML += `<source media="(max-width: 767px)" srcset="${mobileSrc}">`;
-        }
+    if (validateSrc(mobileSrc) || validateSrc(mobileLightSrc) || validateSrc(mobileDarkSrc)) {
+        if (validateSrc(mobileLightSrc)) pictureHTML += `<source media="(prefers-color-scheme: light) and (max-width: 767px)" srcset="${mobileLightSrc}">`;
+        if (validateSrc(mobileDarkSrc)) pictureHTML += `<source media="(prefers-color-scheme: dark) and (max-width: 767px)" srcset="${mobileDarkSrc}">`;
+        if (validateSrc(mobileSrc)) pictureHTML += `<source media="(max-width: 767px)" srcset="${mobileSrc}">`;
     }
-
     // Tablet sources (min-width: 768px and max-width: 1023px)
-    if (tabletSrc || tabletLightSrc || tabletDarkSrc) {
-        if (tabletLightSrc) {
-            pictureHTML += `<source media="(prefers-color-scheme: light) and (min-width: 768px) and (max-width: 1023px)" srcset="${tabletLightSrc}">`;
-        }
-        if (tabletDarkSrc) {
-            pictureHTML += `<source media="(prefers-color-scheme: dark) and (min-width: 768px) and (max-width: 1023px)" srcset="${tabletDarkSrc}">`;
-        }
-        if (tabletSrc) {
-            pictureHTML += `<source media="(min-width: 768px) and (max-width: 1023px)" srcset="${tabletSrc}">`;
-        }
+    if (validateSrc(tabletSrc) || validateSrc(tabletLightSrc) || validateSrc(tabletDarkSrc)) {
+        if (validateSrc(tabletLightSrc)) pictureHTML += `<source media="(prefers-color-scheme: light) and (min-width: 768px) and (max-width: 1023px)" srcset="${tabletLightSrc}">`;
+        if (validateSrc(tabletDarkSrc)) pictureHTML += `<source media="(prefers-color-scheme: dark) and (min-width: 768px) and (max-width: 1023px)" srcset="${tabletDarkSrc}">`;
+        if (validateSrc(tabletSrc)) pictureHTML += `<source media="(min-width: 768px) and (max-width: 1023px)" srcset="${tabletSrc}">`;
     }
-
     // Desktop sources (min-width: 1024px)
-    if (desktopSrc || lightSrc || darkSrc) {
-        if (lightSrc) {
-            pictureHTML += `<source media="(prefers-color-scheme: light) and (min-width: 1024px)" srcset="${lightSrc}">`;
-        }
-        if (darkSrc) {
-            pictureHTML += `<source media="(prefers-color-scheme: dark) and (min-width: 1024px)" srcset="${darkSrc}">`;
-        }
-        if (desktopSrc) {
-            pictureHTML += `<source media="(min-width: 1024px)" srcset="${desktopSrc}">`;
-        }
+    if (validateSrc(desktopSrc) || validateSrc(lightSrc) || validateSrc(darkSrc)) {
+        if (validateSrc(lightSrc)) pictureHTML += `<source media="(prefers-color-scheme: light) and (min-width: 1024px)" srcset="${lightSrc}">`;
+        if (validateSrc(darkSrc)) pictureHTML += `<source media="(prefers-color-scheme: dark) and (min-width: 1024px)" srcset="${darkSrc}">`;
+        if (validateSrc(desktopSrc)) pictureHTML += `<source media="(min-width: 1024px)" srcset="${desktopSrc}">`;
     }
-
     // Default fallback
-    if (lightSrc) {
-        pictureHTML += `<source media="(prefers-color-scheme: light)" srcset="${lightSrc}">`;
-    }
-    if (darkSrc) {
-        pictureHTML += `<source media="(prefers-color-scheme: dark)" srcset="${darkSrc}">`;
-    }
-    pictureHTML += `<img src="${src || desktopSrc || tabletSrc || mobileSrc}"${altAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/300x300';${isDecorative ? '' : `this.alt='${alt || 'Placeholder logo'}';`}this.onerror=null;">`;
+    if (validateSrc(lightSrc)) pictureHTML += `<source media="(prefers-color-scheme: light)" srcset="${lightSrc}">`;
+    if (validateSrc(darkSrc)) pictureHTML += `<source media="(prefers-color-scheme: dark)" srcset="${darkSrc}">`;
+    pictureHTML += `<img src="${validateSrc(desktopSrc) ? desktopSrc : validateSrc(tabletSrc) ? tabletSrc : validateSrc(mobileSrc) ? mobileSrc : src}"${altAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/300x300';${isDecorative ? '' : `this.alt='${alt || 'Placeholder logo'}';`}this.onerror=null;">`;
     pictureHTML += '</picture>';
 
     return pictureHTML;
@@ -231,21 +193,3 @@ export const BACKDROP_FILTER_MAP = {
     'backdrop-filter-grayscale-medium': 'grayscale(var(--grayscale-medium))',
     'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))'
 };
-
-export class CustomBlock extends HTMLElement {
-    // ... (rest of the CustomBlock code as provided, but remove generatePictureMarkup and generateVideoMarkup from here, as they are moved to image-generator.js)
-    // Replace calls to generatePictureMarkup with import from image-generator.js
-    // For example, in render:
-    // backgroundContentHTML = generatePictureMarkup({ ... });
-    // becomes
-    // backgroundContentHTML = imageGenerator.generatePictureMarkup({ ... });
-    // But since CustomBlock is large, you'll need to update it accordingly in your code
-}
-
-try {
-    customElements.define('custom-block', CustomBlock);
-} catch (error) {
-    console.error('Error defining CustomBlock element:', error);
-}
-console.log('CustomBlock version: 2025-08-28');
-export { CustomBlock };
