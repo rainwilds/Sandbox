@@ -1,6 +1,6 @@
 (async () => {
     try {
-        const { generateLogoMarkup } = await import('./js/components/image-generator.js');
+        const { generateLogoMarkup } = await import('./js/image-generator.js');
         console.log('Successfully imported generateLogoMarkup');
 
         class CustomLogo extends HTMLElement {

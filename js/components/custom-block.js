@@ -1,5 +1,5 @@
 /* global HTMLElement, IntersectionObserver, document, window, JSON, console */
-import { generatePictureMarkup } from './js/components/image-generator.js';
+import { generatePictureMarkup } from './js/image-generator.js';
 
 class CustomBlock extends HTMLElement {
     constructor() {
