@@ -1,6 +1,5 @@
 (async () => {
     try {
-        // Import BACKDROP_FILTER_MAP if needed
         const { BACKDROP_FILTER_MAP } = await import('./custom-block.js');
         console.log('Successfully imported BACKDROP_FILTER_MAP');
 

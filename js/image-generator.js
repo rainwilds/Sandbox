@@ -16,6 +16,8 @@ export function generatePictureMarkup({
     lightSrc = '',
     darkSrc = '',
     alt = '',
+    lightAlt = '',
+    darkAlt = '',
     isDecorative = false,
     mobileWidth = '100vw',
     tabletWidth = '100vw',
@@ -33,8 +35,8 @@ export function generatePictureMarkup({
         console.error('The "src" parameter must be a valid image path');
         return '';
     }
-    if (!isDecorative && !alt) {
-        console.error('An alt attribute is required for non-decorative images');
+    if (!isDecorative && !alt && !(lightSrc && lightAlt && darkSrc && darkAlt)) {
+        console.error('An alt attribute (or lightAlt and darkAlt for light/dark themes) is required for non-decorative images');
         return '';
     }
     let baseFilename = src.split('/').pop().split('.').slice(0, -1).join('.');
@@ -53,16 +55,16 @@ export function generatePictureMarkup({
         allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
     }
     const classAttr = allClasses.length ? ` class="${allClasses.join(' ')} animate animate-fade-in"` : ' class="animate animate-fade-in"';
-    const altAttr = isDecorative ? ' alt="" role="presentation"' : (alt ? ` alt="${alt}"` : '');
+    const altAttr = isDecorative ? ' alt="" role="presentation"' : (alt ? ` alt="${alt}"` : (lightAlt && darkAlt ? ` alt="${lightAlt}"` : ''));
     const validLoading = ['eager', 'lazy'].includes(loading) ? loading : 'lazy';
     const validFetchPriority = ['high', 'low', 'auto'].includes(fetchPriority) ? fetchPriority : '';
     const loadingAttr = validLoading ? ` loading="${validLoading}"` : '';
     const fetchPriorityAttr = validFetchPriority ? ` fetchpriority="${validFetchPriority}"` : '';
     let pictureHTML = `<picture${classAttr}>`;
     if (noResponsive) {
-        if (lightSrc) pictureHTML += `<source media="(prefers-color-scheme: light)" srcset="${lightSrc}">`;
-        if (darkSrc) pictureHTML += `<source media="(prefers-color-scheme: dark)" srcset="${darkSrc}">`;
-        pictureHTML += `<img src="${src}"${altAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${alt || 'Placeholder image'}';`}this.onerror=null;">`;
+        if (lightSrc) pictureHTML += `<source media="(prefers-color-scheme: light)" srcset="${lightSrc}"${lightAlt ? ` alt="${lightAlt}"` : ''}>`;
+        if (darkSrc) pictureHTML += `<source media="(prefers-color-scheme: dark)" srcset="${darkSrc}"${darkAlt ? ` alt="${darkAlt}"` : ''}>`;
+        pictureHTML += `<img src="${src}"${altAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${alt || lightAlt || darkAlt || 'Placeholder image'}';`}this.onerror=null;">`;
     } else {
         const parseWidth = (widthStr) => {
             const vwMatch = widthStr.match(/(\d+)vw/);
@@ -91,18 +93,18 @@ export function generatePictureMarkup({
             WIDTHS.map(w => `${BASE_PATH}${filename}-${w}.${format} ${w}w`).join(', ');
         FORMATS.forEach(format => {
             if (lightSrc && darkSrc) {
-                pictureHTML += `<source srcset="${generateSrcset(lightBaseFilename, format)}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: light)">`;
-                pictureHTML += `<source srcset="${generateSrcset(darkBaseFilename, format)}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: dark)">`;
+                pictureHTML += `<source srcset="${generateSrcset(lightBaseFilename, format)}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: light)"${lightAlt ? ` alt="${lightAlt}"` : ''}>`;
+                pictureHTML += `<source srcset="${generateSrcset(darkBaseFilename, format)}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: dark)"${darkAlt ? ` alt="${darkAlt}"` : ''}>`;
             }
             pictureHTML += `<source srcset="${generateSrcset(baseFilename, format)}" sizes="${sizes}" type="image/${format}">`;
         });
-        pictureHTML += `<img src="${src}"${altAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${alt || 'Placeholder image'}';`}this.onerror=null;">`;
+        pictureHTML += `<img src="${src}"${altAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${alt || lightAlt || darkAlt || 'Placeholder image'}';`}this.onerror=null;">`;
     }
     pictureHTML += '</picture>';
     if (includeSchema) {
         let figureHTML = `<figure${classAttr} itemscope itemtype="https://schema.org/ImageObject">`;
         figureHTML += pictureHTML;
-        if (alt && alt.trim()) figureHTML += `<figcaption itemprop="name">${alt}</figcaption>`;
+        if (alt || lightAlt || darkAlt) figureHTML += `<figcaption itemprop="name">${alt || lightAlt || darkAlt}</figcaption>`;
         figureHTML += '</figure>';
         return figureHTML;
     }
