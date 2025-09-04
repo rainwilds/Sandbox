@@ -22,23 +22,28 @@
                 ];
             }
 
-            getAttributes() {
-                const attrs = {};
-                attrs.logoPrimarySrc = this.getAttribute('logo-primary-src') || '';
-                attrs.logoLightSrc = this.getAttribute('logo-light-src') || '';
-                attrs.logoDarkSrc = this.getAttribute('logo-dark-src') || '';
-                attrs.logoPrimaryAlt = this.getAttribute('logo-primary-alt') || '';
-                attrs.logoLightAlt = this.getAttribute('logo-light-alt') || '';
-                attrs.logoDarkAlt = this.getAttribute('logo-dark-alt') || '';
-                attrs.logoPosition = this.getAttribute('logo-position') || '';
-                attrs.logoMobileSrc = this.getAttribute('logo-mobile-src') || '';
-                attrs.logoMobileLightSrc = this.getAttribute('logo-mobile-light-src') || '';
-                attrs.logoMobileDarkSrc = this.getAttribute('logo-mobile-dark-src') || '';
-                attrs.logoTabletSrc = this.getAttribute('logo-tablet-src') || '';
-                attrs.logoTabletLightSrc = this.getAttribute('logo-tablet-light-src') || '';
-                attrs.logoTabletDarkSrc = this.getAttribute('logo-tablet-dark-src') || '';
+            constructor() {
+                super();
+                // No Shadow DOM; using light DOM
+            }
 
-                // Validation for light/dark pairs with early exit
+            getAttributes() {
+                const attrs = {
+                    logoPrimarySrc: this.getAttribute('logo-primary-src') || '',
+                    logoLightSrc: this.getAttribute('logo-light-src') || '',
+                    logoDarkSrc: this.getAttribute('logo-dark-src') || '',
+                    logoPrimaryAlt: this.getAttribute('logo-primary-alt') || '',
+                    logoLightAlt: this.getAttribute('logo-light-alt') || '',
+                    logoDarkAlt: this.getAttribute('logo-dark-alt') || '',
+                    logoPosition: this.getAttribute('logo-position') || '',
+                    logoMobileSrc: this.getAttribute('logo-mobile-src') || '',
+                    logoMobileLightSrc: this.getAttribute('logo-mobile-light-src') || '',
+                    logoMobileDarkSrc: this.getAttribute('logo-mobile-dark-src') || '',
+                    logoTabletSrc: this.getAttribute('logo-tablet-src') || '',
+                    logoTabletLightSrc: this.getAttribute('logo-tablet-light-src') || '',
+                    logoTabletDarkSrc: this.getAttribute('logo-tablet-dark-src') || ''
+                };
+
                 const validatePair = (light, dark, label) => {
                     if ((light || dark) && !(light && dark)) {
                         console.error(`Both ${label}-light-src and ${label}-dark-src must be provided if one is specified.`);
@@ -49,12 +54,9 @@
                 if (!validatePair(attrs.logoLightSrc, attrs.logoDarkSrc, 'logo') ||
                     !validatePair(attrs.logoMobileLightSrc, attrs.logoMobileDarkSrc, 'logo-mobile') ||
                     !validatePair(attrs.logoTabletLightSrc, attrs.logoTabletDarkSrc, 'logo-tablet')) {
-                    return attrs; // Return with errors logged, but allow partial rendering
+                    return attrs;
                 }
 
-                if (attrs.logoPrimarySrc && !attrs.logoPrimaryAlt) {
-                    console.error('logo-primary-alt is required when logo-primary-src is provided.');
-                }
                 if (attrs.logoLightSrc && !attrs.logoLightAlt) {
                     console.error('logo-light-alt is required when logo-light-src is provided.');
                 }
@@ -78,27 +80,27 @@
                     right: 'place-self-right'
                 };
                 let logoHTML = '';
-                // Check for at least one valid source
                 const hasValidSource = attrs.logoPrimarySrc || attrs.logoLightSrc || attrs.logoDarkSrc || attrs.logoMobileSrc || attrs.logoTabletSrc;
                 if (hasValidSource) {
                     const logoMarkup = generateLogoMarkup({
-                        src: attrs.logoPrimarySrc || attrs.logoMobileSrc || attrs.logoTabletSrc, // Fallback to first available
+                        src: attrs.logoPrimarySrc || attrs.logoLightSrc || attrs.logoDarkSrc || attrs.logoMobileSrc || attrs.logoTabletSrc,
                         mobileSrc: attrs.logoMobileSrc,
                         tabletSrc: attrs.logoTabletSrc,
-                        desktopSrc: attrs.logoPrimarySrc || attrs.logoTabletSrc, // Prioritize primary or tablet as desktop fallback
+                        desktopSrc: attrs.logoPrimarySrc || attrs.logoLightSrc || attrs.logoDarkSrc || attrs.logoTabletSrc,
                         lightSrc: attrs.logoLightSrc,
                         darkSrc: attrs.logoDarkSrc,
                         mobileLightSrc: attrs.logoMobileLightSrc,
                         mobileDarkSrc: attrs.logoMobileDarkSrc,
                         tabletLightSrc: attrs.logoTabletLightSrc,
                         tabletDarkSrc: attrs.logoTabletDarkSrc,
-                        alt: attrs.logoPrimaryAlt || attrs.logoLightAlt || '',
-                        isDecorative: !attrs.logoPrimaryAlt && !attrs.logoLightAlt,
+                        alt: attrs.logoPrimaryAlt || attrs.logoLightAlt || attrs.logoDarkAlt || '',
+                        isDecorative: !attrs.logoPrimaryAlt && !attrs.logoLightAlt && !attrs.logoDarkAlt,
                         customClasses: `logo logo-${attrs.logoPosition || 'right'}`,
                         loading: 'eager',
                         fetchPriority: 'high',
                         extraClasses: []
                     });
+                    console.log('generateLogoMarkup output:', logoMarkup);
                     logoHTML = `
                         <div${attrs.logoPosition ? ` class="${alignMap[attrs.logoPosition]}"` : ''} style="z-index: 100;">
                             <a href="/">${logoMarkup}</a>
@@ -106,8 +108,10 @@
                     `;
                 } else {
                     console.warn('No valid logo sources provided, skipping render.');
+                    logoHTML = '<div>No logo sources provided</div>';
                 }
-                this.innerHTML = logoHTML;
+                console.log('Rendered logoHTML:', logoHTML);
+                this.innerHTML = logoHTML; // Use light DOM
             }
 
             connectedCallback() {
@@ -120,8 +124,14 @@
                 }
             }
         }
-        customElements.define('custom-logo', CustomLogo);
-        console.log('CustomLogo defined successfully');
+
+        if (!customElements.get('custom-logo')) {
+            customElements.define('custom-logo', CustomLogo);
+            console.log('CustomLogo defined successfully');
+        }
+        document.querySelectorAll('custom-logo').forEach(element => {
+            customElements.upgrade(element);
+        });
     } catch (error) {
         console.error('Failed to import generateLogoMarkup or define CustomLogo:', error);
     }
