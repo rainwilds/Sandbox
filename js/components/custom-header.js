@@ -1,6 +1,6 @@
 (async () => {
     try {
-        const { CustomBlock } = await import('custom-block.js');
+        const { CustomBlock } = await import('./custom-block.js');
         console.log('Successfully imported CustomBlock');
 
         class CustomHeader extends CustomBlock {
