@@ -1067,7 +1067,7 @@
             max-height: inherit;
         }
 
-        &.background-image>*:not(picture) {
+        &.background-image>*:not(picture):not(:has(nav)) {
             z-index: 1;
         }
 
@@ -1086,9 +1086,9 @@
             height: min-content;
         }
 
-        &>div:has(nav) {
+        /* &>div:has(nav) {
             z-index: 2;
-        }
+        } */
 
         &>.background-overlay {
             background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
