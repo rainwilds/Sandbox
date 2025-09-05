@@ -246,30 +246,6 @@ class CustomBlock extends HTMLElement {
             } else {
                 console.warn(`Invalid img-background-position value "${backgroundPosition}" in <custom-block>. Must be a valid position (e.g., "top-left", "50% 100%"). Ignoring.`);
             }
-        } const videoPrimarySrc = this.getAttribute('video-primary-src') || '';
-        const videoPrimaryLightSrc = this.getAttribute('video-primary-light-src') || '';
-        const videoPrimaryDarkSrc = this.getAttribute('video-primary-dark-src') || '';
-        if ((videoPrimaryLightSrc || videoPrimaryDarkSrc) && !(videoPrimaryLightSrc && videoPrimaryDarkSrc) && !videoPrimarySrc) {
-            throw new Error('Both video-primary-light-src and video-primary-dark-src must be present when using light/dark themes, or use video-primary-src alone.');
-        }
-        // Validate img-background-position attribute
-        const backgroundPosition = this.getAttribute('img-background-position') || '';
-        let sanitizedBackgroundPosition = '';
-        if (backgroundPosition) {
-            const validPositions = [
-                'top-left', 'top-center', 'top-right',
-                'bottom-left', 'bottom-center', 'bottom-right',
-                'center', 'center-left', 'center-right',
-                'left-top', 'left-center', 'left-bottom',
-                'right-top', 'right-center', 'right-bottom'
-            ];
-            const isValidCoordinate = backgroundPosition.match(/^(\d+%|\d+px|\d+rem)\s(\d+%|\d+px|\d+rem)$/);
-            const isValidNamedPosition = validPositions.includes(backgroundPosition.replace(/\s/g, '-').toLowerCase());
-            if (isValidNamedPosition || isValidCoordinate) {
-                sanitizedBackgroundPosition = backgroundPosition;
-            } else {
-                console.warn(`Invalid img-background-position value "${backgroundPosition}" in <custom-block>. Must be a valid position (e.g., "top-left", "50% 100%"). Ignoring.`);
-            }
         }
         // Validate and sanitize icon attribute
         let icon = this.getAttribute('icon') || '';
