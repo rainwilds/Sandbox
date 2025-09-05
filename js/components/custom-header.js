@@ -32,14 +32,17 @@
                 }
                 blockElement.setAttribute('role', 'banner');
 
+                // Get existing classes from CustomBlock's render
+                const existingClasses = blockElement.className.split(' ').filter(cls => cls);
                 const headerClasses = [
-                    'block',
+                    ...existingClasses, // Preserve classes from CustomBlock (e.g., background-image)
                     attrs.backgroundColorClass,
                     attrs.borderClass,
                     attrs.borderRadiusClass,
                     attrs.shadowClass,
                     attrs.sticky ? 'sticky' : ''
                 ].filter(cls => cls).join(' ').trim();
+
                 if (headerClasses) {
                     blockElement.className = headerClasses;
                 }
@@ -59,12 +62,12 @@
                 let innerHTML = blockElement.innerHTML;
                 if (attrs.logoPlacement === 'nav' && logoHTML && navHTML) {
                     innerHTML = `
-                        <div${containerClasses ? ` class="${containerClasses}"` : ''}${containerStyle ? ` style="${containerStyle}"` : ''}>
-                            ${logoHTML}
-                            ${navHTML}
-                        </div>
-                        ${innerHTML}
-                    `;
+            <div${containerClasses ? ` class="${containerClasses}"` : ''}${containerStyle ? ` style="${containerStyle}"` : ''}>
+                ${logoHTML}
+                ${navHTML}
+            </div>
+            ${innerHTML}
+        `;
                 } else {
                     innerHTML = logoHTML + navHTML + innerHTML;
                 }
