@@ -109,8 +109,13 @@
                 }
             }
         }
-        customElements.define('custom-nav', CustomNav);
-        console.log('CustomNav defined successfully');
+        if (!customElements.get('custom-nav')) {
+            customElements.define('custom-nav', CustomNav);
+            console.log('CustomNav defined successfully');
+        }
+        document.querySelectorAll('custom-nav').forEach(element => {
+            customElements.upgrade(element);
+        });
     } catch (error) {
         console.error('Failed to import BACKDROP_FILTER_MAP or define CustomNav:', error);
     }
