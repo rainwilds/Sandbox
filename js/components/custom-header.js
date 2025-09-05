@@ -3,7 +3,6 @@
         const { CustomBlock } = await import('./custom-block.js');
         console.log('Successfully imported CustomBlock');
 
-        // Wait for CustomLogo and CustomNav to be defined
         await Promise.all([
             customElements.whenDefined('custom-logo'),
             customElements.whenDefined('custom-nav')
@@ -15,7 +14,9 @@
                 return [
                     ...super.observedAttributes,
                     'sticky',
-                    'logo-placement'
+                    'logo-placement',
+                    'nav-logo-container-style', // New attribute for inline styles
+                    'nav-logo-container-class'  // New attribute for classes
                 ];
             }
 
@@ -23,6 +24,8 @@
                 const attrs = super.getAttributes();
                 attrs.sticky = this.hasAttribute('sticky');
                 attrs.logoPlacement = this.getAttribute('logo-placement') || 'independent';
+                attrs.navLogoContainerStyle = this.getAttribute('nav-logo-container-style') || ''; // Get inline styles
+                attrs.navLogoContainerClass = this.getAttribute('nav-logo-container-class') || ''; // Get classes
                 const validLogoPlacements = ['independent', 'nav'];
                 if (!validLogoPlacements.includes(attrs.logoPlacement)) {
                     console.warn(`Invalid logo-placement "${attrs.logoPlacement}". Defaulting to 'independent'.`);
@@ -42,7 +45,7 @@
                 // Preserve classes from CustomBlock
                 const existingClasses = blockElement.className.split(' ').filter(cls => cls);
                 const headerClasses = [
-                    ...existingClasses, // Includes background-image if set by CustomBlock
+                    ...existingClasses,
                     attrs.backgroundColorClass,
                     attrs.borderClass,
                     attrs.borderRadiusClass,
@@ -58,11 +61,10 @@
                 const customNav = this.querySelector('custom-nav');
                 let logoHTML = '';
                 let navHTML = '';
-                let containerClasses = '';
-                let containerStyle = '';
+                let navContainerClasses = '';
+                let navContainerStyle = '';
 
                 if (customLogo && !isFallback) {
-                    // Ensure custom-logo is defined and upgraded
                     if (customElements.get('custom-logo')) {
                         customElements.upgrade(customLogo);
                         logoHTML = customLogo.innerHTML || customLogo.render?.() || '';
@@ -73,12 +75,11 @@
                 }
 
                 if (customNav && !isFallback) {
-                    // Ensure custom-nav is defined and upgraded
                     if (customElements.get('custom-nav')) {
                         customElements.upgrade(customNav);
                         navHTML = customNav.innerHTML || customNav.render?.() || '';
-                        containerClasses = customNav.getAttribute('nav-container-class') || '';
-                        containerStyle = customNav.getAttribute('nav-container-style') || '';
+                        navContainerClasses = customNav.getAttribute('nav-container-class') || '';
+                        navContainerStyle = customNav.getAttribute('nav-container-style') || '';
                     } else {
                         console.warn('custom-nav not defined, skipping rendering.');
                         navHTML = '<div>Navigation placeholder</div>';
@@ -87,13 +88,16 @@
 
                 let innerHTML = blockElement.innerHTML;
                 if (attrs.logoPlacement === 'nav' && logoHTML && navHTML) {
+                    // Apply nav-logo-container-class and nav-logo-container-style to the parent container
                     innerHTML = `
-            <div${containerClasses ? ` class="${containerClasses}"` : ''}${containerStyle ? ` style="${containerStyle}"` : ''}>
-                ${logoHTML}
-                ${navHTML}
-            </div>
-            ${innerHTML}
-        `;
+                        <div${attrs.navLogoContainerClass ? ` class="${attrs.navLogoContainerClass}"` : ''}${attrs.navLogoContainerStyle ? ` style="${attrs.navLogoContainerStyle}"` : ''}>
+                            ${logoHTML}
+                            <div${navContainerClasses ? ` class="${navContainerClasses}"` : ''}${navContainerStyle ? ` style="${navContainerStyle}"` : ''}>
+                                ${navHTML}
+                            </div>
+                        </div>
+                        ${innerHTML}
+                    `;
                 } else {
                     innerHTML = logoHTML + navHTML + innerHTML;
                 }
