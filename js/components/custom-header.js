@@ -3,6 +3,13 @@
         const { CustomBlock } = await import('./custom-block.js');
         console.log('Successfully imported CustomBlock');
 
+        // Wait for CustomLogo and CustomNav to be defined
+        await Promise.all([
+            customElements.whenDefined('custom-logo'),
+            customElements.whenDefined('custom-nav')
+        ]);
+        console.log('CustomLogo and CustomNav defined');
+
         class CustomHeader extends CustomBlock {
             static get observedAttributes() {
                 return [
@@ -32,10 +39,10 @@
                 }
                 blockElement.setAttribute('role', 'banner');
 
-                // Get existing classes from CustomBlock's render
+                // Preserve classes from CustomBlock
                 const existingClasses = blockElement.className.split(' ').filter(cls => cls);
                 const headerClasses = [
-                    ...existingClasses, // Preserve classes from CustomBlock (e.g., background-image)
+                    ...existingClasses, // Includes background-image if set by CustomBlock
                     attrs.backgroundColorClass,
                     attrs.borderClass,
                     attrs.borderRadiusClass,
@@ -49,14 +56,33 @@
 
                 const customLogo = this.querySelector('custom-logo');
                 const customNav = this.querySelector('custom-nav');
-                let logoHTML = customLogo && !isFallback ? customLogo.outerHTML : '';
-                let navHTML = customNav && !isFallback ? customNav.outerHTML : '';
+                let logoHTML = '';
+                let navHTML = '';
                 let containerClasses = '';
                 let containerStyle = '';
 
+                if (customLogo && !isFallback) {
+                    // Ensure custom-logo is defined and upgraded
+                    if (customElements.get('custom-logo')) {
+                        customElements.upgrade(customLogo);
+                        logoHTML = customLogo.innerHTML || customLogo.render?.() || '';
+                    } else {
+                        console.warn('custom-logo not defined, skipping rendering.');
+                        logoHTML = '<div>Logo placeholder</div>';
+                    }
+                }
+
                 if (customNav && !isFallback) {
-                    containerClasses = customNav.getAttribute('nav-container-class') || '';
-                    containerStyle = customNav.getAttribute('nav-container-style') || '';
+                    // Ensure custom-nav is defined and upgraded
+                    if (customElements.get('custom-nav')) {
+                        customElements.upgrade(customNav);
+                        navHTML = customNav.innerHTML || customNav.render?.() || '';
+                        containerClasses = customNav.getAttribute('nav-container-class') || '';
+                        containerStyle = customNav.getAttribute('nav-container-style') || '';
+                    } else {
+                        console.warn('custom-nav not defined, skipping rendering.');
+                        navHTML = '<div>Navigation placeholder</div>';
+                    }
                 }
 
                 let innerHTML = blockElement.innerHTML;
@@ -74,9 +100,9 @@
                 blockElement.innerHTML = innerHTML;
 
                 if (attrs.sticky) {
-                    this.style.position = 'sticky';
-                    this.style.top = '0';
-                    this.style.zIndex = '1000';
+                    blockElement.style.position = 'sticky';
+                    blockElement.style.top = '0';
+                    blockElement.style.zIndex = '1000';
                 }
 
                 return blockElement;
