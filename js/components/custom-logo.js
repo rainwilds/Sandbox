@@ -24,7 +24,6 @@
 
             constructor() {
                 super();
-                // No Shadow DOM; using light DOM
             }
 
             getAttributes() {
@@ -63,9 +62,14 @@
                 if (attrs.logoDarkSrc && !attrs.logoDarkAlt) {
                     console.error('logo-dark-alt is required when logo-dark-src is provided.');
                 }
-                const validPositions = ['center', 'top', 'bottom', 'left', 'right', 'top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right', 'center-left', 'center-right'];
+                const validPositions = [
+                    'center', 'top', 'bottom', 'left', 'right',
+                    'top-left', 'top-center', 'top-right',
+                    'bottom-left', 'bottom-center', 'bottom-right',
+                    'center-left', 'center-right'
+                ];
                 if (attrs.logoPosition && !validPositions.includes(attrs.logoPosition)) {
-                    console.warn(`Invalid logo-position "${attrs.logoPosition}". Ignoring.`);
+                    console.warn(`Invalid logo-position "${attrs.logoPosition}". Must be one of ${validPositions.join(', ')}. Ignoring.`);
                     attrs.logoPosition = '';
                 }
 
@@ -75,9 +79,19 @@
             render() {
                 const attrs = this.getAttributes();
                 const alignMap = {
-                    center: 'place-self-center',
+                    'center': 'place-self-center',
+                    'top': 'place-self-top',
+                    'bottom': 'place-self-bottom',
+                    'left': 'place-self-left',
+                    'right': 'place-self-right',
+                    'top-left': 'place-self-top-left',
                     'top-center': 'place-self-top-center',
-                    right: 'place-self-right'
+                    'top-right': 'place-self-top-right',
+                    'bottom-left': 'place-self-bottom-left',
+                    'bottom-center': 'place-self-bottom-center',
+                    'bottom-right': 'place-self-bottom-right',
+                    'center-left': 'place-self-center-left',
+                    'center-right': 'place-self-center-right'
                 };
                 let logoHTML = '';
                 const hasValidSource = attrs.logoPrimarySrc || attrs.logoLightSrc || attrs.logoDarkSrc || attrs.logoMobileSrc || attrs.logoTabletSrc;
@@ -95,7 +109,7 @@
                         tabletDarkSrc: attrs.logoTabletDarkSrc,
                         alt: attrs.logoPrimaryAlt || attrs.logoLightAlt || attrs.logoDarkAlt || '',
                         isDecorative: !attrs.logoPrimaryAlt && !attrs.logoLightAlt && !attrs.logoDarkAlt,
-                        customClasses: `logo logo-${attrs.logoPosition || 'right'}`,
+                        customClasses: `logo${attrs.logoPosition ? ` logo-${attrs.logoPosition}` : ''}`,
                         loading: 'eager',
                         fetchPriority: 'high',
                         extraClasses: []

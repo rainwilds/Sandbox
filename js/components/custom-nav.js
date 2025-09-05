@@ -27,7 +27,7 @@
             getAttributes() {
                 const attrs = {};
                 attrs.nav = this.getAttribute('nav') ? JSON.parse(this.getAttribute('nav')) : null;
-                attrs.navPosition = this.getAttribute('nav-position') || 'right';
+                attrs.navPosition = this.getAttribute('nav-position') || '';
                 attrs.navClass = this.getAttribute('nav-class') || '';
                 attrs.navStyle = this.getAttribute('nav-style') || '';
                 attrs.navAriaLabel = this.getAttribute('nav-aria-label') || 'Main navigation';
@@ -42,10 +42,15 @@
                 attrs.navBorderRadius = this.getAttribute('nav-border-radius') || '';
                 attrs.navBackdropFilter = this.getAttribute('nav-backdrop-filter')?.split(' ').filter(cls => cls) || [];
 
-                const validNavPositions = ['center', 'top', 'bottom', 'left', 'right', 'top-left', 'top-center', 'top-right', 'bottom-left', 'bottom-center', 'bottom-right', 'center-left', 'center-right', 'above', 'below'];
-                if (!validNavPositions.includes(attrs.navPosition)) {
-                    console.warn(`Invalid nav-position "${attrs.navPosition}". Defaulting to 'right'.`);
-                    attrs.navPosition = 'right';
+                const validPositions = [
+                    'center', 'top', 'bottom', 'left', 'right',
+                    'top-left', 'top-center', 'top-right',
+                    'bottom-left', 'bottom-center', 'bottom-right',
+                    'center-left', 'center-right'
+                ];
+                if (!validPositions.includes(attrs.navPosition)) {
+                    console.warn(`Invalid nav-position "${attrs.navPosition}". Must be one of ${validPositions.join(', ')}. Ignoring.`);
+                    attrs.navPosition = '';
                 }
                 return attrs;
             }
@@ -53,11 +58,21 @@
             render() {
                 const attrs = this.getAttributes();
                 const alignMap = {
+                    'center': 'place-self-center',
+                    'top': 'place-self-top',
+                    'bottom': 'place-self-bottom',
+                    'left': 'place-self-left',
+                    'right': 'place-self-right',
+                    'top-left': 'place-self-top-left',
                     'top-center': 'place-self-top-center',
-                    center: 'place-self-center',
-                    right: 'place-self-right'
+                    'top-right': 'place-self-top-right',
+                    'bottom-left': 'place-self-bottom-left',
+                    'bottom-center': 'place-self-bottom-center',
+                    'bottom-right': 'place-self-bottom-right',
+                    'center-left': 'place-self-center-left',
+                    'center-right': 'place-self-center-right'
                 };
-                const navAlignClass = alignMap[attrs.navPosition] || '';
+                const navAlignClass = attrs.navPosition ? alignMap[attrs.navPosition] : '';
                 const navClasses = [
                     attrs.navClass,
                     `nav-${attrs.navOrientation}`,
