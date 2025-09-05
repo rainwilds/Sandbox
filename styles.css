@@ -1086,6 +1086,10 @@
             height: min-content;
         }
 
+        &>div:has(nav) {
+            z-index: 2;
+        }
+
         &>.background-overlay {
             background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
             margin: 0 !important;
