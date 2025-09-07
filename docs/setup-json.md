@@ -61,41 +61,17 @@ The `fonts` section defines font resources to be preloaded for performance optim
 
 **Note**: Each font is an object in an array (e.g., `[{ "href": "../fonts/Futura_PT_Demi.woff2", "type": "font/woff2", "crossorigin": "anonymous" }]`).
 
-## Font Awesome Section
+## Font Faces Section
 
-The `font_awesome` section configures the Font Awesome kit for icon rendering.
-
-| Property Name | Description | Default Value | Expected Format |
-|---------------|-------------|---------------|-----------------|
-| kit_url | Specifies the URL of the Font Awesome kit script. | `''` (empty) | Valid script URL (e.g., `'https://kit.fontawesome.com/85d1e578b1.js'`) |
-
-## CSS Variables Section
-
-The `css_variables` section defines global CSS custom properties used across the site, with media query overrides.
+The `font_faces` section defines `@font-face` rules for custom fonts, injected dynamically into a `<style data-font-faces>` tag by `head-generator.js`.
 
 | Property Name | Description | Default Value | Expected Format |
 |---------------|-------------|---------------|-----------------|
-| default | Contains default CSS variables applied to `:root`. | `{}` (empty object) | Object with CSS variable names and values (e.g., `{ "--space-tiny": "1rem", "--color-background-light": "#faf9f3" }`) |
-| media_queries.max_width_768px | Overrides CSS variables for viewports ≤ 768px. | `{}` (empty object) | Object with CSS variable names and values (e.g., `{ "--space-tiny": "0.6rem" }`) |
-| media_queries.min_width_2560px | Overrides CSS variables for viewports ≥ 2560px. | `{}` (empty object) | Object with CSS variable names and values (e.g., `{ "--side-gutter": "10vw" }`) |
+| family | Specifies the font family name used in CSS (e.g., in `font-family`). | `''` (empty) | String (e.g., `'Futura_PT_Demi'`) |
+| src | Specifies the URL of the font file. | `''` (empty) | Valid font file URL (e.g., `'../fonts/Futura_PT_Demi.woff2'`) |
+| format | Defines the font file format. | `''` (empty) | String (e.g., `'woff2'`, `'woff'`, `'ttf'`) |
+| weight | Sets the font weight. | `'normal'` | CSS font weight (e.g., `'normal'`, `'bold'`, `400`, `700`) |
+| style | Sets the font style. | `'normal'` | CSS font style (e.g., `'normal'`, `'italic'`) |
+| display | Specifies the font display strategy to control rendering behavior. | `'swap'` | One of: `'auto'`, `'block'`, `'swap'`, `'fallback'`, `'optional'` |
 
-**Example**:
-```json
-"css_variables": {
-  "default": {
-    "--space-tiny": "1rem",
-    "--color-background-light": "#faf9f3",
-    "--font-1-family": "Futura_PT_Demi, Arial, sans-serif"
-  },
-  "media_queries": {
-    "max_width_768px": {
-      "--space-tiny": "0.6rem"
-    },
-    "min_width_2560px": {
-      "--side-gutter": "10vw"
-    }
-  }
-}
-```
-
-**Note**: CSS variables are injected into a `<style data-css-variables>` tag by `head-generator.js`. Ensure `styles.css` uses `var()` with fallbacks (e.g., `padding: var(--space-tiny, 1rem)`) to handle missing variables.
+**Note**: Each font face is an object in an array (e.g., `[{ "family": "Futura_PT_Demi", "src": "../fonts/Futura_PT_Demi.woff2", "format": "woff2", "weight": "normal", "style": "normal", "display
