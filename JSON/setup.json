@@ -1,4 +1,28 @@
 {
+  "preloads": [
+    {
+      "href": "./JSON/setup.json",
+      "as": "fetch",
+      "crossorigin": "anonymous"
+    },
+    {
+      "href": "./styles.css",
+      "rel": "preload",
+      "as": "style"
+    }
+  ],
+  "fonts": [
+    {
+      "href": "../Sandbox/fonts/Futura_PT_Demi.woff2",
+      "type": "font/woff2",
+      "crossorigin": "anonymous"
+    },
+    {
+      "href": "../Sandbox/fonts/futura_pt_book.woff2",
+      "type": "font/woff2",
+      "crossorigin": "anonymous"
+    }
+  ],
   "general": {
     "author": "David Dufourq",
     "robots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
@@ -16,10 +40,28 @@
     },
     "include_e_commerce": false,
     "favicons": [
-      { "rel": "apple-touch-icon", "sizes": "180x180", "href": "../Sandbox/img/icons/apple-touch-icon.png" },
-      { "rel": "icon", "type": "image/png", "sizes": "32x32", "href": "../Sandbox/img/icons/favicon-32x32.png" },
-      { "rel": "icon", "type": "image/png", "sizes": "16x16", "href": "../Sandbox/img/icons/favicon-16x16.png" },
-      { "rel": "icon", "type": "image/x-icon", "href": "../Sandbox/img/icons/favicon.ico" }
+      {
+        "rel": "apple-touch-icon",
+        "sizes": "180x180",
+        "href": "../Sandbox/img/icons/apple-touch-icon.png"
+      },
+      {
+        "rel": "icon",
+        "type": "image/png",
+        "sizes": "32x32",
+        "href": "../Sandbox/img/icons/favicon-32x32.png"
+      },
+      {
+        "rel": "icon",
+        "type": "image/png",
+        "sizes": "16x16",
+        "href": "../Sandbox/img/icons/favicon-16x16.png"
+      },
+      {
+        "rel": "icon",
+        "type": "image/x-icon",
+        "href": "../Sandbox/img/icons/favicon.ico"
+      }
     ],
     "snipcart": {
       "publicApiKey": "NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5",
@@ -52,18 +94,6 @@
       "https://www.instagram.com/behive"
     ]
   },
-  "fonts": [
-    {
-      "href": "../Sandbox/fonts/Futura_PT_Demi.woff2",
-      "type": "font/woff2",
-      "crossorigin": "anonymous"
-    },
-    {
-      "href": "../Sandbox/fonts/futura_pt_book.woff2",
-      "type": "font/woff2",
-      "crossorigin": "anonymous"
-    }
-  ],
   "font_awesome": {
     "kit_url": "https://kit.fontawesome.com/85d1e578b1.js"
   }

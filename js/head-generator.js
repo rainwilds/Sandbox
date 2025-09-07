@@ -35,6 +35,47 @@ function deepClone(obj, seen = new WeakMap()) {
     return cloned;
 }
 
+// Add resource preloads (fonts, styles, etc.) from config
+if (config.fonts && Array.isArray(config.fonts)) {
+    config.fonts.forEach(font => {
+        if (!font.href) {
+            logError('Invalid font preload config, missing href:', font);
+            return;
+        }
+        // Check for existing preload to avoid duplicates
+        if (!document.querySelector(`link[rel="preload"][href="${font.href}"]`)) {
+            const link = document.createElement('link');
+            link.rel = 'preload';
+            link.href = font.href;
+            link.as = font.as || 'font';
+            if (font.type) link.type = font.type;
+            if (font.crossorigin) link.crossOrigin = font.crossorigin;
+            head.appendChild(link);
+            log(`Added font preload: ${font.href}`);
+        }
+    });
+}
+
+// Optionally, add general preloads (e.g., JSON fetch, stylesheet)
+if (config.preloads && Array.isArray(config.preloads)) {
+    config.preloads.forEach(preload => {
+        if (!preload.href) {
+            logError('Invalid preload config, missing href:', preload);
+            return;
+        }
+        // Check for existing preload to avoid duplicates
+        if (!document.querySelector(`link[href="${preload.href}"][rel="${preload.rel || 'preload'}"]`)) {
+            const link = document.createElement('link');
+            link.rel = preload.rel || 'preload';
+            link.href = preload.href;
+            link.as = preload.as;
+            if (preload.crossorigin) link.crossOrigin = preload.crossorigin;
+            head.appendChild(link);
+            log(`Added preload: ${preload.href} as ${preload.as}`);
+        }
+    });
+}
+
 // Load a script and return a promise that resolves when loaded
 async function loadScript(src, type = 'module', defer = true) {
     return new Promise((resolve, reject) => {
