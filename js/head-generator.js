@@ -99,6 +99,39 @@ function injectCSSVariables(head, cssVariables) {
     window.addEventListener('resize', applyVariables);
 }
 
+// Inject @font-face rules into a <style> tag
+function injectFontFaces(head, fontFaces) {
+    if (!fontFaces || !Array.isArray(fontFaces) || fontFaces.length === 0) {
+        logError('No font faces found in config.font_faces');
+        return;
+    }
+
+    let styleElement = document.querySelector('style[data-font-faces]');
+    if (!styleElement) {
+        styleElement = document.createElement('style');
+        styleElement.dataset.fontFaces = 'true';
+        head.appendChild(styleElement);
+    }
+
+    let cssString = '';
+    fontFaces.forEach(font => {
+        if (!font.family || !font.src || !font.format) {
+            logError('Invalid font face configuration, missing required properties:', font);
+            return;
+        }
+        cssString += `@font-face {
+            font-family: '${font.family}';
+            src: url('${font.src}') format('${font.format}');
+            font-weight: ${font.weight || 'normal'};
+            font-style: ${font.style || 'normal'};
+            font-display: ${font.display || 'swap'};
+        }`;
+    });
+
+    styleElement.textContent = cssString;
+    log('Injected font faces:', fontFaces.map(f => f.family));
+}
+
 // Manages the <head> section by adding meta tags, styles, scripts, and schema markup
 async function manageHead(attributes = {}, config = {}) {
     log('manageHead called with attributes:', attributes);
@@ -109,6 +142,11 @@ async function manageHead(attributes = {}, config = {}) {
     // Inject CSS variables from config
     if (config.css_variables) {
         injectCSSVariables(head, config.css_variables);
+    }
+
+    // Inject font faces from config
+    if (config.font_faces) {
+        injectFontFaces(head, config.font_faces);
     }
 
     // Add Font Awesome Kit script
@@ -175,7 +213,7 @@ async function manageHead(attributes = {}, config = {}) {
         const metaViewport = document.createElement('meta');
         metaViewport.name = 'viewport';
         metaViewport.content = 'width=device-width, initial-scale=1';
-        head.appendChild(metaViewport);
+        head.appendChild(metaCharset);
         log('Added viewport meta');
     }
     if (!document.querySelector('meta[name="robots"]')) {
@@ -416,13 +454,15 @@ async function manageHead(attributes = {}, config = {}) {
     }
 
     // Add favicon links for various devices
-    const favicons = [
-        { rel: 'apple-touch-icon', sizes: '180x180', href: '../Sandbox/img/icons/apple-touch-icon.png' },
-        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '../Sandbox/img/icons/favicon-32x32.png' },
-        { rel: 'icon', type: 'image/png', sizes: '16x16', href: '../Sandbox/img/icons/favicon-16x16.png' },
-        { rel: 'icon', type: 'image/x-icon', href: '../Sandbox/img/icons/favicon.ico' }
-    ];
+    const favicons = config.general?.favicons || [];
+    if (favicons.length === 0) {
+        logError('No favicons found in config.general.favicons');
+    }
     favicons.forEach(favicon => {
+        if (!favicon.href) {
+            logError('Invalid favicon configuration, missing href:', favicon);
+            return;
+        }
         if (!document.querySelector(`link[href="${favicon.href}"]`)) {
             const link = document.createElement('link');
             link.rel = favicon.rel;
@@ -443,15 +483,19 @@ async function manageHead(attributes = {}, config = {}) {
                     await new Promise(resolve => setTimeout(resolve, 100));
                     return addSnipcartScripts();
                 }
+                if (!config.general?.snipcart) {
+                    logError('No Snipcart configuration found in config.general.snipcart');
+                    return;
+                }
                 const snipcartSettings = document.createElement('script');
                 snipcartSettings.type = 'text/javascript';
                 snipcartSettings.textContent = `
                     window.SnipcartSettings = {
-                        publicApiKey: 'NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5',
-                        loadStrategy: 'on-user-interaction',
-                        version: '3.7.3',
-                        templatesUrl: '/Sandbox/plugins/snipcart.html',
-                        modalStyle: 'side',
+                        publicApiKey: '${config.general.snipcart.publicApiKey}',
+                        loadStrategy: '${config.general.snipcart.loadStrategy}',
+                        version: '${config.general.snipcart.version}',
+                        templatesUrl: '${config.general.snipcart.templatesUrl}',
+                        modalStyle: '${config.general.snipcart.modalStyle}',
                     };
                 `;
                 document.body.appendChild(snipcartSettings);
@@ -462,14 +506,14 @@ async function manageHead(attributes = {}, config = {}) {
                 snipcartScript.textContent = `
                     (() => {
                         var c, d;
-                        (d = (c = window.SnipcartSettings).version) != null || (c.version = "3.7.1");
+                        (d = (c = window.SnipcartSettings).version) != null || (c.version = "${config.general.snipcart.version}");
                         var s, S;
                         (S = (s = window.SnipcartSettings).timeoutDuration) != null || (s.timeoutDuration = 2750);
                         var l, p;
                         (p = (l = window.SnipcartSettings).domain) != null || (l.domain = "cdn.snipcart.com");
                         var w, u;
                         (u = (w = window.SnipcartSettings).protocol) != null || (w.protocol = "https");
-                        var f = window.SnipcartSettings.version.includes("v3.0.0-ci") || window.SnipcartSettings.version != "3.7.1" && window.SnipcartSettings.version.localeCompare("3.4.0", void 0, { numeric: true, sensitivity: "base" }) === -1,
+                        var f = window.SnipcartSettings.version.includes("v3.0.0-ci") || window.SnipcartSettings.version != "${config.general.snipcart.version}" && window.SnipcartSettings.version.localeCompare("3.4.0", void 0, { numeric: true, sensitivity: "base" }) === -1,
                             m = ["focus", "mouseover", "touchmove", "scroll", "keydown"];
                         window.LoadSnipcart = o;
                         document.readyState === "loading" ? document.addEventListener("DOMContentLoaded", r) : r();
@@ -620,7 +664,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const scriptPath = `./components/${component}.js`;
             try {
                 const module = await import(scriptPath);
-                log(`Loaded module: ${scriptPath} at 12:33 PM AEST, September 07, 2025`);
+                log(`Loaded module: ${scriptPath} at 01:05 PM AEST, September 07, 2025`);
             } catch (error) {
                 logError(`Failed to load module: ${scriptPath}`, error);
             }
