@@ -61,11 +61,6 @@ async function manageHead(attributes = {}, config = {}) {
     let head = document.head || document.createElement('head');
     if (!document.head) document.documentElement.prepend(head);
 
-    // Inject font faces from config
-    if (config.font_faces) {
-        injectFontFaces(head, config.font_faces);
-    }
-
     // Add Font Awesome Kit script
     if (config.font_awesome?.kit_url) {
         if (!document.querySelector(`script[src="${config.font_awesome.kit_url}"]`)) {
