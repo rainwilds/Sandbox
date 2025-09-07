@@ -84,8 +84,8 @@ async function manageHead(attributes = {}, businessDetails = {}) {
     });
     // Preload fonts to improve performance
     const fonts = [
-        { href: '../Sandbox/fonts/acumin_pro_bold.woff2', type: 'font/woff2', crossorigin: 'anonymous' },
-        { href: '../Sandbox/fonts/futura_pt_book.woff2', type: 'font/woff2', crossorigin: 'anonymous' }
+        { href: '../fonts/Futura_PT_Demi.woff2', type: 'font/woff2', crossorigin: 'anonymous' },
+        { href: '../fonts/futura_pt_book.woff2', type: 'font/woff2', crossorigin: 'anonymous' }
     ];
     fonts.forEach(font => {
         if (!document.querySelector(`link[href="${font.href}"]`)) {
