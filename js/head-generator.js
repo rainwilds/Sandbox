@@ -1,6 +1,6 @@
-/* global document, window, fetch, MutationObserver, console */
 // Debug mode toggle (set to false in production)
-const DEBUG_MODE = false; // Set to true for debugging
+const DEBUG_MODE = true; // Set to true for debugging
+
 // Centralized logging function with timestamp
 function log(...args) {
     if (DEBUG_MODE) {
@@ -8,11 +8,13 @@ function log(...args) {
         console.log(`[HeadGenerator] ${timestamp}`, ...args);
     }
 }
+
 // Error logging function with timestamp
 function logError(...args) {
     const timestamp = new Date().toLocaleString('en-AU', { timeZone: 'Australia/Sydney', hour12: true, hour: '2-digit', minute: '2-digit' });
     console.error(`[HeadGenerator] ${timestamp}`, ...args);
 }
+
 // Deep clone utility to avoid circular references
 function deepClone(obj, seen = new WeakMap()) {
     if (obj === null || typeof obj !== 'object') return obj;
@@ -32,6 +34,7 @@ function deepClone(obj, seen = new WeakMap()) {
     }
     return cloned;
 }
+
 // Load a script and return a promise that resolves when loaded
 async function loadScript(src, type = 'module', defer = true) {
     return new Promise((resolve, reject) => {
@@ -50,22 +53,78 @@ async function loadScript(src, type = 'module', defer = true) {
         document.head.appendChild(script);
     });
 }
+
+// Inject CSS variables into a <style> tag
+function injectCSSVariables(head, cssVariables) {
+    if (!cssVariables || !cssVariables.default) {
+        logError('No CSS variables found in config.css_variables.default');
+        return;
+    }
+
+    const applyVariables = () => {
+        let styleElement = document.querySelector('style[data-css-variables]');
+        if (!styleElement) {
+            styleElement = document.createElement('style');
+            styleElement.dataset.cssVariables = 'true';
+            head.appendChild(styleElement);
+        }
+
+        let cssString = ':root {';
+        // Apply default variables
+        for (const [key, value] of Object.entries(cssVariables.default)) {
+            cssString += `${key}: ${value};`;
+        }
+
+        // Apply media query overrides based on viewport size
+        if (cssVariables.media_queries) {
+            if (window.matchMedia('(max-width: 768px)').matches && cssVariables.media_queries.max_width_768px) {
+                for (const [key, value] of Object.entries(cssVariables.media_queries.max_width_768px)) {
+                    cssString += `${key}: ${value};`;
+                }
+            }
+            if (window.matchMedia('(min-width: 2560px)').matches && cssVariables.media_queries.min_width_2560px) {
+                for (const [key, value] of Object.entries(cssVariables.media_queries.min_width_2560px)) {
+                    cssString += `${key}: ${value};`;
+                }
+            }
+        }
+
+        cssString += '}';
+        styleElement.textContent = cssString;
+        log('Injected CSS variables:', Object.keys(cssVariables.default));
+    };
+
+    applyVariables();
+    // Re-apply variables on window resize or theme change
+    window.addEventListener('resize', applyVariables);
+}
+
 // Manages the <head> section by adding meta tags, styles, scripts, and schema markup
-async function manageHead(attributes = {}, businessDetails = {}) {
+async function manageHead(attributes = {}, config = {}) {
     log('manageHead called with attributes:', attributes);
     // Ensure <head> exists, creating one if necessary
     let head = document.head || document.createElement('head');
     if (!document.head) document.documentElement.prepend(head);
-    // Add Font Awesome Kit script
-    const fontAwesomeKitUrl = 'https://kit.fontawesome.com/85d1e578b1.js';
-    if (!document.querySelector(`script[src="${fontAwesomeKitUrl}"]`)) {
-        const script = document.createElement('script');
-        script.src = fontAwesomeKitUrl;
-        script.crossOrigin = 'anonymous';
-        script.async = true;
-        head.appendChild(script);
-        log(`Added Font Awesome Kit script: ${fontAwesomeKitUrl}`);
+
+    // Inject CSS variables from config
+    if (config.css_variables) {
+        injectCSSVariables(head, config.css_variables);
     }
+
+    // Add Font Awesome Kit script
+    if (config.font_awesome?.kit_url) {
+        if (!document.querySelector(`script[src="${config.font_awesome.kit_url}"]`)) {
+            const script = document.createElement('script');
+            script.src = config.font_awesome.kit_url;
+            script.crossOrigin = 'anonymous';
+            script.async = true;
+            head.appendChild(script);
+            log(`Added Font Awesome Kit script: ${config.font_awesome.kit_url}`);
+        }
+    } else {
+        logError('No Font Awesome kit URL found in config.font_awesome.kit_url');
+    }
+
     // Add stylesheets with combined preload and stylesheet
     const stylesheets = attributes.stylesheets ? attributes.stylesheets.split(',').map(s => s.trim()).filter(Boolean) : ['./styles.css'];
     stylesheets.forEach(href => {
@@ -82,23 +141,29 @@ async function manageHead(attributes = {}, businessDetails = {}) {
             log(`Added stylesheet with preload: ${href}`);
         }
     });
+
     // Preload fonts to improve performance
-    const fonts = [
-        { href: '../fonts/Futura_PT_Demi.woff2', type: 'font/woff2', crossorigin: 'anonymous' },
-        { href: '../fonts/futura_pt_book.woff2', type: 'font/woff2', crossorigin: 'anonymous' }
-    ];
-    fonts.forEach(font => {
-        if (!document.querySelector(`link[href="${font.href}"]`)) {
-            const link = document.createElement('link');
-            link.rel = 'preload';
-            link.href = font.href;
-            link.as = 'font';
-            link.type = font.type;
-            if (font.crossorigin) link.crossOrigin = font.crossorigin;
-            head.appendChild(link);
-            log(`Added font preload: ${font.href}`);
-        }
-    });
+    if (config.fonts && Array.isArray(config.fonts) && config.fonts.length > 0) {
+        config.fonts.forEach(font => {
+            if (!font.href) {
+                logError('Invalid font configuration, missing href:', font);
+                return;
+            }
+            if (!document.querySelector(`link[href="${font.href}"]`)) {
+                const link = document.createElement('link');
+                link.rel = 'preload';
+                link.href = font.href;
+                link.as = 'font';
+                link.type = font.type || 'font/woff2';
+                if (font.crossorigin) link.crossOrigin = font.crossorigin;
+                head.appendChild(link);
+                log(`Added font preload: ${font.href}`);
+            }
+        });
+    } else {
+        logError('No fonts found in config.fonts');
+    }
+
     // Add essential meta tags
     if (!document.querySelector('meta[charset]')) {
         const metaCharset = document.createElement('meta');
@@ -116,44 +181,45 @@ async function manageHead(attributes = {}, businessDetails = {}) {
     if (!document.querySelector('meta[name="robots"]')) {
         const metaRobots = document.createElement('meta');
         metaRobots.name = 'robots';
-        metaRobots.content = attributes.robots || 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
+        metaRobots.content = attributes.robots || config.general?.robots || 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';
         head.appendChild(metaRobots);
         log('Added robots meta');
     }
     if (!document.querySelector('title')) {
         const title = document.createElement('title');
-        title.textContent = attributes.title || 'Behive';
+        title.textContent = attributes.title || 'Behive'; // Page-specific via <data-custom-head>
         head.appendChild(title);
         log('Added title');
     }
     if (!document.querySelector('meta[name="author"]')) {
         const metaAuthor = document.createElement('meta');
         metaAuthor.name = 'author';
-        metaAuthor.content = attributes.author || 'David Dufourq';
+        metaAuthor.content = attributes.author || config.general?.author || 'David Dufourq';
         head.appendChild(metaAuthor);
         log('Added author meta');
     }
     if (attributes.description && !document.querySelector('meta[name="description"]')) {
         const metaDesc = document.createElement('meta');
         metaDesc.name = 'description';
-        metaDesc.content = attributes.description;
+        metaDesc.content = attributes.description; // Page-specific via <data-custom-head>
         head.appendChild(metaDesc);
         log('Added description meta with content:', attributes.description);
     }
     if (attributes.keywords && !document.querySelector('meta[name="keywords"]')) {
         const metaKeywords = document.createElement('meta');
         metaKeywords.name = 'keywords';
-        metaKeywords.content = attributes.keywords || '';
+        metaKeywords.content = attributes.keywords || ''; // Page-specific via <data-custom-head>
         head.appendChild(metaKeywords);
         log('Added keywords meta');
     }
     if (attributes.canonical && !document.querySelector('link[rel="canonical"]')) {
         const linkCanonical = document.createElement('link');
         linkCanonical.rel = 'canonical';
-        linkCanonical.href = attributes.canonical || '';
+        linkCanonical.href = attributes.canonical || ''; // Page-specific via <data-custom-head>
         head.appendChild(linkCanonical);
         log('Added canonical link');
     }
+
     // Add theme-color meta tag
     const updateThemeColor = () => {
         let metaThemeColor = document.querySelector('meta[name="theme-color"]');
@@ -165,9 +231,8 @@ async function manageHead(attributes = {}, businessDetails = {}) {
         const theme = document.documentElement.dataset.theme || document.body.dataset.theme;
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         const isDark = theme ? theme === 'dark' : prefersDark;
-        const rootStyle = getComputedStyle(document.documentElement);
-        const lightColor = attributes['theme-color-light'] || rootStyle.getPropertyValue('--color-background-light').trim() || '#ffffff';
-        const darkColor = attributes['theme-color-dark'] || rootStyle.getPropertyValue('--color-background-dark').trim() || '#000000';
+        const lightColor = attributes['theme-color-light'] || config.general?.theme_colors?.light || '#ffffff';
+        const darkColor = attributes['theme-color-dark'] || config.general?.theme_colors?.dark || '#000000';
         metaThemeColor.content = isDark ? darkColor : lightColor;
         log('Updated theme-color:', metaThemeColor.content);
     };
@@ -177,99 +242,102 @@ async function manageHead(attributes = {}, businessDetails = {}) {
     const bodyObserver = new MutationObserver(updateThemeColor);
     bodyObserver.observe(document.body, { attributes: true, attributeFilter: ['data-theme'] });
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateThemeColor);
+
     // Add Open Graph meta tags
     if (!document.querySelector('meta[property="og:locale"]')) {
         const ogLocale = document.createElement('meta');
         ogLocale.setAttribute('property', 'og:locale');
-        ogLocale.setAttribute('content', attributes['og-locale'] || 'en_AU');
+        ogLocale.setAttribute('content', attributes['og-locale'] || config.general?.og?.locale || 'en_AU');
         head.appendChild(ogLocale);
         log('Added og:locale meta');
     }
     if (!document.querySelector('meta[property="og:url"]')) {
         const ogUrl = document.createElement('meta');
         ogUrl.setAttribute('property', 'og:url');
-        ogUrl.setAttribute('content', attributes['og-url'] || 'https://rainwilds.github.io/Sandbox/');
+        ogUrl.setAttribute('content', attributes['og-url'] || 'https://rainwilds.github.io/Sandbox/'); // Page-specific via <data-custom-head>
         head.appendChild(ogUrl);
         log('Added og:url meta');
     }
     if (!document.querySelector('meta[property="og:type"]')) {
         const ogType = document.createElement('meta');
         ogType.setAttribute('property', 'og:type');
-        ogType.setAttribute('content', attributes['og-type'] || 'website');
+        ogType.setAttribute('content', attributes['og-type'] || 'website'); // Page-specific via <data-custom-head>
         head.appendChild(ogType);
         log('Added og:type meta');
     }
     if (!document.querySelector('meta[property="og:title"]')) {
         const ogTitle = document.createElement('meta');
         ogTitle.setAttribute('property', 'og:title');
-        ogTitle.setAttribute('content', attributes['og-title'] || attributes.title || 'Behive');
+        ogTitle.setAttribute('content', attributes['og-title'] || attributes.title || 'Behive'); // Page-specific via <data-custom-head>
         head.appendChild(ogTitle);
         log('Added og:title meta');
     }
     if (!document.querySelector('meta[property="og:description"]')) {
         const ogDescription = document.createElement('meta');
         ogDescription.setAttribute('property', 'og:description');
-        ogDescription.setAttribute('content', attributes['og-description'] || attributes.description || '');
+        ogDescription.setAttribute('content', attributes['og-description'] || attributes.description || ''); // Page-specific via <data-custom-head>
         head.appendChild(ogDescription);
         log('Added og:description meta with content:', attributes['og-description'] || attributes.description);
     }
     if (!document.querySelector('meta[property="og:image"]')) {
         const ogImage = document.createElement('meta');
         ogImage.setAttribute('property', 'og:image');
-        ogImage.setAttribute('content', attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg');
+        ogImage.setAttribute('content', attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg'); // Page-specific via <data-custom-head>
         head.appendChild(ogImage);
         log('Added og:image meta');
     }
     if (!document.querySelector('meta[property="og:site_name"]')) {
         const ogSiteName = document.createElement('meta');
         ogSiteName.setAttribute('property', 'og:site_name');
-        ogSiteName.setAttribute('content', attributes['og-site-name'] || 'Behive');
+        ogSiteName.setAttribute('content', attributes['og-site-name'] || config.general?.og?.site_name || 'Behive');
         head.appendChild(ogSiteName);
         log('Added og:site_name meta');
     }
+
     // Add X meta tags
     if (!document.querySelector('meta[name="x:card"]')) {
         const xCard = document.createElement('meta');
         xCard.setAttribute('name', 'x:card');
-        xCard.setAttribute('content', attributes['x-card'] || 'summary_large_image');
+        xCard.setAttribute('content', attributes['x-card'] || config.general?.x?.card || 'summary_large_image');
         head.appendChild(xCard);
         log('Added x:card meta');
     }
     if (!document.querySelector('meta[property="x:domain"]')) {
         const xDomain = document.createElement('meta');
         xDomain.setAttribute('property', 'x:domain');
-        xDomain.setAttribute('content', attributes['x-domain'] || 'rainwilds.github.io');
+        xDomain.setAttribute('content', attributes['x-domain'] || config.general?.x?.domain || 'rainwilds.github.io');
         head.appendChild(xDomain);
         log('Added x:domain meta');
     }
     if (!document.querySelector('meta[property="x:url"]')) {
         const xUrl = document.createElement('meta');
         xUrl.setAttribute('property', 'x:url');
-        xUrl.setAttribute('content', attributes['x-url'] || 'https://rainwilds.github.io/Sandbox/');
+        xUrl.setAttribute('content', attributes['x-url'] || 'https://rainwilds.github.io/Sandbox/'); // Page-specific via <data-custom-head>
         head.appendChild(xUrl);
         log('Added x:url meta');
     }
     if (!document.querySelector('meta[name="x:title"]')) {
         const xTitle = document.createElement('meta');
         xTitle.setAttribute('name', 'x:title');
-        xTitle.setAttribute('content', attributes['x-title'] || attributes.title || 'Behive');
+        xTitle.setAttribute('content', attributes['x-title'] || attributes.title || 'Behive'); // Page-specific via <data-custom-head>
         head.appendChild(xTitle);
         log('Added x:title meta');
     }
     if (!document.querySelector('meta[name="x:description"]')) {
         const xDescription = document.createElement('meta');
         xDescription.setAttribute('name', 'x:description');
-        xDescription.setAttribute('content', attributes['x-description'] || attributes.description || '');
+        xDescription.setAttribute('content', attributes['x-description'] || attributes.description || ''); // Page-specific via <data-custom-head>
         head.appendChild(xDescription);
         log('Added x:description meta with content:', attributes['x-description'] || attributes.description);
     }
     if (!document.querySelector('meta[name="x:image"]')) {
         const xImage = document.createElement('meta');
         xImage.setAttribute('name', 'x:image');
-        xImage.setAttribute('content', attributes['x-image'] || attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg');
+        xImage.setAttribute('content', attributes['x-image'] || attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg'); // Page-specific via <data-custom-head>
         head.appendChild(xImage);
         log('Added x:image meta');
     }
+
     // Add JSON-LD schema markup
     const schemaScript = document.createElement('script');
     schemaScript.type = 'application/ld+json';
@@ -278,12 +346,12 @@ async function manageHead(attributes = {}, businessDetails = {}) {
         "@graph": [
             {
                 "@type": "WebSite",
-                "@id": (attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/') + "#website",
-                "name": attributes['schema-site-name'] || attributes.title || 'Behive Media',
-                "url": attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/',
-                "description": attributes.description || 'Behive Media offers professional photography, videography, and website services in Australia.',
-                "inLanguage": attributes['og-locale'] || 'en-AU',
-                "publisher": { "@id": (attributes['business-url'] || businessDetails.business?.url || 'https://rainwilds.github.io/Sandbox/') + "#business" },
+                "@id": (attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/') + "#website", // Page-specific via <data-custom-head>
+                "name": attributes['schema-site-name'] || attributes.title || config.business?.name || 'Behive Media',
+                "url": attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/', // Page-specific via <data-custom-head>
+                "description": attributes.description || config.business?.description || 'Behive Media offers professional photography, videography, and website services in Australia.',
+                "inLanguage": attributes['og-locale'] || config.general?.og?.locale || 'en-AU',
+                "publisher": { "@id": (attributes['business-url'] || config.business?.url || 'https://rainwilds.github.io/Sandbox/') + "#business" },
                 "potentialAction": [
                     {
                         "@type": "SearchAction",
@@ -301,27 +369,27 @@ async function manageHead(attributes = {}, businessDetails = {}) {
             },
             {
                 "@type": "LocalBusiness",
-                "@id": (attributes['business-url'] || businessDetails.business?.url || 'https://rainwilds.github.io/Sandbox/') + "#business",
-                "name": attributes['business-name'] || businessDetails.business?.name || 'Behive Media',
-                "url": attributes['business-url'] || businessDetails.business?.url || 'https://rainwilds.github.io/Sandbox/',
-                "telephone": attributes['business-telephone'] || businessDetails.business?.telephone || '+61-3-9876-5432',
+                "@id": (attributes['business-url'] || config.business?.url || 'https://rainwilds.github.io/Sandbox/') + "#business",
+                "name": attributes['business-name'] || config.business?.name || 'Behive Media',
+                "url": attributes['business-url'] || config.business?.url || 'https://rainwilds.github.io/Sandbox/',
+                "telephone": attributes['business-telephone'] || config.business?.telephone || '+61-3-9876-5432',
                 "address": {
                     "@type": "PostalAddress",
-                    "streetAddress": attributes['business-address-street'] || businessDetails.business?.address?.streetAddress || '456 Creative Lane',
-                    "addressLocality": attributes['business-address-locality'] || businessDetails.business?.address?.addressLocality || 'Melbourne',
-                    "addressRegion": attributes['business-address-region'] || businessDetails.business?.address?.addressRegion || 'VIC',
-                    "postalCode": attributes['business-address-postal'] || businessDetails.business?.address?.postalCode || '3000',
-                    "addressCountry": attributes['business-address-country'] || businessDetails.business?.address?.addressCountry || 'AU'
+                    "streetAddress": attributes['business-address-street'] || config.business?.address?.streetAddress || '456 Creative Lane',
+                    "addressLocality": attributes['business-address-locality'] || config.business?.address?.addressLocality || 'Melbourne',
+                    "addressRegion": attributes['business-address-region'] || config.business?.address?.addressRegion || 'VIC',
+                    "postalCode": attributes['business-address-postal'] || config.business?.address?.postalCode || '3000',
+                    "addressCountry": attributes['business-address-country'] || config.business?.address?.addressCountry || 'AU'
                 },
                 "geo": {
                     "@type": "GeoCoordinates",
-                    "latitude": attributes['business-geo-latitude'] || businessDetails.business?.geo?.latitude || -37.8136,
-                    "longitude": attributes['business-geo-longitude'] || businessDetails.business?.geo?.longitude || 144.9631
+                    "latitude": attributes['business-geo-latitude'] || config.business?.geo?.latitude || -37.8136,
+                    "longitude": attributes['business-geo-longitude'] || config.business?.geo?.longitude || 144.9631
                 },
-                "openingHours": attributes['business-opening-hours'] || businessDetails.business?.openingHours || 'Mo-Fr 09:00-18:00',
-                "image": attributes['business-image'] || businessDetails.business?.image || 'https://rainwilds.github.io/Sandbox/img/logo.jpg',
-                "logo": attributes['business-logo'] || businessDetails.business?.logo || 'https://rainwilds.github.io/Sandbox/img/logo.jpg',
-                "sameAs": attributes['business-same-as']?.split(',') || businessDetails.business?.sameAs || [
+                "openingHours": attributes['business-opening-hours'] || config.business?.openingHours || 'Mo-Fr 09:00-18:00',
+                "image": attributes['business-image'] || config.business?.image || 'https://rainwilds.github.io/Sandbox/img/logo.jpg',
+                "logo": attributes['business-logo'] || config.business?.logo || 'https://rainwilds.github.io/Sandbox/img/logo.jpg',
+                "sameAs": attributes['business-same-as']?.split(',') || config.business?.sameAs || [
                     'https://www.facebook.com/behivemedia',
                     'https://www.instagram.com/behivemedia'
                 ]
@@ -333,7 +401,7 @@ async function manageHead(attributes = {}, businessDetails = {}) {
                         "@type": "ListItem",
                         "position": 1,
                         "name": "Home",
-                        "item": attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/'
+                        "item": attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/' // Page-specific via <data-custom-head>
                     }
                 ]
             }
@@ -346,6 +414,7 @@ async function manageHead(attributes = {}, businessDetails = {}) {
     } catch (error) {
         logError('Failed to serialize JSON-LD schema:', error);
     }
+
     // Add favicon links for various devices
     const favicons = [
         { rel: 'apple-touch-icon', sizes: '180x180', href: '../Sandbox/img/icons/apple-touch-icon.png' },
@@ -364,8 +433,9 @@ async function manageHead(attributes = {}, businessDetails = {}) {
             log(`Added favicon: ${favicon.href}`);
         }
     });
+
     // Initialize Snipcart if enabled
-    if (attributes['include-e-commerce']) {
+    if (attributes['include-e-commerce'] || config.general?.include_e_commerce) {
         log('Snipcart initialization triggered');
         if (!document.querySelector('script[data-snipcart]')) {
             const addSnipcartScripts = async () => {
@@ -450,25 +520,28 @@ async function manageHead(attributes = {}, businessDetails = {}) {
         }
     }
 }
+
 // Initialize head management on DOM load
 document.addEventListener('DOMContentLoaded', async () => {
-    const dataHeads = document.querySelectorAll('data-bh-head');
-    log('Found data-bh-head elements:', dataHeads.length);
-    // Fetch business-details.json
-    let businessDetails = {};
+    const dataHeads = document.querySelectorAll('data-custom-head');
+    log('Found data-custom-head elements:', dataHeads.length);
+
+    // Fetch setup.json
+    let config = {};
     try {
-        const response = await fetch('./JSON/business-details.json');
+        const response = await fetch('./JSON/setup.json');
         if (!response.ok) {
             throw new Error(`HTTP ${response.status} - ${response.statusText}`);
         }
-        businessDetails = await response.json();
-        log('Loaded business-details.json:', businessDetails);
+        config = await response.json();
+        log('Loaded setup.json:', config);
     } catch (error) {
-        logError('Failed to load business-details.json:', error);
-        document.body.innerHTML = '<div style="color: red; font-size: 2em; text-align: center;">Error: Failed to load business information. Please check the console for details.</div>';
+        logError('Failed to load setup.json:', error);
+        document.body.innerHTML = '<div style="color: red; font-size: 2em; text-align: center;">Error: Failed to load configuration. Please check the console for details.</div>';
         throw error;
     }
-    // Merge attributes from all <data-bh-head> elements
+
+    // Merge attributes from all <data-custom-head> elements
     const attributes = {};
     dataHeads.forEach(dataHead => {
         const newAttributes = {
@@ -531,13 +604,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
     log('Merged attributes:', attributes);
-    // Remove all <data-bh-head> elements
+
+    // Remove all <data-custom-head> elements
     dataHeads.forEach(dataHead => {
         if (dataHead.parentNode) {
             dataHead.parentNode.removeChild(dataHead);
-            log('Removed data-bh-head element');
+            log('Removed data-custom-head element');
         }
     });
+
     // Load components using await import
     if (attributes.components) {
         const componentList = attributes.components.split(' ').filter(Boolean);
@@ -545,12 +620,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             const scriptPath = `./components/${component}.js`;
             try {
                 const module = await import(scriptPath);
-                log(`Loaded module: ${scriptPath} at 09:16 PM AEST, September 03, 2025`);
+                log(`Loaded module: ${scriptPath} at 12:33 PM AEST, September 07, 2025`);
             } catch (error) {
                 logError(`Failed to load module: ${scriptPath}`, error);
             }
         }
     }
-    // Pass merged attributes and businessDetails to manageHead
-    await manageHead(attributes, businessDetails);
+
+    // Pass merged attributes and config to manageHead
+    await manageHead(attributes, config);
 });
