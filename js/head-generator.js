@@ -75,45 +75,6 @@ async function manageHead(attributes = {}, config = {}) {
         logError('No Font Awesome kit URL found in config.font_awesome.kit_url');
     }
 
-    // Add stylesheets with combined preload and stylesheet
-    const stylesheets = attributes.stylesheets ? attributes.stylesheets.split(',').map(s => s.trim()).filter(Boolean) : ['./styles.css'];
-    stylesheets.forEach(href => {
-        if (!href) {
-            log('Skipping empty stylesheet URL');
-            return;
-        }
-        if (!document.querySelector(`link[href="${href}"]`)) {
-            const link = document.createElement('link');
-            link.rel = 'preload stylesheet';
-            link.href = href;
-            link.as = 'style';
-            head.appendChild(link);
-            log(`Added stylesheet with preload: ${href}`);
-        }
-    });
-
-    // Preload fonts to improve performance
-    if (config.fonts && Array.isArray(config.fonts) && config.fonts.length > 0) {
-        config.fonts.forEach(font => {
-            if (!font.href) {
-                logError('Invalid font configuration, missing href:', font);
-                return;
-            }
-            if (!document.querySelector(`link[href="${font.href}"]`)) {
-                const link = document.createElement('link');
-                link.rel = 'preload';
-                link.href = font.href;
-                link.as = 'font';
-                link.type = font.type || 'font/woff2';
-                if (font.crossorigin) link.crossOrigin = font.crossorigin;
-                head.appendChild(link);
-                log(`Added font preload: ${font.href}`);
-            }
-        });
-    } else {
-        logError('No fonts found in config.fonts');
-    }
-
     // Add essential meta tags
     if (!document.querySelector('meta[charset]')) {
         const metaCharset = document.createElement('meta');
