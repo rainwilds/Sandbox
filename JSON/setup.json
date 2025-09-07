@@ -41,12 +41,12 @@
   },
   "fonts": [
     {
-      "href": "../fonts/Futura_PT_Demi.woff2",
+      "href": "./fonts/Futura_PT_Demi.woff2",
       "type": "font/woff2",
       "crossorigin": "anonymous"
     },
     {
-      "href": "../fonts/futura_pt_book.woff2",
+      "href": "./fonts/futura_pt_book.woff2",
       "type": "font/woff2",
       "crossorigin": "anonymous"
     }
