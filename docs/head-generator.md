@@ -1,184 +1,116 @@
-# HeadGenerator
+# Head Generator Documentation
 
-## Summary
+The `head-generator.js` script dynamically manages the `<head>` section of an HTML document by adding meta tags, stylesheets, fonts, favicons, and schema markup. It processes attributes from `<data-bh-head>` elements, fetches business information from a JSON file, and supports e-commerce integration with Snipcart. The script includes utilities for logging, deep cloning, and script loading, and it enhances accessibility and SEO with Open Graph, X meta tags, and JSON-LD schemas. Below is a detailed explanation of all attributes, grouped into General, Open Graph, X, Business, Schema, Product, Collection, Theme, and E-commerce Attributes, presented in alphabetical order within each group.
 
-The `HeadGenerator` script dynamically manages the `<head>` section of an HTML document by processing `<data-bh-head>` custom elements. It adds meta tags, stylesheets, scripts, and schema markup based on attributes provided in `<data-bh-head>` tags. Key features include:
-- Merges attributes from multiple `<data-bh-head>` elements into a single configuration object.
-- Dynamically loads stylesheets, fonts, and component scripts (e.g., `custom-img.js`) based on `data-components`.
-- Adds essential meta tags (charset, viewport, robots, title, author, description, keywords, canonical).
-- Supports theme-aware `theme-color` meta tag, updating dynamically based on `prefers-color-scheme` or `data-theme`.
-- Adds Open Graph and Twitter meta tags for social media sharing.
-- Generates JSON-LD schema markup for SEO (WebSite, LocalBusiness, BreadcrumbList, Product/CollectionPage).
-- Preloads resources (stylesheets, fonts, feature images, scripts) to optimize performance.
-- Initializes e-commerce functionality (Snipcart) and debugging tools (Eruda) if enabled via `data-include-e-commerce`.
-- Removes `<data-bh-head>` elements after processing to prevent parsing issues.
-- Handles favicon links for various devices (apple-touch-icon, favicon.ico).
-- Loads additional scripts (e.g., `scripts.js`) and ensures no duplicate resources are added.
+## General Attributes
 
-The script requires `<data-bh-head>` elements to provide configuration and must be loaded as a module with `defer` before `<data-bh-head>` tags in the `<head>` section to ensure proper processing.
+| Attribute Name | Description | Default Value | Expected Format |
+|----------------|-------------|---------------|-----------------|
+| author | Sets the content for the `author` meta tag. | `'David Dufourq'` | Plain text (e.g., `John Doe`) |
+| canonical | Specifies the canonical URL for the `link[rel="canonical"]` tag. | `''` (empty) | Valid URL (e.g., `https://example.com`) |
+| components | Lists JavaScript component files to load dynamically. | `''` (empty) | Space-separated file names (e.g., `custom-header custom-logo`) |
+| description | Sets the content for the `description` meta tag. | `''` (empty) | Plain text (e.g., `Website description`) |
+| keywords | Sets the content for the `keywords` meta tag. | `''` (empty) | Comma-separated keywords (e.g., `web, design, services`) |
+| robots | Sets the content for the `robots` meta tag to control search engine indexing. | `'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'` | Valid robots directives (e.g., `noindex, nofollow`) |
+| stylesheets | Specifies CSS stylesheet URLs to load with preload and stylesheet relations. | `'./styles.css'` | Comma-separated URLs (e.g., `./styles.css,./custom.css`) |
+| title | Sets the text for the `<title>` tag. | `'Behive'` | Plain text (e.g., `My Website`) |
 
-## Dependencies
+## Open Graph Attributes
 
-The `HeadGenerator` script has the following dependencies:
-- **`picture-generator.js`**: Required for components like `custom-img` that generate `<picture>` markup. Preloaded and loaded as a module with `defer`.
-- **`business-info.json`**: Fetched asynchronously to provide default business metadata (e.g., name, address, telephone) for schema markup. Optional, with fallback defaults if not found.
-- **Font Awesome Styles**: Loads stylesheets (`fontawesome.min.css`, `sharp-light.min.css`, `brands.min.css`) for icon support.
-- **Snipcart (Optional)**: Loaded if `data-include-e-commerce` is present, using CDN scripts for e-commerce functionality.
-- **Eruda (Optional)**: Loaded if `data-include-e-commerce` is present, for debugging via CDN script.
-- **Component Scripts**: Dynamically loads scripts specified in `data-components` (e.g., `./js/components/custom-img.js`).
+| Attribute Name | Description | Default Value | Expected Format |
+|----------------|-------------|---------------|-----------------|
+| og-description | Sets the content for the `og:description` meta tag. | `attributes.description` or `''` (empty) | Plain text (e.g., `Open Graph description`) |
+| og-image | Sets the content for the `og:image` meta tag. | `'https://rainwilds.github.io/Sandbox/img/preview.jpg'` | Valid image URL (e.g., `https://example.com/image.jpg`) |
+| og-locale | Sets the content for the `og:locale` meta tag. | `'en_AU'` | Locale code (e.g., `en_US`) |
+| og-site-name | Sets the content for the `og:site_name` meta tag. | `'Behive'` | Plain text (e.g., `Behive Media`) |
+| og-title | Sets the content for the `og:title` meta tag. | `attributes.title` or `'Behive'` | Plain text (e.g., `Website Title`) |
+| og-type | Sets the content for the `og:type` meta tag. | `'website'` | Valid Open Graph type (e.g., `article`) |
+| og-url | Sets the content for the `og:url` meta tag. | `'https://rainwilds.github.io/Sandbox/'` | Valid URL (e.g., `https://example.com`) |
 
-The script polls for the availability of `business-info.json` and logs warnings or errors if the fetch fails.
+## X Attributes
 
-## Standard Attributes
+| Attribute Name | Description | Default Value | Expected Format |
+|----------------|-------------|---------------|-----------------|
+| x-card | Sets the content for the `x:card` meta tag. | `'summary_large_image'` | Valid X card type (e.g., `summary`) |
+| x-description | Sets the content for the `x:description` meta tag. | `attributes.description` or `''` (empty) | Plain text (e.g., `X description`) |
+| x-domain | Sets the content for the `x:domain` meta tag. | `'rainwilds.github.io'` | Valid domain (e.g., `example.com`) |
+| x-image | Sets the content for the `x:image` meta tag. | `attributes['og-image']` or `'https://rainwilds.github.io/Sandbox/img/preview.jpg'` | Valid image URL (e.g., `https://example.com/image.jpg`) |
+| x-title | Sets the content for the `x:title` meta tag. | `attributes.title` or `'Behive'` | Plain text (e.g., `X Title`) |
+| x-url | Sets the content for the `x:url` meta tag. | `'https://rainwilds.github.io/Sandbox/'` | Valid URL (e.g., `https://example.com`) |
 
-These are standard HTML attributes supported by `<data-bh-head>` and processed to generate corresponding `<meta>`, `<title>`, or `<link>` tags.
+## Business Attributes
 
-| Attribute       | Description                                                                 | Type     | Required | Default Value |
-|----------------|-----------------------------------------------------------------------------|----------|----------|---------------|
-| `title`        | Sets the `<title>` tag content.                                             | String   | No       | 'Behive' |
-| `description`  | Sets the `<meta name="description">` content for SEO.                       | String   | No       | '' |
-| `keywords`     | Sets the `<meta name="keywords">` content for SEO.                          | String   | No       | '' |
-| `author`       | Sets the `<meta name="author">` content.                                    | String   | No       | 'David Dufourq' |
-| `canonical`    | Sets the `<link rel="canonical">` href for SEO.                             | String   | No       | '' |
-| `robots`       | Sets the `<meta name="robots">` content for search engine crawling.         | String   | No       | 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1' |
+| Attribute Name | Description | Default Value | Expected Format |
+|----------------|-------------|---------------|-----------------|
+| business-address-country | Sets the country for the business address in the JSON-LD schema. | `'AU'` | Country code (e.g., `US`) |
+| business-address-locality | Sets the locality for the business address in the JSON-LD schema. | `'Melbourne'` | Plain text (e.g., `Sydney`) |
+| business-address-postal | Sets the postal code for the business address in the JSON-LD schema. | `'3000'` | Postal code (e.g., `2000`) |
+| business-address-region | Sets the region for the business address in the JSON-LD schema. | `'VIC'` | Region code (e.g., `NSW`) |
+| business-address-street | Sets the street address for the business address in the JSON-LD schema. | `'456 Creative Lane'` | Plain text (e.g., `123 Main St`) |
+| business-geo-latitude | Sets the latitude for the business location in the JSON-LD schema. | `-37.8136` | Numeric value (e.g., `40.7128`) |
+| business-geo-longitude | Sets the longitude for the business location in the JSON-LD schema. | `144.9631` | Numeric value (e.g., `-74.0060`) |
+| business-image | Sets the image URL for the business in the JSON-LD schema. | `'https://rainwilds.github.io/Sandbox/img/logo.jpg'` | Valid image URL (e.g., `https://example.com/business.jpg`) |
+| business-logo | Sets the logo URL for the business in the JSON-LD schema. | `'https://rainwilds.github.io/Sandbox/img/logo.jpg'` | Valid image URL (e.g., `https://example.com/logo.jpg`) |
+| business-name | Sets the name for the business in the JSON-LD schema. | `'Behive Media'` | Plain text (e.g., `My Company`) |
+| business-opening-hours | Sets the opening hours for the business in the JSON-LD schema. | `'Mo-Fr 09:00-18:00'` | Opening hours format (e.g., `Mo-Su 08:00-20:00`) |
+| business-same-as | Sets social media URLs for the business in the JSON-LD schema. | `'https://www.facebook.com/behivemedia,https://www.instagram.com/behivemedia'` | Comma-separated URLs (e.g., `https://facebook.com/example,https://instagram.com/example`) |
+| business-telephone | Sets the telephone number for the business in the JSON-LD schema. | `'+61-3-9876-5432'` | Phone number (e.g., `'+1-123-456-7890'`) |
+| business-url | Sets the URL for the business in the JSON-LD schema. | `'https://rainwilds.github.io/Sandbox/'` | Valid URL (e.g., `https://example.com`) |
 
-## Custom Attributes
+## Schema Attributes
 
-These are non-standard attributes specific to `<data-bh-head>`, used to configure advanced features like social media, schema, and resource preloading. They are processed and removed from the final DOM.
+| Attribute Name | Description | Default Value | Expected Format |
+|----------------|-------------|---------------|-----------------|
+| schema-site-name | Sets the name for the website in the JSON-LD schema. | `attributes.title` or `'Behive Media'` | Plain text (e.g., `My Website`) |
+| schema-site-url | Sets the URL for the website in the JSON-LD schema. | `'https://rainwilds.github.io/Sandbox/'` | Valid URL (e.g., `https://example.com`) |
 
-| Attribute                     | Description                                                                 | Type     | Required | Default Value |
-|------------------------------|-----------------------------------------------------------------------------|----------|----------|---------------|
-| `components`                 | Comma- or space-separated list of component scripts to load (e.g., `custom-img`). | String   | No       | '' |
-| `og-title`                   | Sets the `<meta property="og:title">` content for Open Graph.               | String   | No       | Fallback to `title` or 'Behive' |
-| `og-description`             | Sets the `<meta property="og:description">` content for Open Graph.         | String   | No       | Fallback to `description` or '' |
-| `og-image`                   | Sets the `<meta property="og:image">` content for Open Graph.               | String   | No       | 'https://rainwilds.github.io/Sandbox/img/preview.jpg' |
-| `og-url`                     | Sets the `<meta property="og:url">` content for Open Graph.                 | String   | No       | 'https://rainwilds.github.io/Sandbox/' |
-| `og-type`                    | Sets the `<meta property="og:type">` content for Open Graph.                | String   | No       | 'website' |
-| `og-locale`                  | Sets the `<meta property="og:locale">` content for Open Graph.              | String   | No       | 'en_AU' |
-| `og-site-name`               | Sets the `<meta property="og:site_name">` content for Open Graph.           | String   | No       | 'Behive' |
-| `twitter-title`              | Sets the `<meta name="twitter:title">` content for Twitter.                 | String   | No       | Fallback to `title` or 'Behive' |
-| `twitter-description`        | Sets the `<meta name="twitter:description">` content for Twitter.           | String   | No       | Fallback to `description` or '' |
-| `twitter-image`              | Sets the `<meta name="twitter:image">` content for Twitter.                 | String   | No       | Fallback to `og-image` or 'https://rainwilds.github.io/Sandbox/img/preview.jpg' |
-| `twitter-url`                | Sets the `<meta property="twitter:url">` content for Twitter.               | String   | No       | 'https://rainwilds.github.io/Sandbox/' |
-| `twitter-domain`             | Sets the `<meta property="twitter:domain">` content for Twitter.            | String   | No       | 'rainwilds.github.io' |
-| `twitter-card`               | Sets the `<meta name="twitter:card">` content for Twitter (e.g., `summary_large_image`). | String   | No       | 'summary_large_image' |
-| `schema-site-name`           | Sets the `name` field in the WebSite JSON-LD schema.                        | String   | No       | Fallback to `title` or 'Behive Media' |
-| `schema-site-url`            | Sets the `url` field in the WebSite JSON-LD schema.                         | String   | No       | 'https://rainwilds.github.io/Sandbox/' |
-| `business-name`              | Sets the `name` field in the LocalBusiness JSON-LD schema.                  | String   | No       | 'Behive Media' (or from `business-info.json`) |
-| `business-url`               | Sets the `url` field in the LocalBusiness JSON-LD schema.                   | String   | No       | 'https://rainwilds.github.io/Sandbox/' (or from `business-info.json`) |
-| `business-telephone`         | Sets the `telephone` field in the LocalBusiness JSON-LD schema.             | String   | No       | '+61-3-9876-5432' (or from `business-info.json`) |
-| `business-address-street`    | Sets the `streetAddress` field in the LocalBusiness JSON-LD schema.         | String   | No       | '456 Creative Lane' (or from `business-info.json`) |
-| `business-address-locality`  | Sets the `addressLocality` field in the LocalBusiness JSON-LD schema.       | String   | No       | 'Melbourne' (or from `business-info.json`) |
-| `business-address-region`    | Sets the `addressRegion` field in the LocalBusiness JSON-LD schema.         | String   | No       | 'VIC' (or from `business-info.json`) |
-| `business-address-postal`    | Sets the `postalCode` field in the LocalBusiness JSON-LD schema.            | String   | No       | '3000' (or from `business-info.json`) |
-| `business-address-country`   | Sets the `addressCountry` field in the LocalBusiness JSON-LD schema.        | String   | No       | 'AU' (or from `business-info.json`) |
-| `business-geo-latitude`      | Sets the `latitude` field in the LocalBusiness JSON-LD schema.              | Number   | No       | -37.8136 (or from `business-info.json`) |
-| `business-geo-longitude`     | Sets the `longitude` field in the LocalBusiness JSON-LD schema.             | Number   | No       | 144.9631 (or from `business-info.json`) |
-| `business-opening-hours`     | Sets the `openingHours` field in the LocalBusiness JSON-LD schema.          | String   | No       | 'Mo-Fr 09:00-18:00' (or from `business-info.json`) |
-| `business-image`             | Sets the `image` field in the LocalBusiness JSON-LD schema.                 | String   | No       | 'https://rainwilds.github.io/Sandbox/img/logo.jpg' (or from `business-info.json`) |
-| `business-logo`              | Sets the `logo` field in the LocalBusiness JSON-LD schema.                  | String   | No       | 'https://rainwilds.github.io/Sandbox/img/logo.jpg' (or from `business-info.json`) |
-| `business-same-as`           | Sets the `sameAs` field in the LocalBusiness JSON-LD schema (comma-separated URLs). | String   | No       | ['https://www.facebook.com/behivemedia', 'https://www.instagram.com/behivemedia'] (or from `business-info.json`) |
-| `product-name`               | Sets the `name` field in the Product JSON-LD schema (if `include-e-commerce`). | String   | No       | 'Behive Premium Video Production Package' |
-| `product-description`        | Sets the `description` field in the Product JSON-LD schema.                 | String   | No       | Fallback to `description` or 'Professional video production services...' |
-| `product-image`              | Sets the `image` field in the Product JSON-LD schema.                       | String   | No       | Fallback to `og-image` or 'https://rainwilds.github.io/Sandbox/img/video-package.jpg' |
-| `product-url`                | Sets the `url` field in the Product JSON-LD schema.                         | String   | No       | 'https://rainwilds.github.io/Sandbox/products/video-package' |
-| `product-price-currency`     | Sets the `priceCurrency` field in the Product JSON-LD schema.               | String   | No       | 'AUD' |
-| `product-price`              | Sets the `price` field in the Product JSON-LD schema.                       | String   | No       | '1500.00' |
-| `product-availability`       | Sets the `availability` field in the Product JSON-LD schema.                | String   | No       | 'https://schema.org/InStock' |
-| `product-sku`                | Sets the `sku` field in the Product JSON-LD schema.                         | String   | No       | 'BH-VIDEO-002' |
-| `product-brand`              | Sets the `name` field in the Product’s `brand` JSON-LD schema.              | String   | No       | 'Behive' |
-| `collection-name`            | Sets the `name` field in the CollectionPage JSON-LD schema (if `include-e-commerce`). | String   | No       | Fallback to `title` or 'Behive Shop' |
-| `collection-description`     | Sets the `description` field in the CollectionPage JSON-LD schema.          | String   | No       | Fallback to `description` or 'Browse our curated selection of products.' |
-| `products`                   | JSON string of products for CollectionPage JSON-LD schema (if `include-e-commerce`). | String   | No       | None |
-| `theme-color-light`          | Sets the `<meta name="theme-color">` content for light theme.               | String   | No       | CSS `--color-background-light` or '#ffffff' |
-| `theme-color-dark`           | Sets the `<meta name="theme-color">` content for dark theme.                | String   | No       | CSS `--color-background-dark` or '#000000' |
-| `include-e-commerce`         | Enables Snipcart and Eruda initialization for e-commerce functionality.     | Boolean  | No       | False |
-| `include-eruda`              | Enables Eruda debugging tool (overridden by `include-e-commerce`).          | Boolean  | No       | False |
-| `preload-feature-img-mobile` | Preloads an image for mobile devices (e.g., `img/responsive/...`).          | String   | No       | None |
-| `preload-feature-img-desktop`| Preloads an image for desktop devices (e.g., `img/responsive/...`).         | String   | No       | None |
-| `stylesheets`                | Comma-separated list of stylesheet URLs to preload and load.                | String   | No       | './styles.css' |
+## Product Attributes
 
-## Example Data-BH-Head Tags
+| Attribute Name | Description | Default Value | Expected Format |
+|----------------|-------------|---------------|-----------------|
+| product-availability | Sets the availability for a product in the JSON-LD schema. | `null` | Schema.org availability (e.g., `InStock`) |
+| product-brand | Sets the brand for a product in the JSON-LD schema. | `null` | Plain text (e.g., `Behive`) |
+| product-description | Sets the description for a product in the JSON-LD schema. | `null` | Plain text (e.g., `Product description`) |
+| product-image | Sets the image URL for a product in the JSON-LD schema. | `null` | Valid image URL (e.g., `https://example.com/product.jpg`) |
+| product-name | Sets the name for a product in the JSON-LD schema. | `null` | Plain text (e.g., `Product Name`) |
+| product-price | Sets the price for a product in the JSON-LD schema. | `null` | Numeric value (e.g., `99.99`) |
+| product-price-currency | Sets the currency for a product in the JSON-LD schema. | `null` | Currency code (e.g., `AUD`) |
+| product-sku | Sets the SKU for a product in the JSON-LD schema. | `null` | Plain text (e.g., `SKU123`) |
+| product-url | Sets the URL for a product in the JSON-LD schema. | `null` | Valid URL (e.g., `https://example.com/product`) |
+| products | Specifies a JSON string of products for the JSON-LD schema. | `null` | JSON string (e.g., `[{"name": "Product", "url": "https://example.com/product"}]` |
 
-Here are example usages of the `<data-bh-head>` tag, demonstrating different configurations for metadata, components, and e-commerce.
+## Collection Attributes
 
-### Basic Example (General Settings and Component)
-```html
-<data-bh-head
-    data-components="custom-img"
-    data-title="Behive Home"
-    data-description="Welcome to Behive, your source for media and web design."
-    data-keywords="media, design, photography"
-    data-author="David Dufourq"
-    data-canonical="https://rainwilds.github.io/Sandbox/"
->
-```
+| Attribute Name | Description | Default Value | Expected Format |
+|----------------|-------------|---------------|-----------------|
+| collection-description | Sets the description for a collection in the JSON-LD schema. | `null` | Plain text (e.g., `Collection description`) |
+| collection-name | Sets the name for a collection in the JSON-LD schema. | `null` | Plain text (e.g., `Spring Collection`) |
 
-### Example with Social Media and Schema
-```html
-<!-- General/Site -->
-<data-bh-head
-    data-components="custom-img"
-    data-title="Photography, Videography & Websites - Behive"
-    data-description="Bespoke media assets and web design for quality brands."
-    data-keywords="photography, videography, websites, web design"
-    data-author="David Dufourq"
-    data-canonical="https://rainwilds.github.io/Sandbox/"
-    data-robots="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
-    data-schema-site-name="Behive: Photography, Videography & Websites"
-    data-schema-site-url="https://rainwilds.github.io/Sandbox/"
-    data-preload-feature-img-mobile="img/responsive/business-service-location-1-1366.avif"
-    data-preload-feature-img-desktop="img/responsive/business-service-location-1-1920.avif"
-></data-bh-head>
-<!-- Open Graph -->
-<data-bh-head
-    data-og-title="Photography, Videography & Websites - Behive"
-    data-og-description="Bespoke media assets and web design for quality brands."
-    data-og-image="https://rainwilds.github.io/Sandbox/img/preview.jpg"
-    data-og-url="https://rainwilds.github.io/Sandbox/"
-    data-og-type="website"
-    data-og-locale="en_AU"
-    data-og-site-name="Behive"
-></data-bh-head>
-<!-- Twitter -->
-<data-bh-head
-    data-twitter-title="Behive: Photography, Videography & Websites"
-    data-twitter-description="Bespoke media assets and web design for quality brands."
-    data-twitter-image="https://rainwilds.github.io/Sandbox/img/preview.jpg"
-    data-twitter-url="https://rainwilds.github.io/Sandbox/"
-    data-twitter-domain="rainwilds.github.io"
-    data-twitter-card="summary_large_image"
-></data-bh-head>
-```
+## Theme Attributes
 
-### Example with E-commerce Product
-```html
-<data-bh-head
-    data-components="custom-img, product-cart"
-    data-title="Behive Product Page"
-    data-description="Explore our premium products."
-    data-product-name="Featured Product"
-    data-product-description="High-quality product from Behive."
-    data-product-image="https://rainwilds.github.io/Sandbox/img/preview.jpg"
-    data-product-url="https://rainwilds.github.io/Sandbox/products/featured"
-    data-product-price-currency="AUD"
-    data-product-price="10.00"
-    data-product-availability="https://schema.org/InStock"
-    data-product-sku="BH-PRODUCT-001"
-    data-product-brand="Behive"
-    data-include-e-commerce
-></data-bh-head>
-```
+| Attribute Name | Description | Default Value | Expected Format |
+|----------------|-------------|---------------|-----------------|
+| theme-color-dark | Sets the theme color for dark mode in the `theme-color` meta tag. | CSS `--color-background-dark` or `'#000000'` | Valid CSS color (e.g., `#333333`) |
+| theme-color-light | Sets the theme color for light mode in the `theme-color` meta tag. | CSS `--color-background-light` or `'#ffffff'` | Valid CSS color (e.g., `#ffffff`) |
 
-### Example with Product Collection
-```html
-<data-bh-head
-    data-components="custom-img, product-gallery"
-    data-title="Behive Shop"
-    data-description="Browse our curated selection of products."
-    data-collection-name="Behive Shop"
-    data-collection-description="Browse our curated selection of photography and videography products."
-    data-products='[{"name":"Product 1","url":"https://rainwilds.github.io/Sandbox/products/1","image":"https://rainwilds.github.io/Sandbox/img/product1.jpg","description":"Product 1 description","sku":"BH-PROD-001","brand":"Behive","priceCurrency":"AUD","price":"50.00","availability":"https://schema.org/InStock"}]'
-    data-include-e-commerce
-></data-bh-head>
-```
+## E-commerce Attributes
+
+| Attribute Name | Description | Default Value | Expected Format |
+|----------------|-------------|---------------|-----------------|
+| include-e-commerce | Enables Snipcart e-commerce integration when present. | Not set (false) | Boolean attribute (presence indicates `true`) |
+
+## Notes
+- The script runs on `DOMContentLoaded` and processes all `<data-bh-head>` elements, merging their dataset attributes into a single `attributes` object before removing them from the DOM.
+- It fetches `business-info.json` to populate business-related data for the JSON-LD schema, falling back to default values if the fetch fails.
+- The `manageHead` function ensures the `<head>` element exists, adding it if necessary, and appends meta tags, stylesheets, fonts, favicons, and schema markup.
+- Font Awesome is included via a kit script (`https://kit.fontawesome.com/85d1e578b1.js`) with `crossorigin="anonymous"` and `async`.
+- Stylesheets are preloaded with `rel="preload stylesheet"` for performance, and fonts are preloaded with appropriate MIME types.
+- Essential meta tags (`charset`, `viewport`, `robots`, `author`) are added if not present, with defaults for SEO optimization.
+- The `theme-color` meta tag dynamically updates based on `data-theme` attributes or `prefers-color-scheme`, using MutationObservers and media query listeners.
+- Open Graph and X meta tags enhance social media sharing, with fallbacks to general attributes (e.g., `og-title` uses `title`).
+- JSON-LD schema includes `WebSite`, `LocalBusiness`, and `BreadcrumbList` types, with business data from `business-info.json` or attributes.
+- Favicons are added for various devices, including Apple Touch and standard icons.
+- Snipcart integration is enabled with `include-e-commerce`, adding settings and scripts with a public API key and side modal style.
+- The `deepClone` utility prevents circular reference issues when serializing JSON-LD schema.
+- Logging is controlled by `DEBUG_MODE`, with timestamps in AEST, and errors are logged with `logError`.
+- Components specified in the `components` attribute are dynamically loaded from `./components/` directory using `import`.

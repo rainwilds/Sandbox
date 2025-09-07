@@ -1,6 +1,6 @@
 /* global document, window, fetch, MutationObserver, console */
 // Debug mode toggle (set to false in production)
-const DEBUG_MODE = true; // Set to true for debugging
+const DEBUG_MODE = false; // Set to true for debugging
 // Centralized logging function with timestamp
 function log(...args) {
     if (DEBUG_MODE) {
