@@ -51,7 +51,7 @@ async function loadScript(src, type = 'module', defer = true) {
     });
 }
 // Manages the <head> section by adding meta tags, styles, scripts, and schema markup
-async function manageHead(attributes = {}, businessInfo = {}) {
+async function manageHead(attributes = {}, businessDetails = {}) {
     log('manageHead called with attributes:', attributes);
     // Ensure <head> exists, creating one if necessary
     let head = document.head || document.createElement('head');
@@ -283,7 +283,7 @@ async function manageHead(attributes = {}, businessInfo = {}) {
                 "url": attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/',
                 "description": attributes.description || 'Behive Media offers professional photography, videography, and website services in Australia.',
                 "inLanguage": attributes['og-locale'] || 'en-AU',
-                "publisher": { "@id": (attributes['business-url'] || businessInfo.business?.url || 'https://rainwilds.github.io/Sandbox/') + "#business" },
+                "publisher": { "@id": (attributes['business-url'] || businessDetails.business?.url || 'https://rainwilds.github.io/Sandbox/') + "#business" },
                 "potentialAction": [
                     {
                         "@type": "SearchAction",
@@ -301,27 +301,27 @@ async function manageHead(attributes = {}, businessInfo = {}) {
             },
             {
                 "@type": "LocalBusiness",
-                "@id": (attributes['business-url'] || businessInfo.business?.url || 'https://rainwilds.github.io/Sandbox/') + "#business",
-                "name": attributes['business-name'] || businessInfo.business?.name || 'Behive Media',
-                "url": attributes['business-url'] || businessInfo.business?.url || 'https://rainwilds.github.io/Sandbox/',
-                "telephone": attributes['business-telephone'] || businessInfo.business?.telephone || '+61-3-9876-5432',
+                "@id": (attributes['business-url'] || businessDetails.business?.url || 'https://rainwilds.github.io/Sandbox/') + "#business",
+                "name": attributes['business-name'] || businessDetails.business?.name || 'Behive Media',
+                "url": attributes['business-url'] || businessDetails.business?.url || 'https://rainwilds.github.io/Sandbox/',
+                "telephone": attributes['business-telephone'] || businessDetails.business?.telephone || '+61-3-9876-5432',
                 "address": {
                     "@type": "PostalAddress",
-                    "streetAddress": attributes['business-address-street'] || businessInfo.business?.address?.streetAddress || '456 Creative Lane',
-                    "addressLocality": attributes['business-address-locality'] || businessInfo.business?.address?.addressLocality || 'Melbourne',
-                    "addressRegion": attributes['business-address-region'] || businessInfo.business?.address?.addressRegion || 'VIC',
-                    "postalCode": attributes['business-address-postal'] || businessInfo.business?.address?.postalCode || '3000',
-                    "addressCountry": attributes['business-address-country'] || businessInfo.business?.address?.addressCountry || 'AU'
+                    "streetAddress": attributes['business-address-street'] || businessDetails.business?.address?.streetAddress || '456 Creative Lane',
+                    "addressLocality": attributes['business-address-locality'] || businessDetails.business?.address?.addressLocality || 'Melbourne',
+                    "addressRegion": attributes['business-address-region'] || businessDetails.business?.address?.addressRegion || 'VIC',
+                    "postalCode": attributes['business-address-postal'] || businessDetails.business?.address?.postalCode || '3000',
+                    "addressCountry": attributes['business-address-country'] || businessDetails.business?.address?.addressCountry || 'AU'
                 },
                 "geo": {
                     "@type": "GeoCoordinates",
-                    "latitude": attributes['business-geo-latitude'] || businessInfo.business?.geo?.latitude || -37.8136,
-                    "longitude": attributes['business-geo-longitude'] || businessInfo.business?.geo?.longitude || 144.9631
+                    "latitude": attributes['business-geo-latitude'] || businessDetails.business?.geo?.latitude || -37.8136,
+                    "longitude": attributes['business-geo-longitude'] || businessDetails.business?.geo?.longitude || 144.9631
                 },
-                "openingHours": attributes['business-opening-hours'] || businessInfo.business?.openingHours || 'Mo-Fr 09:00-18:00',
-                "image": attributes['business-image'] || businessInfo.business?.image || 'https://rainwilds.github.io/Sandbox/img/logo.jpg',
-                "logo": attributes['business-logo'] || businessInfo.business?.logo || 'https://rainwilds.github.io/Sandbox/img/logo.jpg',
-                "sameAs": attributes['business-same-as']?.split(',') || businessInfo.business?.sameAs || [
+                "openingHours": attributes['business-opening-hours'] || businessDetails.business?.openingHours || 'Mo-Fr 09:00-18:00',
+                "image": attributes['business-image'] || businessDetails.business?.image || 'https://rainwilds.github.io/Sandbox/img/logo.jpg',
+                "logo": attributes['business-logo'] || businessDetails.business?.logo || 'https://rainwilds.github.io/Sandbox/img/logo.jpg',
+                "sameAs": attributes['business-same-as']?.split(',') || businessDetails.business?.sameAs || [
                     'https://www.facebook.com/behivemedia',
                     'https://www.instagram.com/behivemedia'
                 ]
@@ -454,17 +454,17 @@ async function manageHead(attributes = {}, businessInfo = {}) {
 document.addEventListener('DOMContentLoaded', async () => {
     const dataHeads = document.querySelectorAll('data-bh-head');
     log('Found data-bh-head elements:', dataHeads.length);
-    // Fetch business-info.json
-    let businessInfo = {};
+    // Fetch business-details.json
+    let businessDetails = {};
     try {
-        const response = await fetch('./JSON/business-info.json');
+        const response = await fetch('./JSON/business-details.json');
         if (!response.ok) {
             throw new Error(`HTTP ${response.status} - ${response.statusText}`);
         }
-        businessInfo = await response.json();
-        log('Loaded business-info.json:', businessInfo);
+        businessDetails = await response.json();
+        log('Loaded business-details.json:', businessDetails);
     } catch (error) {
-        logError('Failed to load business-info.json:', error);
+        logError('Failed to load business-details.json:', error);
         document.body.innerHTML = '<div style="color: red; font-size: 2em; text-align: center;">Error: Failed to load business information. Please check the console for details.</div>';
         throw error;
     }
@@ -551,6 +551,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         }
     }
-    // Pass merged attributes and businessInfo to manageHead
-    await manageHead(attributes, businessInfo);
+    // Pass merged attributes and businessDetails to manageHead
+    await manageHead(attributes, businessDetails);
 });
