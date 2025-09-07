@@ -102,6 +102,23 @@ async function manageHead(attributes = {}, config = {}) {
         });
     }
 
+    // Apply stylesheet (preload hints fetch, but this executes it)
+    if (config.preloads) {
+        const stylesheet = config.preloads.find(p => p.as === 'style');
+        if (stylesheet && stylesheet.href) {
+            if (!document.querySelector(`link[href="${stylesheet.href}"][rel="stylesheet"]`)) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = stylesheet.href;
+                if (stylesheet.crossorigin) link.crossOrigin = stylesheet.crossorigin;
+                head.appendChild(link);
+                log(`Applied stylesheet: ${stylesheet.href}`);
+            }
+        } else {
+            logError('No stylesheet found in config.preloads');
+        }
+    }
+
     // Add Font Awesome Kit script
     if (config.font_awesome?.kit_url) {
         if (!document.querySelector(`script[src="${config.font_awesome.kit_url}"]`)) {
