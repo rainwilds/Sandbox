@@ -1062,10 +1062,8 @@
         }
 
         &.parallax {
-            perspective: 1px;
-            /* Stronger effect for visibility */
-            min-height: 120vh;
-            /* Ensure enough scrollable height */
+            perspective: 1px; /* Stronger effect for visibility */
+            min-height: 120vh; /* Ensure enough scrollable height */
             width: 100%;
             position: relative;
             overflow-x: hidden;
@@ -1073,19 +1071,15 @@
             -webkit-overflow-scrolling: touch;
             grid-column: 1 / -1;
             z-index: 0;
-            transform-style: preserve-3d;
-            /* Preserve 3D context */
-            border: 2px solid red;
-
-            /* Debugging: Check container size */
-            &>picture {
+            transform-style: preserve-3d; /* Preserve 3D context */
+            border: 2px solid red; /* Debugging: Check container size */
+            & > picture {
                 position: absolute;
                 top: 0;
                 left: 0;
                 right: 0;
                 bottom: 0;
-                transform: translateZ(-0.5px) scale(1.5);
-                /* Reduced scale to fit better */
+                transform: translateZ(-0.5px) scale(1.5); /* Adjusted scale to fit */
                 z-index: -1;
                 will-change: transform;
                 width: 100%;
@@ -1095,9 +1089,7 @@
                 animation: none;
                 opacity: 1;
                 pointer-events: none;
-                border: 1px solid blue;
-
-                /* Debugging: Check picture size */
+                border: 1px solid blue; /* Debugging: Check picture size */
                 & img {
                     width: 100%;
                     height: 100%;
@@ -1108,24 +1100,20 @@
                     opacity: 1;
                 }
             }
-
-            &>[class*="background-overlay-"] {
+            & > [class*="background-overlay-"] {
                 position: absolute;
                 top: 0;
                 left: 0;
                 right: 0;
                 bottom: 0;
-                transform: translateZ(-0.5px) scale(1.5);
-                /* Match picture transform */
+                transform: translateZ(-0.5px) scale(1.5); /* Match picture transform */
                 z-index: -1;
                 will-change: transform;
                 background-color: light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
                 pointer-events: none;
-                border: 1px solid green;
-                /* Debugging: Check overlay size */
+                border: 1px solid green; /* Debugging: Check overlay size */
             }
-
-            &>div:not([class*="background-overlay-"]) {
+            & > div:not([class*="background-overlay-"]) {
                 transform: translateZ(0);
                 position: relative;
                 z-index: 2;
@@ -1134,17 +1122,15 @@
                 grid-column: 1;
                 max-height: inherit;
                 width: 100%;
-                min-height: 120vh;
-                /* Match parent height */
-                border: 1px solid yellow;
-                /* Debugging: Check content size */
+                min-height: 120vh; /* Match parent height */
+                border: 1px solid yellow; /* Debugging: Check content size */
             }
         }
 
         &.background-image>* {
             grid-row: 1;
             grid-column: 1;
-            max-height: inherit;
+            /* max-height: inherit; */
         }
 
         &.background-image.parallax>picture,
@@ -1799,7 +1785,7 @@ main {
         height: auto !important; /* Override inline style */
         min-height: 120vh !important; /* Ensure enough scrollable height */
         overflow: visible !important; /* Prevent clipping */
-        display: block !important; /* Force block layout to override grid if needed */
+        display: block !important; /* Force block layout */
     }
 
 
