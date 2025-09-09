@@ -403,8 +403,19 @@ class CustomBlock extends HTMLElement {
                 console.warn(`Invalid button-icon-size value "${buttonIconSize}" in <custom-block>. Must be a valid rem value (e.g., "2rem"). Ignoring.`);
             }
         }
+        // Validate effects attribute
+        const effects = this.getAttribute('effects') || '';
+        let sanitizedEffects = '';
+        if (effects) {
+            // Only allow alphanumeric and hyphenated effect names to prevent invalid class names
+            sanitizedEffects = effects.split(/\s+/).filter(cls => /^[a-zA-Z0-9\-]+$/.test(cls)).join(' ');
+            if (sanitizedEffects !== effects) {
+                console.warn(`Invalid effects value "${effects}" in <custom-block>. Must be alphanumeric or hyphenated (e.g., "parallax"). Using sanitized: "${sanitizedEffects}".`);
+            }
+        }
         // Cache attributes
         this.cachedAttributes = {
+            effects: sanitizedEffects,
             sectionTitle: this.hasAttribute('heading') && !this.hasAttribute('button-text'),
             heading: this.getAttribute('heading') || '',
             headingTag: validHeadingTags.includes(headingTag.toLowerCase()) ? headingTag.toLowerCase() : 'h2',
@@ -561,6 +572,7 @@ class CustomBlock extends HTMLElement {
             iconClass: '',
             iconSize: '',
             text: '',
+            effects: '',
             buttonHref: '#',
             buttonText: '',
             buttonClass: '',
@@ -1100,6 +1112,7 @@ class CustomBlock extends HTMLElement {
         if (hasBackgroundImage) mainDivClassList.push('background-image');
         else if (hasVideoBackground || hasVideoPrimary) mainDivClassList.push('background-video');
         mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass);
+        if (attrs.effects) mainDivClassList.push(attrs.effects);
         const mainDivClass = mainDivClassList.filter(cls => cls).join(' ').trim();
         const blockElement = document.createElement('div');
         blockElement.className = mainDivClass;
@@ -1193,6 +1206,7 @@ class CustomBlock extends HTMLElement {
             'button-text',
             'button-type',
             'class',
+            'effects',
             'heading',
             'heading-tag',
             'icon',
@@ -1369,6 +1383,6 @@ try {
 } catch (error) {
     console.error('Error defining CustomBlock element:', error);
 }
-console.log('CustomBlock version: 2025-08-28');
+console.log('CustomBlock version: 2025-09-09')
 // Export the CustomBlock class
 export { CustomBlock };

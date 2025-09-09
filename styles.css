@@ -1048,14 +1048,57 @@
         height: 100%;
         max-height: 100vh;
 
-
-
         &:has(nav)>div {
             z-index: 1;
         }
 
         &:where([data-primary-position="left"], [data-primary-position="right"]) {
             grid-template-columns: 1fr 1fr;
+        }
+
+        &.parallax {
+            perspective: 1px;
+            /* Controls depth; smaller values = stronger parallax */
+            height: 100vh;
+            /* Full viewport height; adjust as needed */
+            overflow-x: hidden;
+            overflow-y: auto;
+            /* Enables scrolling */
+            position: relative;
+            /* Contains layers */
+            -webkit-overflow-scrolling: touch;
+            /* Smooth iOS scrolling */
+
+            &>div:first-child {
+                position: absolute;
+                inset: 0;
+                /* Full coverage */
+                transform: translateZ(-1px) scale(2);
+                /* Parallax effect: pushed back and scaled */
+                z-index: -1;
+                /* Behind content */
+                will-change: transform;
+                /* Optimize for GPU */
+
+                & [class*="background-overlay-"] {
+                    position: absolute;
+                    inset: 0;
+                    /* background: rgba(0, 0, 0, 0.3); */
+                    /* Adjust per your style */
+                }
+            }
+
+            &>div:last-child {
+                transform: translateZ(0);
+                /* Scrolls normally */
+                position: relative;
+                z-index: 2;
+                /* Above background */
+                display: grid;
+                grid-row: 1;
+                grid-column: 1;
+                max-height: inherit;
+            }
         }
 
         &.background-image>* {
