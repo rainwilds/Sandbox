@@ -1046,7 +1046,7 @@
 
         display: grid;
         height: 100%;
-        max-height: 100vh;
+        /* max-height: 100vh; */
         isolation: isolate; /* Prevent parent transforms from interfering */
         overflow: visible; /* Prevent clipping of absolute-positioned children */
 
@@ -1061,7 +1061,7 @@
 
         &.parallax {
             perspective: 2px; /* Slightly less intense for better visibility */
-            min-height: 100vh; /* Full viewport height */
+            /* min-height: 100vh;  */
             width: 100%; /* Full grid cell width */
             position: relative; /* Contains absolute-positioned children */
             overflow-x: hidden;
