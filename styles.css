@@ -1047,10 +1047,7 @@
         display: grid;
         height: 100%;
         max-height: 100vh;
-        isolation: isolate;
-        /* Prevent parent transforms from interfering */
-        overflow: visible;
-        /* Prevent clipping of absolute-positioned children */
+
 
 
         &:has(nav)>div {
@@ -1061,552 +1058,473 @@
             grid-template-columns: 1fr 1fr;
         }
 
-        &.parallax {
-            perspective: 1px; /* Stronger effect for visibility */
-            min-height: 120vh; /* Ensure enough scrollable height */
-            width: 100%;
-            position: relative;
-            overflow-x: hidden;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            grid-column: 1 / -1;
-            z-index: 0;
-            transform-style: preserve-3d; /* Preserve 3D context */
-            border: 2px solid red; /* Debugging: Check container size */
-            background-color: rgba(255, 0, 0, 0.1); /* Debugging: Visualize container */
-            & > picture {
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                transform: translateZ(-0.5px) scale(1.5); /* Adjusted scale */
-                z-index: -1;
-                will-change: transform;
-                width: 100%;
-                height: 100%;
-                max-width: none;
-                object-fit: cover;
-                animation: none;
-                opacity: 1;
-                pointer-events: none;
-                border: 1px solid blue; /* Debugging: Check picture size */
-                & img {
-                    width: 100%;
-                    height: 100%;
-                    max-width: none;
-                    object-fit: cover;
-                    display: block;
-                    aspect-ratio: unset;
-                    opacity: 1;
-                }
-            }
-            & > [class*="background-overlay-"] {
-                position: absolute;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                transform: translateZ(-0.5px) scale(1.5); /* Match picture transform */
-                z-index: -1;
-                will-change: transform;
-                background-color: light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
-                pointer-events: none;
-                border: 1px solid green; /* Debugging: Check overlay size */
-            }
-            & > div:not([class*="background-overlay-"]) {
-                transform: translateZ(0);
-                position: relative;
-                z-index: 2;
-                display: grid;
-                grid-row: 1;
-                grid-column: 1;
-                max-height: inherit;
-                width: 100%;
-                min-height: 120vh; /* Match parent height */
-                padding: 20px; /* Ensure content forces scroll */
-                border: 1px solid yellow; /* Debugging: Check content size */
-            }
-        }
-
         &.background-image>* {
             grid-row: 1;
             grid-column: 1;
-            /* max-height: inherit; */
+            max-height: inherit;
         }
 
-        &.background-image.parallax>picture,
-        &.background-image.parallax>[class*="background-overlay-"] {
-            position: absolute;
-            grid-row: unset;
-            grid-column: unset;
-            width: 100%;
-            height: 100%;
-            max-width: none;
+        &.background-image>*:not(picture):not(:has(nav)) {
+            z-index: 1;
         }
-    }
 
-    &.background-image>*:not(picture):not(:has(nav)) {
-        z-index: 1;
-    }
+        &.background-video>* {
+            grid-column: 1;
+            grid-row: 1;
+            max-height: inherit;
+        }
 
-    &.background-video>* {
-        grid-column: 1;
-        grid-row: 1;
-        max-height: inherit;
-    }
+        span.icon {
+            display: inline-block;
+        }
 
-    span.icon {
-        display: inline-block;
-    }
+        &>div:not(.background-overlay):has(p) {
+            z-index: 2;
+            height: min-content;
+        }
 
-    &>div:not(.background-overlay):has(p) {
-        z-index: 2;
-        height: min-content;
-    }
-
-    /* &>div:has(nav) {
+        /* &>div:has(nav) {
             z-index: 2;
         } */
 
-    &>.background-overlay {
-        background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
-        margin: 0 !important;
-    }
+        &>.background-overlay {
+            background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
+            margin: 0 !important;
+        }
 
-    a {
-        margin-top: var(--space-tiny);
-    }
-
-}
-
-nav {
-
-    &.nav-horizontal ul {
-        display: flex;
-        flex-direction: initial;
-        gap: var(--space-small);
-    }
-
-    &.nav-vertical ul {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-small);
-    }
-
-    &>ul {
-        list-style: none;
-        display: flex;
-        gap: var(--space-small);
-
-        & a {
-            text-decoration: none;
-            margin: initial;
+        a {
+            margin-top: var(--space-tiny);
         }
 
     }
 
-    &>button {
+    nav {
 
-        @media (min-width: 769px) {
-            display: none;
+        &.nav-horizontal ul {
+            display: flex;
+            flex-direction: initial;
+            gap: var(--space-small);
+        }
+
+        &.nav-vertical ul {
+            display: flex;
+            flex-direction: column;
+            gap: var(--space-small);
+        }
+
+        &>ul {
+            list-style: none;
+            display: flex;
+            gap: var(--space-small);
+
+            & a {
+                text-decoration: none;
+                margin: initial;
+            }
+
+        }
+
+        &>button {
+
+            @media (min-width: 769px) {
+                display: none;
+            }
+
         }
 
     }
 
-}
 
 
+    div[class*="gallery-main"] {
 
-div[class*="gallery-main"] {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: var(--space-tiny);
+        grid-auto-flow: dense;
+        grid-auto-rows: 20vmax;
 
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-tiny);
-    grid-auto-flow: dense;
-    grid-auto-rows: 20vmax;
+        >picture {
+            overflow: hidden;
 
-    >picture {
-        overflow: hidden;
+            >img {
 
-        >img {
+                transition: transform 0.6s ease;
+                /* Smooth transition for scaling */
 
-            transition: transform 0.6s ease;
-            /* Smooth transition for scaling */
+                &:hover {
+                    transform: scale(1.05);
+                }
+            }
+        }
+
+
+        @media (min-width: 1201px) and (max-width: 1919px) {
+            & {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 1200px) {
+            & {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+    }
+
+    div#lightbox {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 1000;
+
+        /* Grid layout defined but only applied when active */
+        grid-template-columns: 1fr;
+        grid-template-areas: " content ";
+
+        &.active {
+            /* Show as grid when active */
+            display: grid;
+            animation: fadeIn 0.3s ease-in;
+
+        }
+
+        >* {
+            grid-area: content;
+        }
+
+        /* Rest of your styles for .close, .prev, .next, .lightbox-content remain unchanged */
+        &>.close {
+            position: absolute;
+            top: 0;
+            right: 0;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            z-index: 1001;
+            justify-self: end;
+            align-self: start;
+            line-height: 0.6;
+            padding: var(--space-tiny);
+            background: black;
+            padding: var(--space-tiny);
+            margin: var(--space-small);
 
             &:hover {
-                transform: scale(1.05);
+                color: var(--color-accent-light-primary);
+                transition: color 0.3s;
+            }
+        }
+
+        &>.prev,
+        &>.next {
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            z-index: 1001;
+            align-self: center;
+            background: black;
+            padding: var(--space-tiny);
+            margin: var(--space-small);
+
+            &:hover {
+                background: rgba(255, 255, 255, 0.4);
+                transition: background 0.3s;
+            }
+        }
+
+        &>.prev {
+            justify-self: left;
+        }
+
+        &>.next {
+            justify-self: right;
+        }
+
+        &>.lightbox-content {
+            max-height: 100vh;
+
+
+            &>picture>img,
+            &>video {
+                object-fit: contain;
+            }
+
+        }
+    }
+
+
+    /* 1. Modal/Dialog */
+    .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        /* Latest shorthand for top/left/right/bottom */
+        background: light-dark(rgba(0, 0, 0, 0.8), rgba(255, 255, 255, 0.2));
+        z-index: 1000;
+        place-content: center;
+
+        &.active {
+            display: grid;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        & .modal-content {
+            background: light-dark(var(--color-background-light), var(--color-background-dark));
+            padding: var(--space-medium);
+            max-width: var(--max-width-medium);
+            border-radius: var(--border-radius-medium);
+            box-shadow: 0 4px 8px var(--color-static-dark-4);
+            backdrop-filter: var(--blur-small);
+        }
+
+        & .modal-close {
+            position: absolute;
+            inset-block-start: var(--space-tiny);
+            /* Logical property */
+            inset-inline-end: var(--space-tiny);
+            /* Logical property */
+            border: none;
+            background: transparent;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: light-dark(var(--color-static-dark), var(--color-static-light));
+
+            &:hover {
+                color: var(--color-accent-light-primary);
+                transition: color 0.3s;
             }
         }
     }
 
-
-    @media (min-width: 1201px) and (max-width: 1919px) {
-        & {
-            grid-template-columns: repeat(3, 1fr);
-        }
-    }
-
-    @media (max-width: 1200px) {
-        & {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-}
-
-div#lightbox {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: rgba(0, 0, 0, 0.9);
-    z-index: 1000;
-
-    /* Grid layout defined but only applied when active */
-    grid-template-columns: 1fr;
-    grid-template-areas: " content ";
-
-    &.active {
-        /* Show as grid when active */
+    /* 2. Accordion */
+    .accordion {
         display: grid;
-        animation: fadeIn 0.3s ease-in;
+        gap: var(--space-tiny);
 
-    }
+        & .accordion-item {
+            border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
 
-    >* {
-        grid-area: content;
-    }
+            &.active .accordion-content {
+                display: block;
+                animation: fadeInTopDown 0.3s ease-out;
+            }
+        }
 
-    /* Rest of your styles for .close, .prev, .next, .lightbox-content remain unchanged */
-    &>.close {
-        position: absolute;
-        top: 0;
-        right: 0;
-        color: white;
-        font-size: 2rem;
-        cursor: pointer;
-        z-index: 1001;
-        justify-self: end;
-        align-self: start;
-        line-height: 0.6;
-        padding: var(--space-tiny);
-        background: black;
-        padding: var(--space-tiny);
-        margin: var(--space-small);
+        & .accordion-trigger {
+            background: light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-secondary));
+            padding: var(--space-tiny);
+            border: none;
+            width: 100%;
+            text-align: start;
 
-        &:hover {
-            color: var(--color-accent-light-primary);
-            transition: color 0.3s;
+            cursor: pointer;
+            font: inherit;
+
+            &:hover {
+                background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
+                transition: background 0.3s;
+            }
+        }
+
+        & .accordion-content {
+            display: none;
+            padding: var(--space-tiny);
+            background: light-dark(var(--color-background-light), var(--color-background-dark));
         }
     }
 
-    &>.prev,
-    &>.next {
-        border: none;
-        color: white;
-        font-size: 2rem;
-        cursor: pointer;
-        z-index: 1001;
-        align-self: center;
-        background: black;
-        padding: var(--space-tiny);
-        margin: var(--space-small);
 
-        &:hover {
-            background: rgba(255, 255, 255, 0.4);
-            transition: background 0.3s;
-        }
-    }
-
-    &>.prev {
-        justify-self: left;
-    }
-
-    &>.next {
-        justify-self: right;
-    }
-
-    &>.lightbox-content {
-        max-height: 100vh;
-
-
-        &>picture>img,
-        &>video {
-            object-fit: contain;
-        }
-
-    }
-}
-
-
-/* 1. Modal/Dialog */
-.modal {
-    display: none;
-    position: fixed;
-    inset: 0;
-    /* Latest shorthand for top/left/right/bottom */
-    background: light-dark(rgba(0, 0, 0, 0.8), rgba(255, 255, 255, 0.2));
-    z-index: 1000;
-    place-content: center;
-
-    &.active {
-        display: grid;
-        animation: fadeIn 0.3s ease-out;
-    }
-
-    & .modal-content {
-        background: light-dark(var(--color-background-light), var(--color-background-dark));
-        padding: var(--space-medium);
-        max-width: var(--max-width-medium);
-        border-radius: var(--border-radius-medium);
-        box-shadow: 0 4px 8px var(--color-static-dark-4);
-        backdrop-filter: var(--blur-small);
-    }
-
-    & .modal-close {
-        position: absolute;
-        inset-block-start: var(--space-tiny);
-        /* Logical property */
-        inset-inline-end: var(--space-tiny);
-        /* Logical property */
-        border: none;
-        background: transparent;
-        font-size: 1.5rem;
-        cursor: pointer;
-        color: light-dark(var(--color-static-dark), var(--color-static-light));
-
-        &:hover {
-            color: var(--color-accent-light-primary);
-            transition: color 0.3s;
-        }
-    }
-}
-
-/* 2. Accordion */
-.accordion {
-    display: grid;
-    gap: var(--space-tiny);
-
-    & .accordion-item {
-        border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
-
-        &.active .accordion-content {
-            display: block;
-            animation: fadeInTopDown 0.3s ease-out;
-        }
-    }
-
-    & .accordion-trigger {
-        background: light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-secondary));
-        padding: var(--space-tiny);
-        border: none;
-        width: 100%;
-        text-align: start;
-
-        cursor: pointer;
-        font: inherit;
-
-        &:hover {
-            background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
-            transition: background 0.3s;
-        }
-    }
-
-    & .accordion-content {
-        display: none;
-        padding: var(--space-tiny);
-        background: light-dark(var(--color-background-light), var(--color-background-dark));
-    }
-}
-
-
-/* 4. Alert/Notification */
-.alert {
-    padding: var(--space-small);
-    border: solid 1px;
-    border-radius: var(--border-radius-small);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: light-dark(var(--color-background-light), var(--color-background-dark));
-
-    &.success {
-        border-color: light-dark(#00cc00, #66ff66);
-        background: light-dark(#e6ffe6, #1a3c1a);
-    }
-
-    &.error {
-        border-color: light-dark(#cc0000, #ff6666);
-        background: light-dark(#ffe6e6, #3c1a1a);
-    }
-
-    & .alert-close {
-        border: none;
-        background: transparent;
-        font-size: 1.2rem;
-        cursor: pointer;
-        color: light-dark(var(--color-static-dark), var(--color-static-light));
-
-        &:hover {
-            color: var(--color-accent-light-primary);
-            transition: color 0.3s;
-        }
-    }
-}
-
-/* 5. notificatio banner */
-
-
-
-/* 6. Form Group */
-.form-group {
-    display: grid;
-    gap: var(--space-tiny);
-    margin-bottom: var(--space-small);
-
-    & label {
-        font-weight: var(--font-2-weight-light);
-        color: light-dark(var(--color-static-dark), var(--color-static-light));
-    }
-
-    & input,
-    & textarea {
-        width: 100%;
-        background-image: var(--background-pattern-1);
-        padding: var(--space-tiny);
-        border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+    /* 4. Alert/Notification */
+    .alert {
+        padding: var(--space-small);
+        border: solid 1px;
         border-radius: var(--border-radius-small);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: light-dark(var(--color-background-light), var(--color-background-dark));
 
-        &:user-invalid {
-            border-color: red;
+        &.success {
+            border-color: light-dark(#00cc00, #66ff66);
+            background: light-dark(#e6ffe6, #1a3c1a);
         }
 
-        &:user-valid {
-            border-color: green;
+        &.error {
+            border-color: light-dark(#cc0000, #ff6666);
+            background: light-dark(#ffe6e6, #3c1a1a);
         }
 
-        &:focus-visible {
-            outline-color: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
-            outline-offset: 0.15rem;
-            transition: outline 0.3s;
+        & .alert-close {
+            border: none;
+            background: transparent;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: light-dark(var(--color-static-dark), var(--color-static-light));
+
+            &:hover {
+                color: var(--color-accent-light-primary);
+                transition: color 0.3s;
+            }
         }
     }
-}
 
-/* 7. Breadcrumb */
-.breadcrumb {
-    display: flex;
-    gap: var(--space-tiny);
-    flex-wrap: wrap;
+    /* 5. notificatio banner */
 
-    & a {
-        text-decoration: none;
-        color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
 
-        &::after {
-            content: " > ";
-            margin-inline-start: var(--space-tiny);
+
+    /* 6. Form Group */
+    .form-group {
+        display: grid;
+        gap: var(--space-tiny);
+        margin-bottom: var(--space-small);
+
+        & label {
+            font-weight: var(--font-2-weight-light);
+            color: light-dark(var(--color-static-dark), var(--color-static-light));
+        }
+
+        & input,
+        & textarea {
+            width: 100%;
+            background-image: var(--background-pattern-1);
+            padding: var(--space-tiny);
+            border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+            border-radius: var(--border-radius-small);
+
+            &:user-invalid {
+                border-color: red;
+            }
+
+            &:user-valid {
+                border-color: green;
+            }
+
+            &:focus-visible {
+                outline-color: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
+                outline-offset: 0.15rem;
+                transition: outline 0.3s;
+            }
+        }
+    }
+
+    /* 7. Breadcrumb */
+    .breadcrumb {
+        display: flex;
+        gap: var(--space-tiny);
+        flex-wrap: wrap;
+
+        & a {
+            text-decoration: none;
+            color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+
+            &::after {
+                content: " > ";
+                margin-inline-start: var(--space-tiny);
+                /* Logical property */
+                color: light-dark(var(--color-static-dark-4), var(--color-static-light-4));
+            }
+
+            &:last-child::after {
+                content: none;
+            }
+
+            &:hover {
+                color: light-dark(var(--color-static-dark-6), var(--color-static-light-6));
+                transition: color 0.3s;
+            }
+        }
+    }
+
+    /* 8. Tooltip */
+    .tooltip {
+        position: relative;
+        display: inline-grid;
+
+        &:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            inset-block-end: 100%;
             /* Logical property */
-            color: light-dark(var(--color-static-dark-4), var(--color-static-light-4));
-        }
-
-        &:last-child::after {
-            content: none;
-        }
-
-        &:hover {
-            color: light-dark(var(--color-static-dark-6), var(--color-static-light-6));
-            transition: color 0.3s;
-        }
-    }
-}
-
-/* 8. Tooltip */
-.tooltip {
-    position: relative;
-    display: inline-grid;
-
-    &:hover::after {
-        content: attr(data-tooltip);
-        position: absolute;
-        inset-block-end: 100%;
-        /* Logical property */
-        inset-inline-start: 50%;
-        /* Logical property */
-        transform: translateX(-50%);
-        background: light-dark(var(--color-static-dark-8), var(--color-static-light-8));
-        color: light-dark(var(--color-static-light), var(--color-static-dark));
-        padding: var(--space-tiny);
-        border-radius: var(--border-radius-small);
-        font-size: var(--font-2-size-small);
-        white-space: nowrap;
-        z-index: 10;
-        animation: fadeIn 0.2s ease-out;
-    }
-}
-
-
-/* Image compare - before and after */
-.image-compare {
-    position: relative;
-    height: 60vh;
-
-    &>img {
-        position: absolute;
-
-        &:first-of-type {
-            z-index: 1;
-        }
-
-        &:last-of-type {
-            z-index: 2;
-            clip-path: inset(0 50% 0 0);
+            inset-inline-start: 50%;
+            /* Logical property */
+            transform: translateX(-50%);
+            background: light-dark(var(--color-static-dark-8), var(--color-static-light-8));
+            color: light-dark(var(--color-static-light), var(--color-static-dark));
+            padding: var(--space-tiny);
+            border-radius: var(--border-radius-small);
+            font-size: var(--font-2-size-small);
+            white-space: nowrap;
+            z-index: 10;
+            animation: fadeIn 0.2s ease-out;
         }
     }
 
-    &>input[type=range] {
-        position: absolute;
-        z-index: 3;
-        width: 100%;
-        top: 50%;
-        transform: translateY(-50%);
-        background: transparent;
-        border: none;
-        padding: 0;
 
-        &::-webkit-slider-thumb {
-            appearance: none;
-            width: var(--space-tiny, 20px);
-            height: var(--space-medium, 50px);
-            border: 1px solid light-dark(var(--color-accent-light-secondary, #ccc), var(--color-background-dark, #333));
-            cursor: ew-resize;
-            backdrop-filter: var(--blur-small, blur(4px));
+    /* Image compare - before and after */
+    .image-compare {
+        position: relative;
+        height: 60vh;
+
+        &>img {
+            position: absolute;
+
+            &:first-of-type {
+                z-index: 1;
+            }
+
+            &:last-of-type {
+                z-index: 2;
+                clip-path: inset(0 50% 0 0);
+            }
         }
 
-        &::-moz-range-thumb {
-            width: var(--space-tiny, 20px);
-            height: var(--space-medium, 50px);
-            border: 1px solid light-dark(var(--color-accent-light-secondary, #ccc), var(--color-background-dark, #333));
-            cursor: ew-resize;
-            background: light-dark(rgba(255, 255, 255, 0.8), rgba(51, 51, 51, 0.8));
-            /* Fallback */
-        }
+        &>input[type=range] {
+            position: absolute;
+            z-index: 3;
+            width: 100%;
+            top: 50%;
+            transform: translateY(-50%);
+            background: transparent;
+            border: none;
+            padding: 0;
 
-        &::-ms-thumb {
-            appearance: none;
-            width: var(--space-tiny, 20px);
-            height: var(--space-medium, 50px);
-            border: 1px solid light-dark(var(--color-accent-light-secondary, #ccc), var(--color-background-dark, #333));
-            cursor: ew-resize;
-            background: light-dark(rgba(255, 255, 255, 0.8), rgba(51, 51, 51, 0.8));
-            /* Fallback */
-        }
+            &::-webkit-slider-thumb {
+                appearance: none;
+                width: var(--space-tiny, 20px);
+                height: var(--space-medium, 50px);
+                border: 1px solid light-dark(var(--color-accent-light-secondary, #ccc), var(--color-background-dark, #333));
+                cursor: ew-resize;
+                backdrop-filter: var(--blur-small, blur(4px));
+            }
 
+            &::-moz-range-thumb {
+                width: var(--space-tiny, 20px);
+                height: var(--space-medium, 50px);
+                border: 1px solid light-dark(var(--color-accent-light-secondary, #ccc), var(--color-background-dark, #333));
+                cursor: ew-resize;
+                background: light-dark(rgba(255, 255, 255, 0.8), rgba(51, 51, 51, 0.8));
+                /* Fallback */
+            }
+
+            &::-ms-thumb {
+                appearance: none;
+                width: var(--space-tiny, 20px);
+                height: var(--space-medium, 50px);
+                border: 1px solid light-dark(var(--color-accent-light-secondary, #ccc), var(--color-background-dark, #333));
+                cursor: ew-resize;
+                background: light-dark(rgba(255, 255, 255, 0.8), rgba(51, 51, 51, 0.8));
+                /* Fallback */
+            }
+
+        }
     }
-}
 
 
 }
@@ -1783,12 +1701,7 @@ main {
         margin: var(--space-large) 0 var(--space-medium) 0;
     }
 
-    >section:has(.block.parallax) {
-        height: auto !important; /* Override inline style */
-        min-height: 120vh !important; /* Ensure enough scrollable height */
-        overflow: visible !important; /* Prevent clipping */
-        display: block !important; /* Force block layout */
-    }
+
 
 
 }
