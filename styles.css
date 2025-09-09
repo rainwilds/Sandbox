@@ -1073,13 +1073,14 @@
             z-index: 0;
             transform-style: preserve-3d; /* Preserve 3D context */
             border: 2px solid red; /* Debugging: Check container size */
+            background-color: rgba(255, 0, 0, 0.1); /* Debugging: Visualize container */
             & > picture {
                 position: absolute;
                 top: 0;
                 left: 0;
                 right: 0;
                 bottom: 0;
-                transform: translateZ(-0.5px) scale(1.5); /* Adjusted scale to fit */
+                transform: translateZ(-0.5px) scale(1.5); /* Adjusted scale */
                 z-index: -1;
                 will-change: transform;
                 width: 100%;
@@ -1123,6 +1124,7 @@
                 max-height: inherit;
                 width: 100%;
                 min-height: 120vh; /* Match parent height */
+                padding: 20px; /* Ensure content forces scroll */
                 border: 1px solid yellow; /* Debugging: Check content size */
             }
         }
