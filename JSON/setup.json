@@ -1,15 +1,4 @@
 {
-"preloads": [
-    {
-      "href": "./JSON/setup.json",
-      "as": "fetch",
-      "crossorigin": "anonymous"
-    },
-    {
-      "href": "./styles.css",
-      "as": "style"
-    }
-  ],
   "fonts": [
     {
       "href": "./fonts/Futura_PT_Demi.woff2",

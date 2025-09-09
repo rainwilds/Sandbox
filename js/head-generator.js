@@ -61,14 +61,13 @@ async function manageHead(attributes = {}, config = {}) {
     let head = document.head || document.createElement('head');
     if (!document.head) document.documentElement.prepend(head);
 
-    // Add resource preloads (fonts, styles, etc.) from config
+    // Add resource preloads (fonts) from config
     if (config.fonts && Array.isArray(config.fonts)) {
         config.fonts.forEach(font => {
             if (!font.href) {
                 logError('Invalid font preload config, missing href:', font);
                 return;
             }
-            // Check for existing preload to avoid duplicates
             if (!document.querySelector(`link[rel="preload"][href="${font.href}"]`)) {
                 const link = document.createElement('link');
                 link.rel = 'preload';
@@ -82,41 +81,13 @@ async function manageHead(attributes = {}, config = {}) {
         });
     }
 
-    // Add general preloads (e.g., JSON fetch, stylesheet)
-    if (config.preloads && Array.isArray(config.preloads)) {
-        config.preloads.forEach(preload => {
-            if (!preload.href) {
-                logError('Invalid preload config, missing href:', preload);
-                return;
-            }
-            // Check for existing preload to avoid duplicates
-            if (!document.querySelector(`link[href="${preload.href}"][rel="${preload.rel || 'preload'}"]`)) {
-                const link = document.createElement('link');
-                link.rel = preload.rel || 'preload';
-                link.href = preload.href;
-                link.as = preload.as;
-                if (preload.crossorigin) link.crossOrigin = preload.crossorigin;
-                head.appendChild(link);
-                log(`Added preload: ${preload.href} as ${preload.as}`);
-            }
-        });
-    }
-
-    // Apply stylesheet (preload hints fetch, but this executes it)
-    if (config.preloads) {
-        const stylesheet = config.preloads.find(p => p.as === 'style');
-        if (stylesheet && stylesheet.href) {
-            if (!document.querySelector(`link[href="${stylesheet.href}"][rel="stylesheet"]`)) {
-                const link = document.createElement('link');
-                link.rel = 'stylesheet';
-                link.href = stylesheet.href;
-                if (stylesheet.crossorigin) link.crossOrigin = stylesheet.crossorigin;
-                head.appendChild(link);
-                log(`Applied stylesheet: ${stylesheet.href}`);
-            }
-        } else {
-            logError('No stylesheet found in config.preloads');
-        }
+    // Apply styles.css (preloaded statically in HTML)
+    if (!document.querySelector(`link[href="./styles.css"][rel="stylesheet"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = './styles.css';
+        head.appendChild(link);
+        log('Applied stylesheet: ./styles.css');
     }
 
     // Add Font Awesome Kit script
