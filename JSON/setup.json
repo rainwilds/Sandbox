@@ -1,24 +1,24 @@
 {
 "preloads": [
     {
-      "href": "/Sandbox/JSON/setup.json",
+      "href": "./JSON/setup.json",
       "as": "fetch",
       "crossorigin": "anonymous"
     },
     {
-      "href": "/Sandbox/styles.css",
+      "href": "./styles.css",
       "as": "style"
     }
   ],
   "fonts": [
     {
-      "href": "/Sandbox/fonts/Futura_PT_Demi.woff2",
+      "href": "./fonts/Futura_PT_Demi.woff2",
       "as": "font",
       "type": "font/woff2",
       "crossorigin": "anonymous"
     },
     {
-      "href": "/Sandbox/fonts/futura_pt_book.woff2",
+      "href": "./fonts/futura_pt_book.woff2",
       "as": "font",
       "type": "font/woff2",
       "crossorigin": "anonymous"
@@ -44,37 +44,37 @@
       {
         "rel": "apple-touch-icon",
         "sizes": "180x180",
-        "href": "../Sandbox/img/icons/apple-touch-icon.png"
+        "href": ".../img/icons/apple-touch-icon.png"
       },
       {
         "rel": "icon",
         "type": "image/png",
         "sizes": "32x32",
-        "href": "../Sandbox/img/icons/favicon-32x32.png"
+        "href": ".../img/icons/favicon-32x32.png"
       },
       {
         "rel": "icon",
         "type": "image/png",
         "sizes": "16x16",
-        "href": "../Sandbox/img/icons/favicon-16x16.png"
+        "href": ".../img/icons/favicon-16x16.png"
       },
       {
         "rel": "icon",
         "type": "image/x-icon",
-        "href": "../Sandbox/img/icons/favicon.ico"
+        "href": ".../img/icons/favicon.ico"
       }
     ],
     "snipcart": {
       "publicApiKey": "NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5",
       "loadStrategy": "on-user-interaction",
       "version": "3.7.3",
-      "templatesUrl": "/Sandbox/plugins/snipcart.html",
+      "templatesUrl": "./plugins/snipcart.html",
       "modalStyle": "side"
     }
   },
   "business": {
     "name": "Behive",
-    "url": "https://rainwilds.github.io/Sandbox/",
+    "url": "https://rainwilds.github.io./",
     "telephone": "+61-3-9876-5432",
     "address": {
       "streetAddress": "456 Creative Lane",
@@ -88,8 +88,8 @@
       "latitude": -37.8136,
       "longitude": 144.9631
     },
-    "image": "https://rainwilds.github.io/Sandbox/img/logo.jpg",
-    "logo": "https://rainwilds.github.io/Sandbox/img/logo.jpg",
+    "image": "https://rainwilds.github.io./img/logo.jpg",
+    "logo": "https://rainwilds.github.io./img/logo.jpg",
     "sameAs": [
       "https://www.facebook.com/behive",
       "https://www.instagram.com/behive"

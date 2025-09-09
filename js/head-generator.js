@@ -82,7 +82,7 @@ async function manageHead(attributes = {}, config = {}) {
         });
     }
 
-    // Optionally, add general preloads (e.g., JSON fetch, stylesheet)
+    // Add general preloads (e.g., JSON fetch, stylesheet)
     if (config.preloads && Array.isArray(config.preloads)) {
         config.preloads.forEach(preload => {
             if (!preload.href) {
@@ -144,7 +144,7 @@ async function manageHead(attributes = {}, config = {}) {
         const metaViewport = document.createElement('meta');
         metaViewport.name = 'viewport';
         metaViewport.content = 'width=device-width, initial-scale=1';
-        head.appendChild(metaCharset);
+        head.appendChild(metaViewport);
         log('Added viewport meta');
     }
     if (!document.querySelector('meta[name="robots"]')) {
@@ -156,7 +156,7 @@ async function manageHead(attributes = {}, config = {}) {
     }
     if (!document.querySelector('title')) {
         const title = document.createElement('title');
-        title.textContent = attributes.title || 'Behive'; // Page-specific via <data-custom-head>
+        title.textContent = attributes.title || 'Behive';
         head.appendChild(title);
         log('Added title');
     }
@@ -170,21 +170,21 @@ async function manageHead(attributes = {}, config = {}) {
     if (attributes.description && !document.querySelector('meta[name="description"]')) {
         const metaDesc = document.createElement('meta');
         metaDesc.name = 'description';
-        metaDesc.content = attributes.description; // Page-specific via <data-custom-head>
+        metaDesc.content = attributes.description;
         head.appendChild(metaDesc);
         log('Added description meta with content:', attributes.description);
     }
     if (attributes.keywords && !document.querySelector('meta[name="keywords"]')) {
         const metaKeywords = document.createElement('meta');
         metaKeywords.name = 'keywords';
-        metaKeywords.content = attributes.keywords || ''; // Page-specific via <data-custom-head>
+        metaKeywords.content = attributes.keywords || '';
         head.appendChild(metaKeywords);
         log('Added keywords meta');
     }
     if (attributes.canonical && !document.querySelector('link[rel="canonical"]')) {
         const linkCanonical = document.createElement('link');
         linkCanonical.rel = 'canonical';
-        linkCanonical.href = attributes.canonical || ''; // Page-specific via <data-custom-head>
+        linkCanonical.href = attributes.canonical || '';
         head.appendChild(linkCanonical);
         log('Added canonical link');
     }
@@ -223,35 +223,35 @@ async function manageHead(attributes = {}, config = {}) {
     if (!document.querySelector('meta[property="og:url"]')) {
         const ogUrl = document.createElement('meta');
         ogUrl.setAttribute('property', 'og:url');
-        ogUrl.setAttribute('content', attributes['og-url'] || 'https://rainwilds.github.io/Sandbox/'); // Page-specific via <data-custom-head>
+        ogUrl.setAttribute('content', attributes['og-url'] || 'https://rainwilds.github.io/Sandbox/');
         head.appendChild(ogUrl);
         log('Added og:url meta');
     }
     if (!document.querySelector('meta[property="og:type"]')) {
         const ogType = document.createElement('meta');
         ogType.setAttribute('property', 'og:type');
-        ogType.setAttribute('content', attributes['og-type'] || 'website'); // Page-specific via <data-custom-head>
+        ogType.setAttribute('content', attributes['og-type'] || 'website');
         head.appendChild(ogType);
         log('Added og:type meta');
     }
     if (!document.querySelector('meta[property="og:title"]')) {
         const ogTitle = document.createElement('meta');
         ogTitle.setAttribute('property', 'og:title');
-        ogTitle.setAttribute('content', attributes['og-title'] || attributes.title || 'Behive'); // Page-specific via <data-custom-head>
+        ogTitle.setAttribute('content', attributes['og-title'] || attributes.title || 'Behive');
         head.appendChild(ogTitle);
         log('Added og:title meta');
     }
     if (!document.querySelector('meta[property="og:description"]')) {
         const ogDescription = document.createElement('meta');
         ogDescription.setAttribute('property', 'og:description');
-        ogDescription.setAttribute('content', attributes['og-description'] || attributes.description || ''); // Page-specific via <data-custom-head>
+        ogDescription.setAttribute('content', attributes['og-description'] || attributes.description || '');
         head.appendChild(ogDescription);
         log('Added og:description meta with content:', attributes['og-description'] || attributes.description);
     }
     if (!document.querySelector('meta[property="og:image"]')) {
         const ogImage = document.createElement('meta');
         ogImage.setAttribute('property', 'og:image');
-        ogImage.setAttribute('content', attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg'); // Page-specific via <data-custom-head>
+        ogImage.setAttribute('content', attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg');
         head.appendChild(ogImage);
         log('Added og:image meta');
     }
@@ -281,28 +281,28 @@ async function manageHead(attributes = {}, config = {}) {
     if (!document.querySelector('meta[property="x:url"]')) {
         const xUrl = document.createElement('meta');
         xUrl.setAttribute('property', 'x:url');
-        xUrl.setAttribute('content', attributes['x-url'] || 'https://rainwilds.github.io/Sandbox/'); // Page-specific via <data-custom-head>
+        xUrl.setAttribute('content', attributes['x-url'] || 'https://rainwilds.github.io/Sandbox/');
         head.appendChild(xUrl);
         log('Added x:url meta');
     }
     if (!document.querySelector('meta[name="x:title"]')) {
         const xTitle = document.createElement('meta');
         xTitle.setAttribute('name', 'x:title');
-        xTitle.setAttribute('content', attributes['x-title'] || attributes.title || 'Behive'); // Page-specific via <data-custom-head>
+        xTitle.setAttribute('content', attributes['x-title'] || attributes.title || 'Behive');
         head.appendChild(xTitle);
         log('Added x:title meta');
     }
     if (!document.querySelector('meta[name="x:description"]')) {
         const xDescription = document.createElement('meta');
         xDescription.setAttribute('name', 'x:description');
-        xDescription.setAttribute('content', attributes['x-description'] || attributes.description || ''); // Page-specific via <data-custom-head>
+        xDescription.setAttribute('content', attributes['x-description'] || attributes.description || '');
         head.appendChild(xDescription);
         log('Added x:description meta with content:', attributes['x-description'] || attributes.description);
     }
     if (!document.querySelector('meta[name="x:image"]')) {
         const xImage = document.createElement('meta');
         xImage.setAttribute('name', 'x:image');
-        xImage.setAttribute('content', attributes['x-image'] || attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg'); // Page-specific via <data-custom-head>
+        xImage.setAttribute('content', attributes['x-image'] || attributes['og-image'] || 'https://rainwilds.github.io/Sandbox/img/preview.jpg');
         head.appendChild(xImage);
         log('Added x:image meta');
     }
@@ -315,9 +315,9 @@ async function manageHead(attributes = {}, config = {}) {
         "@graph": [
             {
                 "@type": "WebSite",
-                "@id": (attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/') + "#website", // Page-specific via <data-custom-head>
+                "@id": (attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/') + "#website",
                 "name": attributes['schema-site-name'] || attributes.title || config.business?.name || 'Behive Media',
-                "url": attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/', // Page-specific via <data-custom-head>
+                "url": attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/',
                 "description": attributes.description || config.business?.description || 'Behive Media offers professional photography, videography, and website services in Australia.',
                 "inLanguage": attributes['og-locale'] || config.general?.og?.locale || 'en-AU',
                 "publisher": { "@id": (attributes['business-url'] || config.business?.url || 'https://rainwilds.github.io/Sandbox/') + "#business" },
@@ -370,7 +370,7 @@ async function manageHead(attributes = {}, config = {}) {
                         "@type": "ListItem",
                         "position": 1,
                         "name": "Home",
-                        "item": attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/' // Page-specific via <data-custom-head>
+                        "item": attributes['schema-site-url'] || 'https://rainwilds.github.io/Sandbox/'
                     }
                 ]
             }
@@ -496,12 +496,12 @@ async function manageHead(attributes = {}, config = {}) {
     }
 }
 
-// Initialize head management on DOM load
-document.addEventListener('DOMContentLoaded', async () => {
+// Initialize head management as early as possible
+(async () => {
     const dataHeads = document.querySelectorAll('data-custom-head');
     log('Found data-custom-head elements:', dataHeads.length);
 
-    // Fetch setup.json
+    // Fetch setup.json with relative path
     let config = {};
     try {
         const response = await fetch('./JSON/setup.json');
@@ -569,8 +569,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             products: dataHead.dataset.products || null,
             'theme-color-light': dataHead.dataset.themeColorLight,
             'theme-color-dark': dataHead.dataset.themeColorDark,
-            'include-e-commerce': dataHead.hasAttribute('data-include-e-commerce') || attributes['include-e-commerce'],
-            components: dataHead.dataset.components || attributes.components
+            'include-e-commerce': dataHead.hasAttribute('data-include-e-commerce'),
+            components: dataHead.dataset.components
         };
         Object.keys(newAttributes).forEach(key => {
             if (newAttributes[key] !== undefined && newAttributes[key] !== '') {
@@ -595,7 +595,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const scriptPath = `./components/${component}.js`;
             try {
                 const module = await import(scriptPath);
-                log(`Loaded module: ${scriptPath} at 03:07 PM AEST, September 07, 2025`);
+                log(`Loaded module: ${scriptPath}`);
             } catch (error) {
                 logError(`Failed to load module: ${scriptPath}`, error);
             }
@@ -604,4 +604,4 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // Pass merged attributes and config to manageHead
     await manageHead(attributes, config);
-});
+})();
