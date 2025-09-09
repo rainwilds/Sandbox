@@ -1047,6 +1047,8 @@
         display: grid;
         height: 100%;
         max-height: 100vh;
+        isolation: isolate; /* Prevent parent transforms from interfering */
+
 
         &:has(nav)>div {
             z-index: 1;
@@ -1057,62 +1059,47 @@
         }
 
         &.parallax {
-            perspective: 1px;
-            /* Controls depth; smaller values = stronger parallax */
-            height: 100vh;
-            /* Full viewport height; adjust as needed */
+            perspective: 1px; /* Controls depth; smaller values = stronger parallax */
+            height: 100vh; /* Full viewport height */
             overflow-x: hidden;
-            overflow-y: auto;
-            /* Enables scrolling */
-            position: relative;
-            /* Contains layers */
-            -webkit-overflow-scrolling: touch;
-            /* Smooth iOS scrolling */
+            overflow-y: auto; /* Enables scrolling */
+            position: relative; /* Contains layers */
+            -webkit-overflow-scrolling: touch; /* Smooth iOS scrolling */
 
-            &>picture {
+            & > picture {
                 position: absolute;
-                inset: 0;
-                /* Full coverage */
-                transform: translateZ(-1px) scale(2);
-                /* Parallax effect: pushed back and scaled */
-                z-index: -1;
-                /* Behind content */
-                will-change: transform;
-                /* Optimize for GPU */
+                inset: 0; /* Full coverage */
+                transform: translateZ(-1px) scale(2); /* Parallax effect */
+                z-index: -1; /* Behind content */
+                will-change: transform; /* Optimize for GPU */
                 width: 100%;
                 height: 100%;
+                max-width: none; /* Override global max-width */
                 object-fit: cover;
+                animation: none; /* Disable animate-fade-in for immediate visibility */
 
-                /* Ensure image covers without distortion */
                 & img {
                     width: 100%;
                     height: 100%;
-                    object-fit: cover;
-                    /* Ensure img inside picture fills container */
-                    display: block;
-                    /* Prevent inline spacing issues */
+                    max-width: none; /* Override global max-width */
+                    object-fit: cover; /* Ensure img fills container */
+                    display: block; /* Prevent inline spacing */
                 }
             }
 
-            &>[class*="background-overlay-"] {
+            & > [class*="background-overlay-"] {
                 position: absolute;
-                inset: 0;
-                /* Full coverage */
-                transform: translateZ(-1px) scale(2);
-                /* Move with background for parallax */
-                z-index: -1;
-                /* Behind content */
-                will-change: transform;
-                /* Optimize for GPU */
-                background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
+                inset: 0; /* Full coverage */
+                transform: translateZ(-1px) scale(2); /* Move with background */
+                z-index: -1; /* Behind content */
+                will-change: transform; /* Optimize for GPU */
+                background-color: light-dark(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1)); /* More transparent */
             }
 
-            &>div:not([class*="background-overlay-"]) {
-                transform: translateZ(0);
-                /* Scrolls normally */
+            & > div:not([class*="background-overlay-"]) {
+                transform: translateZ(0); /* Scrolls normally */
                 position: relative;
-                z-index: 2;
-                /* Above background */
+                z-index: 2; /* Above background */
                 display: grid;
                 grid-row: 1;
                 grid-column: 1;
@@ -1126,14 +1113,14 @@
             max-height: inherit;
         }
 
-        &.background-image.parallax>picture,
-        &.background-image.parallax>[class*="background-overlay-"] {
-            position: absolute;
-            /* Override grid positioning for parallax */
+        &.background-image.parallax > picture,
+        &.background-image.parallax > [class*="background-overlay-"] {
+            position: absolute; /* Override grid positioning */
             grid-row: unset;
             grid-column: unset;
             width: 100%;
             height: 100%;
+            max-width: none; /* Override global max-width */
         }
     }
 
