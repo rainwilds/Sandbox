@@ -1082,7 +1082,16 @@
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
+
                 /* Ensure image covers without distortion */
+                & img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    /* Ensure img inside picture fills container */
+                    display: block;
+                    /* Prevent inline spacing issues */
+                }
             }
 
             &>[class*="background-overlay-"] {
@@ -1117,474 +1126,478 @@
             max-height: inherit;
         }
 
-    &.background-image.parallax > picture,
-    &.background-image.parallax > [class*="background-overlay-"] {
-        position: absolute; /* Override grid positioning for parallax */
-        grid-row: unset;
-        grid-column: unset;
-    }        
-
-        &.background-image>*:not(picture):not(:has(nav)) {
-            z-index: 1;
+        &.background-image.parallax>picture,
+        &.background-image.parallax>[class*="background-overlay-"] {
+            position: absolute;
+            /* Override grid positioning for parallax */
+            grid-row: unset;
+            grid-column: unset;
+            width: 100%;
+            height: 100%;
         }
+    }
 
-        &.background-video>* {
-            grid-column: 1;
-            grid-row: 1;
-            max-height: inherit;
-        }
+    &.background-image>*:not(picture):not(:has(nav)) {
+        z-index: 1;
+    }
 
-        span.icon {
-            display: inline-block;
-        }
+    &.background-video>* {
+        grid-column: 1;
+        grid-row: 1;
+        max-height: inherit;
+    }
 
-        &>div:not(.background-overlay):has(p) {
-            z-index: 2;
-            height: min-content;
-        }
+    span.icon {
+        display: inline-block;
+    }
 
-        /* &>div:has(nav) {
+    &>div:not(.background-overlay):has(p) {
+        z-index: 2;
+        height: min-content;
+    }
+
+    /* &>div:has(nav) {
             z-index: 2;
         } */
 
-        &>.background-overlay {
-            background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
-            margin: 0 !important;
-        }
-
-        a {
-            margin-top: var(--space-tiny);
-        }
-
+    &>.background-overlay {
+        background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
+        margin: 0 !important;
     }
 
-    nav {
-
-        &.nav-horizontal ul {
-            display: flex;
-            flex-direction: initial;
-            gap: var(--space-small);
-        }
-
-        &.nav-vertical ul {
-            display: flex;
-            flex-direction: column;
-            gap: var(--space-small);
-        }
-
-        &>ul {
-            list-style: none;
-            display: flex;
-            gap: var(--space-small);
-
-            & a {
-                text-decoration: none;
-                margin: initial;
-            }
-
-        }
-
-        &>button {
-
-            @media (min-width: 769px) {
-                display: none;
-            }
-
-        }
-
+    a {
+        margin-top: var(--space-tiny);
     }
 
+}
 
+nav {
 
-    div[class*="gallery-main"] {
-
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: var(--space-tiny);
-        grid-auto-flow: dense;
-        grid-auto-rows: 20vmax;
-
-        >picture {
-            overflow: hidden;
-
-            >img {
-
-                transition: transform 0.6s ease;
-                /* Smooth transition for scaling */
-
-                &:hover {
-                    transform: scale(1.05);
-                }
-            }
-        }
-
-
-        @media (min-width: 1201px) and (max-width: 1919px) {
-            & {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (max-width: 1200px) {
-            & {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-    }
-
-    div#lightbox {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0, 0, 0, 0.9);
-        z-index: 1000;
-
-        /* Grid layout defined but only applied when active */
-        grid-template-columns: 1fr;
-        grid-template-areas: " content ";
-
-        &.active {
-            /* Show as grid when active */
-            display: grid;
-            animation: fadeIn 0.3s ease-in;
-
-        }
-
-        >* {
-            grid-area: content;
-        }
-
-        /* Rest of your styles for .close, .prev, .next, .lightbox-content remain unchanged */
-        &>.close {
-            position: absolute;
-            top: 0;
-            right: 0;
-            color: white;
-            font-size: 2rem;
-            cursor: pointer;
-            z-index: 1001;
-            justify-self: end;
-            align-self: start;
-            line-height: 0.6;
-            padding: var(--space-tiny);
-            background: black;
-            padding: var(--space-tiny);
-            margin: var(--space-small);
-
-            &:hover {
-                color: var(--color-accent-light-primary);
-                transition: color 0.3s;
-            }
-        }
-
-        &>.prev,
-        &>.next {
-            border: none;
-            color: white;
-            font-size: 2rem;
-            cursor: pointer;
-            z-index: 1001;
-            align-self: center;
-            background: black;
-            padding: var(--space-tiny);
-            margin: var(--space-small);
-
-            &:hover {
-                background: rgba(255, 255, 255, 0.4);
-                transition: background 0.3s;
-            }
-        }
-
-        &>.prev {
-            justify-self: left;
-        }
-
-        &>.next {
-            justify-self: right;
-        }
-
-        &>.lightbox-content {
-            max-height: 100vh;
-
-
-            &>picture>img,
-            &>video {
-                object-fit: contain;
-            }
-
-        }
-    }
-
-
-    /* 1. Modal/Dialog */
-    .modal {
-        display: none;
-        position: fixed;
-        inset: 0;
-        /* Latest shorthand for top/left/right/bottom */
-        background: light-dark(rgba(0, 0, 0, 0.8), rgba(255, 255, 255, 0.2));
-        z-index: 1000;
-        place-content: center;
-
-        &.active {
-            display: grid;
-            animation: fadeIn 0.3s ease-out;
-        }
-
-        & .modal-content {
-            background: light-dark(var(--color-background-light), var(--color-background-dark));
-            padding: var(--space-medium);
-            max-width: var(--max-width-medium);
-            border-radius: var(--border-radius-medium);
-            box-shadow: 0 4px 8px var(--color-static-dark-4);
-            backdrop-filter: var(--blur-small);
-        }
-
-        & .modal-close {
-            position: absolute;
-            inset-block-start: var(--space-tiny);
-            /* Logical property */
-            inset-inline-end: var(--space-tiny);
-            /* Logical property */
-            border: none;
-            background: transparent;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: light-dark(var(--color-static-dark), var(--color-static-light));
-
-            &:hover {
-                color: var(--color-accent-light-primary);
-                transition: color 0.3s;
-            }
-        }
-    }
-
-    /* 2. Accordion */
-    .accordion {
-        display: grid;
-        gap: var(--space-tiny);
-
-        & .accordion-item {
-            border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
-
-            &.active .accordion-content {
-                display: block;
-                animation: fadeInTopDown 0.3s ease-out;
-            }
-        }
-
-        & .accordion-trigger {
-            background: light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-secondary));
-            padding: var(--space-tiny);
-            border: none;
-            width: 100%;
-            text-align: start;
-
-            cursor: pointer;
-            font: inherit;
-
-            &:hover {
-                background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
-                transition: background 0.3s;
-            }
-        }
-
-        & .accordion-content {
-            display: none;
-            padding: var(--space-tiny);
-            background: light-dark(var(--color-background-light), var(--color-background-dark));
-        }
-    }
-
-
-    /* 4. Alert/Notification */
-    .alert {
-        padding: var(--space-small);
-        border: solid 1px;
-        border-radius: var(--border-radius-small);
+    &.nav-horizontal ul {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: light-dark(var(--color-background-light), var(--color-background-dark));
-
-        &.success {
-            border-color: light-dark(#00cc00, #66ff66);
-            background: light-dark(#e6ffe6, #1a3c1a);
-        }
-
-        &.error {
-            border-color: light-dark(#cc0000, #ff6666);
-            background: light-dark(#ffe6e6, #3c1a1a);
-        }
-
-        & .alert-close {
-            border: none;
-            background: transparent;
-            font-size: 1.2rem;
-            cursor: pointer;
-            color: light-dark(var(--color-static-dark), var(--color-static-light));
-
-            &:hover {
-                color: var(--color-accent-light-primary);
-                transition: color 0.3s;
-            }
-        }
+        flex-direction: initial;
+        gap: var(--space-small);
     }
 
-    /* 5. notificatio banner */
-
-
-
-    /* 6. Form Group */
-    .form-group {
-        display: grid;
-        gap: var(--space-tiny);
-        margin-bottom: var(--space-small);
-
-        & label {
-            font-weight: var(--font-2-weight-light);
-            color: light-dark(var(--color-static-dark), var(--color-static-light));
-        }
-
-        & input,
-        & textarea {
-            width: 100%;
-            background-image: var(--background-pattern-1);
-            padding: var(--space-tiny);
-            border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
-            border-radius: var(--border-radius-small);
-
-            &:user-invalid {
-                border-color: red;
-            }
-
-            &:user-valid {
-                border-color: green;
-            }
-
-            &:focus-visible {
-                outline-color: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
-                outline-offset: 0.15rem;
-                transition: outline 0.3s;
-            }
-        }
-    }
-
-    /* 7. Breadcrumb */
-    .breadcrumb {
+    &.nav-vertical ul {
         display: flex;
-        gap: var(--space-tiny);
-        flex-wrap: wrap;
+        flex-direction: column;
+        gap: var(--space-small);
+    }
+
+    &>ul {
+        list-style: none;
+        display: flex;
+        gap: var(--space-small);
 
         & a {
             text-decoration: none;
-            color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+            margin: initial;
+        }
 
-            &::after {
-                content: " > ";
-                margin-inline-start: var(--space-tiny);
-                /* Logical property */
-                color: light-dark(var(--color-static-dark-4), var(--color-static-light-4));
-            }
+    }
 
-            &:last-child::after {
-                content: none;
-            }
+    &>button {
+
+        @media (min-width: 769px) {
+            display: none;
+        }
+
+    }
+
+}
+
+
+
+div[class*="gallery-main"] {
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-tiny);
+    grid-auto-flow: dense;
+    grid-auto-rows: 20vmax;
+
+    >picture {
+        overflow: hidden;
+
+        >img {
+
+            transition: transform 0.6s ease;
+            /* Smooth transition for scaling */
 
             &:hover {
-                color: light-dark(var(--color-static-dark-6), var(--color-static-light-6));
-                transition: color 0.3s;
+                transform: scale(1.05);
             }
         }
     }
 
-    /* 8. Tooltip */
-    .tooltip {
-        position: relative;
-        display: inline-grid;
 
-        &:hover::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            inset-block-end: 100%;
+    @media (min-width: 1201px) and (max-width: 1919px) {
+        & {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @media (max-width: 1200px) {
+        & {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+}
+
+div#lightbox {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+
+    /* Grid layout defined but only applied when active */
+    grid-template-columns: 1fr;
+    grid-template-areas: " content ";
+
+    &.active {
+        /* Show as grid when active */
+        display: grid;
+        animation: fadeIn 0.3s ease-in;
+
+    }
+
+    >* {
+        grid-area: content;
+    }
+
+    /* Rest of your styles for .close, .prev, .next, .lightbox-content remain unchanged */
+    &>.close {
+        position: absolute;
+        top: 0;
+        right: 0;
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+        z-index: 1001;
+        justify-self: end;
+        align-self: start;
+        line-height: 0.6;
+        padding: var(--space-tiny);
+        background: black;
+        padding: var(--space-tiny);
+        margin: var(--space-small);
+
+        &:hover {
+            color: var(--color-accent-light-primary);
+            transition: color 0.3s;
+        }
+    }
+
+    &>.prev,
+    &>.next {
+        border: none;
+        color: white;
+        font-size: 2rem;
+        cursor: pointer;
+        z-index: 1001;
+        align-self: center;
+        background: black;
+        padding: var(--space-tiny);
+        margin: var(--space-small);
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.4);
+            transition: background 0.3s;
+        }
+    }
+
+    &>.prev {
+        justify-self: left;
+    }
+
+    &>.next {
+        justify-self: right;
+    }
+
+    &>.lightbox-content {
+        max-height: 100vh;
+
+
+        &>picture>img,
+        &>video {
+            object-fit: contain;
+        }
+
+    }
+}
+
+
+/* 1. Modal/Dialog */
+.modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    /* Latest shorthand for top/left/right/bottom */
+    background: light-dark(rgba(0, 0, 0, 0.8), rgba(255, 255, 255, 0.2));
+    z-index: 1000;
+    place-content: center;
+
+    &.active {
+        display: grid;
+        animation: fadeIn 0.3s ease-out;
+    }
+
+    & .modal-content {
+        background: light-dark(var(--color-background-light), var(--color-background-dark));
+        padding: var(--space-medium);
+        max-width: var(--max-width-medium);
+        border-radius: var(--border-radius-medium);
+        box-shadow: 0 4px 8px var(--color-static-dark-4);
+        backdrop-filter: var(--blur-small);
+    }
+
+    & .modal-close {
+        position: absolute;
+        inset-block-start: var(--space-tiny);
+        /* Logical property */
+        inset-inline-end: var(--space-tiny);
+        /* Logical property */
+        border: none;
+        background: transparent;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: light-dark(var(--color-static-dark), var(--color-static-light));
+
+        &:hover {
+            color: var(--color-accent-light-primary);
+            transition: color 0.3s;
+        }
+    }
+}
+
+/* 2. Accordion */
+.accordion {
+    display: grid;
+    gap: var(--space-tiny);
+
+    & .accordion-item {
+        border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+
+        &.active .accordion-content {
+            display: block;
+            animation: fadeInTopDown 0.3s ease-out;
+        }
+    }
+
+    & .accordion-trigger {
+        background: light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-secondary));
+        padding: var(--space-tiny);
+        border: none;
+        width: 100%;
+        text-align: start;
+
+        cursor: pointer;
+        font: inherit;
+
+        &:hover {
+            background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
+            transition: background 0.3s;
+        }
+    }
+
+    & .accordion-content {
+        display: none;
+        padding: var(--space-tiny);
+        background: light-dark(var(--color-background-light), var(--color-background-dark));
+    }
+}
+
+
+/* 4. Alert/Notification */
+.alert {
+    padding: var(--space-small);
+    border: solid 1px;
+    border-radius: var(--border-radius-small);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: light-dark(var(--color-background-light), var(--color-background-dark));
+
+    &.success {
+        border-color: light-dark(#00cc00, #66ff66);
+        background: light-dark(#e6ffe6, #1a3c1a);
+    }
+
+    &.error {
+        border-color: light-dark(#cc0000, #ff6666);
+        background: light-dark(#ffe6e6, #3c1a1a);
+    }
+
+    & .alert-close {
+        border: none;
+        background: transparent;
+        font-size: 1.2rem;
+        cursor: pointer;
+        color: light-dark(var(--color-static-dark), var(--color-static-light));
+
+        &:hover {
+            color: var(--color-accent-light-primary);
+            transition: color 0.3s;
+        }
+    }
+}
+
+/* 5. notificatio banner */
+
+
+
+/* 6. Form Group */
+.form-group {
+    display: grid;
+    gap: var(--space-tiny);
+    margin-bottom: var(--space-small);
+
+    & label {
+        font-weight: var(--font-2-weight-light);
+        color: light-dark(var(--color-static-dark), var(--color-static-light));
+    }
+
+    & input,
+    & textarea {
+        width: 100%;
+        background-image: var(--background-pattern-1);
+        padding: var(--space-tiny);
+        border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+        border-radius: var(--border-radius-small);
+
+        &:user-invalid {
+            border-color: red;
+        }
+
+        &:user-valid {
+            border-color: green;
+        }
+
+        &:focus-visible {
+            outline-color: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
+            outline-offset: 0.15rem;
+            transition: outline 0.3s;
+        }
+    }
+}
+
+/* 7. Breadcrumb */
+.breadcrumb {
+    display: flex;
+    gap: var(--space-tiny);
+    flex-wrap: wrap;
+
+    & a {
+        text-decoration: none;
+        color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+
+        &::after {
+            content: " > ";
+            margin-inline-start: var(--space-tiny);
             /* Logical property */
-            inset-inline-start: 50%;
-            /* Logical property */
-            transform: translateX(-50%);
-            background: light-dark(var(--color-static-dark-8), var(--color-static-light-8));
-            color: light-dark(var(--color-static-light), var(--color-static-dark));
-            padding: var(--space-tiny);
-            border-radius: var(--border-radius-small);
-            font-size: var(--font-2-size-small);
-            white-space: nowrap;
-            z-index: 10;
-            animation: fadeIn 0.2s ease-out;
+            color: light-dark(var(--color-static-dark-4), var(--color-static-light-4));
+        }
+
+        &:last-child::after {
+            content: none;
+        }
+
+        &:hover {
+            color: light-dark(var(--color-static-dark-6), var(--color-static-light-6));
+            transition: color 0.3s;
+        }
+    }
+}
+
+/* 8. Tooltip */
+.tooltip {
+    position: relative;
+    display: inline-grid;
+
+    &:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        inset-block-end: 100%;
+        /* Logical property */
+        inset-inline-start: 50%;
+        /* Logical property */
+        transform: translateX(-50%);
+        background: light-dark(var(--color-static-dark-8), var(--color-static-light-8));
+        color: light-dark(var(--color-static-light), var(--color-static-dark));
+        padding: var(--space-tiny);
+        border-radius: var(--border-radius-small);
+        font-size: var(--font-2-size-small);
+        white-space: nowrap;
+        z-index: 10;
+        animation: fadeIn 0.2s ease-out;
+    }
+}
+
+
+/* Image compare - before and after */
+.image-compare {
+    position: relative;
+    height: 60vh;
+
+    &>img {
+        position: absolute;
+
+        &:first-of-type {
+            z-index: 1;
+        }
+
+        &:last-of-type {
+            z-index: 2;
+            clip-path: inset(0 50% 0 0);
         }
     }
 
+    &>input[type=range] {
+        position: absolute;
+        z-index: 3;
+        width: 100%;
+        top: 50%;
+        transform: translateY(-50%);
+        background: transparent;
+        border: none;
+        padding: 0;
 
-    /* Image compare - before and after */
-    .image-compare {
-        position: relative;
-        height: 60vh;
-
-        &>img {
-            position: absolute;
-
-            &:first-of-type {
-                z-index: 1;
-            }
-
-            &:last-of-type {
-                z-index: 2;
-                clip-path: inset(0 50% 0 0);
-            }
+        &::-webkit-slider-thumb {
+            appearance: none;
+            width: var(--space-tiny, 20px);
+            height: var(--space-medium, 50px);
+            border: 1px solid light-dark(var(--color-accent-light-secondary, #ccc), var(--color-background-dark, #333));
+            cursor: ew-resize;
+            backdrop-filter: var(--blur-small, blur(4px));
         }
 
-        &>input[type=range] {
-            position: absolute;
-            z-index: 3;
-            width: 100%;
-            top: 50%;
-            transform: translateY(-50%);
-            background: transparent;
-            border: none;
-            padding: 0;
-
-            &::-webkit-slider-thumb {
-                appearance: none;
-                width: var(--space-tiny, 20px);
-                height: var(--space-medium, 50px);
-                border: 1px solid light-dark(var(--color-accent-light-secondary, #ccc), var(--color-background-dark, #333));
-                cursor: ew-resize;
-                backdrop-filter: var(--blur-small, blur(4px));
-            }
-
-            &::-moz-range-thumb {
-                width: var(--space-tiny, 20px);
-                height: var(--space-medium, 50px);
-                border: 1px solid light-dark(var(--color-accent-light-secondary, #ccc), var(--color-background-dark, #333));
-                cursor: ew-resize;
-                background: light-dark(rgba(255, 255, 255, 0.8), rgba(51, 51, 51, 0.8));
-                /* Fallback */
-            }
-
-            &::-ms-thumb {
-                appearance: none;
-                width: var(--space-tiny, 20px);
-                height: var(--space-medium, 50px);
-                border: 1px solid light-dark(var(--color-accent-light-secondary, #ccc), var(--color-background-dark, #333));
-                cursor: ew-resize;
-                background: light-dark(rgba(255, 255, 255, 0.8), rgba(51, 51, 51, 0.8));
-                /* Fallback */
-            }
-
+        &::-moz-range-thumb {
+            width: var(--space-tiny, 20px);
+            height: var(--space-medium, 50px);
+            border: 1px solid light-dark(var(--color-accent-light-secondary, #ccc), var(--color-background-dark, #333));
+            cursor: ew-resize;
+            background: light-dark(rgba(255, 255, 255, 0.8), rgba(51, 51, 51, 0.8));
+            /* Fallback */
         }
+
+        &::-ms-thumb {
+            appearance: none;
+            width: var(--space-tiny, 20px);
+            height: var(--space-medium, 50px);
+            border: 1px solid light-dark(var(--color-accent-light-secondary, #ccc), var(--color-background-dark, #333));
+            cursor: ew-resize;
+            background: light-dark(rgba(255, 255, 255, 0.8), rgba(51, 51, 51, 0.8));
+            /* Fallback */
+        }
+
     }
+}
 
 
 }
