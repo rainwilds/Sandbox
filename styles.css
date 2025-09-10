@@ -1131,6 +1131,10 @@
                 margin: initial;
             }
 
+            @media (max-width: 768px) {
+                display: none;
+            }
+
         }
 
         &>button {
@@ -1141,9 +1145,7 @@
 
         }
 
-        @media (max-width: 768px) {
-            display: none;
-        }
+
 
     }
 
