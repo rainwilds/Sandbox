@@ -207,6 +207,7 @@ class CustomBlock extends HTMLElement {
         const backgroundSrc = this.getAttribute('img-background-src') || '';
         const backgroundLightSrc = this.getAttribute('img-background-light-src') || '';
         const backgroundDarkSrc = this.getAttribute('img-background-dark-src') || '';
+        const backgroundAlt = this.getAttribute('img-background-alt') || '';
         if ((backgroundLightSrc || backgroundDarkSrc) && !(backgroundLightSrc && backgroundDarkSrc) && !backgroundSrc) {
             throw new Error('Both img-background-light-src and img-background-dark-src must be present when using light/dark themes, or use img-background-src alone.');
         }
@@ -451,10 +452,12 @@ class CustomBlock extends HTMLElement {
             customClasses: this.getAttribute('class') || '',
             innerCustomClasses: this.getAttribute('inner-class') || '',
             styleAttribute: this.getAttribute('style') || '',
-            backgroundSrc: backgroundSrc || (backgroundLightSrc && backgroundDarkSrc ? '' : null),
+            backgroundSrc: backgroundSrc,
             backgroundLightSrc: backgroundLightSrc,
             backgroundDarkSrc: backgroundDarkSrc,
-            backgroundAlt: this.getAttribute('img-background-alt') || '',
+            backgroundAlt: backgroundAlt,
+            backgroundLightAlt: backgroundAlt, // Map backgroundAlt to lightAlt for consistency
+            backgroundDarkAlt: backgroundAlt,  // Map backgroundAlt to darkAlt for consistency
             backgroundIsDecorative: this.hasAttribute('img-background-decorative'),
             backgroundMobileWidth: this.getAttribute('img-background-mobile-width') || '100vw',
             backgroundTabletWidth: this.getAttribute('img-background-tablet-width') || '100vw',
@@ -463,10 +466,12 @@ class CustomBlock extends HTMLElement {
             backgroundIncludeSchema: this.hasAttribute('img-background-include-schema'),
             backgroundFetchPriority: validFetchPriorities.includes(backgroundFetchPriority) ? backgroundFetchPriority : '',
             backgroundLoading: this.getAttribute('img-background-loading') || 'lazy',
-            primarySrc: primarySrc || (primaryLightSrc && primaryDarkSrc ? '' : null),
+            primarySrc: primarySrc,
             primaryLightSrc: primaryLightSrc,
             primaryDarkSrc: primaryDarkSrc,
             primaryAlt: this.getAttribute('img-primary-alt') || '',
+            primaryLightAlt: this.getAttribute('img-primary-alt') || '',
+            primaryDarkAlt: this.getAttribute('img-primary-alt') || '',
             primaryIsDecorative: this.hasAttribute('img-primary-decorative'),
             primaryMobileWidth: this.getAttribute('img-primary-mobile-width') || '100vw',
             primaryTabletWidth: this.getAttribute('img-primary-tablet-width') || '100vw',
@@ -803,10 +808,12 @@ class CustomBlock extends HTMLElement {
                 console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
             } else {
                 backgroundContentHTML = generatePictureMarkup({
-                    src: src,
-                    lightSrc: attrs.backgroundLightSrc || attrs.backgroundSrc,
-                    darkSrc: attrs.backgroundDarkSrc || attrs.backgroundSrc,
+                    src: attrs.backgroundSrc,
+                    lightSrc: attrs.backgroundLightSrc,
+                    darkSrc: attrs.backgroundDarkSrc,
                     alt: attrs.backgroundAlt,
+                    lightAlt: attrs.backgroundLightAlt,
+                    darkAlt: attrs.backgroundDarkAlt,
                     isDecorative: attrs.backgroundIsDecorative,
                     customClasses: isMediaOnly ? attrs.customClasses : mediaCustomClasses,
                     loading: attrs.backgroundLoading,
