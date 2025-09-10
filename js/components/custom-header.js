@@ -1,9 +1,9 @@
-import { CustomBlock } from './custom-block.js';
-import { VALID_ALIGNMENTS, alignMap, VALID_POSITIONS, sanitizeClassNames, sanitizeStyles } from '../shared.js';
+import { generatePictureMarkup } from '../image-generator.js';
+import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, sanitizeStyles, withLazyLoading, withRenderCaching } from '../shared.js';
 
 (async () => {
   try {
-    console.log('Successfully imported CustomBlock and alignMap');
+    console.log('Successfully imported dependencies for CustomHeader');
 
     await Promise.all([
       customElements.whenDefined('custom-logo'),
@@ -24,7 +24,7 @@ import { VALID_ALIGNMENTS, alignMap, VALID_POSITIONS, sanitizeClassNames, saniti
         if (this.cachedAttributes) {
           return this.cachedAttributes;
         }
-        const baseAttrs = {
+        const attrs = {
           heading: this.getAttribute('heading') || '',
           headingTag: this.getAttribute('heading-tag') || 'h2',
           innerAlignment: this.getAttribute('inner-alignment') || '',
@@ -49,34 +49,39 @@ import { VALID_ALIGNMENTS, alignMap, VALID_POSITIONS, sanitizeClassNames, saniti
           navAlignment: this.getAttribute('nav-alignment') || 'center'
         };
 
-        if (!VALID_HEADING_TAGS.includes(baseAttrs.headingTag.toLowerCase())) {
-          console.warn(`Invalid heading-tag "${baseAttrs.headingTag}". Must be one of ${VALID_HEADING_TAGS.join(', ')}. Defaulting to 'h2'.`);
-          baseAttrs.headingTag = 'h2';
+        if (!VALID_HEADING_TAGS.includes(attrs.headingTag.toLowerCase())) {
+          console.warn(`Invalid heading-tag "${attrs.headingTag}". Must be one of ${VALID_HEADING_TAGS.join(', ')}. Defaulting to 'h2'.`);
+          attrs.headingTag = 'h2';
         }
-        if (baseAttrs.innerAlignment && !VALID_ALIGNMENTS.includes(baseAttrs.innerAlignment)) {
-          console.warn(`Invalid inner-alignment "${baseAttrs.innerAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Ignoring.`);
-          baseAttrs.innerAlignment = '';
+        if (attrs.innerAlignment && !VALID_ALIGNMENTS.includes(attrs.innerAlignment)) {
+          console.warn(`Invalid inner-alignment "${attrs.innerAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Ignoring.`);
+          attrs.innerAlignment = '';
         }
-        if (baseAttrs.textAlignment && !['left', 'center', 'right'].includes(baseAttrs.textAlignment)) {
-          console.warn(`Invalid text-alignment "${baseAttrs.textAlignment}". Must be one of left, center, right. Ignoring.`);
-          baseAttrs.textAlignment = '';
+        if (attrs.textAlignment && !['left', 'center', 'right'].includes(attrs.textAlignment)) {
+          console.warn(`Invalid text-alignment "${attrs.textAlignment}". Must be one of left, center, right. Ignoring.`);
+          attrs.textAlignment = '';
         }
-        if (!['independent', 'nav'].includes(baseAttrs.logoPlacement)) {
-          console.warn(`Invalid logo-placement "${baseAttrs.logoPlacement}". Must be 'independent' or 'nav'. Defaulting to 'independent'.`);
-          baseAttrs.logoPlacement = 'independent';
+        if (!['independent', 'nav'].includes(attrs.logoPlacement)) {
+          console.warn(`Invalid logo-placement "${attrs.logoPlacement}". Must be 'independent' or 'nav'. Defaulting to 'independent'.`);
+          attrs.logoPlacement = 'independent';
         }
-        if (!VALID_ALIGNMENTS.includes(baseAttrs.navAlignment)) {
-          console.warn(`Invalid nav-alignment "${baseAttrs.navAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Defaulting to 'center'.`);
-          baseAttrs.navAlignment = 'center';
+        if (!VALID_ALIGNMENTS.includes(attrs.navAlignment)) {
+          console.warn(`Invalid nav-alignment "${attrs.navAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Defaulting to 'center'.`);
+          attrs.navAlignment = 'center';
         }
-        if ((baseAttrs.backgroundLightSrc || baseAttrs.backgroundDarkSrc) && !(baseAttrs.backgroundLightSrc && baseAttrs.backgroundDarkSrc) && !baseAttrs.backgroundSrc) {
+        if ((attrs.backgroundLightSrc || attrs.backgroundDarkSrc) && !(attrs.backgroundLightSrc && attrs.backgroundDarkSrc) && !attrs.backgroundSrc) {
           console.error('Both img-background-light-src and img-background-dark-src must be present when using light/dark themes, or use img-background-src alone.');
-          baseAttrs.backgroundSrc = '';
-          baseAttrs.backgroundLightSrc = '';
-          baseAttrs.backgroundDarkSrc = '';
+          attrs.backgroundSrc = '';
+          attrs.backgroundLightSrc = '';
+          attrs.backgroundDarkSrc = '';
         }
-        this.cachedAttributes = baseAttrs;
-        return baseAttrs;
+        if (attrs.backgroundLightSrc && !attrs.backgroundAlt) {
+          console.error('img-background-alt is required when img-background-light-src is provided.');
+          attrs.backgroundLightSrc = '';
+          attrs.backgroundDarkSrc = '';
+        }
+        this.cachedAttributes = attrs;
+        return attrs;
       }
 
       initialize() {
@@ -119,7 +124,7 @@ import { VALID_ALIGNMENTS, alignMap, VALID_POSITIONS, sanitizeClassNames, saniti
           navAlignment: 'center'
         } : this.getAttributes();
 
-        const blockElement = document.createElement('div');
+        const blockElement = document.createElement('header');
         blockElement.setAttribute('role', 'banner');
         const headerClasses = [
           'block',
@@ -163,7 +168,7 @@ import { VALID_ALIGNMENTS, alignMap, VALID_POSITIONS, sanitizeClassNames, saniti
               desktopWidth: '100vw',
               aspectRatio: '',
               includeSchema: false,
-              extraStyles: 'object-fit: cover;'
+              extraStyles: 'object-fit: cover; width: 100%; height: 100%;'
             });
           }
         }
@@ -271,7 +276,7 @@ import { VALID_ALIGNMENTS, alignMap, VALID_POSITIONS, sanitizeClassNames, saniti
       }
     }
 
-    export const CustomHeader = withRenderCaching(withLazyLoading(CustomHeaderBase));
+    const CustomHeader = withRenderCaching(withLazyLoading(CustomHeaderBase));
 
     if (!customElements.get('custom-header')) {
       customElements.define('custom-header', CustomHeader);
@@ -281,6 +286,6 @@ import { VALID_ALIGNMENTS, alignMap, VALID_POSITIONS, sanitizeClassNames, saniti
       customElements.upgrade(element);
     });
   } catch (error) {
-    console.error('Failed to import CustomBlock or define CustomHeader:', error);
+    console.error('Failed to define CustomHeader:', error);
   }
 })();
