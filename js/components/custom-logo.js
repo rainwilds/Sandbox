@@ -21,7 +21,7 @@
                     'logo-icon-dark-alt',
                     'logo-icon-position',
                     'logo-breakpoint',
-                    'logo-max-height'
+                    'logo-height'
                 ];
             }
 
@@ -49,7 +49,7 @@
                     iconDarkAlt: this.getAttribute('logo-icon-dark-alt') || '',
                     iconPosition: this.getAttribute('logo-icon-position') || '',
                     breakpoint: this.getAttribute('logo-breakpoint') || '',
-                    maxHeight: this.getAttribute('logo-max-height') || ''
+                    height: this.getAttribute('logo-height') || ''
                 };
 
                 // Validate that at least one valid source is provided for full and/or icon
@@ -92,12 +92,12 @@
                     }
                 }
 
-                // Validate max-height
-                if (attrs.maxHeight) {
-                    const validLength = attrs.maxHeight.match(/^(\d*\.?\d+)(px|rem|em|vh|vw)$/);
+                // Validate height
+                if (attrs.height) {
+                    const validLength = attrs.height.match(/^(\d*\.?\d+)(px|rem|em|vh|vw)$/);
                     if (!validLength) {
-                        console.warn(`Invalid logo-max-height value "${attrs.maxHeight}". Must be a valid CSS length (e.g., "40px", "2rem"). Ignoring.`);
-                        attrs.maxHeight = '';
+                        console.warn(`Invalid logo-height value "${attrs.height}". Must be a valid CSS length (e.g., "40px", "2rem"). Ignoring.`);
+                        attrs.height = '';
                     }
                 }
 
@@ -159,7 +159,7 @@
                         `;
                     }
 
-                    const extraStyles = attrs.maxHeight ? `max-height: ${attrs.maxHeight}` : '';
+                    const extraStyles = attrs.height ? `height: ${attrs.height}` : '';
                     const logoMarkup = generatePictureMarkup({
                         fullSrc: attrs.fullPrimarySrc,
                         fullLightSrc: attrs.fullLightSrc,
