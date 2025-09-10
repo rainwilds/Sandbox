@@ -1,7 +1,8 @@
 (async () => {
     try {
         const { BACKDROP_FILTER_MAP } = await import('./custom-block.js');
-        console.log('Successfully imported BACKDROP_FILTER_MAP');
+        const { VALID_ALIGNMENTS, alignMap } = await import('./shared.js');
+        console.log('Successfully imported BACKDROP_FILTER_MAP and alignMap');
 
         class CustomNav extends HTMLElement {
             static get observedAttributes() {
@@ -42,14 +43,8 @@
                 attrs.navBorderRadius = this.getAttribute('nav-border-radius') || '';
                 attrs.navBackdropFilter = this.getAttribute('nav-backdrop-filter')?.split(' ').filter(cls => cls) || [];
 
-                const validPositions = [
-                    'center', 'top', 'bottom', 'left', 'right',
-                    'top-left', 'top-center', 'top-right',
-                    'bottom-left', 'bottom-center', 'bottom-right',
-                    'center-left', 'center-right'
-                ];
-                if (!validPositions.includes(attrs.navPosition)) {
-                    console.warn(`Invalid nav-position "${attrs.navPosition}". Must be one of ${validPositions.join(', ')}. Ignoring.`);
+                if (!VALID_ALIGNMENTS.includes(attrs.navPosition)) {
+                    console.warn(`Invalid nav-position "${attrs.navPosition}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Ignoring.`);
                     attrs.navPosition = '';
                 }
                 return attrs;
@@ -57,21 +52,6 @@
 
             render() {
                 const attrs = this.getAttributes();
-                const alignMap = {
-                    'center': 'place-self-center',
-                    'top': 'place-self-top',
-                    'bottom': 'place-self-bottom',
-                    'left': 'place-self-left',
-                    'right': 'place-self-right',
-                    'top-left': 'place-self-top-left',
-                    'top-center': 'place-self-top-center',
-                    'top-right': 'place-self-top-right',
-                    'bottom-left': 'place-self-bottom-left',
-                    'bottom-center': 'place-self-bottom-center',
-                    'bottom-right': 'place-self-bottom-right',
-                    'center-left': 'place-self-center-left',
-                    'center-right': 'place-self-center-right'
-                };
                 const navAlignClass = attrs.navPosition ? alignMap[attrs.navPosition] : '';
                 const navClasses = [
                     attrs.navClass,

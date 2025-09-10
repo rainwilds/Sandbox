@@ -1,7 +1,8 @@
 (async () => {
     try {
         const { CustomBlock } = await import('./custom-block.js');
-        console.log('Successfully imported CustomBlock');
+        const { VALID_ALIGNMENTS, alignMap } = await import('./shared.js');
+        console.log('Successfully imported CustomBlock and alignMap');
 
         await Promise.all([
             customElements.whenDefined('custom-logo'),
@@ -28,17 +29,11 @@
                 attrs.navLogoContainerStyle = this.getAttribute('nav-logo-container-style') || '';
                 attrs.navLogoContainerClass = this.getAttribute('nav-logo-container-class') || '';
                 attrs.navAlignment = this.getAttribute('nav-alignment') || 'center';
-                const validAlignments = [
-                    'center', 'top', 'bottom', 'left', 'right',
-                    'top-left', 'top-center', 'top-right',
-                    'bottom-left', 'bottom-center', 'bottom-right',
-                    'center-left', 'center-right'
-                ];
-                if (!validAlignments.includes(attrs.navAlignment)) {
-                    console.warn(`Invalid nav-alignment "${attrs.navAlignment}". Must be one of ${validAlignments.join(', ')}. Defaulting to 'center'.`);
+                const validLogoPlacements = ['independent', 'nav'];
+                if (!VALID_ALIGNMENTS.includes(attrs.navAlignment)) {
+                    console.warn(`Invalid nav-alignment "${attrs.navAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Defaulting to 'center'.`);
                     attrs.navAlignment = '';
                 }
-                const validLogoPlacements = ['independent', 'nav'];
                 if (!validLogoPlacements.includes(attrs.logoPlacement)) {
                     console.warn(`Invalid logo-placement "${attrs.logoPlacement}". Defaulting to 'independent'.`);
                     attrs.logoPlacement = 'independent';
@@ -96,22 +91,6 @@
                         navHTML = '<div>Navigation placeholder</div>';
                     }
                 }
-
-                const alignMap = {
-                    'center': 'place-self-center',
-                    'top': 'place-self-top',
-                    'bottom': 'place-self-bottom',
-                    'left': 'place-self-left',
-                    'right': 'place-self-right',
-                    'top-left': 'place-self-top-left',
-                    'top-center': 'place-self-top-center',
-                    'top-right': 'place-self-top-right',
-                    'bottom-left': 'place-self-bottom-left',
-                    'bottom-center': 'place-self-bottom-center',
-                    'bottom-right': 'place-self-bottom-right',
-                    'center-left': 'place-self-center-left',
-                    'center-right': 'place-self-center-right'
-                };
 
                 let innerHTML = blockElement.innerHTML;
                 if (attrs.logoPlacement === 'nav' && logoHTML && navHTML) {

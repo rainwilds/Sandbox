@@ -1,5 +1,6 @@
 /* global HTMLElement, IntersectionObserver, document, window, JSON, console */
 import { generatePictureMarkup } from '../image-generator.js';
+import { VALID_ALIGNMENTS, alignMap } from './shared.js';
 
 class CustomBlock extends HTMLElement {
     constructor() {
@@ -165,14 +166,8 @@ class CustomBlock extends HTMLElement {
             console.warn(`Invalid sub-heading-tag value "${subHeadingTag}" in <custom-block>. Must be one of ${validHeadingTags.join(', ')}. Using default 'h3'.`);
         }
         const innerAlignment = this.getAttribute('inner-alignment') || '';
-        const validAlignments = [
-            'center', 'top', 'bottom', 'left', 'right',
-            'top-left', 'top-center', 'top-right',
-            'bottom-left', 'bottom-center', 'bottom-right',
-            'center-left', 'center-right'
-        ];
-        if (innerAlignment && !validAlignments.includes(innerAlignment)) {
-            console.warn(`Invalid inner-alignment value "${innerAlignment}" in <custom-block>. Must be one of ${validAlignments.join(', ')}. Ignoring alignment.`);
+        if (innerAlignment && !VALID_ALIGNMENTS.includes(innerAlignment)) {
+            console.warn(`Invalid inner-alignment value "${innerAlignment}" in <custom-block>. Must be one of ${VALID_ALIGNMENTS.join(', ')}. Ignoring alignment.`);
         }
         const textAlignment = this.getAttribute('text-alignment') || '';
         const validTextAlignments = ['left', 'center', 'right'];
@@ -514,7 +509,7 @@ class CustomBlock extends HTMLElement {
             innerBorderClass: this.getAttribute('inner-border') || '',
             innerBorderRadiusClass: this.hasAttribute('inner-border') && this.hasAttribute('inner-border-radius') ? this.getAttribute('inner-border-radius') : '',
             innerStyle: this.getAttribute('inner-style') || '',
-            innerAlignment: innerAlignment && validAlignments.includes(innerAlignment) ? innerAlignment : '',
+            innerAlignment: innerAlignment && VALID_ALIGNMENTS.includes(innerAlignment) ? innerAlignment : '',
             textAlignment: textAlignment && validTextAlignments.includes(textAlignment) ? textAlignment : '',
             shadowClass,
             innerShadowClass
@@ -1035,21 +1030,6 @@ class CustomBlock extends HTMLElement {
             paddingStyles = paddingMatches.join(' ').trim();
             outerStyles = outerStyles.replace(paddingRegex, '').trim();
         }
-        const alignMap = {
-            'center': 'place-self-center',
-            'top': 'place-self-top',
-            'bottom': 'place-self-bottom',
-            'left': 'place-self-left',
-            'right': 'place-self-right',
-            'top-left': 'place-self-top-left',
-            'top-center': 'place-self-top-center',
-            'top-right': 'place-self-top-right',
-            'bottom-left': 'place-self-bottom-left',
-            'bottom-center': 'place-self-bottom-center',
-            'bottom-right': 'place-self-bottom-right',
-            'center-left': 'place-self-center-left',
-            'center-right': 'place-self-center-right'
-        };
         const textAlignMap = {
             'left': 'flex-column-left text-align-left',
             'center': 'flex-column-center text-align-center',

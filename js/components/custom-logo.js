@@ -1,7 +1,8 @@
 (async () => {
     try {
         const { generatePictureMarkup } = await import('../image-generator.js');
-        console.log('Successfully imported generatePictureMarkup');
+        const { VALID_ALIGNMENTS, alignMap } = await import('./shared.js');
+        console.log('Successfully imported generatePictureMarkup and alignMap');
 
         class CustomLogo extends HTMLElement {
             static get observedAttributes() {
@@ -101,18 +102,12 @@
                     }
                 }
 
-                const validPositions = [
-                    'center', 'top', 'bottom', 'left', 'right',
-                    'top-left', 'top-center', 'top-right',
-                    'bottom-left', 'bottom-center', 'bottom-right',
-                    'center-left', 'center-right'
-                ];
-                if (attrs.fullPosition && !validPositions.includes(attrs.fullPosition)) {
-                    console.warn(`Invalid logo-full-position "${attrs.fullPosition}". Must be one of ${validPositions.join(', ')}. Ignoring.`);
+                if (attrs.fullPosition && !VALID_ALIGNMENTS.includes(attrs.fullPosition)) {
+                    console.warn(`Invalid logo-full-position "${attrs.fullPosition}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Ignoring.`);
                     attrs.fullPosition = '';
                 }
-                if (attrs.iconPosition && !validPositions.includes(attrs.iconPosition)) {
-                    console.warn(`Invalid logo-icon-position "${attrs.iconPosition}". Must be one of ${validPositions.join(', ')}. Ignoring.`);
+                if (attrs.iconPosition && !VALID_ALIGNMENTS.includes(attrs.iconPosition)) {
+                    console.warn(`Invalid logo-icon-position "${attrs.iconPosition}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Ignoring.`);
                     attrs.iconPosition = '';
                 }
 
@@ -121,21 +116,6 @@
 
             render() {
                 const attrs = this.getAttributes();
-                const alignMap = {
-                    'center': 'place-self-center',
-                    'top': 'place-self-top',
-                    'bottom': 'place-self-bottom',
-                    'left': 'place-self-left',
-                    'right': 'place-self-right',
-                    'top-left': 'place-self-top-left',
-                    'top-center': 'place-self-top-center',
-                    'top-right': 'place-self-top-right',
-                    'bottom-left': 'place-self-bottom-left',
-                    'bottom-center': 'place-self-bottom-center',
-                    'bottom-right': 'place-self-bottom-right',
-                    'center-left': 'place-self-center-left',
-                    'center-right': 'place-self-center-right'
-                };
                 let logoHTML = '';
                 const hasValidSource = attrs.fullPrimarySrc || attrs.fullLightSrc || attrs.fullDarkSrc || 
                                       attrs.iconPrimarySrc || attrs.iconLightSrc || attrs.iconDarkSrc;
