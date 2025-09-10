@@ -248,7 +248,7 @@ export function generatePictureMarkup({
         pictureMarkup += `<source media="(prefers-color-scheme: dark)" type="${getImageType(darkSrc)}" srcset="${darkSrc}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (darkAlt ? ` alt="${darkAlt}"` : '')}>`;
       }
       if (src) {
-        pictureMarkup += `<source type="${getImageType(src)}" srcset="${src}" sizes="${sizes}" ${altAttr}>`;
+        pictureMarkup += `<source type="${getImageType(src)}" srcset="${src}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (alt ? ` alt="${alt}"` : '')}>`;
       }
     } else {
       FORMATS.forEach(format => {
@@ -261,7 +261,7 @@ export function generatePictureMarkup({
         if (darkSrc && darkBaseFilename) {
           pictureMarkup += `<source media="(prefers-color-scheme: dark)" type="image/${format}" srcset="${generateSrcset(darkBaseFilename, format)}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (darkAlt ? ` alt="${darkAlt}"` : '')}>`;
         }
-        pictureMarkup += `<source type="image/${format}" srcset="${generateSrcset(baseFilename, format)}" sizes="${sizes}" ${altAttr}>`;
+        pictureMarkup += `<source type="image/${format}" srcset="${generateSrcset(baseFilename, format)}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (alt ? ` alt="${alt}"` : '')}>`;
       });
     }
   }
