@@ -95,8 +95,11 @@ export function withLazyLoading(BaseClass) {
       super();
       this.isVisible = false;
       this.isInitialized = false;
+      console.log('Setting up IntersectionObserver for:', this.tagName);
       this.observer = new IntersectionObserver((entries) => {
+        console.log('IntersectionObserver callback for:', this.tagName, entries[0]);
         if (entries[0].isIntersecting) {
+          console.log('Element is visible:', this.tagName);
           this.isVisible = true;
           this.observer.disconnect();
           this.observer = null;
@@ -104,15 +107,30 @@ export function withLazyLoading(BaseClass) {
         }
       }, { rootMargin: '50px' });
       this.observer.observe(this);
+      // Fallback to force initialization after 2 seconds
+      setTimeout(() => {
+        if (!this.isInitialized) {
+          console.log('Forcing initialization for:', this.tagName);
+          this.isVisible = true;
+          this.observer?.disconnect();
+          this.observer = null;
+          this.initialize();
+        }
+      }, 2000);
     }
 
     initialize() {
-      if (this.isInitialized || !this.isVisible) return;
+      if (this.isInitialized || (!this.isVisible && !this.isConnected)) {
+        console.log('Skipping initialization for:', this.tagName, { isInitialized: this.isInitialized, isVisible: this.isVisible, isConnected: this.isConnected });
+        return;
+      }
+      console.log('Initializing:', this.tagName);
       this.isInitialized = true;
       super.initialize?.();
     }
 
     disconnectedCallback() {
+      console.log('Disconnected:', this.tagName);
       if (this.observer) {
         this.observer.disconnect();
         this.observer = null;

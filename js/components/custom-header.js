@@ -87,7 +87,10 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
       }
 
       initialize() {
-        if (this.isInitialized || !this.isVisible) return;
+        if (this.isInitialized) {
+          console.log('CustomHeader already initialized, skipping.');
+          return;
+        }
         console.log('** CustomHeader start...', this.outerHTML);
         this.isInitialized = true;
         try {
@@ -193,9 +196,10 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
           if (customElements.get('custom-logo')) {
             customElements.upgrade(customLogo);
             if (typeof customLogo.initialize === 'function') {
+              console.log('Initializing custom-logo');
               customLogo.initialize();
             }
-            logoHTML = customLogo.render ? customLogo.render() : customLogo.outerHTML;
+            logoHTML = customLogo.render ? customLogo.render().outerHTML : customLogo.outerHTML;
             console.log('Generated logo HTML:', logoHTML);
           } else {
             console.warn('custom-logo not defined, using placeholder.');
@@ -207,9 +211,10 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
           if (customElements.get('custom-nav')) {
             customElements.upgrade(customNav);
             if (typeof customNav.initialize === 'function') {
+              console.log('Initializing custom-nav');
               customNav.initialize();
             }
-            navHTML = customNav.render ? customNav.render() : customNav.outerHTML;
+            navHTML = customNav.render ? customNav.render().outerHTML : customNav.outerHTML;
             console.log('Generated nav HTML:', navHTML);
           } else {
             console.warn('custom-nav not defined, using placeholder.');
@@ -264,12 +269,14 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
       }
 
       connectedCallback() {
-        if (this.isVisible) {
-          this.initialize();
-        }
+        console.log('CustomHeader connectedCallback called');
+        // Force initialization for debugging
+        this.isVisible = true;
+        this.initialize();
       }
 
       disconnectedCallback() {
+        console.log('CustomHeader disconnectedCallback called');
         this.callbacks = [];
         this.cachedAttributes = null;
       }
@@ -285,8 +292,8 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
       }
 
       attributeChangedCallback(name, oldValue, newValue) {
-        if (!this.isInitialized || !this.isVisible) return;
-        console.log('CustomHeader attribute changed:', name, oldValue, newValue);
+        console.log('CustomHeader attributeChangedCallback:', name, oldValue, newValue);
+        if (!this.isInitialized) return;
         this.cachedAttributes = null;
         this.initialize();
       }
@@ -299,6 +306,7 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
       console.log('CustomHeader defined successfully');
     }
     document.querySelectorAll('custom-header').forEach(element => {
+      console.log('Upgrading custom-header element:', element.outerHTML);
       customElements.upgrade(element);
     });
   } catch (error) {
