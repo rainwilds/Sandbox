@@ -28,6 +28,7 @@
                 super();
                 this.handleThemeChange = this.handleThemeChange.bind(this);
                 this.handleResize = this.handleResize.bind(this);
+                this.handleMutation = this.handleMutation.bind(this);
             }
 
             getAttributes() {
@@ -203,6 +204,31 @@
                 }
             }
 
+            handleMutation(mutations) {
+                mutations.forEach(mutation => {
+                    if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+                        const img = mutation.target;
+                        const picture = img.closest('picture');
+                        const sources = picture.querySelectorAll('source');
+                        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                        const attrs = this.getAttributes();
+                        const breakpoint = parseInt(attrs.breakpoint, 10);
+                        const isBelowBreakpoint = breakpoint && window.matchMedia(`(max-width: ${breakpoint - 1}px)`).matches;
+                        let selectedSrc = attrs.fullLightSrc;
+                        sources.forEach(source => {
+                            const media = source.getAttribute('media');
+                            if (media && window.matchMedia(media).matches) {
+                                selectedSrc = source.getAttribute('src');
+                            }
+                        });
+                        if (img.src !== selectedSrc) {
+                            console.log('Mutation detected, updating img src to:', selectedSrc);
+                            img.src = selectedSrc;
+                        }
+                    }
+                });
+            }
+
             connectedCallback() {
                 this.render();
                 // Add listener for prefers-color-scheme changes
@@ -212,12 +238,23 @@
                 const resizeObserver = new ResizeObserver(this.handleResize);
                 resizeObserver.observe(document.body);
                 this.resizeObserver = resizeObserver;
+                // Add mutation observer for img src changes
+                const img = this.querySelector('img');
+                if (img) {
+                    const mutationObserver = new MutationObserver(this.handleMutation);
+                    mutationObserver.observe(img, { attributes: true, attributeFilter: ['src'] });
+                    this.mutationObserver = mutationObserver;
+                }
             }
 
             disconnectedCallback() {
                 if (this.resizeObserver) {
                     this.resizeObserver.disconnect();
                     this.resizeObserver = null;
+                }
+                if (this.mutationObserver) {
+                    this.mutationObserver.disconnect();
+                    this.mutationObserver = null;
                 }
                 window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', this.handleThemeChange);
             }

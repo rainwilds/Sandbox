@@ -9,7 +9,7 @@ const SIZES_BREAKPOINTS = [
   { maxWidth: 2560, baseValue: '100vw' },
 ];
 const DEFAULT_SIZE_VALUE = 3840;
-const BASE_PATH = './img/responsive/'; // Adjust based on your project structure
+const BASE_PATH = './img/responsive/';
 
 export function generatePictureMarkup({
   src,
@@ -183,7 +183,7 @@ export function generatePictureMarkup({
       }
       if (iconLightSrc) {
         pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px)" type="${getImageType(iconLightSrc)}" src="${iconLightSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconLightAlt ? ` alt="${iconLightAlt}"` : '')}>`;
+          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: light)" type="${getImageType(iconLightSrc)}" src="${iconLightSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconLightAlt ? ` alt="${iconLightAlt}"` : '')}>`;
       }
       if (iconSrc) {
         pictureMarkup += `
@@ -198,7 +198,7 @@ export function generatePictureMarkup({
     }
     if (fullLightSrc) {
       pictureMarkup += `
-        <source media="(min-width: ${validatedBreakpoint}px)" type="${getImageType(fullLightSrc)}" src="${fullLightSrc}" ${isDecorative ? ' alt="" role="presentation"' : (fullLightAlt ? ` alt="${fullLightAlt}"` : '')}>`;
+        <source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: light)" type="${getImageType(fullLightSrc)}" src="${fullLightSrc}" ${isDecorative ? ' alt="" role="presentation"' : (fullLightAlt ? ` alt="${fullLightAlt}"` : '')}>`;
     }
     // Add fallback source without media query
     if (fullSrc || iconSrc || fullLightSrc || iconLightSrc) {
@@ -270,27 +270,34 @@ export function generatePictureMarkup({
   // Add script to force source selection for logos
   if (isLogo) {
     const pictureId = `logo-picture-${Math.random().toString(36).substring(2, 11)}`;
-    pictureMarkup = `<picture id="${pictureId}"${classAttr}>${pictureMarkup.split('<picture')[1]}`;
+    pictureMarkup = `<picture id="${pictureId}"${classAttr}>${pictureMarkup.split('<picture')[1].replace(classAttr, '')}`;
     pictureMarkup += `
       <script>
         (function() {
           const picture = document.getElementById('${pictureId}');
+          if (!picture) {
+            console.error('Picture element not found: ${pictureId}');
+            return;
+          }
           const img = picture.querySelector('img');
           const sources = picture.querySelectorAll('source');
           const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
           const isBelowBreakpoint = ${validatedBreakpoint ? `window.matchMedia('(max-width: ${validatedBreakpoint - 1}px)').matches` : 'false'};
           let selectedSrc = '${primarySrc}';
+          let matchedMedia = 'none';
           sources.forEach(source => {
             const media = source.getAttribute('media');
             if (media && window.matchMedia(media).matches) {
               selectedSrc = source.getAttribute('src');
+              matchedMedia = media;
             }
           });
-          if (img.src !== selectedSrc) {
+          console.log('Logo source selection:', { selectedSrc, matchedMedia, prefersDark, isBelowBreakpoint });
+          if (img.src !== selectedSrc && selectedSrc !== '${primarySrc}') {
             console.log('Updating logo img src to:', selectedSrc);
             img.src = selectedSrc;
           }
-          console.log('Selected logo source:', selectedSrc);
+          console.log('Final logo source:', img.src);
         })();
       </script>`;
   }
