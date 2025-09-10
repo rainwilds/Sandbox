@@ -130,26 +130,22 @@
                                       attrs.iconPrimarySrc || attrs.iconLightSrc || attrs.iconDarkSrc;
                 if (hasValidSource) {
                     // Determine which position to use based on breakpoint and available sources
-                    let positionClass = 'logo-container';
+                    let positionClass = attrs.fullPosition ? alignMap[attrs.fullPosition] : 'place-self-center';
                     let styleTag = '';
                     const hasBreakpoint = attrs.breakpoint && [768, 1024, 1366, 1920, 2560].includes(parseInt(attrs.breakpoint, 10));
                     const hasIconSource = attrs.iconPrimarySrc || (attrs.iconLightSrc && attrs.iconDarkSrc);
                     const hasFullSource = attrs.fullPrimarySrc || (attrs.fullLightSrc && attrs.fullDarkSrc);
 
                     if (hasBreakpoint && hasIconSource && hasFullSource) {
-                        positionClass = `logo-container ${attrs.fullPosition ? alignMap[attrs.fullPosition] : ''}`;
                         styleTag = `
                             <style>
                                 @media (max-width: ${parseInt(attrs.breakpoint, 10) - 1}px) {
-                                    .logo-container {
+                                    .place-self-center {
                                         ${attrs.iconPosition ? `place-self: ${attrs.iconPosition.replace(/-/g, ' ')} !important;` : ''}
                                     }
                                 }
                             </style>
                         `;
-                    } else {
-                        const activePosition = hasFullSource ? attrs.fullPosition : attrs.iconPosition;
-                        positionClass = activePosition ? `logo-container ${alignMap[activePosition]}` : 'logo-container';
                     }
 
                     const logoMarkup = generatePictureMarkup({
@@ -175,7 +171,7 @@
                     console.log('generatePictureMarkup output:', logoMarkup);
                     logoHTML = `
                         ${styleTag}
-                        <div class="${positionClass}" style="z-index: 100;">
+                        <div class="${positionClass}">
                             <a href="/">${logoMarkup}</a>
                         </div>
                     `;
@@ -208,7 +204,7 @@
                 mutations.forEach(mutation => {
                     if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
                         const img = mutation.target;
-                        const picture = img.closest('picture');
+                        const picture = this.querySelector('picture');
                         const sources = picture.querySelectorAll('source');
                         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                         const attrs = this.getAttributes();
@@ -219,14 +215,17 @@
                         sources.forEach(source => {
                             const media = source.getAttribute('media');
                             if (media && window.matchMedia(media).matches) {
-                                selectedSrc = source.getAttribute('srcset') || source.getAttribute('src');
+                                selectedSrc = source.getAttribute('srcset');
                                 matchedMedia = media;
                             }
                         });
                         console.log('Mutation detected:', { selectedSrc, matchedMedia, prefersDark, isBelowBreakpoint });
                         if (img.src !== selectedSrc) {
                             console.log('Mutation updating img src to:', selectedSrc);
+                            img.classList.remove('animate-picture');
+                            void img.offsetWidth;
                             img.src = selectedSrc;
+                            img.classList.add('animate-picture');
                         }
                     }
                 });

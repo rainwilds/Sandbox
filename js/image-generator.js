@@ -164,7 +164,7 @@ export function generatePictureMarkup({
   const fetchPriorityAttr = validFetchPriority && !isLogo ? ` fetchpriority="${validFetchPriority}"` : '';
 
   // Generate <picture> markup
-  let pictureMarkup = '';
+  let pictureMarkup = `<picture${classAttr}>`;
 
   if (isLogo) {
     // Log current media query state for debugging
@@ -175,9 +175,7 @@ export function generatePictureMarkup({
 
     // Logo case: Use original source URLs
     console.log('Generating logo markup with sources:', { iconSrc, iconLightSrc, iconDarkSrc, fullSrc, fullLightSrc, fullDarkSrc, breakpoint: validatedBreakpoint });
-    const pictureId = `logo-picture-${Math.random().toString(36).substring(2, 11)}`;
-    pictureMarkup = `<picture id="${pictureId}"${classAttr}>`;
-
+    
     if (validatedBreakpoint && (iconSrc || iconLightSrc || iconDarkSrc)) {
       // Add sources for icon logo (below breakpoint)
       if (iconLightSrc) {
@@ -212,7 +210,6 @@ export function generatePictureMarkup({
   } else {
     // Non-logo case: Generate responsive srcset
     console.log('Generating non-logo markup with sources:', { src, lightSrc, darkSrc });
-    pictureMarkup = `<picture${classAttr}>`;
     const parseWidth = (widthStr) => {
       const vwMatch = widthStr.match(/(\d+)vw/);
       if (vwMatch) return parseInt(vwMatch[1]) / 100;
@@ -268,42 +265,42 @@ export function generatePictureMarkup({
 
   // Add fallback img tag
   pictureMarkup += `
-    <img src="${primarySrc}" ${altAttr} ${loadingAttr} width="${desktopWidth}" height="auto" onerror="console.error('Image load failed: ${primarySrc}');this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${primaryAlt || primaryLightAlt || primaryDarkAlt || 'Placeholder image'}';`}this.onerror=null;">
+    <img src="${primarySrc}" ${altAttr} ${loadingAttr} onerror="console.error('Image load failed: ${primarySrc}');this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${primaryAlt || primaryLightAlt || primaryDarkAlt || 'Placeholder image'}';`}this.onerror=null;">
   </picture>`;
 
-  // Add script to force source selection for logos
-  if (isLogo) {
-    const pictureId = pictureMarkup.match(/id="([^"]+)"/)[1];
-    pictureMarkup += `
-      <script>
-        document.addEventListener('DOMContentLoaded', function() {
-          const picture = document.getElementById('${pictureId}');
-          if (!picture) {
-            console.error('Picture element not found: ${pictureId}');
-            return;
+  // Add script to force source selection and animate for all pictures
+  pictureMarkup += `
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const picture = document.currentScript.previousElementSibling;
+        if (!picture || picture.tagName !== 'PICTURE') {
+          console.error('Picture element not found for script');
+          return;
+        }
+        const img = picture.querySelector('img');
+        const sources = picture.querySelectorAll('source');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const isBelowBreakpoint = ${validatedBreakpoint ? `window.matchMedia('(max-width: ${validatedBreakpoint - 1}px)').matches` : 'false'};
+        let selectedSrc = '${primarySrc}';
+        let matchedMedia = 'none';
+        sources.forEach(source => {
+          const media = source.getAttribute('media');
+          if (media && window.matchMedia(media).matches) {
+            selectedSrc = source.getAttribute('srcset');
+            matchedMedia = media;
           }
-          const img = picture.querySelector('img');
-          const sources = picture.querySelectorAll('source');
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          const isBelowBreakpoint = ${validatedBreakpoint ? `window.matchMedia('(max-width: ${validatedBreakpoint - 1}px)').matches` : 'false'};
-          let selectedSrc = '${primarySrc}';
-          let matchedMedia = 'none';
-          sources.forEach(source => {
-            const media = source.getAttribute('media');
-            if (media && window.matchMedia(media).matches) {
-              selectedSrc = source.getAttribute('srcset');
-              matchedMedia = media;
-            }
-          });
-          console.log('Logo source selection:', { selectedSrc, matchedMedia, prefersDark, isBelowBreakpoint });
-          if (img.src !== selectedSrc && selectedSrc && selectedSrc !== '${primarySrc}') {
-            console.log('Updating logo img src to:', selectedSrc);
-            img.src = selectedSrc;
-          }
-          console.log('Final logo source:', img.src);
         });
-      </script>`;
-  }
+        console.log('Picture source selection:', { selectedSrc, matchedMedia, prefersDark, isBelowBreakpoint });
+        if (img.src !== selectedSrc && selectedSrc && selectedSrc !== '${primarySrc}') {
+          console.log('Updating picture img src to:', selectedSrc);
+          img.classList.remove('animate-picture');
+          void img.offsetWidth;
+          img.src = selectedSrc;
+          img.classList.add('animate-picture');
+        }
+        console.log('Final picture source:', img.src);
+      });
+    </script>`;
 
   // Add schema if requested
   if (includeSchema) {
