@@ -26,6 +26,7 @@
 
             constructor() {
                 super();
+                this.handleThemeChange = this.handleThemeChange.bind(this);
             }
 
             getAttributes() {
@@ -127,14 +128,13 @@
                                       attrs.iconPrimarySrc || attrs.iconLightSrc || attrs.iconDarkSrc;
                 if (hasValidSource) {
                     // Determine which position to use based on breakpoint and available sources
-                    let positionClass = '';
+                    let positionClass = 'logo-container';
                     let styleTag = '';
                     const hasBreakpoint = attrs.breakpoint && [768, 1024, 1366, 1920, 2560].includes(parseInt(attrs.breakpoint, 10));
                     const hasIconSource = attrs.iconPrimarySrc || (attrs.iconLightSrc && attrs.iconDarkSrc);
                     const hasFullSource = attrs.fullPrimarySrc || (attrs.fullLightSrc && attrs.fullDarkSrc);
 
                     if (hasBreakpoint && hasIconSource && hasFullSource) {
-                        // If breakpoint is set and both logos are provided, use media queries to apply position
                         positionClass = `logo-container ${attrs.fullPosition ? alignMap[attrs.fullPosition] : ''}`;
                         styleTag = `
                             <style>
@@ -146,7 +146,6 @@
                             </style>
                         `;
                     } else {
-                        // Use fullPosition if only full logo or no breakpoint, else iconPosition
                         const activePosition = hasFullSource ? attrs.fullPosition : attrs.iconPosition;
                         positionClass = activePosition ? `logo-container ${alignMap[activePosition]}` : 'logo-container';
                     }
@@ -186,8 +185,35 @@
                 this.innerHTML = logoHTML; // Use light DOM
             }
 
+            handleThemeChange() {
+                if (this.isConnected) {
+                    console.log('Theme change detected, re-rendering CustomLogo');
+                    this.render();
+                }
+            }
+
             connectedCallback() {
                 this.render();
+                // Add listener for prefers-color-scheme changes
+                const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                prefersDarkQuery.addEventListener('change', this.handleThemeChange);
+                // Add resize observer for breakpoint changes
+                const resizeObserver = new ResizeObserver(() => {
+                    if (this.isConnected) {
+                        console.log('Window resized, re-rendering CustomLogo');
+                        this.render();
+                    }
+                });
+                resizeObserver.observe(document.body);
+                this.resizeObserver = resizeObserver;
+            }
+
+            disconnectedCallback() {
+                if (this.resizeObserver) {
+                    this.resizeObserver.disconnect();
+                    this.resizeObserver = null;
+                }
+                window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', this.handleThemeChange);
             }
 
             attributeChangedCallback() {

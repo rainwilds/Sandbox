@@ -135,7 +135,7 @@ export function generatePictureMarkup({
   }
 
   // Determine primary sources and alts
-  const primarySrc = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc || src || lightSrc || darkSrc;
+  const primarySrc = (fullSrc || iconSrc || fullLightSrc || iconLightSrc || lightSrc || fullDarkSrc || iconDarkSrc || darkSrc || src);
   const primaryLightSrc = fullLightSrc || iconLightSrc || lightSrc;
   const primaryDarkSrc = fullDarkSrc || iconDarkSrc || darkSrc;
   const primaryAlt = fullAlt || iconAlt || alt;
@@ -188,15 +188,17 @@ export function generatePictureMarkup({
     // Add sources for full logo (above breakpoint or default)
     if (fullLightSrc) {
       pictureMarkup += `
-        <source media="(prefers-color-scheme: light)" type="${getImageType(fullLightSrc)}" src="${fullLightSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (fullLightAlt ? ` alt="${fullLightAlt}"` : '')}>`;
+        <source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: light)" type="${getImageType(fullLightSrc)}" src="${fullLightSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (fullLightAlt ? ` alt="${fullLightAlt}"` : '')}>`;
     }
     if (fullDarkSrc) {
       pictureMarkup += `
-        <source media="(prefers-color-scheme: dark)" type="${getImageType(fullDarkSrc)}" src="${fullDarkSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (fullDarkAlt ? ` alt="${fullDarkAlt}"` : '')}>`;
+        <source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: dark)" type="${getImageType(fullDarkSrc)}" src="${fullDarkSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (fullDarkAlt ? ` alt="${fullDarkAlt}"` : '')}>`;
     }
-    if (fullSrc || (!iconSrc && !iconLightSrc && !iconDarkSrc)) {
+    // Add fallback source without prefers-color-scheme
+    if (fullSrc || iconSrc || fullLightSrc || iconLightSrc) {
+      const fallbackSrc = fullSrc || iconSrc || fullLightSrc || iconLightSrc;
       pictureMarkup += `
-        <source type="${getImageType(fullSrc || primarySrc)}" src="${fullSrc || primarySrc}" sizes="${desktopWidth}" ${altAttr}>`;
+        <source type="${getImageType(fallbackSrc)}" src="${fallbackSrc}" sizes="${desktopWidth}" ${altAttr}>`;
     }
   } else {
     // Non-logo case: Generate responsive srcset
@@ -240,25 +242,23 @@ export function generatePictureMarkup({
       }
     } else {
       FORMATS.forEach(format => {
-        const baseFilename = (src || lightSrc || darkSrc).split('/').pop().split('.').slice(0, -1).join('.');
+        const baseFilename = (lightSrc || darkSrc || src).split('/').pop().split('.').slice(0, -1).join('.');
         let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
         let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
-        if (src) {
-          pictureMarkup += `<source type="image/${format}" srcset="${generateSrcset(baseFilename, format)}" sizes="${sizes}" ${altAttr}>`;
-        }
         if (lightSrc && lightBaseFilename) {
           pictureMarkup += `<source media="(prefers-color-scheme: light)" type="image/${format}" srcset="${generateSrcset(lightBaseFilename, format)}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (lightAlt ? ` alt="${lightAlt}"` : '')}>`;
         }
         if (darkSrc && darkBaseFilename) {
           pictureMarkup += `<source media="(prefers-color-scheme: dark)" type="image/${format}" srcset="${generateSrcset(darkBaseFilename, format)}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (darkAlt ? ` alt="${darkAlt}"` : '')}>`;
         }
+        pictureMarkup += `<source type="image/${format}" srcset="${generateSrcset(baseFilename, format)}" sizes="${sizes}" ${altAttr}>`;
       });
     }
   }
 
   // Add fallback img tag
   pictureMarkup += `
-    <img src="${primarySrc}" ${altAttr} ${loadingAttr} ${fetchPriorityAttr} width="${desktopWidth}" height="auto" onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${primaryAlt || primaryLightAlt || primaryDarkAlt || 'Placeholder image'}';`}this.onerror=null;">
+    <img src="${primarySrc}" ${altAttr} ${loadingAttr} ${fetchPriorityAttr} width="${desktopWidth}" height="auto" onerror="console.error('Image load failed: ${primarySrc}');this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${primaryAlt || primaryLightAlt || primaryDarkAlt || 'Placeholder image'}';`}this.onerror=null;">
   </picture>`;
 
   // Add schema if requested
