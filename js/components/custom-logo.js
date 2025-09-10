@@ -27,6 +27,7 @@
             constructor() {
                 super();
                 this.handleThemeChange = this.handleThemeChange.bind(this);
+                this.handleResize = this.handleResize.bind(this);
             }
 
             getAttributes() {
@@ -165,8 +166,8 @@
                         iconDarkAlt: attrs.iconDarkAlt,
                         isDecorative: attrs.isDecorative || false,
                         customClasses: 'logo',
-                        loading: 'eager',
-                        fetchPriority: 'high',
+                        loading: 'lazy', // Changed to lazy for testing
+                        fetchPriority: '', // Removed for testing
                         extraClasses: [],
                         breakpoint: attrs.breakpoint
                     });
@@ -185,9 +186,19 @@
                 this.innerHTML = logoHTML; // Use light DOM
             }
 
-            handleThemeChange() {
+            handleThemeChange(event) {
                 if (this.isConnected) {
-                    console.log('Theme change detected, re-rendering CustomLogo');
+                    console.log('Theme change detected:', { isDark: event.matches });
+                    this.render();
+                }
+            }
+
+            handleResize() {
+                if (this.isConnected) {
+                    const attrs = this.getAttributes();
+                    const breakpoint = parseInt(attrs.breakpoint, 10);
+                    const isBelowBreakpoint = breakpoint && window.matchMedia(`(max-width: ${breakpoint - 1}px)`).matches;
+                    console.log('Window resized, breakpoint state:', { isBelowBreakpoint });
                     this.render();
                 }
             }
@@ -198,12 +209,7 @@
                 const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
                 prefersDarkQuery.addEventListener('change', this.handleThemeChange);
                 // Add resize observer for breakpoint changes
-                const resizeObserver = new ResizeObserver(() => {
-                    if (this.isConnected) {
-                        console.log('Window resized, re-rendering CustomLogo');
-                        this.render();
-                    }
-                });
+                const resizeObserver = new ResizeObserver(this.handleResize);
                 resizeObserver.observe(document.body);
                 this.resizeObserver = resizeObserver;
             }

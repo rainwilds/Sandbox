@@ -161,23 +161,29 @@ export function generatePictureMarkup({
   const validLoading = ['eager', 'lazy'].includes(loading) ? loading : 'lazy';
   const validFetchPriority = ['high', 'low', 'auto'].includes(fetchPriority) ? fetchPriority : '';
   const loadingAttr = validLoading ? ` loading="${validLoading}"` : '';
-  const fetchPriorityAttr = validFetchPriority ? ` fetchpriority="${validFetchPriority}"` : '';
+  const fetchPriorityAttr = validFetchPriority && !isLogo ? ` fetchpriority="${validFetchPriority}"` : '';
 
   // Generate <picture> markup
   let pictureMarkup = `<picture${classAttr}>`;
 
   if (isLogo) {
+    // Log current media query state for debugging
+    console.log('Media query state:', {
+      isBelowBreakpoint: validatedBreakpoint && window.matchMedia(`(max-width: ${validatedBreakpoint - 1}px)`).matches,
+      isDarkTheme: window.matchMedia('(prefers-color-scheme: dark)').matches
+    });
+
     // Logo case: Use original source URLs without responsive srcset
     console.log('Generating logo markup with sources:', { iconSrc, iconLightSrc, iconDarkSrc, fullSrc, fullLightSrc, fullDarkSrc, breakpoint: validatedBreakpoint });
     if (validatedBreakpoint && (iconSrc || iconLightSrc || iconDarkSrc)) {
       // Add sources for icon logo (below breakpoint)
       if (iconLightSrc) {
         pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: light)" type="${getImageType(iconLightSrc)}" src="${iconLightSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (iconLightAlt ? ` alt="${iconLightAlt}"` : '')}>`;
+          <source media="(max-width: ${validatedBreakpoint - 1}px)" type="${getImageType(iconLightSrc)}" src="${iconLightSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (iconLightAlt ? ` alt="${iconLightAlt}"` : '')}>`;
       }
       if (iconDarkSrc) {
         pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: dark)" type="${getImageType(iconDarkSrc)}" src="${iconDarkSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (iconDarkAlt ? ` alt="${iconDarkAlt}"` : '')}>`;
+          <source media="(max-width: ${validatedBreakpoint - 1}px)" type="${getImageType(iconDarkSrc)}" src="${iconDarkSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (iconDarkAlt ? ` alt="${iconDarkAlt}"` : '')}>`;
       }
       if (iconSrc) {
         pictureMarkup += `
@@ -188,13 +194,13 @@ export function generatePictureMarkup({
     // Add sources for full logo (above breakpoint or default)
     if (fullLightSrc) {
       pictureMarkup += `
-        <source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: light)" type="${getImageType(fullLightSrc)}" src="${fullLightSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (fullLightAlt ? ` alt="${fullLightAlt}"` : '')}>`;
+        <source media="(min-width: ${validatedBreakpoint}px)" type="${getImageType(fullLightSrc)}" src="${fullLightSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (fullLightAlt ? ` alt="${fullLightAlt}"` : '')}>`;
     }
     if (fullDarkSrc) {
       pictureMarkup += `
-        <source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: dark)" type="${getImageType(fullDarkSrc)}" src="${fullDarkSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (fullDarkAlt ? ` alt="${fullDarkAlt}"` : '')}>`;
+        <source media="(min-width: ${validatedBreakpoint}px)" type="${getImageType(fullDarkSrc)}" src="${fullDarkSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (fullDarkAlt ? ` alt="${fullDarkAlt}"` : '')}>`;
     }
-    // Add fallback source without prefers-color-scheme
+    // Add fallback source without media query
     if (fullSrc || iconSrc || fullLightSrc || iconLightSrc) {
       const fallbackSrc = fullSrc || iconSrc || fullLightSrc || iconLightSrc;
       pictureMarkup += `
@@ -258,7 +264,7 @@ export function generatePictureMarkup({
 
   // Add fallback img tag
   pictureMarkup += `
-    <img src="${primarySrc}" ${altAttr} ${loadingAttr} ${fetchPriorityAttr} width="${desktopWidth}" height="auto" onerror="console.error('Image load failed: ${primarySrc}');this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${primaryAlt || primaryLightAlt || primaryDarkAlt || 'Placeholder image'}';`}this.onerror=null;">
+    <img src="${primarySrc}" ${altAttr} ${loadingAttr} width="${desktopWidth}" height="auto" onerror="console.error('Image load failed: ${primarySrc}');this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${primaryAlt || primaryLightAlt || primaryDarkAlt || 'Placeholder image'}';`}this.onerror=null;">
   </picture>`;
 
   // Add schema if requested
