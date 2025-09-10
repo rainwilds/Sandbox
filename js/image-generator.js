@@ -177,34 +177,34 @@ export function generatePictureMarkup({
     console.log('Generating logo markup with sources:', { iconSrc, iconLightSrc, iconDarkSrc, fullSrc, fullLightSrc, fullDarkSrc, breakpoint: validatedBreakpoint });
     if (validatedBreakpoint && (iconSrc || iconLightSrc || iconDarkSrc)) {
       // Add sources for icon logo (below breakpoint)
-      if (iconLightSrc) {
-        pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px)" type="${getImageType(iconLightSrc)}" src="${iconLightSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (iconLightAlt ? ` alt="${iconLightAlt}"` : '')}>`;
-      }
       if (iconDarkSrc) {
         pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px)" type="${getImageType(iconDarkSrc)}" src="${iconDarkSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (iconDarkAlt ? ` alt="${iconDarkAlt}"` : '')}>`;
+          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: dark)" type="${getImageType(iconDarkSrc)}" src="${iconDarkSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconDarkAlt ? ` alt="${iconDarkAlt}"` : '')}>`;
+      }
+      if (iconLightSrc) {
+        pictureMarkup += `
+          <source media="(max-width: ${validatedBreakpoint - 1}px)" type="${getImageType(iconLightSrc)}" src="${iconLightSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconLightAlt ? ` alt="${iconLightAlt}"` : '')}>`;
       }
       if (iconSrc) {
         pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px)" type="${getImageType(iconSrc)}" src="${iconSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (iconAlt ? ` alt="${iconAlt}"` : '')}>`;
+          <source media="(max-width: ${validatedBreakpoint - 1}px)" type="${getImageType(iconSrc)}" src="${iconSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconAlt ? ` alt="${iconAlt}"` : '')}>`;
       }
     }
 
     // Add sources for full logo (above breakpoint or default)
-    if (fullLightSrc) {
-      pictureMarkup += `
-        <source media="(min-width: ${validatedBreakpoint}px)" type="${getImageType(fullLightSrc)}" src="${fullLightSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (fullLightAlt ? ` alt="${fullLightAlt}"` : '')}>`;
-    }
     if (fullDarkSrc) {
       pictureMarkup += `
-        <source media="(min-width: ${validatedBreakpoint}px)" type="${getImageType(fullDarkSrc)}" src="${fullDarkSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (fullDarkAlt ? ` alt="${fullDarkAlt}"` : '')}>`;
+        <source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: dark)" type="${getImageType(fullDarkSrc)}" src="${fullDarkSrc}" ${isDecorative ? ' alt="" role="presentation"' : (fullDarkAlt ? ` alt="${fullDarkAlt}"` : '')}>`;
+    }
+    if (fullLightSrc) {
+      pictureMarkup += `
+        <source media="(min-width: ${validatedBreakpoint}px)" type="${getImageType(fullLightSrc)}" src="${fullLightSrc}" ${isDecorative ? ' alt="" role="presentation"' : (fullLightAlt ? ` alt="${fullLightAlt}"` : '')}>`;
     }
     // Add fallback source without media query
     if (fullSrc || iconSrc || fullLightSrc || iconLightSrc) {
       const fallbackSrc = fullSrc || iconSrc || fullLightSrc || iconLightSrc;
       pictureMarkup += `
-        <source type="${getImageType(fallbackSrc)}" src="${fallbackSrc}" sizes="${desktopWidth}" ${altAttr}>`;
+        <source type="${getImageType(fallbackSrc)}" src="${fallbackSrc}" ${altAttr}>`;
     }
   } else {
     // Non-logo case: Generate responsive srcset
@@ -266,6 +266,34 @@ export function generatePictureMarkup({
   pictureMarkup += `
     <img src="${primarySrc}" ${altAttr} ${loadingAttr} width="${desktopWidth}" height="auto" onerror="console.error('Image load failed: ${primarySrc}');this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${primaryAlt || primaryLightAlt || primaryDarkAlt || 'Placeholder image'}';`}this.onerror=null;">
   </picture>`;
+
+  // Add script to force source selection for logos
+  if (isLogo) {
+    const pictureId = `logo-picture-${Math.random().toString(36).substring(2, 11)}`;
+    pictureMarkup = `<picture id="${pictureId}"${classAttr}>${pictureMarkup.split('<picture')[1]}`;
+    pictureMarkup += `
+      <script>
+        (function() {
+          const picture = document.getElementById('${pictureId}');
+          const img = picture.querySelector('img');
+          const sources = picture.querySelectorAll('source');
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          const isBelowBreakpoint = ${validatedBreakpoint ? `window.matchMedia('(max-width: ${validatedBreakpoint - 1}px)').matches` : 'false'};
+          let selectedSrc = '${primarySrc}';
+          sources.forEach(source => {
+            const media = source.getAttribute('media');
+            if (media && window.matchMedia(media).matches) {
+              selectedSrc = source.getAttribute('src');
+            }
+          });
+          if (img.src !== selectedSrc) {
+            console.log('Updating logo img src to:', selectedSrc);
+            img.src = selectedSrc;
+          }
+          console.log('Selected logo source:', selectedSrc);
+        })();
+      </script>`;
+  }
 
   // Add schema if requested
   if (includeSchema) {
