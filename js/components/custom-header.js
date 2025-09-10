@@ -1,5 +1,5 @@
 import { generatePictureMarkup } from '../image-generator.js';
-import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, sanitizeStyles, withLazyLoading, withRenderCaching } from '../shared.js';
+import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, sanitizeStyles } from '../shared.js';
 
 (async () => {
   try {
@@ -11,13 +11,11 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
     ]);
     console.log('CustomLogo and CustomNav defined');
 
-    class CustomHeaderBase extends HTMLElement {
+    class CustomHeader extends HTMLElement {
       constructor() {
         super();
-        this.isVisible = false;
-        this.isInitialized = false;
-        this.callbacks = [];
         this.cachedAttributes = null;
+        this.mutationObserver = null;
       }
 
       getAttributes() {
@@ -86,28 +84,29 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
         return attrs;
       }
 
-      initialize() {
-        if (this.isInitialized) {
-          console.log('CustomHeader already initialized, skipping.');
-          return;
-        }
-        console.log('** CustomHeader start...', this.outerHTML);
-        this.isInitialized = true;
+      connectedCallback() {
+        console.log('CustomHeader connectedCallback called:', this.outerHTML);
         try {
-          const headerHTML = this.render();
-          if (headerHTML) {
-            console.log('Setting CustomHeader innerHTML:', headerHTML);
-            this.innerHTML = headerHTML;
-            this.callbacks.forEach(callback => callback());
-          } else {
-            console.error('Failed to render CustomHeader: headerHTML is null or invalid.', this.outerHTML);
-            this.innerHTML = this.render(true);
-          }
+          this.render();
+          // Set up MutationObserver to re-render on child changes
+          this.mutationObserver = new MutationObserver(() => {
+            console.log('CustomHeader child mutation detected, re-rendering');
+            this.render();
+          });
+          this.mutationObserver.observe(this, { childList: true, subtree: true });
         } catch (error) {
-          console.error('Error initializing CustomHeader:', error, this.outerHTML);
-          this.innerHTML = this.render(true);
+          console.error('Error in CustomHeader connectedCallback:', error);
+          this.render(true);
         }
-        console.log('** CustomHeader end...');
+      }
+
+      disconnectedCallback() {
+        console.log('CustomHeader disconnectedCallback called');
+        if (this.mutationObserver) {
+          this.mutationObserver.disconnect();
+          this.mutationObserver = null;
+        }
+        this.cachedAttributes = null;
       }
 
       render(isFallback = false) {
@@ -189,8 +188,8 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
               console.log('Initializing custom-logo');
               customLogo.initialize();
             }
-            logoHTML = customLogo.render ? customLogo.render().outerHTML : customLogo.outerHTML;
-            console.log('Generated logo HTML:', logoHTML);
+            logoHTML = customLogo.innerHTML || '<div>Logo placeholder</div>';
+            console.log('Using custom-logo HTML:', logoHTML);
           } else {
             console.warn('custom-logo not defined, using placeholder.');
             logoHTML = '<div>Logo placeholder</div>';
@@ -204,8 +203,8 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
               console.log('Initializing custom-nav');
               customNav.initialize();
             }
-            navHTML = customNav.render ? customNav.render().outerHTML : customNav.outerHTML;
-            console.log('Generated nav HTML:', navHTML);
+            navHTML = customNav.innerHTML || '<div>Navigation placeholder</div>';
+            console.log('Using custom-nav HTML:', navHTML);
           } else {
             console.warn('custom-nav not defined, using placeholder.');
             navHTML = '<div>Navigation placeholder</div>';
@@ -250,25 +249,9 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
         innerHTML += contentHTML;
         innerHTML += '</header>';
 
-        console.log('Final header HTML:', innerHTML);
-        return innerHTML;
-      }
-
-      addCallback(callback) {
-        this.callbacks.push(callback);
-      }
-
-      connectedCallback() {
-        console.log('CustomHeader connectedCallback called');
-        this.isVisible = true;
-        this.initialize();
-      }
-
-      disconnectedCallback() {
-        console.log('CustomHeader disconnectedCallback called');
-        this.callbacks = [];
-        this.cachedAttributes = null;
-        this.isInitialized = false;
+        console.log('Setting CustomHeader innerHTML:', innerHTML);
+        this.innerHTML = '';
+        this.innerHTML = innerHTML;
       }
 
       static get observedAttributes() {
@@ -283,13 +266,10 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
 
       attributeChangedCallback(name, oldValue, newValue) {
         console.log('CustomHeader attributeChangedCallback:', name, oldValue, newValue);
-        if (!this.isInitialized) return;
         this.cachedAttributes = null;
-        this.initialize();
+        this.render();
       }
     }
-
-    const CustomHeader = withRenderCaching(withLazyLoading(CustomHeaderBase));
 
     if (!customElements.get('custom-header')) {
       customElements.define('custom-header', CustomHeader);
