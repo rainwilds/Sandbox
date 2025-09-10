@@ -22,13 +22,14 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
 
       getAttributes() {
         if (this.cachedAttributes) {
+          console.log('Using cached attributes for CustomHeader');
           return this.cachedAttributes;
         }
         const attrs = {
           heading: this.getAttribute('heading') || '',
           headingTag: this.getAttribute('heading-tag') || 'h2',
-          innerAlignment: this.getAttribute('inner-alignment') || '',
-          textAlignment: this.getAttribute('text-alignment') || '',
+          innerAlignment: this.getAttribute('inner-alignment') || 'center',
+          textAlignment: this.getAttribute('text-alignment') || 'center',
           backgroundSrc: this.getAttribute('img-background-src') || '',
           backgroundLightSrc: this.getAttribute('img-background-light-src') || '',
           backgroundDarkSrc: this.getAttribute('img-background-dark-src') || '',
@@ -54,12 +55,12 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
           attrs.headingTag = 'h2';
         }
         if (attrs.innerAlignment && !VALID_ALIGNMENTS.includes(attrs.innerAlignment)) {
-          console.warn(`Invalid inner-alignment "${attrs.innerAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Ignoring.`);
-          attrs.innerAlignment = '';
+          console.warn(`Invalid inner-alignment "${attrs.innerAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Defaulting to 'center'.`);
+          attrs.innerAlignment = 'center';
         }
         if (attrs.textAlignment && !['left', 'center', 'right'].includes(attrs.textAlignment)) {
-          console.warn(`Invalid text-alignment "${attrs.textAlignment}". Must be one of left, center, right. Ignoring.`);
-          attrs.textAlignment = '';
+          console.warn(`Invalid text-alignment "${attrs.textAlignment}". Must be one of left, center, right. Defaulting to 'center'.`);
+          attrs.textAlignment = 'center';
         }
         if (!['independent', 'nav'].includes(attrs.logoPlacement)) {
           console.warn(`Invalid logo-placement "${attrs.logoPlacement}". Must be 'independent' or 'nav'. Defaulting to 'independent'.`);
@@ -75,12 +76,13 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
           attrs.backgroundLightSrc = '';
           attrs.backgroundDarkSrc = '';
         }
-        if (attrs.backgroundLightSrc && !attrs.backgroundAlt) {
-          console.error('img-background-alt is required when img-background-light-src is provided.');
+        if ((attrs.backgroundLightSrc || attrs.backgroundDarkSrc) && !attrs.backgroundAlt) {
+          console.error('img-background-alt is required when img-background-light-src or img-background-dark-src is provided.');
           attrs.backgroundLightSrc = '';
           attrs.backgroundDarkSrc = '';
         }
         this.cachedAttributes = attrs;
+        console.log('CustomHeader attributes:', attrs);
         return attrs;
       }
 
@@ -91,6 +93,7 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
         try {
           const headerElement = this.render();
           if (headerElement) {
+            console.log('Replacing CustomHeader with:', headerElement.outerHTML);
             this.replaceWith(headerElement);
             this.callbacks.forEach(callback => callback());
           } else {
@@ -105,11 +108,12 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
       }
 
       render(isFallback = false) {
+        console.log('Rendering CustomHeader, isFallback:', isFallback);
         const attrs = isFallback ? {
           heading: '',
           headingTag: 'h2',
-          innerAlignment: '',
-          textAlignment: '',
+          innerAlignment: 'center',
+          textAlignment: 'center',
           backgroundSrc: '',
           backgroundLightSrc: '',
           backgroundDarkSrc: '',
@@ -151,6 +155,7 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
           if (!src) {
             console.warn('No valid background image source provided for <custom-header>. Skipping background image rendering.');
           } else {
+            console.log('Generating hero image for:', { src, lightSrc: attrs.backgroundLightSrc, darkSrc: attrs.backgroundDarkSrc });
             backgroundContentHTML = generatePictureMarkup({
               src: attrs.backgroundSrc,
               lightSrc: attrs.backgroundLightSrc,
@@ -170,11 +175,13 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
               includeSchema: false,
               extraStyles: 'object-fit: cover; width: 100%; height: 100%;'
             });
+            console.log('Generated hero image markup:', backgroundContentHTML);
           }
         }
         if (attrs.backgroundOverlay && hasBackgroundImage) {
           const overlayClasses = [attrs.backgroundOverlay];
           overlayHTML = `<div class="${overlayClasses.join(' ').trim()}"></div>`;
+          console.log('Generated overlay HTML:', overlayHTML);
         }
 
         const customLogo = this.querySelector('custom-logo');
@@ -185,8 +192,11 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
         if (customLogo && !isFallback) {
           if (customElements.get('custom-logo')) {
             customElements.upgrade(customLogo);
-            customLogo.initialize?.();
-            logoHTML = customLogo.outerHTML || customLogo.render?.() || '';
+            if (typeof customLogo.initialize === 'function') {
+              customLogo.initialize();
+            }
+            logoHTML = customLogo.render ? customLogo.render() : customLogo.outerHTML;
+            console.log('Generated logo HTML:', logoHTML);
           } else {
             console.warn('custom-logo not defined, using placeholder.');
             logoHTML = '<div>Logo placeholder</div>';
@@ -196,8 +206,11 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
         if (customNav && !isFallback) {
           if (customElements.get('custom-nav')) {
             customElements.upgrade(customNav);
-            customNav.initialize?.();
-            navHTML = customNav.outerHTML || customNav.render?.() || '';
+            if (typeof customNav.initialize === 'function') {
+              customNav.initialize();
+            }
+            navHTML = customNav.render ? customNav.render() : customNav.outerHTML;
+            console.log('Generated nav HTML:', navHTML);
           } else {
             console.warn('custom-nav not defined, using placeholder.');
             navHTML = '<div>Navigation placeholder</div>';
@@ -216,6 +229,7 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
             </div>
           </div>
         `;
+        console.log('Generated content HTML:', contentHTML);
 
         let innerHTML = '';
         if (hasBackgroundImage) {
@@ -241,6 +255,7 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
         innerHTML += contentHTML;
 
         blockElement.innerHTML = innerHTML;
+        console.log('Final header HTML:', blockElement.outerHTML);
         return blockElement;
       }
 
@@ -271,6 +286,7 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
 
       attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) return;
+        console.log('CustomHeader attribute changed:', name, oldValue, newValue);
         this.cachedAttributes = null;
         this.initialize();
       }
