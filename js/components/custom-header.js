@@ -15,7 +15,6 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
       constructor() {
         super();
         this.cachedAttributes = null;
-        this.mutationObserver = null;
       }
 
       getAttributes() {
@@ -86,26 +85,18 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
 
       connectedCallback() {
         console.log('CustomHeader connectedCallback called:', this.outerHTML);
-        try {
-          this.render();
-          // Set up MutationObserver to re-render on child changes
-          this.mutationObserver = new MutationObserver(() => {
-            console.log('CustomHeader child mutation detected, re-rendering');
+        setTimeout(() => {
+          try {
             this.render();
-          });
-          this.mutationObserver.observe(this, { childList: true, subtree: true });
-        } catch (error) {
-          console.error('Error in CustomHeader connectedCallback:', error);
-          this.render(true);
-        }
+          } catch (error) {
+            console.error('Error in CustomHeader render:', error);
+            this.render(true);
+          }
+        }, 100); // Delay to ensure child components are ready
       }
 
       disconnectedCallback() {
         console.log('CustomHeader disconnectedCallback called');
-        if (this.mutationObserver) {
-          this.mutationObserver.disconnect();
-          this.mutationObserver = null;
-        }
         this.cachedAttributes = null;
       }
 
@@ -156,7 +147,7 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
               lightAlt: attrs.backgroundAlt,
               darkAlt: attrs.backgroundAlt,
               isDecorative: false,
-              customClasses: '',
+              customClasses: 'animate animate-fade-in',
               loading: 'lazy',
               fetchPriority: '',
               extraClasses: [],
@@ -199,12 +190,15 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
         if (customNav && !isFallback) {
           if (customElements.get('custom-nav')) {
             customElements.upgrade(customNav);
-            if (typeof customNav.initialize === 'function') {
-              console.log('Initializing custom-nav');
-              customNav.initialize();
+            if (typeof customNav.render === 'function') {
+              console.log('Rendering custom-nav');
+              const navElement = customNav.render();
+              navHTML = navElement ? navElement.outerHTML : '<div>Navigation placeholder</div>';
+            } else {
+              console.warn('custom-nav render method not available, using innerHTML.');
+              navHTML = customNav.innerHTML || '<div>Navigation placeholder</div>';
             }
-            navHTML = customNav.innerHTML || '<div>Navigation placeholder</div>';
-            console.log('Using custom-nav HTML:', navHTML);
+            console.log('Generated nav HTML:', navHTML);
           } else {
             console.warn('custom-nav not defined, using placeholder.');
             navHTML = '<div>Navigation placeholder</div>';
@@ -267,7 +261,14 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
       attributeChangedCallback(name, oldValue, newValue) {
         console.log('CustomHeader attributeChangedCallback:', name, oldValue, newValue);
         this.cachedAttributes = null;
-        this.render();
+        setTimeout(() => {
+          try {
+            this.render();
+          } catch (error) {
+            console.error('Error in CustomHeader attributeChangedCallback render:', error);
+            this.render(true);
+          }
+        }, 100);
       }
     }
 
