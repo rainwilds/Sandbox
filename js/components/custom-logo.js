@@ -20,7 +20,8 @@
                     'logo-icon-light-alt',
                     'logo-icon-dark-alt',
                     'logo-icon-position',
-                    'logo-breakpoint'
+                    'logo-breakpoint',
+                    'logo-max-height'
                 ];
             }
 
@@ -47,7 +48,8 @@
                     iconLightAlt: this.getAttribute('logo-icon-light-alt') || '',
                     iconDarkAlt: this.getAttribute('logo-icon-dark-alt') || '',
                     iconPosition: this.getAttribute('logo-icon-position') || '',
-                    breakpoint: this.getAttribute('logo-breakpoint') || ''
+                    breakpoint: this.getAttribute('logo-breakpoint') || '',
+                    maxHeight: this.getAttribute('logo-max-height') || ''
                 };
 
                 // Validate that at least one valid source is provided for full and/or icon
@@ -87,6 +89,15 @@
                     }
                     if (attrs.iconLightSrc && attrs.iconDarkSrc && !(attrs.iconLightAlt && attrs.iconDarkAlt)) {
                         console.error('Both logo-icon-light-alt and logo-icon-dark-alt are required when logo-icon-light-src and logo-icon-dark-src are provided.');
+                    }
+                }
+
+                // Validate max-height
+                if (attrs.maxHeight) {
+                    const validLength = attrs.maxHeight.match(/^(\d*\.?\d+)(px|rem|em|vh|vw)$/);
+                    if (!validLength) {
+                        console.warn(`Invalid logo-max-height value "${attrs.maxHeight}". Must be a valid CSS length (e.g., "40px", "2rem"). Ignoring.`);
+                        attrs.maxHeight = '';
                     }
                 }
 
@@ -148,6 +159,7 @@
                         `;
                     }
 
+                    const extraStyles = attrs.maxHeight ? `max-height: ${attrs.maxHeight}` : '';
                     const logoMarkup = generatePictureMarkup({
                         fullSrc: attrs.fullPrimarySrc,
                         fullLightSrc: attrs.fullLightSrc,
@@ -166,7 +178,8 @@
                         loading: 'lazy',
                         fetchPriority: '',
                         extraClasses: [],
-                        breakpoint: attrs.breakpoint
+                        breakpoint: attrs.breakpoint,
+                        extraStyles: extraStyles
                     });
                     console.log('generatePictureMarkup output:', logoMarkup);
                     logoHTML = `
@@ -220,21 +233,9 @@
                             }
                         });
                         console.log('Mutation detected:', { selectedSrc, matchedMedia, prefersDark, isBelowBreakpoint });
-                        try {
-                            if (!window.getComputedStyle(picture).animationName.includes('fadeIn')) {
-                                console.warn('fadeIn animation not applied to picture. Check CSS for .animate-picture');
-                            }
-                        } catch (e) {
-                            console.error('Error checking animationName:', e);
-                        }
                         if (img.src !== selectedSrc) {
                             console.log('Mutation updating img src to:', selectedSrc);
-                            picture.classList.remove('animate-picture');
-                            void picture.offsetWidth;
                             img.src = selectedSrc;
-                            picture.classList.add('animate-picture');
-                        } else if (!picture.classList.contains('animate-picture')) {
-                            picture.classList.add('animate-picture');
                         }
                     }
                 });
@@ -252,15 +253,6 @@
                 // Add mutation observer for img src changes
                 const img = this.querySelector('img');
                 if (img) {
-                    const picture = this.querySelector('picture');
-                    picture.classList.add('animate-picture'); // Ensure initial animation
-                    try {
-                        if (!window.getComputedStyle(picture).animationName.includes('fadeIn')) {
-                            console.warn('fadeIn animation not applied to picture on connect. Check CSS for .animate-picture');
-                        }
-                    } catch (e) {
-                        console.error('Error checking animationName on connect:', e);
-                    }
                     const mutationObserver = new MutationObserver(this.handleMutation);
                     mutationObserver.observe(img, { attributes: true, attributeFilter: ['src'] });
                     this.mutationObserver = mutationObserver;

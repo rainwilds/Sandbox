@@ -451,9 +451,6 @@
             transition: opacity 1s ease-out;
         }
 
-        .animate-picture {
-            animation: fadeIn 0.5s ease-in-out;
-        }
 
 
         .animate-top-down {
