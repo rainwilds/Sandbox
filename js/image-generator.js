@@ -117,7 +117,7 @@ export function generatePictureMarkup({
         return '';
       }
     } else {
-      // Non-logo validation (restored from previous version)
+      // Non-logo validation
       if (!alt && !(lightSrc && lightAlt) && !(darkSrc && darkAlt)) {
         console.error('An alt attribute (or lightAlt for lightSrc, or darkAlt for darkSrc) is required for non-decorative images');
         return '';
@@ -164,37 +164,39 @@ export function generatePictureMarkup({
 
   if (isLogo) {
     // Logo case: Use original source URLs without responsive srcset
+    console.log('Generating logo markup with sources:', { iconSrc, iconLightSrc, iconDarkSrc, fullSrc, fullLightSrc, fullDarkSrc, breakpoint: validatedBreakpoint });
     if (validatedBreakpoint && (iconSrc || iconLightSrc || iconDarkSrc)) {
       // Add sources for icon logo (below breakpoint)
       if (iconSrc) {
         pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px)" src="${iconSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconAlt ? ` alt="${iconAlt}"` : '')}>`;
+          <source media="(max-width: ${validatedBreakpoint - 1}px)" src="${iconSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (iconAlt ? ` alt="${iconAlt}"` : '')}>`;
       }
       if (iconLightSrc) {
         pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: light)" src="${iconLightSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconLightAlt ? ` alt="${iconLightAlt}"` : '')}>`;
+          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: light)" src="${iconLightSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (iconLightAlt ? ` alt="${iconLightAlt}"` : '')}>`;
       }
       if (iconDarkSrc) {
         pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: dark)" src="${iconDarkSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconDarkAlt ? ` alt="${iconDarkAlt}"` : '')}>`;
+          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: dark)" src="${iconDarkSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (iconDarkAlt ? ` alt="${iconDarkAlt}"` : '')}>`;
       }
     }
 
     // Add sources for full logo (above breakpoint or default)
     if (fullSrc || (!iconSrc && !iconLightSrc && !iconDarkSrc)) {
       pictureMarkup += `
-        <source src="${fullSrc || primarySrc}" ${altAttr}>`;
+        <source src="${fullSrc || primarySrc}" sizes="${desktopWidth}" ${altAttr}>`;
     }
     if (fullLightSrc || (!iconLightSrc && primaryLightSrc)) {
       pictureMarkup += `
-        <source media="(prefers-color-scheme: light)" src="${fullLightSrc || primaryLightSrc}" ${isDecorative ? ' alt="" role="presentation"' : (primaryLightAlt ? ` alt="${primaryLightAlt}"` : '')}>`;
+        <source media="(prefers-color-scheme: light)" src="${fullLightSrc || primaryLightSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (primaryLightAlt ? ` alt="${primaryLightAlt}"` : '')}>`;
     }
     if (fullDarkSrc || (!iconDarkSrc && primaryDarkSrc)) {
       pictureMarkup += `
-        <source media="(prefers-color-scheme: dark)" src="${fullDarkSrc || primaryDarkSrc}" ${isDecorative ? ' alt="" role="presentation"' : (primaryDarkAlt ? ` alt="${primaryDarkAlt}"` : '')}>`;
+        <source media="(prefers-color-scheme: dark)" src="${fullDarkSrc || primaryDarkSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (primaryDarkAlt ? ` alt="${primaryDarkAlt}"` : '')}>`;
     }
   } else {
     // Non-logo case: Generate responsive srcset
+    console.log('Generating non-logo markup with sources:', { src, lightSrc, darkSrc });
     const parseWidth = (widthStr) => {
       const vwMatch = widthStr.match(/(\d+)vw/);
       if (vwMatch) return parseInt(vwMatch[1]) / 100;
@@ -224,12 +226,12 @@ export function generatePictureMarkup({
 
     if (noResponsive) {
       if (lightSrc) {
-        pictureMarkup += `<source media="(prefers-color-scheme: light)" src="${lightSrc}" ${isDecorative ? ' alt="" role="presentation"' : (lightAlt ? ` alt="${lightAlt}"` : '')}>`;
+        pictureMarkup += `<source media="(prefers-color-scheme: light)" src="${lightSrc}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (lightAlt ? ` alt="${lightAlt}"` : '')}>`;
       }
       if (darkSrc) {
-        pictureMarkup += `<source media="(prefers-color-scheme: dark)" src="${darkSrc}" ${isDecorative ? ' alt="" role="presentation"' : (darkAlt ? ` alt="${darkAlt}"` : '')}>`;
+        pictureMarkup += `<source media="(prefers-color-scheme: dark)" src="${darkSrc}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (darkAlt ? ` alt="${darkAlt}"` : '')}>`;
       }
-      pictureMarkup += `<source src="${src}" ${altAttr}>`;
+      pictureMarkup += `<source src="${src}" sizes="${sizes}" ${altAttr}>`;
     } else {
       FORMATS.forEach(format => {
         const baseFilename = src.split('/').pop().split('.').slice(0, -1).join('.');
@@ -263,6 +265,7 @@ export function generatePictureMarkup({
     </script>` + pictureMarkup;
   }
 
+  console.log('Generated picture markup:', pictureMarkup);
   return pictureMarkup;
 }
 
