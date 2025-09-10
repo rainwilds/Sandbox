@@ -92,7 +92,7 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
             console.error('Error in CustomHeader render:', error);
             this.render(true);
           }
-        }, 100); // Delay to ensure child components are ready
+        }, 500); // Increased delay for child components
       }
 
       disconnectedCallback() {
@@ -190,6 +190,10 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
         if (customNav && !isFallback) {
           if (customElements.get('custom-nav')) {
             customElements.upgrade(customNav);
+            if (typeof customNav.initialize === 'function') {
+              console.log('Initializing custom-nav');
+              customNav.initialize();
+            }
             if (typeof customNav.render === 'function') {
               console.log('Rendering custom-nav');
               const navElement = customNav.render();
@@ -219,17 +223,19 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
         `;
         console.log('Generated content HTML:', contentHTML);
 
-        let innerHTML = `<header role="banner"${blockClasses ? ` class="${blockClasses}"` : ''}${blockStyles ? ` style="${blockStyles}"` : ''}>`;
+        // Build DOM in a temporary container
+        const tempContainer = document.createElement('div');
+        tempContainer.innerHTML = `<header role="banner"${blockClasses ? ` class="${blockClasses}"` : ''}${blockStyles ? ` style="${blockStyles}"` : ''}>`;
         if (hasBackgroundImage) {
-          innerHTML += backgroundContentHTML || '';
+          tempContainer.innerHTML += backgroundContentHTML || '';
           if (attrs.backgroundOverlay) {
-            innerHTML += overlayHTML;
+            tempContainer.innerHTML += overlayHTML;
           }
         }
 
         if (attrs.logoPlacement === 'nav' && logoHTML && navHTML) {
           const navAlignClass = attrs.navAlignment ? alignMap[attrs.navAlignment] : '';
-          innerHTML += `
+          tempContainer.innerHTML += `
             <div${attrs.navLogoContainerClass ? ` class="${attrs.navLogoContainerClass}"` : ''}${attrs.navLogoContainerStyle ? ` style="${attrs.navLogoContainerStyle}"` : ''}>
               ${logoHTML}
               <div${navAlignClass ? ` class="${navAlignClass}"` : ''}>
@@ -238,14 +244,14 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
             </div>
           `;
         } else {
-          innerHTML += logoHTML + navHTML;
+          tempContainer.innerHTML += logoHTML + navHTML;
         }
-        innerHTML += contentHTML;
-        innerHTML += '</header>';
+        tempContainer.innerHTML += contentHTML;
+        tempContainer.innerHTML += '</header>';
 
-        console.log('Setting CustomHeader innerHTML:', innerHTML);
+        console.log('Setting CustomHeader innerHTML:', tempContainer.innerHTML);
         this.innerHTML = '';
-        this.innerHTML = innerHTML;
+        this.appendChild(tempContainer.firstChild);
       }
 
       static get observedAttributes() {
@@ -268,7 +274,7 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
             console.error('Error in CustomHeader attributeChangedCallback render:', error);
             this.render(true);
           }
-        }, 100);
+        }, 500);
       }
     }
 
