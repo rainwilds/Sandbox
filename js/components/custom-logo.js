@@ -215,14 +215,17 @@
                         const breakpoint = parseInt(attrs.breakpoint, 10);
                         const isBelowBreakpoint = breakpoint && window.matchMedia(`(max-width: ${breakpoint - 1}px)`).matches;
                         let selectedSrc = attrs.fullLightSrc;
+                        let matchedMedia = 'none';
                         sources.forEach(source => {
                             const media = source.getAttribute('media');
                             if (media && window.matchMedia(media).matches) {
-                                selectedSrc = source.getAttribute('src');
+                                selectedSrc = source.getAttribute('srcset') || source.getAttribute('src');
+                                matchedMedia = media;
                             }
                         });
+                        console.log('Mutation detected:', { selectedSrc, matchedMedia, prefersDark, isBelowBreakpoint });
                         if (img.src !== selectedSrc) {
-                            console.log('Mutation detected, updating img src to:', selectedSrc);
+                            console.log('Mutation updating img src to:', selectedSrc);
                             img.src = selectedSrc;
                         }
                     }
