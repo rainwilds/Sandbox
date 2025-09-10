@@ -297,6 +297,13 @@ export function generatePictureMarkup({
             }
           });
           console.log('Picture source selection:', { selectedSrc, matchedMedia, prefersDark, isBelowBreakpoint });
+          try {
+            if (!window.getComputedStyle(picture).animationName.includes('fadeIn')) {
+              console.warn('fadeIn animation not applied to picture. Check CSS for .animate-picture');
+            }
+          } catch (e) {
+            console.error('Error checking animationName:', e);
+          }
           if (img.src !== selectedSrc && selectedSrc) {
             console.log('Updating picture img src to:', selectedSrc);
             picture.classList.remove('animate-picture');

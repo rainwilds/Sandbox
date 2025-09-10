@@ -220,6 +220,13 @@
                             }
                         });
                         console.log('Mutation detected:', { selectedSrc, matchedMedia, prefersDark, isBelowBreakpoint });
+                        try {
+                            if (!window.getComputedStyle(picture).animationName.includes('fadeIn')) {
+                                console.warn('fadeIn animation not applied to picture. Check CSS for .animate-picture');
+                            }
+                        } catch (e) {
+                            console.error('Error checking animationName:', e);
+                        }
                         if (img.src !== selectedSrc) {
                             console.log('Mutation updating img src to:', selectedSrc);
                             picture.classList.remove('animate-picture');
@@ -247,6 +254,13 @@
                 if (img) {
                     const picture = this.querySelector('picture');
                     picture.classList.add('animate-picture'); // Ensure initial animation
+                    try {
+                        if (!window.getComputedStyle(picture).animationName.includes('fadeIn')) {
+                            console.warn('fadeIn animation not applied to picture on connect. Check CSS for .animate-picture');
+                        }
+                    } catch (e) {
+                        console.error('Error checking animationName on connect:', e);
+                    }
                     const mutationObserver = new MutationObserver(this.handleMutation);
                     mutationObserver.observe(img, { attributes: true, attributeFilter: ['src'] });
                     this.mutationObserver = mutationObserver;
