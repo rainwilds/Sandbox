@@ -150,11 +150,11 @@ export function generatePictureMarkup({
   };
 
   // Combine classes
-  const allClasses = [...new Set([...customClasses.trim().split(/\s+/).filter(Boolean), ...extraClasses])];
+  const allClasses = [...new Set([...customClasses.trim().split(/\s+/).filter(Boolean), ...extraClasses, 'animate-picture'])];
   if (aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio)) {
     allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
   }
-  const classAttr = allClasses.length ? ` class="${allClasses.join(' ')} animate animate-fade-in"` : ' class="animate animate-fade-in"';
+  const classAttr = allClasses.length ? ` class="${allClasses.join(' ')} animate animate-fade-in"` : ' class="animate-picture animate animate-fade-in"';
   const styleAttr = extraStyles ? ` style="${extraStyles}"` : '';
 
   // Handle alt attributes
@@ -267,7 +267,7 @@ export function generatePictureMarkup({
 
   // Add fallback img tag
   pictureMarkup += `
-    <img src="${primarySrc}" ${altAttr} ${loadingAttr} class="animate-picture" onerror="console.error('Image load failed: ${primarySrc}');this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${primaryAlt || primaryLightAlt || primaryDarkAlt || 'Placeholder image'}';`}this.onerror=null;">
+    <img src="${primarySrc}" ${altAttr} ${loadingAttr} onerror="console.error('Image load failed: ${primarySrc}');this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${primaryAlt || primaryLightAlt || primaryDarkAlt || 'Placeholder image'}';`}this.onerror=null;">
   </picture>`;
 
   // Add script to force source selection and animate for all pictures
@@ -299,12 +299,12 @@ export function generatePictureMarkup({
           console.log('Picture source selection:', { selectedSrc, matchedMedia, prefersDark, isBelowBreakpoint });
           if (img.src !== selectedSrc && selectedSrc) {
             console.log('Updating picture img src to:', selectedSrc);
-            img.classList.remove('animate-picture');
-            void img.offsetWidth;
+            picture.classList.remove('animate-picture');
+            void picture.offsetWidth;
             img.src = selectedSrc;
-            img.classList.add('animate-picture');
-          } else if (!img.classList.contains('animate-picture')) {
-            img.classList.add('animate-picture');
+            picture.classList.add('animate-picture');
+          } else if (!picture.classList.contains('animate-picture')) {
+            picture.classList.add('animate-picture');
           }
           console.log('Final picture source:', img.src);
         }

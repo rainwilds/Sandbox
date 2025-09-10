@@ -162,7 +162,7 @@
                         iconLightAlt: attrs.iconLightAlt,
                         iconDarkAlt: attrs.iconDarkAlt,
                         isDecorative: attrs.isDecorative || false,
-                        customClasses: '', // Remove logo class
+                        customClasses: '', // No logo class
                         loading: 'lazy',
                         fetchPriority: '',
                         extraClasses: [],
@@ -222,12 +222,12 @@
                         console.log('Mutation detected:', { selectedSrc, matchedMedia, prefersDark, isBelowBreakpoint });
                         if (img.src !== selectedSrc) {
                             console.log('Mutation updating img src to:', selectedSrc);
-                            img.classList.remove('animate-picture');
-                            void img.offsetWidth;
+                            picture.classList.remove('animate-picture');
+                            void picture.offsetWidth;
                             img.src = selectedSrc;
-                            img.classList.add('animate-picture');
-                        } else {
-                            img.classList.add('animate-picture'); // Ensure animation on initial load
+                            picture.classList.add('animate-picture');
+                        } else if (!picture.classList.contains('animate-picture')) {
+                            picture.classList.add('animate-picture');
                         }
                     }
                 });
@@ -245,7 +245,8 @@
                 // Add mutation observer for img src changes
                 const img = this.querySelector('img');
                 if (img) {
-                    img.classList.add('animate-picture'); // Ensure initial animation
+                    const picture = this.querySelector('picture');
+                    picture.classList.add('animate-picture'); // Ensure initial animation
                     const mutationObserver = new MutationObserver(this.handleMutation);
                     mutationObserver.observe(img, { attributes: true, attributeFilter: ['src'] });
                     this.mutationObserver = mutationObserver;
