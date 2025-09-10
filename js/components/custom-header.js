@@ -94,18 +94,18 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
         console.log('** CustomHeader start...', this.outerHTML);
         this.isInitialized = true;
         try {
-          const headerElement = this.render();
-          if (headerElement) {
-            console.log('Replacing CustomHeader with:', headerElement.outerHTML);
-            this.replaceWith(headerElement);
+          const headerHTML = this.render();
+          if (headerHTML) {
+            console.log('Setting CustomHeader innerHTML:', headerHTML);
+            this.innerHTML = headerHTML;
             this.callbacks.forEach(callback => callback());
           } else {
-            console.error('Failed to render CustomHeader: headerElement is null or invalid.', this.outerHTML);
-            this.replaceWith(this.render(true));
+            console.error('Failed to render CustomHeader: headerHTML is null or invalid.', this.outerHTML);
+            this.innerHTML = this.render(true);
           }
         } catch (error) {
           console.error('Error initializing CustomHeader:', error, this.outerHTML);
-          this.replaceWith(this.render(true));
+          this.innerHTML = this.render(true);
         }
         console.log('** CustomHeader end...');
       }
@@ -131,24 +131,14 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
           navAlignment: 'center'
         } : this.getAttributes();
 
-        const blockElement = document.createElement('header');
-        blockElement.setAttribute('role', 'banner');
-        const headerClasses = [
+        let blockClasses = [
           'block',
           attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc ? 'background-image' : '',
           attrs.customClasses,
           attrs.sticky ? 'sticky' : ''
         ].filter(cls => cls).join(' ').trim();
-        blockElement.className = headerClasses;
-
-        if (attrs.sticky) {
-          blockElement.style.position = 'sticky';
-          blockElement.style.top = '0';
-          blockElement.style.zIndex = '1000';
-        }
-        if (attrs.styleAttribute) {
-          blockElement.setAttribute('style', attrs.styleAttribute);
-        }
+        let blockStyles = attrs.sticky ? 'position: sticky; top: 0; z-index: 1000;' : '';
+        blockStyles += attrs.styleAttribute ? ` ${attrs.styleAttribute}` : '';
 
         let backgroundContentHTML = '';
         let overlayHTML = '';
@@ -236,7 +226,7 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
         `;
         console.log('Generated content HTML:', contentHTML);
 
-        let innerHTML = '';
+        let innerHTML = `<header role="banner"${blockClasses ? ` class="${blockClasses}"` : ''}${blockStyles ? ` style="${blockStyles}"` : ''}>`;
         if (hasBackgroundImage) {
           innerHTML += backgroundContentHTML || '';
           if (attrs.backgroundOverlay) {
@@ -258,10 +248,10 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
           innerHTML += logoHTML + navHTML;
         }
         innerHTML += contentHTML;
+        innerHTML += '</header>';
 
-        blockElement.innerHTML = innerHTML;
-        console.log('Final header HTML:', blockElement.outerHTML);
-        return blockElement;
+        console.log('Final header HTML:', innerHTML);
+        return innerHTML;
       }
 
       addCallback(callback) {
@@ -270,7 +260,6 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
 
       connectedCallback() {
         console.log('CustomHeader connectedCallback called');
-        // Force initialization for debugging
         this.isVisible = true;
         this.initialize();
       }
@@ -279,6 +268,7 @@ import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, san
         console.log('CustomHeader disconnectedCallback called');
         this.callbacks = [];
         this.cachedAttributes = null;
+        this.isInitialized = false;
       }
 
       static get observedAttributes() {

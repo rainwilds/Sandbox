@@ -105,9 +105,8 @@ export function withLazyLoading(BaseClass) {
           this.observer = null;
           this.initialize();
         }
-      }, { rootMargin: '50px' });
+      }, { rootMargin: '100px' });
       this.observer.observe(this);
-      // Fallback to force initialization after 2 seconds
       setTimeout(() => {
         if (!this.isInitialized) {
           console.log('Forcing initialization for:', this.tagName);
