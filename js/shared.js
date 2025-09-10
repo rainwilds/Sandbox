@@ -135,21 +135,21 @@ export function withRenderCaching(BaseClass) {
     render(isFallback = false) {
       if (!isFallback && this.lastAttributes) {
         const attrString = JSON.stringify(this.getAttributes());
-        if (CustomBlock.#renderCacheMap.has(this) && this.lastAttributes === attrString) {
+        if (this.constructor.#renderCacheMap.has(this) && this.lastAttributes === attrString) {
           console.log('Using cached render:', this.tagName);
-          return CustomBlock.#renderCacheMap.get(this).cloneNode(true);
+          return this.constructor.#renderCacheMap.get(this).cloneNode(true);
         }
       }
       const element = super.render(isFallback);
       if (!isFallback) {
-        CustomBlock.#renderCacheMap.set(this, element.cloneNode(true));
+        this.constructor.#renderCacheMap.set(this, element.cloneNode(true));
         this.lastAttributes = JSON.stringify(this.getAttributes());
       }
       return element;
     }
 
     disconnectedCallback() {
-      CustomBlock.#renderCacheMap.delete(this);
+      this.constructor.#renderCacheMap.delete(this);
       this.renderCache = null;
       this.lastAttributes = null;
       super.disconnectedCallback?.();
