@@ -166,8 +166,8 @@
                         iconDarkAlt: attrs.iconDarkAlt,
                         isDecorative: attrs.isDecorative || false,
                         customClasses: 'logo',
-                        loading: 'lazy', // Changed to lazy for testing
-                        fetchPriority: '', // Removed for testing
+                        loading: 'lazy',
+                        fetchPriority: '',
                         extraClasses: [],
                         breakpoint: attrs.breakpoint
                     });
