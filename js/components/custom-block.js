@@ -1,6 +1,6 @@
 /* global HTMLElement, IntersectionObserver, document, window, JSON, console */
 import { generatePictureMarkup } from '../image-generator.js';
-import { VALID_ALIGNMENTS, alignMap } from './shared.js';
+import { VALID_ALIGNMENTS, alignMap } from '../shared.js';
 
 class CustomBlock extends HTMLElement {
     constructor() {

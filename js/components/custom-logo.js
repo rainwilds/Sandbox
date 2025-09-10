@@ -1,7 +1,7 @@
 (async () => {
     try {
         const { generatePictureMarkup } = await import('../image-generator.js');
-        const { VALID_ALIGNMENTS, alignMap } = await import('./shared.js');
+        const { VALID_ALIGNMENTS, alignMap } = await import('../shared.js');
         console.log('Successfully imported generatePictureMarkup and alignMap');
 
         class CustomLogo extends HTMLElement {
