@@ -149,7 +149,7 @@ class CustomLogoBase extends HTMLElement {
         `;
       }
 
-      const extraStyles = attrs.height ? `height: ${attrs.height}` : '';
+      const extraStyles = attrs.height ? `height: ${attrs.height}; max-width: 100%; object-fit: contain;` : 'max-width: 100%; object-fit: contain;';
       const logoMarkup = generatePictureMarkup({
         fullSrc: attrs.fullPrimarySrc,
         fullLightSrc: attrs.fullLightSrc,
@@ -171,19 +171,25 @@ class CustomLogoBase extends HTMLElement {
         breakpoint: attrs.breakpoint,
         extraStyles: extraStyles
       });
-      console.log('generatePictureMarkup output:', logoMarkup);
-      logoHTML = `
-        ${styleTag}
-        <div class="${positionClass}">
-          <a href="/">${logoMarkup}</a>
-        </div>
-      `;
+      if (!logoMarkup) {
+        console.warn('No valid logo markup generated, using placeholder.');
+        logoHTML = '<div>No logo sources provided</div>';
+      } else {
+        console.log('generatePictureMarkup output:', logoMarkup);
+        logoHTML = `
+          ${styleTag}
+          <div class="${positionClass}">
+            <a href="/">${logoMarkup}</a>
+          </div>
+        `;
+      }
     } else {
-      console.warn('No valid logo sources provided, skipping render.');
+      console.warn('No valid logo sources provided, using placeholder.');
       logoHTML = '<div>No logo sources provided</div>';
     }
     console.log('Rendered logoHTML:', logoHTML);
     this.innerHTML = logoHTML;
+    return this;
   }
 
   handleThemeChange(event) {
@@ -215,7 +221,7 @@ class CustomLogoBase extends HTMLElement {
         const attrs = this.getAttributes();
         const breakpoint = parseInt(attrs.breakpoint, 10);
         const isBelowBreakpoint = breakpoint && window.matchMedia(`(max-width: ${breakpoint - 1}px)`).matches;
-        let selectedSrc = attrs.fullLightSrc;
+        let selectedSrc = attrs.fullLightSrc || attrs.iconLightSrc || attrs.fullPrimarySrc || attrs.iconPrimarySrc;
         let matchedMedia = 'none';
         sources.forEach(source => {
           const media = source.getAttribute('media');
@@ -225,7 +231,7 @@ class CustomLogoBase extends HTMLElement {
           }
         });
         console.log('Mutation detected:', { selectedSrc, matchedMedia, prefersDark, isBelowBreakpoint });
-        if (img.src !== selectedSrc) {
+        if (img.src !== selectedSrc && selectedSrc) {
           console.log('Mutation updating img src to:', selectedSrc);
           img.src = selectedSrc;
         }

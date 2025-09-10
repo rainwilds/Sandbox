@@ -123,9 +123,9 @@ export function withLazyLoading(BaseClass) {
 }
 
 export function withRenderCaching(BaseClass) {
-  return class extends BaseClass {
-    static #renderCacheMap = new WeakMap();
+  const renderCacheMap = new WeakMap();
 
+  return class extends BaseClass {
     constructor() {
       super();
       this.renderCache = null;
@@ -135,21 +135,22 @@ export function withRenderCaching(BaseClass) {
     render(isFallback = false) {
       if (!isFallback && this.lastAttributes) {
         const attrString = JSON.stringify(this.getAttributes());
-        if (this.constructor.#renderCacheMap.has(this) && this.lastAttributes === attrString) {
+        if (renderCacheMap.has(this) && this.lastAttributes === attrString) {
           console.log('Using cached render:', this.tagName);
-          return this.constructor.#renderCacheMap.get(this).cloneNode(true);
+          const cachedElement = renderCacheMap.get(this);
+          return cachedElement ? cachedElement.cloneNode(true) : super.render(isFallback);
         }
       }
       const element = super.render(isFallback);
-      if (!isFallback) {
-        this.constructor.#renderCacheMap.set(this, element.cloneNode(true));
+      if (!isFallback && element) {
+        renderCacheMap.set(this, element.cloneNode(true));
         this.lastAttributes = JSON.stringify(this.getAttributes());
       }
       return element;
     }
 
     disconnectedCallback() {
-      this.constructor.#renderCacheMap.delete(this);
+      renderCacheMap.delete(this);
       this.renderCache = null;
       this.lastAttributes = null;
       super.disconnectedCallback?.();

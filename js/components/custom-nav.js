@@ -56,10 +56,16 @@ class CustomNavBase extends HTMLElement {
     console.log('** CustomNav start...', this.outerHTML);
     this.isInitialized = true;
     try {
-      this.render();
+      const navElement = this.render();
+      if (navElement) {
+        this.replaceWith(navElement);
+      } else {
+        console.error('Failed to render CustomNav: navElement is null or invalid.', this.outerHTML);
+        this.replaceWith(this.render(true));
+      }
     } catch (error) {
       console.error('Error initializing CustomNav:', error, this.outerHTML);
-      this.render(true);
+      this.replaceWith(this.render(true));
     }
     console.log('** CustomNav end...');
   }
@@ -99,7 +105,8 @@ class CustomNavBase extends HTMLElement {
       .join(' ');
     const navStyle = [attrs.navStyle, navBackdropFilterStyle].filter(s => s).join('; ').trim();
 
-    this.innerHTML = `
+    const navElement = document.createElement('div');
+    navElement.innerHTML = `
       <div class="${navAlignClass} ${attrs.navContainerClass}"${attrs.navContainerStyle ? ` style="${attrs.navContainerStyle}"` : ''}>
         <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${navStyle ? ` style="${navStyle}"` : ''}>
           <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
@@ -114,8 +121,8 @@ class CustomNavBase extends HTMLElement {
       </div>
     `;
 
-    const hamburger = this.querySelector('button[aria-controls="nav-menu"]');
-    const navMenu = this.querySelector('#nav-menu');
+    const hamburger = navElement.querySelector('button[aria-controls="nav-menu"]');
+    const navMenu = navElement.querySelector('#nav-menu');
     if (hamburger && navMenu) {
       hamburger.addEventListener('click', () => {
         const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
@@ -123,6 +130,8 @@ class CustomNavBase extends HTMLElement {
         navMenu.style.display = isExpanded ? 'none' : 'block';
       });
     }
+
+    return navElement;
   }
 
   connectedCallback() {
