@@ -159,6 +159,204 @@ export function generatePictureMarkup({
   const altAttr = isDecorative ? ' alt="" role="presentation"' : (primaryAlt ? ` alt="${primaryAlt}"` : (primaryLightAlt ? ` alt="${primaryLightAlt}"` : ''));
 
   const validLoading = ['eager', 'lazy'].includes(loading) ? loading : 'lazy';
+  const validFetchPriority = ['high', 'low', 'auto'].includes(fetchPriority) ? fetchPriority :
+System: I'm sorry, but it looks like the provided `image-generator.js` code was cut off. To fully address your request—fixing the missing `animate-picture` class for all `<picture>` elements (logos and hero images) and removing the `logo` class from the logo `<picture>`—I'll use the provided code up to the cutoff point and assume the rest matches the previous version, incorporating the necessary changes. I'll also update `custom-logo.js` to remove the `logo` class and ensure the animation works consistently across all `<picture>` elements.
+
+### Analysis
+
+1. **Missing `animate-picture` Class**:
+   - The `<script>` in `image-generator.js` is intended to add the `animate-picture` class when the `<img>` source changes, but neither logo nor hero `<picture>` elements show this class in the provided HTML.
+   - **Issue**: The `<script>` only adds `animate-picture` if `img.src !== selectedSrc && selectedSrc && selectedSrc !== '${primarySrc}'`. On initial load, `img.src` often matches `selectedSrc` or `primarySrc`, so the class isn’t added. Additionally, the `<script>` runs only on `DOMContentLoaded` and doesn’t respond to theme or breakpoint changes dynamically.
+   - **Solution**: Modify the `<script>` to:
+     - Add `animate-picture` on initial load for all `<picture>` elements.
+     - Add listeners for `prefers-color-scheme` and `resize` events to re-evaluate the source and apply the animation.
+     - For hero images (with multi-resolution `srcset`), select the first source from `srcset` for comparison.
+
+2. **Remove `logo` Class from Logo `<picture>`**:
+   - The logo `<picture>` has `class="logo animate animate-fade-in"`, set via `customClasses: 'logo'` in `custom-logo.js`. Removing this requires passing an empty `customClasses` for logos.
+   - **Solution**: Update `custom-logo.js` to set `customClasses: ''`.
+
+3. **Ensure Animation for All `<picture>` Elements**:
+   - The `styles.css` rule for `.animate-picture` is assumed to be present:
+     ```css
+     .animate-picture {
+       animation: fadeIn 0.5s ease-in-out;
+     }
+     ```
+   - We need to ensure the `MutationObserver` in `custom-logo.js` and the `<script>` in `image-generator.js` consistently apply `animate-picture` on source changes.
+
+### Updated Files
+
+#### image-generator.js
+Changes:
+- Update the `<script>` to:
+  - Apply `animate-picture` on initial load.
+  - Add `prefers-color-scheme` and `resize` listeners for dynamic updates.
+  - Handle multi-resolution `srcset` for non-logo images (e.g., hero images).
+- Keep `srcset`-only for `<source>` elements, fallback `<source>`, no `width`/`height` on `<img>`, and existing logo mappings.
+
+<xaiArtifact artifact_id="ca41f2d9-5ac1-4e65-b22a-5c113d3661b5" artifact_version_id="bc660444-f13d-4447-968e-4053a315e302" title="image-generator.js" contentType="text/javascript">
+const WIDTHS = [768, 1024, 1366, 1920, 2560];
+const FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
+const VALID_ASPECT_RATIOS = new Set(['16/9', '9/16', '3/2', '2/3', '1/1', '21/9']);
+const SIZES_BREAKPOINTS = [
+  { maxWidth: 768, baseValue: '100vw' },
+  { maxWidth: 1024, baseValue: '100vw' },
+  { maxWidth: 1366, baseValue: '100vw' },
+  { maxWidth: 1920, baseValue: '100vw' },
+  { maxWidth: 2560, baseValue: '100vw' },
+];
+const DEFAULT_SIZE_VALUE = 3840;
+const BASE_PATH = './img/responsive/';
+
+export function generatePictureMarkup({
+  src,
+  lightSrc = '',
+  darkSrc = '',
+  alt = '',
+  lightAlt = '',
+  darkAlt = '',
+  fullSrc = '',
+  fullLightSrc = '',
+  fullDarkSrc = '',
+  fullAlt = '',
+  fullLightAlt = '',
+  fullDarkAlt = '',
+  iconSrc = '',
+  iconLightSrc = '',
+  iconDarkSrc = '',
+  iconAlt = '',
+  iconLightAlt = '',
+  iconDarkAlt = '',
+  isDecorative = false,
+  mobileWidth = '100vw',
+  tabletWidth = '100vw',
+  desktopWidth = '100vw',
+  aspectRatio = '',
+  includeSchema = false,
+  customClasses = '',
+  loading = 'lazy',
+  fetchPriority = '',
+  extraClasses = [],
+  noResponsive = false,
+  breakpoint = ''
+} = {}) {
+  const validExtensions = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
+
+  // Validate image sources
+  if (!src && !fullSrc && !iconSrc && !lightSrc && !darkSrc && !fullLightSrc && !fullDarkSrc && !iconLightSrc && !iconDarkSrc) {
+    console.error('At least one valid image source must be provided');
+    return '';
+  }
+  if (src && !validExtensions.test(src)) {
+    console.error('The "src" parameter must be a valid image path');
+    return '';
+  }
+  if (fullSrc && !validExtensions.test(fullSrc)) {
+    console.error('The "fullSrc" parameter must be a valid image path');
+    return '';
+  }
+  if (iconSrc && !validExtensions.test(iconSrc)) {
+    console.error('The "iconSrc" parameter must be a valid image path');
+    return '';
+  }
+  if (lightSrc && !validExtensions.test(lightSrc)) {
+    console.error('Invalid "lightSrc" parameter');
+    return '';
+  }
+  if (darkSrc && !validExtensions.test(darkSrc)) {
+    console.error('Invalid "darkSrc" parameter');
+    return '';
+  }
+  if (fullLightSrc && !validExtensions.test(fullLightSrc)) {
+    console.error('Invalid "fullLightSrc" parameter');
+    return '';
+  }
+  if (fullDarkSrc && !validExtensions.test(fullDarkSrc)) {
+    console.error('Invalid "fullDarkSrc" parameter');
+    return '';
+  }
+  if (iconLightSrc && !validExtensions.test(iconLightSrc)) {
+    console.error('Invalid "iconLightSrc" parameter');
+    return '';
+  }
+  if (iconDarkSrc && !validExtensions.test(iconDarkSrc)) {
+    console.error('Invalid "iconDarkSrc" parameter');
+    return '';
+  }
+
+  // Validate alt attributes for non-decorative images
+  const isLogo = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc;
+  if (!isDecorative) {
+    if (isLogo) {
+      if (fullSrc && !fullAlt) {
+        console.error('An alt attribute is required for non-decorative full logos when using fullSrc');
+        return '';
+      }
+      if (iconSrc && !iconAlt) {
+        console.error('An alt attribute is required for non-decorative icon logos when using iconSrc');
+        return '';
+      }
+      if (fullLightSrc && !fullLightAlt) {
+        console.error('fullLightAlt is required when fullLightSrc is provided');
+        return '';
+      }
+      if (fullDarkSrc && !fullDarkAlt) {
+        console.error('fullDarkAlt is required when fullDarkSrc is provided');
+        return '';
+      }
+      if (iconLightSrc && !iconLightAlt) {
+        console.error('iconLightAlt is required when iconLightSrc is provided');
+        return '';
+      }
+      if (iconDarkSrc && !iconDarkAlt) {
+        console.error('iconDarkAlt is required when iconDarkSrc is provided');
+        return '';
+      }
+    } else {
+      if (!alt && !(lightSrc && lightAlt) && !(darkSrc && darkAlt)) {
+        console.error('An alt attribute (or lightAlt for lightSrc, or darkAlt for darkSrc) is required for non-decorative images');
+        return '';
+      }
+    }
+  }
+
+  // Validate breakpoint
+  let validatedBreakpoint = '';
+  if (breakpoint) {
+    const bp = parseInt(breakpoint, 10);
+    if (WIDTHS.includes(bp)) {
+      validatedBreakpoint = bp;
+    } else {
+      console.warn(`Invalid breakpoint "${breakpoint}". Must be one of ${WIDTHS.join(', ')}. Ignoring.`);
+    }
+  }
+
+  // Determine primary sources and alts
+  const primarySrc = (fullSrc || iconSrc || fullLightSrc || iconLightSrc || lightSrc || fullDarkSrc || iconDarkSrc || darkSrc || src);
+  const primaryLightSrc = fullLightSrc || iconLightSrc || lightSrc;
+  const primaryDarkSrc = fullDarkSrc || iconDarkSrc || darkSrc;
+  const primaryAlt = fullAlt || iconAlt || alt;
+  const primaryLightAlt = fullLightAlt || iconLightAlt || lightAlt;
+  const primaryDarkAlt = fullDarkAlt || iconDarkAlt || darkAlt;
+
+  // Determine image type for source elements
+  const getImageType = (src) => {
+    const ext = src.split('.').pop().toLowerCase();
+    return ext === 'svg' ? 'image/svg+xml' : `image/${ext}`;
+  };
+
+  // Combine classes
+  const allClasses = [...new Set([...customClasses.trim().split(/\s+/).filter(Boolean), ...extraClasses])];
+  if (aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio)) {
+    allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
+  }
+  const classAttr = allClasses.length ? ` class="${allClasses.join(' ')} animate animate-fade-in"` : ' class="animate animate-fade-in"';
+
+  // Handle alt attributes
+  const altAttr = isDecorative ? ' alt="" role="presentation"' : (primaryAlt ? ` alt="${primaryAlt}"` : (primaryLightAlt ? ` alt="${primaryLightAlt}"` : ''));
+
+  const validLoading = ['eager', 'lazy'].includes(loading) ? loading : 'lazy';
   const validFetchPriority = ['high', 'low', 'auto'].includes(fetchPriority) ? fetchPriority : '';
   const loadingAttr = validLoading ? ` loading="${validLoading}"` : '';
   const fetchPriorityAttr = validFetchPriority && !isLogo ? ` fetchpriority="${validFetchPriority}"` : '';
@@ -271,7 +469,7 @@ export function generatePictureMarkup({
   // Add script to force source selection and animate for all pictures
   pictureMarkup += `
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
+      (function() {
         const picture = document.currentScript.previousElementSibling;
         if (!picture || picture.tagName !== 'PICTURE') {
           console.error('Picture element not found for script');
@@ -279,27 +477,37 @@ export function generatePictureMarkup({
         }
         const img = picture.querySelector('img');
         const sources = picture.querySelectorAll('source');
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        const isBelowBreakpoint = ${validatedBreakpoint ? `window.matchMedia('(max-width: ${validatedBreakpoint - 1}px)').matches` : 'false'};
-        let selectedSrc = '${primarySrc}';
-        let matchedMedia = 'none';
-        sources.forEach(source => {
-          const media = source.getAttribute('media');
-          if (media && window.matchMedia(media).matches) {
-            selectedSrc = source.getAttribute('srcset');
-            matchedMedia = media;
+        const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const breakpointQuery = ${validatedBreakpoint ? `window.matchMedia('(max-width: ${validatedBreakpoint - 1}px)')` : 'null'};
+        function updateImageSource() {
+          const prefersDark = prefersDarkQuery.matches;
+          const isBelowBreakpoint = breakpointQuery ? breakpointQuery.matches : false;
+          let selectedSrc = '${primarySrc}';
+          let matchedMedia = 'none';
+          sources.forEach(source => {
+            const media = source.getAttribute('media');
+            if (media && window.matchMedia(media).matches) {
+              const srcset = source.getAttribute('srcset');
+              selectedSrc = ${isLogo ? 'srcset' : 'srcset.split(",")[0].split(" ")[0]'};
+              matchedMedia = media;
+            }
+          });
+          console.log('Picture source selection:', { selectedSrc, matchedMedia, prefersDark, isBelowBreakpoint });
+          if (img.src !== selectedSrc && selectedSrc) {
+            console.log('Updating picture img src to:', selectedSrc);
+            img.classList.remove('animate-picture');
+            void img.offsetWidth;
+            img.src = selectedSrc;
+            img.classList.add('animate-picture');
+          } else {
+            img.classList.add('animate-picture'); // Ensure animation on initial load
           }
-        });
-        console.log('Picture source selection:', { selectedSrc, matchedMedia, prefersDark, isBelowBreakpoint });
-        if (img.src !== selectedSrc && selectedSrc && selectedSrc !== '${primarySrc}') {
-          console.log('Updating picture img src to:', selectedSrc);
-          img.classList.remove('animate-picture');
-          void img.offsetWidth;
-          img.src = selectedSrc;
-          img.classList.add('animate-picture');
+          console.log('Final picture source:', img.src);
         }
-        console.log('Final picture source:', img.src);
-      });
+        document.addEventListener('DOMContentLoaded', updateImageSource);
+        prefersDarkQuery.addEventListener('change', updateImageSource);
+        ${validatedBreakpoint ? `breakpointQuery.addEventListener('change', updateImageSource);` : ''}
+      })();
     </script>`;
 
   // Add schema if requested

@@ -162,7 +162,7 @@
                         iconLightAlt: attrs.iconLightAlt,
                         iconDarkAlt: attrs.iconDarkAlt,
                         isDecorative: attrs.isDecorative || false,
-                        customClasses: 'logo',
+                        customClasses: '', // Remove logo class
                         loading: 'lazy',
                         fetchPriority: '',
                         extraClasses: [],
@@ -226,6 +226,8 @@
                             void img.offsetWidth;
                             img.src = selectedSrc;
                             img.classList.add('animate-picture');
+                        } else {
+                            img.classList.add('animate-picture'); // Ensure animation on initial load
                         }
                     }
                 });
@@ -243,6 +245,7 @@
                 // Add mutation observer for img src changes
                 const img = this.querySelector('img');
                 if (img) {
+                    img.classList.add('animate-picture'); // Ensure initial animation
                     const mutationObserver = new MutationObserver(this.handleMutation);
                     mutationObserver.observe(img, { attributes: true, attributeFilter: ['src'] });
                     this.mutationObserver = mutationObserver;
