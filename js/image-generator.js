@@ -118,6 +118,9 @@ export function generatePictureMarkup({
     }
   }
 
+  // Determine if this is a logo call (full or icon sources provided)
+  const isLogo = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc;
+
   // Determine primary sources and alts
   const primarySrc = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc || src;
   const primaryLightSrc = fullLightSrc || iconLightSrc || lightSrc;
@@ -125,17 +128,6 @@ export function generatePictureMarkup({
   const primaryAlt = fullAlt || iconAlt || alt;
   const primaryLightAlt = fullLightAlt || iconLightAlt || lightAlt;
   const primaryDarkAlt = fullDarkAlt || iconDarkAlt || darkAlt;
-
-  // Extract base filenames
-  let baseFilename = primarySrc.split('/').pop().split('.').slice(0, -1).join('.');
-  let lightBaseFilename = primaryLightSrc ? primaryLightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
-  let darkBaseFilename = primaryDarkSrc ? primaryDarkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
-  let fullBaseFilename = fullSrc ? fullSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
-  let fullLightBaseFilename = fullLightSrc ? fullLightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
-  let fullDarkBaseFilename = fullDarkSrc ? fullDarkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
-  let iconBaseFilename = iconSrc ? iconSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
-  let iconLightBaseFilename = iconLightSrc ? iconLightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
-  let iconDarkBaseFilename = iconDarkSrc ? iconDarkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
 
   // Combine classes
   const allClasses = [...new Set([...customClasses.trim().split(/\s+/).filter(Boolean), ...extraClasses])];
@@ -152,83 +144,75 @@ export function generatePictureMarkup({
   const loadingAttr = validLoading ? ` loading="${validLoading}"` : '';
   const fetchPriorityAttr = validFetchPriority ? ` fetchpriority="${validFetchPriority}"` : '';
 
-  // Generate source sets
-  let fullSourceSets = [];
-  let iconSourceSets = [];
-  FORMATS.forEach(format => {
-    WIDTHS.forEach(width => {
-      if (!noResponsive) {
-        // Full logo source set
-        if (fullSrc) {
-          fullSourceSets.push(`${BASE_PATH}${fullBaseFilename}-${width}.${format} ${width}w`);
-        }
-        if (fullLightSrc && fullLightBaseFilename) {
-          fullSourceSets.push(`${BASE_PATH}${fullLightBaseFilename}-${width}.${format} ${width}w`);
-        }
-        if (fullDarkSrc && fullDarkBaseFilename) {
-          fullSourceSets.push(`${BASE_PATH}${fullDarkBaseFilename}-${width}.${format} ${width}w`);
-        }
-        // Icon logo source set
-        if (iconSrc) {
-          iconSourceSets.push(`${BASE_PATH}${iconBaseFilename}-${width}.${format} ${width}w`);
-        }
-        if (iconLightSrc && iconLightBaseFilename) {
-          iconSourceSets.push(`${BASE_PATH}${iconLightBaseFilename}-${width}.${format} ${width}w`);
-        }
-        if (iconDarkSrc && iconDarkBaseFilename) {
-          iconSourceSets.push(`${BASE_PATH}${iconDarkBaseFilename}-${width}.${format} ${width}w`);
-        }
-        // Default source set (if neither full nor icon is specified)
-        if (!fullSrc && !iconSrc && src) {
-          fullSourceSets.push(`${BASE_PATH}${baseFilename}-${width}.${format} ${width}w`);
-          if (lightBaseFilename) {
-            fullSourceSets.push(`${BASE_PATH}${lightBaseFilename}-${width}.${format} ${width}w`);
-          }
-          if (darkBaseFilename) {
-            fullSourceSets.push(`${BASE_PATH}${darkBaseFilename}-${width}.${format} ${width}w`);
-          }
-        }
-      }
-    });
-  });
-
   // Generate <picture> markup
   let pictureMarkup = '<picture>';
 
-  // Add sources for icon logo (below breakpoint)
-  if (validatedBreakpoint && iconSrc || iconLightSrc || iconDarkSrc) {
+  if (isLogo) {
+    // Logo case: Use original source URLs without responsive srcset
+    if (validatedBreakpoint && (iconSrc || iconLightSrc || iconDarkSrc)) {
+      // Add sources for icon logo (below breakpoint)
+      if (iconSrc) {
+        pictureMarkup += `
+          <source media="(max-width: ${validatedBreakpoint - 1}px)" src="${iconSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconAlt ? ` alt="${iconAlt}"` : '')}>`;
+      }
+      if (iconLightSrc) {
+        pictureMarkup += `
+          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: light)" src="${iconLightSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconLightAlt ? ` alt="${iconLightAlt}"` : '')}>`;
+      }
+      if (iconDarkSrc) {
+        pictureMarkup += `
+          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: dark)" src="${iconDarkSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconDarkAlt ? ` alt="${iconDarkAlt}"` : '')}>`;
+      }
+    }
+
+    // Add sources for full logo (above breakpoint or default)
+    if (fullSrc || (!iconSrc && !iconLightSrc && !iconDarkSrc)) {
+      pictureMarkup += `
+        <source src="${fullSrc || primarySrc}" ${altAttr}>`;
+    }
+    if (fullLightSrc || (!iconLightSrc && primaryLightSrc)) {
+      pictureMarkup += `
+        <source media="(prefers-color-scheme: light)" src="${fullLightSrc || primaryLightSrc}" ${altAttr}>`;
+    }
+    if (fullDarkSrc || (!iconDarkSrc && primaryDarkSrc)) {
+      pictureMarkup += `
+        <source media="(prefers-color-scheme: dark)" src="${fullDarkSrc || primaryDarkSrc}" ${altAttr}>`;
+    }
+  } else {
+    // Non-logo case: Generate responsive srcset
+    let sourceSets = [];
     FORMATS.forEach(format => {
-      if (iconSourceSets.length) {
+      WIDTHS.forEach(width => {
+        if (!noResponsive) {
+          const baseFilename = src.split('/').pop().split('.').slice(0, -1).join('.');
+          sourceSets.push(`${BASE_PATH}${baseFilename}-${width}.${format} ${width}w`);
+          if (lightSrc) {
+            const lightBaseFilename = lightSrc.split('/').pop().split('.').slice(0, -1).join('.');
+            sourceSets.push(`${BASE_PATH}${lightBaseFilename}-${width}.${format} ${width}w`);
+          }
+          if (darkSrc) {
+            const darkBaseFilename = darkSrc.split('/').pop().split('.').slice(0, -1).join('.');
+            sourceSets.push(`${BASE_PATH}${darkBaseFilename}-${width}.${format} ${width}w`);
+          }
+        }
+      });
+    });
+
+    FORMATS.forEach(format => {
+      if (sourceSets.length) {
         pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px)" type="image/${format}" srcset="${iconSourceSets.join(', ')}" ${isDecorative ? ' alt="" role="presentation"' : (iconAlt ? ` alt="${iconAlt}"` : (iconLightAlt && iconDarkAlt ? ` alt="${iconLightAlt}"` : ''))}>`;
+          <source type="image/${format}" srcset="${sourceSets.join(', ')}" ${altAttr}>`;
       }
-      if (iconLightSrc && iconLightBaseFilename) {
+      if (lightSrc) {
         pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: light)" type="image/${format}" srcset="${iconSourceSets.join(', ')}" ${isDecorative ? ' alt="" role="presentation"' : (iconLightAlt ? ` alt="${iconLightAlt}"` : '')}>`;
+          <source media="(prefers-color-scheme: light)" type="image/${format}" srcset="${sourceSets.join(', ')}" ${altAttr}>`;
       }
-      if (iconDarkSrc && iconDarkBaseFilename) {
+      if (darkSrc) {
         pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: dark)" type="image/${format}" srcset="${iconSourceSets.join(', ')}" ${isDecorative ? ' alt="" role="presentation"' : (iconDarkAlt ? ` alt="${iconDarkAlt}"` : '')}>`;
+          <source media="(prefers-color-scheme: dark)" type="image/${format}" srcset="${sourceSets.join(', ')}" ${altAttr}>`;
       }
     });
   }
-
-  // Add sources for full logo (above breakpoint or default)
-  FORMATS.forEach(format => {
-    const sourceSet = fullSourceSets.length ? fullSourceSets : iconSourceSets;
-    if (sourceSet.length) {
-      pictureMarkup += `
-        <source type="image/${format}" srcset="${sourceSet.join(', ')}" ${altAttr}>`;
-      if (primaryLightSrc) {
-        pictureMarkup += `
-          <source media="(prefers-color-scheme: light)" type="image/${format}" srcset="${sourceSet.join(', ')}" ${altAttr}>`;
-      }
-      if (primaryDarkSrc) {
-        pictureMarkup += `
-          <source media="(prefers-color-scheme: dark)" type="image/${format}" srcset="${sourceSet.join(', ')}" ${altAttr}>`;
-      }
-    }
-  });
 
   // Add fallback img tag
   pictureMarkup += `
