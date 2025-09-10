@@ -1,24 +1,26 @@
 (async () => {
     try {
-        const { generateLogoMarkup } = await import('../image-generator.js');
-        console.log('Successfully imported generateLogoMarkup');
+        const { generatePictureMarkup } = await import('../image-generator.js');
+        console.log('Successfully imported generatePictureMarkup');
 
         class CustomLogo extends HTMLElement {
             static get observedAttributes() {
                 return [
-                    'logo-primary-src',
-                    'logo-light-src',
-                    'logo-dark-src',
-                    'logo-primary-alt',
-                    'logo-light-alt',
-                    'logo-dark-alt',
-                    'logo-position',
-                    'logo-mobile-src',
-                    'logo-mobile-light-src',
-                    'logo-mobile-dark-src',
-                    'logo-tablet-src',
-                    'logo-tablet-light-src',
-                    'logo-tablet-dark-src'
+                    'logo-full-primary-src',
+                    'logo-full-light-src',
+                    'logo-full-dark-src',
+                    'logo-full-primary-alt',
+                    'logo-full-light-alt',
+                    'logo-full-dark-alt',
+                    'logo-full-position',
+                    'logo-icon-primary-src',
+                    'logo-icon-light-src',
+                    'logo-icon-dark-src',
+                    'logo-icon-primary-alt',
+                    'logo-icon-light-alt',
+                    'logo-icon-dark-alt',
+                    'logo-icon-position',
+                    'logo-breakpoint'
                 ];
             }
 
@@ -28,21 +30,32 @@
 
             getAttributes() {
                 const attrs = {
-                    logoPrimarySrc: this.getAttribute('logo-primary-src') || '',
-                    logoLightSrc: this.getAttribute('logo-light-src') || '',
-                    logoDarkSrc: this.getAttribute('logo-dark-src') || '',
-                    logoPrimaryAlt: this.getAttribute('logo-primary-alt') || '',
-                    logoLightAlt: this.getAttribute('logo-light-alt') || '',
-                    logoDarkAlt: this.getAttribute('logo-dark-alt') || '',
-                    logoPosition: this.getAttribute('logo-position') || '',
-                    logoMobileSrc: this.getAttribute('logo-mobile-src') || '',
-                    logoMobileLightSrc: this.getAttribute('logo-mobile-light-src') || '',
-                    logoMobileDarkSrc: this.getAttribute('logo-mobile-dark-src') || '',
-                    logoTabletSrc: this.getAttribute('logo-tablet-src') || '',
-                    logoTabletLightSrc: this.getAttribute('logo-tablet-light-src') || '',
-                    logoTabletDarkSrc: this.getAttribute('logo-tablet-dark-src') || ''
+                    fullPrimarySrc: this.getAttribute('logo-full-primary-src') || '',
+                    fullLightSrc: this.getAttribute('logo-full-light-src') || '',
+                    fullDarkSrc: this.getAttribute('logo-full-dark-src') || '',
+                    fullPrimaryAlt: this.getAttribute('logo-full-primary-alt') || '',
+                    fullLightAlt: this.getAttribute('logo-full-light-alt') || '',
+                    fullDarkAlt: this.getAttribute('logo-full-dark-alt') || '',
+                    fullPosition: this.getAttribute('logo-full-position') || '',
+                    iconPrimarySrc: this.getAttribute('logo-icon-primary-src') || '',
+                    iconLightSrc: this.getAttribute('logo-icon-light-src') || '',
+                    iconDarkSrc: this.getAttribute('logo-icon-dark-src') || '',
+                    iconPrimaryAlt: this.getAttribute('logo-icon-primary-alt') || '',
+                    iconLightAlt: this.getAttribute('logo-icon-light-alt') || '',
+                    iconDarkAlt: this.getAttribute('logo-icon-dark-alt') || '',
+                    iconPosition: this.getAttribute('logo-icon-position') || '',
+                    breakpoint: this.getAttribute('logo-breakpoint') || ''
                 };
 
+                // Validate that at least one valid source is provided for full and/or icon
+                const hasFullSource = attrs.fullPrimarySrc || (attrs.fullLightSrc && attrs.fullDarkSrc);
+                const hasIconSource = attrs.iconPrimarySrc || (attrs.iconLightSrc && attrs.iconDarkSrc);
+                if (!hasFullSource && !hasIconSource) {
+                    console.error('At least one of logo-full-primary-src, (logo-full-light-src and logo-full-dark-src), logo-icon-primary-src, or (logo-icon-light-src and logo-icon-dark-src) must be provided');
+                    return attrs;
+                }
+
+                // Validate light/dark pairs if provided
                 const validatePair = (light, dark, label) => {
                     if ((light || dark) && !(light && dark)) {
                         console.error(`Both ${label}-light-src and ${label}-dark-src must be provided if one is specified.`);
@@ -50,27 +63,43 @@
                     }
                     return true;
                 };
-                if (!validatePair(attrs.logoLightSrc, attrs.logoDarkSrc, 'logo') ||
-                    !validatePair(attrs.logoMobileLightSrc, attrs.logoMobileDarkSrc, 'logo-mobile') ||
-                    !validatePair(attrs.logoTabletLightSrc, attrs.logoTabletDarkSrc, 'logo-tablet')) {
+                if (!validatePair(attrs.fullLightSrc, attrs.fullDarkSrc, 'logo-full') ||
+                    !validatePair(attrs.iconLightSrc, attrs.iconDarkSrc, 'logo-icon')) {
                     return attrs;
                 }
 
-                if (attrs.logoLightSrc && !attrs.logoLightAlt) {
-                    console.error('logo-light-alt is required when logo-light-src is provided.');
+                // Validate alt attributes for non-decorative images
+                if (!attrs.fullPrimaryAlt && !attrs.fullLightAlt && !attrs.fullDarkAlt && 
+                    !attrs.iconPrimaryAlt && !attrs.iconLightAlt && !attrs.iconDarkAlt) {
+                    attrs.isDecorative = true;
+                } else {
+                    if (attrs.fullPrimarySrc && !attrs.fullPrimaryAlt) {
+                        console.error('logo-full-primary-alt is required when logo-full-primary-src is provided.');
+                    }
+                    if (attrs.iconPrimarySrc && !attrs.iconPrimaryAlt) {
+                        console.error('logo-icon-primary-alt is required when logo-icon-primary-src is provided.');
+                    }
+                    if (attrs.fullLightSrc && attrs.fullDarkSrc && !(attrs.fullLightAlt && attrs.fullDarkAlt)) {
+                        console.error('Both logo-full-light-alt and logo-full-dark-alt are required when logo-full-light-src and logo-full-dark-src are provided.');
+                    }
+                    if (attrs.iconLightSrc && attrs.iconDarkSrc && !(attrs.iconLightAlt && attrs.iconDarkAlt)) {
+                        console.error('Both logo-icon-light-alt and logo-icon-dark-alt are required when logo-icon-light-src and logo-icon-dark-src are provided.');
+                    }
                 }
-                if (attrs.logoDarkSrc && !attrs.logoDarkAlt) {
-                    console.error('logo-dark-alt is required when logo-dark-src is provided.');
-                }
+
                 const validPositions = [
                     'center', 'top', 'bottom', 'left', 'right',
                     'top-left', 'top-center', 'top-right',
                     'bottom-left', 'bottom-center', 'bottom-right',
                     'center-left', 'center-right'
                 ];
-                if (attrs.logoPosition && !validPositions.includes(attrs.logoPosition)) {
-                    console.warn(`Invalid logo-position "${attrs.logoPosition}". Must be one of ${validPositions.join(', ')}. Ignoring.`);
-                    attrs.logoPosition = '';
+                if (attrs.fullPosition && !validPositions.includes(attrs.fullPosition)) {
+                    console.warn(`Invalid logo-full-position "${attrs.fullPosition}". Must be one of ${validPositions.join(', ')}. Ignoring.`);
+                    attrs.fullPosition = '';
+                }
+                if (attrs.iconPosition && !validPositions.includes(attrs.iconPosition)) {
+                    console.warn(`Invalid logo-icon-position "${attrs.iconPosition}". Must be one of ${validPositions.join(', ')}. Ignoring.`);
+                    attrs.iconPosition = '';
                 }
 
                 return attrs;
@@ -94,29 +123,32 @@
                     'center-right': 'place-self-center-right'
                 };
                 let logoHTML = '';
-                const hasValidSource = attrs.logoPrimarySrc || attrs.logoLightSrc || attrs.logoDarkSrc || attrs.logoMobileSrc || attrs.logoTabletSrc;
+                const hasValidSource = attrs.fullPrimarySrc || attrs.fullLightSrc || attrs.fullDarkSrc || 
+                                      attrs.iconPrimarySrc || attrs.iconLightSrc || attrs.iconDarkSrc;
                 if (hasValidSource) {
-                    const logoMarkup = generateLogoMarkup({
-                        src: attrs.logoPrimarySrc || attrs.logoLightSrc || attrs.logoDarkSrc || attrs.logoMobileSrc || attrs.logoTabletSrc,
-                        mobileSrc: attrs.logoMobileSrc,
-                        tabletSrc: attrs.logoTabletSrc,
-                        desktopSrc: attrs.logoPrimarySrc || attrs.logoLightSrc || attrs.logoDarkSrc || attrs.logoTabletSrc,
-                        lightSrc: attrs.logoLightSrc,
-                        darkSrc: attrs.logoDarkSrc,
-                        mobileLightSrc: attrs.logoMobileLightSrc,
-                        mobileDarkSrc: attrs.logoMobileDarkSrc,
-                        tabletLightSrc: attrs.logoTabletLightSrc,
-                        tabletDarkSrc: attrs.logoTabletDarkSrc,
-                        alt: attrs.logoPrimaryAlt || attrs.logoLightAlt || attrs.logoDarkAlt || '',
-                        isDecorative: !attrs.logoPrimaryAlt && !attrs.logoLightAlt && !attrs.logoDarkAlt,
-                        customClasses: `logo${attrs.logoPosition ? ` logo-${attrs.logoPosition}` : ''}`,
+                    const logoMarkup = generatePictureMarkup({
+                        fullSrc: attrs.fullPrimarySrc,
+                        fullLightSrc: attrs.fullLightSrc,
+                        fullDarkSrc: attrs.fullDarkSrc,
+                        fullAlt: attrs.fullPrimaryAlt,
+                        fullLightAlt: attrs.fullLightAlt,
+                        fullDarkAlt: attrs.fullDarkAlt,
+                        iconSrc: attrs.iconPrimarySrc,
+                        iconLightSrc: attrs.iconLightSrc,
+                        iconDarkSrc: attrs.iconDarkSrc,
+                        iconAlt: attrs.iconPrimaryAlt,
+                        iconLightAlt: attrs.iconLightAlt,
+                        iconDarkAlt: attrs.iconDarkAlt,
+                        isDecorative: attrs.isDecorative || false,
+                        customClasses: `logo${attrs.fullPosition || attrs.iconPosition ? ` logo-${attrs.fullPosition || attrs.iconPosition}` : ''}`,
                         loading: 'eager',
                         fetchPriority: 'high',
-                        extraClasses: []
+                        extraClasses: [],
+                        breakpoint: attrs.breakpoint
                     });
-                    console.log('generateLogoMarkup output:', logoMarkup);
+                    console.log('generatePictureMarkup output:', logoMarkup);
                     logoHTML = `
-                        <div${attrs.logoPosition ? ` class="${alignMap[attrs.logoPosition]}"` : ''} style="z-index: 100;">
+                        <div${attrs.fullPosition || attrs.iconPosition ? ` class="${alignMap[attrs.fullPosition || attrs.iconPosition]}"` : ''} style="z-index: 100;">
                             <a href="/">${logoMarkup}</a>
                         </div>
                     `;
@@ -147,6 +179,6 @@
             customElements.upgrade(element);
         });
     } catch (error) {
-        console.error('Failed to import generateLogoMarkup or define CustomLogo:', error);
+        console.error('Failed to import generatePictureMarkup or define CustomLogo:', error);
     }
 })();

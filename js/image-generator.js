@@ -2,196 +2,250 @@ const WIDTHS = [768, 1024, 1366, 1920, 2560];
 const FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
 const VALID_ASPECT_RATIOS = new Set(['16/9', '9/16', '3/2', '2/3', '1/1', '21/9']);
 const SIZES_BREAKPOINTS = [
-    { maxWidth: 768, baseValue: '100vw' },
-    { maxWidth: 1024, baseValue: '100vw' },
-    { maxWidth: 1366, baseValue: '100vw' },
-    { maxWidth: 1920, baseValue: '100vw' },
-    { maxWidth: 2560, baseValue: '100vw' },
+  { maxWidth: 768, baseValue: '100vw' },
+  { maxWidth: 1024, baseValue: '100vw' },
+  { maxWidth: 1366, baseValue: '100vw' },
+  { maxWidth: 1920, baseValue: '100vw' },
+  { maxWidth: 2560, baseValue: '100vw' },
 ];
 const DEFAULT_SIZE_VALUE = 3840;
 const BASE_PATH = './img/responsive/'; // Adjust based on your project structure
 
 export function generatePictureMarkup({
-    src,
-    lightSrc = '',
-    darkSrc = '',
-    alt = '',
-    lightAlt = '',
-    darkAlt = '',
-    isDecorative = false,
-    mobileWidth = '100vw',
-    tabletWidth = '100vw',
-    desktopWidth = '100vw',
-    aspectRatio = '',
-    includeSchema = false,
-    customClasses = '',
-    loading = 'lazy',
-    fetchPriority = '',
-    extraClasses = [],
-    noResponsive = false
+  src,
+  lightSrc = '',
+  darkSrc = '',
+  alt = '',
+  lightAlt = '',
+  darkAlt = '',
+  fullSrc = '',
+  fullLightSrc = '',
+  fullDarkSrc = '',
+  fullAlt = '',
+  fullLightAlt = '',
+  fullDarkAlt = '',
+  iconSrc = '',
+  iconLightSrc = '',
+  iconDarkSrc = '',
+  iconAlt = '',
+  iconLightAlt = '',
+  iconDarkAlt = '',
+  isDecorative = false,
+  mobileWidth = '100vw',
+  tabletWidth = '100vw',
+  desktopWidth = '100vw',
+  aspectRatio = '',
+  includeSchema = false,
+  customClasses = '',
+  loading = 'lazy',
+  fetchPriority = '',
+  extraClasses = [],
+  noResponsive = false,
+  breakpoint = ''
 } = {}) {
-    const validExtensions = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
-    if (!src || !validExtensions.test(src)) {
-        console.error('The "src" parameter must be a valid image path');
-        return '';
+  const validExtensions = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
+
+  // Validate image sources
+  if (!src && !fullSrc && !iconSrc && !(fullLightSrc && fullDarkSrc) && !(iconLightSrc && iconDarkSrc)) {
+    console.error('At least one of "src", "fullSrc", "iconSrc", or both "fullLightSrc" and "fullDarkSrc", or both "iconLightSrc" and "iconDarkSrc" must be provided');
+    return '';
+  }
+  if (src && !validExtensions.test(src)) {
+    console.error('The "src" parameter must be a valid image path');
+    return '';
+  }
+  if (fullSrc && !validExtensions.test(fullSrc)) {
+    console.error('The "fullSrc" parameter must be a valid image path');
+    return '';
+  }
+  if (iconSrc && !validExtensions.test(iconSrc)) {
+    console.error('The "iconSrc" parameter must be a valid image path');
+    return '';
+  }
+  if (fullLightSrc && !validExtensions.test(fullLightSrc)) {
+    console.error('Invalid "fullLightSrc" parameter');
+    return '';
+  }
+  if (fullDarkSrc && !validExtensions.test(fullDarkSrc)) {
+    console.error('Invalid "fullDarkSrc" parameter');
+    return '';
+  }
+  if (iconLightSrc && !validExtensions.test(iconLightSrc)) {
+    console.error('Invalid "iconLightSrc" parameter');
+    return '';
+  }
+  if (iconDarkSrc && !validExtensions.test(iconDarkSrc)) {
+    console.error('Invalid "iconDarkSrc" parameter');
+    return '';
+  }
+
+  // Validate alt attributes for non-decorative images
+  if (!isDecorative) {
+    if (fullSrc && !fullAlt) {
+      console.error('An alt attribute is required for non-decorative full logos when using fullSrc');
+      return '';
     }
-    if (!isDecorative && !alt && !(lightSrc && lightAlt && darkSrc && darkAlt)) {
-        console.error('An alt attribute (or lightAlt and darkAlt for light/dark themes) is required for non-decorative images');
-        return '';
+    if (iconSrc && !iconAlt) {
+      console.error('An alt attribute is required for non-decorative icon logos when using iconSrc');
+      return '';
     }
-    let baseFilename = src.split('/').pop().split('.').slice(0, -1).join('.');
-    let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
-    let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
-    if (lightSrc && !lightBaseFilename) {
-        console.error('Invalid "lightSrc" parameter');
-        return '';
+    if (fullLightSrc && fullDarkSrc && !(fullLightAlt && fullDarkAlt)) {
+      console.error('Both fullLightAlt and fullDarkAlt are required when fullLightSrc and fullDarkSrc are provided');
+      return '';
     }
-    if (darkSrc && !darkBaseFilename) {
-        console.error('Invalid "darkSrc" parameter');
-        return '';
+    if (iconLightSrc && iconDarkSrc && !(iconLightAlt && iconDarkAlt)) {
+      console.error('Both iconLightAlt and iconDarkAlt are required when iconLightSrc and iconDarkSrc are provided');
+      return '';
     }
-    const allClasses = [...new Set([...customClasses.trim().split(/\s+/).filter(Boolean), ...extraClasses])];
-    if (aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio)) {
-        allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
+    if (src && !alt) {
+      console.error('An alt attribute is required for non-decorative images when using src');
+      return '';
     }
-    const classAttr = allClasses.length ? ` class="${allClasses.join(' ')} animate animate-fade-in"` : ' class="animate animate-fade-in"';
-    const altAttr = isDecorative ? ' alt="" role="presentation"' : (alt ? ` alt="${alt}"` : (lightAlt && darkAlt ? ` alt="${lightAlt}"` : ''));
-    const validLoading = ['eager', 'lazy'].includes(loading) ? loading : 'lazy';
-    const validFetchPriority = ['high', 'low', 'auto'].includes(fetchPriority) ? fetchPriority : '';
-    const loadingAttr = validLoading ? ` loading="${validLoading}"` : '';
-    const fetchPriorityAttr = validFetchPriority ? ` fetchpriority="${validFetchPriority}"` : '';
-    let pictureHTML = `<picture${classAttr}>`;
-    if (noResponsive) {
-        if (lightSrc) pictureHTML += `<source media="(prefers-color-scheme: light)" srcset="${lightSrc}"${lightAlt ? ` alt="${lightAlt}"` : ''}>`;
-        if (darkSrc) pictureHTML += `<source media="(prefers-color-scheme: dark)" srcset="${darkSrc}"${darkAlt ? ` alt="${darkAlt}"` : ''}>`;
-        pictureHTML += `<img src="${src}"${altAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${alt || lightAlt || darkAlt || 'Placeholder image'}';`}this.onerror=null;">`;
+    if (lightSrc && darkSrc && !(lightAlt && darkAlt)) {
+      console.error('Both lightAlt and darkAlt are required when lightSrc and darkSrc are provided');
+      return '';
+    }
+  }
+
+  // Validate breakpoint
+  let validatedBreakpoint = '';
+  if (breakpoint) {
+    const bp = parseInt(breakpoint, 10);
+    if (WIDTHS.includes(bp)) {
+      validatedBreakpoint = bp;
     } else {
-        const parseWidth = (widthStr) => {
-            const vwMatch = widthStr.match(/(\d+)vw/);
-            if (vwMatch) return parseInt(vwMatch[1]) / 100;
-            const pxMatch = widthStr.match(/(\d+)px/);
-            if (pxMatch) {
-                const winWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
-                return parseInt(pxMatch[1]) / winWidth;
-            }
-            return 1.0;
-        };
-        const parsedWidths = {
-            mobile: Math.max(0.1, Math.min(2.0, parseWidth(mobileWidth))),
-            tablet: Math.max(0.1, Math.min(2.0, parseWidth(tabletWidth))),
-            desktop: Math.max(0.1, Math.min(2.0, parseWidth(desktopWidth)))
-        };
-        const sizes = [
-            ...SIZES_BREAKPOINTS.map(bp => {
-                const percentage = bp.maxWidth <= 768 ? parsedWidths.mobile : (bp.maxWidth <= 1024 ? parsedWidths.tablet : parsedWidths.desktop);
-                return `(max-width: ${bp.maxWidth}px) ${percentage * 100}vw`;
-            }),
-            `${DEFAULT_SIZE_VALUE * parsedWidths.desktop}px`
-        ].join(', ');
-        const generateSrcset = (filename, format) =>
-            `${BASE_PATH}${filename}.${format} 3840w, ` +
-            WIDTHS.map(w => `${BASE_PATH}${filename}-${w}.${format} ${w}w`).join(', ');
-        FORMATS.forEach(format => {
-            if (lightSrc && darkSrc) {
-                pictureHTML += `<source srcset="${generateSrcset(lightBaseFilename, format)}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: light)"${lightAlt ? ` alt="${lightAlt}"` : ''}>`;
-                pictureHTML += `<source srcset="${generateSrcset(darkBaseFilename, format)}" sizes="${sizes}" type="image/${format}" media="(prefers-color-scheme: dark)"${darkAlt ? ` alt="${darkAlt}"` : ''}>`;
-            }
-            pictureHTML += `<source srcset="${generateSrcset(baseFilename, format)}" sizes="${sizes}" type="image/${format}">`;
-        });
-        pictureHTML += `<img src="${src}"${altAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${alt || lightAlt || darkAlt || 'Placeholder image'}';`}this.onerror=null;">`;
+      console.warn(`Invalid breakpoint "${breakpoint}". Must be one of ${WIDTHS.join(', ')}. Ignoring.`);
     }
-    pictureHTML += '</picture>';
-    if (includeSchema) {
-        let figureHTML = `<figure${classAttr} itemscope itemtype="https://schema.org/ImageObject">`;
-        figureHTML += pictureHTML;
-        if (alt || lightAlt || darkAlt) figureHTML += `<figcaption itemprop="name">${alt || lightAlt || darkAlt}</figcaption>`;
-        figureHTML += '</figure>';
-        return figureHTML;
-    }
-    return pictureHTML;
-}
+  }
 
-export function generateLogoMarkup({
-    src,
-    mobileSrc = '',
-    tabletSrc = '',
-    desktopSrc = '',
-    lightSrc = '',
-    darkSrc = '',
-    mobileLightSrc = '',
-    mobileDarkSrc = '',
-    tabletLightSrc = '',
-    tabletDarkSrc = '',
-    alt = '',
-    isDecorative = false,
-    customClasses = '',
-    loading = 'eager',
-    fetchPriority = 'high',
-    extraClasses = []
-} = {}) {
-    const validExtensions = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
-    const validateSrc = (s) => s && validExtensions.test(s);
-    if (!validateSrc(src) && !validateSrc(mobileSrc) && !validateSrc(tabletSrc) && !validateSrc(desktopSrc)) {
-        console.error('At least one valid logo source must be provided');
-        return '';
-    }
-    if (!isDecorative && !alt) {
-        console.error('An alt attribute is required for non-decorative logos');
-        return '';
-    }
-    const validatePair = (light, dark, label) => {
-        if ((light || dark) && !(light && dark)) {
-            console.error(`Both ${label}-light-src and ${label}-dark-src must be provided if one is specified.`);
-            return false;
+  // Determine primary sources and alts
+  const primarySrc = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc || src;
+  const primaryLightSrc = fullLightSrc || iconLightSrc || lightSrc;
+  const primaryDarkSrc = fullDarkSrc || iconDarkSrc || darkSrc;
+  const primaryAlt = fullAlt || iconAlt || alt;
+  const primaryLightAlt = fullLightAlt || iconLightAlt || lightAlt;
+  const primaryDarkAlt = fullDarkAlt || iconDarkAlt || darkAlt;
+
+  // Extract base filenames
+  let baseFilename = primarySrc.split('/').pop().split('.').slice(0, -1).join('.');
+  let lightBaseFilename = primaryLightSrc ? primaryLightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
+  let darkBaseFilename = primaryDarkSrc ? primaryDarkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
+  let fullBaseFilename = fullSrc ? fullSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
+  let fullLightBaseFilename = fullLightSrc ? fullLightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
+  let fullDarkBaseFilename = fullDarkSrc ? fullDarkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
+  let iconBaseFilename = iconSrc ? iconSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
+  let iconLightBaseFilename = iconLightSrc ? iconLightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
+  let iconDarkBaseFilename = iconDarkSrc ? iconDarkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
+
+  // Combine classes
+  const allClasses = [...new Set([...customClasses.trim().split(/\s+/).filter(Boolean), ...extraClasses])];
+  if (aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio)) {
+    allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
+  }
+  const classAttr = allClasses.length ? ` class="${allClasses.join(' ')} animate animate-fade-in"` : ' class="animate animate-fade-in"';
+
+  // Handle alt attributes
+  const altAttr = isDecorative ? ' alt="" role="presentation"' : (primaryAlt ? ` alt="${primaryAlt}"` : (primaryLightAlt && primaryDarkAlt ? ` alt="${primaryLightAlt}"` : ''));
+
+  const validLoading = ['eager', 'lazy'].includes(loading) ? loading : 'lazy';
+  const validFetchPriority = ['high', 'low', 'auto'].includes(fetchPriority) ? fetchPriority : '';
+  const loadingAttr = validLoading ? ` loading="${validLoading}"` : '';
+  const fetchPriorityAttr = validFetchPriority ? ` fetchpriority="${validFetchPriority}"` : '';
+
+  // Generate source sets
+  let fullSourceSets = [];
+  let iconSourceSets = [];
+  FORMATS.forEach(format => {
+    WIDTHS.forEach(width => {
+      if (!noResponsive) {
+        // Full logo source set
+        if (fullSrc) {
+          fullSourceSets.push(`${BASE_PATH}${fullBaseFilename}-${width}.${format} ${width}w`);
         }
-        return true;
-    };
-    if (!validatePair(lightSrc, darkSrc, 'logo') ||
-        !validatePair(mobileLightSrc, mobileDarkSrc, 'logo-mobile') ||
-        !validatePair(tabletLightSrc, tabletDarkSrc, 'logo-tablet')) {
-        return '';
-    }
-    const allClasses = [...new Set([...customClasses.trim().split(/\s+/).filter(Boolean), ...extraClasses])].join(' ');
-    const classAttr = allClasses ? ` class="${allClasses} animate animate-fade-in"` : ' class="animate animate-fade-in"';
-    const altAttr = isDecorative ? ' alt="" role="presentation"' : (alt ? ` alt="${alt}"` : '');
-    const validLoading = ['eager', 'lazy'].includes(loading) ? loading : 'eager';
-    const validFetchPriority = ['high', 'low', 'auto'].includes(fetchPriority) ? fetchPriority : 'high';
-    const loadingAttr = ` loading="${validLoading}"`;
-    const fetchPriorityAttr = ` fetchpriority="${validFetchPriority}"`;
+        if (fullLightSrc && fullLightBaseFilename) {
+          fullSourceSets.push(`${BASE_PATH}${fullLightBaseFilename}-${width}.${format} ${width}w`);
+        }
+        if (fullDarkSrc && fullDarkBaseFilename) {
+          fullSourceSets.push(`${BASE_PATH}${fullDarkBaseFilename}-${width}.${format} ${width}w`);
+        }
+        // Icon logo source set
+        if (iconSrc) {
+          iconSourceSets.push(`${BASE_PATH}${iconBaseFilename}-${width}.${format} ${width}w`);
+        }
+        if (iconLightSrc && iconLightBaseFilename) {
+          iconSourceSets.push(`${BASE_PATH}${iconLightBaseFilename}-${width}.${format} ${width}w`);
+        }
+        if (iconDarkSrc && iconDarkBaseFilename) {
+          iconSourceSets.push(`${BASE_PATH}${iconDarkBaseFilename}-${width}.${format} ${width}w`);
+        }
+        // Default source set (if neither full nor icon is specified)
+        if (!fullSrc && !iconSrc && src) {
+          fullSourceSets.push(`${BASE_PATH}${baseFilename}-${width}.${format} ${width}w`);
+          if (lightBaseFilename) {
+            fullSourceSets.push(`${BASE_PATH}${lightBaseFilename}-${width}.${format} ${width}w`);
+          }
+          if (darkBaseFilename) {
+            fullSourceSets.push(`${BASE_PATH}${darkBaseFilename}-${width}.${format} ${width}w`);
+          }
+        }
+      }
+    });
+  });
 
-    let pictureHTML = `<picture${classAttr}>`;
-    // Mobile sources (max-width: 767px)
-    if (validateSrc(mobileSrc) || validateSrc(mobileLightSrc) || validateSrc(mobileDarkSrc)) {
-        if (validateSrc(mobileLightSrc)) pictureHTML += `<source media="(prefers-color-scheme: light) and (max-width: 767px)" srcset="${mobileLightSrc}">`;
-        if (validateSrc(mobileDarkSrc)) pictureHTML += `<source media="(prefers-color-scheme: dark) and (max-width: 767px)" srcset="${mobileDarkSrc}">`;
-        if (validateSrc(mobileSrc)) pictureHTML += `<source media="(max-width: 767px)" srcset="${mobileSrc}">`;
-    }
-    // Tablet sources (min-width: 768px and max-width: 1023px)
-    if (validateSrc(tabletSrc) || validateSrc(tabletLightSrc) || validateSrc(tabletDarkSrc)) {
-        if (validateSrc(tabletLightSrc)) pictureHTML += `<source media="(prefers-color-scheme: light) and (min-width: 768px) and (max-width: 1023px)" srcset="${tabletLightSrc}">`;
-        if (validateSrc(tabletDarkSrc)) pictureHTML += `<source media="(prefers-color-scheme: dark) and (min-width: 768px) and (max-width: 1023px)" srcset="${tabletDarkSrc}">`;
-        if (validateSrc(tabletSrc)) pictureHTML += `<source media="(min-width: 768px) and (max-width: 1023px)" srcset="${tabletSrc}">`;
-    }
-    // Desktop sources (min-width: 1024px)
-    if (validateSrc(desktopSrc) || validateSrc(lightSrc) || validateSrc(darkSrc)) {
-        if (validateSrc(lightSrc)) pictureHTML += `<source media="(prefers-color-scheme: light) and (min-width: 1024px)" srcset="${lightSrc}">`;
-        if (validateSrc(darkSrc)) pictureHTML += `<source media="(prefers-color-scheme: dark) and (min-width: 1024px)" srcset="${darkSrc}">`;
-        if (validateSrc(desktopSrc)) pictureHTML += `<source media="(min-width: 1024px)" srcset="${desktopSrc}">`;
-    }
-    // Default fallback
-    if (validateSrc(lightSrc)) pictureHTML += `<source media="(prefers-color-scheme: light)" srcset="${lightSrc}">`;
-    if (validateSrc(darkSrc)) pictureHTML += `<source media="(prefers-color-scheme: dark)" srcset="${darkSrc}">`;
-    pictureHTML += `<img src="${validateSrc(desktopSrc) ? desktopSrc : validateSrc(tabletSrc) ? tabletSrc : validateSrc(mobileSrc) ? mobileSrc : src}"${altAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/300x300';${isDecorative ? '' : `this.alt='${alt || 'Placeholder logo'}';`}this.onerror=null;">`;
-    pictureHTML += '</picture>';
+  // Generate <picture> markup
+  let pictureMarkup = '<picture>';
 
-    return pictureHTML;
+  // Add sources for icon logo (below breakpoint)
+  if (validatedBreakpoint && iconSrc || iconLightSrc || iconDarkSrc) {
+    FORMATS.forEach(format => {
+      if (iconSourceSets.length) {
+        pictureMarkup += `
+          <source media="(max-width: ${validatedBreakpoint - 1}px)" type="image/${format}" srcset="${iconSourceSets.join(', ')}" ${isDecorative ? ' alt="" role="presentation"' : (iconAlt ? ` alt="${iconAlt}"` : (iconLightAlt && iconDarkAlt ? ` alt="${iconLightAlt}"` : ''))}>`;
+      }
+      if (iconLightSrc && iconLightBaseFilename) {
+        pictureMarkup += `
+          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: light)" type="image/${format}" srcset="${iconSourceSets.join(', ')}" ${isDecorative ? ' alt="" role="presentation"' : (iconLightAlt ? ` alt="${iconLightAlt}"` : '')}>`;
+      }
+      if (iconDarkSrc && iconDarkBaseFilename) {
+        pictureMarkup += `
+          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: dark)" type="image/${format}" srcset="${iconSourceSets.join(', ')}" ${isDecorative ? ' alt="" role="presentation"' : (iconDarkAlt ? ` alt="${iconDarkAlt}"` : '')}>`;
+      }
+    });
+  }
+
+  // Add sources for full logo (above breakpoint or default)
+  FORMATS.forEach(format => {
+    const sourceSet = fullSourceSets.length ? fullSourceSets : iconSourceSets;
+    if (sourceSet.length) {
+      pictureMarkup += `
+        <source type="image/${format}" srcset="${sourceSet.join(', ')}" ${altAttr}>`;
+      if (primaryLightSrc) {
+        pictureMarkup += `
+          <source media="(prefers-color-scheme: light)" type="image/${format}" srcset="${sourceSet.join(', ')}" ${altAttr}>`;
+      }
+      if (primaryDarkSrc) {
+        pictureMarkup += `
+          <source media="(prefers-color-scheme: dark)" type="image/${format}" srcset="${sourceSet.join(', ')}" ${altAttr}>`;
+      }
+    }
+  });
+
+  // Add fallback img tag
+  pictureMarkup += `
+    <img src="${primarySrc}" ${altAttr} ${classAttr} ${loadingAttr} ${fetchPriorityAttr} width="${desktopWidth}" height="auto">
+  </picture>`;
+
+  // Add schema if requested
+  if (includeSchema) {
+    pictureMarkup = `<script type="application/ld+json">
+      {
+        "@context": "http://schema.org",
+        "@type": "ImageObject",
+        "url": "${primarySrc}",
+        "alternateName": "${primaryAlt || primaryLightAlt || primaryDarkAlt || ''}"
+      }
+    </script>` + pictureMarkup;
+  }
+
+  return pictureMarkup;
 }
-
-export const BACKDROP_FILTER_MAP = {
-    'backdrop-filter-blur-small': 'blur(var(--blur-small))',
-    'backdrop-filter-blur-medium': 'blur(var(--blur-medium))',
-    'backdrop-filter-blur-large': 'blur(var(--blur-large))',
-    'backdrop-filter-grayscale-small': 'grayscale(var(--grayscale-small))',
-    'backdrop-filter-grayscale-medium': 'grayscale(var(--grayscale-medium))',
-    'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))'
-};
