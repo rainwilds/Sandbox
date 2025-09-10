@@ -126,6 +126,31 @@
                 const hasValidSource = attrs.fullPrimarySrc || attrs.fullLightSrc || attrs.fullDarkSrc || 
                                       attrs.iconPrimarySrc || attrs.iconLightSrc || attrs.iconDarkSrc;
                 if (hasValidSource) {
+                    // Determine which position to use based on breakpoint and available sources
+                    let positionClass = '';
+                    let styleTag = '';
+                    const hasBreakpoint = attrs.breakpoint && [768, 1024, 1366, 1920, 2560].includes(parseInt(attrs.breakpoint, 10));
+                    const hasIconSource = attrs.iconPrimarySrc || (attrs.iconLightSrc && attrs.iconDarkSrc);
+                    const hasFullSource = attrs.fullPrimarySrc || (attrs.fullLightSrc && attrs.fullDarkSrc);
+
+                    if (hasBreakpoint && hasIconSource && hasFullSource) {
+                        // If breakpoint is set and both logos are provided, use media queries to apply position
+                        positionClass = `logo-container ${attrs.fullPosition ? alignMap[attrs.fullPosition] : ''}`;
+                        styleTag = `
+                            <style>
+                                @media (max-width: ${parseInt(attrs.breakpoint, 10) - 1}px) {
+                                    .logo-container {
+                                        ${attrs.iconPosition ? `place-self: ${attrs.iconPosition.replace(/-/g, ' ')} !important;` : ''}
+                                    }
+                                }
+                            </style>
+                        `;
+                    } else {
+                        // Use fullPosition if only full logo or no breakpoint, else iconPosition
+                        const activePosition = hasFullSource ? attrs.fullPosition : attrs.iconPosition;
+                        positionClass = activePosition ? `logo-container ${alignMap[activePosition]}` : 'logo-container';
+                    }
+
                     const logoMarkup = generatePictureMarkup({
                         fullSrc: attrs.fullPrimarySrc,
                         fullLightSrc: attrs.fullLightSrc,
@@ -140,7 +165,7 @@
                         iconLightAlt: attrs.iconLightAlt,
                         iconDarkAlt: attrs.iconDarkAlt,
                         isDecorative: attrs.isDecorative || false,
-                        customClasses: `logo${attrs.fullPosition || attrs.iconPosition ? ` logo-${attrs.fullPosition || attrs.iconPosition}` : ''}`,
+                        customClasses: 'logo',
                         loading: 'eager',
                         fetchPriority: 'high',
                         extraClasses: [],
@@ -148,7 +173,8 @@
                     });
                     console.log('generatePictureMarkup output:', logoMarkup);
                     logoHTML = `
-                        <div${attrs.fullPosition || attrs.iconPosition ? ` class="${alignMap[attrs.fullPosition || attrs.iconPosition]}"` : ''} style="z-index: 100;">
+                        ${styleTag}
+                        <div class="${positionClass}" style="z-index: 100;">
                             <a href="/">${logoMarkup}</a>
                         </div>
                     `;

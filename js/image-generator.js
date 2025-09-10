@@ -91,7 +91,6 @@ export function generatePictureMarkup({
   const isLogo = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc;
   if (!isDecorative) {
     if (isLogo) {
-      // Logo-specific validation
       if (fullSrc && !fullAlt) {
         console.error('An alt attribute is required for non-decorative full logos when using fullSrc');
         return '';
@@ -117,7 +116,6 @@ export function generatePictureMarkup({
         return '';
       }
     } else {
-      // Non-logo validation
       if (!alt && !(lightSrc && lightAlt) && !(darkSrc && darkAlt)) {
         console.error('An alt attribute (or lightAlt for lightSrc, or darkAlt for darkSrc) is required for non-decorative images');
         return '';
@@ -137,12 +135,18 @@ export function generatePictureMarkup({
   }
 
   // Determine primary sources and alts
-  const primarySrc = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc || src;
+  const primarySrc = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc || src || lightSrc || darkSrc;
   const primaryLightSrc = fullLightSrc || iconLightSrc || lightSrc;
   const primaryDarkSrc = fullDarkSrc || iconDarkSrc || darkSrc;
   const primaryAlt = fullAlt || iconAlt || alt;
   const primaryLightAlt = fullLightAlt || iconLightAlt || lightAlt;
   const primaryDarkAlt = fullDarkAlt || iconDarkAlt || darkAlt;
+
+  // Determine image type for source elements
+  const getImageType = (src) => {
+    const ext = src.split('.').pop().toLowerCase();
+    return ext === 'svg' ? 'image/svg+xml' : `image/${ext}`;
+  };
 
   // Combine classes
   const allClasses = [...new Set([...customClasses.trim().split(/\s+/).filter(Boolean), ...extraClasses])];
@@ -167,32 +171,32 @@ export function generatePictureMarkup({
     console.log('Generating logo markup with sources:', { iconSrc, iconLightSrc, iconDarkSrc, fullSrc, fullLightSrc, fullDarkSrc, breakpoint: validatedBreakpoint });
     if (validatedBreakpoint && (iconSrc || iconLightSrc || iconDarkSrc)) {
       // Add sources for icon logo (below breakpoint)
-      if (iconSrc) {
-        pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px)" src="${iconSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (iconAlt ? ` alt="${iconAlt}"` : '')}>`;
-      }
       if (iconLightSrc) {
         pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: light)" src="${iconLightSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (iconLightAlt ? ` alt="${iconLightAlt}"` : '')}>`;
+          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: light)" type="${getImageType(iconLightSrc)}" src="${iconLightSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (iconLightAlt ? ` alt="${iconLightAlt}"` : '')}>`;
       }
       if (iconDarkSrc) {
         pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: dark)" src="${iconDarkSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (iconDarkAlt ? ` alt="${iconDarkAlt}"` : '')}>`;
+          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: dark)" type="${getImageType(iconDarkSrc)}" src="${iconDarkSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (iconDarkAlt ? ` alt="${iconDarkAlt}"` : '')}>`;
+      }
+      if (iconSrc) {
+        pictureMarkup += `
+          <source media="(max-width: ${validatedBreakpoint - 1}px)" type="${getImageType(iconSrc)}" src="${iconSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (iconAlt ? ` alt="${iconAlt}"` : '')}>`;
       }
     }
 
     // Add sources for full logo (above breakpoint or default)
+    if (fullLightSrc) {
+      pictureMarkup += `
+        <source media="(prefers-color-scheme: light)" type="${getImageType(fullLightSrc)}" src="${fullLightSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (fullLightAlt ? ` alt="${fullLightAlt}"` : '')}>`;
+    }
+    if (fullDarkSrc) {
+      pictureMarkup += `
+        <source media="(prefers-color-scheme: dark)" type="${getImageType(fullDarkSrc)}" src="${fullDarkSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (fullDarkAlt ? ` alt="${fullDarkAlt}"` : '')}>`;
+    }
     if (fullSrc || (!iconSrc && !iconLightSrc && !iconDarkSrc)) {
       pictureMarkup += `
-        <source src="${fullSrc || primarySrc}" sizes="${desktopWidth}" ${altAttr}>`;
-    }
-    if (fullLightSrc || (!iconLightSrc && primaryLightSrc)) {
-      pictureMarkup += `
-        <source media="(prefers-color-scheme: light)" src="${fullLightSrc || primaryLightSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (primaryLightAlt ? ` alt="${primaryLightAlt}"` : '')}>`;
-    }
-    if (fullDarkSrc || (!iconDarkSrc && primaryDarkSrc)) {
-      pictureMarkup += `
-        <source media="(prefers-color-scheme: dark)" src="${fullDarkSrc || primaryDarkSrc}" sizes="${desktopWidth}" ${isDecorative ? ' alt="" role="presentation"' : (primaryDarkAlt ? ` alt="${primaryDarkAlt}"` : '')}>`;
+        <source type="${getImageType(fullSrc || primarySrc)}" src="${fullSrc || primarySrc}" sizes="${desktopWidth}" ${altAttr}>`;
     }
   } else {
     // Non-logo case: Generate responsive srcset
@@ -226,18 +230,22 @@ export function generatePictureMarkup({
 
     if (noResponsive) {
       if (lightSrc) {
-        pictureMarkup += `<source media="(prefers-color-scheme: light)" src="${lightSrc}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (lightAlt ? ` alt="${lightAlt}"` : '')}>`;
+        pictureMarkup += `<source media="(prefers-color-scheme: light)" type="${getImageType(lightSrc)}" src="${lightSrc}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (lightAlt ? ` alt="${lightAlt}"` : '')}>`;
       }
       if (darkSrc) {
-        pictureMarkup += `<source media="(prefers-color-scheme: dark)" src="${darkSrc}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (darkAlt ? ` alt="${darkAlt}"` : '')}>`;
+        pictureMarkup += `<source media="(prefers-color-scheme: dark)" type="${getImageType(darkSrc)}" src="${darkSrc}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (darkAlt ? ` alt="${darkAlt}"` : '')}>`;
       }
-      pictureMarkup += `<source src="${src}" sizes="${sizes}" ${altAttr}>`;
+      if (src) {
+        pictureMarkup += `<source type="${getImageType(src)}" src="${src}" sizes="${sizes}" ${altAttr}>`;
+      }
     } else {
       FORMATS.forEach(format => {
-        const baseFilename = src.split('/').pop().split('.').slice(0, -1).join('.');
+        const baseFilename = (src || lightSrc || darkSrc).split('/').pop().split('.').slice(0, -1).join('.');
         let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
         let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
-        pictureMarkup += `<source type="image/${format}" srcset="${generateSrcset(baseFilename, format)}" sizes="${sizes}" ${altAttr}>`;
+        if (src) {
+          pictureMarkup += `<source type="image/${format}" srcset="${generateSrcset(baseFilename, format)}" sizes="${sizes}" ${altAttr}>`;
+        }
         if (lightSrc && lightBaseFilename) {
           pictureMarkup += `<source media="(prefers-color-scheme: light)" type="image/${format}" srcset="${generateSrcset(lightBaseFilename, format)}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (lightAlt ? ` alt="${lightAlt}"` : '')}>`;
         }
