@@ -996,6 +996,12 @@
 
 @layer components {
 
+    button[aria-controls="nav-menu"] {
+        background: none;
+        border: none;
+        padding: 0;
+    }
+
     a:has(> button.secondary) {
 
         color: light-dark(var(--color-static-dark-8), var(--color-static-light-8));
@@ -1133,6 +1139,10 @@
                 display: none;
             }
 
+        }
+
+        @media (max-width: 768px) {
+            display: none;
         }
 
     }
