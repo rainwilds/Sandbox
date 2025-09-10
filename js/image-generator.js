@@ -180,34 +180,34 @@ export function generatePictureMarkup({
 
     if (validatedBreakpoint && (iconSrc || iconLightSrc || iconDarkSrc)) {
       // Add sources for icon logo (below breakpoint)
-      if (iconDarkSrc) {
-        pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: dark)" type="${getImageType(iconDarkSrc)}" src="${iconDarkSrc}" srcset="${iconDarkSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconDarkAlt ? ` alt="${iconDarkAlt}"` : '')}>`;
-      }
       if (iconLightSrc) {
         pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: light)" type="${getImageType(iconLightSrc)}" src="${iconLightSrc}" srcset="${iconLightSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconLightAlt ? ` alt="${iconLightAlt}"` : '')}>`;
+          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: dark)" type="${getImageType(iconLightSrc)}" srcset="${iconLightSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconLightAlt ? ` alt="${iconLightAlt}"` : '')}>`;
+      }
+      if (iconDarkSrc) {
+        pictureMarkup += `
+          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: light)" type="${getImageType(iconDarkSrc)}" srcset="${iconDarkSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconDarkAlt ? ` alt="${iconDarkAlt}"` : '')}>`;
       }
       if (iconSrc) {
         pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px)" type="${getImageType(iconSrc)}" src="${iconSrc}" srcset="${iconSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconAlt ? ` alt="${iconAlt}"` : '')}>`;
+          <source media="(max-width: ${validatedBreakpoint - 1}px)" type="${getImageType(iconSrc)}" srcset="${iconSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconAlt ? ` alt="${iconAlt}"` : '')}>`;
       }
     }
 
     // Add sources for full logo (above breakpoint or default)
     if (fullDarkSrc) {
       pictureMarkup += `
-        <source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: dark)" type="${getImageType(fullDarkSrc)}" src="${fullDarkSrc}" srcset="${fullDarkSrc}" ${isDecorative ? ' alt="" role="presentation"' : (fullDarkAlt ? ` alt="${fullDarkAlt}"` : '')}>`;
+        <source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: dark)" type="${getImageType(fullDarkSrc)}" srcset="${fullDarkSrc}" ${isDecorative ? ' alt="" role="presentation"' : (fullDarkAlt ? ` alt="${fullDarkAlt}"` : '')}>`;
     }
     if (fullLightSrc) {
       pictureMarkup += `
-        <source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: light)" type="${getImageType(fullLightSrc)}" src="${fullLightSrc}" srcset="${fullLightSrc}" ${isDecorative ? ' alt="" role="presentation"' : (fullLightAlt ? ` alt="${fullLightAlt}"` : '')}>`;
+        <source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: light)" type="${getImageType(fullLightSrc)}" srcset="${fullLightSrc}" ${isDecorative ? ' alt="" role="presentation"' : (fullLightAlt ? ` alt="${fullLightAlt}"` : '')}>`;
     }
     // Add fallback source without media query
     if (fullSrc || iconSrc || fullLightSrc || iconLightSrc) {
       const fallbackSrc = fullSrc || iconSrc || fullLightSrc || iconLightSrc;
       pictureMarkup += `
-        <source type="${getImageType(fallbackSrc)}" src="${fallbackSrc}" srcset="${fallbackSrc}" ${altAttr}>`;
+        <source type="${getImageType(fallbackSrc)}" srcset="${fallbackSrc}" ${altAttr}>`;
     }
   } else {
     // Non-logo case: Generate responsive srcset
@@ -242,13 +242,13 @@ export function generatePictureMarkup({
 
     if (noResponsive) {
       if (lightSrc) {
-        pictureMarkup += `<source media="(prefers-color-scheme: light)" type="${getImageType(lightSrc)}" src="${lightSrc}" srcset="${lightSrc}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (lightAlt ? ` alt="${lightAlt}"` : '')}>`;
+        pictureMarkup += `<source media="(prefers-color-scheme: light)" type="${getImageType(lightSrc)}" srcset="${lightSrc}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (lightAlt ? ` alt="${lightAlt}"` : '')}>`;
       }
       if (darkSrc) {
-        pictureMarkup += `<source media="(prefers-color-scheme: dark)" type="${getImageType(darkSrc)}" src="${darkSrc}" srcset="${darkSrc}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (darkAlt ? ` alt="${darkAlt}"` : '')}>`;
+        pictureMarkup += `<source media="(prefers-color-scheme: dark)" type="${getImageType(darkSrc)}" srcset="${darkSrc}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (darkAlt ? ` alt="${darkAlt}"` : '')}>`;
       }
       if (src) {
-        pictureMarkup += `<source type="${getImageType(src)}" src="${src}" srcset="${src}" sizes="${sizes}" ${altAttr}>`;
+        pictureMarkup += `<source type="${getImageType(src)}" srcset="${src}" sizes="${sizes}" ${altAttr}>`;
       }
     } else {
       FORMATS.forEach(format => {
@@ -291,12 +291,12 @@ export function generatePictureMarkup({
           sources.forEach(source => {
             const media = source.getAttribute('media');
             if (media && window.matchMedia(media).matches) {
-              selectedSrc = source.getAttribute('srcset') || source.getAttribute('src');
+              selectedSrc = source.getAttribute('srcset');
               matchedMedia = media;
             }
           });
           console.log('Logo source selection:', { selectedSrc, matchedMedia, prefersDark, isBelowBreakpoint });
-          if (img.src !== selectedSrc && selectedSrc !== '${primarySrc}') {
+          if (img.src !== selectedSrc && selectedSrc && selectedSrc !== '${primarySrc}') {
             console.log('Updating logo img src to:', selectedSrc);
             img.src = selectedSrc;
           }
@@ -326,6 +326,6 @@ export const BACKDROP_FILTER_MAP = {
   'backdrop-filter-blur-medium': 'blur(var(--blur-medium))',
   'backdrop-filter-blur-large': 'blur(var(--blur-large))',
   'backdrop-filter-grayscale-small': 'grayscale(var(--grayscale-small))',
-  'backdrop-filter-grayscale-medium': 'grayscale(var--grayscale-medium))',
+  'backdrop-filter-grayscale-medium': 'grayscale(var(--grayscale-medium))',
   'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))'
 };
