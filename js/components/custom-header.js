@@ -1,7 +1,7 @@
 (async () => {
     try {
         const { CustomBlock } = await import('./custom-block.js');
-        const { VALID_ALIGNMENTS, alignMap } = await import('./shared.js');
+        const { VALID_ALIGNMENTS, alignMap } = await import('../shared.js');
         console.log('Successfully imported CustomBlock and alignMap');
 
         await Promise.all([

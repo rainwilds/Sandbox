@@ -1,7 +1,7 @@
 (async () => {
     try {
         const { BACKDROP_FILTER_MAP } = await import('./custom-block.js');
-        const { VALID_ALIGNMENTS, alignMap } = await import('./shared.js');
+        const { VALID_ALIGNMENTS, alignMap } = await import('../shared.js');
         console.log('Successfully imported BACKDROP_FILTER_MAP and alignMap');
 
         class CustomNav extends HTMLElement {
