@@ -10,9 +10,86 @@ const SIZES_BREAKPOINTS = [
 ];
 const DEFAULT_SIZE_VALUE = 3840;
 const BASE_PATH = './img/responsive/';
+const VALID_EXTENSIONS = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
+
+// Cache parsed widths to avoid repeated calculations
+const parseWidth = (widthStr, winWidth = typeof window !== 'undefined' ? window.innerWidth : 1920) => {
+  if (typeof widthStr === 'number') return Math.max(0.1, Math.min(2.0, widthStr / winWidth));
+  const vwMatch = widthStr.match(/(\d+)vw/);
+  if (vwMatch) return Math.max(0.1, Math.min(2.0, parseInt(vwMatch[1], 10) / 100));
+  const pxMatch = widthStr.match(/(\d+)px/);
+  if (pxMatch) return Math.max(0.1, Math.min(2.0, parseInt(pxMatch[1], 10) / winWidth));
+  return 1.0;
+};
+
+// Generate sizes attribute once per breakpoint configuration
+const generateSizes = (mobileWidth, tabletWidth, desktopWidth) => {
+  const parsedWidths = {
+    mobile: parseWidth(mobileWidth),
+    tablet: parseWidth(tabletWidth),
+    desktop: parseWidth(desktopWidth),
+  };
+  return [
+    ...SIZES_BREAKPOINTS.map(
+      (bp) =>
+        `(max-width: ${bp.maxWidth}px) ${
+          (bp.maxWidth <= 768 ? parsedWidths.mobile : bp.maxWidth <= 1024 ? parsedWidths.tablet : parsedWidths.desktop) * 100
+        }vw`
+    ),
+    `${DEFAULT_SIZE_VALUE * parsedWidths.desktop}px`,
+  ].join(', ');
+};
+
+// Validate image sources and alts efficiently
+const validateSources = (params) => {
+  const {
+    src,
+    lightSrc,
+    darkSrc,
+    fullSrc,
+    fullLightSrc,
+    fullDarkSrc,
+    iconSrc,
+    iconLightSrc,
+    iconDarkSrc,
+    alt,
+    lightAlt,
+    darkAlt,
+    fullAlt,
+    fullLightAlt,
+    fullDarkAlt,
+    iconAlt,
+    iconLightAlt,
+    iconDarkAlt,
+    isDecorative,
+  } = params;
+
+  const sources = [src, lightSrc, darkSrc, fullSrc, fullLightSrc, fullDarkSrc, iconSrc, iconLightSrc, iconDarkSrc].filter(Boolean);
+  if (!sources.length) throw new Error('At least one valid image source must be provided');
+
+  for (const source of sources) {
+    if (!VALID_EXTENSIONS.test(source)) throw new Error(`Invalid image source: ${source}`);
+  }
+
+  if (!isDecorative) {
+    const isLogo = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc;
+    if (isLogo) {
+      if (fullSrc && !fullAlt) throw new Error('fullAlt is required for non-decorative fullSrc');
+      if (iconSrc && !iconAlt) throw new Error('iconAlt is required for non-decorative iconSrc');
+      if (fullLightSrc && !fullLightAlt) throw new Error('fullLightAlt is required for fullLightSrc');
+      if (fullDarkSrc && !fullDarkAlt) throw new Error('fullDarkAlt is required for fullDarkSrc');
+      if (iconLightSrc && !iconLightAlt) throw new Error('iconLightAlt is required for iconLightSrc');
+      if (iconDarkSrc && !iconDarkAlt) throw new Error('iconDarkAlt is required for iconDarkSrc');
+    } else if (!alt && !(lightSrc && lightAlt) && !(darkSrc && darkAlt)) {
+      throw new Error('Alt attribute is required for non-decorative images');
+    }
+  }
+
+  return true;
+};
 
 export function generatePictureMarkup({
-  src,
+  src = '',
   lightSrc = '',
   darkSrc = '',
   alt = '',
@@ -42,287 +119,160 @@ export function generatePictureMarkup({
   extraClasses = [],
   noResponsive = false,
   breakpoint = '',
-  extraStyles = ''
+  extraStyles = '',
 } = {}) {
-  const validExtensions = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
+  try {
+    // Validate inputs
+    validateSources(arguments[0]);
 
-  // Validate image sources
-  if (!src && !fullSrc && !iconSrc && !lightSrc && !darkSrc && !fullLightSrc && !fullDarkSrc && !iconLightSrc && !iconDarkSrc) {
-    console.error('At least one valid image source must be provided');
-    return '';
-  }
-  if (src && !validExtensions.test(src)) {
-    console.error('The "src" parameter must be a valid image path');
-    return '';
-  }
-  if (fullSrc && !validExtensions.test(fullSrc)) {
-    console.error('The "fullSrc" parameter must be a valid image path');
-    return '';
-  }
-  if (iconSrc && !validExtensions.test(iconSrc)) {
-    console.error('The "iconSrc" parameter must be a valid image path');
-    return '';
-  }
-  if (lightSrc && !validExtensions.test(lightSrc)) {
-    console.error('Invalid "lightSrc" parameter');
-    return '';
-  }
-  if (darkSrc && !validExtensions.test(darkSrc)) {
-    console.error('Invalid "darkSrc" parameter');
-    return '';
-  }
-  if (fullLightSrc && !validExtensions.test(fullLightSrc)) {
-    console.error('Invalid "fullLightSrc" parameter');
-    return '';
-  }
-  if (fullDarkSrc && !validExtensions.test(fullDarkSrc)) {
-    console.error('Invalid "fullDarkSrc" parameter');
-    return '';
-  }
-  if (iconLightSrc && !validExtensions.test(iconLightSrc)) {
-    console.error('Invalid "iconLightSrc" parameter');
-    return '';
-  }
-  if (iconDarkSrc && !validExtensions.test(iconDarkSrc)) {
-    console.error('Invalid "iconDarkSrc" parameter');
-    return '';
-  }
+    // Validate breakpoint
+    const validatedBreakpoint = breakpoint && WIDTHS.includes(parseInt(breakpoint, 10)) ? parseInt(breakpoint, 10) : '';
 
-  // Validate alt attributes for non-decorative images
-  const isLogo = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc;
-  if (!isDecorative) {
+    // Determine primary sources and alts
+    const primarySrc = fullSrc || iconSrc || fullLightSrc || iconLightSrc || lightSrc || fullDarkSrc || iconDarkSrc || darkSrc || src;
+    const primaryAlt = isDecorative ? '' : fullAlt || iconAlt || alt || lightAlt || darkAlt || fullLightAlt || fullDarkAlt || iconLightAlt || iconDarkAlt;
+    const altAttr = isDecorative ? ' alt="" role="presentation"' : ` alt="${primaryAlt}"`;
+    const loadingAttr = ['eager', 'lazy'].includes(loading) ? ` loading="${loading}"` : ' loading="lazy"';
+    const fetchPriorityAttr = ['high', 'low', 'auto'].includes(fetchPriority) && !(fullSrc || iconSrc || fullLightSrc || iconLightSrc || fullDarkSrc || iconDarkSrc) ? ` fetchpriority="${fetchPriority}"` : '';
+
+    // Combine classes efficiently
+    const allClasses = [...new Set([customClasses.trim(), ...extraClasses].flatMap((c) => c.split(/\s+/)).filter(Boolean))];
+    if (aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio)) {
+      allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
+    }
+    allClasses.push('animate', 'animate-fade-in');
+    const classAttr = allClasses.length ? ` class="${allClasses.join(' ')}"` : '';
+    const styleAttr = extraStyles ? ` style="${extraStyles}"` : '';
+
+    // Initialize markup array for efficient concatenation
+    const markup = [`<picture${classAttr}${styleAttr}>`];
+
+    // Helper to get image MIME type
+    const getImageType = (src) => {
+      const ext = src.split('.').pop().toLowerCase();
+      return ext === 'svg' ? 'image/svg+xml' : `image/${ext}`;
+    };
+
+    // Generate srcset for responsive images
+    const generateSrcset = (filename, format) =>
+      [`${BASE_PATH}${filename}.${format} 3840w`, ...WIDTHS.map((w) => `${BASE_PATH}${filename}-${w}.${format} ${w}w`)].join(', ');
+
+    const isLogo = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc;
+
     if (isLogo) {
-      if (fullSrc && !fullAlt) {
-        console.error('An alt attribute is required for non-decorative full logos when using fullSrc');
-        return '';
+      // Logo case: Use original source URLs
+      if (validatedBreakpoint && (iconSrc || iconLightSrc || iconDarkSrc)) {
+        if (iconLightSrc) {
+          markup.push(
+            `<source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: light)" type="${getImageType(iconLightSrc)}" srcset="${iconLightSrc}"${isDecorative ? ' alt="" role="presentation"' : iconLightAlt ? ` alt="${iconLightAlt}"` : ''}>`
+          );
+        }
+        if (iconDarkSrc) {
+          markup.push(
+            `<source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: dark)" type="${getImageType(iconDarkSrc)}" srcset="${iconDarkSrc}"${isDecorative ? ' alt="" role="presentation"' : iconDarkAlt ? ` alt="${iconDarkAlt}"` : ''}>`
+          );
+        }
+        if (iconSrc) {
+          markup.push(
+            `<source media="(max-width: ${validatedBreakpoint - 1}px)" type="${getImageType(iconSrc)}" srcset="${iconSrc}"${isDecorative ? ' alt="" role="presentation"' : iconAlt ? ` alt="${iconAlt}"` : ''}>`
+          );
+        }
       }
-      if (iconSrc && !iconAlt) {
-        console.error('An alt attribute is required for non-decorative icon logos when using iconSrc');
-        return '';
+
+      if (fullLightSrc) {
+        markup.push(
+          `<source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: light)" type="${getImageType(fullLightSrc)}" srcset="${fullLightSrc}"${isDecorative ? ' alt="" role="presentation"' : fullLightAlt ? ` alt="${fullLightAlt}"` : ''}>`
+        );
       }
-      if (fullLightSrc && !fullLightAlt) {
-        console.error('fullLightAlt is required when fullLightSrc is provided');
-        return '';
+      if (fullDarkSrc) {
+        markup.push(
+          `<source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: dark)" type="${getImageType(fullDarkSrc)}" srcset="${fullDarkSrc}"${isDecorative ? ' alt="" role="presentation"' : fullDarkAlt ? ` alt="${fullDarkAlt}"` : ''}>`
+        );
       }
-      if (fullDarkSrc && !fullDarkAlt) {
-        console.error('fullDarkAlt is required when fullDarkSrc is provided');
-        return '';
-      }
-      if (iconLightSrc && !iconLightAlt) {
-        console.error('iconLightAlt is required when iconLightSrc is provided');
-        return '';
-      }
-      if (iconDarkSrc && !iconDarkAlt) {
-        console.error('iconDarkAlt is required when iconDarkSrc is provided');
-        return '';
+      if (fullSrc || iconSrc || fullLightSrc || iconLightSrc) {
+        const fallbackSrc = fullSrc || iconSrc || fullLightSrc || iconLightSrc;
+        markup.push(`<source type="${getImageType(fallbackSrc)}" srcset="${fallbackSrc}"${altAttr}>`);
       }
     } else {
-      if (!alt && !(lightSrc && lightAlt) && !(darkSrc && darkAlt)) {
-        console.error('An alt attribute (or lightAlt for lightSrc, or darkAlt for darkSrc) is required for non-decorative images');
-        return '';
+      // Non-logo case: Generate responsive srcset
+      const sizes = generateSizes(mobileWidth, tabletWidth, desktopWidth);
+      const baseFilename = (lightSrc || darkSrc || src).split('/').pop().split('.').slice(0, -1).join('.');
+      const lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
+      const darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
+
+      if (noResponsive) {
+        if (lightSrc) {
+          markup.push(
+            `<source media="(prefers-color-scheme: light)" type="${getImageType(lightSrc)}" srcset="${lightSrc}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : lightAlt ? ` alt="${lightAlt}"` : ''}>`
+          );
+        }
+        if (darkSrc) {
+          markup.push(
+            `<source media="(prefers-color-scheme: dark)" type="${getImageType(darkSrc)}" srcset="${darkSrc}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : darkAlt ? ` alt="${darkAlt}"` : ''}>`
+          );
+        }
+        if (src) {
+          markup.push(`<source type="${getImageType(src)}" srcset="${src}" sizes="${sizes}"${altAttr}>`);
+        }
+      } else {
+        FORMATS.forEach((format) => {
+          if (lightSrc && lightBaseFilename) {
+            markup.push(
+              `<source media="(prefers-color-scheme: light)" type="image/${format}" srcset="${generateSrcset(lightBaseFilename, format)}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : lightAlt ? ` alt="${lightAlt}"` : ''}>`
+            );
+          }
+          if (darkSrc && darkBaseFilename) {
+            markup.push(
+              `<source media="(prefers-color-scheme: dark)" type="image/${format}" srcset="${generateSrcset(darkBaseFilename, format)}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : darkAlt ? ` alt="${darkAlt}"` : ''}>`
+            );
+          }
+          markup.push(`<source type="image/${format}" srcset="${generateSrcset(baseFilename, format)}" sizes="${sizes}"${altAttr}>`);
+        });
       }
     }
-  }
 
-  // Validate breakpoint
-  let validatedBreakpoint = '';
-  if (breakpoint) {
-    const bp = parseInt(breakpoint, 10);
-    if (WIDTHS.includes(bp)) {
-      validatedBreakpoint = bp;
-    } else {
-      console.warn(`Invalid breakpoint "${breakpoint}". Must be one of ${WIDTHS.join(', ')}. Ignoring.`);
+    // Add fallback img tag
+    markup.push(
+      `<img src="${primarySrc}"${altAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${primaryAlt || 'Placeholder image'}';`}this.onerror=null;">`
+    );
+    markup.push('</picture>');
+
+    // Add schema if requested
+    if (includeSchema) {
+      markup.unshift(
+        `<script type="application/ld+json">{"@context":"http://schema.org","@type":"ImageObject","url":"${primarySrc}","alternateName":"${primaryAlt}"}</script>`
+      );
     }
+
+    return markup.join('');
+  } catch (error) {
+    console.error(`Error generating picture markup: ${error.message}`);
+    return `<img src="https://placehold.co/3000x2000" alt="Error loading image" loading="lazy">`;
   }
+}
 
-  // Determine primary sources and alts
-  const primarySrc = (fullSrc || iconSrc || fullLightSrc || iconLightSrc || lightSrc || fullDarkSrc || iconDarkSrc || darkSrc || src);
-  const primaryLightSrc = fullLightSrc || iconLightSrc || lightSrc;
-  const primaryDarkSrc = fullDarkSrc || iconDarkSrc || darkSrc;
-  const primaryAlt = fullAlt || iconAlt || alt;
-  const primaryLightAlt = fullLightAlt || iconLightAlt || lightAlt;
-  const primaryDarkAlt = fullDarkAlt || iconDarkAlt || darkAlt;
-
-  // Determine image type for source elements
-  const getImageType = (src) => {
-    const ext = src.split('.').pop().toLowerCase();
-    return ext === 'svg' ? 'image/svg+xml' : `image/${ext}`;
+// Global script for source selection (run once per page)
+if (typeof window !== 'undefined') {
+  const updatePictureSources = () => {
+    document.querySelectorAll('picture').forEach((picture) => {
+      const img = picture.querySelector('img');
+      const sources = picture.querySelectorAll('source');
+      let selectedSrc = img.src;
+      sources.forEach((source) => {
+        if (source.media && window.matchMedia(source.media).matches) {
+          const srcset = source.getAttribute('srcset');
+          selectedSrc = srcset.includes(',') ? srcset.split(',')[0].split(' ')[0] : srcset;
+        }
+      });
+      if (img.src !== selectedSrc && selectedSrc) img.src = selectedSrc;
+    });
   };
 
-  // Combine classes
-  const allClasses = [...new Set([...customClasses.trim().split(/\s+/).filter(Boolean), ...extraClasses])];
-  if (aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio)) {
-    allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
-  }
-  const classAttr = allClasses.length ? ` class="${allClasses.join(' ')} animate animate-fade-in"` : ' class="animate animate-fade-in"';
-  const styleAttr = extraStyles ? ` style="${extraStyles}"` : '';
-
-  // Handle alt attributes
-  const altAttr = isDecorative ? ' alt="" role="presentation"' : (primaryAlt ? ` alt="${primaryAlt}"` : (primaryLightAlt ? ` alt="${primaryLightAlt}"` : ''));
-
-  const validLoading = ['eager', 'lazy'].includes(loading) ? loading : 'lazy';
-  const validFetchPriority = ['high', 'low', 'auto'].includes(fetchPriority) ? fetchPriority : '';
-  const loadingAttr = validLoading ? ` loading="${validLoading}"` : '';
-  const fetchPriorityAttr = validFetchPriority && !isLogo ? ` fetchpriority="${validFetchPriority}"` : '';
-
-  // Generate <picture> markup
-  let pictureMarkup = `<picture${classAttr}${styleAttr}>`;
-
-  if (isLogo) {
-    // Log current media query state for debugging
-    console.log('Media query state:', {
-      isBelowBreakpoint: validatedBreakpoint && window.matchMedia(`(max-width: ${validatedBreakpoint - 1}px)`).matches,
-      isDarkTheme: window.matchMedia('(prefers-color-scheme: dark)').matches
-    });
-
-    // Logo case: Use original source URLs
-    console.log('Generating logo markup with sources:', { iconSrc, iconLightSrc, iconDarkSrc, fullSrc, fullLightSrc, fullDarkSrc, breakpoint: validatedBreakpoint });
-    
-    if (validatedBreakpoint && (iconSrc || iconLightSrc || iconDarkSrc)) {
-      // Add sources for icon logo (below breakpoint)
-      if (iconLightSrc) {
-        pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: dark)" type="${getImageType(iconLightSrc)}" srcset="${iconLightSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconLightAlt ? ` alt="${iconLightAlt}"` : '')}>`;
-      }
-      if (iconDarkSrc) {
-        pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: light)" type="${getImageType(iconDarkSrc)}" srcset="${iconDarkSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconDarkAlt ? ` alt="${iconDarkAlt}"` : '')}>`;
-      }
-      if (iconSrc) {
-        pictureMarkup += `
-          <source media="(max-width: ${validatedBreakpoint - 1}px)" type="${getImageType(iconSrc)}" srcset="${iconSrc}" ${isDecorative ? ' alt="" role="presentation"' : (iconAlt ? ` alt="${iconAlt}"` : '')}>`;
-      }
-    }
-
-    // Add sources for full logo (above breakpoint or default)
-    if (fullDarkSrc) {
-      pictureMarkup += `
-        <source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: dark)" type="${getImageType(fullDarkSrc)}" srcset="${fullDarkSrc}" ${isDecorative ? ' alt="" role="presentation"' : (fullDarkAlt ? ` alt="${fullDarkAlt}"` : '')}>`;
-    }
-    if (fullLightSrc) {
-      pictureMarkup += `
-        <source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: light)" type="${getImageType(fullLightSrc)}" srcset="${fullLightSrc}" ${isDecorative ? ' alt="" role="presentation"' : (fullLightAlt ? ` alt="${fullLightAlt}"` : '')}>`;
-    }
-    // Add fallback source without media query
-    if (fullSrc || iconSrc || fullLightSrc || iconLightSrc) {
-      const fallbackSrc = fullSrc || iconSrc || fullLightSrc || iconLightSrc;
-      pictureMarkup += `
-        <source type="${getImageType(fallbackSrc)}" srcset="${fallbackSrc}" ${altAttr}>`;
-    }
-  } else {
-    // Non-logo case: Generate responsive srcset
-    console.log('Generating non-logo markup with sources:', { src, lightSrc, darkSrc });
-    const parseWidth = (widthStr) => {
-      const vwMatch = widthStr.match(/(\d+)vw/);
-      if (vwMatch) return parseInt(vwMatch[1]) / 100;
-      const pxMatch = widthStr.match(/(\d+)px/);
-      if (pxMatch) {
-        const winWidth = typeof window !== 'undefined' ? window.innerWidth : 1920;
-        return parseInt(pxMatch[1]) / winWidth;
-      }
-      return 1.0;
-    };
-    const parsedWidths = {
-      mobile: Math.max(0.1, Math.min(2.0, parseWidth(mobileWidth))),
-      tablet: Math.max(0.1, Math.min(2.0, parseWidth(tabletWidth))),
-      desktop: Math.max(0.1, Math.min(2.0, parseWidth(desktopWidth)))
-    };
-    const sizes = [
-      ...SIZES_BREAKPOINTS.map(bp => {
-        const percentage = bp.maxWidth <= 768 ? parsedWidths.mobile : (bp.maxWidth <= 1024 ? parsedWidths.tablet : parsedWidths.desktop);
-        return `(max-width: ${bp.maxWidth}px) ${percentage * 100}vw`;
-      }),
-      `${DEFAULT_SIZE_VALUE * parsedWidths.desktop}px`
-    ].join(', ');
-
-    const generateSrcset = (filename, format) =>
-      `${BASE_PATH}${filename}.${format} 3840w, ` +
-      WIDTHS.map(w => `${BASE_PATH}${filename}-${w}.${format} ${w}w`).join(', ');
-
-    if (noResponsive) {
-      if (lightSrc) {
-        pictureMarkup += `<source media="(prefers-color-scheme: light)" type="${getImageType(lightSrc)}" srcset="${lightSrc}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (lightAlt ? ` alt="${lightAlt}"` : '')}>`;
-      }
-      if (darkSrc) {
-        pictureMarkup += `<source media="(prefers-color-scheme: dark)" type="${getImageType(darkSrc)}" srcset="${darkSrc}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (darkAlt ? ` alt="${darkAlt}"` : '')}>`;
-      }
-      if (src) {
-        pictureMarkup += `<source type="${getImageType(src)}" srcset="${src}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (alt ? ` alt="${alt}"` : '')}>`;
-      }
-    } else {
-      FORMATS.forEach(format => {
-        const baseFilename = (lightSrc || darkSrc || src).split('/').pop().split('.').slice(0, -1).join('.');
-        let lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
-        let darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
-        if (lightSrc && lightBaseFilename) {
-          pictureMarkup += `<source media="(prefers-color-scheme: light)" type="image/${format}" srcset="${generateSrcset(lightBaseFilename, format)}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (lightAlt ? ` alt="${lightAlt}"` : '')}>`;
-        }
-        if (darkSrc && darkBaseFilename) {
-          pictureMarkup += `<source media="(prefers-color-scheme: dark)" type="image/${format}" srcset="${generateSrcset(darkBaseFilename, format)}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (darkAlt ? ` alt="${darkAlt}"` : '')}>`;
-        }
-        pictureMarkup += `<source type="image/${format}" srcset="${generateSrcset(baseFilename, format)}" sizes="${sizes}" ${isDecorative ? ' alt="" role="presentation"' : (alt ? ` alt="${alt}"` : '')}>`;
-      });
-    }
-  }
-
-  // Add fallback img tag
-  pictureMarkup += `
-    <img src="${primarySrc}" ${altAttr} ${loadingAttr} onerror="console.error('Image load failed: ${primarySrc}');this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${primaryAlt || primaryLightAlt || primaryDarkAlt || 'Placeholder image'}';`}this.onerror=null;">
-  </picture>`;
-
-  // Add script to force source selection
-  pictureMarkup += `
-    <script>
-      (function() {
-        const picture = document.currentScript.previousElementSibling;
-        if (!picture || picture.tagName !== 'PICTURE') {
-          console.error('Picture element not found for script');
-          return;
-        }
-        const img = picture.querySelector('img');
-        const sources = picture.querySelectorAll('source');
-        const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
-        const breakpointQuery = ${validatedBreakpoint ? `window.matchMedia('(max-width: ${validatedBreakpoint - 1}px)')` : 'null'};
-        function updateImageSource() {
-          const prefersDark = prefersDarkQuery.matches;
-          const isBelowBreakpoint = breakpointQuery ? breakpointQuery.matches : false;
-          let selectedSrc = '${primarySrc}';
-          let matchedMedia = 'none';
-          sources.forEach(source => {
-            const media = source.getAttribute('media');
-            if (media && window.matchMedia(media).matches) {
-              const srcset = source.getAttribute('srcset');
-              selectedSrc = ${isLogo ? 'srcset' : 'srcset.split(",")[0].split(" ")[0]'};
-              matchedMedia = media;
-            }
-          });
-          console.log('Picture source selection:', { selectedSrc, matchedMedia, prefersDark, isBelowBreakpoint });
-          if (img.src !== selectedSrc && selectedSrc) {
-            console.log('Updating picture img src to:', selectedSrc);
-            img.src = selectedSrc;
-          }
-          console.log('Final picture source:', img.src);
-        }
-        document.addEventListener('DOMContentLoaded', updateImageSource);
-        prefersDarkQuery.addEventListener('change', updateImageSource);
-        ${validatedBreakpoint ? `breakpointQuery.addEventListener('change', updateImageSource);` : ''}
-      })();
-    </script>`;
-
-  // Add schema if requested
-  if (includeSchema) {
-    pictureMarkup = `<script type="application/ld+json">
-      {
-        "@context": "http://schema.org",
-        "@type": "ImageObject",
-        "url": "${primarySrc}",
-        "alternateName": "${primaryAlt || primaryLightAlt || primaryDarkAlt || ''}"
-      }
-    </script>` + pictureMarkup;
-  }
-
-  console.log('Generated picture markup:', pictureMarkup);
-  return pictureMarkup;
+  window.addEventListener('DOMContentLoaded', updatePictureSources);
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updatePictureSources);
+  WIDTHS.forEach((bp) => {
+    window.matchMedia(`(max-width: ${bp - 1}px)`).addEventListener('change', updatePictureSources);
+  });
 }
 
 export const BACKDROP_FILTER_MAP = {
@@ -331,5 +281,5 @@ export const BACKDROP_FILTER_MAP = {
   'backdrop-filter-blur-large': 'blur(var(--blur-large))',
   'backdrop-filter-grayscale-small': 'grayscale(var(--grayscale-small))',
   'backdrop-filter-grayscale-medium': 'grayscale(var(--grayscale-medium))',
-  'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))'
+  'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))',
 };
