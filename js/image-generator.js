@@ -160,16 +160,18 @@ export function generatePictureMarkup({
     const isLogo = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc;
 
     if (isLogo) {
-      // Logo case: Use original source URLs
+      // Logo case: Use original source URLs with inverted theme logic
       if (validatedBreakpoint && (iconSrc || iconLightSrc || iconDarkSrc)) {
         if (iconLightSrc) {
+          // Use light icon in dark mode
           markup.push(
-            `<source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: light)" type="${getImageType(iconLightSrc)}" srcset="${iconLightSrc}"${isDecorative ? ' alt="" role="presentation"' : iconLightAlt ? ` alt="${iconLightAlt}"` : ''}>`
+            `<source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: dark)" type="${getImageType(iconLightSrc)}" srcset="${iconLightSrc}"${isDecorative ? ' alt="" role="presentation"' : iconLightAlt ? ` alt="${iconLightAlt}"` : ''}>`
           );
         }
         if (iconDarkSrc) {
+          // Use dark icon in light mode
           markup.push(
-            `<source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: dark)" type="${getImageType(iconDarkSrc)}" srcset="${iconDarkSrc}"${isDecorative ? ' alt="" role="presentation"' : iconDarkAlt ? ` alt="${iconDarkAlt}"` : ''}>`
+            `<source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: light)" type="${getImageType(iconDarkSrc)}" srcset="${iconDarkSrc}"${isDecorative ? ' alt="" role="presentation"' : iconDarkAlt ? ` alt="${iconDarkAlt}"` : ''}>`
           );
         }
         if (iconSrc) {
@@ -180,13 +182,15 @@ export function generatePictureMarkup({
       }
 
       if (fullLightSrc) {
+        // Use light full logo in dark mode
         markup.push(
-          `<source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: light)" type="${getImageType(fullLightSrc)}" srcset="${fullLightSrc}"${isDecorative ? ' alt="" role="presentation"' : fullLightAlt ? ` alt="${fullLightAlt}"` : ''}>`
+          `<source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: dark)" type="${getImageType(fullLightSrc)}" srcset="${fullLightSrc}"${isDecorative ? ' alt="" role="presentation"' : fullLightAlt ? ` alt="${fullLightAlt}"` : ''}>`
         );
       }
       if (fullDarkSrc) {
+        // Use dark full logo in light mode
         markup.push(
-          `<source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: dark)" type="${getImageType(fullDarkSrc)}" srcset="${fullDarkSrc}"${isDecorative ? ' alt="" role="presentation"' : fullDarkAlt ? ` alt="${fullDarkAlt}"` : ''}>`
+          `<source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: light)" type="${getImageType(fullDarkSrc)}" srcset="${fullDarkSrc}"${isDecorative ? ' alt="" role="presentation"' : fullDarkAlt ? ` alt="${fullDarkAlt}"` : ''}>`
         );
       }
       if (fullSrc || iconSrc || fullLightSrc || iconLightSrc) {
@@ -264,7 +268,10 @@ if (typeof window !== 'undefined') {
           selectedSrc = srcset.includes(',') ? srcset.split(',')[0].split(' ')[0] : srcset;
         }
       });
-      if (img.src !== selectedSrc && selectedSrc) img.src = selectedSrc;
+      if (img.src !== selectedSrc && selectedSrc) {
+        console.log('Updating img src to:', selectedSrc);
+        img.src = selectedSrc;
+      }
     });
   };
 
