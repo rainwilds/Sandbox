@@ -20,3 +20,5 @@ export const alignMap = {
     'center-left': 'place-self-center-left',
     'center-right': 'place-self-center-right'
 };
+
+export const VALID_VIDEO_EXTENSIONS = ['mp4', 'webm'];

@@ -1,6 +1,7 @@
 /* global HTMLElement, IntersectionObserver, document, window, JSON, console */
-import { generatePictureMarkup } from '../image-generator.js';
-import { VALID_ALIGNMENTS, alignMap } from '../shared.js';
+import { generatePictureMarkup } from './image-generator.js';
+import { generateVideoMarkup } from './video-generator.js';
+import { VALID_ALIGNMENTS, alignMap } from './shared.js';
 
 class CustomBlock extends HTMLElement {
     constructor() {
@@ -45,51 +46,6 @@ class CustomBlock extends HTMLElement {
         'backdrop-filter-grayscale-medium': 'grayscale(var(--grayscale-medium))',
         'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))'
     };
-
-    generateVideoMarkup({ src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses, extraClasses, loading, autoplay, muted, loop, playsinline, disablePip, preload, controls }) {
-        const classList = [customClasses, ...extraClasses].filter(cls => cls).join(' ').trim();
-        const validExtensions = ['mp4', 'webm'];
-        const addSourcesHTML = (videoSrc, mediaQuery) => {
-            if (!videoSrc) return '';
-            const ext = videoSrc.split('.').pop()?.toLowerCase();
-            if (!ext || !validExtensions.includes(ext)) {
-                console.warn(`Invalid video file extension: ${videoSrc}`);
-                return '';
-            }
-            const baseSrc = videoSrc.slice(0, -(ext.length + 1));
-            const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
-            return `
-                <source src="${baseSrc}.webm" type="video/webm"${mediaAttr}>
-                <source src="${baseSrc}.mp4" type="video/mp4"${mediaAttr}>
-            `;
-        };
-        let innerHTML = '';
-        if (lightSrc) innerHTML += addSourcesHTML(lightSrc, '(prefers-color-scheme: light)');
-        if (darkSrc) innerHTML += addSourcesHTML(darkSrc, '(prefers-color-scheme: dark)');
-        const defaultSrc = lightSrc || darkSrc || src;
-        innerHTML += addSourcesHTML(defaultSrc);
-        innerHTML += `<p>Your browser does not support the video tag. <a href="${defaultSrc}">Download video</a></p>`;
-        const posterAttr = poster ? `poster="${poster}"` : '';
-        const isMuted = autoplay || muted ? 'muted' : '';
-        return `
-            <video
-                id="{VIDEO_ID_PLACEHOLDER}"
-                ${autoplay ? 'autoplay' : ''}
-                ${isMuted}
-                ${loop ? 'loop' : ''}
-                ${playsinline ? 'playsinline' : ''}
-                ${disablePip ? 'disablepictureinpicture' : ''}
-                ${controls ? 'controls' : ''}
-                preload="${preload || 'metadata'}"
-                loading="${loading || 'lazy'}"
-                class="${classList}"
-                title="${alt}"
-                aria-label="${alt}"
-                ${posterAttr}>
-                ${innerHTML}
-            </video>
-        `;
-    }
     getAttributes() {
         // Return cached attributes if available
         if (this.cachedAttributes) {
@@ -452,7 +408,7 @@ class CustomBlock extends HTMLElement {
             backgroundDarkSrc: backgroundDarkSrc,
             backgroundAlt: backgroundAlt,
             backgroundLightAlt: backgroundAlt, // Map backgroundAlt to lightAlt for consistency
-            backgroundDarkAlt: backgroundAlt,  // Map backgroundAlt to darkAlt for consistency
+            backgroundDarkAlt: backgroundAlt, // Map backgroundAlt to darkAlt for consistency
             backgroundIsDecorative: this.hasAttribute('img-background-decorative'),
             backgroundMobileWidth: this.getAttribute('img-background-mobile-width') || '100vw',
             backgroundTabletWidth: this.getAttribute('img-background-tablet-width') || '100vw',
@@ -696,8 +652,7 @@ class CustomBlock extends HTMLElement {
         const mediaCustomClasses = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls)).join(' ');
         const innerCustomClassesList = attrs.innerCustomClasses.split(' ').filter(cls => cls);
         if (hasVideoBackground) {
-            const videoId = 'custom-video-' + Math.random().toString(36).substring(2, 11);
-            let videoMarkup = this.generateVideoMarkup({
+            backgroundContentHTML = generateVideoMarkup({
                 src: attrs.videoBackgroundSrc,
                 lightSrc: attrs.videoBackgroundLightSrc,
                 darkSrc: attrs.videoBackgroundDarkSrc,
@@ -716,87 +671,6 @@ class CustomBlock extends HTMLElement {
                 preload: attrs.videoBackgroundLoading === 'lazy' ? 'metadata' : attrs.videoBackgroundLoading,
                 controls: false
             });
-            videoMarkup = videoMarkup.replace('{VIDEO_ID_PLACEHOLDER}', videoId);
-            backgroundContentHTML = videoMarkup;
-            if (attrs.videoBackgroundLightPoster || attrs.videoBackgroundDarkPoster || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc) {
-                const scriptContent = `
-                    (function() {
-                        const video = document.getElementById('${videoId}');
-                        if (!video) return;
-                        const lightPoster = '${attrs.videoBackgroundLightPoster || attrs.videoBackgroundPoster || ''}';
-                        const darkPoster = '${attrs.videoBackgroundDarkPoster || attrs.videoBackgroundPoster || ''}';
-                        const lightSrc = '${attrs.videoBackgroundLightSrc || ''}';
-                        const darkSrc = '${attrs.videoBackgroundDarkSrc || ''}';
-                        const defaultSrc = '${attrs.videoBackgroundSrc || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc || ''}';
-                        const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
-                        const validExtensions = ['mp4', 'webm'];
-                        function addSources(video, videoSrc, mediaQuery) {
-                            if (!videoSrc) return;
-                            const ext = videoSrc.split('.').pop().toLowerCase();
-                            if (!validExtensions.includes(ext)) return;
-                            const baseSrc = videoSrc.slice(0, -(ext.length + 1));
-                            const mediaAttr = mediaQuery ? \` media="\${mediaQuery}"\` : '';
-                            const webmSource = document.createElement('source');
-                            webmSource.src = \`\${baseSrc}.webm\`;
-                            webmSource.type = 'video/webm';
-                            if (mediaQuery) webmSource.media = mediaQuery;
-                            video.appendChild(webmSource);
-                            const mp4Source = document.createElement('source');
-                            mp4Source.src = \`\${baseSrc}.mp4\`;
-                            mp4Source.type = 'video/mp4';
-                            if (mediaQuery) mp4Source.media = mediaQuery;
-                            video.appendChild(mp4Source);
-                        }
-                        function updateVideo() {
-                            const prefersDark = prefersDarkQuery.matches;
-                            const newPoster = prefersDark ? darkPoster : lightPoster;
-                            if (newPoster && video.poster !== newPoster) {
-                                video.poster = newPoster;
-                            }
-                            const activeSrc = prefersDark ? (darkSrc || lightSrc) : (lightSrc || darkSrc);
-                            if (activeSrc && video.currentSrc.indexOf(activeSrc) === -1) {
-                                const wasPlaying = !video.paused;
-                                const currentTime = video.currentTime;
-                                while (video.firstChild) {
-                                    video.removeChild(video.firstChild);
-                                }
-                                if (lightSrc) addSources(video, lightSrc, '(prefers-color-scheme: light)');
-                                if (darkSrc) addSources(video, darkSrc, '(prefers-color-scheme: dark)');
-                                addSources(video, defaultSrc);
-                                const fallbackP = document.createElement('p');
-                                fallbackP.innerHTML = \`Your browser does not support the video tag. <a href="\${defaultSrc}">Download video</a>\`;
-                                video.appendChild(fallbackP);
-                                video.load();
-                                video.currentTime = currentTime;
-                                if (wasPlaying) video.play().catch(() => console.warn('Auto-play failed after theme change'));
-                            }
-                        }
-                        updateVideo();
-                        prefersDarkQuery.addEventListener('change', updateVideo);
-                        if ('${attrs.videoBackgroundLoading}' === 'lazy' && ${attrs.videoBackgroundAutoplay}) {
-                            const observer = new IntersectionObserver((entries) => {
-                                if (entries[0].isIntersecting) {
-                                    video.play().catch(() => console.warn('Auto-play failed on lazy load'));
-                                    observer.disconnect();
-                                }
-                            });
-                            observer.observe(video);
-                        }
-                        video.addEventListener('error', () => {
-                            console.warn(\`Video source "\${video.currentSrc}" failed to load. Falling back to poster.\`);
-                            if (newPoster) {
-                                const img = document.createElement('img');
-                                img.src = newPoster;
-                                img.alt = '${attrs.videoBackgroundAlt}';
-                                img.className = video.className;
-                                img.loading = '${attrs.videoBackgroundLoading}';
-                                video.replaceWith(img);
-                            }
-                        });
-                    })();
-                `;
-                backgroundContentHTML += `<script>${scriptContent}</script>`;
-            }
         } else if (hasBackgroundImage) {
             const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
             if (!src) {
@@ -845,8 +719,7 @@ class CustomBlock extends HTMLElement {
                     includeSchema: attrs.primaryIncludeSchema
                 });
             } else if (hasVideoPrimary) {
-                const videoId = 'custom-video-' + Math.random().toString(36).substring(2, 11);
-                let videoMarkup = this.generateVideoMarkup({
+                primaryImageHTML = generateVideoMarkup({
                     src: attrs.videoPrimarySrc,
                     lightSrc: attrs.videoPrimaryLightSrc,
                     darkSrc: attrs.videoPrimaryDarkSrc,
@@ -865,87 +738,6 @@ class CustomBlock extends HTMLElement {
                     preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
                     controls: false
                 });
-                videoMarkup = videoMarkup.replace('{VIDEO_ID_PLACEHOLDER}', videoId);
-                primaryImageHTML = videoMarkup;
-                if (attrs.videoPrimaryLightPoster || attrs.videoPrimaryDarkPoster || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc) {
-                    const scriptContent = `
-                        (function() {
-                            const video = document.getElementById('${videoId}');
-                            if (!video) return;
-                            const lightPoster = '${attrs.videoPrimaryLightPoster || attrs.videoPrimaryPoster || ''}';
-                            const darkPoster = '${attrs.videoPrimaryDarkPoster || attrs.videoPrimaryPoster || ''}';
-                            const lightSrc = '${attrs.videoPrimaryLightSrc || ''}';
-                            const darkSrc = '${attrs.videoPrimaryDarkSrc || ''}';
-                            const defaultSrc = '${attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc || ''}';
-                            const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
-                            const validExtensions = ['mp4', 'webm'];
-                            function addSources(video, videoSrc, mediaQuery) {
-                                if (!videoSrc) return;
-                                const ext = videoSrc.split('.').pop().toLowerCase();
-                                if (!validExtensions.includes(ext)) return;
-                                const baseSrc = videoSrc.slice(0, -(ext.length + 1));
-                                const mediaAttr = mediaQuery ? \` media="\${mediaQuery}"\` : '';
-                                const webmSource = document.createElement('source');
-                                webmSource.src = \`\${baseSrc}.webm\`;
-                                webmSource.type = 'video/webm';
-                                if (mediaQuery) webmSource.media = mediaQuery;
-                                video.appendChild(webmSource);
-                                const mp4Source = document.createElement('source');
-                                mp4Source.src = \`\${baseSrc}.mp4\`;
-                                mp4Source.type = 'video/mp4';
-                                if (mediaQuery) mp4Source.media = mediaQuery;
-                                video.appendChild(mp4Source);
-                            }
-                            function updateVideo() {
-                                const prefersDark = prefersDarkQuery.matches;
-                                const newPoster = prefersDark ? darkPoster : lightPoster;
-                                if (newPoster && video.poster !== newPoster) {
-                                    video.poster = newPoster;
-                                }
-                                const activeSrc = prefersDark ? (darkSrc || lightSrc) : (lightSrc || darkSrc);
-                                if (activeSrc && video.currentSrc.indexOf(activeSrc) === -1) {
-                                    const wasPlaying = !video.paused;
-                                    const currentTime = video.currentTime;
-                                    while (video.firstChild) {
-                                        video.removeChild(video.firstChild);
-                                    }
-                                    if (lightSrc) addSources(video, lightSrc, '(prefers-color-scheme: light)');
-                                    if (darkSrc) addSources(video, darkSrc, '(prefers-color-scheme: dark)');
-                                    addSources(video, defaultSrc);
-                                    const fallbackP = document.createElement('p');
-                                    fallbackP.innerHTML = \`Your browser does not support the video tag. <a href="\${defaultSrc}">Download video</a>\`;
-                                    video.appendChild(fallbackP);
-                                    video.load();
-                                    video.currentTime = currentTime;
-                                    if (wasPlaying) video.play().catch(() => console.warn('Auto-play failed after theme change'));
-                                }
-                            }
-                            updateVideo();
-                            prefersDarkQuery.addEventListener('change', updateVideo);
-                            if ('${attrs.videoPrimaryLoading}' === 'lazy' && ${attrs.videoPrimaryAutoplay}) {
-                                const observer = new IntersectionObserver((entries) => {
-                                    if (entries[0].isIntersecting) {
-                                        video.play().catch(() => console.warn('Auto-play failed on lazy load'));
-                                        observer.disconnect();
-                                    }
-                                });
-                                observer.observe(video);
-                            }
-                            video.addEventListener('error', () => {
-                                console.warn(\`Video source "\${video.currentSrc}" failed to load. Falling back to poster.\`);
-                                if (newPoster) {
-                                    const img = document.createElement('img');
-                                    img.src = newPoster;
-                                    img.alt = '${attrs.videoPrimaryAlt}';
-                                    img.className = video.className;
-                                    img.loading = '${attrs.videoPrimaryLoading}';
-                                    video.replaceWith(img);
-                                }
-                            });
-                        })();
-                    `;
-                    primaryImageHTML += `<script>${scriptContent}</script>`;
-                }
             }
         }
         if (!isFallback && attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
