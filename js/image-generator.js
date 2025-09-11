@@ -184,17 +184,18 @@ export function generatePictureMarkup({
       if (fullLightSrc) {
         // Use light full logo in dark mode
         markup.push(
-          `<source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: dark)" type="${getImageType(fullLightSrc)}" srcset="${fullLightSrc}"${isDecorative ? ' alt="" role="presentation"' : fullLightAlt ? ` alt="${fullLightAlt}"` : ''}>`
+          `<source media="(prefers-color-scheme: dark) and (min-width: ${validatedBreakpoint}px)" type="${getImageType(fullLightSrc)}" srcset="${fullLightSrc}"${isDecorative ? ' alt="" role="presentation"' : fullLightAlt ? ` alt="${fullLightAlt}"` : ''}>`
         );
       }
       if (fullDarkSrc) {
         // Use dark full logo in light mode
         markup.push(
-          `<source media="(min-width: ${validatedBreakpoint}px) and (prefers-color-scheme: light)" type="${getImageType(fullDarkSrc)}" srcset="${fullDarkSrc}"${isDecorative ? ' alt="" role="presentation"' : fullDarkAlt ? ` alt="${fullDarkAlt}"` : ''}>`
+          `<source media="(prefers-color-scheme: light) and (min-width: ${validatedBreakpoint}px)" type="${getImageType(fullDarkSrc)}" srcset="${fullDarkSrc}"${isDecorative ? ' alt="" role="presentation"' : fullDarkAlt ? ` alt="${fullDarkAlt}"` : ''}>`
         );
       }
       if (fullSrc || iconSrc || fullLightSrc || iconLightSrc) {
-        const fallbackSrc = fullSrc || iconSrc || fullLightSrc || iconLightSrc;
+        // Use fullLightSrc or fullSrc as fallback to prioritize light logo in case of no media query support
+        const fallbackSrc = fullLightSrc || fullSrc || iconLightSrc || iconSrc;
         markup.push(`<source type="${getImageType(fallbackSrc)}" srcset="${fallbackSrc}"${altAttr}>`);
       }
     } else {
@@ -262,14 +263,17 @@ if (typeof window !== 'undefined') {
       const img = picture.querySelector('img');
       const sources = picture.querySelectorAll('source');
       let selectedSrc = img.src;
+      let matchedMedia = 'none';
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       sources.forEach((source) => {
         if (source.media && window.matchMedia(source.media).matches) {
           const srcset = source.getAttribute('srcset');
           selectedSrc = srcset.includes(',') ? srcset.split(',')[0].split(' ')[0] : srcset;
+          matchedMedia = source.media;
         }
       });
       if (img.src !== selectedSrc && selectedSrc) {
-        console.log('Updating img src to:', selectedSrc);
+        console.log('Updating img src:', { selectedSrc, matchedMedia, prefersDark });
         img.src = selectedSrc;
       }
     });
