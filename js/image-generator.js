@@ -160,7 +160,7 @@ export function generatePictureMarkup({
     const isLogo = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc;
 
     if (isLogo) {
-      // Logo case: Use original source URLs with inverted theme logic
+      // Logo case: Use original source URLs with inverted theme logic for icons, standard for full logos
       if (validatedBreakpoint && (iconSrc || iconLightSrc || iconDarkSrc)) {
         if (iconLightSrc) {
           // Use light icon in dark mode
@@ -182,20 +182,20 @@ export function generatePictureMarkup({
       }
 
       if (fullLightSrc) {
-        // Use light full logo in dark mode
+        // Use light full logo in light mode
         markup.push(
-          `<source media="(prefers-color-scheme: dark) and (min-width: ${validatedBreakpoint}px)" type="${getImageType(fullLightSrc)}" srcset="${fullLightSrc}"${isDecorative ? ' alt="" role="presentation"' : fullLightAlt ? ` alt="${fullLightAlt}"` : ''}>`
+          `<source media="(prefers-color-scheme: light) and (min-width: ${validatedBreakpoint}px)" type="${getImageType(fullLightSrc)}" srcset="${fullLightSrc}"${isDecorative ? ' alt="" role="presentation"' : fullLightAlt ? ` alt="${fullLightAlt}"` : ''}>`
         );
       }
       if (fullDarkSrc) {
-        // Use dark full logo in light mode
+        // Use dark full logo in dark mode
         markup.push(
-          `<source media="(prefers-color-scheme: light) and (min-width: ${validatedBreakpoint}px)" type="${getImageType(fullDarkSrc)}" srcset="${fullDarkSrc}"${isDecorative ? ' alt="" role="presentation"' : fullDarkAlt ? ` alt="${fullDarkAlt}"` : ''}>`
+          `<source media="(prefers-color-scheme: dark) and (min-width: ${validatedBreakpoint}px)" type="${getImageType(fullDarkSrc)}" srcset="${fullDarkSrc}"${isDecorative ? ' alt="" role="presentation"' : fullDarkAlt ? ` alt="${fullDarkAlt}"` : ''}>`
         );
       }
-      if (fullSrc || iconSrc || fullLightSrc || iconLightSrc) {
-        // Use fullLightSrc or fullSrc as fallback to prioritize light logo in case of no media query support
-        const fallbackSrc = fullLightSrc || fullSrc || iconLightSrc || iconSrc;
+      if (fullSrc || iconSrc) {
+        // Use fullSrc or iconSrc as fallback to avoid theme-specific fallbacks
+        const fallbackSrc = fullSrc || iconSrc;
         markup.push(`<source type="${getImageType(fallbackSrc)}" srcset="${fallbackSrc}"${altAttr}>`);
       }
     } else {
