@@ -1,292 +1,142 @@
-import { generatePictureMarkup } from '../image-generator.js';
-import { VALID_ALIGNMENTS, alignMap, VALID_HEADING_TAGS, sanitizeClassNames, sanitizeStyles } from '../shared.js';
-
 (async () => {
-  try {
-    console.log('Successfully imported dependencies for CustomHeader');
+    try {
+        const { CustomBlock } = await import('./custom-block.js');
+        const { VALID_ALIGNMENTS, alignMap } = await import('./shared.js');
+        console.log('Successfully imported CustomBlock and alignMap');
 
-    await Promise.all([
-      customElements.whenDefined('custom-logo'),
-      customElements.whenDefined('custom-nav')
-    ]);
-    console.log('CustomLogo and CustomNav defined');
+        await Promise.all([
+            customElements.whenDefined('custom-logo'),
+            customElements.whenDefined('custom-nav')
+        ]);
+        console.log('CustomLogo and CustomNav defined');
 
-    class CustomHeader extends HTMLElement {
-      constructor() {
-        super();
-        this.cachedAttributes = null;
-      }
-
-      getAttributes() {
-        if (this.cachedAttributes) {
-          console.log('Using cached attributes for CustomHeader');
-          return this.cachedAttributes;
-        }
-        const attrs = {
-          heading: this.getAttribute('heading') || '',
-          headingTag: this.getAttribute('heading-tag') || 'h2',
-          innerAlignment: this.getAttribute('inner-alignment') || 'center',
-          textAlignment: this.getAttribute('text-alignment') || 'center',
-          backgroundSrc: this.getAttribute('img-background-src') || '',
-          backgroundLightSrc: this.getAttribute('img-background-light-src') || '',
-          backgroundDarkSrc: this.getAttribute('img-background-dark-src') || '',
-          backgroundAlt: this.getAttribute('img-background-alt') || '',
-          backgroundOverlay: this.getAttribute('background-overlay') || '',
-          customClasses: sanitizeClassNames(this.getAttribute('class') || ''),
-          styleAttribute: sanitizeStyles(this.getAttribute('style') || '', [
-            'color', 'background-color', 'border', 'border-radius', 'padding', 'margin',
-            'font-size', 'font-weight', 'text-align', 'display', 'width', 'height'
-          ]),
-          sticky: this.hasAttribute('sticky'),
-          logoPlacement: this.getAttribute('logo-placement') || 'independent',
-          navLogoContainerStyle: sanitizeStyles(this.getAttribute('nav-logo-container-style') || '', [
-            'color', 'background-color', 'border', 'border-radius', 'padding', 'margin',
-            'font-size', 'font-weight', 'text-align', 'display', 'width', 'height'
-          ]),
-          navLogoContainerClass: sanitizeClassNames(this.getAttribute('nav-logo-container-class') || ''),
-          navAlignment: this.getAttribute('nav-alignment') || 'center'
-        };
-
-        if (!VALID_HEADING_TAGS.includes(attrs.headingTag.toLowerCase())) {
-          console.warn(`Invalid heading-tag "${attrs.headingTag}". Must be one of ${VALID_HEADING_TAGS.join(', ')}. Defaulting to 'h2'.`);
-          attrs.headingTag = 'h2';
-        }
-        if (attrs.innerAlignment && !VALID_ALIGNMENTS.includes(attrs.innerAlignment)) {
-          console.warn(`Invalid inner-alignment "${attrs.innerAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Defaulting to 'center'.`);
-          attrs.innerAlignment = 'center';
-        }
-        if (attrs.textAlignment && !['left', 'center', 'right'].includes(attrs.textAlignment)) {
-          console.warn(`Invalid text-alignment "${attrs.textAlignment}". Must be one of left, center, right. Defaulting to 'center'.`);
-          attrs.textAlignment = 'center';
-        }
-        if (!['independent', 'nav'].includes(attrs.logoPlacement)) {
-          console.warn(`Invalid logo-placement "${attrs.logoPlacement}". Must be 'independent' or 'nav'. Defaulting to 'independent'.`);
-          attrs.logoPlacement = 'independent';
-        }
-        if (!VALID_ALIGNMENTS.includes(attrs.navAlignment)) {
-          console.warn(`Invalid nav-alignment "${attrs.navAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Defaulting to 'center'.`);
-          attrs.navAlignment = 'center';
-        }
-        if ((attrs.backgroundLightSrc || attrs.backgroundDarkSrc) && !(attrs.backgroundLightSrc && attrs.backgroundDarkSrc) && !attrs.backgroundSrc) {
-          console.error('Both img-background-light-src and img-background-dark-src must be present when using light/dark themes, or use img-background-src alone.');
-          attrs.backgroundSrc = '';
-          attrs.backgroundLightSrc = '';
-          attrs.backgroundDarkSrc = '';
-        }
-        if ((attrs.backgroundLightSrc || attrs.backgroundDarkSrc) && !attrs.backgroundAlt) {
-          console.error('img-background-alt is required when img-background-light-src or img-background-dark-src is provided.');
-          attrs.backgroundLightSrc = '';
-          attrs.backgroundDarkSrc = '';
-        }
-        this.cachedAttributes = attrs;
-        console.log('CustomHeader attributes:', attrs);
-        return attrs;
-      }
-
-      connectedCallback() {
-        console.log('CustomHeader connectedCallback called:', this.outerHTML);
-        setTimeout(() => {
-          try {
-            this.render();
-          } catch (error) {
-            console.error('Error in CustomHeader render:', error);
-            this.render(true);
-          }
-        }, 500); // Increased delay for child components
-      }
-
-      disconnectedCallback() {
-        console.log('CustomHeader disconnectedCallback called');
-        this.cachedAttributes = null;
-      }
-
-      render(isFallback = false) {
-        console.log('Rendering CustomHeader, isFallback:', isFallback);
-        const attrs = isFallback ? {
-          heading: '',
-          headingTag: 'h2',
-          innerAlignment: 'center',
-          textAlignment: 'center',
-          backgroundSrc: '',
-          backgroundLightSrc: '',
-          backgroundDarkSrc: '',
-          backgroundAlt: '',
-          backgroundOverlay: '',
-          customClasses: '',
-          styleAttribute: '',
-          sticky: false,
-          logoPlacement: 'independent',
-          navLogoContainerStyle: '',
-          navLogoContainerClass: '',
-          navAlignment: 'center'
-        } : this.getAttributes();
-
-        let blockClasses = [
-          'block',
-          attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc ? 'background-image' : '',
-          attrs.customClasses,
-          attrs.sticky ? 'sticky' : ''
-        ].filter(cls => cls).join(' ').trim();
-        let blockStyles = attrs.sticky ? 'position: sticky; top: 0; z-index: 1000;' : '';
-        blockStyles += attrs.styleAttribute ? ` ${attrs.styleAttribute}` : '';
-
-        let backgroundContentHTML = '';
-        let overlayHTML = '';
-        const hasBackgroundImage = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
-        if (!isFallback && hasBackgroundImage) {
-          const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
-          if (!src) {
-            console.warn('No valid background image source provided for <custom-header>. Skipping background image rendering.');
-          } else {
-            console.log('Generating hero image for:', { src, lightSrc: attrs.backgroundLightSrc, darkSrc: attrs.backgroundDarkSrc });
-            backgroundContentHTML = generatePictureMarkup({
-              src: attrs.backgroundSrc,
-              lightSrc: attrs.backgroundLightSrc,
-              darkSrc: attrs.backgroundDarkSrc,
-              alt: attrs.backgroundAlt,
-              lightAlt: attrs.backgroundAlt,
-              darkAlt: attrs.backgroundAlt,
-              isDecorative: false,
-              customClasses: 'animate animate-fade-in',
-              loading: 'lazy',
-              fetchPriority: '',
-              extraClasses: [],
-              mobileWidth: '100vw',
-              tabletWidth: '100vw',
-              desktopWidth: '100vw',
-              aspectRatio: '',
-              includeSchema: false,
-              extraStyles: 'object-fit: cover; width: 100%; height: 100%;'
-            });
-            console.log('Generated hero image markup:', backgroundContentHTML);
-          }
-        }
-        if (attrs.backgroundOverlay && hasBackgroundImage) {
-          const overlayClasses = [attrs.backgroundOverlay];
-          overlayHTML = `<div class="${overlayClasses.join(' ').trim()}"></div>`;
-          console.log('Generated overlay HTML:', overlayHTML);
-        }
-
-        const customLogo = this.querySelector('custom-logo');
-        const customNav = this.querySelector('custom-nav');
-        let logoHTML = '';
-        let navHTML = '';
-
-        if (customLogo && !isFallback) {
-          if (customElements.get('custom-logo')) {
-            customElements.upgrade(customLogo);
-            if (typeof customLogo.initialize === 'function') {
-              console.log('Initializing custom-logo');
-              customLogo.initialize();
+        class CustomHeader extends CustomBlock {
+            static get observedAttributes() {
+                return [
+                    ...super.observedAttributes,
+                    'sticky',
+                    'logo-placement',
+                    'nav-logo-container-style',
+                    'nav-logo-container-class',
+                    'nav-alignment'
+                ];
             }
-            logoHTML = customLogo.innerHTML || '<div>Logo placeholder</div>';
-            console.log('Using custom-logo HTML:', logoHTML);
-          } else {
-            console.warn('custom-logo not defined, using placeholder.');
-            logoHTML = '<div>Logo placeholder</div>';
-          }
-        }
 
-        if (customNav && !isFallback) {
-          if (customElements.get('custom-nav')) {
-            customElements.upgrade(customNav);
-            if (typeof customNav.initialize === 'function') {
-              console.log('Initializing custom-nav');
-              customNav.initialize();
+            getAttributes() {
+                const attrs = super.getAttributes();
+                attrs.sticky = this.hasAttribute('sticky');
+                attrs.logoPlacement = this.getAttribute('logo-placement') || 'independent';
+                attrs.navLogoContainerStyle = this.getAttribute('nav-logo-container-style') || '';
+                attrs.navLogoContainerClass = this.getAttribute('nav-logo-container-class') || '';
+                attrs.navAlignment = this.getAttribute('nav-alignment') || 'center';
+                const validLogoPlacements = ['independent', 'nav'];
+                if (!VALID_ALIGNMENTS.includes(attrs.navAlignment)) {
+                    console.warn(`Invalid nav-alignment "${attrs.navAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Defaulting to 'center'.`);
+                    attrs.navAlignment = '';
+                }
+                if (!validLogoPlacements.includes(attrs.logoPlacement)) {
+                    console.warn(`Invalid logo-placement "${attrs.logoPlacement}". Defaulting to 'independent'.`);
+                    attrs.logoPlacement = 'independent';
+                }
+                return attrs;
             }
-            if (typeof customNav.render === 'function') {
-              console.log('Rendering custom-nav');
-              const navElement = customNav.render();
-              navHTML = navElement ? navElement.outerHTML : '<div>Navigation placeholder</div>';
-            } else {
-              console.warn('custom-nav render method not available, using innerHTML.');
-              navHTML = customNav.innerHTML || '<div>Navigation placeholder</div>';
+
+            render(isFallback = false) {
+                const attrs = this.getAttributes();
+                let blockElement = super.render(isFallback);
+                if (!blockElement) {
+                    blockElement = document.createElement('div');
+                }
+                blockElement.setAttribute('role', 'banner');
+
+                const existingClasses = blockElement.className.split(' ').filter(cls => cls);
+                const headerClasses = [
+                    ...existingClasses,
+                    attrs.backgroundColorClass,
+                    attrs.borderClass,
+                    attrs.borderRadiusClass,
+                    attrs.shadowClass,
+                    attrs.sticky ? 'sticky' : ''
+                ].filter(cls => cls).join(' ').trim();
+
+                if (headerClasses) {
+                    blockElement.className = headerClasses;
+                }
+
+                const customLogo = this.querySelector('custom-logo');
+                const customNav = this.querySelector('custom-nav');
+                let logoHTML = '';
+                let navHTML = '';
+                let navContainerClasses = '';
+                let navContainerStyle = '';
+
+                if (customLogo && !isFallback) {
+                    if (customElements.get('custom-logo')) {
+                        customElements.upgrade(customLogo);
+                        logoHTML = customLogo.innerHTML || customLogo.render?.() || '';
+                    } else {
+                        console.warn('custom-logo not defined, skipping rendering.');
+                        logoHTML = '<div>Logo placeholder</div>';
+                    }
+                }
+
+                if (customNav && !isFallback) {
+                    if (customElements.get('custom-nav')) {
+                        customElements.upgrade(customNav);
+                        navHTML = customNav.innerHTML || customNav.render?.() || '';
+                        navContainerClasses = customNav.getAttribute('nav-container-class') || '';
+                        navContainerStyle = customNav.getAttribute('nav-container-style') || '';
+                    } else {
+                        console.warn('custom-nav not defined, skipping rendering.');
+                        navHTML = '<div>Navigation placeholder</div>';
+                    }
+                }
+
+                let innerHTML = blockElement.innerHTML;
+                if (attrs.logoPlacement === 'nav' && logoHTML && navHTML) {
+                    const combinedStyles = [
+                        attrs.navLogoContainerStyle,
+                        'z-index: 2'
+                    ].filter(s => s).join('; ').trim();
+                    const navAlignClass = attrs.navAlignment ? alignMap[attrs.navAlignment] : '';
+                    innerHTML = `
+                        <div${attrs.navLogoContainerClass ? ` class="${attrs.navLogoContainerClass}"` : ''}${combinedStyles ? ` style="${combinedStyles}"` : ''}>
+                            ${logoHTML}
+                            <div${navAlignClass ? ` class="${navAlignClass} ${navContainerClasses}"` : navContainerClasses ? ` class="${navContainerClasses}"` : ''}${navContainerStyle ? ` style="${navContainerStyle}"` : ''}>
+                                ${navHTML}
+                            </div>
+                        </div>
+                        ${innerHTML}
+                    `;
+                } else {
+                    innerHTML = logoHTML + navHTML + innerHTML;
+                }
+                blockElement.innerHTML = innerHTML;
+
+                if (attrs.sticky) {
+                    blockElement.style.position = 'sticky';
+                    blockElement.style.top = '0';
+                    blockElement.style.zIndex = '1000';
+                }
+
+                return blockElement;
             }
-            console.log('Generated nav HTML:', navHTML);
-          } else {
-            console.warn('custom-nav not defined, using placeholder.');
-            navHTML = '<div>Navigation placeholder</div>';
-          }
+
+            connectedCallback() {
+                super.connectedCallback();
+                this.render();
+            }
+
+            attributeChangedCallback(name, oldValue, newValue) {
+                super.attributeChangedCallback(name, oldValue, newValue);
+                if (this.isInitialized && this.isVisible) {
+                    this.render();
+                }
+            }
         }
-
-        const textAlignMap = {
-          'left': 'flex-column-left text-align-left',
-          'center': 'flex-column-center text-align-center',
-          'right': 'flex-column-right text-align-right'
-        };
-        const contentHTML = `
-          <div${attrs.innerAlignment ? ` class="${alignMap[attrs.innerAlignment]}"` : ''}>
-            <div role="group"${attrs.textAlignment ? ` class="${textAlignMap[attrs.textAlignment]}"` : ''}>
-              ${attrs.heading ? `<${attrs.headingTag}>${attrs.heading}</${attrs.headingTag}>` : ''}
-            </div>
-          </div>
-        `;
-        console.log('Generated content HTML:', contentHTML);
-
-        // Build DOM in a temporary container
-        const tempContainer = document.createElement('div');
-        tempContainer.innerHTML = `<header role="banner"${blockClasses ? ` class="${blockClasses}"` : ''}${blockStyles ? ` style="${blockStyles}"` : ''}>`;
-        if (hasBackgroundImage) {
-          tempContainer.innerHTML += backgroundContentHTML || '';
-          if (attrs.backgroundOverlay) {
-            tempContainer.innerHTML += overlayHTML;
-          }
-        }
-
-        if (attrs.logoPlacement === 'nav' && logoHTML && navHTML) {
-          const navAlignClass = attrs.navAlignment ? alignMap[attrs.navAlignment] : '';
-          tempContainer.innerHTML += `
-            <div${attrs.navLogoContainerClass ? ` class="${attrs.navLogoContainerClass}"` : ''}${attrs.navLogoContainerStyle ? ` style="${attrs.navLogoContainerStyle}"` : ''}>
-              ${logoHTML}
-              <div${navAlignClass ? ` class="${navAlignClass}"` : ''}>
-                ${navHTML}
-              </div>
-            </div>
-          `;
-        } else {
-          tempContainer.innerHTML += logoHTML + navHTML;
-        }
-        tempContainer.innerHTML += contentHTML;
-        tempContainer.innerHTML += '</header>';
-
-        console.log('Setting CustomHeader innerHTML:', tempContainer.innerHTML);
-        this.innerHTML = '';
-        this.appendChild(tempContainer.firstChild);
-      }
-
-      static get observedAttributes() {
-        return [
-          'heading', 'heading-tag', 'inner-alignment', 'text-alignment',
-          'img-background-src', 'img-background-light-src', 'img-background-dark-src',
-          'img-background-alt', 'background-overlay', 'class', 'style', 'sticky',
-          'logo-placement', 'nav-logo-container-style', 'nav-logo-container-class',
-          'nav-alignment'
-        ];
-      }
-
-      attributeChangedCallback(name, oldValue, newValue) {
-        console.log('CustomHeader attributeChangedCallback:', name, oldValue, newValue);
-        this.cachedAttributes = null;
-        setTimeout(() => {
-          try {
-            this.render();
-          } catch (error) {
-            console.error('Error in CustomHeader attributeChangedCallback render:', error);
-            this.render(true);
-          }
-        }, 500);
-      }
+        customElements.define('custom-header', CustomHeader);
+        console.log('CustomHeader defined successfully');
+    } catch (error) {
+        console.error('Failed to import CustomBlock or define CustomHeader:', error);
     }
-
-    if (!customElements.get('custom-header')) {
-      customElements.define('custom-header', CustomHeader);
-      console.log('CustomHeader defined successfully');
-    }
-    document.querySelectorAll('custom-header').forEach(element => {
-      console.log('Upgrading custom-header element:', element.outerHTML);
-      customElements.upgrade(element);
-    });
-  } catch (error) {
-    console.error('Failed to define CustomHeader:', error);
-  }
 })();
