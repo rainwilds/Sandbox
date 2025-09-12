@@ -626,18 +626,19 @@ class CustomBlock extends HTMLElement {
     }
 
     render(isFallback = false) {
+        let newCriticalAttrsHash; // Declare variable at the start
         if (!isFallback) {
-            // Check if critical attributes have changed
+            // Compute critical attributes hash first
             const criticalAttrs = {};
             CustomBlock.#criticalAttributes.forEach(attr => {
                 criticalAttrs[attr] = this.getAttribute(attr) || '';
             });
-            const newCriticalAttrsHash = JSON.stringify(criticalAttrs);
+            newCriticalAttrsHash = JSON.stringify(criticalAttrs);
+            // Check if critical attributes have changed
             if (CustomBlock.#renderCacheMap.has(this) && this.criticalAttributesHash === newCriticalAttrsHash) {
                 console.log('Using cached render for CustomBlock:', this.outerHTML);
                 return CustomBlock.#renderCacheMap.get(this).cloneNode(true);
             }
-            this.lastAttributes = newCriticalAttrsHash;
         }
         const attrs = isFallback ? {
             sectionTitle: false,
