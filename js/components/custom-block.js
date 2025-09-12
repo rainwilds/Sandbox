@@ -942,33 +942,31 @@ class CustomBlock extends HTMLElement {
         if (hasBackgroundImage || hasVideoBackground) {
             const mediaDiv = document.createElement('div');
             if (hasVideoBackground) {
-                const videoMarkup = generateVideoMarkup({
-                    src: attrs.videoBackgroundSrc,
-                    lightSrc: attrs.videoBackgroundLightSrc,
-                    darkSrc: attrs.videoBackgroundDarkSrc,
-                    poster: attrs.videoBackgroundPoster,
-                    lightPoster: attrs.videoBackgroundLightPoster,
-                    darkPoster: attrs.videoBackgroundDarkPoster,
-                    alt: attrs.videoBackgroundAlt,
-                    customClasses: '',
-                    extraClasses: [],
-                    loading: attrs.videoBackgroundLoading,
-                    autoplay: attrs.videoBackgroundAutoplay,
-                    muted: attrs.videoBackgroundMuted,
-                    loop: attrs.videoBackgroundLoop,
-                    playsinline: attrs.videoBackgroundPlaysinline,
-                    disablePip: attrs.videoBackgroundDisablePip,
-                    preload: attrs.videoBackgroundLoading === 'lazy' ? 'metadata' : attrs.videoBackgroundLoading,
-                    controls: false
-                });
-                console.log('Generated video markup length:', videoMarkup.length, 'Content preview:', videoMarkup.substring(0, 100));
-                const videoDiv = document.createElement('div');
-                videoDiv.innerHTML = videoMarkup;
-                if (videoDiv.hasChildNodes()) {
-                    blockElement.appendChild(videoDiv.firstChild);
-                } else {
-                    console.warn('Video markup empty—check sources:', { src: attrs.videoBackgroundSrc, lightSrc: attrs.videoBackgroundLightSrc, darkSrc: attrs.videoBackgroundDarkSrc });
-                }
+                const video = document.createElement('video');
+                video.id = `custom-video-${Math.random().toString(36).substring(2, 11)}`;
+                if (attrs.videoBackgroundAutoplay) video.autoplay = true;
+                if (attrs.videoBackgroundMuted || attrs.videoBackgroundAutoplay) video.muted = true;
+                if (attrs.videoBackgroundLoop) video.loop = true;
+                if (attrs.videoBackgroundPlaysinline) video.playsInline = true;
+                if (attrs.videoBackgroundDisablePip) video.disablePictureInPicture = true;
+                if (attrs.videoBackgroundPoster) video.poster = attrs.videoBackgroundPoster;
+                video.preload = attrs.videoBackgroundLoading === 'lazy' ? 'metadata' : attrs.videoBackgroundLoading;
+                video.loading = attrs.videoBackgroundLoading || 'lazy';
+                video.title = attrs.videoBackgroundAlt;
+                video.setAttribute('aria-label', attrs.videoBackgroundAlt);
+                video.className = ''; // No leaks
+
+                // Append sources manually (reliable)
+                const sources = generateVideoSources({ src: attrs.videoBackgroundSrc, lightSrc: attrs.videoBackgroundLightSrc, darkSrc: attrs.videoBackgroundDarkSrc });
+                sources.forEach(source => video.appendChild(source));
+
+                // Fallback p
+                const fallbackP = document.createElement('p');
+                fallbackP.innerHTML = `Your browser does not support the video tag. <a href="${attrs.videoBackgroundSrc || ''}">Download video</a>`;
+                video.appendChild(fallbackP);
+
+                console.log('Appended video with sources:', sources.length);
+                blockElement.appendChild(video);
             } else if (hasBackgroundImage) {
                 const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
                 if (src) {
