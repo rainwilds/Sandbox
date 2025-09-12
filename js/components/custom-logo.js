@@ -1,18 +1,14 @@
 /* global HTMLElement, document, window, matchMedia, ResizeObserver, console */
-import { generatePictureMarkup } from '../image-generator.js';
 import { VALID_ALIGNMENTS, alignMap } from '../shared.js';
 
 class CustomLogo extends HTMLElement {
     constructor() {
         super();
         this.isInitialized = false;
-        // Add this instance to the shared tracking set
         CustomLogo.#instances.add(this);
-        // Observe this instance for size changes
         CustomLogo.#resizeObserver.observe(this);
     }
 
-    // Static properties for shared listeners
     static #instances = new WeakSet();
     static #resizeObserver = new ResizeObserver(entries => {
         entries.forEach(entry => {
@@ -32,7 +28,6 @@ class CustomLogo extends HTMLElement {
         });
     };
 
-    // Initialize the shared theme listener only once
     static {
         CustomLogo.#prefersColorScheme.addEventListener('change', CustomLogo.#themeChangeListener);
     }
@@ -57,7 +52,7 @@ class CustomLogo extends HTMLElement {
             if (logoElement) {
                 this.replaceWith(logoElement);
             } else {
-                console.error('Failed to render CustomLogo: logoElement is null or invalid.', this.outerHTML);
+                console.error('Failed to render CustomLogo: logoElement is null.', this.outerHTML);
                 this.replaceWith(this.render(true));
             }
         } catch (error) {
@@ -69,14 +64,15 @@ class CustomLogo extends HTMLElement {
 
     updateTheme() {
         if (!this.isInitialized) return;
-        const picture = this.querySelector('picture');
-        if (picture) {
-            const img = picture.querySelector('img');
-            const isDark = CustomLogo.#prefersColorScheme.matches;
+        const img = this.querySelector('img');
+        if (img) {
             const attrs = this.getAttributes();
+            const isDark = CustomLogo.#prefersColorScheme.matches;
             const activeSrc = isDark ? (attrs.fullDarkSrc || attrs.iconDarkSrc || attrs.fullSrc || attrs.iconSrc) : (attrs.fullLightSrc || attrs.iconLightSrc || attrs.fullSrc || attrs.iconSrc);
-            if (img && img.src !== activeSrc) {
+            const activeAlt = isDark ? (attrs.fullDarkAlt || attrs.iconDarkAlt || attrs.fullAlt || attrs.iconAlt) : (attrs.fullLightAlt || attrs.iconLightAlt || attrs.fullAlt || attrs.iconAlt);
+            if (img.src !== activeSrc) {
                 img.src = activeSrc;
+                img.alt = attrs.isDecorative ? '' : activeAlt;
                 console.log('Theme changed, updating logo src to:', activeSrc);
             }
         }
@@ -85,9 +81,10 @@ class CustomLogo extends HTMLElement {
     updateSize() {
         if (!this.isInitialized) return;
         const height = this.getAttribute('logo-height');
-        const logoDiv = this.querySelector('div');
-        if (logoDiv && height) {
-            logoDiv.style.height = height;
+        const img = this.querySelector('img');
+        if (img && height) {
+            img.style.height = height;
+            img.style.width = 'auto';
         }
     }
 
@@ -118,7 +115,6 @@ class CustomLogo extends HTMLElement {
             return null;
         }
 
-        // Validate light/dark pairs
         const validatePair = (light, dark, label) => {
             if ((light || dark) && !(light && dark)) {
                 console.error(`Both ${label}-light-src and ${label}-dark-src must be provided if one is specified.`);
@@ -130,29 +126,25 @@ class CustomLogo extends HTMLElement {
             return null;
         }
 
-        // Validate alt attributes for non-decorative images
         const isDecorative = this.hasAttribute('decorative');
         if (!isDecorative) {
             if (fullSrc && !fullAlt) console.error('logo-full-primary-alt is required when logo-full-primary-src is provided.');
             if (iconSrc && !iconAlt) console.error('logo-icon-primary-alt is required when logo-icon-primary-src is provided.');
-            if (fullLightSrc && fullDarkSrc && !(fullLightAlt && fullDarkAlt)) console.error('Both logo-full-light-alt and logo-full-dark-alt are required when logo-full-light-src and logo-full-dark-src are provided.');
-            if (iconLightSrc && iconDarkSrc && !(iconLightAlt && iconDarkAlt)) console.error('Both logo-icon-light-alt and logo-icon-dark-alt are required when logo-icon-light-src and logo-icon-dark-src are provided.');
+            if (fullLightSrc && fullDarkSrc && !(fullLightAlt && fullDarkAlt)) console.error('Both logo-full-light-alt and logo-full-dark-alt are required.');
+            if (iconLightSrc && iconDarkSrc && !(iconLightAlt && iconDarkAlt)) console.error('Both logo-icon-light-alt and logo-icon-dark-alt are required.');
         }
 
-        // Validate height
         if (height && !height.match(/^(\d*\.?\d+)(px|rem|em|vh|vw)$/)) {
-            console.warn(`Invalid logo-height value "${height}". Must be a valid CSS length (e.g., "40px", "2rem"). Ignoring.`);
+            console.warn(`Invalid logo-height value "${height}". Must be a valid CSS length.`);
         }
 
-        // Validate positions
         if (fullPosition && !VALID_ALIGNMENTS.includes(fullPosition)) {
-            console.warn(`Invalid logo-full-position "${fullPosition}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Ignoring.`);
+            console.warn(`Invalid logo-full-position "${fullPosition}". Must be one of ${VALID_ALIGNMENTS.join(', ')}.`);
         }
         if (iconPosition && !VALID_ALIGNMENTS.includes(iconPosition)) {
-            console.warn(`Invalid logo-icon-position "${iconPosition}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Ignoring.`);
+            console.warn(`Invalid logo-icon-position "${iconPosition}". Must be one of ${VALID_ALIGNMENTS.join(', ')}.`);
         }
 
-        // Validate breakpoint
         const validatedBreakpoint = breakpoint && [768, 1024, 1366, 1920, 2560].includes(parseInt(breakpoint, 10)) ? parseInt(breakpoint, 10) : '';
 
         return {
@@ -205,60 +197,43 @@ class CustomLogo extends HTMLElement {
             return null;
         }
 
-        const positionClass = attrs.fullPosition ? alignMap[attrs.fullPosition] : 'place-self-center';
-        const extraStyles = attrs.height ? `height: ${attrs.height}` : '';
+        const isDark = CustomLogo.#prefersColorScheme.matches;
+        const windowWidth = window.innerWidth || 1920;
+        const useIcon = attrs.breakpoint && windowWidth < parseInt(attrs.breakpoint, 10);
+        const src = isDark
+            ? (useIcon ? (attrs.iconDarkSrc || attrs.iconSrc) : (attrs.fullDarkSrc || attrs.fullSrc))
+            : (useIcon ? (attrs.iconLightSrc || attrs.iconSrc) : (attrs.fullLightSrc || attrs.fullSrc));
+        const alt = isDecorative ? '' : (isDark
+            ? (useIcon ? (attrs.iconDarkAlt || attrs.iconAlt) : (attrs.fullDarkAlt || attrs.fullAlt))
+            : (useIcon ? (attrs.iconLightAlt || attrs.iconAlt) : (attrs.fullLightAlt || attrs.fullAlt)));
 
-        let logoHTML = '';
-        if (hasValidSource) {
-            // Determine breakpoint media query
-            let styleTag = '';
-            const hasBreakpoint = attrs.breakpoint;
-            const hasIconSource = attrs.iconSrc || (attrs.iconLightSrc && attrs.iconDarkSrc);
-            const hasFullSource = attrs.fullSrc || (attrs.fullLightSrc && attrs.fullDarkSrc);
+        if (!src) {
+            console.warn('No valid logo source for current theme/breakpoint.');
+            return null;
+        }
 
-            if (hasBreakpoint && hasIconSource && hasFullSource) {
-                styleTag = `
-                    <style>
-                        @media (max-width: ${attrs.breakpoint - 1}px) {
-                            .place-self-center {
-                                ${attrs.iconPosition ? `place-self: ${attrs.iconPosition.replace(/-/g, ' ')} !important;` : ''}
-                            }
-                        }
-                    </style>
-                `;
-            }
+        const positionClass = useIcon ? (attrs.iconPosition ? alignMap[attrs.iconPosition] : 'place-self-center') : (attrs.fullPosition ? alignMap[attrs.fullPosition] : 'place-self-center');
+        const style = attrs.height ? `height: ${attrs.height}; width: auto;` : '';
 
-            // Use generatePictureMarkup for responsive logo
-            const logoMarkup = generatePictureMarkup({
-                fullSrc: attrs.fullSrc,
-                fullLightSrc: attrs.fullLightSrc,
-                fullDarkSrc: attrs.fullDarkSrc,
-                fullAlt: attrs.fullAlt,
-                fullLightAlt: attrs.fullLightAlt,
-                fullDarkAlt: attrs.fullDarkAlt,
-                iconSrc: attrs.iconSrc,
-                iconLightSrc: attrs.iconLightSrc,
-                iconDarkSrc: attrs.iconDarkSrc,
-                iconAlt: attrs.iconAlt,
-                iconLightAlt: attrs.iconLightAlt,
-                iconDarkAlt: attrs.iconDarkAlt,
-                isDecorative: attrs.isDecorative,
-                customClasses: '',
-                loading: 'eager',
-                fetchPriority: 'high',
-                extraClasses: [],
-                breakpoint: attrs.breakpoint,
-                extraStyles: extraStyles
-            });
+        let logoHTML = `
+            <div class="${positionClass}">
+                <a href="/">
+                    <img src="${src}" ${isDecorative ? 'alt="" role="presentation"' : `alt="${alt}"`} loading="eager" style="${style}" onerror="this.src='https://placehold.co/3000x2000';this.alt='${isDecorative ? '' : 'Placeholder logo'};this.onerror=null;">
+                </a>
+            </div>
+        `;
 
+        if (attrs.breakpoint && (attrs.iconSrc || attrs.iconLightSrc || attrs.iconDarkSrc)) {
             logoHTML = `
-                ${styleTag}
-                <div class="${positionClass}">
-                    <a href="/">${logoMarkup}</a>
-                </div>
+                <style>
+                    @media (max-width: ${attrs.breakpoint - 1}px) {
+                        .place-self-center {
+                            ${attrs.iconPosition ? `place-self: ${attrs.iconPosition.replace(/-/g, ' ')} !important;` : ''}
+                        }
+                    }
+                </style>
+                ${logoHTML}
             `;
-        } else {
-            logoHTML = '<div>No logo sources provided</div>';
         }
 
         const logoElement = document.createElement('div');
@@ -290,7 +265,6 @@ class CustomLogo extends HTMLElement {
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized) return;
-        // Re-render on attribute change for logo sources, alts, positions, etc.
         if (name.startsWith('logo-') || name === 'decorative') {
             this.initialize();
         }
@@ -301,7 +275,6 @@ try {
     if (!customElements.get('custom-logo')) {
         customElements.define('custom-logo', CustomLogo);
     }
-    // Upgrade existing elements
     document.querySelectorAll('custom-logo').forEach(element => {
         customElements.upgrade(element);
     });
@@ -311,5 +284,4 @@ try {
 
 console.log('CustomLogo version: 2025-09-09');
 
-// Export the CustomLogo class
 export { CustomLogo };
