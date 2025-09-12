@@ -55,47 +55,31 @@ export function generateVideoMarkup({
 }
 
 export function generateVideoSources({ src = '', lightSrc = '', darkSrc = '', validExtensions = VALID_VIDEO_EXTENSIONS }) {
-  const addSourceElement = (videoSrc, mediaQuery) => {
-    if (!videoSrc) return null;
+  const addSourcesHTML = (videoSrc, mediaQuery) => {
+    if (!videoSrc) return '';
     const ext = videoSrc.split('.').pop()?.toLowerCase();
-    console.log('Video source:', videoSrc, 'Extension:', ext, 'Valid:', validExtensions); // Debug
+    console.log('Video source:', videoSrc, 'Extension:', ext, 'Valid:', validExtensions); // Debug (remove after)
     if (!ext || !validExtensions.includes(ext)) {
       console.warn(`Invalid video file extension: ${videoSrc}. Expected: ${validExtensions.join(', ')}`);
-      return null;
+      return '';
     }
     const baseSrc = videoSrc.slice(0, -(ext.length + 1));
     const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
-
-    // Create <source> for webm
-    const webmSource = document.createElement('source');
-    webmSource.src = `${baseSrc}.webm`;
-    webmSource.type = 'video/webm';
-    if (mediaQuery) webmSource.media = mediaQuery;
-
-    // Create <source> for mp4
-    const mp4Source = document.createElement('source');
-    mp4Source.src = `${baseSrc}.mp4`;
-    mp4Source.type = 'video/mp4';
-    if (mediaQuery) mp4Source.media = mediaQuery;
-
-    return [webmSource, mp4Source];
+    return `
+      <source src="${baseSrc}.webm" type="video/webm"${mediaAttr}>
+      <source src="${baseSrc}.mp4" type="video/mp4"${mediaAttr}>
+    `;
   };
-
-  let sources = [];
-  if (lightSrc) sources = sources.concat(addSourceElement(lightSrc, '(prefers-color-scheme: light)'));
-  if (darkSrc) sources = sources.concat(addSourceElement(darkSrc, '(prefers-color-scheme: dark)'));
+  let innerHTML = '';
+  if (lightSrc) innerHTML += addSourcesHTML(lightSrc, '(prefers-color-scheme: light)');
+  if (darkSrc) innerHTML += addSourcesHTML(darkSrc, '(prefers-color-scheme: dark)');
   const defaultSrc = lightSrc || darkSrc || src;
-  sources = sources.concat(addSourceElement(defaultSrc));
-
-  // Fallback p
-  const fallbackP = document.createElement('p');
-  fallbackP.innerHTML = `Your browser does not support the video tag. <a href="${defaultSrc}">Download video</a>`;
-
-  sources.push(fallbackP);
-  return sources.filter(Boolean); // Filter nulls
+  innerHTML += addSourcesHTML(defaultSrc);
+  innerHTML += `<p>Your browser does not support the video tag. <a href="${defaultSrc}">Download video</a></p>`;
+  return innerHTML;
 }
 
-// Shared global handler for theme switching and lazy autoplay
+// Shared global handler (self-contained, no generateVideoSources call)
 if (typeof window !== 'undefined') {
   const updateVideos = () => {
     document.querySelectorAll('video[id^="custom-video"]').forEach(video => {
@@ -116,8 +100,36 @@ if (typeof window !== 'undefined') {
         const wasPlaying = !video.paused;
         const currentTime = video.currentTime;
         while (video.firstChild) video.removeChild(video.firstChild);
-        const innerHTML = generateVideoSources({ lightSrc, darkSrc, src: defaultSrc });
-        video.innerHTML = innerHTML;
+
+        // Inline source creation (no import needed)
+        const addSource = (videoSrc, mediaQuery) => {
+          if (!videoSrc) return;
+          const ext = videoSrc.split('.').pop()?.toLowerCase();
+          if (!VALID_VIDEO_EXTENSIONS.includes(ext)) return;
+          const baseSrc = videoSrc.slice(0, -(ext.length + 1));
+          const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
+
+          const webmSource = document.createElement('source');
+          webmSource.src = `${baseSrc}.webm`;
+          webmSource.type = 'video/webm';
+          if (mediaQuery) webmSource.media = mediaQuery;
+          video.appendChild(webmSource);
+
+          const mp4Source = document.createElement('source');
+          mp4Source.src = `${baseSrc}.mp4`;
+          mp4Source.type = 'video/mp4';
+          if (mediaQuery) mp4Source.media = mediaQuery;
+          video.appendChild(mp4Source);
+        };
+
+        if (lightSrc) addSource(lightSrc, '(prefers-color-scheme: light)');
+        if (darkSrc) addSource(darkSrc, '(prefers-color-scheme: dark)');
+        addSource(defaultSrc);
+
+        const fallbackP = document.createElement('p');
+        fallbackP.innerHTML = `Your browser does not support the video tag. <a href="${defaultSrc}">Download video</a>`;
+        video.appendChild(fallbackP);
+
         video.load();
         video.currentTime = currentTime;
         if (wasPlaying) video.play().catch(() => console.warn('Auto-play failed after theme change'));

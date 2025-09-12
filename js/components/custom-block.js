@@ -1,6 +1,6 @@
 /* global HTMLElement, IntersectionObserver, document, window, JSON, console */
 import { generatePictureMarkup } from '../image-generator.js';
-import { generateVideoMarkup } from '../video-generator.js';
+import { generateVideoMarkup, generateVideoSources } from '../video-generator.js'; // Added generateVideoSources
 import { VALID_ALIGNMENTS, alignMap } from '../shared.js';
 
 class CustomBlock extends HTMLElement {
