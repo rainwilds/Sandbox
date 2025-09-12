@@ -15,13 +15,14 @@
             themeColor: '#000000',
             ogLocale: 'en_US',
             ogType: 'website',
-            siteName: 'Site Name'
+            siteName: 'Site Name',
+            favicons: []  // Default empty
         },
         business: {},
         font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' }
     };
 
-    // Function to fetch and cache setup.json (simplified—no preload hints needed now)
+    // Function to fetch and cache setup.json
     async function fetchSetup() {
         if (setupCache) {
             log('Using cached setup.json');
@@ -56,28 +57,34 @@
 
     // Function to create and append DOM elements asynchronously
     async function updateHead(attributes) {
-        log('manageHead called with attributes: ' + JSON.stringify(attributes, null, 2));
+        log('updateHead called with attributes: ' + JSON.stringify(attributes, null, 2));
         const head = document.head;
 
-        // Fonts
+        // Fonts: Use setup.json if valid; otherwise, skip (CSS @font-face handles)
         const setup = await fetchSetup();
+        let hasValidFonts = false;
         setup.fonts.forEach(font => {
-            // Guard: Skip if URL undefined
-            if (!font.url || font.url.includes('undefined')) {
-                console.error('Skipping invalid font URL:', font.url);
-                return;
+            // Align to "href" key from your JSON; guard undefined
+            const fontUrl = font.href || font.url;  // Flexible for either key
+            if (fontUrl && !fontUrl.includes('undefined')) {
+                const link = document.createElement('link');
+                link.rel = 'preload';
+                link.href = fontUrl;
+                link.as = font.as || 'font';
+                link.type = font.type || 'font/woff2';
+                link.crossOrigin = font.crossorigin || 'anonymous';
+                head.appendChild(link);
+                log(`Added font preload: ${fontUrl}`);
+                hasValidFonts = true;
+            } else {
+                console.warn('Skipping invalid font entry:', font);  // Warn once per invalid
             }
-            const link = document.createElement('link');
-            link.rel = 'preload';
-            link.href = font.url;
-            link.as = 'font';
-            link.type = 'font/woff2';
-            link.crossOrigin = 'anonymous';
-            head.appendChild(link);
-            log(`Added font preload: ${font.url}`);
         });
+        if (!hasValidFonts) {
+            log('No valid fonts in setup.json; relying on CSS @font-face');
+        }
 
-        // Stylesheet
+        // Stylesheet (already preloaded in HTML)
         const styleLink = document.createElement('link');
         styleLink.rel = 'stylesheet';
         styleLink.href = './styles.css';
@@ -95,85 +102,128 @@
 
         // Meta tags (guard dynamic content)
         const metaTags = [
-            { name: 'robots', content: 'index, follow' },
+            { name: 'robots', content: setup.general.robots || 'index, follow' },
             { name: 'title', content: attributes.title || setup.general.title },
             { name: 'author', content: setup.business.author || 'Author' },
             { name: 'description', content: attributes.description || setup.general.description },
-            { name: 'og:locale', content: attributes['og-locale'] || setup.general.ogLocale },
+            { name: 'og:locale', content: setup.general.og?.locale || 'en_US' },
             { name: 'og:url', content: attributes.canonical || setup.general.canonical },
-            { name: 'og:type', content: attributes['og-type'] || setup.general.ogType },
+            { name: 'og:type', content: setup.general.ogType || 'website' },
             { name: 'og:title', content: attributes.title || setup.general.title },
             { name: 'og:description', content: attributes.description || setup.general.description },
-            { name: 'og:image', content: attributes['og-image'] || setup.general.ogImage || '' },
-            { name: 'og:site_name', content: attributes['site-name'] || setup.general.siteName },
-            { name: 'x:card', content: attributes['x-card'] || 'summary_large_image' },
-            { name: 'x:domain', content: attributes['x-domain'] || window.location.hostname },
-            { name: 'x:url', content: attributes.canonical || setup.general.canonical },
-            { name: 'x:title', content: attributes.title || setup.general.title },
-            { name: 'x:description', content: attributes.description || setup.general.description },
-            { name: 'x:image', content: attributes['x-image'] || setup.general.ogImage || '' }
+            { name: 'og:image', content: setup.business.image || '' },
+            { name: 'og:site_name', content: setup.general.og?.site_name || 'Site Name' },
+            { name: 'twitter:card', content: setup.general.x?.card || 'summary_large_image' },
+            { name: 'twitter:domain', content: setup.general.x?.domain || window.location.hostname },
+            { name: 'twitter:url', content: attributes.canonical || setup.general.canonical },
+            { name: 'twitter:title', content: attributes.title || setup.general.title },
+            { name: 'twitter:description', content: attributes.description || setup.general.description },
+            { name: 'twitter:image', content: setup.business.image || '' }
         ];
 
         metaTags.forEach(({ name, content }) => {
-            if (content && !content.includes('undefined')) {  // Guard undefined
+            if (content && !content.includes('undefined')) {
                 const meta = document.createElement('meta');
-                if (name.startsWith('og:')) meta.setAttribute('property', name);
-                else meta.name = name;
+                if (name.startsWith('og:') || name.startsWith('twitter:')) {
+                    meta.setAttribute('property', name.startsWith('twitter:') ? 'twitter:' + name.split(':')[1] : name);
+                } else {
+                    meta.name = name;
+                }
                 meta.content = content;
                 head.appendChild(meta);
                 log(`Added ${name} meta with content: ${content}`);
             }
         });
 
-        // Canonical link (guard against undefined)
-        const canonicalUrl = attributes.canonical || setup.general.canonical;
+        // Canonical link (guard)
+        const canonicalUrl = attributes.canonical || setup.general.canonical || window.location.href;
         if (canonicalUrl && !canonicalUrl.includes('undefined')) {
             const link = document.createElement('link');
             link.rel = 'canonical';
             link.href = canonicalUrl;
             head.appendChild(link);
-            log('Added canonical link');
+            log('Added canonical link: ' + canonicalUrl);
         }
 
-        // Theme color (guard)
-        const themeColor = attributes['theme-color'] || setup.general.themeColor;
+        // Theme color (use light/dark from your JSON)
+        const themeColor = setup.general.theme_colors?.light || '#000000';
         if (themeColor && !themeColor.includes('undefined')) {
             const meta = document.createElement('meta');
             meta.name = 'theme-color';
             meta.content = themeColor;
+            // Optional: Media query for dark mode
+            meta.media = '(prefers-color-scheme: light)';
             head.appendChild(meta);
-            log(`Updated theme-color: ${meta.content}`);
+            log(`Updated theme-color (light): ${themeColor}`);
+            // Dark mode variant
+            const darkTheme = setup.general.theme_colors?.dark || '#000000';
+            if (darkTheme !== themeColor) {
+                const darkMeta = document.createElement('meta');
+                darkMeta.name = 'theme-color';
+                darkMeta.content = darkTheme;
+                darkMeta.media = '(prefers-color-scheme: dark)';
+                head.appendChild(darkMeta);
+                log(`Updated theme-color (dark): ${darkTheme}`);
+            }
         }
 
-        // JSON-LD schema (guard)
-        const jsonLd = attributes['json-ld'] || setup.general.jsonLd;
-        if (jsonLd && !JSON.stringify(jsonLd).includes('undefined')) {
+        // JSON-LD schema (using business data from your JSON)
+        const jsonLd = {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": setup.business.name,
+            "url": setup.business.url,
+            "telephone": setup.business.telephone,
+            "address": setup.business.address,
+            "openingHours": setup.business.openingHours,
+            "geo": setup.business.geo,
+            "image": setup.business.image,
+            "logo": setup.business.logo,
+            "sameAs": setup.business.sameAs
+        };
+        if (Object.keys(jsonLd).length > 1) {  // Guard empty
             const script = document.createElement('script');
             script.type = 'application/ld+json';
             script.textContent = JSON.stringify(jsonLd);
             head.appendChild(script);
-            log('Added JSON-LD schema');
+            log('Added Organization JSON-LD schema');
         }
 
-        // Favicons (guard paths from setup.json or defaults)
-        const faviconPaths = [
-            { rel: 'apple-touch-icon', href: setup.general.faviconApple || './img/icons/apple-touch-icon.png' },
-            { rel: 'icon', href: setup.general.favicon32 || './img/icons/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-            { rel: 'icon', href: setup.general.favicon16 || './img/icons/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-            { rel: 'icon', href: setup.general.faviconIco || './img/icons/favicon.ico', type: 'image/x-icon' }
+        // Favicons (use array from your JSON; fallback to defaults)
+        const faviconPaths = setup.general.favicons || [
+            { rel: 'apple-touch-icon', sizes: '180x180', href: './img/icons/apple-touch-icon.png' },
+            { rel: 'icon', type: 'image/png', sizes: '32x32', href: './img/icons/favicon-32x32.png' },
+            { rel: 'icon', type: 'image/png', sizes: '16x16', href: './img/icons/favicon-16x16.png' },
+            { rel: 'icon', type: 'image/x-icon', href: './img/icons/favicon.ico' }
         ];
 
-        faviconPaths.forEach(({ rel, href, sizes, type }) => {
-            if (href && !href.includes('undefined')) {  // Guard undefined paths
+        faviconPaths.forEach(favicon => {
+            if (favicon.href && !favicon.href.includes('undefined') && !favicon.href.includes('...')) {  // Guard placeholders
                 const link = document.createElement('link');
-                link.rel = rel;
-                link.href = href;
-                if (sizes) link.sizes = sizes;
-                if (type) link.type = type;
+                link.rel = favicon.rel;
+                link.href = favicon.href;
+                if (favicon.sizes) link.sizes = favicon.sizes;
+                if (favicon.type) link.type = favicon.type;
                 head.appendChild(link);
-                log(`Added favicon: ${href}`);
+                log(`Added favicon: ${favicon.href}`);
+            } else {
+                console.warn('Skipping invalid favicon entry:', favicon);
             }
         });
+
+        // Snipcart (from your JSON, if e-commerce enabled)
+        if (setup.general.include_e_commerce && setup.general.snipcart) {
+            const snipcart = setup.general.snipcart;
+            const script = document.createElement('script');
+            script.id = 'snipcart';
+            script.src = `https://cdn.snipcart.com/themes/v${snipcart.version}/default/snipcart.${snipcart.version}.js`;
+            script.data-api-key = snipcart.publicApiKey;
+            script.data-config-modal-style = snipcart.modalStyle;
+            script.data-config-load-strategy = snipcart.loadStrategy;
+            if (snipcart.templatesUrl) script.setAttribute('data-templates-url', snipcart.templatesUrl);
+            head.appendChild(script);
+            log('Added Snipcart script');
+        }
     }
 
     // Main execution
@@ -191,7 +241,7 @@
         for (const attr of customHead.attributes) {
             const key = attr.name.replace(/^data-/, '');
             const value = attr.value?.trim();  // Trim to avoid whitespace issues
-            if (value !== undefined && value !== 'undefined') {
+            if (value !== undefined && value !== 'undefined' && value !== '') {
                 attributes[key] = value;
             }
         }

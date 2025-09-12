@@ -1,14 +1,12 @@
 {
   "fonts": [
     {
-      "href": "./fonts/Futura_PT_Demi.woff2",
-      "as": "font",
+      "url": "./fonts/Futura_PT_Demi.woff2",  // Changed from "href"
       "type": "font/woff2",
       "crossorigin": "anonymous"
     },
     {
-      "href": "./fonts/futura_pt_book.woff2",
-      "as": "font",
+      "url": "./fonts/futura_pt_book.woff2",  // Changed from "href"
       "type": "font/woff2",
       "crossorigin": "anonymous"
     }
@@ -33,24 +31,24 @@
       {
         "rel": "apple-touch-icon",
         "sizes": "180x180",
-        "href": ".../img/icons/apple-touch-icon.png"
+        "href": "./img/icons/apple-touch-icon.png"  // Fixed path
       },
       {
         "rel": "icon",
         "type": "image/png",
         "sizes": "32x32",
-        "href": ".../img/icons/favicon-32x32.png"
+        "href": "./img/icons/favicon-32x32.png"  // Fixed path
       },
       {
         "rel": "icon",
         "type": "image/png",
         "sizes": "16x16",
-        "href": ".../img/icons/favicon-16x16.png"
+        "href": "./img/icons/favicon-16x16.png"  // Fixed path
       },
       {
         "rel": "icon",
         "type": "image/x-icon",
-        "href": ".../img/icons/favicon.ico"
+        "href": "./img/icons/favicon.ico"  // Fixed path
       }
     ],
     "snipcart": {
@@ -63,7 +61,7 @@
   },
   "business": {
     "name": "Behive",
-    "url": "https://rainwilds.github.io./",
+    "url": "https://rainwilds.github.io",  // Fixed trailing slash
     "telephone": "+61-3-9876-5432",
     "address": {
       "streetAddress": "456 Creative Lane",
@@ -77,14 +75,14 @@
       "latitude": -37.8136,
       "longitude": 144.9631
     },
-    "image": "https://rainwilds.github.io./img/logo.jpg",
-    "logo": "https://rainwilds.github.io./img/logo.jpg",
+    "image": "https://rainwilds.github.io/img/logo.jpg",  // Fixed path
+    "logo": "https://rainwilds.github.io/img/logo.jpg",  // Fixed path
     "sameAs": [
       "https://www.facebook.com/behive",
       "https://www.instagram.com/behive"
     ]
   },
   "font_awesome": {
-    "kit_url": "https://kit.fontawesome.com/85d1e578b1.js"
+    "kit_url": "https://kit.fontawesome.com/85d1e578b1.js"  // Matches code expectation
   }
 }
