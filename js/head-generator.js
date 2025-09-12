@@ -22,23 +22,30 @@
         font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' }
     };
 
-    // Function to fetch and cache setup.json
-    async function fetchSetup() {
-        if (setupCache) {
-            log('Using cached setup.json');
-            return setupCache;
-        }
-        try {
-            const response = await fetch('./JSON/setup.json', { cache: 'force-cache' });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            setupCache = await response.json();
-            log('Loaded setup.json: ' + JSON.stringify(setupCache, null, 2));
-            return setupCache;
-        } catch (error) {
-            console.error('Failed to load setup.json:', error);
-            return defaultSetup;
-        }
+// Function to fetch and cache setup.json
+async function fetchSetup() {
+    if (setupCache) {
+        log('Using cached setup.json');
+        return setupCache;
     }
+    try {
+        const response = await fetch('./JSON/setup.json', { cache: 'force-cache' });
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
+        // Pre-validate JSON text for common issues (e.g., trailing chars)
+        const jsonText = await response.text();
+        if (!jsonText.trim().endsWith('}')) {
+            throw new Error('Malformed JSON: Missing closing brace or trailing content');
+        }
+        
+        setupCache = JSON.parse(jsonText);  // Explicit parse for better error context
+        log('Loaded setup.json: ' + JSON.stringify(setupCache, null, 2));
+        return setupCache;
+    } catch (error) {
+        console.error('Failed to load setup.json:', error);
+        return defaultSetup;
+    }
+}
 
     // Function to load components in parallel
     async function loadComponents(components) {
