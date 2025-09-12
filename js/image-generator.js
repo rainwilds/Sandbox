@@ -122,18 +122,44 @@ export function generatePictureMarkup({
   extraStyles = '',
 } = {}) {
   try {
-    // Validate inputs
-    validateSources(arguments[0]);
+    // Validate inputs with explicit parameters
+    validateSources({
+      src,
+      lightSrc,
+      darkSrc,
+      fullSrc,
+      fullLightSrc,
+      fullDarkSrc,
+      iconSrc,
+      iconLightSrc,
+      iconDarkSrc,
+      alt,
+      lightAlt,
+      darkAlt,
+      fullAlt,
+      fullLightAlt,
+      fullDarkAlt,
+      iconAlt,
+      iconLightAlt,
+      iconDarkAlt,
+      isDecorative
+    });
 
     // Validate breakpoint
     const validatedBreakpoint = breakpoint && WIDTHS.includes(parseInt(breakpoint, 10)) ? parseInt(breakpoint, 10) : '';
 
-    // Determine primary sources and alts
-    const primarySrc = fullSrc || iconSrc || fullLightSrc || iconLightSrc || lightSrc || fullDarkSrc || iconDarkSrc || darkSrc || src;
-    const primaryAlt = isDecorative ? '' : fullAlt || iconAlt || alt || lightAlt || darkAlt || fullLightAlt || fullDarkAlt || iconLightAlt || iconDarkAlt;
+    // Determine primary sources and alts - prioritize logo sources
+    const isLogo = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc;
+    const isDark = typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const primarySrc = isLogo
+      ? (isDark ? (fullDarkSrc || iconDarkSrc || fullSrc || iconSrc) : (fullLightSrc || iconLightSrc || fullSrc || iconSrc))
+      : (isDark ? (darkSrc || lightSrc || src) : (lightSrc || darkSrc || src));
+    const primaryAlt = isDecorative ? '' : (isLogo
+      ? (isDark ? (fullDarkAlt || iconDarkAlt || fullAlt || iconAlt) : (fullLightAlt || iconLightAlt || fullAlt || iconAlt))
+      : (isDark ? (darkAlt || lightAlt || alt) : (lightAlt || darkAlt || alt)));
     const altAttr = isDecorative ? ' alt="" role="presentation"' : ` alt="${primaryAlt}"`;
     const loadingAttr = ['eager', 'lazy'].includes(loading) ? ` loading="${loading}"` : ' loading="lazy"';
-    const fetchPriorityAttr = ['high', 'low', 'auto'].includes(fetchPriority) && !(fullSrc || iconSrc || fullLightSrc || iconLightSrc || fullDarkSrc || iconDarkSrc) ? ` fetchpriority="${fetchPriority}"` : '';
+    const fetchPriorityAttr = ['high', 'low', 'auto'].includes(fetchPriority) && !isLogo ? ` fetchpriority="${fetchPriority}"` : '';
 
     // Combine classes efficiently
     const allClasses = [...new Set([customClasses.trim(), ...extraClasses].flatMap((c) => c.split(/\s+/)).filter(Boolean))];
@@ -156,8 +182,6 @@ export function generatePictureMarkup({
     // Generate srcset for responsive images
     const generateSrcset = (filename, format) =>
       [`${BASE_PATH}${filename}.${format} 3840w`, ...WIDTHS.map((w) => `${BASE_PATH}${filename}-${w}.${format} ${w}w`)].join(', ');
-
-    const isLogo = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc;
 
     if (isLogo) {
       // Logo case: Use original source URLs with inverted theme logic for icons, standard for full logos
@@ -194,7 +218,7 @@ export function generatePictureMarkup({
         );
       }
       if (fullSrc || iconSrc) {
-        // Use fullSrc or iconSrc as fallback to avoid theme-specific fallbacks
+        // Use fullSrc or iconSrc as fallback
         const fallbackSrc = fullSrc || iconSrc;
         markup.push(`<source type="${getImageType(fallbackSrc)}" srcset="${fallbackSrc}"${altAttr}>`);
       }
@@ -244,7 +268,7 @@ export function generatePictureMarkup({
 
     // Add schema if requested
     if (includeSchema) {
-      markup.unshift(
+      markup.push(
         `<script type="application/ld+json">{"@context":"http://schema.org","@type":"ImageObject","url":"${primarySrc}","alternateName":"${primaryAlt}"}</script>`
       );
     }
