@@ -1,4 +1,7 @@
 /* global HTMLElement, document, window, matchMedia, ResizeObserver, console */
+import { generatePictureMarkup } from '../image-generator.js';
+import { VALID_ALIGNMENTS, alignMap } from '../shared.js';
+
 class CustomLogo extends HTMLElement {
     constructor() {
         super();
@@ -15,7 +18,7 @@ class CustomLogo extends HTMLElement {
         entries.forEach(entry => {
             const instance = entry.target;
             if (instance instanceof CustomLogo && CustomLogo.#instances.has(instance)) {
-                instance.updateSizeStyles(entry.contentRect);
+                instance.updateSize();
             }
         });
     });
@@ -33,10 +36,6 @@ class CustomLogo extends HTMLElement {
     static {
         CustomLogo.#prefersColorScheme.addEventListener('change', CustomLogo.#themeChangeListener);
     }
-
-    // Constants for responsive image generation
-    static #WIDTHS = [32, 64, 128, 256, 512];
-    static #FORMATS = ['webp', 'png'];
 
     connectedCallback() {
         if (!this.isInitialized) {
@@ -69,150 +68,244 @@ class CustomLogo extends HTMLElement {
     }
 
     updateTheme() {
-        const isDark = CustomLogo.#prefersColorScheme.matches;
-        const src = isDark ? this.getAttribute('src-dark') || this.getAttribute('src') : this.getAttribute('src-light') || this.getAttribute('src');
-        if (src) {
-            const img = this.querySelector('img');
-            if (img && img.src !== src) {
-                img.src = src;
+        if (!this.isInitialized) return;
+        const picture = this.querySelector('picture');
+        if (picture) {
+            const img = picture.querySelector('img');
+            const isDark = CustomLogo.#prefersColorScheme.matches;
+            // Update src based on theme
+            const attrs = this.getAttributes();
+            const activeSrc = isDark ? (attrs.fullDarkSrc || attrs.iconDarkSrc || attrs.fullSrc || attrs.iconSrc) : (attrs.fullLightSrc || attrs.iconLightSrc || attrs.fullSrc || attrs.iconSrc);
+            if (img && img.src !== activeSrc) {
+                img.src = activeSrc;
             }
         }
     }
 
-    updateSizeStyles(contentRect) {
-        const width = contentRect.width;
-        const heightAttr = this.getAttribute('height');
-        const widthAttr = this.getAttribute('width');
-        const style = this.querySelector('img')?.style || {};
-        if (widthAttr && heightAttr) {
-            style.width = `${widthAttr}px`;
-            style.height = `${heightAttr}px`;
-        } else if (width < 100) {
-            style.width = '32px';
-            style.height = 'auto';
-        } else if (width < 200) {
-            style.width = '64px';
-            style.height = 'auto';
-        } else {
-            style.width = '128px';
-            style.height = 'auto';
+    updateSize() {
+        if (!this.isInitialized) return;
+        const height = this.getAttribute('logo-height');
+        const img = this.querySelector('img');
+        if (img && height) {
+            img.style.height = height;
+            img.style.width = 'auto';
         }
     }
 
     getAttributes() {
-        const src = this.getAttribute('src') || '';
-        const srcLight = this.getAttribute('src-light') || src;
-        const srcDark = this.getAttribute('src-dark') || src;
-        const alt = this.getAttribute('alt') || 'Logo';
+        const fullSrc = this.getAttribute('logo-full-primary-src') || '';
+        const fullLightSrc = this.getAttribute('logo-full-light-src') || fullSrc;
+        const fullDarkSrc = this.getAttribute('logo-full-dark-src') || fullSrc;
+        const fullAlt = this.getAttribute('logo-full-primary-alt') || '';
+        const fullLightAlt = this.getAttribute('logo-full-light-alt') || fullAlt;
+        const fullDarkAlt = this.getAttribute('logo-full-dark-alt') || fullAlt;
+        const fullPosition = this.getAttribute('logo-full-position') || 'center';
+
+        const iconSrc = this.getAttribute('logo-icon-primary-src') || '';
+        const iconLightSrc = this.getAttribute('logo-icon-light-src') || iconSrc;
+        const iconDarkSrc = this.getAttribute('logo-icon-dark-src') || iconSrc;
+        const iconAlt = this.getAttribute('logo-icon-primary-alt') || '';
+        const iconLightAlt = this.getAttribute('logo-icon-light-alt') || iconAlt;
+        const iconDarkAlt = this.getAttribute('logo-icon-dark-alt') || iconAlt;
+        const iconPosition = this.getAttribute('logo-icon-position') || 'center';
+
+        const breakpoint = this.getAttribute('logo-breakpoint') || '';
+        const height = this.getAttribute('logo-height') || '';
+
+        const hasFullSource = fullSrc || (fullLightSrc && fullDarkSrc);
+        const hasIconSource = iconSrc || (iconLightSrc && iconDarkSrc);
+        if (!hasFullSource && !hasIconSource) {
+            console.error('At least one of logo-full-primary-src, (logo-full-light-src and logo-full-dark-src), logo-icon-primary-src, or (logo-icon-light-src and logo-icon-dark-src) must be provided');
+            return null;
+        }
+
+        // Validate light/dark pairs
+        const validatePair = (light, dark, label) => {
+            if ((light || dark) && !(light && dark)) {
+                console.error(`Both ${label}-light-src and ${label}-dark-src must be provided if one is specified.`);
+                return false;
+            }
+            return true;
+        };
+        if (!validatePair(fullLightSrc, fullDarkSrc, 'logo-full') || !validatePair(iconLightSrc, iconDarkSrc, 'logo-icon')) {
+            return null;
+        }
+
+        // Validate alt attributes for non-decorative images
         const isDecorative = this.hasAttribute('decorative');
-        const width = this.getAttribute('width') || '';
-        const height = this.getAttribute('height') || '';
-        const customClasses = this.getAttribute('class') || '';
-
-        if (!alt && !isDecorative && (src || srcLight || srcDark)) {
-            console.warn(`<custom-logo src="${src || 'not provided'}" src-light="${srcLight || 'not provided'}" src-dark="${srcDark || 'not provided'}"> requires an alt attribute for accessibility unless decorative is present.`);
+        if (!isDecorative) {
+            if (fullSrc && !fullAlt) console.error('logo-full-primary-alt is required when logo-full-primary-src is provided.');
+            if (iconSrc && !iconAlt) console.error('logo-icon-primary-alt is required when logo-icon-primary-src is provided.');
+            if (fullLightSrc && fullDarkSrc && !(fullLightAlt && fullDarkAlt)) console.error('Both logo-full-light-alt and logo-full-dark-alt are required when logo-full-light-src and logo-full-dark-src are provided.');
+            if (iconLightSrc && iconDarkSrc && !(iconLightAlt && iconDarkAlt)) console.error('Both logo-icon-light-alt and logo-icon-dark-alt are required when logo-icon-light-src and logo-icon-dark-src are provided.');
         }
 
-        if ((srcLight || srcDark) && !(srcLight && srcDark) && !src) {
-            throw new Error('Both src-light and src-dark must be present when using light/dark themes, or use src alone.');
+        // Validate height
+        if (height && !height.match(/^(\d*\.?\d+)(px|rem|em|vh|vw)$/)) {
+            console.warn(`Invalid logo-height value "${height}". Must be a valid CSS length (e.g., "40px", "2rem"). Ignoring.`);
         }
+
+        // Validate positions
+        if (fullPosition && !VALID_ALIGNMENTS.includes(fullPosition)) {
+            console.warn(`Invalid logo-full-position "${fullPosition}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Ignoring.`);
+        }
+        if (iconPosition && !VALID_ALIGNMENTS.includes(iconPosition)) {
+            console.warn(`Invalid logo-icon-position "${iconPosition}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Ignoring.`);
+        }
+
+        // Validate breakpoint
+        const validatedBreakpoint = breakpoint && [768, 1024, 1366, 1920, 2560].includes(parseInt(breakpoint, 10)) ? parseInt(breakpoint, 10) : '';
 
         return {
-            src,
-            srcLight,
-            srcDark,
-            alt,
-            isDecorative,
-            width,
+            fullSrc,
+            fullLightSrc,
+            fullDarkSrc,
+            fullAlt,
+            fullLightAlt,
+            fullDarkAlt,
+            fullPosition,
+            iconSrc,
+            iconLightSrc,
+            iconDarkSrc,
+            iconAlt,
+            iconLightAlt,
+            iconDarkAlt,
+            iconPosition,
+            breakpoint: validatedBreakpoint,
             height,
-            customClasses
+            isDecorative
         };
     }
 
     render(isFallback = false) {
         const attrs = isFallback ? {
-            src: '',
-            srcLight: '',
-            srcDark: '',
-            alt: 'Logo',
-            isDecorative: false,
-            width: '',
+            fullSrc: '',
+            fullLightSrc: '',
+            fullDarkSrc: '',
+            fullAlt: '',
+            fullLightAlt: '',
+            fullDarkAlt: '',
+            fullPosition: 'center',
+            iconSrc: '',
+            iconLightSrc: '',
+            iconDarkSrc: '',
+            iconAlt: '',
+            iconLightAlt: '',
+            iconDarkAlt: '',
+            iconPosition: 'center',
+            breakpoint: '',
             height: '',
-            customClasses: ''
+            isDecorative: false
         } : this.getAttributes();
 
-        const isDark = CustomLogo.#prefersColorScheme.matches;
-        const currentSrc = isDark ? attrs.srcDark || attrs.src : attrs.srcLight || attrs.src;
+        if (!attrs) return null;
 
-        if (!currentSrc && !isFallback) {
-            console.warn('No valid logo source provided for <custom-logo>. Skipping rendering.');
+        const hasValidSource = attrs.fullSrc || attrs.fullLightSrc || attrs.fullDarkSrc || attrs.iconSrc || attrs.iconLightSrc || attrs.iconDarkSrc;
+        if (!hasValidSource && !isFallback) {
+            console.warn('No valid logo sources provided, skipping render.');
             return null;
         }
 
-        const blockElement = document.createElement('div');
-        blockElement.className = ['custom-logo', attrs.customClasses].filter(cls => cls).join(' ').trim();
+        const positionClass = attrs.fullPosition ? alignMap[attrs.fullPosition] : 'place-self-center';
+        const extraStyles = attrs.height ? `height: ${attrs.height}` : '';
 
-        const pictureElement = document.createElement('picture');
-        const sourceElements = CustomLogo.#FORMATS.map(format => {
-            const source = document.createElement('source');
-            source.type = `image/${format}`;
-            source.srcset = CustomLogo.#WIDTHS.map(width => {
-                const baseSrc = currentSrc.replace(/\.[^/.]+$/, '');
-                return `${baseSrc}-${width}.${format} ${width}w`;
-            }).join(', ');
-            source.sizes = CustomLogo.#WIDTHS.map(width => `(max-width: ${width}px) ${width}px`).join(', ') + ', 512px';
-            return source;
-        });
+        let logoHTML = '';
+        if (hasValidSource) {
+            // Determine breakpoint media query
+            let styleTag = '';
+            const hasBreakpoint = attrs.breakpoint;
+            const hasIconSource = attrs.iconSrc || (attrs.iconLightSrc && attrs.iconDarkSrc);
+            const hasFullSource = attrs.fullSrc || (attrs.fullLightSrc && attrs.fullDarkSrc);
 
-        const imgElement = document.createElement('img');
-        imgElement.src = currentSrc;
-        imgElement.alt = attrs.isDecorative ? '' : attrs.alt;
-        imgElement.loading = 'lazy';
-        if (attrs.width && attrs.height) {
-            imgElement.width = parseInt(attrs.width, 10);
-            imgElement.height = parseInt(attrs.height, 10);
+            if (hasBreakpoint && hasIconSource && hasFullSource) {
+                styleTag = `
+                    <style>
+                        @media (max-width: ${attrs.breakpoint - 1}px) {
+                            .place-self-center {
+                                ${attrs.iconPosition ? `place-self: ${attrs.iconPosition.replace(/-/g, ' ')} !important;` : ''}
+                            }
+                        }
+                    </style>
+                `;
+            }
+
+            // Use generatePictureMarkup for responsive logo
+            const logoMarkup = generatePictureMarkup({
+                fullSrc: attrs.fullSrc,
+                fullLightSrc: attrs.fullLightSrc,
+                fullDarkSrc: attrs.fullDarkSrc,
+                fullAlt: attrs.fullAlt,
+                fullLightAlt: attrs.fullLightAlt,
+                fullDarkAlt: attrs.fullDarkAlt,
+                iconSrc: attrs.iconSrc,
+                iconLightSrc: attrs.iconLightSrc,
+                iconDarkSrc: attrs.iconDarkSrc,
+                iconAlt: attrs.iconAlt,
+                iconLightAlt: attrs.iconLightAlt,
+                iconDarkAlt: attrs.iconDarkAlt,
+                isDecorative: attrs.isDecorative,
+                customClasses: '',
+                loading: 'eager',
+                fetchPriority: 'high',
+                extraClasses: [],
+                breakpoint: attrs.breakpoint,
+                extraStyles: extraStyles
+            });
+
+            logoHTML = `
+                ${styleTag}
+                <div class="${positionClass}">
+                    <a href="/">${logoMarkup}</a>
+                </div>
+            `;
+        } else {
+            logoHTML = '<div>No logo sources provided</div>';
         }
-        imgElement.onerror = () => {
-            imgElement.src = 'https://placehold.co/128x128';
-            imgElement.alt = 'Placeholder logo';
-            imgElement.onerror = null;
-        };
 
-        sourceElements.forEach(source => pictureElement.appendChild(source));
-        pictureElement.appendChild(imgElement);
-        blockElement.appendChild(pictureElement);
-
-        return blockElement;
+        const logoElement = document.createElement('div');
+        logoElement.innerHTML = logoHTML;
+        return logoElement;
     }
 
     static get observedAttributes() {
-        return ['src', 'src-light', 'src-dark', 'alt', 'decorative', 'width', 'height', 'class'];
+        return [
+            'logo-full-primary-src',
+            'logo-full-light-src',
+            'logo-full-dark-src',
+            'logo-full-primary-alt',
+            'logo-full-light-alt',
+            'logo-full-dark-alt',
+            'logo-full-position',
+            'logo-icon-primary-src',
+            'logo-icon-light-src',
+            'logo-icon-dark-src',
+            'logo-icon-primary-alt',
+            'logo-icon-light-alt',
+            'logo-icon-dark-alt',
+            'logo-icon-position',
+            'logo-breakpoint',
+            'logo-height',
+            'decorative'
+        ];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized) return;
-        if (['src', 'src-light', 'src-dark'].includes(name)) {
-            this.updateTheme();
-        }
-        if (['width', 'height'].includes(name)) {
-            const attrs = this.getAttributes();
-            const img = this.querySelector('img');
-            if (img && attrs.width && attrs.height) {
-                img.width = parseInt(attrs.width, 10);
-                img.height = parseInt(attrs.height, 10);
-            }
-        }
-        if (name === 'class') {
-            const div = this.querySelector('div');
-            if (div) {
-                div.className = ['custom-logo', this.getAttribute('class') || ''].filter(cls => cls).join(' ').trim();
-            }
+        // Re-render on attribute change for logo sources, alts, positions, etc.
+        if (name.startsWith('logo-') || name === 'decorative') {
+            this.initialize();
         }
     }
 }
 
 try {
-    customElements.define('custom-logo', CustomLogo);
+    if (!customElements.get('custom-logo')) {
+        customElements.define('custom-logo', CustomLogo);
+    }
+    // Upgrade existing elements
+    document.querySelectorAll('custom-logo').forEach(element => {
+        customElements.upgrade(element);
+    });
 } catch (error) {
     console.error('Error defining CustomLogo element:', error);
 }
