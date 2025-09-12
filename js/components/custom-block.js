@@ -13,6 +13,8 @@ class CustomBlock extends HTMLElement {
         this.lastAttributes = null;
         this.cachedAttributes = null;
         this.criticalAttributesHash = null;
+        this.iconCache = new Map(); // Cache for icon parsing
+        this.buttonIconCache = new Map(); // Cache for button icon parsing
         CustomBlock.#observer.observe(this);
         CustomBlock.#observedInstances.add(this);
     }
@@ -33,7 +35,6 @@ class CustomBlock extends HTMLElement {
 
     static #observedInstances = new WeakSet();
     static #renderCacheMap = new WeakMap();
-
     static #WIDTHS = [768, 1024, 1366, 1920, 2560];
     static #FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
     static #VALID_ASPECT_RATIOS = new Set(['16/9', '9/16', '3/2', '2/3', '1/1', '21/9']);
@@ -46,7 +47,6 @@ class CustomBlock extends HTMLElement {
     ];
     static #DEFAULT_SIZE_VALUE = 3840;
     static #BASE_PATH = './img/responsive/';
-
     static BACKDROP_FILTER_MAP = {
         'backdrop-filter-blur-small': 'blur(var(--blur-small))',
         'backdrop-filter-blur-medium': 'blur(var(--blur-medium))',
@@ -55,7 +55,6 @@ class CustomBlock extends HTMLElement {
         'backdrop-filter-grayscale-medium': 'grayscale(var(--grayscale-medium))',
         'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))'
     };
-
     static #criticalAttributes = [
         'backdrop-filter',
         'background-color',
@@ -298,22 +297,28 @@ class CustomBlock extends HTMLElement {
         }
         let icon = this.getAttribute('icon') || '';
         if (icon) {
-            icon = icon.replace(/['"]/g, '&quot;');
-            const parser = new DOMParser();
-            const decodedIcon = icon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
-            const doc = parser.parseFromString(decodedIcon, 'text/html');
-            const iElement = doc.body.querySelector('i');
-            if (!iElement || !iElement.className.includes('fa-')) {
-                console.warn(`Invalid icon attribute in <custom-block>. Must be a valid Font Awesome <i> tag. Ignoring.`);
-                icon = '';
-            } else {
-                const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
-                if (validClasses.length === 0) {
-                    console.warn(`Icon attribute in <custom-block> contains no valid Font Awesome classes. Ignoring.`);
+            const cacheKey = icon;
+            if (!this.iconCache.has(cacheKey)) {
+                icon = icon.replace(/['"]/g, '&quot;');
+                const parser = new DOMParser();
+                const decodedIcon = icon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+                const doc = parser.parseFromString(decodedIcon, 'text/html');
+                const iElement = doc.body.querySelector('i');
+                if (!iElement || !iElement.className.includes('fa-')) {
+                    console.warn(`Invalid icon attribute in <custom-block>. Must be a valid Font Awesome <i> tag. Ignoring.`);
                     icon = '';
                 } else {
-                    icon = `<i class="${validClasses.join(' ')}"></i>`;
+                    const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
+                    if (validClasses.length === 0) {
+                        console.warn(`Icon attribute in <custom-block> contains no valid Font Awesome classes. Ignoring.`);
+                        icon = '';
+                    } else {
+                        icon = `<i class="${validClasses.join(' ')}"></i>`;
+                    }
                 }
+                this.iconCache.set(cacheKey, icon);
+            } else {
+                icon = this.iconCache.get(cacheKey);
             }
         }
         const iconStyle = this.getAttribute('icon-style') || '';
@@ -392,22 +397,28 @@ class CustomBlock extends HTMLElement {
         }
         let buttonIcon = this.getAttribute('button-icon') || '';
         if (buttonIcon) {
-            buttonIcon = buttonIcon.replace(/['"]/g, '&quot;');
-            const parser = new DOMParser();
-            const decodedIcon = buttonIcon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
-            const doc = parser.parseFromString(decodedIcon, 'text/html');
-            const iElement = doc.body.querySelector('i');
-            if (!iElement || !iElement.className.includes('fa-')) {
-                console.warn(`Invalid button-icon attribute in <custom-block>. Must be a valid Font Awesome <i> tag. Ignoring.`);
-                buttonIcon = '';
-            } else {
-                const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
-                if (validClasses.length === 0) {
-                    console.warn(`Button-icon attribute in <custom-block> contains no valid Font Awesome classes. Ignoring.`);
+            const cacheKey = buttonIcon;
+            if (!this.buttonIconCache.has(cacheKey)) {
+                buttonIcon = buttonIcon.replace(/['"]/g, '&quot;');
+                const parser = new DOMParser();
+                const decodedIcon = buttonIcon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+                const doc = parser.parseFromString(decodedIcon, 'text/html');
+                const iElement = doc.body.querySelector('i');
+                if (!iElement || !iElement.className.includes('fa-')) {
+                    console.warn(`Invalid button-icon attribute in <custom-block>. Must be a valid Font Awesome <i> tag. Ignoring.`);
                     buttonIcon = '';
                 } else {
-                    buttonIcon = `<i class="${validClasses.join(' ')}"></i>`;
+                    const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
+                    if (validClasses.length === 0) {
+                        console.warn(`Button-icon attribute in <custom-block> contains no valid Font Awesome classes. Ignoring.`);
+                        buttonIcon = '';
+                    } else {
+                        buttonIcon = `<i class="${validClasses.join(' ')}"></i>`;
+                    }
                 }
+                this.buttonIconCache.set(cacheKey, buttonIcon);
+            } else {
+                buttonIcon = this.buttonIconCache.get(cacheKey);
             }
         }
         const buttonIconPosition = this.getAttribute('button-icon-position') || '';
@@ -562,7 +573,6 @@ class CustomBlock extends HTMLElement {
 
     initialize() {
         if (this.isInitialized || !this.isVisible) return;
-        console.log('** CustomBlock start...', this.outerHTML);
         this.isInitialized = true;
         try {
             const cardElement = this.render();
@@ -577,7 +587,6 @@ class CustomBlock extends HTMLElement {
             console.error('Error initializing CustomBlock:', error, this.outerHTML);
             this.replaceWith(this.render(true));
         }
-        console.log('** CustomBlock end...');
     }
 
     connectedCallback() {
@@ -595,6 +604,8 @@ class CustomBlock extends HTMLElement {
         this.renderCache = null;
         this.cachedAttributes = null;
         this.criticalAttributesHash = null;
+        this.iconCache.clear();
+        this.buttonIconCache.clear();
         CustomBlock.#renderCacheMap.delete(this);
     }
 
@@ -611,11 +622,9 @@ class CustomBlock extends HTMLElement {
             });
             newCriticalAttrsHash = JSON.stringify(criticalAttrs);
             if (CustomBlock.#renderCacheMap.has(this) && this.criticalAttributesHash === newCriticalAttrsHash) {
-                console.log('Using cached render for CustomBlock:', this.outerHTML);
                 return CustomBlock.#renderCacheMap.get(this).cloneNode(true);
             }
         }
-
         const attrs = isFallback ? {
             effects: '',
             sectionTitle: false,
@@ -716,16 +725,12 @@ class CustomBlock extends HTMLElement {
             shadowClass: '',
             innerShadowClass: ''
         } : this.getAttributes();
-
-        console.log('Rendering CustomBlock with attrs:', attrs);
-
         if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
             console.error(`<custom-block img-background-src="${attrs.backgroundSrc || 'not provided'}" img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> requires an img-background-alt attribute for accessibility unless img-background-decorative is present.`);
         }
         if (!attrs.primaryAlt && !attrs.primaryIsDecorative && (attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc)) {
             console.error(`<custom-block img-primary-src="${attrs.primarySrc || 'not provided'}" img-primary-light-src="${attrs.primaryLightSrc || 'not provided'}" img-primary-dark-src="${attrs.primaryDarkSrc || 'not provided'}"> requires an img-primary-alt attribute for accessibility unless img-primary-decorative is present.`);
         }
-
         const hasVideoBackground = !isFallback && !!(attrs.videoBackgroundSrc || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc);
         const hasBackgroundImage = !isFallback && !!(attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc) && !hasVideoBackground;
         const hasPrimaryImage = !isFallback && !!(attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc) && ['top', 'bottom', 'left', 'right'].includes(attrs.primaryPosition);
@@ -748,13 +753,9 @@ class CustomBlock extends HTMLElement {
             !hasVideoPrimary &&
             this.hasAttribute('button-text') &&
             attrs.buttonText;
-
-        // Create DocumentFragment for efficient DOM construction
         const fragment = document.createDocumentFragment();
         const blockElement = document.createElement('div');
         fragment.appendChild(blockElement);
-
-        // Set block element classes and attributes
         const mainDivClassList = ['block'];
         if (hasBackgroundImage) mainDivClassList.push('background-image');
         else if (hasVideoBackground || hasVideoPrimary) mainDivClassList.push('background-video');
@@ -763,7 +764,6 @@ class CustomBlock extends HTMLElement {
         mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass);
         if (attrs.effects) mainDivClassList.push(attrs.effects);
         blockElement.className = mainDivClassList.filter(cls => cls).join(' ').trim();
-
         if (attrs.styleAttribute && !isFallback) {
             let outerStyles = attrs.styleAttribute;
             const paddingRegex = /(padding[^:]*:[^;]+;)/gi;
@@ -772,15 +772,12 @@ class CustomBlock extends HTMLElement {
             outerStyles = outerStyles.replace(paddingRegex, '').trim();
             if (outerStyles) blockElement.setAttribute('style', outerStyles);
         }
-
         if (!isFallback && (hasPrimaryImage || hasVideoPrimary)) {
             blockElement.setAttribute('data-primary-position', attrs.primaryPosition);
         }
         if (!isFallback && attrs.sectionTitle && !attrs.buttonText) {
             blockElement.setAttribute('data-section-title', 'true');
         }
-
-        // Media-only case
         if (isMediaOnly && !hasPrimaryImage && !hasVideoPrimary) {
             if (hasVideoBackground) {
                 const videoMarkup = generateVideoMarkup({
@@ -834,7 +831,6 @@ class CustomBlock extends HTMLElement {
                     console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
                 }
             }
-
             if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
                 const overlayClasses = [attrs.backgroundOverlayClass];
                 if (attrs.backgroundImageNoise) overlayClasses.push('background-image-noise');
@@ -852,7 +848,6 @@ class CustomBlock extends HTMLElement {
                 if (backdropFilterValues.length) overlayDiv.style.backdropFilter = backdropFilterValues.join(' ');
                 blockElement.appendChild(overlayDiv);
             }
-
             if (!isFallback && !blockElement.hasChildNodes()) {
                 console.error('Media-only block has no valid content:', this.outerHTML);
                 return this.render(true);
@@ -863,10 +858,8 @@ class CustomBlock extends HTMLElement {
             }
             return blockElement;
         }
-
-        // Button-only case
         if (isButtonOnly) {
-            const buttonClasses = ['button', attrs.buttonClass].filter(cls => cls).join(' ');
+            const buttonClasses = ['button', attrs.buttonClass].filter(cls => cls).join(' ').trim();
             const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
             buttonElement.className = buttonClasses;
             if (attrs.buttonStyle) buttonElement.setAttribute('style', attrs.buttonStyle);
@@ -880,13 +873,11 @@ class CustomBlock extends HTMLElement {
             if (attrs.buttonTarget) buttonElement.setAttribute(attrs.buttonType === 'button' ? 'formtarget' : 'target', attrs.buttonTarget);
             if (attrs.buttonRel) buttonElement.setAttribute('rel', attrs.buttonRel);
             if (attrs.buttonAriaLabel) buttonElement.setAttribute('aria-label', attrs.buttonAriaLabel);
-
             let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
             if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
                 const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
                 buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
             }
-
             if (attrs.buttonIcon && attrs.buttonIconPosition === 'left') {
                 const iconSpan = document.createElement('span');
                 iconSpan.className = 'button-icon';
@@ -904,17 +895,13 @@ class CustomBlock extends HTMLElement {
             } else {
                 buttonElement.textContent = attrs.buttonText;
             }
-
             blockElement.appendChild(buttonElement);
-
             if (!isFallback) {
                 CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
                 this.lastAttributes = newCriticalAttrsHash;
             }
             return blockElement;
         }
-
-        // Full content case
         const innerPaddingClasses = attrs.customClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
         const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls)];
         if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
@@ -933,7 +920,6 @@ class CustomBlock extends HTMLElement {
         const filteredInnerBackdropClasses = attrs.innerBackdropFilterClasses
             .filter(cls => !cls.startsWith('backdrop-filter'));
         innerDivClassList.push(...filteredInnerBackdropClasses);
-
         const innerDiv = document.createElement('div');
         if (innerDivClassList.length) innerDiv.className = innerDivClassList.join(' ').trim();
         if (attrs.innerStyle || innerBackdropFilterValues.length) {
@@ -941,7 +927,6 @@ class CustomBlock extends HTMLElement {
             innerDiv.setAttribute('style', style);
         }
         innerDiv.setAttribute('aria-live', 'polite');
-
         const textAlignMap = {
             'left': 'flex-column-left text-align-left',
             'center': 'flex-column-center text-align-center',
@@ -950,7 +935,6 @@ class CustomBlock extends HTMLElement {
         const groupDiv = document.createElement('div');
         groupDiv.setAttribute('role', 'group');
         if (attrs.textAlignment) groupDiv.className = textAlignMap[attrs.textAlignment];
-
         if (attrs.icon) {
             const iconSpan = document.createElement('span');
             iconSpan.className = `icon${attrs.iconClass ? ` ${attrs.iconClass}` : ''}`;
@@ -960,25 +944,21 @@ class CustomBlock extends HTMLElement {
             iconSpan.innerHTML = attrs.icon;
             groupDiv.appendChild(iconSpan);
         }
-
         if (attrs.subHeading) {
             const subHeadingElement = document.createElement(attrs.subHeadingTag);
             subHeadingElement.textContent = attrs.subHeading;
             groupDiv.appendChild(subHeadingElement);
         }
-
         if (attrs.heading) {
             const headingElement = document.createElement(attrs.headingTag);
             headingElement.textContent = attrs.heading;
             groupDiv.appendChild(headingElement);
         }
-
         if (attrs.text) {
             const textElement = document.createElement('p');
             textElement.textContent = attrs.text;
             groupDiv.appendChild(textElement);
         }
-
         if (attrs.buttonText) {
             const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
             buttonElement.className = `button ${attrs.buttonClass}`.trim();
@@ -993,13 +973,11 @@ class CustomBlock extends HTMLElement {
             if (attrs.buttonTarget) buttonElement.setAttribute(attrs.buttonType === 'button' ? 'formtarget' : 'target', attrs.buttonTarget);
             if (attrs.buttonRel) buttonElement.setAttribute('rel', attrs.buttonRel);
             if (attrs.buttonAriaLabel) buttonElement.setAttribute('aria-label', attrs.buttonAriaLabel);
-
             let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
             if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
                 const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
                 buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
             }
-
             if (attrs.buttonIcon && attrs.buttonIconPosition === 'left') {
                 const iconSpan = document.createElement('span');
                 iconSpan.className = 'button-icon';
@@ -1017,13 +995,9 @@ class CustomBlock extends HTMLElement {
             } else {
                 buttonElement.textContent = attrs.buttonText;
             }
-
             groupDiv.appendChild(buttonElement);
         }
-
         innerDiv.appendChild(groupDiv);
-
-        // Append media content
         if (hasBackgroundImage || hasVideoBackground) {
             const mediaDiv = document.createElement('div');
             if (hasVideoBackground) {
@@ -1074,7 +1048,6 @@ class CustomBlock extends HTMLElement {
             }
             if (mediaDiv.hasChildNodes()) blockElement.appendChild(mediaDiv.firstChild);
         }
-
         if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
             const overlayClasses = [attrs.backgroundOverlayClass];
             if (attrs.backgroundImageNoise) overlayClasses.push('background-image-noise');
@@ -1092,7 +1065,6 @@ class CustomBlock extends HTMLElement {
             if (backdropFilterValues.length) overlayDiv.style.backdropFilter = backdropFilterValues.join(' ');
             blockElement.appendChild(overlayDiv);
         }
-
         if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'top') {
             const mediaDiv = document.createElement('div');
             const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
@@ -1140,7 +1112,6 @@ class CustomBlock extends HTMLElement {
                 console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
             }
         }
-
         if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'left') {
             const mediaDiv = document.createElement('div');
             const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
@@ -1238,7 +1209,6 @@ class CustomBlock extends HTMLElement {
         } else {
             blockElement.appendChild(innerDiv);
         }
-
         if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'bottom') {
             const mediaDiv = document.createElement('div');
             const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
@@ -1286,7 +1256,6 @@ class CustomBlock extends HTMLElement {
                 console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
             }
         }
-
         if (!isFallback && blockElement.querySelector('img')) {
             const images = blockElement.querySelectorAll('img');
             images.forEach(img => {
@@ -1315,12 +1284,10 @@ class CustomBlock extends HTMLElement {
                 img.removeAttribute('img-primary-position');
             });
         }
-
         if (!isFallback && !blockElement.hasChildNodes()) {
             console.error('Block has no valid content, falling back:', this.outerHTML);
             return this.render(true);
         }
-
         if (!isFallback) {
             CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
             this.lastAttributes = newCriticalAttrsHash;
@@ -1393,7 +1360,6 @@ class CustomBlock extends HTMLElement {
             'inner-shadow',
             'inner-style',
             'section-title',
-            'shadow',
             'style',
             'sub-heading',
             'sub-heading-tag',
@@ -1442,7 +1408,4 @@ try {
 } catch (error) {
     console.error('Error defining CustomBlock element:', error);
 }
-
-console.log('CustomBlock version: 2025-09-09');
-
 export { CustomBlock };

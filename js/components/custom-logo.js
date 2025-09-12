@@ -2,7 +2,6 @@
     try {
         const { generatePictureMarkup } = await import('../image-generator.js');
         const { VALID_ALIGNMENTS, alignMap } = await import('../shared.js');
-        console.log('Successfully imported generatePictureMarkup and alignMap');
 
         class CustomLogo extends HTMLElement {
             static get observedAttributes() {
@@ -31,9 +30,15 @@
                 this.handleThemeChange = this.handleThemeChange.bind(this);
                 this.handleResize = this.handleResize.bind(this);
                 this.handleMutation = this.handleMutation.bind(this);
+                this._cachedAttrs = null; // Cache for attributes
             }
 
             getAttributes() {
+                // Return cached attributes if available
+                if (this._cachedAttrs) {
+                    return this._cachedAttrs;
+                }
+
                 const attrs = {
                     fullPrimarySrc: this.getAttribute('logo-full-primary-src') || '',
                     fullLightSrc: this.getAttribute('logo-full-light-src') || '',
@@ -111,6 +116,7 @@
                     attrs.iconPosition = '';
                 }
 
+                this._cachedAttrs = { ...attrs }; // Cache attributes
                 return attrs;
             }
 
@@ -120,7 +126,6 @@
                 const hasValidSource = attrs.fullPrimarySrc || attrs.fullLightSrc || attrs.fullDarkSrc || 
                                       attrs.iconPrimarySrc || attrs.iconLightSrc || attrs.iconDarkSrc;
                 if (hasValidSource) {
-                    // Determine which position to use based on breakpoint and available sources
                     let positionClass = attrs.fullPosition ? alignMap[attrs.fullPosition] : 'place-self-center';
                     let styleTag = '';
                     const hasBreakpoint = attrs.breakpoint && [768, 1024, 1366, 1920, 2560].includes(parseInt(attrs.breakpoint, 10));
@@ -154,14 +159,13 @@
                         iconLightAlt: attrs.iconLightAlt,
                         iconDarkAlt: attrs.iconDarkAlt,
                         isDecorative: attrs.isDecorative || false,
-                        customClasses: '', // No logo class
+                        customClasses: '',
                         loading: 'lazy',
                         fetchPriority: '',
                         extraClasses: [],
                         breakpoint: attrs.breakpoint,
                         extraStyles: extraStyles
                     });
-                    console.log('generatePictureMarkup output:', logoMarkup);
                     logoHTML = `
                         ${styleTag}
                         <div class="${positionClass}">
@@ -172,13 +176,11 @@
                     console.warn('No valid logo sources provided, skipping render.');
                     logoHTML = '<div>No logo sources provided</div>';
                 }
-                console.log('Rendered logoHTML:', logoHTML);
                 this.innerHTML = logoHTML; // Use light DOM
             }
 
             handleThemeChange(event) {
                 if (this.isConnected) {
-                    console.log('Theme change detected:', { isDark: event.matches });
                     this.render();
                 }
             }
@@ -188,7 +190,6 @@
                     const attrs = this.getAttributes();
                     const breakpoint = parseInt(attrs.breakpoint, 10);
                     const isBelowBreakpoint = breakpoint && window.matchMedia(`(max-width: ${breakpoint - 1}px)`).matches;
-                    console.log('Window resized, breakpoint state:', { isBelowBreakpoint });
                     this.render();
                 }
             }
@@ -212,9 +213,7 @@
                                 matchedMedia = media;
                             }
                         });
-                        console.log('Mutation detected:', { selectedSrc, matchedMedia, prefersDark, isBelowBreakpoint });
                         if (img.src !== selectedSrc) {
-                            console.log('Mutation updating img src to:', selectedSrc);
                             img.src = selectedSrc;
                         }
                     }
@@ -223,14 +222,11 @@
 
             connectedCallback() {
                 this.render();
-                // Add listener for prefers-color-scheme changes
                 const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
                 prefersDarkQuery.addEventListener('change', this.handleThemeChange);
-                // Add resize observer for breakpoint changes
                 const resizeObserver = new ResizeObserver(this.handleResize);
                 resizeObserver.observe(document.body);
                 this.resizeObserver = resizeObserver;
-                // Add mutation observer for img src changes
                 const img = this.querySelector('img');
                 if (img) {
                     const mutationObserver = new MutationObserver(this.handleMutation);
@@ -253,6 +249,7 @@
 
             attributeChangedCallback() {
                 if (this.isConnected) {
+                    this._cachedAttrs = null; // Invalidate cache on attr change
                     this.render();
                 }
             }
@@ -260,7 +257,6 @@
 
         if (!customElements.get('custom-logo')) {
             customElements.define('custom-logo', CustomLogo);
-            console.log('CustomLogo defined successfully');
         }
         document.querySelectorAll('custom-logo').forEach(element => {
             customElements.upgrade(element);
