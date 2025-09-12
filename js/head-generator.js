@@ -67,6 +67,8 @@
         return Promise.all(componentImports);
     }
 
+    console.log('About to fetch URL:', theUrlVariable); // Replace 'theUrlVariable' with your actual var
+
     // Function to create and append DOM elements asynchronously
     async function updateHead(attributes) {
         log('manageHead called with attributes: ' + JSON.stringify(attributes, null, 2));
