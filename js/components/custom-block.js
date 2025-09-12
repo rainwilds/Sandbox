@@ -735,7 +735,7 @@ class CustomBlock extends HTMLElement {
                     preload: attrs.videoBackgroundLoading === 'lazy' ? 'metadata' : attrs.videoBackgroundLoading,
                     controls: false
                 });
-                console.log('Generated video markup length:', videoMarkup.length, 'Content preview:', videoMarkup.substring(0, 100));
+                console.log('Generated video markup length:', videoMarkup.length, 'Content preview:', videoMarkup.substring(0, 100)); // Debug (remove after)
                 const videoDiv = document.createElement('div');
                 videoDiv.innerHTML = videoMarkup;
                 if (videoDiv.hasChildNodes()) {
@@ -743,530 +743,55 @@ class CustomBlock extends HTMLElement {
                 } else {
                     console.warn('Video markup empty—check sources:', { src: attrs.videoBackgroundSrc, lightSrc: attrs.videoBackgroundLightSrc, darkSrc: attrs.videoBackgroundDarkSrc });
                 }
-            } else if (hasBackgroundImage) {
-                const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
-                if (src) {
-                    const pictureMarkup = generatePictureMarkup({
-                        src: attrs.backgroundSrc,
-                        lightSrc: attrs.backgroundLightSrc,
-                        darkSrc: attrs.backgroundDarkSrc,
-                        alt: attrs.backgroundAlt,
-                        lightAlt: attrs.backgroundLightAlt,
-                        darkAlt: attrs.backgroundDarkAlt,
-                        isDecorative: attrs.backgroundIsDecorative,
-                        customClasses: '',
-                        loading: attrs.backgroundLoading,
-                        fetchPriority: attrs.backgroundFetchPriority,
-                        extraClasses: [],
-                        mobileWidth: attrs.backgroundMobileWidth,
-                        tabletWidth: attrs.backgroundTabletWidth,
-                        desktopWidth: attrs.backgroundDesktopWidth,
-                        aspectRatio: attrs.backgroundAspectRatio,
-                        includeSchema: attrs.backgroundIncludeSchema,
-                        extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover;` : ''
-                    });
-                    const pictureDiv = document.createElement('div');
-                    pictureDiv.innerHTML = pictureMarkup;
-                    blockElement.appendChild(pictureDiv.firstChild);
-                } else {
-                    console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
-                }
             }
-            if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
-                const overlayClasses = [attrs.backgroundOverlayClass];
-                if (attrs.backgroundImageNoise) overlayClasses.push('background-image-noise');
-                if (attrs.backgroundGradientClass) overlayClasses.push(attrs.backgroundGradientClass);
-                const backdropFilterValues = attrs.backdropFilterClasses
-                    .filter(cls => cls.startsWith('backdrop-filter'))
-                    .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
-                    .filter(val => val);
-                const filteredOverlayClasses = attrs.backdropFilterClasses
-                    .filter(cls => !cls.startsWith('backdrop-filter'))
-                    .concat(overlayClasses)
-                    .filter(cls => cls);
-                const overlayDiv = document.createElement('div');
-                if (filteredOverlayClasses.length) overlayDiv.className = filteredOverlayClasses.join(' ').trim();
-                if (backdropFilterValues.length) overlayDiv.style.backdropFilter = backdropFilterValues.join(' ');
-                blockElement.appendChild(overlayDiv);
-            }
-            if (!isFallback && !blockElement.hasChildNodes()) {
-                console.error('Media-only block has no valid content:', this.outerHTML);
-                return this.render(true);
-            }
-            if (!isFallback) {
-                CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
-                this.lastAttributes = newCriticalAttrsHash;
-            }
-            return blockElement;
-        }
-        if (isButtonOnly) {
-            const buttonClasses = ['button', attrs.buttonClass].filter(cls => cls).join(' ').trim();
-            const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
-            buttonElement.className = buttonClasses;
-            if (attrs.buttonStyle) buttonElement.setAttribute('style', attrs.buttonStyle);
-            if (attrs.buttonType === 'button') {
-                buttonElement.type = attrs.buttonType;
-                if (!attrs.buttonHref || isFallback) buttonElement.setAttribute('disabled', '');
-            } else {
-                buttonElement.href = attrs.buttonHref || '#';
-                if (!attrs.buttonHref || isFallback) buttonElement.setAttribute('aria-disabled', 'true');
-            }
-            if (attrs.buttonTarget) buttonElement.setAttribute(attrs.buttonType === 'button' ? 'formtarget' : 'target', attrs.buttonTarget);
-            if (attrs.buttonRel) buttonElement.setAttribute('rel', attrs.buttonRel);
-            if (attrs.buttonAriaLabel) buttonElement.setAttribute('aria-label', attrs.buttonAriaLabel);
-            let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
-            if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
-                const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
-                buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
-            }
-            if (attrs.buttonIcon && attrs.buttonIconPosition === 'left') {
-                const iconSpan = document.createElement('span');
-                iconSpan.className = 'button-icon';
-                if (buttonIconStyle) iconSpan.setAttribute('style', buttonIconStyle);
-                iconSpan.innerHTML = attrs.buttonIcon;
-                buttonElement.appendChild(iconSpan);
-                buttonElement.appendChild(document.createTextNode(attrs.buttonText));
-            } else if (attrs.buttonIcon && attrs.buttonIconPosition === 'right') {
-                buttonElement.appendChild(document.createTextNode(attrs.buttonText));
-                const iconSpan = document.createElement('span');
-                iconSpan.className = 'button-icon';
-                if (buttonIconStyle) iconSpan.setAttribute('style', buttonIconStyle);
-                iconSpan.innerHTML = attrs.buttonIcon;
-                buttonElement.appendChild(iconSpan);
-            } else {
-                buttonElement.textContent = attrs.buttonText;
-            }
-            blockElement.appendChild(buttonElement);
-            if (!isFallback) {
-                CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
-                this.lastAttributes = newCriticalAttrsHash;
-            }
-            return blockElement;
-        }
-        let innerPaddingClasses = attrs.customClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
-        const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls)];
-        if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
-        if (attrs.innerBackgroundColorClass) innerDivClassList.push(attrs.innerBackgroundColorClass);
-        if (attrs.innerBackgroundImageNoise) innerDivClassList.push('background-image-noise');
-        if (attrs.innerBorderClass) innerDivClassList.push(attrs.innerBorderClass);
-        if (attrs.innerBorderRadiusClass) innerDivClassList.push(attrs.innerBorderRadiusClass);
-        if (attrs.innerBackgroundOverlayClass) innerDivClassList.push(attrs.innerBackgroundOverlayClass);
-        if (attrs.innerBackgroundGradientClass) innerDivClassList.push(attrs.innerBackgroundGradientClass);
-        if (attrs.innerAlignment) innerDivClassList.push(alignMap[attrs.innerAlignment]);
-        if (attrs.innerShadowClass) innerDivClassList.push(attrs.innerShadowClass);
-        const innerBackdropFilterValues = attrs.innerBackdropFilterClasses
-            .filter(cls => cls.startsWith('backdrop-filter'))
-            .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
-            .filter(val => val);
-        const filteredInnerBackdropClasses = attrs.innerBackdropFilterClasses
-            .filter(cls => !cls.startsWith('backdrop-filter'));
-        innerDivClassList.push(...filteredInnerBackdropClasses);
-        const innerDiv = document.createElement('div');
-        if (innerDivClassList.length) innerDiv.className = innerDivClassList.join(' ').trim();
-        if (attrs.innerStyle || innerBackdropFilterValues.length) {
-            const style = innerBackdropFilterValues.length ? `${attrs.innerStyle}; backdrop-filter: ${innerBackdropFilterValues.join(' ')}` : attrs.innerStyle;
-            innerDiv.setAttribute('style', style);
-        }
-        innerDiv.setAttribute('aria-live', 'polite');
-        const textAlignMap = {
-            'left': 'flex-column-left text-align-left',
-            'center': 'flex-column-center text-align-center',
-            'right': 'flex-column-right text-align-right'
-        };
-        const groupDiv = document.createElement('div');
-        groupDiv.setAttribute('role', 'group');
-        if (attrs.textAlignment) groupDiv.className = textAlignMap[attrs.textAlignment];
-        if (attrs.icon) {
-            const iconSpan = document.createElement('span');
-            iconSpan.className = `icon${attrs.iconClass ? ` ${attrs.iconClass}` : ''}`;
-            let iconStyles = attrs.iconStyle || '';
-            if (attrs.iconSize) iconStyles = iconStyles ? `${iconStyles}; font-size: ${attrs.iconSize}` : `font-size: ${attrs.iconSize}`;
-            if (iconStyles) iconSpan.setAttribute('style', iconStyles);
-            iconSpan.innerHTML = attrs.icon;
-            groupDiv.appendChild(iconSpan);
-        }
-        if (attrs.subHeading) {
-            const subHeadingElement = document.createElement(attrs.subHeadingTag);
-            subHeadingElement.textContent = attrs.subHeading;
-            groupDiv.appendChild(subHeadingElement);
-        }
-        if (attrs.heading) {
-            const headingElement = document.createElement(attrs.headingTag);
-            headingElement.textContent = attrs.heading;
-            groupDiv.appendChild(headingElement);
-        }
-        if (attrs.text) {
-            const textElement = document.createElement('p');
-            textElement.textContent = attrs.text;
-            groupDiv.appendChild(textElement);
-        }
-        if (attrs.buttonText) {
-            const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
-            buttonElement.className = `button ${attrs.buttonClass}`.trim();
-            if (attrs.buttonStyle) buttonElement.setAttribute('style', attrs.buttonStyle);
-            if (attrs.buttonType === 'button') {
-                buttonElement.type = attrs.buttonType;
-                if (!attrs.buttonHref || isFallback) buttonElement.setAttribute('disabled', '');
-            } else {
-                buttonElement.href = attrs.buttonHref || '#';
-                if (!attrs.buttonHref || isFallback) buttonElement.setAttribute('aria-disabled', 'true');
-            }
-            if (attrs.buttonTarget) buttonElement.setAttribute(attrs.buttonType === 'button' ? 'formtarget' : 'target', attrs.buttonTarget);
-            if (attrs.buttonRel) buttonElement.setAttribute('rel', attrs.buttonRel);
-            if (attrs.buttonAriaLabel) buttonElement.setAttribute('aria-label', attrs.buttonAriaLabel);
-            let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
-            if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
-                const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
-                buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
-            }
-            if (attrs.buttonIcon && attrs.buttonIconPosition === 'left') {
-                const iconSpan = document.createElement('span');
-                iconSpan.className = 'button-icon';
-                if (buttonIconStyle) iconSpan.setAttribute('style', buttonIconStyle);
-                iconSpan.innerHTML = attrs.buttonIcon;
-                buttonElement.appendChild(iconSpan);
-                buttonElement.appendChild(document.createTextNode(attrs.buttonText));
-            } else if (attrs.buttonIcon && attrs.buttonIconPosition === 'right') {
-                buttonElement.appendChild(document.createTextNode(attrs.buttonText));
-                const iconSpan = document.createElement('span');
-                iconSpan.className = 'button-icon';
-                if (buttonIconStyle) iconSpan.setAttribute('style', buttonIconStyle);
-                iconSpan.innerHTML = attrs.buttonIcon;
-                buttonElement.appendChild(iconSpan);
-            } else {
-                buttonElement.textContent = attrs.buttonText;
-            }
-            groupDiv.appendChild(buttonElement);
-        }
-        innerDiv.appendChild(groupDiv);
-        if (hasBackgroundImage || hasVideoBackground) {
-            const mediaDiv = document.createElement('div');
-            if (hasVideoBackground) {
-                const video = document.createElement('video');
-                video.id = `custom-video-${Math.random().toString(36).substring(2, 11)}`;
-                if (attrs.videoBackgroundAutoplay) video.autoplay = true;
-                if (attrs.videoBackgroundMuted || attrs.videoBackgroundAutoplay) video.muted = true;
-                if (attrs.videoBackgroundLoop) video.loop = true;
-                if (attrs.videoBackgroundPlaysinline) video.playsInline = true;
-                if (attrs.videoBackgroundDisablePip) video.disablePictureInPicture = true;
-                if (attrs.videoBackgroundPoster) video.poster = attrs.videoBackgroundPoster;
-                video.preload = attrs.videoBackgroundLoading === 'lazy' ? 'metadata' : attrs.videoBackgroundLoading;
-                video.loading = attrs.videoBackgroundLoading || 'lazy';
-                video.title = attrs.videoBackgroundAlt;
-                video.setAttribute('aria-label', attrs.videoBackgroundAlt);
-                video.className = ''; // No leaks
-
-                // Append sources manually (reliable)
-                const sources = generateVideoSources({ src: attrs.videoBackgroundSrc, lightSrc: attrs.videoBackgroundLightSrc, darkSrc: attrs.videoBackgroundDarkSrc });
-                sources.forEach(source => video.appendChild(source));
-
-                // Fallback p
-                const fallbackP = document.createElement('p');
-                fallbackP.innerHTML = `Your browser does not support the video tag. <a href="${attrs.videoBackgroundSrc || ''}">Download video</a>`;
-                video.appendChild(fallbackP);
-
-                console.log('Appended video with sources:', sources.length);
-                blockElement.appendChild(video);
-            } else if (hasBackgroundImage) {
-                const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
-                if (src) {
-                    const pictureMarkup = generatePictureMarkup({
-                        src: attrs.backgroundSrc,
-                        lightSrc: attrs.backgroundLightSrc,
-                        darkSrc: attrs.backgroundDarkSrc,
-                        alt: attrs.backgroundAlt,
-                        lightAlt: attrs.backgroundLightAlt,
-                        darkAlt: attrs.backgroundDarkAlt,
-                        isDecorative: attrs.backgroundIsDecorative,
-                        customClasses: '',
-                        loading: attrs.backgroundLoading,
-                        fetchPriority: attrs.backgroundFetchPriority,
-                        extraClasses: [],
-                        mobileWidth: attrs.backgroundMobileWidth,
-                        tabletWidth: attrs.backgroundTabletWidth,
-                        desktopWidth: attrs.backgroundDesktopWidth,
-                        aspectRatio: attrs.backgroundAspectRatio,
-                        includeSchema: attrs.backgroundIncludeSchema,
-                        extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover;` : ''
-                    });
-                    const pictureDiv = document.createElement('div');
-                    pictureDiv.innerHTML = pictureMarkup;
-                    blockElement.appendChild(pictureDiv.firstChild);
-                } else {
-                    console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
-                }
-            }
-            if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
-                const overlayClasses = [attrs.backgroundOverlayClass];
-                if (attrs.backgroundImageNoise) overlayClasses.push('background-image-noise');
-                if (attrs.backgroundGradientClass) overlayClasses.push(attrs.backgroundGradientClass);
-                const backdropFilterValues = attrs.backdropFilterClasses
-                    .filter(cls => cls.startsWith('backdrop-filter'))
-                    .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
-                    .filter(val => val);
-                const filteredOverlayClasses = attrs.backdropFilterClasses
-                    .filter(cls => !cls.startsWith('backdrop-filter'))
-                    .concat(overlayClasses)
-                    .filter(cls => cls);
-                const overlayDiv = document.createElement('div');
-                if (filteredOverlayClasses.length) overlayDiv.className = filteredOverlayClasses.join(' ').trim();
-                if (backdropFilterValues.length) overlayDiv.style.backdropFilter = backdropFilterValues.join(' ');
-                blockElement.appendChild(overlayDiv);
-            }
-        }
-        if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'top') {
-            const mediaDiv = document.createElement('div');
-            const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
+        } else if (hasBackgroundImage) {
+            const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
             if (src) {
-                if (hasPrimaryImage) {
-                    mediaDiv.innerHTML = generatePictureMarkup({
-                        src: src,
-                        lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
-                        darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
-                        alt: attrs.primaryAlt,
-                        isDecorative: attrs.primaryIsDecorative,
-                        customClasses: '',
-                        loading: attrs.primaryLoading,
-                        fetchPriority: attrs.primaryFetchPriority,
-                        extraClasses: [],
-                        mobileWidth: attrs.primaryMobileWidth,
-                        tabletWidth: attrs.primaryTabletWidth,
-                        desktopWidth: attrs.primaryDesktopWidth,
-                        aspectRatio: attrs.primaryAspectRatio,
-                        includeSchema: attrs.primaryIncludeSchema
-                    });
-                    blockElement.appendChild(mediaDiv.firstChild);
-                } else if (hasVideoPrimary) {
-                    const videoMarkup = generateVideoMarkup({
-                        src: attrs.videoPrimarySrc,
-                        lightSrc: attrs.videoPrimaryLightSrc,
-                        darkSrc: attrs.videoPrimaryDarkSrc,
-                        poster: attrs.videoPrimaryPoster,
-                        lightPoster: attrs.videoPrimaryLightPoster,
-                        darkPoster: attrs.videoPrimaryDarkPoster,
-                        alt: attrs.videoPrimaryAlt,
-                        customClasses: '',
-                        extraClasses: [],
-                        loading: attrs.videoPrimaryLoading,
-                        autoplay: attrs.videoPrimaryAutoplay,
-                        muted: attrs.videoPrimaryMuted,
-                        loop: attrs.videoPrimaryLoop,
-                        playsinline: attrs.videoPrimaryPlaysinline,
-                        disablePip: attrs.videoPrimaryDisablePip,
-                        preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
-                        controls: false
-                    });
-                    console.log('Generated primary video markup length:', videoMarkup.length, 'Content preview:', videoMarkup.substring(0, 100));
-                    const videoDiv = document.createElement('div');
-                    videoDiv.innerHTML = videoMarkup;
-                    if (videoDiv.hasChildNodes()) {
-                        blockElement.appendChild(videoDiv.firstChild);
-                    } else {
-                        console.warn('Primary video markup empty—check sources:', { src: attrs.videoPrimarySrc, lightSrc: attrs.videoPrimaryLightSrc, darkSrc: attrs.videoPrimaryDarkSrc });
-                    }
-                }
+                const pictureMarkup = generatePictureMarkup({
+                    src: attrs.backgroundSrc,
+                    lightSrc: attrs.backgroundLightSrc,
+                    darkSrc: attrs.backgroundDarkSrc,
+                    alt: attrs.backgroundAlt,
+                    lightAlt: attrs.backgroundLightAlt,
+                    darkAlt: attrs.backgroundDarkAlt,
+                    isDecorative: attrs.backgroundIsDecorative,
+                    customClasses: '',
+                    loading: attrs.backgroundLoading,
+                    fetchPriority: attrs.backgroundFetchPriority,
+                    extraClasses: [],
+                    mobileWidth: attrs.backgroundMobileWidth,
+                    tabletWidth: attrs.backgroundTabletWidth,
+                    desktopWidth: attrs.backgroundDesktopWidth,
+                    aspectRatio: attrs.backgroundAspectRatio,
+                    includeSchema: attrs.backgroundIncludeSchema,
+                    extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover;` : ''
+                });
+                const pictureDiv = document.createElement('div');
+                pictureDiv.innerHTML = pictureMarkup;
+                blockElement.appendChild(pictureDiv.firstChild);
             } else {
-                console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
+                console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
             }
         }
-        if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'left') {
-            const mediaDiv = document.createElement('div');
-            const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
-            if (src) {
-                if (hasPrimaryImage) {
-                    mediaDiv.innerHTML = generatePictureMarkup({
-                        src: src,
-                        lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
-                        darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
-                        alt: attrs.primaryAlt,
-                        isDecorative: attrs.primaryIsDecorative,
-                        customClasses: '',
-                        loading: attrs.primaryLoading,
-                        fetchPriority: attrs.primaryFetchPriority,
-                        extraClasses: [],
-                        mobileWidth: attrs.primaryMobileWidth,
-                        tabletWidth: attrs.primaryTabletWidth,
-                        desktopWidth: attrs.primaryDesktopWidth,
-                        aspectRatio: attrs.primaryAspectRatio,
-                        includeSchema: attrs.primaryIncludeSchema
-                    });
-                    blockElement.appendChild(mediaDiv.firstChild);
-                } else if (hasVideoPrimary) {
-                    const videoMarkup = generateVideoMarkup({
-                        src: attrs.videoPrimarySrc,
-                        lightSrc: attrs.videoPrimaryLightSrc,
-                        darkSrc: attrs.videoPrimaryDarkSrc,
-                        poster: attrs.videoPrimaryPoster,
-                        lightPoster: attrs.videoPrimaryLightPoster,
-                        darkPoster: attrs.videoPrimaryDarkPoster,
-                        alt: attrs.videoPrimaryAlt,
-                        customClasses: '',
-                        extraClasses: [],
-                        loading: attrs.videoPrimaryLoading,
-                        autoplay: attrs.videoPrimaryAutoplay,
-                        muted: attrs.videoPrimaryMuted,
-                        loop: attrs.videoPrimaryLoop,
-                        playsinline: attrs.videoPrimaryPlaysinline,
-                        disablePip: attrs.videoPrimaryDisablePip,
-                        preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
-                        controls: false
-                    });
-                    console.log('Generated primary video markup length:', videoMarkup.length, 'Content preview:', videoMarkup.substring(0, 100));
-                    const videoDiv = document.createElement('div');
-                    videoDiv.innerHTML = videoMarkup;
-                    if (videoDiv.hasChildNodes()) {
-                        blockElement.appendChild(videoDiv.firstChild);
-                    } else {
-                        console.warn('Primary video markup empty—check sources:', { src: attrs.videoPrimarySrc, lightSrc: attrs.videoPrimaryLightSrc, darkSrc: attrs.videoPrimaryDarkSrc });
-                    }
-                }
-            } else {
-                console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
-            }
-            blockElement.appendChild(innerDiv);
-        } else if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'right') {
-            blockElement.appendChild(innerDiv);
-            const mediaDiv = document.createElement('div');
-            const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
-            if (src) {
-                if (hasPrimaryImage) {
-                    mediaDiv.innerHTML = generatePictureMarkup({
-                        src: src,
-                        lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
-                        darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
-                        alt: attrs.primaryAlt,
-                        isDecorative: attrs.primaryIsDecorative,
-                        customClasses: '',
-                        loading: attrs.primaryLoading,
-                        fetchPriority: attrs.primaryFetchPriority,
-                        extraClasses: [],
-                        mobileWidth: attrs.primaryMobileWidth,
-                        tabletWidth: attrs.primaryTabletWidth,
-                        desktopWidth: attrs.primaryDesktopWidth,
-                        aspectRatio: attrs.primaryAspectRatio,
-                        includeSchema: attrs.primaryIncludeSchema
-                    });
-                    blockElement.appendChild(mediaDiv.firstChild);
-                } else if (hasVideoPrimary) {
-                    const videoMarkup = generateVideoMarkup({
-                        src: attrs.videoPrimarySrc,
-                        lightSrc: attrs.videoPrimaryLightSrc,
-                        darkSrc: attrs.videoPrimaryDarkSrc,
-                        poster: attrs.videoPrimaryPoster,
-                        lightPoster: attrs.videoPrimaryLightPoster,
-                        darkPoster: attrs.videoPrimaryDarkPoster,
-                        alt: attrs.videoPrimaryAlt,
-                        customClasses: '',
-                        extraClasses: [],
-                        loading: attrs.videoPrimaryLoading,
-                        autoplay: attrs.videoPrimaryAutoplay,
-                        muted: attrs.videoPrimaryMuted,
-                        loop: attrs.videoPrimaryLoop,
-                        playsinline: attrs.videoPrimaryPlaysinline,
-                        disablePip: attrs.videoPrimaryDisablePip,
-                        preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
-                        controls: false
-                    });
-                    console.log('Generated primary video markup length:', videoMarkup.length, 'Content preview:', videoMarkup.substring(0, 100));
-                    const videoDiv = document.createElement('div');
-                    videoDiv.innerHTML = videoMarkup;
-                    if (videoDiv.hasChildNodes()) {
-                        blockElement.appendChild(mediaDiv.firstChild);
-                    } else {
-                        console.warn('Primary video markup empty—check sources:', { src: attrs.videoPrimarySrc, lightSrc: attrs.videoPrimaryLightSrc, darkSrc: attrs.videoPrimaryDarkSrc });
-                    }
-                }
-            } else {
-                console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
-            }
-        } else {
-            blockElement.appendChild(innerDiv);
-        }
-        if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'bottom') {
-            const mediaDiv = document.createElement('div');
-            const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
-            if (src) {
-                if (hasPrimaryImage) {
-                    mediaDiv.innerHTML = generatePictureMarkup({
-                        src: src,
-                        lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
-                        darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
-                        alt: attrs.primaryAlt,
-                        isDecorative: attrs.primaryIsDecorative,
-                        customClasses: '',
-                        loading: attrs.primaryLoading,
-                        fetchPriority: attrs.primaryFetchPriority,
-                        extraClasses: [],
-                        mobileWidth: attrs.primaryMobileWidth,
-                        tabletWidth: attrs.primaryTabletWidth,
-                        desktopWidth: attrs.primaryDesktopWidth,
-                        aspectRatio: attrs.primaryAspectRatio,
-                        includeSchema: attrs.primaryIncludeSchema
-                    });
-                    blockElement.appendChild(mediaDiv.firstChild);
-                } else if (hasVideoPrimary) {
-                    const videoMarkup = generateVideoMarkup({
-                        src: attrs.videoPrimarySrc,
-                        lightSrc: attrs.videoPrimaryLightSrc,
-                        darkSrc: attrs.videoPrimaryDarkSrc,
-                        poster: attrs.videoPrimaryPoster,
-                        lightPoster: attrs.videoPrimaryLightPoster,
-                        darkPoster: attrs.videoPrimaryDarkPoster,
-                        alt: attrs.videoPrimaryAlt,
-                        customClasses: '',
-                        extraClasses: [],
-                        loading: attrs.videoPrimaryLoading,
-                        autoplay: attrs.videoPrimaryAutoplay,
-                        muted: attrs.videoPrimaryMuted,
-                        loop: attrs.videoPrimaryLoop,
-                        playsinline: attrs.videoPrimaryPlaysinline,
-                        disablePip: attrs.videoPrimaryDisablePip,
-                        preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
-                        controls: false
-                    });
-                    console.log('Generated primary video markup length:', videoMarkup.length, 'Content preview:', videoMarkup.substring(0, 100));
-                    const videoDiv = document.createElement('div');
-                    videoDiv.innerHTML = videoMarkup;
-                    if (videoDiv.hasChildNodes()) {
-                        blockElement.appendChild(mediaDiv.firstChild);
-                    } else {
-                        console.warn('Primary video markup empty—check sources:', { src: attrs.videoPrimarySrc, lightSrc: attrs.videoPrimaryLightSrc, darkSrc: attrs.videoPrimaryDarkSrc });
-                    }
-                }
-            } else {
-                console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
-            }
-        }
-        if (!isFallback && blockElement.querySelector('img')) {
-            const images = blockElement.querySelectorAll('img');
-            images.forEach(img => {
-                img.removeAttribute('img-background-light-src');
-                img.removeAttribute('img-background-dark-src');
-                img.removeAttribute('img-background-alt');
-                img.removeAttribute('img-background-decorative');
-                img.removeAttribute('img-background-mobile-width');
-                img.removeAttribute('img-background-tablet-width');
-                img.removeAttribute('img-background-desktop-width');
-                img.removeAttribute('img-background-aspect-ratio');
-                img.removeAttribute('img-background-include-schema');
-                img.removeAttribute('img-background-fetchpriority');
-                img.removeAttribute('img-background-loading');
-                img.removeAttribute('img-primary-light-src');
-                img.removeAttribute('img-primary-dark-src');
-                img.removeAttribute('img-primary-alt');
-                img.removeAttribute('img-primary-decorative');
-                img.removeAttribute('img-primary-mobile-width');
-                img.removeAttribute('img-primary-tablet-width');
-                img.removeAttribute('img-primary-desktop-width');
-                img.removeAttribute('img-primary-aspect-ratio');
-                img.removeAttribute('img-primary-include-schema');
-                img.removeAttribute('img-primary-fetchpriority');
-                img.removeAttribute('img-primary-loading');
-                img.removeAttribute('img-primary-position');
-            });
+        if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
+            const overlayClasses = [attrs.backgroundOverlayClass];
+            if (attrs.backgroundImageNoise) overlayClasses.push('background-image-noise');
+            if (attrs.backgroundGradientClass) overlayClasses.push(attrs.backgroundGradientClass);
+            const backdropFilterValues = attrs.backdropFilterClasses
+                .filter(cls => cls.startsWith('backdrop-filter'))
+                .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
+                .filter(val => val);
+            const filteredOverlayClasses = attrs.backdropFilterClasses
+                .filter(cls => !cls.startsWith('backdrop-filter'))
+                .concat(overlayClasses)
+                .filter(cls => cls);
+            const overlayDiv = document.createElement('div');
+            if (filteredOverlayClasses.length) overlayDiv.className = filteredOverlayClasses.join(' ').trim();
+            if (backdropFilterValues.length) overlayDiv.style.backdropFilter = backdropFilterValues.join(' ');
+            blockElement.appendChild(overlayDiv);
         }
         if (!isFallback && !blockElement.hasChildNodes()) {
-            console.error('Block has no valid content, falling back:', this.outerHTML);
+            console.error('Media-only block has no valid content:', this.outerHTML);
             return this.render(true);
         }
         if (!isFallback) {
@@ -1275,42 +800,518 @@ class CustomBlock extends HTMLElement {
         }
         return blockElement;
     }
-
-    static get observedAttributes() {
-        return [
-            'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise', 'background-overlay',
-            'border', 'border-radius', 'button-aria-label', 'button-class', 'button-href', 'button-icon',
-            'button-icon-offset', 'button-icon-position', 'button-icon-size', 'button-rel', 'button-style',
-            'button-target', 'button-text', 'button-type', 'class', 'effects', 'heading', 'heading-tag',
-            'icon', 'icon-class', 'icon-size', 'icon-style', 'img-background-alt', 'img-background-aspect-ratio',
-            'img-background-dark-src', 'img-background-decorative', 'img-background-desktop-width',
-            'img-background-fetchpriority', 'img-background-light-src', 'img-background-loading',
-            'img-background-mobile-width', 'img-background-position', 'img-background-src',
-            'img-background-tablet-width', 'img-primary-alt', 'img-primary-aspect-ratio', 'img-primary-dark-src',
-            'img-primary-decorative', 'img-primary-desktop-width', 'img-primary-fetchpriority',
-            'img-primary-light-src', 'img-primary-loading', 'img-primary-mobile-width', 'img-primary-position',
-            'img-primary-src', 'img-primary-tablet-width', 'inner-alignment', 'inner-backdrop-filter',
-            'inner-background-color', 'inner-background-gradient', 'inner-background-image-noise',
-            'inner-background-overlay', 'inner-border', 'inner-border-radius', 'inner-class', 'inner-shadow',
-            'inner-style', 'section-title', 'style', 'sub-heading', 'sub-heading-tag', 'text', 'text-alignment',
-            'video-background-alt', 'video-background-autoplay', 'video-background-dark-poster',
-            'video-background-dark-src', 'video-background-disable-pip', 'video-background-light-poster',
-            'video-background-light-src', 'video-background-loading', 'video-background-loop',
-            'video-background-muted', 'video-background-playsinline', 'video-background-poster',
-            'video-background-src', 'video-primary-alt', 'video-primary-autoplay', 'video-primary-dark-poster',
-            'video-primary-dark-src', 'video-primary-disable-pip', 'video-primary-light-poster',
-            'video-primary-light-src', 'video-primary-loading', 'video-primary-loop', 'video-primary-muted',
-            'video-primary-playsinline', 'video-primary-poster', 'video-primary-src'
-        ];
+    if(isButtonOnly) {
+        const buttonClasses = ['button', attrs.buttonClass].filter(cls => cls).join(' ').trim();
+        const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
+        buttonElement.className = buttonClasses;
+        if (attrs.buttonStyle) buttonElement.setAttribute('style', attrs.buttonStyle);
+        if (attrs.buttonType === 'button') {
+            buttonElement.type = attrs.buttonType;
+            if (!attrs.buttonHref || isFallback) buttonElement.setAttribute('disabled', '');
+        } else {
+            buttonElement.href = attrs.buttonHref || '#';
+            if (!attrs.buttonHref || isFallback) buttonElement.setAttribute('aria-disabled', 'true');
+        }
+        if (attrs.buttonTarget) buttonElement.setAttribute(attrs.buttonType === 'button' ? 'formtarget' : 'target', attrs.buttonTarget);
+        if (attrs.buttonRel) buttonElement.setAttribute('rel', attrs.buttonRel);
+        if (attrs.buttonAriaLabel) buttonElement.setAttribute('aria-label', attrs.buttonAriaLabel);
+        let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
+        if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
+            const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
+            buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
+        }
+        if (attrs.buttonIcon && attrs.buttonIconPosition === 'left') {
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'button-icon';
+            if (buttonIconStyle) iconSpan.setAttribute('style', buttonIconStyle);
+            iconSpan.innerHTML = attrs.buttonIcon;
+            buttonElement.appendChild(iconSpan);
+            buttonElement.appendChild(document.createTextNode(attrs.buttonText));
+        } else if (attrs.buttonIcon && attrs.buttonIconPosition === 'right') {
+            buttonElement.appendChild(document.createTextNode(attrs.buttonText));
+            const iconSpan = document.createElement('span');
+            iconSpan.className = 'button-icon';
+            if (buttonIconStyle) iconSpan.setAttribute('style', buttonIconStyle);
+            iconSpan.innerHTML = attrs.buttonIcon;
+            buttonElement.appendChild(iconSpan);
+        } else {
+            buttonElement.textContent = attrs.buttonText;
+        }
+        blockElement.appendChild(buttonElement);
+        if (!isFallback) {
+            CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
+            this.lastAttributes = newCriticalAttrsHash;
+        }
+        return blockElement;
     }
+        let innerPaddingClasses = attrs.customClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
+const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls)];
+if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
+if (attrs.innerBackgroundColorClass) innerDivClassList.push(attrs.innerBackgroundColorClass);
+if (attrs.innerBackgroundImageNoise) innerDivClassList.push('background-image-noise');
+if (attrs.innerBorderClass) innerDivClassList.push(attrs.innerBorderClass);
+if (attrs.innerBorderRadiusClass) innerDivClassList.push(attrs.innerBorderRadiusClass);
+if (attrs.innerBackgroundOverlayClass) innerDivClassList.push(attrs.innerBackgroundOverlayClass);
+if (attrs.innerBackgroundGradientClass) innerDivClassList.push(attrs.innerBackgroundGradientClass);
+if (attrs.innerAlignment) innerDivClassList.push(alignMap[attrs.innerAlignment]);
+if (attrs.innerShadowClass) innerDivClassList.push(attrs.innerShadowClass);
+const innerBackdropFilterValues = attrs.innerBackdropFilterClasses
+    .filter(cls => cls.startsWith('backdrop-filter'))
+    .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
+    .filter(val => val);
+const filteredInnerBackdropClasses = attrs.innerBackdropFilterClasses
+    .filter(cls => !cls.startsWith('backdrop-filter'));
+innerDivClassList.push(...filteredInnerBackdropClasses);
+const innerDiv = document.createElement('div');
+if (innerDivClassList.length) innerDiv.className = innerDivClassList.join(' ').trim();
+if (attrs.innerStyle || innerBackdropFilterValues.length) {
+    const style = innerBackdropFilterValues.length ? `${attrs.innerStyle}; backdrop-filter: ${innerBackdropFilterValues.join(' ')}` : attrs.innerStyle;
+    innerDiv.setAttribute('style', style);
+}
+innerDiv.setAttribute('aria-live', 'polite');
+const textAlignMap = {
+    'left': 'flex-column-left text-align-left',
+    'center': 'flex-column-center text-align-center',
+    'right': 'flex-column-right text-align-right'
+};
+const groupDiv = document.createElement('div');
+groupDiv.setAttribute('role', 'group');
+if (attrs.textAlignment) groupDiv.className = textAlignMap[attrs.textAlignment];
+if (attrs.icon) {
+    const iconSpan = document.createElement('span');
+    iconSpan.className = `icon${attrs.iconClass ? ` ${attrs.iconClass}` : ''}`;
+    let iconStyles = attrs.iconStyle || '';
+    if (attrs.iconSize) iconStyles = iconStyles ? `${iconStyles}; font-size: ${attrs.iconSize}` : `font-size: ${attrs.iconSize}`;
+    if (iconStyles) iconSpan.setAttribute('style', iconStyles);
+    iconSpan.innerHTML = attrs.icon;
+    groupDiv.appendChild(iconSpan);
+}
+if (attrs.subHeading) {
+    const subHeadingElement = document.createElement(attrs.subHeadingTag);
+    subHeadingElement.textContent = attrs.subHeading;
+    groupDiv.appendChild(subHeadingElement);
+}
+if (attrs.heading) {
+    const headingElement = document.createElement(attrs.headingTag);
+    headingElement.textContent = attrs.heading;
+    groupDiv.appendChild(headingElement);
+}
+if (attrs.text) {
+    const textElement = document.createElement('p');
+    textElement.textContent = attrs.text;
+    groupDiv.appendChild(textElement);
+}
+if (attrs.buttonText) {
+    const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
+    buttonElement.className = `button ${attrs.buttonClass}`.trim();
+    if (attrs.buttonStyle) buttonElement.setAttribute('style', attrs.buttonStyle);
+    if (attrs.buttonType === 'button') {
+        buttonElement.type = attrs.buttonType;
+        if (!attrs.buttonHref || isFallback) buttonElement.setAttribute('disabled', '');
+    } else {
+        buttonElement.href = attrs.buttonHref || '#';
+        if (!attrs.buttonHref || isFallback) buttonElement.setAttribute('aria-disabled', 'true');
+    }
+    if (attrs.buttonTarget) buttonElement.setAttribute(attrs.buttonType === 'button' ? 'formtarget' : 'target', attrs.buttonTarget);
+    if (attrs.buttonRel) buttonElement.setAttribute('rel', attrs.buttonRel);
+    if (attrs.buttonAriaLabel) buttonElement.setAttribute('aria-label', attrs.buttonAriaLabel);
+    let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
+    if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
+        const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
+        buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
+    }
+    if (attrs.buttonIcon && attrs.buttonIconPosition === 'left') {
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'button-icon';
+        if (buttonIconStyle) iconSpan.setAttribute('style', buttonIconStyle);
+        iconSpan.innerHTML = attrs.buttonIcon;
+        buttonElement.appendChild(iconSpan);
+        buttonElement.appendChild(document.createTextNode(attrs.buttonText));
+    } else if (attrs.buttonIcon && attrs.buttonIconPosition === 'right') {
+        buttonElement.appendChild(document.createTextNode(attrs.buttonText));
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'button-icon';
+        if (buttonIconStyle) iconSpan.setAttribute('style', buttonIconStyle);
+        iconSpan.innerHTML = attrs.buttonIcon;
+        buttonElement.appendChild(iconSpan);
+    } else {
+        buttonElement.textContent = attrs.buttonText;
+    }
+    groupDiv.appendChild(buttonElement);
+}
+innerDiv.appendChild(groupDiv);
+if (hasBackgroundImage || hasVideoBackground) {
+    const mediaDiv = document.createElement('div');
+    if (hasVideoBackground) {
+        const video = document.createElement('video');
+        video.id = `custom-video-${Math.random().toString(36).substring(2, 11)}`;
+        if (attrs.videoBackgroundAutoplay) video.autoplay = true;
+        if (attrs.videoBackgroundMuted || attrs.videoBackgroundAutoplay) video.muted = true;
+        if (attrs.videoBackgroundLoop) video.loop = true;
+        if (attrs.videoBackgroundPlaysinline) video.playsInline = true;
+        if (attrs.videoBackgroundDisablePip) video.disablePictureInPicture = true;
+        if (attrs.videoBackgroundPoster) video.poster = attrs.videoBackgroundPoster;
+        video.preload = attrs.videoBackgroundLoading === 'lazy' ? 'metadata' : attrs.videoBackgroundLoading;
+        video.loading = attrs.videoBackgroundLoading || 'lazy';
+        video.title = attrs.videoBackgroundAlt;
+        video.setAttribute('aria-label', attrs.videoBackgroundAlt);
+        video.className = ''; // No leaks
 
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (!this.isInitialized || !this.isVisible) return;
-        if (CustomBlock.#criticalAttributes.includes(name)) {
-            this.cachedAttributes = null;
-            this.initialize();
+        // Append sources manually (reliable)
+        const sources = generateVideoSources({ src: attrs.videoBackgroundSrc, lightSrc: attrs.videoBackgroundLightSrc, darkSrc: attrs.videoBackgroundDarkSrc });
+        sources.forEach(source => video.appendChild(source));
+
+        // Fallback p
+        const fallbackP = document.createElement('p');
+        fallbackP.innerHTML = `Your browser does not support the video tag. <a href="${attrs.videoBackgroundSrc || ''}">Download video</a>`;
+        video.appendChild(fallbackP);
+
+        console.log('Appended video with sources:', sources.length);
+        blockElement.appendChild(video);
+    } else if (hasBackgroundImage) {
+        const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
+        if (src) {
+            const pictureMarkup = generatePictureMarkup({
+                src: attrs.backgroundSrc,
+                lightSrc: attrs.backgroundLightSrc,
+                darkSrc: attrs.backgroundDarkSrc,
+                alt: attrs.backgroundAlt,
+                lightAlt: attrs.backgroundLightAlt,
+                darkAlt: attrs.backgroundDarkAlt,
+                isDecorative: attrs.backgroundIsDecorative,
+                customClasses: '',
+                loading: attrs.backgroundLoading,
+                fetchPriority: attrs.backgroundFetchPriority,
+                extraClasses: [],
+                mobileWidth: attrs.backgroundMobileWidth,
+                tabletWidth: attrs.backgroundTabletWidth,
+                desktopWidth: attrs.backgroundDesktopWidth,
+                aspectRatio: attrs.backgroundAspectRatio,
+                includeSchema: attrs.backgroundIncludeSchema,
+                extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover;` : ''
+            });
+            const pictureDiv = document.createElement('div');
+            pictureDiv.innerHTML = pictureMarkup;
+            blockElement.appendChild(pictureDiv.firstChild);
+        } else {
+            console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
         }
     }
+    if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
+        const overlayClasses = [attrs.backgroundOverlayClass];
+        if (attrs.backgroundImageNoise) overlayClasses.push('background-image-noise');
+        if (attrs.backgroundGradientClass) overlayClasses.push(attrs.backgroundGradientClass);
+        const backdropFilterValues = attrs.backdropFilterClasses
+            .filter(cls => cls.startsWith('backdrop-filter'))
+            .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
+            .filter(val => val);
+        const filteredOverlayClasses = attrs.backdropFilterClasses
+            .filter(cls => !cls.startsWith('backdrop-filter'))
+            .concat(overlayClasses)
+            .filter(cls => cls);
+        const overlayDiv = document.createElement('div');
+        if (filteredOverlayClasses.length) overlayDiv.className = filteredOverlayClasses.join(' ').trim();
+        if (backdropFilterValues.length) overlayDiv.style.backdropFilter = backdropFilterValues.join(' ');
+        blockElement.appendChild(overlayDiv);
+    }
+}
+if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'top') {
+    const mediaDiv = document.createElement('div');
+    const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
+    if (src) {
+        if (hasPrimaryImage) {
+            mediaDiv.innerHTML = generatePictureMarkup({
+                src: src,
+                lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
+                darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
+                alt: attrs.primaryAlt,
+                isDecorative: attrs.primaryIsDecorative,
+                customClasses: '',
+                loading: attrs.primaryLoading,
+                fetchPriority: attrs.primaryFetchPriority,
+                extraClasses: [],
+                mobileWidth: attrs.primaryMobileWidth,
+                tabletWidth: attrs.primaryTabletWidth,
+                desktopWidth: attrs.primaryDesktopWidth,
+                aspectRatio: attrs.primaryAspectRatio,
+                includeSchema: attrs.primaryIncludeSchema
+            });
+            blockElement.appendChild(mediaDiv.firstChild);
+        } else if (hasVideoPrimary) {
+            const videoMarkup = generateVideoMarkup({
+                src: attrs.videoPrimarySrc,
+                lightSrc: attrs.videoPrimaryLightSrc,
+                darkSrc: attrs.videoPrimaryDarkSrc,
+                poster: attrs.videoPrimaryPoster,
+                lightPoster: attrs.videoPrimaryLightPoster,
+                darkPoster: attrs.videoPrimaryDarkPoster,
+                alt: attrs.videoPrimaryAlt,
+                customClasses: '',
+                extraClasses: [],
+                loading: attrs.videoPrimaryLoading,
+                autoplay: attrs.videoPrimaryAutoplay,
+                muted: attrs.videoPrimaryMuted,
+                loop: attrs.videoPrimaryLoop,
+                playsinline: attrs.videoPrimaryPlaysinline,
+                disablePip: attrs.videoPrimaryDisablePip,
+                preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                controls: false
+            });
+            console.log('Generated primary video markup length:', videoMarkup.length, 'Content preview:', videoMarkup.substring(0, 100)); // Debug (remove after)
+            const videoDiv = document.createElement('div');
+            videoDiv.innerHTML = videoMarkup;
+            if (videoDiv.hasChildNodes()) {
+                blockElement.appendChild(videoDiv.firstChild);
+            } else {
+                console.warn('Primary video markup empty—check sources:', { src: attrs.videoPrimarySrc, lightSrc: attrs.videoPrimaryLightSrc, darkSrc: attrs.videoPrimaryDarkSrc });
+            }
+        }
+    } else {
+        console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
+    }
+}
+if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'left') {
+    const mediaDiv = document.createElement('div');
+    const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
+    if (src) {
+        if (hasPrimaryImage) {
+            mediaDiv.innerHTML = generatePictureMarkup({
+                src: src,
+                lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
+                darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
+                alt: attrs.primaryAlt,
+                isDecorative: attrs.primaryIsDecorative,
+                customClasses: '',
+                loading: attrs.primaryLoading,
+                fetchPriority: attrs.primaryFetchPriority,
+                extraClasses: [],
+                mobileWidth: attrs.primaryMobileWidth,
+                tabletWidth: attrs.primaryTabletWidth,
+                desktopWidth: attrs.primaryDesktopWidth,
+                aspectRatio: attrs.primaryAspectRatio,
+                includeSchema: attrs.primaryIncludeSchema
+            });
+            blockElement.appendChild(mediaDiv.firstChild);
+        } else if (hasVideoPrimary) {
+            const videoMarkup = generateVideoMarkup({
+                src: attrs.videoPrimarySrc,
+                lightSrc: attrs.videoPrimaryLightSrc,
+                darkSrc: attrs.videoPrimaryDarkSrc,
+                poster: attrs.videoPrimaryPoster,
+                lightPoster: attrs.videoPrimaryLightPoster,
+                darkPoster: attrs.videoPrimaryDarkPoster,
+                alt: attrs.videoPrimaryAlt,
+                customClasses: '',
+                extraClasses: [],
+                loading: attrs.videoPrimaryLoading,
+                autoplay: attrs.videoPrimaryAutoplay,
+                muted: attrs.videoPrimaryMuted,
+                loop: attrs.videoPrimaryLoop,
+                playsinline: attrs.videoPrimaryPlaysinline,
+                disablePip: attrs.videoPrimaryDisablePip,
+                preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                controls: false
+            });
+            console.log('Generated primary video markup length:', videoMarkup.length, 'Content preview:', videoMarkup.substring(0, 100));
+            const videoDiv = document.createElement('div');
+            videoDiv.innerHTML = videoMarkup;
+            if (videoDiv.hasChildNodes()) {
+                blockElement.appendChild(videoDiv.firstChild);
+            } else {
+                console.warn('Primary video markup empty—check sources:', { src: attrs.videoPrimarySrc, lightSrc: attrs.videoPrimaryLightSrc, darkSrc: attrs.videoPrimaryDarkSrc });
+            }
+        }
+    } else {
+        console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
+    }
+    blockElement.appendChild(innerDiv);
+} else if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'right') {
+    blockElement.appendChild(innerDiv);
+    const mediaDiv = document.createElement('div');
+    const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
+    if (src) {
+        if (hasPrimaryImage) {
+            mediaDiv.innerHTML = generatePictureMarkup({
+                src: src,
+                lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
+                darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
+                alt: attrs.primaryAlt,
+                isDecorative: attrs.primaryIsDecorative,
+                customClasses: '',
+                loading: attrs.primaryLoading,
+                fetchPriority: attrs.primaryFetchPriority,
+                extraClasses: [],
+                mobileWidth: attrs.primaryMobileWidth,
+                tabletWidth: attrs.primaryTabletWidth,
+                desktopWidth: attrs.primaryDesktopWidth,
+                aspectRatio: attrs.primaryAspectRatio,
+                includeSchema: attrs.primaryIncludeSchema
+            });
+            blockElement.appendChild(mediaDiv.firstChild);
+        } else if (hasVideoPrimary) {
+            const videoMarkup = generateVideoMarkup({
+                src: attrs.videoPrimarySrc,
+                lightSrc: attrs.videoPrimaryLightSrc,
+                darkSrc: attrs.videoPrimaryDarkSrc,
+                poster: attrs.videoPrimaryPoster,
+                lightPoster: attrs.videoPrimaryLightPoster,
+                darkPoster: attrs.videoPrimaryDarkPoster,
+                alt: attrs.videoPrimaryAlt,
+                customClasses: '',
+                extraClasses: [],
+                loading: attrs.videoPrimaryLoading,
+                autoplay: attrs.videoPrimaryAutoplay,
+                muted: attrs.videoPrimaryMuted,
+                loop: attrs.videoPrimaryLoop,
+                playsinline: attrs.videoPrimaryPlaysinline,
+                disablePip: attrs.videoPrimaryDisablePip,
+                preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                controls: false
+            });
+            console.log('Generated primary video markup length:', videoMarkup.length, 'Content preview:', videoMarkup.substring(0, 100));
+            const videoDiv = document.createElement('div');
+            videoDiv.innerHTML = videoMarkup;
+            if (videoDiv.hasChildNodes()) {
+                blockElement.appendChild(mediaDiv.firstChild);
+            } else {
+                console.warn('Primary video markup empty—check sources:', { src: attrs.videoPrimarySrc, lightSrc: attrs.videoPrimaryLightSrc, darkSrc: attrs.videoPrimaryDarkSrc });
+            }
+        }
+    } else {
+        console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
+    }
+} else {
+    blockElement.appendChild(innerDiv);
+}
+if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'bottom') {
+    const mediaDiv = document.createElement('div');
+    const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
+    if (src) {
+        if (hasPrimaryImage) {
+            mediaDiv.innerHTML = generatePictureMarkup({
+                src: src,
+                lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
+                darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
+                alt: attrs.primaryAlt,
+                isDecorative: attrs.primaryIsDecorative,
+                customClasses: '',
+                loading: attrs.primaryLoading,
+                fetchPriority: attrs.primaryFetchPriority,
+                extraClasses: [],
+                mobileWidth: attrs.primaryMobileWidth,
+                tabletWidth: attrs.primaryTabletWidth,
+                desktopWidth: attrs.primaryDesktopWidth,
+                aspectRatio: attrs.primaryAspectRatio,
+                includeSchema: attrs.primaryIncludeSchema
+            });
+            blockElement.appendChild(mediaDiv.firstChild);
+        } else if (hasVideoPrimary) {
+            const videoMarkup = generateVideoMarkup({
+                src: attrs.videoPrimarySrc,
+                lightSrc: attrs.videoPrimaryLightSrc,
+                darkSrc: attrs.videoPrimaryDarkSrc,
+                poster: attrs.videoPrimaryPoster,
+                lightPoster: attrs.videoPrimaryLightPoster,
+                darkPoster: attrs.videoPrimaryDarkPoster,
+                alt: attrs.videoPrimaryAlt,
+                customClasses: '',
+                extraClasses: [],
+                loading: attrs.videoPrimaryLoading,
+                autoplay: attrs.videoPrimaryAutoplay,
+                muted: attrs.videoPrimaryMuted,
+                loop: attrs.videoPrimaryLoop,
+                playsinline: attrs.videoPrimaryPlaysinline,
+                disablePip: attrs.videoPrimaryDisablePip,
+                preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                controls: false
+            });
+            console.log('Generated primary video markup length:', videoMarkup.length, 'Content preview:', videoMarkup.substring(0, 100));
+            const videoDiv = document.createElement('div');
+            videoDiv.innerHTML = videoMarkup;
+            if (videoDiv.hasChildNodes()) {
+                blockElement.appendChild(mediaDiv.firstChild);
+            } else {
+                console.warn('Primary video markup empty—check sources:', { src: attrs.videoPrimarySrc, lightSrc: attrs.videoPrimaryLightSrc, darkSrc: attrs.videoPrimaryDarkSrc });
+            }
+        }
+    } else {
+        console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
+    }
+}
+if (!isFallback && blockElement.querySelector('img')) {
+    const images = blockElement.querySelectorAll('img');
+    images.forEach(img => {
+        img.removeAttribute('img-background-light-src');
+        img.removeAttribute('img-background-dark-src');
+        img.removeAttribute('img-background-alt');
+        img.removeAttribute('img-background-decorative');
+        img.removeAttribute('img-background-mobile-width');
+        img.removeAttribute('img-background-tablet-width');
+        img.removeAttribute('img-background-desktop-width');
+        img.removeAttribute('img-background-aspect-ratio');
+        img.removeAttribute('img-background-include-schema');
+        img.removeAttribute('img-background-fetchpriority');
+        img.removeAttribute('img-background-loading');
+        img.removeAttribute('img-primary-light-src');
+        img.removeAttribute('img-primary-dark-src');
+        img.removeAttribute('img-primary-alt');
+        img.removeAttribute('img-primary-decorative');
+        img.removeAttribute('img-primary-mobile-width');
+        img.removeAttribute('img-primary-tablet-width');
+        img.removeAttribute('img-primary-desktop-width');
+        img.removeAttribute('img-primary-aspect-ratio');
+        img.removeAttribute('img-primary-include-schema');
+        img.removeAttribute('img-primary-fetchpriority');
+        img.removeAttribute('img-primary-loading');
+        img.removeAttribute('img-primary-position');
+    });
+}
+if (!isFallback && !blockElement.hasChildNodes()) {
+    console.error('Block has no valid content, falling back:', this.outerHTML);
+    return this.render(true);
+}
+if (!isFallback) {
+    CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
+    this.lastAttributes = newCriticalAttrsHash;
+}
+return blockElement;
+    }
+
+    static get observedAttributes() {
+    return [
+        'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise', 'background-overlay',
+        'border', 'border-radius', 'button-aria-label', 'button-class', 'button-href', 'button-icon',
+        'button-icon-offset', 'button-icon-position', 'button-icon-size', 'button-rel', 'button-style',
+        'button-target', 'button-text', 'button-type', 'class', 'effects', 'heading', 'heading-tag',
+        'icon', 'icon-class', 'icon-size', 'icon-style', 'img-background-alt', 'img-background-aspect-ratio',
+        'img-background-dark-src', 'img-background-decorative', 'img-background-desktop-width',
+        'img-background-fetchpriority', 'img-background-light-src', 'img-background-loading',
+        'img-background-mobile-width', 'img-background-position', 'img-background-src',
+        'img-background-tablet-width', 'img-primary-alt', 'img-primary-aspect-ratio', 'img-primary-dark-src',
+        'img-primary-decorative', 'img-primary-desktop-width', 'img-primary-fetchpriority',
+        'img-primary-light-src', 'img-primary-loading', 'img-primary-mobile-width', 'img-primary-position',
+        'img-primary-src', 'img-primary-tablet-width', 'inner-alignment', 'inner-backdrop-filter',
+        'inner-background-color', 'inner-background-gradient', 'inner-background-image-noise',
+        'inner-background-overlay', 'inner-border', 'inner-border-radius', 'inner-class', 'inner-shadow',
+        'inner-style', 'section-title', 'style', 'sub-heading', 'sub-heading-tag', 'text', 'text-alignment',
+        'video-background-alt', 'video-background-autoplay', 'video-background-dark-poster',
+        'video-background-dark-src', 'video-background-disable-pip', 'video-background-light-poster',
+        'video-background-light-src', 'video-background-loading', 'video-background-loop',
+        'video-background-muted', 'video-background-playsinline', 'video-background-poster',
+        'video-background-src', 'video-primary-alt', 'video-primary-autoplay', 'video-primary-dark-poster',
+        'video-primary-dark-src', 'video-primary-disable-pip', 'video-primary-light-poster',
+        'video-primary-light-src', 'video-primary-loading', 'video-primary-loop', 'video-primary-muted',
+        'video-primary-playsinline', 'video-primary-poster', 'video-primary-src'
+    ];
+}
+
+attributeChangedCallback(name, oldValue, newValue) {
+    if (!this.isInitialized || !this.isVisible) return;
+    if (CustomBlock.#criticalAttributes.includes(name)) {
+        this.cachedAttributes = null;
+        this.initialize();
+    }
+}
 }
 
 try {
