@@ -42,17 +42,47 @@ const generateSizes = (mobileWidth, tabletWidth, desktopWidth) => {
 
 // Validate image sources and alts efficiently
 const validateSources = (params) => {
-  const { src, lightSrc, darkSrc, alt, lightAlt, darkAlt, isDecorative } = params;
+  const {
+    src,
+    lightSrc,
+    darkSrc,
+    fullSrc,
+    fullLightSrc,
+    fullDarkSrc,
+    iconSrc,
+    iconLightSrc,
+    iconDarkSrc,
+    alt,
+    lightAlt,
+    darkAlt,
+    fullAlt,
+    fullLightAlt,
+    fullDarkAlt,
+    iconAlt,
+    iconLightAlt,
+    iconDarkAlt,
+    isDecorative,
+  } = params;
 
-  const sources = [src, lightSrc, darkSrc].filter(Boolean);
+  const sources = [src, lightSrc, darkSrc, fullSrc, fullLightSrc, fullDarkSrc, iconSrc, iconLightSrc, iconDarkSrc].filter(Boolean);
   if (!sources.length) throw new Error('At least one valid image source must be provided');
 
   for (const source of sources) {
     if (!VALID_EXTENSIONS.test(source)) throw new Error(`Invalid image source: ${source}`);
   }
 
-  if (!isDecorative && !alt && !(lightSrc && lightAlt) && !(darkSrc && darkAlt)) {
-    throw new Error('Alt attribute is required for non-decorative images');
+  if (!isDecorative) {
+    const isLogo = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc;
+    if (isLogo) {
+      if (fullSrc && !fullAlt) throw new Error('fullAlt is required for non-decorative fullSrc');
+      if (iconSrc && !iconAlt) throw new Error('iconAlt is required for non-decorative iconSrc');
+      if (fullLightSrc && !fullLightAlt) throw new Error('fullLightAlt is required for fullLightSrc');
+      if (fullDarkSrc && !fullDarkAlt) throw new Error('fullDarkAlt is required for fullDarkSrc');
+      if (iconLightSrc && !iconLightAlt) throw new Error('iconLightAlt is required for iconLightSrc');
+      if (iconDarkSrc && !iconDarkAlt) throw new Error('iconDarkAlt is required for iconDarkSrc');
+    } else if (!alt && !(lightSrc && lightAlt) && !(darkSrc && darkAlt)) {
+      throw new Error('Alt attribute is required for non-decorative images');
+    }
   }
 
   return true;
@@ -65,6 +95,18 @@ export function generatePictureMarkup({
   alt = '',
   lightAlt = '',
   darkAlt = '',
+  fullSrc = '',
+  fullLightSrc = '',
+  fullDarkSrc = '',
+  fullAlt = '',
+  fullLightAlt = '',
+  fullDarkAlt = '',
+  iconSrc = '',
+  iconLightSrc = '',
+  iconDarkSrc = '',
+  iconAlt = '',
+  iconLightAlt = '',
+  iconDarkAlt = '',
   isDecorative = false,
   mobileWidth = '100vw',
   tabletWidth = '100vw',
@@ -76,19 +118,22 @@ export function generatePictureMarkup({
   fetchPriority = '',
   extraClasses = [],
   noResponsive = false,
+  breakpoint = '',
   extraStyles = '',
 } = {}) {
   try {
     // Validate inputs
-    validateSources({ src, lightSrc, darkSrc, alt, lightAlt, darkAlt, isDecorative });
+    validateSources(arguments[0]);
+
+    // Validate breakpoint
+    const validatedBreakpoint = breakpoint && WIDTHS.includes(parseInt(breakpoint, 10)) ? parseInt(breakpoint, 10) : '';
 
     // Determine primary sources and alts
-    const isDark = typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const primarySrc = isDark ? (darkSrc || lightSrc || src) : (lightSrc || darkSrc || src);
-    const primaryAlt = isDecorative ? '' : (isDark ? (darkAlt || lightAlt || alt) : (lightAlt || darkAlt || alt));
+    const primarySrc = fullSrc || iconSrc || fullLightSrc || iconLightSrc || lightSrc || fullDarkSrc || iconDarkSrc || darkSrc || src;
+    const primaryAlt = isDecorative ? '' : fullAlt || iconAlt || alt || lightAlt || darkAlt || fullLightAlt || fullDarkAlt || iconLightAlt || iconDarkAlt;
     const altAttr = isDecorative ? ' alt="" role="presentation"' : ` alt="${primaryAlt}"`;
     const loadingAttr = ['eager', 'lazy'].includes(loading) ? ` loading="${loading}"` : ' loading="lazy"';
-    const fetchPriorityAttr = ['high', 'low', 'auto'].includes(fetchPriority) ? ` fetchpriority="${fetchPriority}"` : '';
+    const fetchPriorityAttr = ['high', 'low', 'auto'].includes(fetchPriority) && !(fullSrc || iconSrc || fullLightSrc || iconLightSrc || fullDarkSrc || iconDarkSrc) ? ` fetchpriority="${fetchPriority}"` : '';
 
     // Combine classes efficiently
     const allClasses = [...new Set([customClasses.trim(), ...extraClasses].flatMap((c) => c.split(/\s+/)).filter(Boolean))];
@@ -99,7 +144,7 @@ export function generatePictureMarkup({
     const classAttr = allClasses.length ? ` class="${allClasses.join(' ')}"` : '';
     const styleAttr = extraStyles ? ` style="${extraStyles}"` : '';
 
-    // Initialize markup array
+    // Initialize markup array for efficient concatenation
     const markup = [`<picture${classAttr}${styleAttr}>`];
 
     // Helper to get image MIME type
@@ -112,40 +157,83 @@ export function generatePictureMarkup({
     const generateSrcset = (filename, format) =>
       [`${BASE_PATH}${filename}.${format} 3840w`, ...WIDTHS.map((w) => `${BASE_PATH}${filename}-${w}.${format} ${w}w`)].join(', ');
 
-    // Generate responsive srcset
-    const sizes = generateSizes(mobileWidth, tabletWidth, desktopWidth);
-    const baseFilename = (lightSrc || darkSrc || src).split('/').pop().split('.').slice(0, -1).join('.');
-    const lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
-    const darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
+    const isLogo = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc;
 
-    if (noResponsive) {
-      if (lightSrc) {
+    if (isLogo) {
+      // Logo case: Use original source URLs with inverted theme logic for icons, standard for full logos
+      if (validatedBreakpoint && (iconSrc || iconLightSrc || iconDarkSrc)) {
+        if (iconLightSrc) {
+          // Use light icon in dark mode
+          markup.push(
+            `<source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: dark)" type="${getImageType(iconLightSrc)}" srcset="${iconLightSrc}"${isDecorative ? ' alt="" role="presentation"' : iconLightAlt ? ` alt="${iconLightAlt}"` : ''}>`
+          );
+        }
+        if (iconDarkSrc) {
+          // Use dark icon in light mode
+          markup.push(
+            `<source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: light)" type="${getImageType(iconDarkSrc)}" srcset="${iconDarkSrc}"${isDecorative ? ' alt="" role="presentation"' : iconDarkAlt ? ` alt="${iconDarkAlt}"` : ''}>`
+          );
+        }
+        if (iconSrc) {
+          markup.push(
+            `<source media="(max-width: ${validatedBreakpoint - 1}px)" type="${getImageType(iconSrc)}" srcset="${iconSrc}"${isDecorative ? ' alt="" role="presentation"' : iconAlt ? ` alt="${iconAlt}"` : ''}>`
+          );
+        }
+      }
+
+      if (fullLightSrc) {
+        // Use light full logo in light mode
         markup.push(
-          `<source media="(prefers-color-scheme: light)" type="${getImageType(lightSrc)}" srcset="${lightSrc}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : lightAlt ? ` alt="${lightAlt}"` : ''}>`
+          `<source media="(prefers-color-scheme: light) and (min-width: ${validatedBreakpoint}px)" type="${getImageType(fullLightSrc)}" srcset="${fullLightSrc}"${isDecorative ? ' alt="" role="presentation"' : fullLightAlt ? ` alt="${fullLightAlt}"` : ''}>`
         );
       }
-      if (darkSrc) {
+      if (fullDarkSrc) {
+        // Use dark full logo in dark mode
         markup.push(
-          `<source media="(prefers-color-scheme: dark)" type="${getImageType(darkSrc)}" srcset="${darkSrc}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : darkAlt ? ` alt="${darkAlt}"` : ''}>`
+          `<source media="(prefers-color-scheme: dark) and (min-width: ${validatedBreakpoint}px)" type="${getImageType(fullDarkSrc)}" srcset="${fullDarkSrc}"${isDecorative ? ' alt="" role="presentation"' : fullDarkAlt ? ` alt="${fullDarkAlt}"` : ''}>`
         );
       }
-      if (src) {
-        markup.push(`<source type="${getImageType(src)}" srcset="${src}" sizes="${sizes}"${altAttr}>`);
+      if (fullSrc || iconSrc) {
+        // Use fullSrc or iconSrc as fallback to avoid theme-specific fallbacks
+        const fallbackSrc = fullSrc || iconSrc;
+        markup.push(`<source type="${getImageType(fallbackSrc)}" srcset="${fallbackSrc}"${altAttr}>`);
       }
     } else {
-      FORMATS.forEach((format) => {
-        if (lightSrc && lightBaseFilename) {
+      // Non-logo case: Generate responsive srcset
+      const sizes = generateSizes(mobileWidth, tabletWidth, desktopWidth);
+      const baseFilename = (lightSrc || darkSrc || src).split('/').pop().split('.').slice(0, -1).join('.');
+      const lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
+      const darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
+
+      if (noResponsive) {
+        if (lightSrc) {
           markup.push(
-            `<source media="(prefers-color-scheme: light)" type="image/${format}" srcset="${generateSrcset(lightBaseFilename, format)}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : lightAlt ? ` alt="${lightAlt}"` : ''}>`
+            `<source media="(prefers-color-scheme: light)" type="${getImageType(lightSrc)}" srcset="${lightSrc}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : lightAlt ? ` alt="${lightAlt}"` : ''}>`
           );
         }
-        if (darkSrc && darkBaseFilename) {
+        if (darkSrc) {
           markup.push(
-            `<source media="(prefers-color-scheme: dark)" type="image/${format}" srcset="${generateSrcset(darkBaseFilename, format)}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : darkAlt ? ` alt="${darkAlt}"` : ''}>`
+            `<source media="(prefers-color-scheme: dark)" type="${getImageType(darkSrc)}" srcset="${darkSrc}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : darkAlt ? ` alt="${darkAlt}"` : ''}>`
           );
         }
-        markup.push(`<source type="image/${format}" srcset="${generateSrcset(baseFilename, format)}" sizes="${sizes}"${altAttr}>`);
-      });
+        if (src) {
+          markup.push(`<source type="${getImageType(src)}" srcset="${src}" sizes="${sizes}"${altAttr}>`);
+        }
+      } else {
+        FORMATS.forEach((format) => {
+          if (lightSrc && lightBaseFilename) {
+            markup.push(
+              `<source media="(prefers-color-scheme: light)" type="image/${format}" srcset="${generateSrcset(lightBaseFilename, format)}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : lightAlt ? ` alt="${lightAlt}"` : ''}>`
+            );
+          }
+          if (darkSrc && darkBaseFilename) {
+            markup.push(
+              `<source media="(prefers-color-scheme: dark)" type="image/${format}" srcset="${generateSrcset(darkBaseFilename, format)}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : darkAlt ? ` alt="${darkAlt}"` : ''}>`
+            );
+          }
+          markup.push(`<source type="image/${format}" srcset="${generateSrcset(baseFilename, format)}" sizes="${sizes}"${altAttr}>`);
+        });
+      }
     }
 
     // Add fallback img tag
@@ -156,7 +244,7 @@ export function generatePictureMarkup({
 
     // Add schema if requested
     if (includeSchema) {
-      markup.push(
+      markup.unshift(
         `<script type="application/ld+json">{"@context":"http://schema.org","@type":"ImageObject","url":"${primarySrc}","alternateName":"${primaryAlt}"}</script>`
       );
     }
