@@ -82,6 +82,7 @@ class CustomBlock extends HTMLElement {
         'button-text',
         'button-type',
         'class',
+        'effects',
         'heading',
         'heading-tag',
         'icon',
@@ -631,12 +632,12 @@ class CustomBlock extends HTMLElement {
             CustomBlock.#criticalAttributes.forEach(attr => {
                 criticalAttrs[attr] = this.getAttribute(attr) || '';
             });
-            const newCriticalHash = JSON.stringify(criticalAttrs);
-            if (CustomBlock.#renderCacheMap.has(this) && this.criticalAttributesHash === newCriticalHash) {
+            const newCriticalAttrsHash = JSON.stringify(criticalAttrs);
+            if (CustomBlock.#renderCacheMap.has(this) && this.criticalAttributesHash === newCriticalAttrsHash) {
                 console.log('Using cached render for CustomBlock:', this.outerHTML);
                 return CustomBlock.#renderCacheMap.get(this).cloneNode(true);
             }
-            this.lastAttributes = newCriticalHash;
+            this.lastAttributes = newCriticalAttrsHash;
         }
         const attrs = isFallback ? {
             sectionTitle: false,
@@ -901,7 +902,7 @@ class CustomBlock extends HTMLElement {
             }
             if (!isFallback) {
                 CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
-                this.lastAttributes = newCriticalHash;
+                this.lastAttributes = newCriticalAttrsHash;
             }
             return blockElement;
         }
@@ -929,7 +930,7 @@ class CustomBlock extends HTMLElement {
             blockElement.innerHTML = buttonElement;
             if (!isFallback) {
                 CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
-                this.lastAttributes = newCriticalHash;
+                this.lastAttributes = newCriticalAttrsHash;
             }
             return blockElement;
         }
@@ -1080,7 +1081,7 @@ class CustomBlock extends HTMLElement {
         }
         if (!isFallback) {
             CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
-            this.lastAttributes = newCriticalHash;
+            this.lastAttributes = newCriticalAttrsHash;
         }
         return blockElement;
     }
