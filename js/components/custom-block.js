@@ -12,6 +12,7 @@ class CustomBlock extends HTMLElement {
         this.renderCache = null;
         this.lastAttributes = null;
         this.cachedAttributes = null; // Cache for getAttributes()
+        this.criticalAttributesHash = null; // Cache for critical attributes hash
         // Observe this instance using the shared observer
         CustomBlock.#observer.observe(this);
         CustomBlock.#observedInstances.add(this);
@@ -33,7 +34,7 @@ class CustomBlock extends HTMLElement {
     }, { rootMargin: '50px' });
 
     static #observedInstances = new WeakSet();
-    static #renderCacheMap = new WeakMap(); // Added missing declaration
+    static #renderCacheMap = new WeakMap();
 
     // Constants for responsive image generation
     static #WIDTHS = [768, 1024, 1366, 1920, 2560];
@@ -58,6 +59,95 @@ class CustomBlock extends HTMLElement {
         'backdrop-filter-grayscale-medium': 'grayscale(var(--grayscale-medium))',
         'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))'
     };
+
+    // List of critical attributes that affect rendering
+    static #criticalAttributes = [
+        'backdrop-filter',
+        'background-color',
+        'background-gradient',
+        'background-image-noise',
+        'background-overlay',
+        'border',
+        'border-radius',
+        'button-aria-label',
+        'button-class',
+        'button-href',
+        'button-icon',
+        'button-icon-offset',
+        'button-icon-position',
+        'button-icon-size',
+        'button-rel',
+        'button-style',
+        'button-target',
+        'button-text',
+        'button-type',
+        'class',
+        'heading',
+        'heading-tag',
+        'icon',
+        'icon-class',
+        'icon-size',
+        'icon-style',
+        'img-background-alt',
+        'img-background-aspect-ratio',
+        'img-background-desktop-width',
+        'img-background-light-src',
+        'img-background-mobile-width',
+        'img-background-position',
+        'img-background-src',
+        'img-background-tablet-width',
+        'img-primary-alt',
+        'img-primary-aspect-ratio',
+        'img-primary-desktop-width',
+        'img-primary-light-src',
+        'img-primary-mobile-width',
+        'img-primary-position',
+        'img-primary-src',
+        'img-primary-tablet-width',
+        'inner-alignment',
+        'inner-backdrop-filter',
+        'inner-background-color',
+        'inner-background-gradient',
+        'inner-background-image-noise',
+        'inner-background-overlay',
+        'inner-border',
+        'inner-border-radius',
+        'inner-class',
+        'inner-shadow',
+        'inner-style',
+        'section-title',
+        'style',
+        'sub-heading',
+        'sub-heading-tag',
+        'text',
+        'text-alignment',
+        'video-background-alt',
+        'video-background-autoplay',
+        'video-background-dark-poster',
+        'video-background-dark-src',
+        'video-background-disable-pip',
+        'video-background-light-poster',
+        'video-background-light-src',
+        'video-background-loading',
+        'video-background-loop',
+        'video-background-muted',
+        'video-background-playsinline',
+        'video-background-poster',
+        'video-background-src',
+        'video-primary-alt',
+        'video-primary-autoplay',
+        'video-primary-dark-poster',
+        'video-primary-dark-src',
+        'video-primary-disable-pip',
+        'video-primary-light-poster',
+        'video-primary-light-src',
+        'video-primary-loading',
+        'video-primary-loop',
+        'video-primary-muted',
+        'video-primary-playsinline',
+        'video-primary-poster',
+        'video-primary-src'
+    ];
 
     getAttributes() {
         // Return cached attributes if available
@@ -483,6 +573,12 @@ class CustomBlock extends HTMLElement {
             shadowClass,
             innerShadowClass
         };
+        // Compute and cache critical attributes hash
+        const criticalAttrs = {};
+        CustomBlock.#criticalAttributes.forEach(attr => {
+            criticalAttrs[attr] = this.getAttribute(attr) || '';
+        });
+        this.criticalAttributesHash = JSON.stringify(criticalAttrs);
         return this.cachedAttributes;
     }
 
@@ -520,6 +616,7 @@ class CustomBlock extends HTMLElement {
         this.callbacks = [];
         this.renderCache = null;
         this.cachedAttributes = null; // Clear cached attributes
+        this.criticalAttributesHash = null; // Clear critical attributes hash
         CustomBlock.#renderCacheMap.delete(this); // Clear WeakMap cache
     }
 
@@ -529,11 +626,17 @@ class CustomBlock extends HTMLElement {
 
     render(isFallback = false) {
         if (!isFallback) {
-            const attrString = JSON.stringify(this.getAttributes());
-            if (CustomBlock.#renderCacheMap.has(this) && this.lastAttributes === attrString) {
+            // Check if critical attributes have changed
+            const criticalAttrs = {};
+            CustomBlock.#criticalAttributes.forEach(attr => {
+                criticalAttrs[attr] = this.getAttribute(attr) || '';
+            });
+            const newCriticalHash = JSON.stringify(criticalAttrs);
+            if (CustomBlock.#renderCacheMap.has(this) && this.criticalAttributesHash === newCriticalHash) {
                 console.log('Using cached render for CustomBlock:', this.outerHTML);
                 return CustomBlock.#renderCacheMap.get(this).cloneNode(true);
             }
+            this.lastAttributes = newCriticalHash;
         }
         const attrs = isFallback ? {
             sectionTitle: false,
@@ -798,7 +901,7 @@ class CustomBlock extends HTMLElement {
             }
             if (!isFallback) {
                 CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
-                this.lastAttributes = JSON.stringify(attrs);
+                this.lastAttributes = newCriticalHash;
             }
             return blockElement;
         }
@@ -826,7 +929,7 @@ class CustomBlock extends HTMLElement {
             blockElement.innerHTML = buttonElement;
             if (!isFallback) {
                 CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
-                this.lastAttributes = JSON.stringify(attrs);
+                this.lastAttributes = newCriticalHash;
             }
             return blockElement;
         }
@@ -977,7 +1080,7 @@ class CustomBlock extends HTMLElement {
         }
         if (!isFallback) {
             CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
-            this.lastAttributes = JSON.stringify(attrs);
+            this.lastAttributes = newCriticalHash;
         }
         return blockElement;
     }
@@ -1084,96 +1187,10 @@ class CustomBlock extends HTMLElement {
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) return;
-        this.cachedAttributes = null; // Invalidate attribute cache on change
-        const criticalAttributes = [
-            'backdrop-filter',
-            'background-color',
-            'background-gradient',
-            'background-image-noise',
-            'background-overlay',
-            'border',
-            'border-radius',
-            'button-aria-label',
-            'button-class',
-            'button-href',
-            'button-icon',
-            'button-icon-offset',
-            'button-icon-position',
-            'button-icon-size',
-            'button-rel',
-            'button-style',
-            'button-target',
-            'button-text',
-            'button-type',
-            'class',
-            'heading',
-            'heading-tag',
-            'icon',
-            'icon-class',
-            'icon-size',
-            'icon-style',
-            'img-background-alt',
-            'img-background-aspect-ratio',
-            'img-background-desktop-width',
-            'img-background-light-src',
-            'img-background-mobile-width',
-            'img-background-position',
-            'img-background-src',
-            'img-background-tablet-width',
-            'img-primary-alt',
-            'img-primary-aspect-ratio',
-            'img-primary-desktop-width',
-            'img-primary-light-src',
-            'img-primary-mobile-width',
-            'img-primary-position',
-            'img-primary-src',
-            'img-primary-tablet-width',
-            'inner-alignment',
-            'inner-backdrop-filter',
-            'inner-background-color',
-            'inner-background-gradient',
-            'inner-background-image-noise',
-            'inner-background-overlay',
-            'inner-border',
-            'inner-border-radius',
-            'inner-class',
-            'inner-shadow',
-            'inner-style',
-            'section-title',
-            'style',
-            'sub-heading',
-            'sub-heading-tag',
-            'text',
-            'text-alignment',
-            'video-background-alt',
-            'video-background-autoplay',
-            'video-background-dark-poster',
-            'video-background-dark-src',
-            'video-background-disable-pip',
-            'video-background-light-poster',
-            'video-background-light-src',
-            'video-background-loading',
-            'video-background-loop',
-            'video-background-muted',
-            'video-background-playsinline',
-            'video-background-poster',
-            'video-background-src',
-            'video-primary-alt',
-            'video-primary-autoplay',
-            'video-primary-dark-poster',
-            'video-primary-dark-src',
-            'video-primary-disable-pip',
-            'video-primary-light-poster',
-            'video-primary-light-src',
-            'video-primary-loading',
-            'video-primary-loop',
-            'video-primary-muted',
-            'video-primary-playsinline',
-            'video-primary-poster',
-            'video-primary-src'
-        ];
-        if (criticalAttributes.includes(name)) {
-            this.initialize();
+        // Only invalidate cache if the changed attribute is critical
+        if (CustomBlock.#criticalAttributes.includes(name)) {
+            this.cachedAttributes = null; // Invalidate attribute cache
+            this.initialize(); // Re-render only for critical attributes
         }
     }
 }
