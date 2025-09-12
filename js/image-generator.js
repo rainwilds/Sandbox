@@ -122,6 +122,9 @@ export function generatePictureMarkup({
   extraStyles = '',
 } = {}) {
   try {
+    // Log parameters for debugging
+    console.log('generatePictureMarkup params:', { fullSrc, fullLightSrc, fullDarkSrc, iconSrc, iconLightSrc, iconDarkSrc, src, lightSrc, darkSrc });
+
     // Validate inputs with explicit parameters
     validateSources({
       src,
@@ -148,15 +151,31 @@ export function generatePictureMarkup({
     // Validate breakpoint
     const validatedBreakpoint = breakpoint && WIDTHS.includes(parseInt(breakpoint, 10)) ? parseInt(breakpoint, 10) : '';
 
-    // Determine primary sources and alts - prioritize logo sources
+    // Determine primary sources and alts - strictly prioritize logo sources
     const isLogo = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc;
     const isDark = typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const primarySrc = isLogo
-      ? (isDark ? (fullDarkSrc || iconDarkSrc || fullSrc || iconSrc) : (fullLightSrc || iconLightSrc || fullSrc || iconSrc))
-      : (isDark ? (darkSrc || lightSrc || src) : (lightSrc || darkSrc || src));
-    const primaryAlt = isDecorative ? '' : (isLogo
-      ? (isDark ? (fullDarkAlt || iconDarkAlt || fullAlt || iconAlt) : (fullLightAlt || iconLightAlt || fullAlt || iconAlt))
-      : (isDark ? (darkAlt || lightAlt || alt) : (lightAlt || darkAlt || alt)));
+    const isSvg = (src) => src.toLowerCase().endsWith('.svg');
+    let primarySrc, primaryAlt;
+
+    if (isLogo) {
+      // Logo case: Only use logo-specific attributes
+      primarySrc = isDark
+        ? (fullDarkSrc || iconDarkSrc || fullSrc || iconSrc)
+        : (fullLightSrc || iconLightSrc || fullSrc || iconSrc);
+      primaryAlt = isDecorative ? ''
+        : isDark
+          ? (fullDarkAlt || iconDarkAlt || fullAlt || iconAlt)
+          : (fullLightAlt || iconLightAlt || fullAlt || iconAlt);
+    } else {
+      // Non-logo case: Use background image attributes
+      primarySrc = isDark ? (darkSrc || lightSrc || src) : (lightSrc || darkSrc || src);
+      primaryAlt = isDecorative ? '' : (isDark ? (darkAlt || lightAlt || alt) : (lightAlt || darkAlt || alt));
+    }
+
+    if (!primarySrc) {
+      throw new Error('No valid primary source found for image');
+    }
+
     const altAttr = isDecorative ? ' alt="" role="presentation"' : ` alt="${primaryAlt}"`;
     const loadingAttr = ['eager', 'lazy'].includes(loading) ? ` loading="${loading}"` : ' loading="lazy"';
     const fetchPriorityAttr = ['high', 'low', 'auto'].includes(fetchPriority) && !isLogo ? ` fetchpriority="${fetchPriority}"` : '';
@@ -179,12 +198,12 @@ export function generatePictureMarkup({
       return ext === 'svg' ? 'image/svg+xml' : `image/${ext}`;
     };
 
-    // Generate srcset for responsive images
+    // Generate srcset for responsive images (non-SVG only)
     const generateSrcset = (filename, format) =>
       [`${BASE_PATH}${filename}.${format} 3840w`, ...WIDTHS.map((w) => `${BASE_PATH}${filename}-${w}.${format} ${w}w`)].join(', ');
 
     if (isLogo) {
-      // Logo case: Use original source URLs with inverted theme logic for icons, standard for full logos
+      // Logo case: Use original source URLs, no responsive srcset for SVGs
       if (validatedBreakpoint && (iconSrc || iconLightSrc || iconDarkSrc)) {
         if (iconLightSrc) {
           // Use light icon in dark mode
@@ -229,7 +248,7 @@ export function generatePictureMarkup({
       const lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
       const darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
 
-      if (noResponsive) {
+      if (noResponsive || isSvg(primarySrc)) {
         if (lightSrc) {
           markup.push(
             `<source media="(prefers-color-scheme: light)" type="${getImageType(lightSrc)}" srcset="${lightSrc}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : lightAlt ? ` alt="${lightAlt}"` : ''}>`
