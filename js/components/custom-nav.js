@@ -1,117 +1,200 @@
+/* global document, window, console, fetch, Promise */
 (async () => {
-    try {
-        const { BACKDROP_FILTER_MAP } = await import('./custom-block.js');
-        const { VALID_ALIGNMENTS, alignMap } = await import('../shared.js');
-        console.log('Successfully imported BACKDROP_FILTER_MAP and alignMap');
+    const log = (message) => console.log(`[HeadGenerator] ${new Date().toLocaleTimeString()} ${message}`);
 
-        class CustomNav extends HTMLElement {
-            static get observedAttributes() {
-                return [
-                    'nav',
-                    'nav-position',
-                    'nav-class',
-                    'nav-style',
-                    'nav-aria-label',
-                    'nav-toggle-class',
-                    'nav-toggle-icon',
-                    'nav-orientation',
-                    'nav-container-class',
-                    'nav-container-style',
-                    'nav-background-color',
-                    'nav-background-image-noise',
-                    'nav-border',
-                    'nav-border-radius',
-                    'nav-backdrop-filter'
-                ];
-            }
+    // Cache for setup.json
+    let setupCache = null;
 
-            getAttributes() {
-                const attrs = {};
-                attrs.nav = this.getAttribute('nav') ? JSON.parse(this.getAttribute('nav')) : null;
-                attrs.navPosition = this.getAttribute('nav-position') || '';
-                attrs.navClass = this.getAttribute('nav-class') || '';
-                attrs.navStyle = this.getAttribute('nav-style') || '';
-                attrs.navAriaLabel = this.getAttribute('nav-aria-label') || 'Main navigation';
-                attrs.navToggleClass = this.getAttribute('nav-toggle-class') || '';
-                attrs.navToggleIcon = this.getAttribute('nav-toggle-icon') || '<i class="fa-light fa-bars"></i>';
-                attrs.navOrientation = this.getAttribute('nav-orientation') || 'horizontal';
-                attrs.navContainerClass = this.getAttribute('nav-container-class') || '';
-                attrs.navContainerStyle = this.getAttribute('nav-container-style') || '';
-                attrs.navBackgroundColor = this.getAttribute('nav-background-color') || '';
-                attrs.navBackgroundImageNoise = this.hasAttribute('nav-background-image-noise');
-                attrs.navBorder = this.getAttribute('nav-border') || '';
-                attrs.navBorderRadius = this.getAttribute('nav-border-radius') || '';
-                attrs.navBackdropFilter = this.getAttribute('nav-backdrop-filter')?.split(' ').filter(cls => cls) || [];
+    // Default setup configuration
+    const defaultSetup = {
+        fonts: [],
+        general: {
+            title: 'Default Title',
+            description: 'Default Description',
+            canonical: window.location.href,
+            themeColor: '#000000',
+            ogLocale: 'en_US',
+            ogType: 'website',
+            siteName: 'Site Name'
+        },
+        business: {},
+        font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' }
+    };
 
-                if (!VALID_ALIGNMENTS.includes(attrs.navPosition)) {
-                    console.warn(`Invalid nav-position "${attrs.navPosition}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Ignoring.`);
-                    attrs.navPosition = '';
-                }
-                return attrs;
-            }
-
-            render() {
-                const attrs = this.getAttributes();
-                const navAlignClass = attrs.navPosition ? alignMap[attrs.navPosition] : '';
-                const navClasses = [
-                    attrs.navClass,
-                    `nav-${attrs.navOrientation}`,
-                    attrs.navBackgroundImageNoise ? 'background-image-noise' : '',
-                    attrs.navBorder,
-                    attrs.navBorderRadius,
-                    ...attrs.navBackdropFilter.filter(cls => !cls.startsWith('backdrop-filter'))
-                ].filter(cls => cls).join(' ').trim();
-                const navBackdropFilterStyle = attrs.navBackdropFilter
-                    .filter(cls => cls.startsWith('backdrop-filter'))
-                    .map(cls => BACKDROP_FILTER_MAP[cls] || '')
-                    .filter(val => val)
-                    .join(' ');
-                const navStyle = [attrs.navStyle, navBackdropFilterStyle].filter(s => s).join('; ').trim();
-
-                this.innerHTML = `
-                    <div class="${navAlignClass} ${attrs.navContainerClass}"${attrs.navContainerStyle ? ` style="${attrs.navContainerStyle}"` : ''}>
-                        <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${navStyle ? ` style="${navStyle}"` : ''}>
-                            <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
-                                <span class="hamburger-icon">${attrs.navToggleIcon}</span>
-                            </button>
-                            <ul class="nav-links" id="nav-menu">
-                                ${attrs.nav?.map(link => `
-                                    <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
-                                `).join('') || ''}
-                            </ul>
-                        </nav>
-                    </div>
-                `;
-
-                const hamburger = this.querySelector('button[aria-controls="nav-menu"]');
-                const navMenu = this.querySelector('#nav-menu');
-                if (hamburger && navMenu) {
-                    hamburger.addEventListener('click', () => {
-                        const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
-                        hamburger.setAttribute('aria-expanded', !isExpanded);
-                        navMenu.style.display = isExpanded ? 'none' : 'block';
-                    });
-                }
-            }
-
-            connectedCallback() {
-                this.render();
-            }
-
-            attributeChangedCallback() {
-                if (this.isConnected) {
-                    this.render();
-                }
-            }
+    // Function to fetch and cache setup.json
+    async function fetchSetup() {
+        if (setupCache) {
+            log('Using cached setup.json');
+            return setupCache;
         }
-        if (!customElements.get('custom-nav')) {
-            customElements.define('custom-nav', CustomNav);
-            console.log('CustomNav defined successfully');
+        try {
+            const response = await fetch('./JSON/setup.json', { cache: 'force-cache' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            setupCache = await response.json();
+            log('Loaded setup.json: ' + JSON.stringify(setupCache, null, 2));
+            return setupCache;
+        } catch (error) {
+            console.error('Failed to load setup.json:', error);
+            return defaultSetup;
         }
-        document.querySelectorAll('custom-nav').forEach(element => {
-            customElements.upgrade(element);
+    }
+
+    // Function to load components in parallel
+    async function loadComponents(components) {
+        const componentImports = components.split(' ').map(async (component) => {
+            try {
+                const module = await import(`./components/${component}.js`);
+                log(`Loaded module: ./components/${component}.js`);
+                return module;
+            } catch (error) {
+                console.error(`Failed to load component ${component}:`, error);
+                return null;
+            }
         });
+        return Promise.all(componentImports);
+    }
+
+    // Function to create and append DOM elements asynchronously
+    async function updateHead(attributes) {
+        log('manageHead called with attributes: ' + JSON.stringify(attributes, null, 2));
+        const head = document.head;
+
+        // Fonts
+        const setup = await fetchSetup();
+        setup.fonts.forEach(font => {
+            const link = document.createElement('link');
+            link.rel = 'preload';
+            link.href = font.url;
+            link.as = 'font';
+            link.type = 'font/woff2';
+            link.crossOrigin = 'anonymous';
+            head.appendChild(link);
+            log(`Added font preload: ${font.url}`);
+        });
+
+        // Stylesheet
+        const styleLink = document.createElement('link');
+        styleLink.rel = 'stylesheet';
+        styleLink.href = './styles.css';
+        head.appendChild(styleLink);
+        log('Applied stylesheet: ./styles.css');
+
+        // Font Awesome
+        if (setup.font_awesome?.kitUrl) {
+            const script = document.createElement('script');
+            script.src = setup.font_awesome.kitUrl;
+            script.crossOrigin = 'anonymous';
+            head.appendChild(script);
+            log(`Added Font Awesome Kit script: ${setup.font_awesome.kitUrl}`);
+        }
+
+        // Meta tags
+        const metaTags = [
+            { name: 'robots', content: 'index, follow' },
+            { name: 'title', content: attributes.title || setup.general.title },
+            { name: 'author', content: setup.business.author || 'Author' },
+            { name: 'description', content: attributes.description || setup.general.description },
+            { name: 'og:locale', content: attributes['og-locale'] || setup.general.ogLocale },
+            { name: 'og:url', content: attributes.canonical || setup.general.canonical },
+            { name: 'og:type', content: attributes['og-type'] || setup.general.ogType },
+            { name: 'og:title', content: attributes.title || setup.general.title },
+            { name: 'og:description', content: attributes.description || setup.general.description },
+            { name: 'og:image', content: attributes['og-image'] || setup.general.ogImage || '' },
+            { name: 'og:site_name', content: attributes['site-name'] || setup.general.siteName },
+            { name: 'x:card', content: attributes['x-card'] || 'summary_large_image' },
+            { name: 'x:domain', content: attributes['x-domain'] || window.location.hostname },
+            { name: 'x:url', content: attributes.canonical || setup.general.canonical },
+            { name: 'x:title', content: attributes.title || setup.general.title },
+            { name: 'x:description', content: attributes.description || setup.general.description },
+            { name: 'x:image', content: attributes['x-image'] || setup.general.ogImage || '' }
+        ];
+
+        metaTags.forEach(({ name, content }) => {
+            if (content) {
+                const meta = document.createElement('meta');
+                if (name.startsWith('og:')) meta.setAttribute('property', name);
+                else meta.name = name;
+                meta.content = content;
+                head.appendChild(meta);
+                log(`Added ${name} meta with content: ${content}`);
+            }
+        });
+
+        // Canonical link
+        if (attributes.canonical || setup.general.canonical) {
+            const link = document.createElement('link');
+            link.rel = 'canonical';
+            link.href = attributes.canonical || setup.general.canonical;
+            head.appendChild(link);
+            log('Added canonical link');
+        }
+
+        // Theme color
+        if (attributes['theme-color'] || setup.general.themeColor) {
+            const meta = document.createElement('meta');
+            meta.name = 'theme-color';
+            meta.content = attributes['theme-color'] || setup.general.themeColor;
+            head.appendChild(meta);
+            log(`Updated theme-color: ${meta.content}`);
+        }
+
+        // JSON-LD schema
+        if (attributes['json-ld'] || setup.general.jsonLd) {
+            const script = document.createElement('script');
+            script.type = 'application/ld+json';
+            script.textContent = JSON.stringify(attributes['json-ld'] || setup.general.jsonLd || {});
+            head.appendChild(script);
+            log('Added JSON-LD schema');
+        }
+
+        // Favicons
+        const favicons = [
+            { rel: 'apple-touch-icon', href: './img/icons/apple-touch-icon.png', sizes: '' },
+            { rel: 'icon', href: './img/icons/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+            { rel: 'icon', href: './img/icons/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+            { rel: 'icon', href: './img/icons/favicon.ico', sizes: '', type: 'image/x-icon' }
+        ];
+
+        favicons.forEach(({ rel, href, sizes, type }) => {
+            const link = document.createElement('link');
+            link.rel = rel;
+            link.href = href;
+            if (sizes) link.sizes = sizes;
+            if (type) link.type = type;
+            head.appendChild(link);
+            log(`Added favicon: ${href}`);
+        });
+    }
+
+    // Main execution
+    try {
+        const customHead = document.querySelector('data-custom-head');
+        if (!customHead) {
+            log('No data-custom-head element found');
+            return;
+        }
+
+        log(`Found data-custom-head elements: ${document.querySelectorAll('data-custom-head').length}`);
+
+        // Gather attributes from data-custom-head
+        const attributes = {};
+        for (const attr of customHead.attributes) {
+            attributes[attr.name.replace(/^data-/, '')] = attr.value;
+        }
+        log('Merged attributes: ' + JSON.stringify(attributes, null, 2));
+
+        // Load components in parallel
+        if (attributes.components) {
+            await loadComponents(attributes.components);
+        }
+
+        // Update head
+        await updateHead(attributes);
+
+        // Remove data-custom-head element
+        customHead.remove();
+        log('Removed data-custom-head element');
     } catch (error) {
-        console.error('Failed to import BACKDROP_FILTER_MAP or define CustomNav:', error);
+        console.error('Error in HeadGenerator:', error);
     }
 })();
