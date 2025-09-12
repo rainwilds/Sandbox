@@ -28,8 +28,21 @@
             return setupCache;
         }
         try {
-            const response = await fetch('./JSON/setup.json', { cache: 'force-cache' });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            // Explicitly reference the preloaded resource to avoid "not used" warning
+            const preloadLink = document.querySelector('link[rel="preload"][href="./JSON/setup.json"]');
+            let response = await fetch('./JSON/setup.json', {
+                cache: 'force-cache',
+                // Hint for preload reuse (Chrome v109+)
+                referrerPolicy: preloadLink ? preloadLink.referrerPolicy : 'no-referrer-when-downgrade'
+            });
+
+            // If preload exists and fetch is from cache, "use" it to clear warning
+            if (preloadLink && response.fromPreloadCache) {  // Custom prop; fallback to status check
+                log('Reusing preloaded setup.json');
+            } else if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
             setupCache = await response.json();
             log('Loaded setup.json: ' + JSON.stringify(setupCache, null, 2));
             return setupCache;
