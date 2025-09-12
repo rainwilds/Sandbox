@@ -16,7 +16,7 @@
             ogLocale: 'en_US',
             ogType: 'website',
             siteName: 'Site Name',
-            favicons: []  // Default empty
+            favicons: []
         },
         business: {},
         font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' }
@@ -124,10 +124,11 @@
         metaTags.forEach(({ name, content }) => {
             if (content && !content.includes('undefined')) {
                 const meta = document.createElement('meta');
-                if (name.startsWith('og:') || name.startsWith('twitter:')) {
-                    meta.setAttribute('property', name.startsWith('twitter:') ? 'twitter:' + name.split(':')[1] : name);
+                // OG tags use 'property'; Twitter uses 'name'
+                if (name.startsWith('og:')) {
+                    meta.setAttribute('property', name);
                 } else {
-                    meta.name = name;
+                    meta.name = name;  // Covers twitter:, title, description, etc.
                 }
                 meta.content = content;
                 head.appendChild(meta);
@@ -151,7 +152,6 @@
             const meta = document.createElement('meta');
             meta.name = 'theme-color';
             meta.content = themeColor;
-            // Optional: Media query for dark mode
             meta.media = '(prefers-color-scheme: light)';
             head.appendChild(meta);
             log(`Updated theme-color (light): ${themeColor}`);
@@ -181,7 +181,7 @@
             "logo": setup.business.logo,
             "sameAs": setup.business.sameAs
         };
-        if (Object.keys(jsonLd).length > 1) {  // Guard empty
+        if (Object.keys(jsonLd).length > 1 && !JSON.stringify(jsonLd).includes('undefined')) {
             const script = document.createElement('script');
             script.type = 'application/ld+json';
             script.textContent = JSON.stringify(jsonLd);
@@ -217,9 +217,9 @@
             const script = document.createElement('script');
             script.id = 'snipcart';
             script.src = `https://cdn.snipcart.com/themes/v${snipcart.version}/default/snipcart.${snipcart.version}.js`;
-            script.data-api-key = snipcart.publicApiKey;
-            script.data-config-modal-style = snipcart.modalStyle;
-            script.data-config-load-strategy = snipcart.loadStrategy;
+            script.dataApiKey = snipcart.publicApiKey;
+            script.dataConfigModalStyle = snipcart.modalStyle;
+            script.dataConfigLoadStrategy = snipcart.loadStrategy;
             if (snipcart.templatesUrl) script.setAttribute('data-templates-url', snipcart.templatesUrl);
             head.appendChild(script);
             log('Added Snipcart script');
