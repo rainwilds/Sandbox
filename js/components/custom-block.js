@@ -764,13 +764,8 @@ class CustomBlock extends HTMLElement {
         mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass);
         if (attrs.effects) mainDivClassList.push(attrs.effects);
         blockElement.className = mainDivClassList.filter(cls => cls).join(' ').trim();
-        if (attrs.styleAttribute && !isFallback) {
-            let outerStyles = attrs.styleAttribute;
-            const paddingRegex = /(padding[^:]*:[^;]+;)/gi;
-            const paddingMatches = outerStyles.match(paddingRegex) || [];
-            const paddingStyles = paddingMatches.join(' ').trim();
-            outerStyles = outerStyles.replace(paddingRegex, '').trim();
-            if (outerStyles) blockElement.setAttribute('style', outerStyles);
+        if (attrs.styleAttribute && !isFallback && !attrs.styleAttribute.includes('padding')) {
+            blockElement.setAttribute('style', attrs.styleAttribute); // Skip padding regex if no explicit padding
         }
         if (!isFallback && (hasPrimaryImage || hasVideoPrimary)) {
             blockElement.setAttribute('data-primary-position', attrs.primaryPosition);
@@ -788,7 +783,7 @@ class CustomBlock extends HTMLElement {
                     lightPoster: attrs.videoBackgroundLightPoster,
                     darkPoster: attrs.videoBackgroundDarkPoster,
                     alt: attrs.videoBackgroundAlt,
-                    customClasses: attrs.customClasses,
+                    customClasses: '', // Prevent class leaks
                     extraClasses: [],
                     loading: attrs.videoBackgroundLoading,
                     autoplay: attrs.videoBackgroundAutoplay,
@@ -813,7 +808,7 @@ class CustomBlock extends HTMLElement {
                         lightAlt: attrs.backgroundLightAlt,
                         darkAlt: attrs.backgroundDarkAlt,
                         isDecorative: attrs.backgroundIsDecorative,
-                        customClasses: attrs.customClasses,
+                        customClasses: '', // Prevent class leaks
                         loading: attrs.backgroundLoading,
                         fetchPriority: attrs.backgroundFetchPriority,
                         extraClasses: [],
@@ -1009,7 +1004,7 @@ class CustomBlock extends HTMLElement {
                     lightPoster: attrs.videoBackgroundLightPoster,
                     darkPoster: attrs.videoBackgroundDarkPoster,
                     alt: attrs.videoBackgroundAlt,
-                    customClasses: attrs.customClasses,
+                    customClasses: '', // Prevent class leaks
                     extraClasses: [],
                     loading: attrs.videoBackgroundLoading,
                     autoplay: attrs.videoBackgroundAutoplay,
@@ -1031,7 +1026,7 @@ class CustomBlock extends HTMLElement {
                         lightAlt: attrs.backgroundLightAlt,
                         darkAlt: attrs.backgroundDarkAlt,
                         isDecorative: attrs.backgroundIsDecorative,
-                        customClasses: attrs.customClasses,
+                        customClasses: '', // Prevent class leaks
                         loading: attrs.backgroundLoading,
                         fetchPriority: attrs.backgroundFetchPriority,
                         extraClasses: [],
@@ -1076,7 +1071,7 @@ class CustomBlock extends HTMLElement {
                         darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
                         alt: attrs.primaryAlt,
                         isDecorative: attrs.primaryIsDecorative,
-                        customClasses: attrs.customClasses,
+                        customClasses: '', // Prevent class leaks
                         loading: attrs.primaryLoading,
                         fetchPriority: attrs.primaryFetchPriority,
                         extraClasses: [],
@@ -1095,7 +1090,7 @@ class CustomBlock extends HTMLElement {
                         lightPoster: attrs.videoPrimaryLightPoster,
                         darkPoster: attrs.videoPrimaryDarkPoster,
                         alt: attrs.videoPrimaryAlt,
-                        customClasses: attrs.customClasses,
+                        customClasses: '', // Prevent class leaks
                         extraClasses: [],
                         loading: attrs.videoPrimaryLoading,
                         autoplay: attrs.videoPrimaryAutoplay,
@@ -1123,7 +1118,7 @@ class CustomBlock extends HTMLElement {
                         darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
                         alt: attrs.primaryAlt,
                         isDecorative: attrs.primaryIsDecorative,
-                        customClasses: attrs.customClasses,
+                        customClasses: '', // Prevent class leaks
                         loading: attrs.primaryLoading,
                         fetchPriority: attrs.primaryFetchPriority,
                         extraClasses: [],
@@ -1142,7 +1137,7 @@ class CustomBlock extends HTMLElement {
                         lightPoster: attrs.videoPrimaryLightPoster,
                         darkPoster: attrs.videoPrimaryDarkPoster,
                         alt: attrs.videoPrimaryAlt,
-                        customClasses: attrs.customClasses,
+                        customClasses: '', // Prevent class leaks
                         extraClasses: [],
                         loading: attrs.videoPrimaryLoading,
                         autoplay: attrs.videoPrimaryAutoplay,
@@ -1171,7 +1166,7 @@ class CustomBlock extends HTMLElement {
                         darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
                         alt: attrs.primaryAlt,
                         isDecorative: attrs.primaryIsDecorative,
-                        customClasses: attrs.customClasses,
+                        customClasses: '', // Prevent class leaks
                         loading: attrs.primaryLoading,
                         fetchPriority: attrs.primaryFetchPriority,
                         extraClasses: [],
@@ -1190,7 +1185,7 @@ class CustomBlock extends HTMLElement {
                         lightPoster: attrs.videoPrimaryLightPoster,
                         darkPoster: attrs.videoPrimaryDarkPoster,
                         alt: attrs.videoPrimaryAlt,
-                        customClasses: attrs.customClasses,
+                        customClasses: '', // Prevent class leaks
                         extraClasses: [],
                         loading: attrs.videoPrimaryLoading,
                         autoplay: attrs.videoPrimaryAutoplay,
@@ -1220,7 +1215,7 @@ class CustomBlock extends HTMLElement {
                         darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
                         alt: attrs.primaryAlt,
                         isDecorative: attrs.primaryIsDecorative,
-                        customClasses: attrs.customClasses,
+                        customClasses: '', // Prevent class leaks
                         loading: attrs.primaryLoading,
                         fetchPriority: attrs.primaryFetchPriority,
                         extraClasses: [],
@@ -1239,7 +1234,7 @@ class CustomBlock extends HTMLElement {
                         lightPoster: attrs.videoPrimaryLightPoster,
                         darkPoster: attrs.videoPrimaryDarkPoster,
                         alt: attrs.videoPrimaryAlt,
-                        customClasses: attrs.customClasses,
+                        customClasses: '', // Prevent class leaks
                         extraClasses: [],
                         loading: attrs.videoPrimaryLoading,
                         autoplay: attrs.videoPrimaryAutoplay,
