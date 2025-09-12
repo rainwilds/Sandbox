@@ -17,7 +17,7 @@ class CustomBlock extends HTMLElement {
         CustomBlock.#observedInstances.add(this);
     }
 
-    // Static properties for shared IntersectionObserver
+    // Static properties for shared IntersectionObserver and render cache
     static #observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -33,6 +33,7 @@ class CustomBlock extends HTMLElement {
     }, { rootMargin: '50px' });
 
     static #observedInstances = new WeakSet();
+    static #renderCacheMap = new WeakMap(); // Added missing declaration
 
     // Constants for responsive image generation
     static #WIDTHS = [768, 1024, 1366, 1920, 2560];
