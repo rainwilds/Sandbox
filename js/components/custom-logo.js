@@ -73,11 +73,11 @@ class CustomLogo extends HTMLElement {
         if (picture) {
             const img = picture.querySelector('img');
             const isDark = CustomLogo.#prefersColorScheme.matches;
-            // Update src based on theme
             const attrs = this.getAttributes();
             const activeSrc = isDark ? (attrs.fullDarkSrc || attrs.iconDarkSrc || attrs.fullSrc || attrs.iconSrc) : (attrs.fullLightSrc || attrs.iconLightSrc || attrs.fullSrc || attrs.iconSrc);
             if (img && img.src !== activeSrc) {
                 img.src = activeSrc;
+                console.log('Theme changed, updating logo src to:', activeSrc);
             }
         }
     }
@@ -85,10 +85,9 @@ class CustomLogo extends HTMLElement {
     updateSize() {
         if (!this.isInitialized) return;
         const height = this.getAttribute('logo-height');
-        const img = this.querySelector('img');
-        if (img && height) {
-            img.style.height = height;
-            img.style.width = 'auto';
+        const logoDiv = this.querySelector('div');
+        if (logoDiv && height) {
+            logoDiv.style.height = height;
         }
     }
 
