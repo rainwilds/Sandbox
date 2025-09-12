@@ -22,30 +22,30 @@
         font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' }
     };
 
-// Function to fetch and cache setup.json
-async function fetchSetup() {
-    if (setupCache) {
-        log('Using cached setup.json');
-        return setupCache;
-    }
-    try {
-        const response = await fetch('./JSON/setup.json', { cache: 'force-cache' });
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
-        // Pre-validate JSON text for common issues (e.g., trailing chars)
-        const jsonText = await response.text();
-        if (!jsonText.trim().endsWith('}')) {
-            throw new Error('Malformed JSON: Missing closing brace or trailing content');
+    // Function to fetch and cache setup.json
+    async function fetchSetup() {
+        if (setupCache) {
+            log('Using cached setup.json');
+            return setupCache;
         }
-        
-        setupCache = JSON.parse(jsonText);  // Explicit parse for better error context
-        log('Loaded setup.json: ' + JSON.stringify(setupCache, null, 2));
-        return setupCache;
-    } catch (error) {
-        console.error('Failed to load setup.json:', error);
-        return defaultSetup;
+        try {
+            const response = await fetch('./JSON/setup.json', { cache: 'force-cache' });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+            // Pre-validate JSON text for common issues (e.g., trailing chars)
+            const jsonText = await response.text();
+            if (!jsonText.trim().endsWith('}')) {
+                throw new Error('Malformed JSON: Missing closing brace or trailing content');
+            }
+
+            setupCache = JSON.parse(jsonText);  // Explicit parse for better error context
+            log('Loaded setup.json: ' + JSON.stringify(setupCache, null, 2));
+            return setupCache;
+        } catch (error) {
+            console.error('Failed to load setup.json:', error);
+            return defaultSetup;
+        }
     }
-}
 
     // Function to load components in parallel
     async function loadComponents(components) {
@@ -98,13 +98,17 @@ async function fetchSetup() {
         head.appendChild(styleLink);
         log('Applied stylesheet: ./styles.css');
 
-        // Font Awesome
-        if (setup.font_awesome?.kitUrl) {
+        // Font Awesome (align to kit_url from JSON)
+        const faKitUrl = setup.font_awesome?.kit_url || setup.font_awesome?.kitUrl || 'https://kit.fontawesome.com/85d1e578b1.js'; // Flexible key + fallback
+        if (faKitUrl) {
             const script = document.createElement('script');
-            script.src = setup.font_awesome.kitUrl;
+            script.src = faKitUrl;
             script.crossOrigin = 'anonymous';
+            script.async = true; // Non-blocking
             head.appendChild(script);
-            log(`Added Font Awesome Kit script: ${setup.font_awesome.kitUrl}`);
+            log(`Added Font Awesome Kit script: ${faKitUrl}`);
+        } else {
+            console.warn('No Font Awesome kit URL found; icons may not load');
         }
 
         // Meta tags (guard dynamic content)
