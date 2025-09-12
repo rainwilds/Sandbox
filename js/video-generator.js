@@ -21,12 +21,19 @@ export function generateVideoMarkup({
 } = {}) {
   const classList = [customClasses, ...extraClasses].filter(cls => cls).join(' ').trim();
   const videoId = `custom-video-${Math.random().toString(36).substring(2, 11)}`;
-  const isMuted = (autoplay || muted) ? 'muted' : ''; // Ensure muted for autoplay
+  const isMuted = (autoplay || muted) ? 'muted' : '';
   const posterAttr = poster ? `poster="${poster}"` : '';
+  const dataAttrs = [
+    lightPoster ? `data-light-poster="${lightPoster}"` : '',
+    darkPoster ? `data-dark-poster="${darkPoster}"` : '',
+    lightSrc ? `data-light-src="${lightSrc}"` : '',
+    darkSrc ? `data-dark-src="${darkSrc}"` : '',
+    src ? `data-default-src="${src}"` : ''
+  ].filter(Boolean).join(' ');
 
   const innerHTML = generateVideoSources({ src, lightSrc, darkSrc });
 
-  let videoMarkup = `
+  return `
     <video
       id="${videoId}"
       ${autoplay ? 'autoplay' : ''}
@@ -40,32 +47,20 @@ export function generateVideoMarkup({
       class="${classList}"
       title="${alt}"
       aria-label="${alt}"
-      ${posterAttr}>
+      ${posterAttr}
+      ${dataAttrs}>
       ${innerHTML}
     </video>
   `;
-
-  if (lightSrc || darkSrc || lightPoster || darkPoster) {
-    // Add data attrs for shared global handler (avoids per-video script bloat)
-    const dataAttrs = [
-      lightPoster ? `data-light-poster="${lightPoster}"` : '',
-      darkPoster ? `data-dark-poster="${darkPoster}"` : '',
-      lightSrc ? `data-light-src="${lightSrc}"` : '',
-      darkSrc ? `data-dark-src="${darkSrc}"` : '',
-      src ? `data-default-src="${src}"` : ''
-    ].filter(Boolean).join(' ');
-    videoMarkup = videoMarkup.replace('<video', `<video ${dataAttrs}`);
-  }
-
-  return videoMarkup;
 }
 
 export function generateVideoSources({ src = '', lightSrc = '', darkSrc = '', validExtensions = VALID_VIDEO_EXTENSIONS }) {
   const addSourcesHTML = (videoSrc, mediaQuery) => {
     if (!videoSrc) return '';
     const ext = videoSrc.split('.').pop()?.toLowerCase();
+    console.log('Video source:', videoSrc, 'Extension:', ext, 'Valid:', validExtensions); // Debug
     if (!ext || !validExtensions.includes(ext)) {
-      console.warn(`Invalid video file extension: ${videoSrc}`);
+      console.warn(`Invalid video file extension: ${videoSrc}. Expected: ${validExtensions.join(', ')}`);
       return '';
     }
     const baseSrc = videoSrc.slice(0, -(ext.length + 1));
@@ -84,9 +79,8 @@ export function generateVideoSources({ src = '', lightSrc = '', darkSrc = '', va
   return innerHTML;
 }
 
-// Shared global handler for theme switching and lazy autoplay (one listener for all videos)
+// Shared global handler for theme switching and lazy autoplay
 if (typeof window !== 'undefined') {
-  // Theme update function
   const updateVideos = () => {
     document.querySelectorAll('video[id^="custom-video"]').forEach(video => {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -102,13 +96,12 @@ if (typeof window !== 'undefined') {
       }
 
       const activeSrc = prefersDark ? (darkSrc || lightSrc) : (lightSrc || darkSrc);
-      if (activeSrc && video.currentSrc.indexOf(activeSrc) === -1) {
+      if (activeSrc && !video.currentSrc.includes(activeSrc)) {
         const wasPlaying = !video.paused;
         const currentTime = video.currentTime;
         while (video.firstChild) video.removeChild(video.firstChild);
-        if (lightSrc) generateVideoSources({ lightSrc, validExtensions: VALID_VIDEO_EXTENSIONS });
-        if (darkSrc) generateVideoSources({ darkSrc, validExtensions: VALID_VIDEO_EXTENSIONS });
-        generateVideoSources({ src: defaultSrc, validExtensions: VALID_VIDEO_EXTENSIONS });
+        const innerHTML = generateVideoSources({ lightSrc, darkSrc, src: defaultSrc });
+        video.innerHTML = innerHTML;
         video.load();
         video.currentTime = currentTime;
         if (wasPlaying) video.play().catch(() => console.warn('Auto-play failed after theme change'));
@@ -116,7 +109,6 @@ if (typeof window !== 'undefined') {
     });
   };
 
-  // Lazy autoplay observer (expanded to all autoplay videos)
   const lazyAutoplayObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -133,6 +125,5 @@ if (typeof window !== 'undefined') {
     });
   });
 
-  // Theme change listener
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateVideos);
 }
