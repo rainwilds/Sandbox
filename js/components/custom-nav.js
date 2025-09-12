@@ -1,200 +1,236 @@
-/* global document, window, console, fetch, Promise */
-(async () => {
-    const log = (message) => console.log(`[HeadGenerator] ${new Date().toLocaleTimeString()} ${message}`);
+/* global HTMLElement, document, window, matchMedia, console */
+import { BACKDROP_FILTER_MAP, VALID_ALIGNMENTS, alignMap } from '../shared.js';
 
-    // Cache for setup.json
-    let setupCache = null;
+console.log('Successfully imported BACKDROP_FILTER_MAP and alignMap');
 
-    // Default setup configuration
-    const defaultSetup = {
-        fonts: [],
-        general: {
-            title: 'Default Title',
-            description: 'Default Description',
-            canonical: window.location.href,
-            themeColor: '#000000',
-            ogLocale: 'en_US',
-            ogType: 'website',
-            siteName: 'Site Name'
-        },
-        business: {},
-        font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' }
+class CustomNav extends HTMLElement {
+    constructor() {
+        super();
+        this.isInitialized = false;
+        CustomNav.#instances.add(this);
+    }
+
+    // Static properties for shared listeners
+    static #instances = new WeakSet();
+    static #toggleListener = (event) => {
+        const button = event.target.closest('button[aria-controls="nav-menu"]');
+        if (!button) return;
+        const nav = button.closest('custom-nav') || Array.from(CustomNav.#instances).find(el => el.contains(button));
+        if (nav instanceof CustomNav) {
+            nav.toggleMenu(button);
+        }
     };
 
-    // Function to fetch and cache setup.json
-    async function fetchSetup() {
-        if (setupCache) {
-            log('Using cached setup.json');
-            return setupCache;
+    static #mediaQuery = matchMedia('(max-width: 768px)');
+    static #mediaQueryListener = () => {
+        CustomNav.#instances.forEach(instance => {
+            if (instance.isInitialized) {
+                instance.updateOrientation();
+            }
+        });
+    };
+
+    static {
+        document.addEventListener('click', CustomNav.#toggleListener);
+        CustomNav.#mediaQuery.addEventListener('change', CustomNav.#mediaQueryListener);
+    }
+
+    connectedCallback() {
+        if (!this.isInitialized) {
+            this.initialize();
         }
+    }
+
+    disconnectedCallback() {
+        CustomNav.#instances.delete(this);
+    }
+
+    initialize() {
+        if (this.isInitialized) return;
+        console.log('** CustomNav start...', this.outerHTML);
+        this.isInitialized = true;
         try {
-            const response = await fetch('./JSON/setup.json', { cache: 'force-cache' });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            setupCache = await response.json();
-            log('Loaded setup.json: ' + JSON.stringify(setupCache, null, 2));
-            return setupCache;
+            const navElement = this.render();
+            if (navElement) {
+                this.replaceWith(navElement);
+            } else {
+                console.error('Failed to render CustomNav: navElement is null.', this.outerHTML);
+                this.replaceWith(this.render(true));
+            }
         } catch (error) {
-            console.error('Failed to load setup.json:', error);
-            return defaultSetup;
+            console.error('Error initializing CustomNav:', error, this.outerHTML);
+            this.replaceWith(this.render(true));
+        }
+        console.log('** CustomNav end...');
+    }
+
+    toggleMenu(button) {
+        const menu = this.querySelector('#nav-menu');
+        if (!menu) return;
+        const isExpanded = button.getAttribute('aria-expanded') === 'true';
+        button.setAttribute('aria-expanded', !isExpanded);
+        menu.style.display = isExpanded ? 'none' : 'block';
+        console.log('Toggled menu:', { isExpanded: !isExpanded });
+    }
+
+    updateOrientation() {
+        const isMobile = CustomNav.#mediaQuery.matches;
+        const attrs = this.getAttributes();
+        const nav = this.querySelector('nav');
+        if (nav) {
+            nav.className = isMobile ? 'nav-vertical' : `nav-${attrs.orientation}`;
+            console.log('Updated orientation:', { isMobile, orientation: attrs.orientation });
         }
     }
 
-    // Function to load components in parallel
-    async function loadComponents(components) {
-        const componentImports = components.split(' ').map(async (component) => {
-            try {
-                const module = await import(`./components/${component}.js`);
-                log(`Loaded module: ./components/${component}.js`);
-                return module;
-            } catch (error) {
-                console.error(`Failed to load component ${component}:`, error);
-                return null;
+    getAttributes() {
+        const navData = this.getAttribute('nav') || '[]';
+        let links;
+        try {
+            links = JSON.parse(navData);
+        } catch (error) {
+            console.error(`Invalid nav JSON in <custom-nav>: ${navData}`, error);
+            links = [];
+        }
+
+        const position = this.getAttribute('nav-position') || 'center';
+        if (!VALID_ALIGNMENTS.includes(position)) {
+            console.warn(`Invalid nav-position "${position}" in <custom-nav>. Must be one of ${VALID_ALIGNMENTS.join(', ')}. Using default 'center'.`);
+        }
+
+        const orientation = this.getAttribute('nav-orientation') || 'horizontal';
+        const validOrientations = ['horizontal', 'vertical'];
+        if (!validOrientations.includes(orientation)) {
+            console.warn(`Invalid nav-orientation "${orientation}" in <custom-nav>. Must be one of ${validOrientations.join(', ')}. Using default 'horizontal'.`);
+        }
+
+        const containerStyle = this.getAttribute('nav-container-style') || '';
+        let sanitizedContainerStyle = '';
+        if (containerStyle) {
+            const allowedStyles = ['display', 'justify-content', 'align-items', 'height', 'width', 'padding', 'margin'];
+            const styleParts = containerStyle.split(';').map(s => s.trim()).filter(s => s);
+            sanitizedContainerStyle = styleParts.filter(part => {
+                const [property] = part.split(':').map(s => s.trim());
+                return allowedStyles.includes(property);
+            }).join('; ');
+            if (sanitizedContainerStyle !== containerStyle) {
+                console.warn(`Invalid nav-container-style "${containerStyle}" in <custom-nav>. Using sanitized: "${sanitizedContainerStyle}".`);
             }
-        });
-        return Promise.all(componentImports);
-    }
-
-    // Function to create and append DOM elements asynchronously
-    async function updateHead(attributes) {
-        log('manageHead called with attributes: ' + JSON.stringify(attributes, null, 2));
-        const head = document.head;
-
-        // Fonts
-        const setup = await fetchSetup();
-        setup.fonts.forEach(font => {
-            const link = document.createElement('link');
-            link.rel = 'preload';
-            link.href = font.url;
-            link.as = 'font';
-            link.type = 'font/woff2';
-            link.crossOrigin = 'anonymous';
-            head.appendChild(link);
-            log(`Added font preload: ${font.url}`);
-        });
-
-        // Stylesheet
-        const styleLink = document.createElement('link');
-        styleLink.rel = 'stylesheet';
-        styleLink.href = './styles.css';
-        head.appendChild(styleLink);
-        log('Applied stylesheet: ./styles.css');
-
-        // Font Awesome
-        if (setup.font_awesome?.kitUrl) {
-            const script = document.createElement('script');
-            script.src = setup.font_awesome.kitUrl;
-            script.crossOrigin = 'anonymous';
-            head.appendChild(script);
-            log(`Added Font Awesome Kit script: ${setup.font_awesome.kitUrl}`);
         }
 
-        // Meta tags
-        const metaTags = [
-            { name: 'robots', content: 'index, follow' },
-            { name: 'title', content: attributes.title || setup.general.title },
-            { name: 'author', content: setup.business.author || 'Author' },
-            { name: 'description', content: attributes.description || setup.general.description },
-            { name: 'og:locale', content: attributes['og-locale'] || setup.general.ogLocale },
-            { name: 'og:url', content: attributes.canonical || setup.general.canonical },
-            { name: 'og:type', content: attributes['og-type'] || setup.general.ogType },
-            { name: 'og:title', content: attributes.title || setup.general.title },
-            { name: 'og:description', content: attributes.description || setup.general.description },
-            { name: 'og:image', content: attributes['og-image'] || setup.general.ogImage || '' },
-            { name: 'og:site_name', content: attributes['site-name'] || setup.general.siteName },
-            { name: 'x:card', content: attributes['x-card'] || 'summary_large_image' },
-            { name: 'x:domain', content: attributes['x-domain'] || window.location.hostname },
-            { name: 'x:url', content: attributes.canonical || setup.general.canonical },
-            { name: 'x:title', content: attributes.title || setup.general.title },
-            { name: 'x:description', content: attributes.description || setup.general.description },
-            { name: 'x:image', content: attributes['x-image'] || setup.general.ogImage || '' }
-        ];
-
-        metaTags.forEach(({ name, content }) => {
-            if (content) {
-                const meta = document.createElement('meta');
-                if (name.startsWith('og:')) meta.setAttribute('property', name);
-                else meta.name = name;
-                meta.content = content;
-                head.appendChild(meta);
-                log(`Added ${name} meta with content: ${content}`);
+        let toggleIcon = this.getAttribute('nav-toggle-icon') || '';
+        if (toggleIcon) {
+            toggleIcon = toggleIcon.replace(/['"]/g, '&quot;');
+            const parser = new DOMParser();
+            const decodedIcon = toggleIcon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+            const doc = parser.parseFromString(decodedIcon, 'text/html');
+            const iElement = doc.body.querySelector('i');
+            if (!iElement || !iElement.className.includes('fa-')) {
+                console.warn(`Invalid nav-toggle-icon in <custom-nav>. Must be a valid Font Awesome <i> tag. Using default.`);
+                toggleIcon = '<i class="fa-chisel fa-regular fa-bars"></i>';
+            } else {
+                const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
+                toggleIcon = `<i class="${validClasses.join(' ')}"></i>`;
             }
-        });
-
-        // Canonical link
-        if (attributes.canonical || setup.general.canonical) {
-            const link = document.createElement('link');
-            link.rel = 'canonical';
-            link.href = attributes.canonical || setup.general.canonical;
-            head.appendChild(link);
-            log('Added canonical link');
+        } else {
+            toggleIcon = '<i class="fa-chisel fa-regular fa-bars"></i>';
         }
 
-        // Theme color
-        if (attributes['theme-color'] || setup.general.themeColor) {
-            const meta = document.createElement('meta');
-            meta.name = 'theme-color';
-            meta.content = attributes['theme-color'] || setup.general.themeColor;
-            head.appendChild(meta);
-            log(`Updated theme-color: ${meta.content}`);
+        return {
+            links,
+            position: VALID_ALIGNMENTS.includes(position) ? position : 'center',
+            orientation: validOrientations.includes(orientation) ? orientation : 'horizontal',
+            style: this.getAttribute('nav-style') || '',
+            containerStyle: sanitizedContainerStyle,
+            toggleIcon,
+            ariaLabel: this.getAttribute('nav-aria-label') || 'Navigation'
+        };
+    }
+
+    render(isFallback = false) {
+        const attrs = isFallback ? {
+            links: [],
+            position: 'center',
+            orientation: 'horizontal',
+            style: '',
+            containerStyle: '',
+            toggleIcon: '<i class="fa-chisel fa-regular fa-bars"></i>',
+            ariaLabel: 'Navigation'
+        } : this.getAttributes();
+
+        // Create DocumentFragment for efficient DOM construction
+        const fragment = document.createDocumentFragment();
+        const containerDiv = document.createElement('div');
+        containerDiv.className = `place-self-${attrs.position}`;
+        if (attrs.containerStyle) containerDiv.setAttribute('style', attrs.containerStyle);
+        fragment.appendChild(containerDiv);
+
+        const navElement = document.createElement('nav');
+        navElement.setAttribute('aria-label', attrs.ariaLabel);
+        navElement.className = CustomNav.#mediaQuery.matches ? 'nav-vertical' : `nav-${attrs.orientation}`;
+        if (attrs.style) navElement.setAttribute('style', attrs.style);
+        containerDiv.appendChild(navElement);
+
+        const toggleButton = document.createElement('button');
+        toggleButton.setAttribute('aria-expanded', 'false');
+        toggleButton.setAttribute('aria-controls', 'nav-menu');
+        toggleButton.setAttribute('aria-label', 'Toggle navigation');
+        const iconSpan = document.createElement('span');
+        iconSpan.className = 'hamburger-icon';
+        iconSpan.innerHTML = attrs.toggleIcon;
+        toggleButton.appendChild(iconSpan);
+        navElement.appendChild(toggleButton);
+
+        const ulElement = document.createElement('ul');
+        ulElement.className = 'nav-links';
+        ulElement.id = 'nav-menu';
+        navElement.appendChild(ulElement);
+
+        if (attrs.links.length) {
+            attrs.links.forEach(link => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.href = link.href || '#';
+                a.textContent = link.text || '';
+                li.appendChild(a);
+                ulElement.appendChild(li);
+            });
+        } else if (isFallback) {
+            const li = document.createElement('li');
+            li.textContent = 'No navigation links provided';
+            ulElement.appendChild(li);
         }
 
-        // JSON-LD schema
-        if (attributes['json-ld'] || setup.general.jsonLd) {
-            const script = document.createElement('script');
-            script.type = 'application/ld+json';
-            script.textContent = JSON.stringify(attributes['json-ld'] || setup.general.jsonLd || {});
-            head.appendChild(script);
-            log('Added JSON-LD schema');
-        }
+        return containerDiv;
+    }
 
-        // Favicons
-        const favicons = [
-            { rel: 'apple-touch-icon', href: './img/icons/apple-touch-icon.png', sizes: '' },
-            { rel: 'icon', href: './img/icons/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
-            { rel: 'icon', href: './img/icons/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-            { rel: 'icon', href: './img/icons/favicon.ico', sizes: '', type: 'image/x-icon' }
+    static get observedAttributes() {
+        return [
+            'nav',
+            'nav-position',
+            'nav-orientation',
+            'nav-style',
+            'nav-container-style',
+            'nav-toggle-icon',
+            'nav-aria-label'
         ];
-
-        favicons.forEach(({ rel, href, sizes, type }) => {
-            const link = document.createElement('link');
-            link.rel = rel;
-            link.href = href;
-            if (sizes) link.sizes = sizes;
-            if (type) link.type = type;
-            head.appendChild(link);
-            log(`Added favicon: ${href}`);
-        });
     }
 
-    // Main execution
-    try {
-        const customHead = document.querySelector('data-custom-head');
-        if (!customHead) {
-            log('No data-custom-head element found');
-            return;
+    attributeChangedCallback() {
+        if (this.isInitialized) {
+            this.initialize();
         }
-
-        log(`Found data-custom-head elements: ${document.querySelectorAll('data-custom-head').length}`);
-
-        // Gather attributes from data-custom-head
-        const attributes = {};
-        for (const attr of customHead.attributes) {
-            attributes[attr.name.replace(/^data-/, '')] = attr.value;
-        }
-        log('Merged attributes: ' + JSON.stringify(attributes, null, 2));
-
-        // Load components in parallel
-        if (attributes.components) {
-            await loadComponents(attributes.components);
-        }
-
-        // Update head
-        await updateHead(attributes);
-
-        // Remove data-custom-head element
-        customHead.remove();
-        log('Removed data-custom-head element');
-    } catch (error) {
-        console.error('Error in HeadGenerator:', error);
     }
-})();
+}
+
+try {
+    if (!customElements.get('custom-nav')) {
+        customElements.define('custom-nav', CustomNav);
+        console.log('CustomNav defined successfully');
+    }
+    document.querySelectorAll('custom-nav').forEach(element => {
+        customElements.upgrade(element);
+    });
+} catch (error) {
+    console.error('Error defining CustomNav element:', error);
+}

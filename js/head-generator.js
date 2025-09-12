@@ -18,7 +18,7 @@
             siteName: 'Site Name'
         },
         business: {},
-        font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' }
+        font_awesome: { kit_url: 'https://kit.fontawesome.com/85d1e578b1.js' }
     };
 
     // Function to fetch and cache setup.json
@@ -62,14 +62,16 @@
         // Fonts
         const setup = await fetchSetup();
         setup.fonts.forEach(font => {
-            const link = document.createElement('link');
-            link.rel = 'preload';
-            link.href = font.url;
-            link.as = 'font';
-            link.type = 'font/woff2';
-            link.crossOrigin = 'anonymous';
-            head.appendChild(link);
-            log(`Added font preload: ${font.url}`);
+            if (font.href) {
+                const link = document.createElement('link');
+                link.rel = 'preload';
+                link.href = font.href;
+                link.as = font.as || 'font';
+                link.type = font.type || 'font/woff2';
+                link.crossOrigin = font.crossorigin || 'anonymous';
+                head.appendChild(link);
+                log(`Added font preload: ${font.href}`);
+            }
         });
 
         // Stylesheet
@@ -80,33 +82,33 @@
         log('Applied stylesheet: ./styles.css');
 
         // Font Awesome
-        if (setup.font_awesome?.kitUrl) {
+        if (setup.font_awesome?.kit_url) {
             const script = document.createElement('script');
-            script.src = setup.font_awesome.kitUrl;
+            script.src = setup.font_awesome.kit_url;
             script.crossOrigin = 'anonymous';
             head.appendChild(script);
-            log(`Added Font Awesome Kit script: ${setup.font_awesome.kitUrl}`);
+            log(`Added Font Awesome Kit script: ${setup.font_awesome.kit_url}`);
         }
 
         // Meta tags
         const metaTags = [
-            { name: 'robots', content: 'index, follow' },
+            { name: 'robots', content: attributes.robots || setup.general.robots || 'index, follow' },
             { name: 'title', content: attributes.title || setup.general.title },
-            { name: 'author', content: setup.business.author || 'Author' },
+            { name: 'author', content: attributes.author || setup.business.author || 'Author' },
             { name: 'description', content: attributes.description || setup.general.description },
-            { name: 'og:locale', content: attributes['og-locale'] || setup.general.ogLocale },
+            { name: 'og:locale', content: attributes['og-locale'] || setup.general.og?.locale || 'en_AU' },
             { name: 'og:url', content: attributes.canonical || setup.general.canonical },
-            { name: 'og:type', content: attributes['og-type'] || setup.general.ogType },
+            { name: 'og:type', content: attributes['og-type'] || setup.general.ogType || 'website' },
             { name: 'og:title', content: attributes.title || setup.general.title },
             { name: 'og:description', content: attributes.description || setup.general.description },
-            { name: 'og:image', content: attributes['og-image'] || setup.general.ogImage || '' },
-            { name: 'og:site_name', content: attributes['site-name'] || setup.general.siteName },
-            { name: 'x:card', content: attributes['x-card'] || 'summary_large_image' },
-            { name: 'x:domain', content: attributes['x-domain'] || window.location.hostname },
+            { name: 'og:image', content: attributes['og-image'] || setup.business.image || '' },
+            { name: 'og:site_name', content: attributes['site-name'] || setup.general.og?.site_name || 'Behive' },
+            { name: 'x:card', content: attributes['x-card'] || setup.general.x?.card || 'summary_large_image' },
+            { name: 'x:domain', content: attributes['x-domain'] || setup.general.x?.domain || window.location.hostname },
             { name: 'x:url', content: attributes.canonical || setup.general.canonical },
             { name: 'x:title', content: attributes.title || setup.general.title },
             { name: 'x:description', content: attributes.description || setup.general.description },
-            { name: 'x:image', content: attributes['x-image'] || setup.general.ogImage || '' }
+            { name: 'x:image', content: attributes['x-image'] || setup.business.image || '' }
         ];
 
         metaTags.forEach(({ name, content }) => {
@@ -130,35 +132,42 @@
         }
 
         // Theme color
-        if (attributes['theme-color'] || setup.general.themeColor) {
+        if (attributes['theme-color'] || setup.general.theme_colors) {
             const meta = document.createElement('meta');
             meta.name = 'theme-color';
-            meta.content = attributes['theme-color'] || setup.general.themeColor;
+            meta.content = attributes['theme-color'] || setup.general.theme_colors?.dark || '#141b32';
             head.appendChild(meta);
             log(`Updated theme-color: ${meta.content}`);
         }
 
         // JSON-LD schema
-        if (attributes['json-ld'] || setup.general.jsonLd) {
+        if (attributes['json-ld'] || setup.business) {
             const script = document.createElement('script');
             script.type = 'application/ld+json';
-            script.textContent = JSON.stringify(attributes['json-ld'] || setup.general.jsonLd || {});
+            script.textContent = JSON.stringify(attributes['json-ld'] || {
+                "@context": "http://schema.org",
+                "@type": "Organization",
+                name: setup.business.name || 'Behive',
+                url: setup.business.url || window.location.origin,
+                logo: setup.business.logo || '',
+                sameAs: setup.business.sameAs || []
+            });
             head.appendChild(script);
             log('Added JSON-LD schema');
         }
 
         // Favicons
-        const favicons = [
-            { rel: 'apple-touch-icon', href: './img/icons/apple-touch-icon.png', sizes: '' },
+        const favicons = setup.general.favicons || [
+            { rel: 'apple-touch-icon', href: './img/icons/apple-touch-icon.png', sizes: '180x180' },
             { rel: 'icon', href: './img/icons/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
             { rel: 'icon', href: './img/icons/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
-            { rel: 'icon', href: './img/icons/favicon.ico', sizes: '', type: 'image/x-icon' }
+            { rel: 'icon', href: './img/icons/favicon.ico', type: 'image/x-icon' }
         ];
 
         favicons.forEach(({ rel, href, sizes, type }) => {
             const link = document.createElement('link');
             link.rel = rel;
-            link.href = href;
+            link.href = href.replace('.../', './');
             if (sizes) link.sizes = sizes;
             if (type) link.type = type;
             head.appendChild(link);
