@@ -11,14 +11,12 @@ class CustomBlock extends HTMLElement {
         this.callbacks = [];
         this.renderCache = null;
         this.lastAttributes = null;
-        this.cachedAttributes = null; // Cache for getAttributes()
-        this.criticalAttributesHash = null; // Cache for critical attributes hash
-        // Observe this instance using the shared observer
+        this.cachedAttributes = null;
+        this.criticalAttributesHash = null;
         CustomBlock.#observer.observe(this);
         CustomBlock.#observedInstances.add(this);
     }
 
-    // Static properties for shared IntersectionObserver and render cache
     static #observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -36,7 +34,6 @@ class CustomBlock extends HTMLElement {
     static #observedInstances = new WeakSet();
     static #renderCacheMap = new WeakMap();
 
-    // Constants for responsive image generation
     static #WIDTHS = [768, 1024, 1366, 1920, 2560];
     static #FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
     static #VALID_ASPECT_RATIOS = new Set(['16/9', '9/16', '3/2', '2/3', '1/1', '21/9']);
@@ -50,7 +47,6 @@ class CustomBlock extends HTMLElement {
     static #DEFAULT_SIZE_VALUE = 3840;
     static #BASE_PATH = './img/responsive/';
 
-    // Map for backdrop-filter classes to their CSS values
     static BACKDROP_FILTER_MAP = {
         'backdrop-filter-blur-small': 'blur(var(--blur-small))',
         'backdrop-filter-blur-medium': 'blur(var(--blur-medium))',
@@ -60,7 +56,6 @@ class CustomBlock extends HTMLElement {
         'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))'
     };
 
-    // List of critical attributes that affect rendering
     static #criticalAttributes = [
         'backdrop-filter',
         'background-color',
@@ -151,7 +146,6 @@ class CustomBlock extends HTMLElement {
     ];
 
     getAttributes() {
-        // Return cached attributes if available
         if (this.cachedAttributes) {
             return this.cachedAttributes;
         }
@@ -284,7 +278,6 @@ class CustomBlock extends HTMLElement {
         if ((videoPrimaryLightSrc || videoPrimaryDarkSrc) && !(videoPrimaryLightSrc && videoPrimaryDarkSrc) && !videoPrimarySrc) {
             throw new Error('Both video-primary-light-src and video-primary-dark-src must be present when using light/dark themes, or use video-primary-src alone.');
         }
-        // Validate img-background-position attribute
         const backgroundPosition = this.getAttribute('img-background-position') || '';
         let sanitizedBackgroundPosition = '';
         if (backgroundPosition) {
@@ -303,7 +296,6 @@ class CustomBlock extends HTMLElement {
                 console.warn(`Invalid img-background-position value "${backgroundPosition}" in <custom-block>. Must be a valid position (e.g., "top-left", "50% 100%"). Ignoring.`);
             }
         }
-        // Validate and sanitize icon attribute
         let icon = this.getAttribute('icon') || '';
         if (icon) {
             icon = icon.replace(/['"]/g, '&quot;');
@@ -312,7 +304,7 @@ class CustomBlock extends HTMLElement {
             const doc = parser.parseFromString(decodedIcon, 'text/html');
             const iElement = doc.body.querySelector('i');
             if (!iElement || !iElement.className.includes('fa-')) {
-                console.warn(`Invalid icon attribute in <custom-block>. Must be a valid Font Awesome <i> tag (e.g., '<i class="fa-chisel fa-regular fa-house"></i>'). Ignoring.`);
+                console.warn(`Invalid icon attribute in <custom-block>. Must be a valid Font Awesome <i> tag. Ignoring.`);
                 icon = '';
             } else {
                 const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
@@ -324,7 +316,6 @@ class CustomBlock extends HTMLElement {
                 }
             }
         }
-        // Validate and sanitize icon-style attribute
         const iconStyle = this.getAttribute('icon-style') || '';
         let sanitizedIconStyle = '';
         if (iconStyle) {
@@ -342,7 +333,6 @@ class CustomBlock extends HTMLElement {
                 console.warn(`Invalid or unsafe CSS in icon-style attribute: "${iconStyle}". Using sanitized styles: "${sanitizedIconStyle}".`);
             }
         }
-        // Validate icon-class attribute
         const iconClass = this.getAttribute('icon-class') || '';
         let sanitizedIconClass = '';
         if (iconClass) {
@@ -351,7 +341,6 @@ class CustomBlock extends HTMLElement {
                 console.warn(`Invalid characters in icon-class attribute: "${iconClass}". Using sanitized classes: "${sanitizedIconClass}".`);
             }
         }
-        // Validate icon-size attribute
         const iconSize = this.getAttribute('icon-size') || '';
         let sanitizedIconSize = '';
         if (iconSize) {
@@ -362,7 +351,6 @@ class CustomBlock extends HTMLElement {
                 console.warn(`Invalid icon-size value "${iconSize}" in <custom-block>. Must be a valid rem value (e.g., "2rem"). Ignoring.`);
             }
         }
-        // Validate button-class
         const buttonClass = this.getAttribute('button-class') || '';
         let sanitizedButtonClass = '';
         if (buttonClass) {
@@ -371,7 +359,6 @@ class CustomBlock extends HTMLElement {
                 console.warn(`Invalid characters in button-class attribute: "${buttonClass}". Using sanitized classes: "${sanitizedButtonClass}".`);
             }
         }
-        // Validate button-style
         const buttonStyle = this.getAttribute('button-style') || '';
         let sanitizedButtonStyle = '';
         if (buttonStyle) {
@@ -385,7 +372,6 @@ class CustomBlock extends HTMLElement {
                 console.warn(`Invalid or unsafe CSS in button-style attribute: "${buttonStyle}". Using sanitized styles: "${sanitizedButtonStyle}".`);
             }
         }
-        // Validate button-rel
         const buttonRel = this.getAttribute('button-rel') || '';
         let sanitizedButtonRel = '';
         if (buttonRel) {
@@ -395,7 +381,6 @@ class CustomBlock extends HTMLElement {
                 console.warn(`Invalid button-rel value "${buttonRel}" in <custom-block>. Must be one of ${validRels.join(', ')}. Using sanitized: "${sanitizedButtonRel}".`);
             }
         }
-        // Validate button-type
         const buttonType = this.getAttribute('button-type') || '';
         const buttonHref = this.getAttribute('button-href') || '';
         const validButtonTypes = ['button', 'submit', 'reset'];
@@ -405,7 +390,6 @@ class CustomBlock extends HTMLElement {
         } else if (buttonType) {
             console.warn(`Invalid button-type value "${buttonType}" in <custom-block>. Must be one of ${validButtonTypes.join(', ')}. Using default ${buttonHref ? "'link'" : "'button'"}.`);
         }
-        // Validate button-icon
         let buttonIcon = this.getAttribute('button-icon') || '';
         if (buttonIcon) {
             buttonIcon = buttonIcon.replace(/['"]/g, '&quot;');
@@ -414,7 +398,7 @@ class CustomBlock extends HTMLElement {
             const doc = parser.parseFromString(decodedIcon, 'text/html');
             const iElement = doc.body.querySelector('i');
             if (!iElement || !iElement.className.includes('fa-')) {
-                console.warn(`Invalid button-icon attribute in <custom-block>. Must be a valid Font Awesome <i> tag (e.g., '<i class="fa-chisel fa-regular fa-house"></i>'). Ignoring.`);
+                console.warn(`Invalid button-icon attribute in <custom-block>. Must be a valid Font Awesome <i> tag. Ignoring.`);
                 buttonIcon = '';
             } else {
                 const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
@@ -426,7 +410,6 @@ class CustomBlock extends HTMLElement {
                 }
             }
         }
-        // Validate button-icon-position
         const buttonIconPosition = this.getAttribute('button-icon-position') || '';
         let sanitizedButtonIconPosition = '';
         if (buttonIconPosition) {
@@ -437,7 +420,6 @@ class CustomBlock extends HTMLElement {
                 console.warn(`Invalid button-icon-position value "${buttonIconPosition}" in <custom-block>. Must be 'left' or 'right'. Ignoring.`);
             }
         }
-        // Validate button-icon-offset
         const buttonIconOffset = this.getAttribute('button-icon-offset') || '';
         let sanitizedButtonIconOffset = '';
         if (buttonIconOffset && sanitizedButtonIconPosition) {
@@ -448,7 +430,6 @@ class CustomBlock extends HTMLElement {
                 console.warn(`Invalid button-icon-offset value "${buttonIconOffset}" in <custom-block>. Must be a CSS variable like 'var(--space-tiny)'. Ignoring.`);
             }
         }
-        // Validate button-icon-size
         const buttonIconSize = this.getAttribute('button-icon-size') || '';
         let sanitizedButtonIconSize = '';
         if (buttonIconSize) {
@@ -459,17 +440,14 @@ class CustomBlock extends HTMLElement {
                 console.warn(`Invalid button-icon-size value "${buttonIconSize}" in <custom-block>. Must be a valid rem value (e.g., "2rem"). Ignoring.`);
             }
         }
-        // Validate effects attribute
         const effects = this.getAttribute('effects') || '';
         let sanitizedEffects = '';
         if (effects) {
-            // Only allow alphanumeric and hyphenated effect names to prevent invalid class names
             sanitizedEffects = effects.split(/\s+/).filter(cls => /^[a-zA-Z0-9\-]+$/.test(cls)).join(' ');
             if (sanitizedEffects !== effects) {
                 console.warn(`Invalid effects value "${effects}" in <custom-block>. Must be alphanumeric or hyphenated (e.g., "parallax"). Using sanitized: "${sanitizedEffects}".`);
             }
         }
-        // Cache attributes
         this.cachedAttributes = {
             effects: sanitizedEffects,
             sectionTitle: this.hasAttribute('heading') && !this.hasAttribute('button-text'),
@@ -511,8 +489,8 @@ class CustomBlock extends HTMLElement {
             backgroundLightSrc: backgroundLightSrc,
             backgroundDarkSrc: backgroundDarkSrc,
             backgroundAlt: backgroundAlt,
-            backgroundLightAlt: backgroundAlt, // Map backgroundAlt to lightAlt for consistency
-            backgroundDarkAlt: backgroundAlt, // Map backgroundAlt to darkAlt for consistency
+            backgroundLightAlt: backgroundAlt,
+            backgroundDarkAlt: backgroundAlt,
             backgroundIsDecorative: this.hasAttribute('img-background-decorative'),
             backgroundMobileWidth: this.getAttribute('img-background-mobile-width') || '100vw',
             backgroundTabletWidth: this.getAttribute('img-background-tablet-width') || '100vw',
@@ -574,7 +552,6 @@ class CustomBlock extends HTMLElement {
             shadowClass,
             innerShadowClass
         };
-        // Compute and cache critical attributes hash
         const criticalAttrs = {};
         CustomBlock.#criticalAttributes.forEach(attr => {
             criticalAttrs[attr] = this.getAttribute(attr) || '';
@@ -616,9 +593,9 @@ class CustomBlock extends HTMLElement {
         }
         this.callbacks = [];
         this.renderCache = null;
-        this.cachedAttributes = null; // Clear cached attributes
-        this.criticalAttributesHash = null; // Clear critical attributes hash
-        CustomBlock.#renderCacheMap.delete(this); // Clear WeakMap cache
+        this.cachedAttributes = null;
+        this.criticalAttributesHash = null;
+        CustomBlock.#renderCacheMap.delete(this);
     }
 
     addCallback(callback) {
@@ -626,21 +603,21 @@ class CustomBlock extends HTMLElement {
     }
 
     render(isFallback = false) {
-        let newCriticalAttrsHash; // Declare variable at the start
+        let newCriticalAttrsHash;
         if (!isFallback) {
-            // Compute critical attributes hash first
             const criticalAttrs = {};
             CustomBlock.#criticalAttributes.forEach(attr => {
                 criticalAttrs[attr] = this.getAttribute(attr) || '';
             });
             newCriticalAttrsHash = JSON.stringify(criticalAttrs);
-            // Check if critical attributes have changed
             if (CustomBlock.#renderCacheMap.has(this) && this.criticalAttributesHash === newCriticalAttrsHash) {
                 console.log('Using cached render for CustomBlock:', this.outerHTML);
                 return CustomBlock.#renderCacheMap.get(this).cloneNode(true);
             }
         }
+
         const attrs = isFallback ? {
+            effects: '',
             sectionTitle: false,
             heading: '',
             headingTag: 'h2',
@@ -651,7 +628,6 @@ class CustomBlock extends HTMLElement {
             iconClass: '',
             iconSize: '',
             text: '',
-            effects: '',
             buttonHref: '#',
             buttonText: '',
             buttonClass: '',
@@ -728,6 +704,7 @@ class CustomBlock extends HTMLElement {
             videoPrimaryLoop: false,
             videoPrimaryPlaysinline: false,
             videoPrimaryDisablePip: false,
+            backgroundPosition: '',
             innerBackgroundColorClass: '',
             innerBackgroundImageNoise: false,
             innerBackdropFilterClasses: [],
@@ -739,16 +716,16 @@ class CustomBlock extends HTMLElement {
             shadowClass: '',
             innerShadowClass: ''
         } : this.getAttributes();
+
         console.log('Rendering CustomBlock with attrs:', attrs);
+
         if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
             console.error(`<custom-block img-background-src="${attrs.backgroundSrc || 'not provided'}" img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> requires an img-background-alt attribute for accessibility unless img-background-decorative is present.`);
         }
         if (!attrs.primaryAlt && !attrs.primaryIsDecorative && (attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc)) {
             console.error(`<custom-block img-primary-src="${attrs.primarySrc || 'not provided'}" img-primary-light-src="${attrs.primaryLightSrc || 'not provided'}" img-primary-dark-src="${attrs.primaryDarkSrc || 'not provided'}"> requires an img-primary-alt attribute for accessibility unless img-primary-decorative is present.`);
         }
-        let backgroundContentHTML = '';
-        let primaryImageHTML = '';
-        let overlayHTML = '';
+
         const hasVideoBackground = !isFallback && !!(attrs.videoBackgroundSrc || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc);
         const hasBackgroundImage = !isFallback && !!(attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc) && !hasVideoBackground;
         const hasPrimaryImage = !isFallback && !!(attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc) && ['top', 'bottom', 'left', 'right'].includes(attrs.primaryPosition);
@@ -771,133 +748,112 @@ class CustomBlock extends HTMLElement {
             !hasVideoPrimary &&
             this.hasAttribute('button-text') &&
             attrs.buttonText;
+
+        // Create DocumentFragment for efficient DOM construction
+        const fragment = document.createDocumentFragment();
+        const blockElement = document.createElement('div');
+        fragment.appendChild(blockElement);
+
+        // Set block element classes and attributes
+        const mainDivClassList = ['block'];
+        if (hasBackgroundImage) mainDivClassList.push('background-image');
+        else if (hasVideoBackground || hasVideoPrimary) mainDivClassList.push('background-video');
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
-        const mediaCustomClasses = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls)).join(' ');
-        const innerCustomClassesList = attrs.innerCustomClasses.split(' ').filter(cls => cls);
-        if (hasVideoBackground) {
-            backgroundContentHTML = generateVideoMarkup({
-                src: attrs.videoBackgroundSrc,
-                lightSrc: attrs.videoBackgroundLightSrc,
-                darkSrc: attrs.videoBackgroundDarkSrc,
-                poster: attrs.videoBackgroundPoster,
-                lightPoster: attrs.videoBackgroundLightPoster,
-                darkPoster: attrs.videoBackgroundDarkPoster,
-                alt: attrs.videoBackgroundAlt,
-                customClasses: isMediaOnly ? attrs.customClasses : mediaCustomClasses,
-                extraClasses: [],
-                loading: attrs.videoBackgroundLoading,
-                autoplay: attrs.videoBackgroundAutoplay,
-                muted: attrs.videoBackgroundMuted,
-                loop: attrs.videoBackgroundLoop,
-                playsinline: attrs.videoBackgroundPlaysinline,
-                disablePip: attrs.videoBackgroundDisablePip,
-                preload: attrs.videoBackgroundLoading === 'lazy' ? 'metadata' : attrs.videoBackgroundLoading,
-                controls: false
-            });
-        } else if (hasBackgroundImage) {
-            const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
-            if (!src) {
-                console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
-            } else {
-                backgroundContentHTML = generatePictureMarkup({
-                    src: attrs.backgroundSrc,
-                    lightSrc: attrs.backgroundLightSrc,
-                    darkSrc: attrs.backgroundDarkSrc,
-                    alt: attrs.backgroundAlt,
-                    lightAlt: attrs.backgroundLightAlt,
-                    darkAlt: attrs.backgroundDarkAlt,
-                    isDecorative: attrs.backgroundIsDecorative,
-                    customClasses: isMediaOnly ? attrs.customClasses : mediaCustomClasses,
-                    loading: attrs.backgroundLoading,
-                    fetchPriority: attrs.backgroundFetchPriority,
-                    extraClasses: [],
-                    mobileWidth: attrs.backgroundMobileWidth,
-                    tabletWidth: attrs.backgroundTabletWidth,
-                    desktopWidth: attrs.backgroundDesktopWidth,
-                    aspectRatio: attrs.backgroundAspectRatio,
-                    includeSchema: attrs.backgroundIncludeSchema,
-                    extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover;` : ''
-                });
-            }
+        const customClassList = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls));
+        mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass);
+        if (attrs.effects) mainDivClassList.push(attrs.effects);
+        blockElement.className = mainDivClassList.filter(cls => cls).join(' ').trim();
+
+        if (attrs.styleAttribute && !isFallback) {
+            let outerStyles = attrs.styleAttribute;
+            const paddingRegex = /(padding[^:]*:[^;]+;)/gi;
+            const paddingMatches = outerStyles.match(paddingRegex) || [];
+            const paddingStyles = paddingMatches.join(' ').trim();
+            outerStyles = outerStyles.replace(paddingRegex, '').trim();
+            if (outerStyles) blockElement.setAttribute('style', outerStyles);
         }
-        if (hasPrimaryImage || hasVideoPrimary) {
-            const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
-            if (!src) {
-                console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
-            } else if (hasPrimaryImage) {
-                primaryImageHTML = generatePictureMarkup({
-                    src: src,
-                    lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
-                    darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
-                    alt: attrs.primaryAlt,
-                    isDecorative: attrs.primaryIsDecorative,
-                    customClasses: mediaCustomClasses,
-                    loading: attrs.primaryLoading,
-                    fetchPriority: attrs.primaryFetchPriority,
+
+        if (!isFallback && (hasPrimaryImage || hasVideoPrimary)) {
+            blockElement.setAttribute('data-primary-position', attrs.primaryPosition);
+        }
+        if (!isFallback && attrs.sectionTitle && !attrs.buttonText) {
+            blockElement.setAttribute('data-section-title', 'true');
+        }
+
+        // Media-only case
+        if (isMediaOnly && !hasPrimaryImage && !hasVideoPrimary) {
+            if (hasVideoBackground) {
+                const videoMarkup = generateVideoMarkup({
+                    src: attrs.videoBackgroundSrc,
+                    lightSrc: attrs.videoBackgroundLightSrc,
+                    darkSrc: attrs.videoBackgroundDarkSrc,
+                    poster: attrs.videoBackgroundPoster,
+                    lightPoster: attrs.videoBackgroundLightPoster,
+                    darkPoster: attrs.videoBackgroundDarkPoster,
+                    alt: attrs.videoBackgroundAlt,
+                    customClasses: attrs.customClasses,
                     extraClasses: [],
-                    mobileWidth: attrs.primaryMobileWidth,
-                    tabletWidth: attrs.primaryTabletWidth,
-                    desktopWidth: attrs.primaryDesktopWidth,
-                    aspectRatio: attrs.primaryAspectRatio,
-                    includeSchema: attrs.primaryIncludeSchema
-                });
-            } else if (hasVideoPrimary) {
-                primaryImageHTML = generateVideoMarkup({
-                    src: attrs.videoPrimarySrc,
-                    lightSrc: attrs.videoPrimaryLightSrc,
-                    darkSrc: attrs.videoPrimaryDarkSrc,
-                    poster: attrs.videoPrimaryPoster,
-                    lightPoster: attrs.videoPrimaryLightPoster,
-                    darkPoster: attrs.videoPrimaryDarkPoster,
-                    alt: attrs.videoPrimaryAlt,
-                    customClasses: mediaCustomClasses,
-                    extraClasses: [],
-                    loading: attrs.videoPrimaryLoading,
-                    autoplay: attrs.videoPrimaryAutoplay,
-                    muted: attrs.videoPrimaryMuted,
-                    loop: attrs.videoPrimaryLoop,
-                    playsinline: attrs.videoPrimaryPlaysinline,
-                    disablePip: attrs.videoPrimaryDisablePip,
-                    preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                    loading: attrs.videoBackgroundLoading,
+                    autoplay: attrs.videoBackgroundAutoplay,
+                    muted: attrs.videoBackgroundMuted,
+                    loop: attrs.videoBackgroundLoop,
+                    playsinline: attrs.videoBackgroundPlaysinline,
+                    disablePip: attrs.videoBackgroundDisablePip,
+                    preload: attrs.videoBackgroundLoading === 'lazy' ? 'metadata' : attrs.videoBackgroundLoading,
                     controls: false
                 });
+                const videoDiv = document.createElement('div');
+                videoDiv.innerHTML = videoMarkup;
+                blockElement.appendChild(videoDiv.firstChild);
+            } else if (hasBackgroundImage) {
+                const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
+                if (src) {
+                    const pictureMarkup = generatePictureMarkup({
+                        src: attrs.backgroundSrc,
+                        lightSrc: attrs.backgroundLightSrc,
+                        darkSrc: attrs.backgroundDarkSrc,
+                        alt: attrs.backgroundAlt,
+                        lightAlt: attrs.backgroundLightAlt,
+                        darkAlt: attrs.backgroundDarkAlt,
+                        isDecorative: attrs.backgroundIsDecorative,
+                        customClasses: attrs.customClasses,
+                        loading: attrs.backgroundLoading,
+                        fetchPriority: attrs.backgroundFetchPriority,
+                        extraClasses: [],
+                        mobileWidth: attrs.backgroundMobileWidth,
+                        tabletWidth: attrs.backgroundTabletWidth,
+                        desktopWidth: attrs.backgroundDesktopWidth,
+                        aspectRatio: attrs.backgroundAspectRatio,
+                        includeSchema: attrs.backgroundIncludeSchema,
+                        extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover;` : ''
+                    });
+                    const pictureDiv = document.createElement('div');
+                    pictureDiv.innerHTML = pictureMarkup;
+                    blockElement.appendChild(pictureDiv.firstChild);
+                } else {
+                    console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
+                }
             }
-        }
-        if (!isFallback && attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
-            const overlayClasses = [attrs.backgroundOverlayClass];
-            if (attrs.backgroundImageNoise) {
-                overlayClasses.push('background-image-noise');
-            }
-            if (attrs.backgroundGradientClass) {
-                overlayClasses.push(attrs.backgroundGradientClass);
-            }
-            const backdropFilterValues = attrs.backdropFilterClasses
-                .filter(cls => cls.startsWith('backdrop-filter'))
-                .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
-                .filter(val => val);
-            const filteredOverlayClasses = attrs.backdropFilterClasses
-                .filter(cls => !cls.startsWith('backdrop-filter'))
-                .concat(overlayClasses)
-                .filter(cls => cls);
-            const overlayClassString = filteredOverlayClasses.join(' ').trim();
-            const backdropFilterStyle = backdropFilterValues.length > 0 ? `backdrop-filter: ${backdropFilterValues.join(' ')}` : '';
-            overlayHTML = `<div${overlayClassString ? ` class="${overlayClassString}"` : ''}${backdropFilterStyle ? ` style="${backdropFilterStyle}"` : ''}></div>`;
-        }
-        if (isMediaOnly && !hasPrimaryImage && !hasVideoPrimary) {
-            const blockElement = document.createElement('div');
-            blockElement.className = ['block', hasBackgroundImage ? 'background-image' : 'background-video', attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass].filter(cls => cls).join(' ').trim();
-            if (attrs.styleAttribute && !isFallback) {
-                blockElement.setAttribute('style', attrs.styleAttribute);
-            }
-            if (!isFallback && attrs.sectionTitle && !attrs.buttonText) {
-                blockElement.setAttribute('data-section-title', 'true');
-            }
-            let innerHTML = backgroundContentHTML || '';
+
             if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
-                innerHTML += overlayHTML;
+                const overlayClasses = [attrs.backgroundOverlayClass];
+                if (attrs.backgroundImageNoise) overlayClasses.push('background-image-noise');
+                if (attrs.backgroundGradientClass) overlayClasses.push(attrs.backgroundGradientClass);
+                const backdropFilterValues = attrs.backdropFilterClasses
+                    .filter(cls => cls.startsWith('backdrop-filter'))
+                    .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
+                    .filter(val => val);
+                const filteredOverlayClasses = attrs.backdropFilterClasses
+                    .filter(cls => !cls.startsWith('backdrop-filter'))
+                    .concat(overlayClasses)
+                    .filter(cls => cls);
+                const overlayDiv = document.createElement('div');
+                if (filteredOverlayClasses.length) overlayDiv.className = filteredOverlayClasses.join(' ').trim();
+                if (backdropFilterValues.length) overlayDiv.style.backdropFilter = backdropFilterValues.join(' ');
+                blockElement.appendChild(overlayDiv);
             }
-            blockElement.innerHTML = innerHTML;
-            if (!isFallback && !blockElement.innerHTML.trim()) {
+
+            if (!isFallback && !blockElement.hasChildNodes()) {
                 console.error('Media-only block has no valid content:', this.outerHTML);
                 return this.render(true);
             }
@@ -907,147 +863,430 @@ class CustomBlock extends HTMLElement {
             }
             return blockElement;
         }
+
+        // Button-only case
         if (isButtonOnly) {
-            const blockElement = document.createElement('div');
-            blockElement.className = ['block', attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass].filter(cls => cls).join(' ').trim();
-            if (attrs.styleAttribute && !isFallback) {
-                blockElement.setAttribute('style', attrs.styleAttribute);
-            }
-            // Generate button HTML
             const buttonClasses = ['button', attrs.buttonClass].filter(cls => cls).join(' ');
+            const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
+            buttonElement.className = buttonClasses;
+            if (attrs.buttonStyle) buttonElement.setAttribute('style', attrs.buttonStyle);
+            if (attrs.buttonType === 'button') {
+                buttonElement.type = attrs.buttonType;
+                if (!attrs.buttonHref || isFallback) buttonElement.setAttribute('disabled', '');
+            } else {
+                buttonElement.href = attrs.buttonHref || '#';
+                if (!attrs.buttonHref || isFallback) buttonElement.setAttribute('aria-disabled', 'true');
+            }
+            if (attrs.buttonTarget) buttonElement.setAttribute(attrs.buttonType === 'button' ? 'formtarget' : 'target', attrs.buttonTarget);
+            if (attrs.buttonRel) buttonElement.setAttribute('rel', attrs.buttonRel);
+            if (attrs.buttonAriaLabel) buttonElement.setAttribute('aria-label', attrs.buttonAriaLabel);
+
             let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
             if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
                 const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
                 buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
             }
-            const buttonContent = attrs.buttonIcon && attrs.buttonIconPosition === 'left'
-                ? `<span class="button-icon"${buttonIconStyle ? ` style="${buttonIconStyle}"` : ''}>${attrs.buttonIcon}</span>${attrs.buttonText}`
-                : attrs.buttonIcon && attrs.buttonIconPosition === 'right'
-                    ? `${attrs.buttonText}<span class="button-icon"${buttonIconStyle ? ` style="${buttonIconStyle}"` : ''}>${attrs.buttonIcon}</span>`
-                    : attrs.buttonText;
-            const buttonElement = attrs.buttonType === 'button'
-                ? `<button type="${attrs.buttonType}" class="${buttonClasses}"${attrs.buttonStyle ? ` style="${attrs.buttonStyle}"` : ''}${attrs.buttonTarget ? ` formtarget="${attrs.buttonTarget}"` : ''}${attrs.buttonRel ? ` rel="${attrs.buttonRel}"` : ''}${attrs.buttonAriaLabel ? ` aria-label="${attrs.buttonAriaLabel}"` : ''}${attrs.buttonHref && !isFallback ? '' : ' disabled'}>${buttonContent}</button>`
-                : `<a href="${attrs.buttonHref || '#'}" class="${buttonClasses}"${attrs.buttonStyle ? ` style="${attrs.buttonStyle}"` : ''}${attrs.buttonTarget ? ` target="${attrs.buttonTarget}"` : ''}${attrs.buttonRel ? ` rel="${attrs.buttonRel}"` : ''}${attrs.buttonAriaLabel ? ` aria-label="${attrs.buttonAriaLabel}"` : ''}${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${buttonContent}</a>`;
-            blockElement.innerHTML = buttonElement;
+
+            if (attrs.buttonIcon && attrs.buttonIconPosition === 'left') {
+                const iconSpan = document.createElement('span');
+                iconSpan.className = 'button-icon';
+                if (buttonIconStyle) iconSpan.setAttribute('style', buttonIconStyle);
+                iconSpan.innerHTML = attrs.buttonIcon;
+                buttonElement.appendChild(iconSpan);
+                buttonElement.appendChild(document.createTextNode(attrs.buttonText));
+            } else if (attrs.buttonIcon && attrs.buttonIconPosition === 'right') {
+                buttonElement.appendChild(document.createTextNode(attrs.buttonText));
+                const iconSpan = document.createElement('span');
+                iconSpan.className = 'button-icon';
+                if (buttonIconStyle) iconSpan.setAttribute('style', buttonIconStyle);
+                iconSpan.innerHTML = attrs.buttonIcon;
+                buttonElement.appendChild(iconSpan);
+            } else {
+                buttonElement.textContent = attrs.buttonText;
+            }
+
+            blockElement.appendChild(buttonElement);
+
             if (!isFallback) {
                 CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
                 this.lastAttributes = newCriticalAttrsHash;
             }
             return blockElement;
         }
-        const customClassList = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls));
+
+        // Full content case
         const innerPaddingClasses = attrs.customClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
-        let outerStyles = attrs.styleAttribute || '';
-        let paddingStyles = '';
-        if (!isFallback && outerStyles) {
-            const paddingRegex = /(padding[^:]*:[^;]+;)/gi;
-            const paddingMatches = outerStyles.match(paddingRegex) || [];
-            paddingStyles = paddingMatches.join(' ').trim();
-            outerStyles = outerStyles.replace(paddingRegex, '').trim();
+        const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls)];
+        if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
+        if (attrs.innerBackgroundColorClass) innerDivClassList.push(attrs.innerBackgroundColorClass);
+        if (attrs.innerBackgroundImageNoise) innerDivClassList.push('background-image-noise');
+        if (attrs.innerBorderClass) innerDivClassList.push(attrs.innerBorderClass);
+        if (attrs.innerBorderRadiusClass) innerDivClassList.push(attrs.innerBorderRadiusClass);
+        if (attrs.innerBackgroundOverlayClass) innerDivClassList.push(attrs.innerBackgroundOverlayClass);
+        if (attrs.innerBackgroundGradientClass) innerDivClassList.push(attrs.innerBackgroundGradientClass);
+        if (attrs.innerAlignment) innerDivClassList.push(alignMap[attrs.innerAlignment]);
+        if (attrs.innerShadowClass) innerDivClassList.push(attrs.innerShadowClass);
+        const innerBackdropFilterValues = attrs.innerBackdropFilterClasses
+            .filter(cls => cls.startsWith('backdrop-filter'))
+            .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
+            .filter(val => val);
+        const filteredInnerBackdropClasses = attrs.innerBackdropFilterClasses
+            .filter(cls => !cls.startsWith('backdrop-filter'));
+        innerDivClassList.push(...filteredInnerBackdropClasses);
+
+        const innerDiv = document.createElement('div');
+        if (innerDivClassList.length) innerDiv.className = innerDivClassList.join(' ').trim();
+        if (attrs.innerStyle || innerBackdropFilterValues.length) {
+            const style = innerBackdropFilterValues.length ? `${attrs.innerStyle}; backdrop-filter: ${innerBackdropFilterValues.join(' ')}` : attrs.innerStyle;
+            innerDiv.setAttribute('style', style);
         }
+        innerDiv.setAttribute('aria-live', 'polite');
+
         const textAlignMap = {
             'left': 'flex-column-left text-align-left',
             'center': 'flex-column-center text-align-center',
             'right': 'flex-column-right text-align-right'
         };
-        const innerDivClassList = [];
-        let innerDivStyle = !isFallback ? attrs.innerStyle : '';
-        if (!isFallback) {
-            const innerBackdropFilterValues = attrs.innerBackdropFilterClasses
-                .filter(cls => cls.startsWith('backdrop-filter'))
-                .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
-                .filter(val => val);
-            const filteredInnerBackdropClasses = attrs.innerBackdropFilterClasses
-                .filter(cls => !cls.startsWith('backdrop-filter'));
-            innerDivClassList.push(...innerPaddingClasses, ...innerCustomClassesList, ...filteredInnerBackdropClasses);
-            if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
-            if (attrs.innerBackgroundColorClass) innerDivClassList.push(attrs.innerBackgroundColorClass);
-            if (attrs.innerBackgroundImageNoise) innerDivClassList.push('background-image-noise');
-            if (attrs.innerBorderClass) innerDivClassList.push(attrs.innerBorderClass);
-            if (attrs.innerBorderRadiusClass) innerDivClassList.push(attrs.innerBorderRadiusClass);
-            if (attrs.innerBackgroundOverlayClass) innerDivClassList.push(attrs.innerBackgroundOverlayClass);
-            if (attrs.innerBackgroundGradientClass) innerDivClassList.push(attrs.innerBackgroundGradientClass);
-            if (attrs.innerAlignment) innerDivClassList.push(alignMap[attrs.innerAlignment]);
-            if (attrs.innerShadowClass) innerDivClassList.push(attrs.innerShadowClass);
-            if (innerBackdropFilterValues.length > 0) {
-                const backdropFilterStyle = `backdrop-filter: ${innerBackdropFilterValues.join(' ')}`;
-                innerDivStyle = innerDivStyle ? `${innerDivStyle}; ${backdropFilterStyle}` : backdropFilterStyle;
-            }
+        const groupDiv = document.createElement('div');
+        groupDiv.setAttribute('role', 'group');
+        if (attrs.textAlignment) groupDiv.className = textAlignMap[attrs.textAlignment];
+
+        if (attrs.icon) {
+            const iconSpan = document.createElement('span');
+            iconSpan.className = `icon${attrs.iconClass ? ` ${attrs.iconClass}` : ''}`;
+            let iconStyles = attrs.iconStyle || '';
+            if (attrs.iconSize) iconStyles = iconStyles ? `${iconStyles}; font-size: ${attrs.iconSize}` : `font-size: ${attrs.iconSize}`;
+            if (iconStyles) iconSpan.setAttribute('style', iconStyles);
+            iconSpan.innerHTML = attrs.icon;
+            groupDiv.appendChild(iconSpan);
         }
-        const innerDivClass = innerDivClassList.join(' ').trim();
-        // Generate button HTML with icon support
-        let buttonHTML = '';
+
+        if (attrs.subHeading) {
+            const subHeadingElement = document.createElement(attrs.subHeadingTag);
+            subHeadingElement.textContent = attrs.subHeading;
+            groupDiv.appendChild(subHeadingElement);
+        }
+
+        if (attrs.heading) {
+            const headingElement = document.createElement(attrs.headingTag);
+            headingElement.textContent = attrs.heading;
+            groupDiv.appendChild(headingElement);
+        }
+
+        if (attrs.text) {
+            const textElement = document.createElement('p');
+            textElement.textContent = attrs.text;
+            groupDiv.appendChild(textElement);
+        }
+
         if (attrs.buttonText) {
-            const buttonClasses = ['button', attrs.buttonClass].filter(cls => cls).join(' ');
+            const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
+            buttonElement.className = `button ${attrs.buttonClass}`.trim();
+            if (attrs.buttonStyle) buttonElement.setAttribute('style', attrs.buttonStyle);
+            if (attrs.buttonType === 'button') {
+                buttonElement.type = attrs.buttonType;
+                if (!attrs.buttonHref || isFallback) buttonElement.setAttribute('disabled', '');
+            } else {
+                buttonElement.href = attrs.buttonHref || '#';
+                if (!attrs.buttonHref || isFallback) buttonElement.setAttribute('aria-disabled', 'true');
+            }
+            if (attrs.buttonTarget) buttonElement.setAttribute(attrs.buttonType === 'button' ? 'formtarget' : 'target', attrs.buttonTarget);
+            if (attrs.buttonRel) buttonElement.setAttribute('rel', attrs.buttonRel);
+            if (attrs.buttonAriaLabel) buttonElement.setAttribute('aria-label', attrs.buttonAriaLabel);
+
             let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
             if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
                 const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
                 buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
             }
-            const buttonContent = attrs.buttonIcon && attrs.buttonIconPosition === 'left'
-                ? `<span class="button-icon"${buttonIconStyle ? ` style="${buttonIconStyle}"` : ''}>${attrs.buttonIcon}</span>${attrs.buttonText}`
-                : attrs.buttonIcon && attrs.buttonIconPosition === 'right'
-                    ? `${attrs.buttonText}<span class="button-icon"${buttonIconStyle ? ` style="${buttonIconStyle}"` : ''}>${attrs.buttonIcon}</span>`
-                    : attrs.buttonText;
-            buttonHTML = attrs.buttonType === 'button'
-                ? `<button type="${attrs.buttonType}" class="${buttonClasses}"${attrs.buttonStyle ? ` style="${attrs.buttonStyle}"` : ''}${attrs.buttonTarget ? ` formtarget="${attrs.buttonTarget}"` : ''}${attrs.buttonRel ? ` rel="${attrs.buttonRel}"` : ''}${attrs.buttonAriaLabel ? ` aria-label="${attrs.buttonAriaLabel}"` : ''}${attrs.buttonHref && !isFallback ? '' : ' disabled'}>${buttonContent}</button>`
-                : `<a href="${attrs.buttonHref || '#'}" class="${buttonClasses}"${attrs.buttonStyle ? ` style="${attrs.buttonStyle}"` : ''}${attrs.buttonTarget ? ` target="${attrs.buttonTarget}"` : ''}${attrs.buttonRel ? ` rel="${attrs.buttonRel}"` : ''}${attrs.buttonAriaLabel ? ` aria-label="${attrs.buttonAriaLabel}"` : ''}${attrs.buttonHref && !isFallback ? '' : ' aria-disabled="true"'}>${buttonContent}</a>`;
+
+            if (attrs.buttonIcon && attrs.buttonIconPosition === 'left') {
+                const iconSpan = document.createElement('span');
+                iconSpan.className = 'button-icon';
+                if (buttonIconStyle) iconSpan.setAttribute('style', buttonIconStyle);
+                iconSpan.innerHTML = attrs.buttonIcon;
+                buttonElement.appendChild(iconSpan);
+                buttonElement.appendChild(document.createTextNode(attrs.buttonText));
+            } else if (attrs.buttonIcon && attrs.buttonIconPosition === 'right') {
+                buttonElement.appendChild(document.createTextNode(attrs.buttonText));
+                const iconSpan = document.createElement('span');
+                iconSpan.className = 'button-icon';
+                if (buttonIconStyle) iconSpan.setAttribute('style', buttonIconStyle);
+                iconSpan.innerHTML = attrs.buttonIcon;
+                buttonElement.appendChild(iconSpan);
+            } else {
+                buttonElement.textContent = attrs.buttonText;
+            }
+
+            groupDiv.appendChild(buttonElement);
         }
-        // Combine icon styles
-        let iconStyles = attrs.iconStyle || '';
-        if (attrs.iconSize) {
-            iconStyles = iconStyles ? `${iconStyles}; font-size: ${attrs.iconSize}` : `font-size: ${attrs.iconSize}`;
-        }
-        const iconClassAttr = attrs.iconClass ? ` ${attrs.iconClass}` : '';
-        const contentHTML = `
-        <div${innerDivClass ? ` class="${innerDivClass}"` : ''}${innerDivStyle ? ` style="${innerDivStyle}"` : ''} aria-live="polite">
-            <div role="group"${attrs.textAlignment ? ` class="${textAlignMap[attrs.textAlignment]}"` : ''}>
-                ${attrs.icon ? `<span class="icon${iconClassAttr}"${iconStyles ? ` style="${iconStyles}"` : ''}>${attrs.icon}</span>` : ''}
-                ${attrs.subHeading ? `<${attrs.subHeadingTag}>${attrs.subHeading}</${attrs.subHeadingTag}>` : ''}
-                ${attrs.heading ? `<${attrs.headingTag}>${attrs.heading}</${attrs.headingTag}>` : ''}
-                ${attrs.text ? `<p>${attrs.text}</p>` : ''}
-                ${buttonHTML}
-            </div>
-        </div>
-    `;
-        const mainDivClassList = ['block'];
-        if (hasBackgroundImage) mainDivClassList.push('background-image');
-        else if (hasVideoBackground || hasVideoPrimary) mainDivClassList.push('background-video');
-        mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass);
-        if (attrs.effects) mainDivClassList.push(attrs.effects);
-        const mainDivClass = mainDivClassList.filter(cls => cls).join(' ').trim();
-        const blockElement = document.createElement('div');
-        blockElement.className = mainDivClass;
-        if (outerStyles && !isFallback) {
-            blockElement.setAttribute('style', outerStyles);
-        }
-        if (!isFallback && (hasPrimaryImage || hasVideoPrimary)) {
-            blockElement.setAttribute('data-primary-position', attrs.primaryPosition);
-        }
-        if (!isFallback && attrs.sectionTitle && !attrs.buttonText) {
-            blockElement.setAttribute('data-section-title', 'true');
-        }
-        let innerHTML = '';
+
+        innerDiv.appendChild(groupDiv);
+
+        // Append media content
         if (hasBackgroundImage || hasVideoBackground) {
-            innerHTML += backgroundContentHTML || '';
+            const mediaDiv = document.createElement('div');
+            if (hasVideoBackground) {
+                mediaDiv.innerHTML = generateVideoMarkup({
+                    src: attrs.videoBackgroundSrc,
+                    lightSrc: attrs.videoBackgroundLightSrc,
+                    darkSrc: attrs.videoBackgroundDarkSrc,
+                    poster: attrs.videoBackgroundPoster,
+                    lightPoster: attrs.videoBackgroundLightPoster,
+                    darkPoster: attrs.videoBackgroundDarkPoster,
+                    alt: attrs.videoBackgroundAlt,
+                    customClasses: attrs.customClasses,
+                    extraClasses: [],
+                    loading: attrs.videoBackgroundLoading,
+                    autoplay: attrs.videoBackgroundAutoplay,
+                    muted: attrs.videoBackgroundMuted,
+                    loop: attrs.videoBackgroundLoop,
+                    playsinline: attrs.videoBackgroundPlaysinline,
+                    disablePip: attrs.videoBackgroundDisablePip,
+                    preload: attrs.videoBackgroundLoading === 'lazy' ? 'metadata' : attrs.videoBackgroundLoading,
+                    controls: false
+                });
+            } else if (hasBackgroundImage) {
+                const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
+                if (src) {
+                    mediaDiv.innerHTML = generatePictureMarkup({
+                        src: attrs.backgroundSrc,
+                        lightSrc: attrs.backgroundLightSrc,
+                        darkSrc: attrs.backgroundDarkSrc,
+                        alt: attrs.backgroundAlt,
+                        lightAlt: attrs.backgroundLightAlt,
+                        darkAlt: attrs.backgroundDarkAlt,
+                        isDecorative: attrs.backgroundIsDecorative,
+                        customClasses: attrs.customClasses,
+                        loading: attrs.backgroundLoading,
+                        fetchPriority: attrs.backgroundFetchPriority,
+                        extraClasses: [],
+                        mobileWidth: attrs.backgroundMobileWidth,
+                        tabletWidth: attrs.backgroundTabletWidth,
+                        desktopWidth: attrs.backgroundDesktopWidth,
+                        aspectRatio: attrs.backgroundAspectRatio,
+                        includeSchema: attrs.backgroundIncludeSchema,
+                        extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover;` : ''
+                    });
+                } else {
+                    console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
+                }
+            }
+            if (mediaDiv.hasChildNodes()) blockElement.appendChild(mediaDiv.firstChild);
         }
+
         if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
-            innerHTML += overlayHTML;
+            const overlayClasses = [attrs.backgroundOverlayClass];
+            if (attrs.backgroundImageNoise) overlayClasses.push('background-image-noise');
+            if (attrs.backgroundGradientClass) overlayClasses.push(attrs.backgroundGradientClass);
+            const backdropFilterValues = attrs.backdropFilterClasses
+                .filter(cls => cls.startsWith('backdrop-filter'))
+                .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
+                .filter(val => val);
+            const filteredOverlayClasses = attrs.backdropFilterClasses
+                .filter(cls => !cls.startsWith('backdrop-filter'))
+                .concat(overlayClasses)
+                .filter(cls => cls);
+            const overlayDiv = document.createElement('div');
+            if (filteredOverlayClasses.length) overlayDiv.className = filteredOverlayClasses.join(' ').trim();
+            if (backdropFilterValues.length) overlayDiv.style.backdropFilter = backdropFilterValues.join(' ');
+            blockElement.appendChild(overlayDiv);
         }
+
         if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'top') {
-            innerHTML += primaryImageHTML || '';
+            const mediaDiv = document.createElement('div');
+            const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
+            if (src) {
+                if (hasPrimaryImage) {
+                    mediaDiv.innerHTML = generatePictureMarkup({
+                        src: src,
+                        lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
+                        darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
+                        alt: attrs.primaryAlt,
+                        isDecorative: attrs.primaryIsDecorative,
+                        customClasses: attrs.customClasses,
+                        loading: attrs.primaryLoading,
+                        fetchPriority: attrs.primaryFetchPriority,
+                        extraClasses: [],
+                        mobileWidth: attrs.primaryMobileWidth,
+                        tabletWidth: attrs.primaryTabletWidth,
+                        desktopWidth: attrs.primaryDesktopWidth,
+                        aspectRatio: attrs.primaryAspectRatio,
+                        includeSchema: attrs.primaryIncludeSchema
+                    });
+                } else if (hasVideoPrimary) {
+                    mediaDiv.innerHTML = generateVideoMarkup({
+                        src: attrs.videoPrimarySrc,
+                        lightSrc: attrs.videoPrimaryLightSrc,
+                        darkSrc: attrs.videoPrimaryDarkSrc,
+                        poster: attrs.videoPrimaryPoster,
+                        lightPoster: attrs.videoPrimaryLightPoster,
+                        darkPoster: attrs.videoPrimaryDarkPoster,
+                        alt: attrs.videoPrimaryAlt,
+                        customClasses: attrs.customClasses,
+                        extraClasses: [],
+                        loading: attrs.videoPrimaryLoading,
+                        autoplay: attrs.videoPrimaryAutoplay,
+                        muted: attrs.videoPrimaryMuted,
+                        loop: attrs.videoPrimaryLoop,
+                        playsinline: attrs.videoPrimaryPlaysinline,
+                        disablePip: attrs.videoPrimaryDisablePip,
+                        preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                        controls: false
+                    });
+                }
+                if (mediaDiv.hasChildNodes()) blockElement.appendChild(mediaDiv.firstChild);
+            } else {
+                console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
+            }
         }
+
         if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'left') {
-            innerHTML += (primaryImageHTML || '') + contentHTML;
+            const mediaDiv = document.createElement('div');
+            const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
+            if (src) {
+                if (hasPrimaryImage) {
+                    mediaDiv.innerHTML = generatePictureMarkup({
+                        src: src,
+                        lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
+                        darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
+                        alt: attrs.primaryAlt,
+                        isDecorative: attrs.primaryIsDecorative,
+                        customClasses: attrs.customClasses,
+                        loading: attrs.primaryLoading,
+                        fetchPriority: attrs.primaryFetchPriority,
+                        extraClasses: [],
+                        mobileWidth: attrs.primaryMobileWidth,
+                        tabletWidth: attrs.primaryTabletWidth,
+                        desktopWidth: attrs.primaryDesktopWidth,
+                        aspectRatio: attrs.primaryAspectRatio,
+                        includeSchema: attrs.primaryIncludeSchema
+                    });
+                } else if (hasVideoPrimary) {
+                    mediaDiv.innerHTML = generateVideoMarkup({
+                        src: attrs.videoPrimarySrc,
+                        lightSrc: attrs.videoPrimaryLightSrc,
+                        darkSrc: attrs.videoPrimaryDarkSrc,
+                        poster: attrs.videoPrimaryPoster,
+                        lightPoster: attrs.videoPrimaryLightPoster,
+                        darkPoster: attrs.videoPrimaryDarkPoster,
+                        alt: attrs.videoPrimaryAlt,
+                        customClasses: attrs.customClasses,
+                        extraClasses: [],
+                        loading: attrs.videoPrimaryLoading,
+                        autoplay: attrs.videoPrimaryAutoplay,
+                        muted: attrs.videoPrimaryMuted,
+                        loop: attrs.videoPrimaryLoop,
+                        playsinline: attrs.videoPrimaryPlaysinline,
+                        disablePip: attrs.videoPrimaryDisablePip,
+                        preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                        controls: false
+                    });
+                }
+                if (mediaDiv.hasChildNodes()) blockElement.appendChild(mediaDiv.firstChild);
+            } else {
+                console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
+            }
+            blockElement.appendChild(innerDiv);
         } else if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'right') {
-            innerHTML += contentHTML + (primaryImageHTML || '');
+            blockElement.appendChild(innerDiv);
+            const mediaDiv = document.createElement('div');
+            const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
+            if (src) {
+                if (hasPrimaryImage) {
+                    mediaDiv.innerHTML = generatePictureMarkup({
+                        src: src,
+                        lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
+                        darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
+                        alt: attrs.primaryAlt,
+                        isDecorative: attrs.primaryIsDecorative,
+                        customClasses: attrs.customClasses,
+                        loading: attrs.primaryLoading,
+                        fetchPriority: attrs.primaryFetchPriority,
+                        extraClasses: [],
+                        mobileWidth: attrs.primaryMobileWidth,
+                        tabletWidth: attrs.primaryTabletWidth,
+                        desktopWidth: attrs.primaryDesktopWidth,
+                        aspectRatio: attrs.primaryAspectRatio,
+                        includeSchema: attrs.primaryIncludeSchema
+                    });
+                } else if (hasVideoPrimary) {
+                    mediaDiv.innerHTML = generateVideoMarkup({
+                        src: attrs.videoPrimarySrc,
+                        lightSrc: attrs.videoPrimaryLightSrc,
+                        darkSrc: attrs.videoPrimaryDarkSrc,
+                        poster: attrs.videoPrimaryPoster,
+                        lightPoster: attrs.videoPrimaryLightPoster,
+                        darkPoster: attrs.videoPrimaryDarkPoster,
+                        alt: attrs.videoPrimaryAlt,
+                        customClasses: attrs.customClasses,
+                        extraClasses: [],
+                        loading: attrs.videoPrimaryLoading,
+                        autoplay: attrs.videoPrimaryAutoplay,
+                        muted: attrs.videoPrimaryMuted,
+                        loop: attrs.videoPrimaryLoop,
+                        playsinline: attrs.videoPrimaryPlaysinline,
+                        disablePip: attrs.videoPrimaryDisablePip,
+                        preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                        controls: false
+                    });
+                }
+                if (mediaDiv.hasChildNodes()) blockElement.appendChild(mediaDiv.firstChild);
+            } else {
+                console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
+            }
         } else {
-            innerHTML += contentHTML;
+            blockElement.appendChild(innerDiv);
         }
+
         if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'bottom') {
-            innerHTML += primaryImageHTML || '';
+            const mediaDiv = document.createElement('div');
+            const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
+            if (src) {
+                if (hasPrimaryImage) {
+                    mediaDiv.innerHTML = generatePictureMarkup({
+                        src: src,
+                        lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
+                        darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
+                        alt: attrs.primaryAlt,
+                        isDecorative: attrs.primaryIsDecorative,
+                        customClasses: attrs.customClasses,
+                        loading: attrs.primaryLoading,
+                        fetchPriority: attrs.primaryFetchPriority,
+                        extraClasses: [],
+                        mobileWidth: attrs.primaryMobileWidth,
+                        tabletWidth: attrs.primaryTabletWidth,
+                        desktopWidth: attrs.primaryDesktopWidth,
+                        aspectRatio: attrs.primaryAspectRatio,
+                        includeSchema: attrs.primaryIncludeSchema
+                    });
+                } else if (hasVideoPrimary) {
+                    mediaDiv.innerHTML = generateVideoMarkup({
+                        src: attrs.videoPrimarySrc,
+                        lightSrc: attrs.videoPrimaryLightSrc,
+                        darkSrc: attrs.videoPrimaryDarkSrc,
+                        poster: attrs.videoPrimaryPoster,
+                        lightPoster: attrs.videoPrimaryLightPoster,
+                        darkPoster: attrs.videoPrimaryDarkPoster,
+                        alt: attrs.videoPrimaryAlt,
+                        customClasses: attrs.customClasses,
+                        extraClasses: [],
+                        loading: attrs.videoPrimaryLoading,
+                        autoplay: attrs.videoPrimaryAutoplay,
+                        muted: attrs.videoPrimaryMuted,
+                        loop: attrs.videoPrimaryLoop,
+                        playsinline: attrs.videoPrimaryPlaysinline,
+                        disablePip: attrs.videoPrimaryDisablePip,
+                        preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                        controls: false
+                    });
+                }
+                if (mediaDiv.hasChildNodes()) blockElement.appendChild(mediaDiv.firstChild);
+            } else {
+                console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
+            }
         }
-        blockElement.innerHTML = innerHTML;
+
         if (!isFallback && blockElement.querySelector('img')) {
             const images = blockElement.querySelectorAll('img');
             images.forEach(img => {
@@ -1076,10 +1315,12 @@ class CustomBlock extends HTMLElement {
                 img.removeAttribute('img-primary-position');
             });
         }
-        if (!isFallback && !blockElement.innerHTML.trim()) {
+
+        if (!isFallback && !blockElement.hasChildNodes()) {
             console.error('Block has no valid content, falling back:', this.outerHTML);
             return this.render(true);
         }
+
         if (!isFallback) {
             CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
             this.lastAttributes = newCriticalAttrsHash;
@@ -1189,10 +1430,9 @@ class CustomBlock extends HTMLElement {
 
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) return;
-        // Only invalidate cache if the changed attribute is critical
         if (CustomBlock.#criticalAttributes.includes(name)) {
-            this.cachedAttributes = null; // Invalidate attribute cache
-            this.initialize(); // Re-render only for critical attributes
+            this.cachedAttributes = null;
+            this.initialize();
         }
     }
 }
@@ -1205,5 +1445,4 @@ try {
 
 console.log('CustomBlock version: 2025-09-09');
 
-// Export the CustomBlock class
 export { CustomBlock };
