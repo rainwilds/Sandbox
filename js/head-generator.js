@@ -167,7 +167,7 @@
         favicons.forEach(({ rel, href, sizes, type }) => {
             const link = document.createElement('link');
             link.rel = rel;
-            link.href = href.replace('.../', './');
+            link.href = href.replace('.../', './img/icons/');
             if (sizes) link.sizes = sizes;
             if (type) link.type = type;
             head.appendChild(link);

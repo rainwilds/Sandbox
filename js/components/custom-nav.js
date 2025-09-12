@@ -1,7 +1,7 @@
 /* global HTMLElement, document, window, matchMedia, console */
-import { BACKDROP_FILTER_MAP, VALID_ALIGNMENTS, alignMap } from '../shared.js';
+import { VALID_ALIGNMENTS, alignMap } from '../shared.js';
 
-console.log('Successfully imported BACKDROP_FILTER_MAP and alignMap');
+console.log('Successfully imported VALID_ALIGNMENTS and alignMap');
 
 class CustomNav extends HTMLElement {
     constructor() {
