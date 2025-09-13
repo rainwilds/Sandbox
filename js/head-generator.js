@@ -1,6 +1,6 @@
-/* global document, window, console, fetch, Promise */
+/* global document, window, console, fetch, Promise, requestIdleCallback */
 (async () => {
-    // Browser-compatible dev detection (e.g., URL includes '/dev/')
+    // Browser-compatible dev detection
     const isDev = window.location.href.includes('/dev/');
     const log = (message) => { if (isDev) console.log(`[HeadGenerator] ${new Date().toLocaleTimeString()} ${message}`); };
 
@@ -63,8 +63,10 @@
     async function updateHead(attributes) {
         if (isDev) log('updateHead called with attributes: ' + JSON.stringify(attributes, null, 2));
         const head = document.head;
+        const criticalFrag = document.createDocumentFragment();  // For SEO-critical and render-critical
+        const deferredFrag = document.createDocumentFragment();  // For non-critical (JSON-LD, Snipcart)
 
-        // Fonts: Pre-fetch setup once
+        // Fonts: Critical for rendering
         const setup = await fetchSetup();
         let hasValidFonts = false;
         setup.fonts.forEach(font => {
@@ -76,7 +78,7 @@
                 link.as = font.as ?? 'font';
                 link.type = font.type ?? 'font/woff2';
                 link.crossOrigin = font.crossorigin ?? 'anonymous';
-                head.appendChild(link);
+                criticalFrag.appendChild(link);
                 if (isDev) log(`Added font preload: ${fontUrl}`);
                 hasValidFonts = true;
             } else {
@@ -87,27 +89,27 @@
             log('No valid fonts in setup.json; relying on CSS @font-face');
         }
 
-        // Stylesheet
+        // Stylesheet: Critical for FCP
         const styleLink = document.createElement('link');
         styleLink.rel = 'stylesheet';
         styleLink.href = './styles.css';
-        head.appendChild(styleLink);
+        criticalFrag.appendChild(styleLink);
         log('Applied stylesheet: ./styles.css');
 
-        // Font Awesome
+        // Font Awesome: Semi-critical (icons may be visible early)
         const faKitUrl = setup.font_awesome?.kit_url ?? setup.font_awesome?.kitUrl ?? 'https://kit.fontawesome.com/85d1e578b1.js';
         if (faKitUrl) {
             const script = document.createElement('script');
             script.src = faKitUrl;
             script.crossOrigin = 'anonymous';
             script.async = true;
-            head.appendChild(script);
+            criticalFrag.appendChild(script);
             log(`Added Font Awesome Kit script: ${faKitUrl}`);
         } else {
             console.warn('No Font Awesome kit URL found; icons may not load');
         }
 
-        // Meta tags: Pre-build array with nullish coalescing
+        // Meta tags: Critical for SEO
         const metaTags = [
             { name: 'robots', content: setup.general.robots ?? 'index, follow' },
             { name: 'title', content: attributes.title ?? setup.general.title },
@@ -136,28 +138,28 @@
                 meta.name = name;
             }
             meta.content = content;
-            head.appendChild(meta);
+            criticalFrag.appendChild(meta);
             if (isDev) log(`Added ${name} meta with content: ${content}`);
         });
 
-        // Canonical link
+        // Canonical link: Critical for SEO
         const canonicalUrl = attributes.canonical ?? setup.general.canonical ?? window.location.href;
         if (canonicalUrl) {
             const link = document.createElement('link');
             link.rel = 'canonical';
             link.href = canonicalUrl;
-            head.appendChild(link);
+            criticalFrag.appendChild(link);
             log('Added canonical link: ' + canonicalUrl);
         }
 
-        // Theme color
+        // Theme color: Critical for visual
         const themeColor = setup.general.theme_colors?.light ?? '#000000';
         if (themeColor) {
             const meta = document.createElement('meta');
             meta.name = 'theme-color';
             meta.content = themeColor;
             meta.media = '(prefers-color-scheme: light)';
-            head.appendChild(meta);
+            criticalFrag.appendChild(meta);
             log(`Updated theme-color (light): ${themeColor}`);
             const darkTheme = setup.general.theme_colors?.dark ?? '#000000';
             if (darkTheme !== themeColor) {
@@ -165,12 +167,12 @@
                 darkMeta.name = 'theme-color';
                 darkMeta.content = darkTheme;
                 darkMeta.media = '(prefers-color-scheme: dark)';
-                head.appendChild(darkMeta);
+                criticalFrag.appendChild(darkMeta);
                 log(`Updated theme-color (dark): ${darkTheme}`);
             }
         }
 
-        // JSON-LD schema
+        // JSON-LD schema: Non-critical, defer
         const jsonLd = {
             "@context": "https://schema.org",
             "@type": "Organization",
@@ -189,11 +191,11 @@
             const script = document.createElement('script');
             script.type = 'application/ld+json';
             script.textContent = JSON.stringify(jsonLd);
-            head.appendChild(script);
-            log('Added Organization JSON-LD schema');
+            deferredFrag.appendChild(script);
+            log('Added Organization JSON-LD schema (deferred)');
         }
 
-        // Favicons: Filter invalid upfront
+        // Favicons: Critical for branding
         const faviconPaths = (setup.general.favicons ?? [
             { rel: 'apple-touch-icon', sizes: '180x180', href: './img/icons/apple-touch-icon.png' },
             { rel: 'icon', type: 'image/png', sizes: '32x32', href: './img/icons/favicon-32x32.png' },
@@ -207,11 +209,11 @@
             link.href = favicon.href;
             if (favicon.sizes) link.sizes = favicon.sizes;
             if (favicon.type) link.type = favicon.type;
-            head.appendChild(link);
+            criticalFrag.appendChild(link);
             if (isDev) log(`Added favicon: ${favicon.href}`);
         });
 
-        // Snipcart
+        // Snipcart: Non-critical, defer
         if (setup.general.include_e_commerce && setup.general.snipcart) {
             const snipcart = setup.general.snipcart;
             const script = document.createElement('script');
@@ -221,8 +223,22 @@
             script.dataConfigModalStyle = snipcart.modalStyle;
             script.dataConfigLoadStrategy = snipcart.loadStrategy;
             if (snipcart.templatesUrl) script.setAttribute('data-templates-url', snipcart.templatesUrl);
-            head.appendChild(script);
-            log('Added Snipcart script');
+            deferredFrag.appendChild(script);
+            log('Added Snipcart script (deferred)');
+        }
+
+        // Append critical elements immediately
+        head.appendChild(criticalFrag);
+
+        // Defer non-critical appends
+        const appendDeferred = () => {
+            head.appendChild(deferredFrag);
+            if (isDev) log('Deferred elements appended');
+        };
+        if (window.requestIdleCallback) {
+            requestIdleCallback(appendDeferred, { timeout: 2000 });
+        } else {
+            setTimeout(appendDeferred, 0);
         }
     }
 
