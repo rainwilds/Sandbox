@@ -100,7 +100,7 @@ const validateSources = (params) => {
       if (fullLightSrc && !fullLightAlt) throw new Error('fullLightAlt is required for fullLightSrc');
       if (fullDarkSrc && !fullDarkAlt) throw new Error('fullDarkAlt is required for fullDarkSrc');
       if (iconLightSrc && !iconLightAlt) throw new Error('iconLightAlt is required for iconLightSrc');
-      if (iconDarkSrc && !iconDarkAlt) throw new Error('iconDarkAlt is required for iconDarkSrc');
+      if (iconDarkSrc && !iconDarkAlt) throw new Error('iconDarkAlt is required for non-decorative iconDarkSrc');
     } else if (!alt && !(lightSrc && lightAlt) && !(darkSrc && darkAlt)) {
       throw new Error('Alt attribute is required for non-decorative images');
     }
@@ -266,12 +266,9 @@ export function generatePictureMarkup({
   }
 }
 
-// Global script for source selection
+// Global script for source selection (reverted to original matchMedia listeners, with isDev logging)
 if (typeof window !== 'undefined') {
-  const mediaQueries = [
-    window.matchMedia('(prefers-color-scheme: dark)'),
-    ...WIDTHS.map(w => window.matchMedia(`(max-width: ${w - 1}px)`))
-  ];
+  const isDev = window.location.href.includes('/dev/');
   const updatePictureSources = () => {
     document.querySelectorAll('picture').forEach((picture) => {
       const img = picture.querySelector('img');
@@ -287,14 +284,19 @@ if (typeof window !== 'undefined') {
         }
       });
       if (img.src !== selectedSrc && selectedSrc) {
-        console.log('Updating img src:', { selectedSrc, matchedMedia, prefersDark });
+        if (isDev) console.log('Updating img src:', { selectedSrc, matchedMedia, prefersDark });
         img.src = selectedSrc;
       }
     });
   };
 
   window.addEventListener('DOMContentLoaded', updatePictureSources);
-  mediaQueries.forEach(mq => mq.addEventListener('change', updatePictureSources));
+
+  // Original multiple breakpoint listeners (safe, no loop risk)
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updatePictureSources);
+  WIDTHS.forEach((bp) => {
+    window.matchMedia(`(max-width: ${bp - 1}px)`).addEventListener('change', updatePictureSources);
+  });
 }
 
 export const BACKDROP_FILTER_MAP = {
