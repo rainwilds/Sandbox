@@ -63,7 +63,6 @@
     async function updateHead(attributes) {
         if (isDev) log('updateHead called with attributes: ' + JSON.stringify(attributes, null, 2));
         const head = document.head;
-        const frag = document.createDocumentFragment();  // Batch all appends
 
         // Fonts: Pre-fetch setup once
         const setup = await fetchSetup();
@@ -77,7 +76,7 @@
                 link.as = font.as ?? 'font';
                 link.type = font.type ?? 'font/woff2';
                 link.crossOrigin = font.crossorigin ?? 'anonymous';
-                frag.appendChild(link);  // Batch
+                head.appendChild(link);
                 if (isDev) log(`Added font preload: ${fontUrl}`);
                 hasValidFonts = true;
             } else {
@@ -92,7 +91,7 @@
         const styleLink = document.createElement('link');
         styleLink.rel = 'stylesheet';
         styleLink.href = './styles.css';
-        frag.appendChild(styleLink);  // Batch
+        head.appendChild(styleLink);
         log('Applied stylesheet: ./styles.css');
 
         // Font Awesome
@@ -102,7 +101,7 @@
             script.src = faKitUrl;
             script.crossOrigin = 'anonymous';
             script.async = true;
-            frag.appendChild(script);  // Batch
+            head.appendChild(script);
             log(`Added Font Awesome Kit script: ${faKitUrl}`);
         } else {
             console.warn('No Font Awesome kit URL found; icons may not load');
@@ -137,7 +136,7 @@
                 meta.name = name;
             }
             meta.content = content;
-            frag.appendChild(meta);  // Batch
+            head.appendChild(meta);
             if (isDev) log(`Added ${name} meta with content: ${content}`);
         });
 
@@ -147,7 +146,7 @@
             const link = document.createElement('link');
             link.rel = 'canonical';
             link.href = canonicalUrl;
-            frag.appendChild(link);  // Batch
+            head.appendChild(link);
             log('Added canonical link: ' + canonicalUrl);
         }
 
@@ -158,7 +157,7 @@
             meta.name = 'theme-color';
             meta.content = themeColor;
             meta.media = '(prefers-color-scheme: light)';
-            frag.appendChild(meta);  // Batch
+            head.appendChild(meta);
             log(`Updated theme-color (light): ${themeColor}`);
             const darkTheme = setup.general.theme_colors?.dark ?? '#000000';
             if (darkTheme !== themeColor) {
@@ -166,7 +165,7 @@
                 darkMeta.name = 'theme-color';
                 darkMeta.content = darkTheme;
                 darkMeta.media = '(prefers-color-scheme: dark)';
-                frag.appendChild(darkMeta);  // Batch
+                head.appendChild(darkMeta);
                 log(`Updated theme-color (dark): ${darkTheme}`);
             }
         }
@@ -190,7 +189,7 @@
             const script = document.createElement('script');
             script.type = 'application/ld+json';
             script.textContent = JSON.stringify(jsonLd);
-            frag.appendChild(script);  // Batch
+            head.appendChild(script);
             log('Added Organization JSON-LD schema');
         }
 
@@ -208,7 +207,7 @@
             link.href = favicon.href;
             if (favicon.sizes) link.sizes = favicon.sizes;
             if (favicon.type) link.type = favicon.type;
-            frag.appendChild(link);  // Batch
+            head.appendChild(link);
             if (isDev) log(`Added favicon: ${favicon.href}`);
         });
 
@@ -222,12 +221,9 @@
             script.dataConfigModalStyle = snipcart.modalStyle;
             script.dataConfigLoadStrategy = snipcart.loadStrategy;
             if (snipcart.templatesUrl) script.setAttribute('data-templates-url', snipcart.templatesUrl);
-            frag.appendChild(script);  // Batch
+            head.appendChild(script);
             log('Added Snipcart script');
         }
-
-        // Single batch append at end
-        head.appendChild(frag);
     }
 
     // Main execution
