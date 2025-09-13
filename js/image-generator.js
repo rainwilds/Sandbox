@@ -266,12 +266,9 @@ export function generatePictureMarkup({
   }
 }
 
-// Global script for source selection
+// Global script for source selection (consolidated with ResizeObserver)
 if (typeof window !== 'undefined') {
-  const mediaQueries = [
-    window.matchMedia('(prefers-color-scheme: dark)'),
-    ...WIDTHS.map(w => window.matchMedia(`(max-width: ${w - 1}px)`))
-  ];
+  const isDev = window.location.href.includes('/dev/');
   const updatePictureSources = () => {
     document.querySelectorAll('picture').forEach((picture) => {
       const img = picture.querySelector('img');
@@ -287,14 +284,22 @@ if (typeof window !== 'undefined') {
         }
       });
       if (img.src !== selectedSrc && selectedSrc) {
-        console.log('Updating img src:', { selectedSrc, matchedMedia, prefersDark });
+        if (isDev) console.log('Updating img src:', { selectedSrc, matchedMedia, prefersDark });
         img.src = selectedSrc;
       }
     });
   };
 
+  // Single ResizeObserver for viewport changes (covers breakpoints implicitly)
+  const resizeObserver = new ResizeObserver(() => {
+    updatePictureSources();
+  });
+  resizeObserver.observe(document.body);
+
+  // Theme change listener
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updatePictureSources);
+
   window.addEventListener('DOMContentLoaded', updatePictureSources);
-  mediaQueries.forEach(mq => mq.addEventListener('change', updatePictureSources));
 }
 
 export const BACKDROP_FILTER_MAP = {
