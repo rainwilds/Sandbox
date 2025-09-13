@@ -1,6 +1,7 @@
 /* global document, window, console, fetch, Promise */
 (async () => {
-    const isDev = process.env.NODE_ENV === 'development'; // Assume env var; fallback to true
+    // Browser-compatible dev detection (e.g., URL includes '/dev/')
+    const isDev = window.location.href.includes('/dev/');
     const log = (message) => { if (isDev) console.log(`[HeadGenerator] ${new Date().toLocaleTimeString()} ${message}`); };
 
     // Cache for setup.json
