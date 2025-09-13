@@ -57,18 +57,20 @@ export function generateVideoMarkup({
 function isValidVideoExt(videoSrc) {
   if (!videoSrc) return false;
   const ext = videoSrc.split('.').pop()?.toLowerCase();
-  return VALID_VIDEO_EXTENSIONS.includes(ext ?? '');
+  return ext && VALID_VIDEO_EXTENSIONS.includes(ext);
 }
 
 export function generateVideoSources({ src = '', lightSrc = '', darkSrc = '' }) {
   const addSourcesHTML = (videoSrc, mediaQuery) => {
-    if (!isValidVideoExt(videoSrc)) {
-      console.warn(`Invalid video file extension: ${videoSrc}. Expected: ${VALID_VIDEO_EXTENSIONS.join(', ')}`);
+    const trimmedSrc = videoSrc.trim();
+    if (!isValidVideoExt(trimmedSrc)) {
+      const ext = trimmedSrc.split('.').pop()?.toLowerCase() || '';
+      console.warn(`Invalid video file extension: ${trimmedSrc} (ext: '${ext}'). Expected: ${VALID_VIDEO_EXTENSIONS.join(', ')}`);
       return '';
     }
     // Only extract ext and slice baseSrc if valid
-    const ext = videoSrc.split('.').pop().toLowerCase();
-    const baseSrc = videoSrc.slice(0, -(ext.length + 1));
+    const ext = trimmedSrc.split('.').pop().toLowerCase();
+    const baseSrc = trimmedSrc.slice(0, -(ext.length + 1));
     const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
     return `
       <source src="${baseSrc}.webm" type="video/webm"${mediaAttr}>
@@ -80,7 +82,7 @@ export function generateVideoSources({ src = '', lightSrc = '', darkSrc = '' }) 
   if (darkSrc) innerHTML += addSourcesHTML(darkSrc, '(prefers-color-scheme: dark)');
   const defaultSrc = lightSrc ?? darkSrc ?? src;
   innerHTML += addSourcesHTML(defaultSrc);
-  innerHTML += `<p>Your browser does not support the video tag. <a href="${defaultSrc ?? ''}">Download video</a></p>`;
+  innerHTML += `<p>Your browser does not support the video tag. <a href="${defaultSrc || '#'}">Download video</a></p>`;
   return innerHTML;
 }
 
@@ -107,9 +109,14 @@ if (typeof window !== 'undefined') {
         while (video.firstChild) video.removeChild(video.firstChild);
 
         const addSource = (videoSrc, mediaQuery) => {
-          if (!isValidVideoExt(videoSrc)) return;
-          const ext = videoSrc.split('.').pop().toLowerCase();
-          const baseSrc = videoSrc.slice(0, -(ext.length + 1));
+          const trimmedSrc = videoSrc.trim();
+          if (!isValidVideoExt(trimmedSrc)) {
+            const ext = trimmedSrc.split('.').pop()?.toLowerCase() || '';
+            console.warn(`Invalid video source in update: ${trimmedSrc} (ext: '${ext}')`);
+            return;
+          }
+          const ext = trimmedSrc.split('.').pop().toLowerCase();
+          const baseSrc = trimmedSrc.slice(0, -(ext.length + 1));
           const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
 
           const webmSource = document.createElement('source');
@@ -130,7 +137,7 @@ if (typeof window !== 'undefined') {
         addSource(defaultSrc);
 
         const fallbackP = document.createElement('p');
-        fallbackP.innerHTML = `Your browser does not support the video tag. <a href="${defaultSrc}">Download video</a>`;
+        fallbackP.innerHTML = `Your browser does not support the video tag. <a href="${defaultSrc || '#'}">Download video</a>`;
         video.appendChild(fallbackP);
 
         video.load();
