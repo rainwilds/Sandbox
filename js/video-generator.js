@@ -1,6 +1,9 @@
 import { VALID_VIDEO_EXTENSIONS } from './shared.js';
 
-export function generateVideoMarkup({
+// Cache for Web Worker results
+const markupCache = new Map();
+
+export async function generateVideoMarkup({
   src = '',
   lightSrc = '',
   darkSrc = '',
@@ -19,7 +22,14 @@ export function generateVideoMarkup({
   preload = 'metadata',
   controls = false
 } = {}) {
-  // Trim all string inputs to handle whitespace
+  const isDev = window.location.href.includes('/dev/');
+  const cacheKey = JSON.stringify({ src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses, extraClasses, loading, autoplay, muted, loop, playsinline, disablePip, preload, controls });
+  if (markupCache.has(cacheKey)) {
+    if (isDev) console.log('Using cached video markup:', cacheKey);
+    return markupCache.get(cacheKey);
+  }
+
+  // Trim all string inputs
   src = src.trim();
   lightSrc = lightSrc.trim();
   darkSrc = darkSrc.trim();
@@ -27,39 +37,30 @@ export function generateVideoMarkup({
   lightPoster = lightPoster.trim();
   darkPoster = darkPoster.trim();
 
-  const classList = [customClasses, ...extraClasses].filter(Boolean).join(' ').trim();
-  const videoId = `custom-video-${Math.random().toString(36).substring(2, 11)}`;
-  const isMuted = (autoplay || muted) ? 'muted' : '';
-  const posterAttr = poster ? `poster="${poster}"` : '';
-  const dataAttrs = [
-    lightPoster ? `data-light-poster="${lightPoster}"` : '',
-    darkPoster ? `data-dark-poster="${darkPoster}"` : '',
-    lightSrc ? `data-light-src="${lightSrc}"` : '',
-    darkSrc ? `data-dark-src="${darkSrc}"` : '',
-    src ? `data-default-src="${src}"` : ''
-  ].filter(Boolean).join(' ');
-
-  const innerHTML = generateVideoSources({ src, lightSrc, darkSrc });
-
-  return `
-    <video
-      id="${videoId}"
-      ${autoplay ? 'autoplay' : ''}
-      ${isMuted}
-      ${loop ? 'loop' : ''}
-      ${playsinline ? 'playsinline' : ''}
-      ${disablePip ? 'disablepictureinpicture' : ''}
-      ${controls ? 'controls' : ''}
-      preload="${preload}"
-      loading="${loading}"
-      class="${classList}"
-      title="${alt}"
-      aria-label="${alt}"
-      ${posterAttr}
-      ${dataAttrs}>
-      ${innerHTML}
-    </video>
-  `;
+  // Create Web Worker
+  return new Promise((resolve, reject) => {
+    const worker = new Worker('/js/video-worker.js');
+    worker.onmessage = (e) => {
+      const { markup, error } = e.data;
+      if (error) {
+        if (isDev) console.error('Video Worker error:', error);
+        resolve(`<video><p>Error generating video: ${error}</p></video>`);
+      } else {
+        markupCache.set(cacheKey, markup);
+        resolve(markup);
+      }
+      worker.terminate();
+    };
+    worker.onerror = (err) => {
+      if (isDev) console.error('Video Worker failed:', err);
+      resolve(`<video><p>Error generating video</p></video>`);
+      worker.terminate();
+    };
+    worker.postMessage({
+      src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses,
+      extraClasses, loading, autoplay, muted, loop, playsinline, disablePip, preload, controls
+    });
+  });
 }
 
 function isValidVideoExt(videoSrc) {
@@ -68,38 +69,7 @@ function isValidVideoExt(videoSrc) {
   return ext && VALID_VIDEO_EXTENSIONS.includes(ext);
 }
 
-export function generateVideoSources({ src = '', lightSrc = '', darkSrc = '' }) {
-  const isDev = window.location.href.includes('/dev/');  // Match head-gen
-  const addSourcesHTML = (videoSrc, mediaQuery) => {
-    const trimmedSrc = (videoSrc || '').trim();
-    if (!trimmedSrc || !isValidVideoExt(trimmedSrc)) {
-      const ext = trimmedSrc.split('.').pop()?.toLowerCase() || '';
-      if (isDev) console.warn(`Invalid video file extension: "${trimmedSrc}" (length: ${trimmedSrc.length}, ext: '${ext}'). Expected: ${VALID_VIDEO_EXTENSIONS.join(', ')}`);
-      return '';
-    }
-    // Only extract ext and slice baseSrc if valid
-    const ext = trimmedSrc.split('.').pop().toLowerCase();
-    const baseSrc = trimmedSrc.slice(0, -(ext.length + 1));
-    const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
-    return `
-      <source src="${baseSrc}.webm" type="video/webm"${mediaAttr}>
-      <source src="${baseSrc}.mp4" type="video/mp4"${mediaAttr}>
-    `;
-  };
-  let innerHTML = '';
-  if (lightSrc) innerHTML += addSourcesHTML(lightSrc, '(prefers-color-scheme: light)');
-  if (darkSrc) innerHTML += addSourcesHTML(darkSrc, '(prefers-color-scheme: dark)');
-  const defaultSrc = lightSrc || darkSrc || src;  // Use || for string concat safety
-  innerHTML += addSourcesHTML(defaultSrc);
-  const hasSources = !!innerHTML.trim() && !innerHTML.includes('<p>');
-  if (!hasSources && isDev) {
-    console.warn('No valid video sources generated. Inputs: src="', src, '", lightSrc="', lightSrc, '", darkSrc="', darkSrc, '"');
-  }
-  innerHTML += `<p>Your browser does not support the video tag. <a href="${defaultSrc || '#'}">Download video</a></p>`;
-  return innerHTML;
-}
-
-// Shared global handler
+// Rest unchanged (updateVideos, lazyAutoplayObserver)
 if (typeof window !== 'undefined') {
   const updateVideos = () => {
     const isDev = window.location.href.includes('/dev/');
@@ -111,7 +81,6 @@ if (typeof window !== 'undefined') {
       let darkSrc = (video.dataset.darkSrc ?? '').trim();
       let defaultSrc = (video.dataset.defaultSrc ?? '').trim();
 
-      // Fallback: If defaultSrc empty but attr exists, use it
       if (!defaultSrc && video.dataset.defaultSrc) {
         defaultSrc = video.dataset.defaultSrc.trim();
       }
