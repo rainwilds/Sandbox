@@ -61,30 +61,47 @@ const generateSizes = (mobileWidth, tabletWidth, desktopWidth) => {
   ].join(', ');
 };
 
-// Validate image sources and alts
+// Validate image sources and alts (reverted to original permissive logic)
 const validateSources = (params) => {
-  const sources = Object.values({ ...params, isDecorative: params.isDecorative ?? false })
-    .filter((v, i) => i < 21 && typeof v === 'string')
-    .filter(Boolean);
+  const {
+    src,
+    lightSrc,
+    darkSrc,
+    fullSrc,
+    fullLightSrc,
+    fullDarkSrc,
+    iconSrc,
+    iconLightSrc,
+    iconDarkSrc,
+    alt,
+    lightAlt,
+    darkAlt,
+    fullAlt,
+    fullLightAlt,
+    fullDarkAlt,
+    iconAlt,
+    iconLightAlt,
+    iconDarkAlt,
+    isDecorative,
+  } = params;
+
+  const sources = [src, lightSrc, darkSrc, fullSrc, fullLightSrc, fullDarkSrc, iconSrc, iconLightSrc, iconDarkSrc].filter(Boolean);
   if (!sources.length) throw new Error('At least one valid image source must be provided');
 
   for (const source of sources) {
     if (!VALID_EXTENSIONS.test(source)) throw new Error(`Invalid image source: ${source}`);
   }
 
-  if (!params.isDecorative) {
-    const logoSources = {
-      fullSrc: params.fullAlt,
-      fullLightSrc: params.fullLightAlt,
-      fullDarkSrc: params.fullDarkAlt,
-      iconSrc: params.iconAlt,
-      iconLightSrc: params.iconLightAlt,
-      iconDarkSrc: params.iconDarkAlt
-    };
-    for (const [srcKey, altKey] of Object.entries(logoSources)) {
-      if (params[srcKey] && !params[altKey]) throw new Error(`${altKey} is required for non-decorative ${srcKey}`);
-    }
-    if (!params.alt && !(params.lightSrc && params.lightAlt) && !(params.darkSrc && params.darkAlt)) {
+  if (!isDecorative) {
+    const isLogo = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc;
+    if (isLogo) {
+      if (fullSrc && !fullAlt) throw new Error('fullAlt is required for non-decorative fullSrc');
+      if (iconSrc && !iconAlt) throw new Error('iconAlt is required for non-decorative iconSrc');
+      if (fullLightSrc && !fullLightAlt) throw new Error('fullLightAlt is required for fullLightSrc');
+      if (fullDarkSrc && !fullDarkAlt) throw new Error('fullDarkAlt is required for fullDarkSrc');
+      if (iconLightSrc && !iconLightAlt) throw new Error('iconLightAlt is required for iconLightSrc');
+      if (iconDarkSrc && !iconDarkAlt) throw new Error('iconDarkAlt is required for iconDarkSrc');
+    } else if (!alt && !(lightSrc && lightAlt) && !(darkSrc && darkAlt)) {
       throw new Error('Alt attribute is required for non-decorative images');
     }
   }
@@ -126,7 +143,7 @@ export function generatePictureMarkup({
   extraStyles = '',
 } = {}) {
   try {
-    // Validate inputs
+    // Validate inputs (now skips non-path placeholders)
     validateSources(arguments[0]);
 
     // Validate breakpoint
