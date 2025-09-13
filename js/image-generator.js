@@ -12,7 +12,28 @@ const DEFAULT_SIZE_VALUE = 3840;
 const BASE_PATH = './img/responsive/';
 const VALID_EXTENSIONS = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
 
-// Cache parsed widths to avoid repeated calculations
+// Memoized helpers
+const mimeTypeCache = new Map();
+const getImageType = (src) => {
+  if (!src) return '';
+  const cacheKey = src.split('.').pop().toLowerCase();
+  if (!mimeTypeCache.has(cacheKey)) {
+    mimeTypeCache.set(cacheKey, cacheKey === 'svg' ? 'image/svg+xml' : `image/${cacheKey}`);
+  }
+  return mimeTypeCache.get(cacheKey);
+};
+
+const filenameCache = new Map();
+const getBaseFilename = (src) => {
+  if (!src) return null;
+  const cacheKey = src;
+  if (!filenameCache.has(cacheKey)) {
+    filenameCache.set(cacheKey, src.split('/').pop().split('.').slice(0, -1).join('.'));
+  }
+  return filenameCache.get(cacheKey);
+};
+
+// Cache parsed widths
 const parseWidth = (widthStr, winWidth = typeof window !== 'undefined' ? window.innerWidth : 1920) => {
   if (typeof widthStr === 'number') return Math.max(0.1, Math.min(2.0, widthStr / winWidth));
   const vwMatch = widthStr.match(/(\d+)vw/);
@@ -22,7 +43,7 @@ const parseWidth = (widthStr, winWidth = typeof window !== 'undefined' ? window.
   return 1.0;
 };
 
-// Generate sizes attribute once per breakpoint configuration
+// Generate sizes attribute
 const generateSizes = (mobileWidth, tabletWidth, desktopWidth) => {
   const parsedWidths = {
     mobile: parseWidth(mobileWidth),
@@ -40,47 +61,30 @@ const generateSizes = (mobileWidth, tabletWidth, desktopWidth) => {
   ].join(', ');
 };
 
-// Validate image sources and alts efficiently
+// Validate image sources and alts
 const validateSources = (params) => {
-  const {
-    src,
-    lightSrc,
-    darkSrc,
-    fullSrc,
-    fullLightSrc,
-    fullDarkSrc,
-    iconSrc,
-    iconLightSrc,
-    iconDarkSrc,
-    alt,
-    lightAlt,
-    darkAlt,
-    fullAlt,
-    fullLightAlt,
-    fullDarkAlt,
-    iconAlt,
-    iconLightAlt,
-    iconDarkAlt,
-    isDecorative,
-  } = params;
-
-  const sources = [src, lightSrc, darkSrc, fullSrc, fullLightSrc, fullDarkSrc, iconSrc, iconLightSrc, iconDarkSrc].filter(Boolean);
+  const sources = Object.values({ ...params, isDecorative: params.isDecorative ?? false })
+    .filter((v, i) => i < 21 && typeof v === 'string')
+    .filter(Boolean);
   if (!sources.length) throw new Error('At least one valid image source must be provided');
 
   for (const source of sources) {
     if (!VALID_EXTENSIONS.test(source)) throw new Error(`Invalid image source: ${source}`);
   }
 
-  if (!isDecorative) {
-    const isLogo = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc;
-    if (isLogo) {
-      if (fullSrc && !fullAlt) throw new Error('fullAlt is required for non-decorative fullSrc');
-      if (iconSrc && !iconAlt) throw new Error('iconAlt is required for non-decorative iconSrc');
-      if (fullLightSrc && !fullLightAlt) throw new Error('fullLightAlt is required for fullLightSrc');
-      if (fullDarkSrc && !fullDarkAlt) throw new Error('fullDarkAlt is required for fullDarkSrc');
-      if (iconLightSrc && !iconLightAlt) throw new Error('iconLightAlt is required for iconLightSrc');
-      if (iconDarkSrc && !iconDarkAlt) throw new Error('iconDarkAlt is required for iconDarkSrc');
-    } else if (!alt && !(lightSrc && lightAlt) && !(darkSrc && darkAlt)) {
+  if (!params.isDecorative) {
+    const logoSources = {
+      fullSrc: params.fullAlt,
+      fullLightSrc: params.fullLightAlt,
+      fullDarkSrc: params.fullDarkAlt,
+      iconSrc: params.iconAlt,
+      iconLightSrc: params.iconLightAlt,
+      iconDarkSrc: params.iconDarkAlt
+    };
+    for (const [srcKey, altKey] of Object.entries(logoSources)) {
+      if (params[srcKey] && !params[altKey]) throw new Error(`${altKey} is required for non-decorative ${srcKey}`);
+    }
+    if (!params.alt && !(params.lightSrc && params.lightAlt) && !(params.darkSrc && params.darkAlt)) {
       throw new Error('Alt attribute is required for non-decorative images');
     }
   }
@@ -135,7 +139,7 @@ export function generatePictureMarkup({
     const loadingAttr = ['eager', 'lazy'].includes(loading) ? ` loading="${loading}"` : ' loading="lazy"';
     const fetchPriorityAttr = ['high', 'low', 'auto'].includes(fetchPriority) && !(fullSrc || iconSrc || fullLightSrc || iconLightSrc || fullDarkSrc || iconDarkSrc) ? ` fetchpriority="${fetchPriority}"` : '';
 
-    // Combine classes efficiently
+    // Combine classes
     const allClasses = [...new Set([customClasses.trim(), ...extraClasses].flatMap((c) => c.split(/\s+/)).filter(Boolean))];
     if (aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio)) {
       allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
@@ -144,14 +148,8 @@ export function generatePictureMarkup({
     const classAttr = allClasses.length ? ` class="${allClasses.join(' ')}"` : '';
     const styleAttr = extraStyles ? ` style="${extraStyles}"` : '';
 
-    // Initialize markup array for efficient concatenation
+    // Initialize markup array
     const markup = [`<picture${classAttr}${styleAttr}>`];
-
-    // Helper to get image MIME type
-    const getImageType = (src) => {
-      const ext = src.split('.').pop().toLowerCase();
-      return ext === 'svg' ? 'image/svg+xml' : `image/${ext}`;
-    };
 
     // Generate srcset for responsive images
     const generateSrcset = (filename, format) =>
@@ -160,16 +158,14 @@ export function generatePictureMarkup({
     const isLogo = fullSrc || fullLightSrc || fullDarkSrc || iconSrc || iconLightSrc || iconDarkSrc;
 
     if (isLogo) {
-      // Logo case: Use original source URLs with inverted theme logic for icons, standard for full logos
+      // Logo case
       if (validatedBreakpoint && (iconSrc || iconLightSrc || iconDarkSrc)) {
         if (iconLightSrc) {
-          // Use light icon in dark mode
           markup.push(
             `<source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: dark)" type="${getImageType(iconLightSrc)}" srcset="${iconLightSrc}"${isDecorative ? ' alt="" role="presentation"' : iconLightAlt ? ` alt="${iconLightAlt}"` : ''}>`
           );
         }
         if (iconDarkSrc) {
-          // Use dark icon in light mode
           markup.push(
             `<source media="(max-width: ${validatedBreakpoint - 1}px) and (prefers-color-scheme: light)" type="${getImageType(iconDarkSrc)}" srcset="${iconDarkSrc}"${isDecorative ? ' alt="" role="presentation"' : iconDarkAlt ? ` alt="${iconDarkAlt}"` : ''}>`
           );
@@ -182,28 +178,25 @@ export function generatePictureMarkup({
       }
 
       if (fullLightSrc) {
-        // Use light full logo in light mode
         markup.push(
           `<source media="(prefers-color-scheme: light) and (min-width: ${validatedBreakpoint}px)" type="${getImageType(fullLightSrc)}" srcset="${fullLightSrc}"${isDecorative ? ' alt="" role="presentation"' : fullLightAlt ? ` alt="${fullLightAlt}"` : ''}>`
         );
       }
       if (fullDarkSrc) {
-        // Use dark full logo in dark mode
         markup.push(
           `<source media="(prefers-color-scheme: dark) and (min-width: ${validatedBreakpoint}px)" type="${getImageType(fullDarkSrc)}" srcset="${fullDarkSrc}"${isDecorative ? ' alt="" role="presentation"' : fullDarkAlt ? ` alt="${fullDarkAlt}"` : ''}>`
         );
       }
       if (fullSrc || iconSrc) {
-        // Use fullSrc or iconSrc as fallback to avoid theme-specific fallbacks
         const fallbackSrc = fullSrc || iconSrc;
         markup.push(`<source type="${getImageType(fallbackSrc)}" srcset="${fallbackSrc}"${altAttr}>`);
       }
     } else {
-      // Non-logo case: Generate responsive srcset
+      // Non-logo case
       const sizes = generateSizes(mobileWidth, tabletWidth, desktopWidth);
-      const baseFilename = (lightSrc || darkSrc || src).split('/').pop().split('.').slice(0, -1).join('.');
-      const lightBaseFilename = lightSrc ? lightSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
-      const darkBaseFilename = darkSrc ? darkSrc.split('/').pop().split('.').slice(0, -1).join('.') : null;
+      const baseFilename = getBaseFilename(lightSrc || darkSrc || src);
+      const lightBaseFilename = lightSrc ? getBaseFilename(lightSrc) : null;
+      const darkBaseFilename = darkSrc ? getBaseFilename(darkSrc) : null;
 
       if (noResponsive) {
         if (lightSrc) {
@@ -238,7 +231,7 @@ export function generatePictureMarkup({
 
     // Add fallback img tag
     markup.push(
-      `<img src="${primarySrc}"${altAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/3000x2000';${isDecorative ? '' : `this.alt='${primaryAlt || 'Placeholder image'}';`}this.onerror=null;">`
+      `<img src="${primarySrc}"${altAttr}${loadingAttr}${fetchPriorityAttr} onerror="this.src='https://placehold.co/3000x2000'; this.alt='${primaryAlt ?? 'Placeholder image'}'; this.onerror=null;">`
     );
     markup.push('</picture>');
 
@@ -256,8 +249,12 @@ export function generatePictureMarkup({
   }
 }
 
-// Global script for source selection (run once per page)
+// Global script for source selection
 if (typeof window !== 'undefined') {
+  const mediaQueries = [
+    window.matchMedia('(prefers-color-scheme: dark)'),
+    ...WIDTHS.map(w => window.matchMedia(`(max-width: ${w - 1}px)`))
+  ];
   const updatePictureSources = () => {
     document.querySelectorAll('picture').forEach((picture) => {
       const img = picture.querySelector('img');
@@ -280,10 +277,7 @@ if (typeof window !== 'undefined') {
   };
 
   window.addEventListener('DOMContentLoaded', updatePictureSources);
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updatePictureSources);
-  WIDTHS.forEach((bp) => {
-    window.matchMedia(`(max-width: ${bp - 1}px)`).addEventListener('change', updatePictureSources);
-  });
+  mediaQueries.forEach(mq => mq.addEventListener('change', updatePictureSources));
 }
 
 export const BACKDROP_FILTER_MAP = {
