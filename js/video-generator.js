@@ -19,7 +19,7 @@ export function generateVideoMarkup({
   preload = 'metadata',
   controls = false
 } = {}) {
-  const classList = [customClasses, ...extraClasses].filter(cls => cls).join(' ').trim();
+  const classList = [customClasses, ...extraClasses].filter(Boolean).join(' ').trim();
   const videoId = `custom-video-${Math.random().toString(36).substring(2, 11)}`;
   const isMuted = (autoplay || muted) ? 'muted' : '';
   const posterAttr = poster ? `poster="${poster}"` : '';
@@ -42,8 +42,8 @@ export function generateVideoMarkup({
       ${playsinline ? 'playsinline' : ''}
       ${disablePip ? 'disablepictureinpicture' : ''}
       ${controls ? 'controls' : ''}
-      preload="${preload || 'metadata'}"
-      loading="${loading || 'lazy'}"
+      preload="${preload}"
+      loading="${loading}"
       class="${classList}"
       title="${alt}"
       aria-label="${alt}"
@@ -54,15 +54,19 @@ export function generateVideoMarkup({
   `;
 }
 
-export function generateVideoSources({ src = '', lightSrc = '', darkSrc = '', validExtensions = VALID_VIDEO_EXTENSIONS }) {
+function isValidVideoExt(videoSrc) {
+  if (!videoSrc) return false;
+  const ext = videoSrc.split('.').pop()?.toLowerCase();
+  return VALID_VIDEO_EXTENSIONS.includes(ext ?? '');
+}
+
+export function generateVideoSources({ src = '', lightSrc = '', darkSrc = '' }) {
   const addSourcesHTML = (videoSrc, mediaQuery) => {
-    if (!videoSrc) return '';
-    const ext = videoSrc.split('.').pop()?.toLowerCase();
-    console.log('Video source:', videoSrc, 'Extension:', ext, 'Valid:', validExtensions); // Debug (remove after)
-    if (!ext || !validExtensions.includes(ext)) {
-      console.warn(`Invalid video file extension: ${videoSrc}. Expected: ${validExtensions.join(', ')}`);
+    if (!isValidVideoExt(videoSrc)) {
+      console.warn(`Invalid video file extension: ${videoSrc}. Expected: ${VALID_VIDEO_EXTENSIONS.join(', ')}`);
       return '';
     }
+    const ext = videoSrc.split('.').pop().toLowerCase();
     const baseSrc = videoSrc.slice(0, -(ext.length + 1));
     const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
     return `
@@ -73,39 +77,37 @@ export function generateVideoSources({ src = '', lightSrc = '', darkSrc = '', va
   let innerHTML = '';
   if (lightSrc) innerHTML += addSourcesHTML(lightSrc, '(prefers-color-scheme: light)');
   if (darkSrc) innerHTML += addSourcesHTML(darkSrc, '(prefers-color-scheme: dark)');
-  const defaultSrc = lightSrc || darkSrc || src;
+  const defaultSrc = lightSrc ?? darkSrc ?? src;
   innerHTML += addSourcesHTML(defaultSrc);
-  innerHTML += `<p>Your browser does not support the video tag. <a href="${defaultSrc}">Download video</a></p>`;
+  innerHTML += `<p>Your browser does not support the video tag. <a href="${defaultSrc ?? ''}">Download video</a></p>`;
   return innerHTML;
 }
 
-// Shared global handler (self-contained, no generateVideoSources call)
+// Shared global handler
 if (typeof window !== 'undefined') {
   const updateVideos = () => {
     document.querySelectorAll('video[id^="custom-video"]').forEach(video => {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const lightPoster = video.dataset.lightPoster || '';
-      const darkPoster = video.dataset.darkPoster || '';
-      const lightSrc = video.dataset.lightSrc || '';
-      const darkSrc = video.dataset.darkSrc || '';
-      const defaultSrc = video.dataset.defaultSrc || '';
+      const lightPoster = video.dataset.lightPoster ?? '';
+      const darkPoster = video.dataset.darkPoster ?? '';
+      const lightSrc = video.dataset.lightSrc ?? '';
+      const darkSrc = video.dataset.darkSrc ?? '';
+      const defaultSrc = video.dataset.defaultSrc ?? '';
 
       const newPoster = prefersDark ? darkPoster : lightPoster;
       if (newPoster && video.poster !== newPoster) {
         video.poster = newPoster;
       }
 
-      const activeSrc = prefersDark ? (darkSrc || lightSrc) : (lightSrc || darkSrc);
+      const activeSrc = prefersDark ? (darkSrc ?? lightSrc) : (lightSrc ?? darkSrc);
       if (activeSrc && !video.currentSrc.includes(activeSrc)) {
         const wasPlaying = !video.paused;
         const currentTime = video.currentTime;
         while (video.firstChild) video.removeChild(video.firstChild);
 
-        // Inline source creation (no import needed)
         const addSource = (videoSrc, mediaQuery) => {
-          if (!videoSrc) return;
-          const ext = videoSrc.split('.').pop()?.toLowerCase();
-          if (!VALID_VIDEO_EXTENSIONS.includes(ext)) return;
+          if (!isValidVideoExt(videoSrc)) return;
+          const ext = videoSrc.split('.').pop().toLowerCase();
           const baseSrc = videoSrc.slice(0, -(ext.length + 1));
           const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
 
