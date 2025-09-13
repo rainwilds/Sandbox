@@ -66,6 +66,7 @@ export function generateVideoSources({ src = '', lightSrc = '', darkSrc = '' }) 
       console.warn(`Invalid video file extension: ${videoSrc}. Expected: ${VALID_VIDEO_EXTENSIONS.join(', ')}`);
       return '';
     }
+    // Only extract ext and slice baseSrc if valid
     const ext = videoSrc.split('.').pop().toLowerCase();
     const baseSrc = videoSrc.slice(0, -(ext.length + 1));
     const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : '';
