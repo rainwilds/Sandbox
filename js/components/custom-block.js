@@ -80,9 +80,7 @@ class CustomBlock extends HTMLElement {
     ];
 
     getAttributes() {
-        if (this.cachedAttributes) {
-            return this.cachedAttributes;
-        }
+        if (this.cachedAttributes) return this.cachedAttributes;
         const isDev = window.location.href.includes('/dev/');
         const backgroundFetchPriority = this.getAttribute('img-background-fetchpriority') || '';
         const primaryFetchPriority = this.getAttribute('img-primary-fetchpriority') || '';
@@ -105,43 +103,29 @@ class CustomBlock extends HTMLElement {
         let backgroundOverlayClass = '';
         if (backgroundOverlay) {
             const match = backgroundOverlay.match(/^background-overlay-(\d+)$/);
-            if (match) {
-                backgroundOverlayClass = `background-overlay-${match[1]}`;
-            } else {
-                console.warn(`Invalid background-overlay value "${backgroundOverlay}" in <custom-block>. Expected format: background-overlay-[number]. Using default 'background-overlay-1'.`);
-                backgroundOverlayClass = 'background-overlay-1';
-            }
+            if (match) backgroundOverlayClass = `background-overlay-${match[1]}`;
+            else console.warn(`Invalid background-overlay value "${backgroundOverlay}" in <custom-block>. Using default 'background-overlay-1'.`);
         }
         const innerBackgroundOverlay = this.getAttribute('inner-background-overlay') || '';
         let innerBackgroundOverlayClass = '';
         if (innerBackgroundOverlay) {
             const match = innerBackgroundOverlay.match(/^background-overlay-(\d+)$/);
-            if (match) {
-                innerBackgroundOverlayClass = `background-overlay-${match[1]}`;
-            } else {
-                console.warn(`Invalid inner-background-overlay value "${innerBackgroundOverlay}" in <custom-block>. Expected format: background-overlay-[number]. Using default 'background-overlay-1'.`);
-                innerBackgroundOverlayClass = 'background-overlay-1';
-            }
+            if (match) innerBackgroundOverlayClass = `background-overlay-${match[1]}`;
+            else console.warn(`Invalid inner-background-overlay value "${innerBackgroundOverlay}" in <custom-block>. Using default 'background-overlay-1'.`);
         }
         const backgroundGradient = this.getAttribute('background-gradient') || '';
         let backgroundGradientClass = '';
         if (backgroundGradient) {
             const match = backgroundGradient.match(/^background-gradient-(\d+)$/);
-            if (match) {
-                backgroundGradientClass = `background-gradient-${match[1]}`;
-            } else {
-                console.warn(`Invalid background-gradient value "${backgroundGradient}" in <custom-block>. Expected format: background-gradient-[number]. Ignoring.`);
-            }
+            if (match) backgroundGradientClass = `background-gradient-${match[1]}`;
+            else console.warn(`Invalid background-gradient value "${backgroundGradient}" in <custom-block>. Ignoring.`);
         }
         const innerBackgroundGradient = this.getAttribute('inner-background-gradient') || '';
         let innerBackgroundGradientClass = '';
         if (innerBackgroundGradient) {
             const match = innerBackgroundGradient.match(/^background-gradient-(\d+)$/);
-            if (match) {
-                innerBackgroundGradientClass = `background-gradient-${match[1]}`;
-            } else {
-                console.warn(`Invalid inner-background-gradient value "${innerBackgroundGradient}" in <custom-block>. Expected format: background-gradient-[number]. Ignoring.`);
-            }
+            if (match) innerBackgroundGradientClass = `background-gradient-${match[1]}`;
+            else console.warn(`Invalid inner-background-gradient value "${innerBackgroundGradient}" in <custom-block>. Ignoring.`);
         }
         const backdropFilterClasses = this.getAttribute('backdrop-filter')?.split(' ').filter(cls => cls) || [];
         const innerBackdropFilterClasses = this.getAttribute('inner-backdrop-filter')?.split(' ').filter(cls => cls) || [];
@@ -149,29 +133,26 @@ class CustomBlock extends HTMLElement {
         const subHeadingTag = this.getAttribute('sub-heading-tag') || 'h3';
         const validHeadingTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
         if (!validHeadingTags.includes(headingTag.toLowerCase())) {
-            console.warn(`Invalid heading-tag value "${headingTag}" in <custom-block>. Must be one of ${validHeadingTags.join(', ')}. Using default 'h2'.`);
+            console.warn(`Invalid heading-tag value "${headingTag}" in <custom-block>. Using default 'h2'.`);
         }
         if (!validHeadingTags.includes(subHeadingTag.toLowerCase())) {
-            console.warn(`Invalid sub-heading-tag value "${subHeadingTag}" in <custom-block>. Must be one of ${validHeadingTags.join(', ')}. Using default 'h3'.`);
+            console.warn(`Invalid sub-heading-tag value "${subHeadingTag}" in <custom-block>. Using default 'h3'.`);
         }
         const innerAlignment = this.getAttribute('inner-alignment') || '';
         if (innerAlignment && !VALID_ALIGNMENTS.includes(innerAlignment)) {
-            console.warn(`Invalid inner-alignment value "${innerAlignment}" in <custom-block>. Must be one of ${VALID_ALIGNMENTS.join(', ')}. Ignoring alignment.`);
+            console.warn(`Invalid inner-alignment value "${innerAlignment}" in <custom-block>. Ignoring.`);
         }
         const textAlignment = this.getAttribute('text-alignment') || '';
         const validTextAlignments = ['left', 'center', 'right'];
         if (textAlignment && !validTextAlignments.includes(textAlignment)) {
-            console.warn(`Invalid text-alignment value "${textAlignment}" in <custom-block>. Must be one of ${validTextAlignments.join(', ')}. Ignoring text alignment.`);
+            console.warn(`Invalid text-alignment value "${textAlignment}" in <custom-block>. Ignoring.`);
         }
         const innerBackgroundColor = this.getAttribute('inner-background-color') || '';
         let innerBackgroundColorClass = '';
         if (innerBackgroundColor) {
             const match = innerBackgroundColor.match(/^background-color-(\d+)$/);
-            if (match) {
-                innerBackgroundColorClass = `background-color-${match[1]}`;
-            } else {
-                console.warn(`Invalid inner-background-color value "${innerBackgroundColor}" in <custom-block>. Expected format: background-color-[number]. Ignoring.`);
-            }
+            if (match) innerBackgroundColorClass = `background-color-${match[1]}`;
+            else console.warn(`Invalid inner-background-color value "${innerBackgroundColor}" in <custom-block>. Ignoring.`);
         }
         const shadow = this.getAttribute('shadow') || '';
         let shadowClass = '';
@@ -179,39 +160,39 @@ class CustomBlock extends HTMLElement {
         if (shadow && validShadowClasses.includes(shadow)) {
             shadowClass = shadow;
         } else if (shadow) {
-            console.warn(`Invalid shadow value "${shadow}" in <custom-block>. Must be one of ${validShadowClasses.join(', ')}. Ignoring.`);
+            console.warn(`Invalid shadow value "${shadow}" in <custom-block>. Ignoring.`);
         }
         const innerShadow = this.getAttribute('inner-shadow') || '';
         let innerShadowClass = '';
         if (innerShadow && validShadowClasses.includes(innerShadow)) {
             innerShadowClass = innerShadow;
         } else if (innerShadow) {
-            console.warn(`Invalid inner-shadow value "${innerShadow}" in <custom-block>. Must be one of ${validShadowClasses.join(', ')}. Ignoring.`);
+            console.warn(`Invalid inner-shadow value "${innerShadow}" in <custom-block>. Ignoring.`);
         }
         const backgroundSrc = this.getAttribute('img-background-src') || '';
         const backgroundLightSrc = this.getAttribute('img-background-light-src') || '';
         const backgroundDarkSrc = this.getAttribute('img-background-dark-src') || '';
         const backgroundAlt = this.getAttribute('img-background-alt') || '';
         if ((backgroundLightSrc || backgroundDarkSrc) && !(backgroundLightSrc && backgroundDarkSrc) && !backgroundSrc) {
-            throw new Error('Both img-background-light-src and img-background-dark-src must be present when using light/dark themes, or use img-background-src alone.');
+            throw new Error('Both img-background-light-src and img-background-dark-src must be present or use img-background-src alone.');
         }
         const primarySrc = this.getAttribute('img-primary-src') || '';
         const primaryLightSrc = this.getAttribute('img-primary-light-src') || '';
         const primaryDarkSrc = this.getAttribute('img-primary-dark-src') || '';
         if ((primaryLightSrc || primaryDarkSrc) && !(primaryLightSrc && primaryDarkSrc) && !primarySrc) {
-            throw new Error('Both img-primary-light-src and img-primary-dark-src must be present when using light/dark themes, or use img-primary-src alone.');
+            throw new Error('Both img-primary-light-src and img-primary-dark-src must be present or use img-primary-src alone.');
         }
         const videoBackgroundSrc = this.getAttribute('video-background-src') || '';
         const videoBackgroundLightSrc = this.getAttribute('video-background-light-src') || '';
         const videoBackgroundDarkSrc = this.getAttribute('video-background-dark-src') || '';
         if ((videoBackgroundLightSrc || videoBackgroundDarkSrc) && !(videoBackgroundLightSrc && videoBackgroundDarkSrc) && !videoBackgroundSrc) {
-            throw new Error('Both video-background-light-src and video-background-dark-src must be present when using light/dark themes, or use video-background-src alone.');
+            throw new Error('Both video-background-light-src and video-background-dark-src must be present or use video-background-src alone.');
         }
         const videoPrimarySrc = this.getAttribute('video-primary-src') || '';
         const videoPrimaryLightSrc = this.getAttribute('video-primary-light-src') || '';
         const videoPrimaryDarkSrc = this.getAttribute('video-primary-dark-src') || '';
         if ((videoPrimaryLightSrc || videoPrimaryDarkSrc) && !(videoPrimaryLightSrc && videoPrimaryDarkSrc) && !videoPrimarySrc) {
-            throw new Error('Both video-primary-light-src and video-primary-dark-src must be present when using light/dark themes, or use video-primary-src alone.');
+            throw new Error('Both video-primary-light-src and video-primary-dark-src must be present or use video-primary-src alone.');
         }
         const backgroundPosition = this.getAttribute('img-background-position') || '';
         let sanitizedBackgroundPosition = '';
@@ -228,7 +209,7 @@ class CustomBlock extends HTMLElement {
             if (isValidNamedPosition || isValidCoordinate) {
                 sanitizedBackgroundPosition = backgroundPosition;
             } else {
-                console.warn(`Invalid img-background-position value "${backgroundPosition}" in <custom-block>. Must be a valid position (e.g., "top-left", "50% 100%"). Ignoring.`);
+                console.warn(`Invalid img-background-position value "${backgroundPosition}" in <custom-block>. Ignoring.`);
             }
         }
         let icon = this.getAttribute('icon') || '';
@@ -265,7 +246,7 @@ class CustomBlock extends HTMLElement {
                 return allowedStyles.includes(property);
             }).join('; ');
             if (sanitizedIconStyle !== iconStyle) {
-                console.warn(`Invalid or unsafe CSS in icon-style attribute: "${iconStyle}". Using sanitized styles: "${sanitizedIconStyle}".`);
+                console.warn(`Invalid or unsafe CSS in icon-style attribute: "${iconStyle}". Using sanitized: "${sanitizedIconStyle}".`);
             }
         }
         const iconClass = this.getAttribute('icon-class') || '';
@@ -273,25 +254,22 @@ class CustomBlock extends HTMLElement {
         if (iconClass) {
             sanitizedIconClass = iconClass.split(/\s+/).filter(cls => /^[a-zA-Z0-9\-_]+$/.test(cls)).join(' ');
             if (sanitizedIconClass !== iconClass) {
-                console.warn(`Invalid characters in icon-class attribute: "${iconClass}". Using sanitized classes: "${sanitizedIconClass}".`);
+                console.warn(`Invalid characters in icon-class attribute: "${iconClass}". Using sanitized: "${sanitizedIconClass}".`);
             }
         }
         const iconSize = this.getAttribute('icon-size') || '';
         let sanitizedIconSize = '';
         if (iconSize) {
             const remMatch = iconSize.match(/^(\d*\.?\d+)rem$/);
-            if (remMatch) {
-                sanitizedIconSize = iconSize;
-            } else {
-                console.warn(`Invalid icon-size value "${iconSize}" in <custom-block>. Must be a valid rem value (e.g., "2rem"). Ignoring.`);
-            }
+            if (remMatch) sanitizedIconSize = iconSize;
+            else console.warn(`Invalid icon-size value "${iconSize}" in <custom-block>. Must be a valid rem value. Ignoring.`);
         }
         const buttonClass = this.getAttribute('button-class') || '';
         let sanitizedButtonClass = '';
         if (buttonClass) {
             sanitizedButtonClass = buttonClass.split(/\s+/).filter(cls => /^[a-zA-Z0-9\-_]+$/.test(cls)).join(' ');
             if (sanitizedButtonClass !== buttonClass) {
-                console.warn(`Invalid characters in button-class attribute: "${buttonClass}". Using sanitized classes: "${sanitizedButtonClass}".`);
+                console.warn(`Invalid characters in button-class attribute: "${buttonClass}". Using sanitized: "${sanitizedButtonClass}".`);
             }
         }
         const buttonStyle = this.getAttribute('button-style') || '';
@@ -304,7 +282,7 @@ class CustomBlock extends HTMLElement {
                 return allowedStyles.includes(property);
             }).join('; ');
             if (sanitizedButtonStyle !== buttonStyle) {
-                console.warn(`Invalid or unsafe CSS in button-style attribute: "${buttonStyle}". Using sanitized styles: "${sanitizedButtonStyle}".`);
+                console.warn(`Invalid or unsafe CSS in button-style attribute: "${buttonStyle}". Using sanitized: "${sanitizedButtonStyle}".`);
             }
         }
         const buttonRel = this.getAttribute('button-rel') || '';
@@ -313,7 +291,7 @@ class CustomBlock extends HTMLElement {
             const validRels = ['alternate', 'author', 'bookmark', 'external', 'help', 'license', 'next', 'nofollow', 'noopener', 'noreferrer', 'prev', 'search', 'tag'];
             sanitizedButtonRel = buttonRel.split(/\s+/).filter(rel => validRels.includes(rel)).join(' ');
             if (sanitizedButtonRel !== buttonRel) {
-                console.warn(`Invalid button-rel value "${buttonRel}" in <custom-block>. Must be one of ${validRels.join(', ')}. Using sanitized: "${sanitizedButtonRel}".`);
+                console.warn(`Invalid button-rel value "${buttonRel}" in <custom-block>. Using sanitized: "${sanitizedButtonRel}".`);
             }
         }
         const buttonType = this.getAttribute('button-type') || '';
@@ -323,11 +301,11 @@ class CustomBlock extends HTMLElement {
         if (buttonType && validButtonTypes.includes(buttonType)) {
             sanitizedButtonType = buttonType;
         } else if (buttonType) {
-            console.warn(`Invalid button-type value "${buttonType}" in <custom-block>. Must be one of ${validButtonTypes.join(', ')}. Using default ${buttonHref ? "'link'" : "'button'"}.`);
+            console.warn(`Invalid button-type value "${buttonType}" in <custom-block>. Using default ${buttonHref ? "'link'" : "'button'"}.`);
         }
         let buttonIcon = this.getAttribute('button-icon') || '';
         if (buttonIcon) {
-            buttonIcon = icon.replace(/['"]/g, '&quot;');
+            buttonIcon = buttonIcon.replace(/['"]/g, '&quot;');
             const parser = new DOMParser();
             const decodedIcon = buttonIcon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
             const doc = parser.parseFromString(decodedIcon, 'text/html');
@@ -359,28 +337,22 @@ class CustomBlock extends HTMLElement {
         let sanitizedButtonIconOffset = '';
         if (buttonIconOffset && sanitizedButtonIconPosition) {
             const validOffset = buttonIconOffset.match(/^var\(--space-[a-z]+\)$/);
-            if (validOffset) {
-                sanitizedButtonIconOffset = buttonIconOffset;
-            } else {
-                console.warn(`Invalid button-icon-offset value "${buttonIconOffset}" in <custom-block>. Must be a CSS variable like 'var(--space-tiny)'. Ignoring.`);
-            }
+            if (validOffset) sanitizedButtonIconOffset = buttonIconOffset;
+            else console.warn(`Invalid button-icon-offset value "${buttonIconOffset}" in <custom-block>. Ignoring.`);
         }
         const buttonIconSize = this.getAttribute('button-icon-size') || '';
         let sanitizedButtonIconSize = '';
         if (buttonIconSize) {
             const remMatch = buttonIconSize.match(/^(\d*\.?\d+)rem$/);
-            if (remMatch) {
-                sanitizedButtonIconSize = buttonIconSize;
-            } else {
-                console.warn(`Invalid button-icon-size value "${buttonIconSize}" in <custom-block>. Must be a valid rem value (e.g., "2rem"). Ignoring.`);
-            }
+            if (remMatch) sanitizedButtonIconSize = buttonIconSize;
+            else console.warn(`Invalid button-icon-size value "${buttonIconSize}" in <custom-block>. Ignoring.`);
         }
         const effects = this.getAttribute('effects') || '';
         let sanitizedEffects = '';
         if (effects) {
             sanitizedEffects = effects.split(/\s+/).filter(cls => /^[a-zA-Z0-9\-]+$/.test(cls)).join(' ');
             if (sanitizedEffects !== effects) {
-                console.warn(`Invalid effects value "${effects}" in <custom-block>. Must be alphanumeric or hyphenated (e.g., "parallax"). Using sanitized: "${sanitizedEffects}".`);
+                console.warn(`Invalid effects value "${effects}" in <custom-block>. Using sanitized: "${sanitizedEffects}".`);
             }
         }
         this.cachedAttributes = {
@@ -507,7 +479,7 @@ class CustomBlock extends HTMLElement {
                 this.callbacks.forEach(callback => callback());
                 if (isDev) console.log('CustomBlock rendered successfully');
             } else {
-                console.error('Failed to render CustomBlock: cardElement is null or invalid.', this.outerHTML);
+                console.error('Failed to render CustomBlock: cardElement is null.', this.outerHTML);
                 this.replaceWith(await this.render(true));
             }
         } catch (error) {
@@ -684,11 +656,9 @@ class CustomBlock extends HTMLElement {
             attrs.buttonText;
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
         const mediaClasses = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls)).join(' ').trim();
-        // Create DocumentFragment for efficient DOM construction
         const fragment = document.createDocumentFragment();
         const blockElement = document.createElement('div');
         fragment.appendChild(blockElement);
-        // Set block element classes and attributes
         const mainDivClassList = ['block'];
         if (hasBackgroundImage) mainDivClassList.push('background-image');
         else if (hasVideoBackground || hasVideoPrimary) mainDivClassList.push('background-video');
@@ -699,7 +669,6 @@ class CustomBlock extends HTMLElement {
         if (attrs.styleAttribute && !isFallback) {
             let outerStyles = attrs.styleAttribute;
             const paddingRegex = /(padding[^:]*:[^;]+;)/gi;
-            const paddingMatches = outerStyles.match(paddingRegex) || [];
             outerStyles = outerStyles.replace(paddingRegex, '').trim();
             if (outerStyles) blockElement.setAttribute('style', outerStyles);
         }
@@ -709,9 +678,7 @@ class CustomBlock extends HTMLElement {
         if (!isFallback && attrs.sectionTitle && !attrs.buttonText) {
             blockElement.setAttribute('data-section-title', 'true');
         }
-        // Media-only case
         if (isMediaOnly && !hasPrimaryImage && !hasVideoPrimary) {
-            // Map kebab-case attrs to camelCase for video
             const videoAttrs = {
                 videoBackgroundSrc: attrs['video-background-src']?.trim() || '',
                 videoBackgroundLightSrc: attrs['video-background-light-src']?.trim() || '',
@@ -796,7 +763,7 @@ class CustomBlock extends HTMLElement {
                         console.error('Error generating picture markup:', error);
                     }
                 } else {
-                    console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
+                    console.warn('No valid background image source provided for <custom-block>. Skipping.');
                 }
             }
             if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
@@ -826,7 +793,6 @@ class CustomBlock extends HTMLElement {
             }
             return blockElement;
         }
-        // Button-only case
         if (isButtonOnly) {
             const buttonClasses = ['button', attrs.buttonClass].filter(cls => cls).join(' ');
             const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
@@ -871,7 +837,6 @@ class CustomBlock extends HTMLElement {
             }
             return blockElement;
         }
-        // Full content case
         const innerPaddingClasses = attrs.customClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
         const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls)];
         if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
@@ -968,384 +933,93 @@ class CustomBlock extends HTMLElement {
             groupDiv.appendChild(buttonElement);
         }
         innerDiv.appendChild(groupDiv);
-        // Append media content
-        if (hasBackgroundImage || hasVideoBackground) {
-            if (hasVideoBackground) {
+        const appendMedia = async (position) => {
+            if (!((hasPrimaryImage || hasVideoPrimary) && ['top', 'bottom', 'left', 'right'].includes(position))) return;
+            const mediaDiv = document.createElement('div');
+            const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
+            if (src) {
                 try {
-                    const videoMarkup = await generateVideoMarkup({
-                        src: attrs.videoBackgroundSrc,
-                        lightSrc: attrs.videoBackgroundLightSrc,
-                        darkSrc: attrs.videoBackgroundDarkSrc,
-                        poster: attrs.videoBackgroundPoster,
-                        lightPoster: attrs.videoBackgroundLightPoster,
-                        darkPoster: attrs.videoBackgroundDarkPoster,
-                        alt: attrs.videoBackgroundAlt,
-                        customClasses: mediaClasses,
-                        extraClasses: [],
-                        loading: attrs.videoBackgroundLoading,
-                        autoplay: attrs.videoBackgroundAutoplay,
-                        muted: attrs.videoBackgroundMuted,
-                        loop: attrs.videoBackgroundLoop,
-                        playsinline: attrs.videoBackgroundPlaysinline,
-                        disablePip: attrs.videoBackgroundDisablePip,
-                        preload: attrs.videoBackgroundLoading === 'lazy' ? 'metadata' : attrs.videoBackgroundLoading,
-                        controls: false
-                    });
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = videoMarkup;
-                    const videoElement = tempDiv.querySelector('video');
-                    if (videoElement) {
-                        blockElement.appendChild(videoElement);
-                        if (isDev) console.log('Video appended successfully');
-                    } else {
-                        console.warn('Failed to parse video markup:', videoMarkup);
+                    if (hasPrimaryImage) {
+                        const pictureMarkup = await generatePictureMarkup({
+                            src: src,
+                            lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
+                            darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
+                            alt: attrs.primaryAlt,
+                            isDecorative: attrs.primaryIsDecorative,
+                            customClasses: mediaClasses,
+                            loading: attrs.primaryLoading,
+                            fetchPriority: attrs.primaryFetchPriority,
+                            extraClasses: [],
+                            mobileWidth: attrs.primaryMobileWidth,
+                            tabletWidth: attrs.primaryTabletWidth,
+                            desktopWidth: attrs.primaryDesktopWidth,
+                            aspectRatio: attrs.primaryAspectRatio,
+                            includeSchema: attrs.primaryIncludeSchema
+                        });
+                        mediaDiv.innerHTML = pictureMarkup;
+                        const pictureElement = mediaDiv.querySelector('picture');
+                        if (pictureElement) {
+                            if (position === 'left' || position === 'right') {
+                                if (position === 'left') blockElement.appendChild(pictureElement);
+                                blockElement.appendChild(innerDiv);
+                                if (position === 'right') blockElement.appendChild(pictureElement);
+                            } else {
+                                blockElement.appendChild(position === 'top' ? pictureElement : innerDiv);
+                                blockElement.appendChild(position === 'top' ? innerDiv : pictureElement);
+                            }
+                            if (isDev) console.log(`Primary image (${position}) appended successfully`);
+                        } else {
+                            console.warn('Failed to parse picture markup:', pictureMarkup);
+                        }
+                    } else if (hasVideoPrimary) {
+                        const videoMarkup = await generateVideoMarkup({
+                            src: attrs.videoPrimarySrc,
+                            lightSrc: attrs.videoPrimaryLightSrc,
+                            darkSrc: attrs.videoPrimaryDarkSrc,
+                            poster: attrs.videoPrimaryPoster,
+                            lightPoster: attrs.videoPrimaryLightPoster,
+                            darkPoster: attrs.videoPrimaryDarkPoster,
+                            alt: attrs.videoPrimaryAlt,
+                            customClasses: mediaClasses,
+                            extraClasses: [],
+                            loading: attrs.videoPrimaryLoading,
+                            autoplay: attrs.videoPrimaryAutoplay,
+                            muted: attrs.videoPrimaryMuted,
+                            loop: attrs.videoPrimaryLoop,
+                            playsinline: attrs.videoPrimaryPlaysinline,
+                            disablePip: attrs.videoPrimaryDisablePip,
+                            preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                            controls: false
+                        });
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = videoMarkup;
+                        const videoElement = tempDiv.querySelector('video');
+                        if (videoElement) {
+                            if (position === 'left' || position === 'right') {
+                                if (position === 'left') blockElement.appendChild(videoElement);
+                                blockElement.appendChild(innerDiv);
+                                if (position === 'right') blockElement.appendChild(videoElement);
+                            } else {
+                                blockElement.appendChild(position === 'top' ? videoElement : innerDiv);
+                                blockElement.appendChild(position === 'top' ? innerDiv : videoElement);
+                            }
+                            if (isDev) console.log(`Primary video (${position}) appended successfully`);
+                        } else {
+                            console.warn('Failed to parse video markup:', videoMarkup);
+                        }
                     }
                 } catch (error) {
-                    console.error('Error generating video markup:', error);
-                }
-            } else if (hasBackgroundImage) {
-                const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
-                if (src) {
-                    try {
-                        const pictureMarkup = await generatePictureMarkup({
-                            src: attrs.backgroundSrc,
-                            lightSrc: attrs.backgroundLightSrc,
-                            darkSrc: attrs.backgroundDarkSrc,
-                            alt: attrs.backgroundAlt,
-                            lightAlt: attrs.backgroundLightAlt,
-                            darkAlt: attrs.backgroundDarkAlt,
-                            isDecorative: attrs.backgroundIsDecorative,
-                            customClasses: mediaClasses,
-                            loading: attrs.backgroundLoading,
-                            fetchPriority: attrs.backgroundFetchPriority,
-                            extraClasses: [],
-                            mobileWidth: attrs.backgroundMobileWidth,
-                            tabletWidth: attrs.backgroundTabletWidth,
-                            desktopWidth: attrs.backgroundDesktopWidth,
-                            aspectRatio: attrs.backgroundAspectRatio,
-                            includeSchema: attrs.backgroundIncludeSchema,
-                            extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover;` : ''
-                        });
-                        const pictureDiv = document.createElement('div');
-                        pictureDiv.innerHTML = pictureMarkup;
-                        const pictureElement = pictureDiv.querySelector('picture');
-                        if (pictureElement) {
-                            blockElement.appendChild(pictureElement);
-                            if (isDev) console.log('Background image appended successfully');
-                        } else {
-                            console.warn('Failed to parse picture markup:', pictureMarkup);
-                        }
-                    } catch (error) {
-                        console.error('Error generating picture markup:', error);
-                    }
-                } else {
-                    console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
-                }
-            }
-        }
-        if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
-            const overlayClasses = [attrs.backgroundOverlayClass];
-            if (attrs.backgroundImageNoise) overlayClasses.push('background-image-noise');
-            if (attrs.backgroundGradientClass) overlayClasses.push(attrs.backgroundGradientClass);
-            const backdropFilterValues = attrs.backdropFilterClasses
-                .filter(cls => cls.startsWith('backdrop-filter'))
-                .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
-                .filter(val => val);
-            const filteredOverlayClasses = attrs.backdropFilterClasses
-                .filter(cls => !cls.startsWith('backdrop-filter'))
-                .concat(overlayClasses)
-                .filter(cls => cls);
-            const overlayDiv = document.createElement('div');
-            if (filteredOverlayClasses.length) overlayDiv.className = filteredOverlayClasses.join(' ').trim();
-            if (backdropFilterValues.length) overlayDiv.style.backdropFilter = backdropFilterValues.join(' ');
-            blockElement.appendChild(overlayDiv);
-        }
-        if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'top') {
-            const mediaDiv = document.createElement('div');
-            const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
-            if (src) {
-                if (hasPrimaryImage) {
-                    try {
-                        const pictureMarkup = await generatePictureMarkup({
-                            src: src,
-                            lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
-                            darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
-                            alt: attrs.primaryAlt,
-                            isDecorative: attrs.primaryIsDecorative,
-                            customClasses: mediaClasses,
-                            loading: attrs.primaryLoading,
-                            fetchPriority: attrs.primaryFetchPriority,
-                            extraClasses: [],
-                            mobileWidth: attrs.primaryMobileWidth,
-                            tabletWidth: attrs.primaryTabletWidth,
-                            desktopWidth: attrs.primaryDesktopWidth,
-                            aspectRatio: attrs.primaryAspectRatio,
-                            includeSchema: attrs.primaryIncludeSchema
-                        });
-                        mediaDiv.innerHTML = pictureMarkup;
-                        const pictureElement = mediaDiv.querySelector('picture');
-                        if (pictureElement) {
-                            blockElement.appendChild(pictureElement);
-                            if (isDev) console.log('Primary image (top) appended successfully');
-                        } else {
-                            console.warn('Failed to parse picture markup:', pictureMarkup);
-                        }
-                    } catch (error) {
-                        console.error('Error generating primary picture markup:', error);
-                    }
-                } else if (hasVideoPrimary) {
-                    try {
-                        const videoMarkup = await generateVideoMarkup({
-                            src: attrs.videoPrimarySrc,
-                            lightSrc: attrs.videoPrimaryLightSrc,
-                            darkSrc: attrs.videoPrimaryDarkSrc,
-                            poster: attrs.videoPrimaryPoster,
-                            lightPoster: attrs.videoPrimaryLightPoster,
-                            darkPoster: attrs.videoPrimaryDarkPoster,
-                            alt: attrs.videoPrimaryAlt,
-                            customClasses: mediaClasses,
-                            extraClasses: [],
-                            loading: attrs.videoPrimaryLoading,
-                            autoplay: attrs.videoPrimaryAutoplay,
-                            muted: attrs.videoPrimaryMuted,
-                            loop: attrs.videoPrimaryLoop,
-                            playsinline: attrs.videoPrimaryPlaysinline,
-                            disablePip: attrs.videoPrimaryDisablePip,
-                            preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
-                            controls: false
-                        });
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = videoMarkup;
-                        const videoElement = tempDiv.querySelector('video');
-                        if (videoElement) {
-                            blockElement.appendChild(videoElement);
-                            if (isDev) console.log('Primary video (top) appended successfully');
-                        } else {
-                            console.warn('Failed to parse video markup:', videoMarkup);
-                        }
-                    } catch (error) {
-                        console.error('Error generating primary video markup:', error);
-                    }
+                    console.error(`Error generating ${hasPrimaryImage ? 'picture' : 'video'} markup (${position}):`, error);
                 }
             } else {
                 console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
+                blockElement.appendChild(innerDiv);
             }
-        }
-        if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'left') {
-            const mediaDiv = document.createElement('div');
-            const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
-            if (src) {
-                if (hasPrimaryImage) {
-                    try {
-                        const pictureMarkup = await generatePictureMarkup({
-                            src: src,
-                            lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
-                            darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
-                            alt: attrs.primaryAlt,
-                            isDecorative: attrs.primaryIsDecorative,
-                            customClasses: mediaClasses,
-                            loading: attrs.primaryLoading,
-                            fetchPriority: attrs.primaryFetchPriority,
-                            extraClasses: [],
-                            mobileWidth: attrs.primaryMobileWidth,
-                            tabletWidth: attrs.primaryTabletWidth,
-                            desktopWidth: attrs.primaryDesktopWidth,
-                            aspectRatio: attrs.primaryAspectRatio,
-                            includeSchema: attrs.primaryIncludeSchema
-                        });
-                        mediaDiv.innerHTML = pictureMarkup;
-                        const pictureElement = mediaDiv.querySelector('picture');
-                        if (pictureElement) {
-                            blockElement.appendChild(pictureElement);
-                            if (isDev) console.log('Primary image (left) appended successfully');
-                        } else {
-                            console.warn('Failed to parse picture markup:', pictureMarkup);
-                        }
-                    } catch (error) {
-                        console.error('Error generating primary picture markup:', error);
-                    }
-                } else if (hasVideoPrimary) {
-                    try {
-                        const videoMarkup = await generateVideoMarkup({
-                            src: attrs.videoPrimarySrc,
-                            lightSrc: attrs.videoPrimaryLightSrc,
-                            darkSrc: attrs.videoPrimaryDarkSrc,
-                            poster: attrs.videoPrimaryPoster,
-                            lightPoster: attrs.videoPrimaryLightPoster,
-                            darkPoster: attrs.videoPrimaryDarkPoster,
-                            alt: attrs.videoPrimaryAlt,
-                            customClasses: mediaClasses,
-                            extraClasses: [],
-                            loading: attrs.videoPrimaryLoading,
-                            autoplay: attrs.videoPrimaryAutoplay,
-                            muted: attrs.videoPrimaryMuted,
-                            loop: attrs.videoPrimaryLoop,
-                            playsinline: attrs.videoPrimaryPlaysinline,
-                            disablePip: attrs.videoPrimaryDisablePip,
-                            preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
-                            controls: false
-                        });
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = videoMarkup;
-                        const videoElement = tempDiv.querySelector('video');
-                        if (videoElement) {
-                            blockElement.appendChild(videoElement);
-                            if (isDev) console.log('Primary video (left) appended successfully');
-                        } else {
-                            console.warn('Failed to parse video markup:', videoMarkup);
-                        }
-                    } catch (error) {
-                        console.error('Error generating primary video markup:', error);
-                    }
-                }
-            } else {
-                console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
-            }
-            blockElement.appendChild(innerDiv);
-        } else if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'right') {
-            blockElement.appendChild(innerDiv);
-            const mediaDiv = document.createElement('div');
-            const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
-            if (src) {
-                if (hasPrimaryImage) {
-                    try {
-                        const pictureMarkup = await generatePictureMarkup({
-                            src: src,
-                            lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
-                            darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
-                            alt: attrs.primaryAlt,
-                            isDecorative: attrs.primaryIsDecorative,
-                            customClasses: mediaClasses,
-                            loading: attrs.primaryLoading,
-                            fetchPriority: attrs.primaryFetchPriority,
-                            extraClasses: [],
-                            mobileWidth: attrs.primaryMobileWidth,
-                            tabletWidth: attrs.primaryTabletWidth,
-                            desktopWidth: attrs.primaryDesktopWidth,
-                            aspectRatio: attrs.primaryAspectRatio,
-                            includeSchema: attrs.primaryIncludeSchema
-                        });
-                        mediaDiv.innerHTML = pictureMarkup;
-                        const pictureElement = mediaDiv.querySelector('picture');
-                        if (pictureElement) {
-                            blockElement.appendChild(pictureElement);
-                            if (isDev) console.log('Primary image (right) appended successfully');
-                        } else {
-                            console.warn('Failed to parse picture markup:', pictureMarkup);
-                        }
-                    } catch (error) {
-                        console.error('Error generating primary picture markup:', error);
-                    }
-                } else if (hasVideoPrimary) {
-                    try {
-                        const videoMarkup = await generateVideoMarkup({
-                            src: attrs.videoPrimarySrc,
-                            lightSrc: attrs.videoPrimaryLightSrc,
-                            darkSrc: attrs.videoPrimaryDarkSrc,
-                            poster: attrs.videoPrimaryPoster,
-                            lightPoster: attrs.videoPrimaryLightPoster,
-                            darkPoster: attrs.videoPrimaryDarkPoster,
-                            alt: attrs.videoPrimaryAlt,
-                            customClasses: mediaClasses,
-                            extraClasses: [],
-                            loading: attrs.videoPrimaryLoading,
-                            autoplay: attrs.videoPrimaryAutoplay,
-                            muted: attrs.videoPrimaryMuted,
-                            loop: attrs.videoPrimaryLoop,
-                            playsinline: attrs.videoPrimaryPlaysinline,
-                            disablePip: attrs.videoPrimaryDisablePip,
-                            preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
-                            controls: false
-                        });
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = videoMarkup;
-                        const videoElement = tempDiv.querySelector('video');
-                        if (videoElement) {
-                            blockElement.appendChild(videoElement);
-                            if (isDev) console.log('Primary video (right) appended successfully');
-                        } else {
-                            console.warn('Failed to parse video markup:', videoMarkup);
-                        }
-                    } catch (error) {
-                        console.error('Error generating primary video markup:', error);
-                    }
-                }
-            } else {
-                console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
-            }
+        };
+        if (hasPrimaryImage || hasVideoPrimary) {
+            await appendMedia(attrs.primaryPosition);
         } else {
             blockElement.appendChild(innerDiv);
-        }
-        if ((hasPrimaryImage || hasVideoPrimary) && attrs.primaryPosition === 'bottom') {
-            const mediaDiv = document.createElement('div');
-            const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
-            if (src) {
-                if (hasPrimaryImage) {
-                    try {
-                        const pictureMarkup = await generatePictureMarkup({
-                            src: src,
-                            lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
-                            darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
-                            alt: attrs.primaryAlt,
-                            isDecorative: attrs.primaryIsDecorative,
-                            customClasses: mediaClasses,
-                            loading: attrs.primaryLoading,
-                            fetchPriority: attrs.primaryFetchPriority,
-                            extraClasses: [],
-                            mobileWidth: attrs.primaryMobileWidth,
-                            tabletWidth: attrs.primaryTabletWidth,
-                            desktopWidth: attrs.primaryDesktopWidth,
-                            aspectRatio: attrs.primaryAspectRatio,
-                            includeSchema: attrs.primaryIncludeSchema
-                        });
-                        mediaDiv.innerHTML = pictureMarkup;
-                        const pictureElement = mediaDiv.querySelector('picture');
-                        if (pictureElement) {
-                            blockElement.appendChild(pictureElement);
-                            if (isDev) console.log('Primary image (bottom) appended successfully');
-                        } else {
-                            console.warn('Failed to parse picture markup:', pictureMarkup);
-                        }
-                    } catch (error) {
-                        console.error('Error generating primary picture markup:', error);
-                    }
-                } else if (hasVideoPrimary) {
-                    try {
-                        const videoMarkup = await generateVideoMarkup({
-                            src: attrs.videoPrimarySrc,
-                            lightSrc: attrs.videoPrimaryLightSrc,
-                            darkSrc: attrs.videoPrimaryDarkSrc,
-                            poster: attrs.videoPrimaryPoster,
-                            lightPoster: attrs.videoPrimaryLightPoster,
-                            darkPoster: attrs.videoPrimaryDarkPoster,
-                            alt: attrs.videoPrimaryAlt,
-                            customClasses: mediaClasses,
-                            extraClasses: [],
-                            loading: attrs.videoPrimaryLoading,
-                            autoplay: attrs.videoPrimaryAutoplay,
-                            muted: attrs.videoPrimaryMuted,
-                            loop: attrs.videoPrimaryLoop,
-                            playsinline: attrs.videoPrimaryPlaysinline,
-                            disablePip: attrs.videoPrimaryDisablePip,
-                            preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
-                            controls: false
-                        });
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = videoMarkup;
-                        const videoElement = tempDiv.querySelector('video');
-                        if (videoElement) {
-                            blockElement.appendChild(videoElement);
-                            if (isDev) console.log('Primary video (bottom) appended successfully');
-                        } else {
-                            console.warn('Failed to parse video markup:', videoMarkup);
-                        }
-                    } catch (error) {
-                        console.error('Error generating primary video markup:', error);
-                    }
-                }
-            } else {
-                console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
-            }
         }
         if (!isFallback && blockElement.querySelector('img')) {
             const images = blockElement.querySelectorAll('img');
@@ -1431,5 +1105,5 @@ try {
 } catch (error) {
     console.error('Error defining CustomBlock element:', error);
 }
-console.log('CustomBlock version: 2025-09-09');
+console.log('CustomBlock version: 2025-09-14');
 export { CustomBlock };
