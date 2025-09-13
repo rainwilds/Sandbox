@@ -19,6 +19,14 @@ export function generateVideoMarkup({
   preload = 'metadata',
   controls = false
 } = {}) {
+  // Trim all string inputs to handle whitespace
+  src = src.trim();
+  lightSrc = lightSrc.trim();
+  darkSrc = darkSrc.trim();
+  poster = poster.trim();
+  lightPoster = lightPoster.trim();
+  darkPoster = darkPoster.trim();
+
   const classList = [customClasses, ...extraClasses].filter(Boolean).join(' ').trim();
   const videoId = `custom-video-${Math.random().toString(36).substring(2, 11)}`;
   const isMuted = (autoplay || muted) ? 'muted' : '';
@@ -61,11 +69,12 @@ function isValidVideoExt(videoSrc) {
 }
 
 export function generateVideoSources({ src = '', lightSrc = '', darkSrc = '' }) {
+  const isDev = window.location.href.includes('/dev/');  // Match head-gen
   const addSourcesHTML = (videoSrc, mediaQuery) => {
-    const trimmedSrc = videoSrc.trim();
-    if (!isValidVideoExt(trimmedSrc)) {
+    const trimmedSrc = (videoSrc || '').trim();
+    if (!trimmedSrc || !isValidVideoExt(trimmedSrc)) {
       const ext = trimmedSrc.split('.').pop()?.toLowerCase() || '';
-      console.warn(`Invalid video file extension: ${trimmedSrc} (ext: '${ext}'). Expected: ${VALID_VIDEO_EXTENSIONS.join(', ')}`);
+      if (isDev) console.warn(`Invalid video file extension: "${trimmedSrc}" (length: ${trimmedSrc.length}, ext: '${ext}'). Expected: ${VALID_VIDEO_EXTENSIONS.join(', ')}`);
       return '';
     }
     // Only extract ext and slice baseSrc if valid
@@ -80,8 +89,12 @@ export function generateVideoSources({ src = '', lightSrc = '', darkSrc = '' }) 
   let innerHTML = '';
   if (lightSrc) innerHTML += addSourcesHTML(lightSrc, '(prefers-color-scheme: light)');
   if (darkSrc) innerHTML += addSourcesHTML(darkSrc, '(prefers-color-scheme: dark)');
-  const defaultSrc = lightSrc ?? darkSrc ?? src;
+  const defaultSrc = lightSrc || darkSrc || src;  // Use || for string concat safety
   innerHTML += addSourcesHTML(defaultSrc);
+  const hasSources = !!innerHTML.trim() && !innerHTML.includes('<p>');
+  if (!hasSources && isDev) {
+    console.warn('No valid video sources generated. Inputs: src="', src, '", lightSrc="', lightSrc, '", darkSrc="', darkSrc, '"');
+  }
   innerHTML += `<p>Your browser does not support the video tag. <a href="${defaultSrc || '#'}">Download video</a></p>`;
   return innerHTML;
 }
@@ -89,30 +102,36 @@ export function generateVideoSources({ src = '', lightSrc = '', darkSrc = '' }) 
 // Shared global handler
 if (typeof window !== 'undefined') {
   const updateVideos = () => {
+    const isDev = window.location.href.includes('/dev/');
     document.querySelectorAll('video[id^="custom-video"]').forEach(video => {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      const lightPoster = video.dataset.lightPoster ?? '';
-      const darkPoster = video.dataset.darkPoster ?? '';
-      const lightSrc = video.dataset.lightSrc ?? '';
-      const darkSrc = video.dataset.darkSrc ?? '';
-      const defaultSrc = video.dataset.defaultSrc ?? '';
+      let lightPoster = video.dataset.lightPoster ?? '';
+      let darkPoster = video.dataset.darkPoster ?? '';
+      let lightSrc = (video.dataset.lightSrc ?? '').trim();
+      let darkSrc = (video.dataset.darkSrc ?? '').trim();
+      let defaultSrc = (video.dataset.defaultSrc ?? '').trim();
+
+      // Fallback: If defaultSrc empty but attr exists, use it
+      if (!defaultSrc && video.dataset.defaultSrc) {
+        defaultSrc = video.dataset.defaultSrc.trim();
+      }
 
       const newPoster = prefersDark ? darkPoster : lightPoster;
       if (newPoster && video.poster !== newPoster) {
         video.poster = newPoster;
       }
 
-      const activeSrc = prefersDark ? (darkSrc ?? lightSrc) : (lightSrc ?? darkSrc);
+      const activeSrc = prefersDark ? (darkSrc || lightSrc) : (lightSrc || darkSrc);
       if (activeSrc && !video.currentSrc.includes(activeSrc)) {
         const wasPlaying = !video.paused;
         const currentTime = video.currentTime;
         while (video.firstChild) video.removeChild(video.firstChild);
 
         const addSource = (videoSrc, mediaQuery) => {
-          const trimmedSrc = videoSrc.trim();
-          if (!isValidVideoExt(trimmedSrc)) {
+          const trimmedSrc = (videoSrc || '').trim();
+          if (!trimmedSrc || !isValidVideoExt(trimmedSrc)) {
             const ext = trimmedSrc.split('.').pop()?.toLowerCase() || '';
-            console.warn(`Invalid video source in update: ${trimmedSrc} (ext: '${ext}')`);
+            if (isDev) console.warn(`Invalid video source in update: "${trimmedSrc}" (length: ${trimmedSrc.length}, ext: '${ext}')`);
             return;
           }
           const ext = trimmedSrc.split('.').pop().toLowerCase();

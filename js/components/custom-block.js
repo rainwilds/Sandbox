@@ -708,24 +708,40 @@ class CustomBlock extends HTMLElement {
         }
         // Media-only case
         if (isMediaOnly && !hasPrimaryImage && !hasVideoPrimary) {
+            // Map kebab-case attrs to camelCase for video (add similar for other media if needed)
+            const videoAttrs = {
+                videoBackgroundSrc: attrs['video-background-src']?.trim() || '',
+                videoBackgroundLightSrc: attrs['video-background-light-src']?.trim() || '',
+                videoBackgroundDarkSrc: attrs['video-background-dark-src']?.trim() || '',
+                videoBackgroundPoster: attrs['video-background-poster']?.trim() || '',
+                videoBackgroundLightPoster: attrs['video-background-light-poster']?.trim() || '',
+                videoBackgroundDarkPoster: attrs['video-background-dark-poster']?.trim() || '',
+                videoBackgroundAlt: attrs['video-background-alt']?.trim() || 'Video content',
+                videoBackgroundLoading: attrs['video-background-loading'] || 'lazy',
+                videoBackgroundAutoplay: attrs.hasOwnProperty('video-background-autoplay'),  // Boolean from presence
+                videoBackgroundMuted: attrs.hasOwnProperty('video-background-muted'),
+                videoBackgroundLoop: attrs.hasOwnProperty('video-background-loop'),
+                videoBackgroundPlaysinline: attrs.hasOwnProperty('video-background-playsinline'),
+                videoBackgroundDisablePip: attrs.hasOwnProperty('video-background-disable-pip'),
+            };
             if (hasVideoBackground) {
                 const videoMarkup = generateVideoMarkup({
-                    src: attrs.videoBackgroundSrc,
-                    lightSrc: attrs.videoBackgroundLightSrc,
-                    darkSrc: attrs.videoBackgroundDarkSrc,
-                    poster: attrs.videoBackgroundPoster,
-                    lightPoster: attrs.videoBackgroundLightPoster,
-                    darkPoster: attrs.videoBackgroundDarkPoster,
-                    alt: attrs.videoBackgroundAlt,
+                    src: videoAttrs.videoBackgroundSrc,
+                    lightSrc: videoAttrs.videoBackgroundLightSrc,
+                    darkSrc: videoAttrs.videoBackgroundDarkSrc,
+                    poster: videoAttrs.videoBackgroundPoster,
+                    lightPoster: videoAttrs.videoBackgroundLightPoster,
+                    darkPoster: videoAttrs.videoBackgroundDarkPoster,
+                    alt: videoAttrs.videoBackgroundAlt,
                     customClasses: mediaClasses,
                     extraClasses: [],
-                    loading: attrs.videoBackgroundLoading,
-                    autoplay: attrs.videoBackgroundAutoplay,
-                    muted: attrs.videoBackgroundMuted,
-                    loop: attrs.videoBackgroundLoop,
-                    playsinline: attrs.videoBackgroundPlaysinline,
-                    disablePip: attrs.videoBackgroundDisablePip,
-                    preload: attrs.videoBackgroundLoading === 'lazy' ? 'metadata' : attrs.videoBackgroundLoading,
+                    loading: videoAttrs.videoBackgroundLoading,
+                    autoplay: videoAttrs.videoBackgroundAutoplay,
+                    muted: videoAttrs.videoBackgroundMuted,
+                    loop: videoAttrs.videoBackgroundLoop,
+                    playsinline: videoAttrs.videoBackgroundPlaysinline,
+                    disablePip: videoAttrs.videoBackgroundDisablePip,
+                    preload: videoAttrs.videoBackgroundLoading === 'lazy' ? 'metadata' : videoAttrs.videoBackgroundLoading,
                     controls: false
                 });
                 const tempDiv = document.createElement('div');
