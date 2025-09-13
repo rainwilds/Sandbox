@@ -327,7 +327,7 @@ class CustomBlock extends HTMLElement {
         }
         let buttonIcon = this.getAttribute('button-icon') || '';
         if (buttonIcon) {
-            buttonIcon = buttonIcon.replace(/['"]/g, '&quot;');
+            buttonIcon = icon.replace(/['"]/g, '&quot;');
             const parser = new DOMParser();
             const decodedIcon = buttonIcon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
             const doc = parser.parseFromString(decodedIcon, 'text/html');
@@ -680,7 +680,6 @@ class CustomBlock extends HTMLElement {
             this.hasAttribute('button-text') &&
             attrs.buttonText;
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
-        // Filter out padding classes for media elements
         const mediaClasses = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls)).join(' ').trim();
         // Create DocumentFragment for efficient DOM construction
         const fragment = document.createDocumentFragment();
@@ -698,7 +697,6 @@ class CustomBlock extends HTMLElement {
             let outerStyles = attrs.styleAttribute;
             const paddingRegex = /(padding[^:]*:[^;]+;)/gi;
             const paddingMatches = outerStyles.match(paddingRegex) || [];
-            const paddingStyles = paddingMatches.join(' ').trim();
             outerStyles = outerStyles.replace(paddingRegex, '').trim();
             if (outerStyles) blockElement.setAttribute('style', outerStyles);
         }
@@ -719,7 +717,7 @@ class CustomBlock extends HTMLElement {
                     lightPoster: attrs.videoBackgroundLightPoster,
                     darkPoster: attrs.videoBackgroundDarkPoster,
                     alt: attrs.videoBackgroundAlt,
-                    customClasses: mediaClasses, // Use filtered classes
+                    customClasses: mediaClasses,
                     extraClasses: [],
                     loading: attrs.videoBackgroundLoading,
                     autoplay: attrs.videoBackgroundAutoplay,
@@ -730,9 +728,14 @@ class CustomBlock extends HTMLElement {
                     preload: attrs.videoBackgroundLoading === 'lazy' ? 'metadata' : attrs.videoBackgroundLoading,
                     controls: false
                 });
-                const videoDiv = document.createElement('div');
-                videoDiv.innerHTML = videoMarkup;
-                blockElement.appendChild(videoDiv.firstChild);
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = videoMarkup;
+                const videoElement = tempDiv.querySelector('video');
+                if (videoElement) {
+                    blockElement.appendChild(videoElement);
+                } else {
+                    console.warn('Failed to parse video markup:', videoMarkup);
+                }
             } else if (hasBackgroundImage) {
                 const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
                 if (src) {
@@ -744,7 +747,7 @@ class CustomBlock extends HTMLElement {
                         lightAlt: attrs.backgroundLightAlt,
                         darkAlt: attrs.backgroundDarkAlt,
                         isDecorative: attrs.backgroundIsDecorative,
-                        customClasses: mediaClasses, // Use filtered classes
+                        customClasses: mediaClasses,
                         loading: attrs.backgroundLoading,
                         fetchPriority: attrs.backgroundFetchPriority,
                         extraClasses: [],
@@ -757,7 +760,12 @@ class CustomBlock extends HTMLElement {
                     });
                     const pictureDiv = document.createElement('div');
                     pictureDiv.innerHTML = pictureMarkup;
-                    blockElement.appendChild(pictureDiv.firstChild);
+                    const pictureElement = pictureDiv.querySelector('picture');
+                    if (pictureElement) {
+                        blockElement.appendChild(pictureElement);
+                    } else {
+                        console.warn('Failed to parse picture markup:', pictureMarkup);
+                    }
                 } else {
                     console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
                 }
@@ -933,9 +941,8 @@ class CustomBlock extends HTMLElement {
         innerDiv.appendChild(groupDiv);
         // Append media content
         if (hasBackgroundImage || hasVideoBackground) {
-            const mediaDiv = document.createElement('div');
             if (hasVideoBackground) {
-                mediaDiv.innerHTML = generateVideoMarkup({
+                const videoMarkup = generateVideoMarkup({
                     src: attrs.videoBackgroundSrc,
                     lightSrc: attrs.videoBackgroundLightSrc,
                     darkSrc: attrs.videoBackgroundDarkSrc,
@@ -943,7 +950,7 @@ class CustomBlock extends HTMLElement {
                     lightPoster: attrs.videoBackgroundLightPoster,
                     darkPoster: attrs.videoBackgroundDarkPoster,
                     alt: attrs.videoBackgroundAlt,
-                    customClasses: mediaClasses, // Use filtered classes
+                    customClasses: mediaClasses,
                     extraClasses: [],
                     loading: attrs.videoBackgroundLoading,
                     autoplay: attrs.videoBackgroundAutoplay,
@@ -954,10 +961,18 @@ class CustomBlock extends HTMLElement {
                     preload: attrs.videoBackgroundLoading === 'lazy' ? 'metadata' : attrs.videoBackgroundLoading,
                     controls: false
                 });
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = videoMarkup;
+                const videoElement = tempDiv.querySelector('video');
+                if (videoElement) {
+                    blockElement.appendChild(videoElement);
+                } else {
+                    console.warn('Failed to parse video markup:', videoMarkup);
+                }
             } else if (hasBackgroundImage) {
                 const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
                 if (src) {
-                    mediaDiv.innerHTML = generatePictureMarkup({
+                    const pictureMarkup = generatePictureMarkup({
                         src: attrs.backgroundSrc,
                         lightSrc: attrs.backgroundLightSrc,
                         darkSrc: attrs.backgroundDarkSrc,
@@ -965,7 +980,7 @@ class CustomBlock extends HTMLElement {
                         lightAlt: attrs.backgroundLightAlt,
                         darkAlt: attrs.backgroundDarkAlt,
                         isDecorative: attrs.backgroundIsDecorative,
-                        customClasses: mediaClasses, // Use filtered classes
+                        customClasses: mediaClasses,
                         loading: attrs.backgroundLoading,
                         fetchPriority: attrs.backgroundFetchPriority,
                         extraClasses: [],
@@ -976,11 +991,18 @@ class CustomBlock extends HTMLElement {
                         includeSchema: attrs.backgroundIncludeSchema,
                         extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover;` : ''
                     });
+                    const pictureDiv = document.createElement('div');
+                    pictureDiv.innerHTML = pictureMarkup;
+                    const pictureElement = pictureDiv.querySelector('picture');
+                    if (pictureElement) {
+                        blockElement.appendChild(pictureElement);
+                    } else {
+                        console.warn('Failed to parse picture markup:', pictureMarkup);
+                    }
                 } else {
                     console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
                 }
             }
-            if (mediaDiv.hasChildNodes()) blockElement.appendChild(mediaDiv.firstChild);
         }
         if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
             const overlayClasses = [attrs.backgroundOverlayClass];
@@ -1010,7 +1032,7 @@ class CustomBlock extends HTMLElement {
                         darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
                         alt: attrs.primaryAlt,
                         isDecorative: attrs.primaryIsDecorative,
-                        customClasses: mediaClasses, // Use filtered classes
+                        customClasses: mediaClasses,
                         loading: attrs.primaryLoading,
                         fetchPriority: attrs.primaryFetchPriority,
                         extraClasses: [],
@@ -1020,8 +1042,14 @@ class CustomBlock extends HTMLElement {
                         aspectRatio: attrs.primaryAspectRatio,
                         includeSchema: attrs.primaryIncludeSchema
                     });
+                    const pictureElement = mediaDiv.querySelector('picture');
+                    if (pictureElement) {
+                        blockElement.appendChild(pictureElement);
+                    } else {
+                        console.warn('Failed to parse picture markup:', mediaDiv.innerHTML);
+                    }
                 } else if (hasVideoPrimary) {
-                    mediaDiv.innerHTML = generateVideoMarkup({
+                    const videoMarkup = generateVideoMarkup({
                         src: attrs.videoPrimarySrc,
                         lightSrc: attrs.videoPrimaryLightSrc,
                         darkSrc: attrs.videoPrimaryDarkSrc,
@@ -1029,7 +1057,7 @@ class CustomBlock extends HTMLElement {
                         lightPoster: attrs.videoPrimaryLightPoster,
                         darkPoster: attrs.videoPrimaryDarkPoster,
                         alt: attrs.videoPrimaryAlt,
-                        customClasses: mediaClasses, // Use filtered classes
+                        customClasses: mediaClasses,
                         extraClasses: [],
                         loading: attrs.videoPrimaryLoading,
                         autoplay: attrs.videoPrimaryAutoplay,
@@ -1040,8 +1068,15 @@ class CustomBlock extends HTMLElement {
                         preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
                         controls: false
                     });
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = videoMarkup;
+                    const videoElement = tempDiv.querySelector('video');
+                    if (videoElement) {
+                        blockElement.appendChild(videoElement);
+                    } else {
+                        console.warn('Failed to parse video markup:', videoMarkup);
+                    }
                 }
-                if (mediaDiv.hasChildNodes()) blockElement.appendChild(mediaDiv.firstChild);
             } else {
                 console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
             }
@@ -1057,7 +1092,7 @@ class CustomBlock extends HTMLElement {
                         darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
                         alt: attrs.primaryAlt,
                         isDecorative: attrs.primaryIsDecorative,
-                        customClasses: mediaClasses, // Use filtered classes
+                        customClasses: mediaClasses,
                         loading: attrs.primaryLoading,
                         fetchPriority: attrs.primaryFetchPriority,
                         extraClasses: [],
@@ -1067,8 +1102,14 @@ class CustomBlock extends HTMLElement {
                         aspectRatio: attrs.primaryAspectRatio,
                         includeSchema: attrs.primaryIncludeSchema
                     });
+                    const pictureElement = mediaDiv.querySelector('picture');
+                    if (pictureElement) {
+                        blockElement.appendChild(pictureElement);
+                    } else {
+                        console.warn('Failed to parse picture markup:', mediaDiv.innerHTML);
+                    }
                 } else if (hasVideoPrimary) {
-                    mediaDiv.innerHTML = generateVideoMarkup({
+                    const videoMarkup = generateVideoMarkup({
                         src: attrs.videoPrimarySrc,
                         lightSrc: attrs.videoPrimaryLightSrc,
                         darkSrc: attrs.videoPrimaryDarkSrc,
@@ -1076,7 +1117,7 @@ class CustomBlock extends HTMLElement {
                         lightPoster: attrs.videoPrimaryLightPoster,
                         darkPoster: attrs.videoPrimaryDarkPoster,
                         alt: attrs.videoPrimaryAlt,
-                        customClasses: mediaClasses, // Use filtered classes
+                        customClasses: mediaClasses,
                         extraClasses: [],
                         loading: attrs.videoPrimaryLoading,
                         autoplay: attrs.videoPrimaryAutoplay,
@@ -1087,8 +1128,15 @@ class CustomBlock extends HTMLElement {
                         preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
                         controls: false
                     });
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = videoMarkup;
+                    const videoElement = tempDiv.querySelector('video');
+                    if (videoElement) {
+                        blockElement.appendChild(videoElement);
+                    } else {
+                        console.warn('Failed to parse video markup:', videoMarkup);
+                    }
                 }
-                if (mediaDiv.hasChildNodes()) blockElement.appendChild(mediaDiv.firstChild);
             } else {
                 console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
             }
@@ -1105,7 +1153,7 @@ class CustomBlock extends HTMLElement {
                         darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
                         alt: attrs.primaryAlt,
                         isDecorative: attrs.primaryIsDecorative,
-                        customClasses: mediaClasses, // Use filtered classes
+                        customClasses: mediaClasses,
                         loading: attrs.primaryLoading,
                         fetchPriority: attrs.primaryFetchPriority,
                         extraClasses: [],
@@ -1115,8 +1163,14 @@ class CustomBlock extends HTMLElement {
                         aspectRatio: attrs.primaryAspectRatio,
                         includeSchema: attrs.primaryIncludeSchema
                     });
+                    const pictureElement = mediaDiv.querySelector('picture');
+                    if (pictureElement) {
+                        blockElement.appendChild(pictureElement);
+                    } else {
+                        console.warn('Failed to parse picture markup:', mediaDiv.innerHTML);
+                    }
                 } else if (hasVideoPrimary) {
-                    mediaDiv.innerHTML = generateVideoMarkup({
+                    const videoMarkup = generateVideoMarkup({
                         src: attrs.videoPrimarySrc,
                         lightSrc: attrs.videoPrimaryLightSrc,
                         darkSrc: attrs.videoPrimaryDarkSrc,
@@ -1124,7 +1178,7 @@ class CustomBlock extends HTMLElement {
                         lightPoster: attrs.videoPrimaryLightPoster,
                         darkPoster: attrs.videoPrimaryDarkPoster,
                         alt: attrs.videoPrimaryAlt,
-                        customClasses: mediaClasses, // Use filtered classes
+                        customClasses: mediaClasses,
                         extraClasses: [],
                         loading: attrs.videoPrimaryLoading,
                         autoplay: attrs.videoPrimaryAutoplay,
@@ -1135,8 +1189,15 @@ class CustomBlock extends HTMLElement {
                         preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
                         controls: false
                     });
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = videoMarkup;
+                    const videoElement = tempDiv.querySelector('video');
+                    if (videoElement) {
+                        blockElement.appendChild(videoElement);
+                    } else {
+                        console.warn('Failed to parse video markup:', videoMarkup);
+                    }
                 }
-                if (mediaDiv.hasChildNodes()) blockElement.appendChild(mediaDiv.firstChild);
             } else {
                 console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
             }
@@ -1154,7 +1215,7 @@ class CustomBlock extends HTMLElement {
                         darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
                         alt: attrs.primaryAlt,
                         isDecorative: attrs.primaryIsDecorative,
-                        customClasses: mediaClasses, // Use filtered classes
+                        customClasses: mediaClasses,
                         loading: attrs.primaryLoading,
                         fetchPriority: attrs.primaryFetchPriority,
                         extraClasses: [],
@@ -1164,8 +1225,14 @@ class CustomBlock extends HTMLElement {
                         aspectRatio: attrs.primaryAspectRatio,
                         includeSchema: attrs.primaryIncludeSchema
                     });
+                    const pictureElement = mediaDiv.querySelector('picture');
+                    if (pictureElement) {
+                        blockElement.appendChild(pictureElement);
+                    } else {
+                        console.warn('Failed to parse picture markup:', mediaDiv.innerHTML);
+                    }
                 } else if (hasVideoPrimary) {
-                    mediaDiv.innerHTML = generateVideoMarkup({
+                    const videoMarkup = generateVideoMarkup({
                         src: attrs.videoPrimarySrc,
                         lightSrc: attrs.videoPrimaryLightSrc,
                         darkSrc: attrs.videoPrimaryDarkSrc,
@@ -1173,7 +1240,7 @@ class CustomBlock extends HTMLElement {
                         lightPoster: attrs.videoPrimaryLightPoster,
                         darkPoster: attrs.videoPrimaryDarkPoster,
                         alt: attrs.videoPrimaryAlt,
-                        customClasses: mediaClasses, // Use filtered classes
+                        customClasses: mediaClasses,
                         extraClasses: [],
                         loading: attrs.videoPrimaryLoading,
                         autoplay: attrs.videoPrimaryAutoplay,
@@ -1184,8 +1251,15 @@ class CustomBlock extends HTMLElement {
                         preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
                         controls: false
                     });
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = videoMarkup;
+                    const videoElement = tempDiv.querySelector('video');
+                    if (videoElement) {
+                        blockElement.appendChild(videoElement);
+                    } else {
+                        console.warn('Failed to parse video markup:', videoMarkup);
+                    }
                 }
-                if (mediaDiv.hasChildNodes()) blockElement.appendChild(mediaDiv.firstChild);
             } else {
                 console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
             }
