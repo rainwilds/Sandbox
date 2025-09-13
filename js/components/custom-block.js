@@ -53,7 +53,6 @@ class CustomBlock extends HTMLElement {
         'backdrop-filter-grayscale-medium': 'grayscale(var(--grayscale-medium))',
         'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))'
     };
-
     static #criticalAttributes = [
         'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
         'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
@@ -84,6 +83,7 @@ class CustomBlock extends HTMLElement {
         if (this.cachedAttributes) {
             return this.cachedAttributes;
         }
+        const isDev = window.location.href.includes('/dev/');
         const backgroundFetchPriority = this.getAttribute('img-background-fetchpriority') || '';
         const primaryFetchPriority = this.getAttribute('img-primary-fetchpriority') || '';
         const validFetchPriorities = ['high', 'low', 'auto', ''];
@@ -495,29 +495,31 @@ class CustomBlock extends HTMLElement {
         return this.cachedAttributes;
     }
 
-    initialize() {
+    async initialize() {
         if (this.isInitialized || !this.isVisible) return;
-        console.log('** CustomBlock start...', this.outerHTML);
+        const isDev = window.location.href.includes('/dev/');
+        if (isDev) console.log('** CustomBlock start...', this.outerHTML);
         this.isInitialized = true;
         try {
-            const cardElement = this.render();
+            const cardElement = await this.render();
             if (cardElement) {
                 this.replaceWith(cardElement);
                 this.callbacks.forEach(callback => callback());
+                if (isDev) console.log('CustomBlock rendered successfully');
             } else {
                 console.error('Failed to render CustomBlock: cardElement is null or invalid.', this.outerHTML);
-                this.replaceWith(this.render(true));
+                this.replaceWith(await this.render(true));
             }
         } catch (error) {
             console.error('Error initializing CustomBlock:', error, this.outerHTML);
-            this.replaceWith(this.render(true));
+            this.replaceWith(await this.render(true));
         }
-        console.log('** CustomBlock end...');
+        if (isDev) console.log('** CustomBlock end...');
     }
 
-    connectedCallback() {
+    async connectedCallback() {
         if (this.isVisible) {
-            this.initialize();
+            await this.initialize();
         }
     }
 
@@ -537,7 +539,8 @@ class CustomBlock extends HTMLElement {
         this.callbacks.push(callback);
     }
 
-    render(isFallback = false) {
+    async render(isFallback = false) {
+        const isDev = window.location.href.includes('/dev/');
         let newCriticalAttrsHash;
         if (!isFallback) {
             const criticalAttrs = {};
@@ -546,7 +549,7 @@ class CustomBlock extends HTMLElement {
             });
             newCriticalAttrsHash = JSON.stringify(criticalAttrs);
             if (CustomBlock.#renderCacheMap.has(this) && this.criticalAttributesHash === newCriticalAttrsHash) {
-                console.log('Using cached render for CustomBlock:', this.outerHTML);
+                if (isDev) console.log('Using cached render for CustomBlock:', this.outerHTML);
                 return CustomBlock.#renderCacheMap.get(this).cloneNode(true);
             }
         }
@@ -650,7 +653,7 @@ class CustomBlock extends HTMLElement {
             shadowClass: '',
             innerShadowClass: ''
         } : this.getAttributes();
-        console.log('Rendering CustomBlock with attrs:', attrs);
+        if (isDev) console.log('Rendering CustomBlock with attrs:', attrs);
         if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
             console.error(`<custom-block img-background-src="${attrs.backgroundSrc || 'not provided'}" img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> requires an img-background-alt attribute for accessibility unless img-background-decorative is present.`);
         }
@@ -708,7 +711,7 @@ class CustomBlock extends HTMLElement {
         }
         // Media-only case
         if (isMediaOnly && !hasPrimaryImage && !hasVideoPrimary) {
-            // Map kebab-case attrs to camelCase for video (add similar for other media if needed)
+            // Map kebab-case attrs to camelCase for video
             const videoAttrs = {
                 videoBackgroundSrc: attrs['video-background-src']?.trim() || '',
                 videoBackgroundLightSrc: attrs['video-background-light-src']?.trim() || '',
@@ -718,69 +721,79 @@ class CustomBlock extends HTMLElement {
                 videoBackgroundDarkPoster: attrs['video-background-dark-poster']?.trim() || '',
                 videoBackgroundAlt: attrs['video-background-alt']?.trim() || 'Video content',
                 videoBackgroundLoading: attrs['video-background-loading'] || 'lazy',
-                videoBackgroundAutoplay: attrs.hasOwnProperty('video-background-autoplay'),  // Boolean from presence
+                videoBackgroundAutoplay: attrs.hasOwnProperty('video-background-autoplay'),
                 videoBackgroundMuted: attrs.hasOwnProperty('video-background-muted'),
                 videoBackgroundLoop: attrs.hasOwnProperty('video-background-loop'),
                 videoBackgroundPlaysinline: attrs.hasOwnProperty('video-background-playsinline'),
                 videoBackgroundDisablePip: attrs.hasOwnProperty('video-background-disable-pip'),
             };
             if (hasVideoBackground) {
-                const videoMarkup = generateVideoMarkup({
-                    src: videoAttrs.videoBackgroundSrc,
-                    lightSrc: videoAttrs.videoBackgroundLightSrc,
-                    darkSrc: videoAttrs.videoBackgroundDarkSrc,
-                    poster: videoAttrs.videoBackgroundPoster,
-                    lightPoster: videoAttrs.videoBackgroundLightPoster,
-                    darkPoster: videoAttrs.videoBackgroundDarkPoster,
-                    alt: videoAttrs.videoBackgroundAlt,
-                    customClasses: mediaClasses,
-                    extraClasses: [],
-                    loading: videoAttrs.videoBackgroundLoading,
-                    autoplay: videoAttrs.videoBackgroundAutoplay,
-                    muted: videoAttrs.videoBackgroundMuted,
-                    loop: videoAttrs.videoBackgroundLoop,
-                    playsinline: videoAttrs.videoBackgroundPlaysinline,
-                    disablePip: videoAttrs.videoBackgroundDisablePip,
-                    preload: videoAttrs.videoBackgroundLoading === 'lazy' ? 'metadata' : videoAttrs.videoBackgroundLoading,
-                    controls: false
-                });
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = videoMarkup;
-                const videoElement = tempDiv.querySelector('video');
-                if (videoElement) {
-                    blockElement.appendChild(videoElement);
-                } else {
-                    console.warn('Failed to parse video markup:', videoMarkup);
+                try {
+                    const videoMarkup = await generateVideoMarkup({
+                        src: videoAttrs.videoBackgroundSrc,
+                        lightSrc: videoAttrs.videoBackgroundLightSrc,
+                        darkSrc: videoAttrs.videoBackgroundDarkSrc,
+                        poster: videoAttrs.videoBackgroundPoster,
+                        lightPoster: videoAttrs.videoBackgroundLightPoster,
+                        darkPoster: videoAttrs.videoBackgroundDarkPoster,
+                        alt: videoAttrs.videoBackgroundAlt,
+                        customClasses: mediaClasses,
+                        extraClasses: [],
+                        loading: videoAttrs.videoBackgroundLoading,
+                        autoplay: videoAttrs.videoBackgroundAutoplay,
+                        muted: videoAttrs.videoBackgroundMuted,
+                        loop: videoAttrs.videoBackgroundLoop,
+                        playsinline: videoAttrs.videoBackgroundPlaysinline,
+                        disablePip: videoAttrs.videoBackgroundDisablePip,
+                        preload: videoAttrs.videoBackgroundLoading === 'lazy' ? 'metadata' : videoAttrs.videoBackgroundLoading,
+                        controls: false
+                    });
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = videoMarkup;
+                    const videoElement = tempDiv.querySelector('video');
+                    if (videoElement) {
+                        blockElement.appendChild(videoElement);
+                        if (isDev) console.log('Video appended successfully');
+                    } else {
+                        console.warn('Failed to parse video markup:', videoMarkup);
+                    }
+                } catch (error) {
+                    console.error('Error generating video markup:', error);
                 }
             } else if (hasBackgroundImage) {
                 const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
                 if (src) {
-                    const pictureMarkup = generatePictureMarkup({
-                        src: attrs.backgroundSrc,
-                        lightSrc: attrs.backgroundLightSrc,
-                        darkSrc: attrs.backgroundDarkSrc,
-                        alt: attrs.backgroundAlt,
-                        lightAlt: attrs.backgroundLightAlt,
-                        darkAlt: attrs.backgroundDarkAlt,
-                        isDecorative: attrs.backgroundIsDecorative,
-                        customClasses: mediaClasses,
-                        loading: attrs.backgroundLoading,
-                        fetchPriority: attrs.backgroundFetchPriority,
-                        extraClasses: [],
-                        mobileWidth: attrs.backgroundMobileWidth,
-                        tabletWidth: attrs.backgroundTabletWidth,
-                        desktopWidth: attrs.backgroundDesktopWidth,
-                        aspectRatio: attrs.backgroundAspectRatio,
-                        includeSchema: attrs.backgroundIncludeSchema,
-                        extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover;` : ''
-                    });
-                    const pictureDiv = document.createElement('div');
-                    pictureDiv.innerHTML = pictureMarkup;
-                    const pictureElement = pictureDiv.querySelector('picture');
-                    if (pictureElement) {
-                        blockElement.appendChild(pictureElement);
-                    } else {
-                        console.warn('Failed to parse picture markup:', pictureMarkup);
+                    try {
+                        const pictureMarkup = await generatePictureMarkup({
+                            src: attrs.backgroundSrc,
+                            lightSrc: attrs.backgroundLightSrc,
+                            darkSrc: attrs.backgroundDarkSrc,
+                            alt: attrs.backgroundAlt,
+                            lightAlt: attrs.backgroundLightAlt,
+                            darkAlt: attrs.backgroundDarkAlt,
+                            isDecorative: attrs.backgroundIsDecorative,
+                            customClasses: mediaClasses,
+                            loading: attrs.backgroundLoading,
+                            fetchPriority: attrs.backgroundFetchPriority,
+                            extraClasses: [],
+                            mobileWidth: attrs.backgroundMobileWidth,
+                            tabletWidth: attrs.backgroundTabletWidth,
+                            desktopWidth: attrs.backgroundDesktopWidth,
+                            aspectRatio: attrs.backgroundAspectRatio,
+                            includeSchema: attrs.backgroundIncludeSchema,
+                            extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover;` : ''
+                        });
+                        const pictureDiv = document.createElement('div');
+                        pictureDiv.innerHTML = pictureMarkup;
+                        const pictureElement = pictureDiv.querySelector('picture');
+                        if (pictureElement) {
+                            blockElement.appendChild(pictureElement);
+                            if (isDev) console.log('Background image appended successfully');
+                        } else {
+                            console.warn('Failed to parse picture markup:', pictureMarkup);
+                        }
+                    } catch (error) {
+                        console.error('Error generating picture markup:', error);
                     }
                 } else {
                     console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
@@ -805,7 +818,7 @@ class CustomBlock extends HTMLElement {
             }
             if (!isFallback && !blockElement.hasChildNodes()) {
                 console.error('Media-only block has no valid content:', this.outerHTML);
-                return this.render(true);
+                return await this.render(true);
             }
             if (!isFallback) {
                 CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
@@ -958,62 +971,72 @@ class CustomBlock extends HTMLElement {
         // Append media content
         if (hasBackgroundImage || hasVideoBackground) {
             if (hasVideoBackground) {
-                const videoMarkup = generateVideoMarkup({
-                    src: attrs.videoBackgroundSrc,
-                    lightSrc: attrs.videoBackgroundLightSrc,
-                    darkSrc: attrs.videoBackgroundDarkSrc,
-                    poster: attrs.videoBackgroundPoster,
-                    lightPoster: attrs.videoBackgroundLightPoster,
-                    darkPoster: attrs.videoBackgroundDarkPoster,
-                    alt: attrs.videoBackgroundAlt,
-                    customClasses: mediaClasses,
-                    extraClasses: [],
-                    loading: attrs.videoBackgroundLoading,
-                    autoplay: attrs.videoBackgroundAutoplay,
-                    muted: attrs.videoBackgroundMuted,
-                    loop: attrs.videoBackgroundLoop,
-                    playsinline: attrs.videoBackgroundPlaysinline,
-                    disablePip: attrs.videoBackgroundDisablePip,
-                    preload: attrs.videoBackgroundLoading === 'lazy' ? 'metadata' : attrs.videoBackgroundLoading,
-                    controls: false
-                });
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = videoMarkup;
-                const videoElement = tempDiv.querySelector('video');
-                if (videoElement) {
-                    blockElement.appendChild(videoElement);
-                } else {
-                    console.warn('Failed to parse video markup:', videoMarkup);
+                try {
+                    const videoMarkup = await generateVideoMarkup({
+                        src: attrs.videoBackgroundSrc,
+                        lightSrc: attrs.videoBackgroundLightSrc,
+                        darkSrc: attrs.videoBackgroundDarkSrc,
+                        poster: attrs.videoBackgroundPoster,
+                        lightPoster: attrs.videoBackgroundLightPoster,
+                        darkPoster: attrs.videoBackgroundDarkPoster,
+                        alt: attrs.videoBackgroundAlt,
+                        customClasses: mediaClasses,
+                        extraClasses: [],
+                        loading: attrs.videoBackgroundLoading,
+                        autoplay: attrs.videoBackgroundAutoplay,
+                        muted: attrs.videoBackgroundMuted,
+                        loop: attrs.videoBackgroundLoop,
+                        playsinline: attrs.videoBackgroundPlaysinline,
+                        disablePip: attrs.videoBackgroundDisablePip,
+                        preload: attrs.videoBackgroundLoading === 'lazy' ? 'metadata' : attrs.videoBackgroundLoading,
+                        controls: false
+                    });
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = videoMarkup;
+                    const videoElement = tempDiv.querySelector('video');
+                    if (videoElement) {
+                        blockElement.appendChild(videoElement);
+                        if (isDev) console.log('Video appended successfully');
+                    } else {
+                        console.warn('Failed to parse video markup:', videoMarkup);
+                    }
+                } catch (error) {
+                    console.error('Error generating video markup:', error);
                 }
             } else if (hasBackgroundImage) {
                 const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
                 if (src) {
-                    const pictureMarkup = generatePictureMarkup({
-                        src: attrs.backgroundSrc,
-                        lightSrc: attrs.backgroundLightSrc,
-                        darkSrc: attrs.backgroundDarkSrc,
-                        alt: attrs.backgroundAlt,
-                        lightAlt: attrs.backgroundLightAlt,
-                        darkAlt: attrs.backgroundDarkAlt,
-                        isDecorative: attrs.backgroundIsDecorative,
-                        customClasses: mediaClasses,
-                        loading: attrs.backgroundLoading,
-                        fetchPriority: attrs.backgroundFetchPriority,
-                        extraClasses: [],
-                        mobileWidth: attrs.backgroundMobileWidth,
-                        tabletWidth: attrs.backgroundTabletWidth,
-                        desktopWidth: attrs.backgroundDesktopWidth,
-                        aspectRatio: attrs.backgroundAspectRatio,
-                        includeSchema: attrs.backgroundIncludeSchema,
-                        extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover;` : ''
-                    });
-                    const pictureDiv = document.createElement('div');
-                    pictureDiv.innerHTML = pictureMarkup;
-                    const pictureElement = pictureDiv.querySelector('picture');
-                    if (pictureElement) {
-                        blockElement.appendChild(pictureElement);
-                    } else {
-                        console.warn('Failed to parse picture markup:', pictureMarkup);
+                    try {
+                        const pictureMarkup = await generatePictureMarkup({
+                            src: attrs.backgroundSrc,
+                            lightSrc: attrs.backgroundLightSrc,
+                            darkSrc: attrs.backgroundDarkSrc,
+                            alt: attrs.backgroundAlt,
+                            lightAlt: attrs.backgroundLightAlt,
+                            darkAlt: attrs.backgroundDarkAlt,
+                            isDecorative: attrs.backgroundIsDecorative,
+                            customClasses: mediaClasses,
+                            loading: attrs.backgroundLoading,
+                            fetchPriority: attrs.backgroundFetchPriority,
+                            extraClasses: [],
+                            mobileWidth: attrs.backgroundMobileWidth,
+                            tabletWidth: attrs.backgroundTabletWidth,
+                            desktopWidth: attrs.backgroundDesktopWidth,
+                            aspectRatio: attrs.backgroundAspectRatio,
+                            includeSchema: attrs.backgroundIncludeSchema,
+                            extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover;` : ''
+                        });
+                        const pictureDiv = document.createElement('div');
+                        pictureDiv.innerHTML = pictureMarkup;
+                        const pictureElement = pictureDiv.querySelector('picture');
+                        if (pictureElement) {
+                            blockElement.appendChild(pictureElement);
+                            if (isDev) console.log('Background image appended successfully');
+                        } else {
+                            console.warn('Failed to parse picture markup:', pictureMarkup);
+                        }
+                    } catch (error) {
+                        console.error('Error generating picture markup:', error);
                     }
                 } else {
                     console.warn('No valid background image source provided for <custom-block>. Skipping background image rendering.');
@@ -1042,55 +1065,66 @@ class CustomBlock extends HTMLElement {
             const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
             if (src) {
                 if (hasPrimaryImage) {
-                    mediaDiv.innerHTML = generatePictureMarkup({
-                        src: src,
-                        lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
-                        darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
-                        alt: attrs.primaryAlt,
-                        isDecorative: attrs.primaryIsDecorative,
-                        customClasses: mediaClasses,
-                        loading: attrs.primaryLoading,
-                        fetchPriority: attrs.primaryFetchPriority,
-                        extraClasses: [],
-                        mobileWidth: attrs.primaryMobileWidth,
-                        tabletWidth: attrs.primaryTabletWidth,
-                        desktopWidth: attrs.primaryDesktopWidth,
-                        aspectRatio: attrs.primaryAspectRatio,
-                        includeSchema: attrs.primaryIncludeSchema
-                    });
-                    const pictureElement = mediaDiv.querySelector('picture');
-                    if (pictureElement) {
-                        blockElement.appendChild(pictureElement);
-                    } else {
-                        console.warn('Failed to parse picture markup:', mediaDiv.innerHTML);
+                    try {
+                        const pictureMarkup = await generatePictureMarkup({
+                            src: src,
+                            lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
+                            darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
+                            alt: attrs.primaryAlt,
+                            isDecorative: attrs.primaryIsDecorative,
+                            customClasses: mediaClasses,
+                            loading: attrs.primaryLoading,
+                            fetchPriority: attrs.primaryFetchPriority,
+                            extraClasses: [],
+                            mobileWidth: attrs.primaryMobileWidth,
+                            tabletWidth: attrs.primaryTabletWidth,
+                            desktopWidth: attrs.primaryDesktopWidth,
+                            aspectRatio: attrs.primaryAspectRatio,
+                            includeSchema: attrs.primaryIncludeSchema
+                        });
+                        mediaDiv.innerHTML = pictureMarkup;
+                        const pictureElement = mediaDiv.querySelector('picture');
+                        if (pictureElement) {
+                            blockElement.appendChild(pictureElement);
+                            if (isDev) console.log('Primary image (top) appended successfully');
+                        } else {
+                            console.warn('Failed to parse picture markup:', pictureMarkup);
+                        }
+                    } catch (error) {
+                        console.error('Error generating primary picture markup:', error);
                     }
                 } else if (hasVideoPrimary) {
-                    const videoMarkup = generateVideoMarkup({
-                        src: attrs.videoPrimarySrc,
-                        lightSrc: attrs.videoPrimaryLightSrc,
-                        darkSrc: attrs.videoPrimaryDarkSrc,
-                        poster: attrs.videoPrimaryPoster,
-                        lightPoster: attrs.videoPrimaryLightPoster,
-                        darkPoster: attrs.videoPrimaryDarkPoster,
-                        alt: attrs.videoPrimaryAlt,
-                        customClasses: mediaClasses,
-                        extraClasses: [],
-                        loading: attrs.videoPrimaryLoading,
-                        autoplay: attrs.videoPrimaryAutoplay,
-                        muted: attrs.videoPrimaryMuted,
-                        loop: attrs.videoPrimaryLoop,
-                        playsinline: attrs.videoPrimaryPlaysinline,
-                        disablePip: attrs.videoPrimaryDisablePip,
-                        preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
-                        controls: false
-                    });
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = videoMarkup;
-                    const videoElement = tempDiv.querySelector('video');
-                    if (videoElement) {
-                        blockElement.appendChild(videoElement);
-                    } else {
-                        console.warn('Failed to parse video markup:', videoMarkup);
+                    try {
+                        const videoMarkup = await generateVideoMarkup({
+                            src: attrs.videoPrimarySrc,
+                            lightSrc: attrs.videoPrimaryLightSrc,
+                            darkSrc: attrs.videoPrimaryDarkSrc,
+                            poster: attrs.videoPrimaryPoster,
+                            lightPoster: attrs.videoPrimaryLightPoster,
+                            darkPoster: attrs.videoPrimaryDarkPoster,
+                            alt: attrs.videoPrimaryAlt,
+                            customClasses: mediaClasses,
+                            extraClasses: [],
+                            loading: attrs.videoPrimaryLoading,
+                            autoplay: attrs.videoPrimaryAutoplay,
+                            muted: attrs.videoPrimaryMuted,
+                            loop: attrs.videoPrimaryLoop,
+                            playsinline: attrs.videoPrimaryPlaysinline,
+                            disablePip: attrs.videoPrimaryDisablePip,
+                            preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                            controls: false
+                        });
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = videoMarkup;
+                        const videoElement = tempDiv.querySelector('video');
+                        if (videoElement) {
+                            blockElement.appendChild(videoElement);
+                            if (isDev) console.log('Primary video (top) appended successfully');
+                        } else {
+                            console.warn('Failed to parse video markup:', videoMarkup);
+                        }
+                    } catch (error) {
+                        console.error('Error generating primary video markup:', error);
                     }
                 }
             } else {
@@ -1102,55 +1136,66 @@ class CustomBlock extends HTMLElement {
             const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
             if (src) {
                 if (hasPrimaryImage) {
-                    mediaDiv.innerHTML = generatePictureMarkup({
-                        src: src,
-                        lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
-                        darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
-                        alt: attrs.primaryAlt,
-                        isDecorative: attrs.primaryIsDecorative,
-                        customClasses: mediaClasses,
-                        loading: attrs.primaryLoading,
-                        fetchPriority: attrs.primaryFetchPriority,
-                        extraClasses: [],
-                        mobileWidth: attrs.primaryMobileWidth,
-                        tabletWidth: attrs.primaryTabletWidth,
-                        desktopWidth: attrs.primaryDesktopWidth,
-                        aspectRatio: attrs.primaryAspectRatio,
-                        includeSchema: attrs.primaryIncludeSchema
-                    });
-                    const pictureElement = mediaDiv.querySelector('picture');
-                    if (pictureElement) {
-                        blockElement.appendChild(pictureElement);
-                    } else {
-                        console.warn('Failed to parse picture markup:', mediaDiv.innerHTML);
+                    try {
+                        const pictureMarkup = await generatePictureMarkup({
+                            src: src,
+                            lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
+                            darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
+                            alt: attrs.primaryAlt,
+                            isDecorative: attrs.primaryIsDecorative,
+                            customClasses: mediaClasses,
+                            loading: attrs.primaryLoading,
+                            fetchPriority: attrs.primaryFetchPriority,
+                            extraClasses: [],
+                            mobileWidth: attrs.primaryMobileWidth,
+                            tabletWidth: attrs.primaryTabletWidth,
+                            desktopWidth: attrs.primaryDesktopWidth,
+                            aspectRatio: attrs.primaryAspectRatio,
+                            includeSchema: attrs.primaryIncludeSchema
+                        });
+                        mediaDiv.innerHTML = pictureMarkup;
+                        const pictureElement = mediaDiv.querySelector('picture');
+                        if (pictureElement) {
+                            blockElement.appendChild(pictureElement);
+                            if (isDev) console.log('Primary image (left) appended successfully');
+                        } else {
+                            console.warn('Failed to parse picture markup:', pictureMarkup);
+                        }
+                    } catch (error) {
+                        console.error('Error generating primary picture markup:', error);
                     }
                 } else if (hasVideoPrimary) {
-                    const videoMarkup = generateVideoMarkup({
-                        src: attrs.videoPrimarySrc,
-                        lightSrc: attrs.videoPrimaryLightSrc,
-                        darkSrc: attrs.videoPrimaryDarkSrc,
-                        poster: attrs.videoPrimaryPoster,
-                        lightPoster: attrs.videoPrimaryLightPoster,
-                        darkPoster: attrs.videoPrimaryDarkPoster,
-                        alt: attrs.videoPrimaryAlt,
-                        customClasses: mediaClasses,
-                        extraClasses: [],
-                        loading: attrs.videoPrimaryLoading,
-                        autoplay: attrs.videoPrimaryAutoplay,
-                        muted: attrs.videoPrimaryMuted,
-                        loop: attrs.videoPrimaryLoop,
-                        playsinline: attrs.videoPrimaryPlaysinline,
-                        disablePip: attrs.videoPrimaryDisablePip,
-                        preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
-                        controls: false
-                    });
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = videoMarkup;
-                    const videoElement = tempDiv.querySelector('video');
-                    if (videoElement) {
-                        blockElement.appendChild(videoElement);
-                    } else {
-                        console.warn('Failed to parse video markup:', videoMarkup);
+                    try {
+                        const videoMarkup = await generateVideoMarkup({
+                            src: attrs.videoPrimarySrc,
+                            lightSrc: attrs.videoPrimaryLightSrc,
+                            darkSrc: attrs.videoPrimaryDarkSrc,
+                            poster: attrs.videoPrimaryPoster,
+                            lightPoster: attrs.videoPrimaryLightPoster,
+                            darkPoster: attrs.videoPrimaryDarkPoster,
+                            alt: attrs.videoPrimaryAlt,
+                            customClasses: mediaClasses,
+                            extraClasses: [],
+                            loading: attrs.videoPrimaryLoading,
+                            autoplay: attrs.videoPrimaryAutoplay,
+                            muted: attrs.videoPrimaryMuted,
+                            loop: attrs.videoPrimaryLoop,
+                            playsinline: attrs.videoPrimaryPlaysinline,
+                            disablePip: attrs.videoPrimaryDisablePip,
+                            preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                            controls: false
+                        });
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = videoMarkup;
+                        const videoElement = tempDiv.querySelector('video');
+                        if (videoElement) {
+                            blockElement.appendChild(videoElement);
+                            if (isDev) console.log('Primary video (left) appended successfully');
+                        } else {
+                            console.warn('Failed to parse video markup:', videoMarkup);
+                        }
+                    } catch (error) {
+                        console.error('Error generating primary video markup:', error);
                     }
                 }
             } else {
@@ -1163,55 +1208,66 @@ class CustomBlock extends HTMLElement {
             const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
             if (src) {
                 if (hasPrimaryImage) {
-                    mediaDiv.innerHTML = generatePictureMarkup({
-                        src: src,
-                        lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
-                        darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
-                        alt: attrs.primaryAlt,
-                        isDecorative: attrs.primaryIsDecorative,
-                        customClasses: mediaClasses,
-                        loading: attrs.primaryLoading,
-                        fetchPriority: attrs.primaryFetchPriority,
-                        extraClasses: [],
-                        mobileWidth: attrs.primaryMobileWidth,
-                        tabletWidth: attrs.primaryTabletWidth,
-                        desktopWidth: attrs.primaryDesktopWidth,
-                        aspectRatio: attrs.primaryAspectRatio,
-                        includeSchema: attrs.primaryIncludeSchema
-                    });
-                    const pictureElement = mediaDiv.querySelector('picture');
-                    if (pictureElement) {
-                        blockElement.appendChild(pictureElement);
-                    } else {
-                        console.warn('Failed to parse picture markup:', mediaDiv.innerHTML);
+                    try {
+                        const pictureMarkup = await generatePictureMarkup({
+                            src: src,
+                            lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
+                            darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
+                            alt: attrs.primaryAlt,
+                            isDecorative: attrs.primaryIsDecorative,
+                            customClasses: mediaClasses,
+                            loading: attrs.primaryLoading,
+                            fetchPriority: attrs.primaryFetchPriority,
+                            extraClasses: [],
+                            mobileWidth: attrs.primaryMobileWidth,
+                            tabletWidth: attrs.primaryTabletWidth,
+                            desktopWidth: attrs.primaryDesktopWidth,
+                            aspectRatio: attrs.primaryAspectRatio,
+                            includeSchema: attrs.primaryIncludeSchema
+                        });
+                        mediaDiv.innerHTML = pictureMarkup;
+                        const pictureElement = mediaDiv.querySelector('picture');
+                        if (pictureElement) {
+                            blockElement.appendChild(pictureElement);
+                            if (isDev) console.log('Primary image (right) appended successfully');
+                        } else {
+                            console.warn('Failed to parse picture markup:', pictureMarkup);
+                        }
+                    } catch (error) {
+                        console.error('Error generating primary picture markup:', error);
                     }
                 } else if (hasVideoPrimary) {
-                    const videoMarkup = generateVideoMarkup({
-                        src: attrs.videoPrimarySrc,
-                        lightSrc: attrs.videoPrimaryLightSrc,
-                        darkSrc: attrs.videoPrimaryDarkSrc,
-                        poster: attrs.videoPrimaryPoster,
-                        lightPoster: attrs.videoPrimaryLightPoster,
-                        darkPoster: attrs.videoPrimaryDarkPoster,
-                        alt: attrs.videoPrimaryAlt,
-                        customClasses: mediaClasses,
-                        extraClasses: [],
-                        loading: attrs.videoPrimaryLoading,
-                        autoplay: attrs.videoPrimaryAutoplay,
-                        muted: attrs.videoPrimaryMuted,
-                        loop: attrs.videoPrimaryLoop,
-                        playsinline: attrs.videoPrimaryPlaysinline,
-                        disablePip: attrs.videoPrimaryDisablePip,
-                        preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
-                        controls: false
-                    });
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = videoMarkup;
-                    const videoElement = tempDiv.querySelector('video');
-                    if (videoElement) {
-                        blockElement.appendChild(videoElement);
-                    } else {
-                        console.warn('Failed to parse video markup:', videoMarkup);
+                    try {
+                        const videoMarkup = await generateVideoMarkup({
+                            src: attrs.videoPrimarySrc,
+                            lightSrc: attrs.videoPrimaryLightSrc,
+                            darkSrc: attrs.videoPrimaryDarkSrc,
+                            poster: attrs.videoPrimaryPoster,
+                            lightPoster: attrs.videoPrimaryLightPoster,
+                            darkPoster: attrs.videoPrimaryDarkPoster,
+                            alt: attrs.videoPrimaryAlt,
+                            customClasses: mediaClasses,
+                            extraClasses: [],
+                            loading: attrs.videoPrimaryLoading,
+                            autoplay: attrs.videoPrimaryAutoplay,
+                            muted: attrs.videoPrimaryMuted,
+                            loop: attrs.videoPrimaryLoop,
+                            playsinline: attrs.videoPrimaryPlaysinline,
+                            disablePip: attrs.videoPrimaryDisablePip,
+                            preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                            controls: false
+                        });
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = videoMarkup;
+                        const videoElement = tempDiv.querySelector('video');
+                        if (videoElement) {
+                            blockElement.appendChild(videoElement);
+                            if (isDev) console.log('Primary video (right) appended successfully');
+                        } else {
+                            console.warn('Failed to parse video markup:', videoMarkup);
+                        }
+                    } catch (error) {
+                        console.error('Error generating primary video markup:', error);
                     }
                 }
             } else {
@@ -1225,55 +1281,66 @@ class CustomBlock extends HTMLElement {
             const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
             if (src) {
                 if (hasPrimaryImage) {
-                    mediaDiv.innerHTML = generatePictureMarkup({
-                        src: src,
-                        lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
-                        darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
-                        alt: attrs.primaryAlt,
-                        isDecorative: attrs.primaryIsDecorative,
-                        customClasses: mediaClasses,
-                        loading: attrs.primaryLoading,
-                        fetchPriority: attrs.primaryFetchPriority,
-                        extraClasses: [],
-                        mobileWidth: attrs.primaryMobileWidth,
-                        tabletWidth: attrs.primaryTabletWidth,
-                        desktopWidth: attrs.primaryDesktopWidth,
-                        aspectRatio: attrs.primaryAspectRatio,
-                        includeSchema: attrs.primaryIncludeSchema
-                    });
-                    const pictureElement = mediaDiv.querySelector('picture');
-                    if (pictureElement) {
-                        blockElement.appendChild(pictureElement);
-                    } else {
-                        console.warn('Failed to parse picture markup:', mediaDiv.innerHTML);
+                    try {
+                        const pictureMarkup = await generatePictureMarkup({
+                            src: src,
+                            lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
+                            darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
+                            alt: attrs.primaryAlt,
+                            isDecorative: attrs.primaryIsDecorative,
+                            customClasses: mediaClasses,
+                            loading: attrs.primaryLoading,
+                            fetchPriority: attrs.primaryFetchPriority,
+                            extraClasses: [],
+                            mobileWidth: attrs.primaryMobileWidth,
+                            tabletWidth: attrs.primaryTabletWidth,
+                            desktopWidth: attrs.primaryDesktopWidth,
+                            aspectRatio: attrs.primaryAspectRatio,
+                            includeSchema: attrs.primaryIncludeSchema
+                        });
+                        mediaDiv.innerHTML = pictureMarkup;
+                        const pictureElement = mediaDiv.querySelector('picture');
+                        if (pictureElement) {
+                            blockElement.appendChild(pictureElement);
+                            if (isDev) console.log('Primary image (bottom) appended successfully');
+                        } else {
+                            console.warn('Failed to parse picture markup:', pictureMarkup);
+                        }
+                    } catch (error) {
+                        console.error('Error generating primary picture markup:', error);
                     }
                 } else if (hasVideoPrimary) {
-                    const videoMarkup = generateVideoMarkup({
-                        src: attrs.videoPrimarySrc,
-                        lightSrc: attrs.videoPrimaryLightSrc,
-                        darkSrc: attrs.videoPrimaryDarkSrc,
-                        poster: attrs.videoPrimaryPoster,
-                        lightPoster: attrs.videoPrimaryLightPoster,
-                        darkPoster: attrs.videoPrimaryDarkPoster,
-                        alt: attrs.videoPrimaryAlt,
-                        customClasses: mediaClasses,
-                        extraClasses: [],
-                        loading: attrs.videoPrimaryLoading,
-                        autoplay: attrs.videoPrimaryAutoplay,
-                        muted: attrs.videoPrimaryMuted,
-                        loop: attrs.videoPrimaryLoop,
-                        playsinline: attrs.videoPrimaryPlaysinline,
-                        disablePip: attrs.videoPrimaryDisablePip,
-                        preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
-                        controls: false
-                    });
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = videoMarkup;
-                    const videoElement = tempDiv.querySelector('video');
-                    if (videoElement) {
-                        blockElement.appendChild(videoElement);
-                    } else {
-                        console.warn('Failed to parse video markup:', videoMarkup);
+                    try {
+                        const videoMarkup = await generateVideoMarkup({
+                            src: attrs.videoPrimarySrc,
+                            lightSrc: attrs.videoPrimaryLightSrc,
+                            darkSrc: attrs.videoPrimaryDarkSrc,
+                            poster: attrs.videoPrimaryPoster,
+                            lightPoster: attrs.videoPrimaryLightPoster,
+                            darkPoster: attrs.videoPrimaryDarkPoster,
+                            alt: attrs.videoPrimaryAlt,
+                            customClasses: mediaClasses,
+                            extraClasses: [],
+                            loading: attrs.videoPrimaryLoading,
+                            autoplay: attrs.videoPrimaryAutoplay,
+                            muted: attrs.videoPrimaryMuted,
+                            loop: attrs.videoPrimaryLoop,
+                            playsinline: attrs.videoPrimaryPlaysinline,
+                            disablePip: attrs.videoPrimaryDisablePip,
+                            preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                            controls: false
+                        });
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = videoMarkup;
+                        const videoElement = tempDiv.querySelector('video');
+                        if (videoElement) {
+                            blockElement.appendChild(videoElement);
+                            if (isDev) console.log('Primary video (bottom) appended successfully');
+                        } else {
+                            console.warn('Failed to parse video markup:', videoMarkup);
+                        }
+                    } catch (error) {
+                        console.error('Error generating primary video markup:', error);
                     }
                 }
             } else {
@@ -1310,7 +1377,7 @@ class CustomBlock extends HTMLElement {
         }
         if (!isFallback && !blockElement.hasChildNodes()) {
             console.error('Block has no valid content, falling back:', this.outerHTML);
-            return this.render(true);
+            return await this.render(true);
         }
         if (!isFallback) {
             CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
@@ -1364,6 +1431,5 @@ try {
 } catch (error) {
     console.error('Error defining CustomBlock element:', error);
 }
-
 console.log('CustomBlock version: 2025-09-09');
 export { CustomBlock };
