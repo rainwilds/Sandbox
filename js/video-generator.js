@@ -21,7 +21,8 @@ export async function generateVideoMarkup({
   preload = 'metadata',
   controls = false
 } = {}) {
-  const isDev = window.location.href.includes('/dev/');
+  const isDev = window.location.href.includes('/dev/') ||
+    new URLSearchParams(window.location.search).get('debug') === 'true';
   const cacheKey = JSON.stringify({ src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses, extraClasses, loading, autoplay, muted, loop, playsinline, disablePip, preload, controls });
   if (markupCache.has(cacheKey)) {
     if (isDev) console.log('Using cached video markup:', { src, lightSrc, darkSrc });
@@ -44,7 +45,7 @@ export async function generateVideoMarkup({
       if (!videoSrc) return false;
       const ext = videoSrc.split('.').pop()?.toLowerCase();
       return ext && VALID_VIDEO_EXTENSIONS.includes(ext);
-    }
+    };
 
     self.addEventListener('message', (e) => {
       const { src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses, extraClasses, loading, autoplay, muted, loop, playsinline, disablePip, preload, controls } = e.data;
@@ -104,11 +105,26 @@ export async function generateVideoMarkup({
         self.postMessage({ markup });
       } catch (error) {
         const primarySrc = lightSrc || darkSrc || src;
-        const fallbackVideo = `<video><p>Error generating video: ${error.message}</p><a href="${primarySrc || '#'}" >Download video</a></video>`;
+        const fallbackVideo = \`<video><p>Error generating video: \${error.message}</p><a href="\${primarySrc || '#'}" >Download video</a></video>\`;
         self.postMessage({ markup: fallbackVideo, error: error.message });
       }
     });
   `;
+
+  if (isDev) {
+    console.log('Video Worker code:', workerCode);
+    const lines = workerCode.split('\n');
+    console.log('Line 105:', lines[104]);
+    console.log('Line 106:', lines[105]);
+    console.log('Line 107:', lines[106]);
+    console.log('Line 108:', lines[107]);
+    try {
+      new Function(workerCode);
+      console.log('Video Worker code syntax is valid');
+    } catch (syntaxError) {
+      console.error('Syntax error in Video Worker code:', syntaxError);
+    }
+  }
 
   const blob = new Blob([workerCode], { type: 'application/javascript' });
   const workerUrl = URL.createObjectURL(blob);
@@ -119,7 +135,7 @@ export async function generateVideoMarkup({
       const { markup, error, src: workerSrc, lightSrc: workerLightSrc, darkSrc: workerDarkSrc } = e.data;
       if (error) {
         if (isDev) console.error('Video Worker error:', error, { workerSrc, workerLightSrc, workerDarkSrc });
-        resolve(markup); // Use the fallback markup provided by the Worker
+        resolve(markup);
       } else {
         markupCache.set(cacheKey, markup);
         if (isDev) console.log('Video Worker generated markup:', markup.substring(0, 200));
@@ -150,8 +166,9 @@ function isValidVideoExt(videoSrc) {
 }
 
 if (typeof window !== 'undefined') {
+  const isDev = window.location.href.includes('/dev/') ||
+    new URLSearchParams(window.location.search).get('debug') === 'true';
   const updateVideos = () => {
-    const isDev = window.location.href.includes('/dev/');
     document.querySelectorAll('video[id^="custom-video"]').forEach(video => {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       let lightPoster = video.dataset.lightPoster ?? '';
