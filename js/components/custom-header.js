@@ -41,10 +41,10 @@
                 return attrs;
             }
 
-            async render(isFallback = false) {  // Made async to await super.render()
+            async render(isFallback = false) {  // Async to await super & children
                 const isDev = window.location.href.includes('/dev/');
                 const attrs = this.getAttributes();
-                let blockElement = await super.render(isFallback);  // Await the Promise from parent
+                let blockElement = await super.render(isFallback);  // Await parent's render
                 if (!blockElement || !(blockElement instanceof HTMLElement)) {
                     console.warn('Super render failed; creating fallback block element.');
                     blockElement = document.createElement('div');
@@ -67,63 +67,65 @@
                     blockElement.className = headerClasses;
                 }
 
-                // Await child renders if not fallback (children like custom-logo/custom-nav are slotted)
+                // Await/upgrade children to ensure they render (trigger their render/initialize)
                 if (!isFallback) {
-                    // Query and await upgrade/render of direct children
                     const customLogo = this.querySelector('custom-logo');
                     const customNav = this.querySelector('custom-nav');
-                    if (customLogo && customElements.get('custom-logo')) {
-                        if (isDev) console.log('Upgrading custom-logo child');
+                    if (customLogo) {
+                        if (isDev) console.log('Triggering custom-logo render');
                         customElements.upgrade(customLogo);
-                        // If child has async render, await it (assume it has initialize like parent)
-                        if (customLogo.initialize && !customLogo.isInitialized) {
-                            await customLogo.initialize();
-                        }
+                        if (customLogo.render) await customLogo.render();  // Explicitly call if not auto
                     }
-                    if (customNav && customElements.get('custom-nav')) {
-                        if (isDev) console.log('Upgrading custom-nav child');
+                    if (customNav) {
+                        if (isDev) console.log('Triggering custom-nav render');
                         customElements.upgrade(customNav);
-                        if (customNav.initialize && !customNav.isInitialized) {
-                            await customNav.initialize();
-                        }
+                        if (customNav.render) await customNav.render();
                     }
+                    // Small delay for async child renders (if any)
+                    await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
-                // Get composed innerHTML from children (they render into this)
-                let innerHTML = this.innerHTML;  // Leverages slotted children's output
+                // Extract pure innerHTML from children (flattens, removes wrapper tags)
+                let logoHTML = '';
+                let navHTML = '';
+                const customLogo = this.querySelector('custom-logo');
+                const customNav = this.querySelector('custom-nav');
+                if (customLogo && !isFallback) {
+                    logoHTML = customLogo.innerHTML;  // Pure content, no <custom-logo> tag
+                }
+                if (customNav && !isFallback) {
+                    navHTML = customNav.innerHTML;  // Pure content, no <custom-nav> tag
+                    // Append nav-container attrs to the extracted div (if present)
+                }
 
-                // Handle logo placement in nav
-                if (attrs.logoPlacement === 'nav') {
-                    const customLogo = this.querySelector('custom-logo');
-                    const customNav = this.querySelector('custom-nav');
-                    if (customLogo && customNav && !isFallback) {
-                        const logoHTML = customLogo.outerHTML || '';  // Full rendered logo
-                        const navHTML = customNav.outerHTML || '';     // Full rendered nav
-                        const combinedStyles = [
-                            attrs.navLogoContainerStyle,
-                            'z-index: 2'
-                        ].filter(s => s).join('; ').trim();
-                        const navAlignClass = attrs.navAlignment ? alignMap[attrs.navAlignment] : '';
-                        const navContainerClasses = customNav.getAttribute('nav-container-class') || '';
-                        const navContainerStyle = customNav.getAttribute('nav-container-style') || '';
+                // Compose innerHTML using extracted HTML
+                let innerHTML = blockElement.innerHTML || '';  // Preserve parent's content (e.g., heading/text)
+                if (attrs.logoPlacement === 'nav' && logoHTML && navHTML) {
+                    const combinedStyles = [
+                        attrs.navLogoContainerStyle,
+                        'z-index: 2'
+                    ].filter(s => s).join('; ').trim();
+                    const navAlignClass = attrs.navAlignment ? alignMap[attrs.navAlignment] : '';
+                    const navContainerClasses = customNav ? (customNav.getAttribute('nav-container-class') || '') : '';
+                    const navContainerStyle = customNav ? (customNav.getAttribute('nav-container-style') || '') : '';
 
-                        innerHTML = `
-                            <div${attrs.navLogoContainerClass ? ` class="${attrs.navLogoContainerClass}"` : ''}${combinedStyles ? ` style="${combinedStyles}"` : ''}>
-                                ${logoHTML}
-                                <div${navAlignClass ? ` class="${navAlignClass} ${navContainerClasses}"` : navContainerClasses ? ` class="${navContainerClasses}"` : ''}${navContainerStyle ? ` style="${navContainerStyle}"` : ''}>
-                                    ${navHTML}
-                                </div>
+                    innerHTML = `
+                        <div${attrs.navLogoContainerClass ? ` class="${attrs.navLogoContainerClass}"` : ''}${combinedStyles ? ` style="${combinedStyles}"` : ''}>
+                            ${logoHTML}
+                            <div${navAlignClass ? ` class="${navAlignClass} ${navContainerClasses}"` : navContainerClasses ? ` class="${navContainerClasses}"` : ''}${navContainerStyle ? ` style="${navContainerStyle}"` : ''}>
+                                ${navHTML}
                             </div>
-                            ${innerHTML}  <!-- Preserve any other content -->
-                        `;
-                        if (isDev) console.log('Composed nav-with-logo HTML');
-                    }
+                        </div>
+                        ${innerHTML}
+                    `;
+                    if (isDev) console.log('Composed nav-with-logo (flattened HTML):', innerHTML.substring(0, 200) + '...');
                 } else {
-                    // Independent: Just use innerHTML (logo + nav side-by-side)
-                    if (isDev) console.log('Using independent placement with innerHTML');
+                    // Independent: Concat extracted HTML + parent's inner
+                    innerHTML = `${logoHTML}${navHTML}${innerHTML}`;
+                    if (isDev) console.log('Composed independent (flattened HTML):', innerHTML.substring(0, 200) + '...');
                 }
 
-                // Set the composed innerHTML
+                // Set the composed innerHTML (now pure HTML, no child tags)
                 blockElement.innerHTML = innerHTML;
 
                 // Apply sticky styles
@@ -133,20 +135,18 @@
                     blockElement.style.zIndex = '1000';
                 }
 
-                if (isDev) console.log('CustomHeader render complete:', blockElement.outerHTML.substring(0, 200) + '...');
+                if (isDev) console.log('CustomHeader render complete (flattened):', blockElement.outerHTML.substring(0, 300) + '...');
                 return blockElement;
             }
 
             connectedCallback() {
-                // Remove direct render() call; let parent's initialize() handle it
-                super.connectedCallback();
+                super.connectedCallback();  // Let parent handle async init
             }
 
             async attributeChangedCallback(name, oldValue, newValue) {
                 super.attributeChangedCallback(name, oldValue, newValue);
                 if (this.isInitialized && this.isVisible) {
-                    // Await re-render on changes
-                    await this.render();
+                    await this.render();  // Re-render async
                 }
             }
         }
