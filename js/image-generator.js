@@ -203,6 +203,7 @@ export async function generatePictureMarkup({
   if (isDev) {
     console.log('Worker code before blob creation:', workerCode);
     console.log('Worker code length:', workerCode.length);
+    console.log('Worker code line 120 check:', workerCode.split('\n')[119]); // Line 120 is index 119
   }
 
   const blob = new Blob([workerCode], { type: 'application/javascript' });
