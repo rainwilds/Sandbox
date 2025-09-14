@@ -1,6 +1,5 @@
 import { VALID_VIDEO_EXTENSIONS } from './shared.js';
 
-// Cache for Web Worker results
 const markupCache = new Map();
 
 export async function generateVideoMarkup({
@@ -25,11 +24,10 @@ export async function generateVideoMarkup({
   const isDev = window.location.href.includes('/dev/');
   const cacheKey = JSON.stringify({ src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses, extraClasses, loading, autoplay, muted, loop, playsinline, disablePip, preload, controls });
   if (markupCache.has(cacheKey)) {
-    if (isDev) console.log('Using cached video markup:', cacheKey);
+    if (isDev) console.log('Using cached video markup:', { src, lightSrc, darkSrc });
     return markupCache.get(cacheKey);
   }
 
-  // Trim all string inputs
   src = src.trim();
   lightSrc = lightSrc.trim();
   darkSrc = darkSrc.trim();
@@ -37,28 +35,8 @@ export async function generateVideoMarkup({
   lightPoster = lightPoster.trim();
   darkPoster = darkPoster.trim();
 
-  // Pre-validate video sources with HEAD requests
-  const validateSrc = async (url) => {
-    if (!url) return true; // Skip if not provided
-    try {
-      const res = await fetch(url, { method: 'HEAD' });
-      return res.ok;
-    } catch {
-      return false;
-    }
-  };
+  if (isDev) console.log('Generating video markup for:', { src, lightSrc, darkSrc, poster, lightPoster, darkPoster });
 
-  const sourcesToValidate = [src, lightSrc, darkSrc].filter(Boolean);
-  const validationResults = await Promise.all(sourcesToValidate.map(validateSrc));
-  const hasInvalidSource = validationResults.some(valid => !valid);
-  if (hasInvalidSource) {
-    const invalidUrls = sourcesToValidate.filter((_, i) => !validationResults[i]);
-    const errorMsg = `One or more video sources not found: ${invalidUrls.join(', ')}`;
-    if (isDev) console.error('Video source validation failed:', errorMsg);
-    return `<video><p>Error generating video: ${errorMsg}</p></video>`;
-  }
-
-  // Create inline Web Worker from blob to avoid external file dependency
   const workerCode = `
     const VALID_VIDEO_EXTENSIONS = ['mp4', 'webm'];
 
@@ -102,7 +80,7 @@ export async function generateVideoMarkup({
         if (darkSrc) innerHTML += addSourcesHTML(darkSrc, '(prefers-color-scheme: dark)');
         const defaultSrc = lightSrc || darkSrc || src;
         innerHTML += addSourcesHTML(defaultSrc);
-        innerHTML += \`<p>Your browser does not support the video tag. <a href="\${defaultSrc || '#'}">Download video</a></p>\`;
+        innerHTML += \`<p>Your browser does not support the video tag. <a href="\${defaultSrc || '#'}" >Download video</a></p>\`;
 
         const markup = \`
           <video
@@ -125,7 +103,7 @@ export async function generateVideoMarkup({
         \`;
         self.postMessage({ markup });
       } catch (error) {
-        self.postMessage({ error: error.message });
+        self.postMessage({ error: error.message, src, lightSrc, darkSrc });
       }
     });
   `;
@@ -136,20 +114,25 @@ export async function generateVideoMarkup({
   return new Promise((resolve) => {
     const worker = new Worker(workerUrl);
     worker.onmessage = (e) => {
-      const { markup, error } = e.data;
+      const { markup, error, src: workerSrc, lightSrc: workerLightSrc, darkSrc: workerDarkSrc } = e.data;
       if (error) {
-        if (isDev) console.error('Video Worker error:', error);
-        resolve(`<video><p>Error generating video: ${error}</p></video>`);
+        if (isDev) console.error('Video Worker error:', error, { workerSrc, workerLightSrc, workerDarkSrc });
+        const primarySrc = lightSrc || darkSrc || src;
+        const fallbackVideo = `<video><p>Error generating video: ${error}</p><a href="${primarySrc || '#'}" >Download video</a></video>`;
+        resolve(fallbackVideo);
       } else {
         markupCache.set(cacheKey, markup);
+        if (isDev) console.log('Video Worker generated markup:', markup.substring(0, 200));
         resolve(markup);
       }
       worker.terminate();
       URL.revokeObjectURL(workerUrl);
     };
     worker.onerror = (err) => {
-      if (isDev) console.error('Video Worker failed:', err);
-      resolve(`<video><p>Error generating video</p></video>`);
+      if (isDev) console.error('Video Worker failed:', err, { src, lightSrc, darkSrc });
+      const primarySrc = lightSrc || darkSrc || src;
+      const fallbackVideo = `<video><p>Error generating video</p><a href="${primarySrc || '#'}" >Download video</a></video>`;
+      resolve(fallbackVideo);
       worker.terminate();
       URL.revokeObjectURL(workerUrl);
     };
@@ -166,7 +149,6 @@ function isValidVideoExt(videoSrc) {
   return ext && VALID_VIDEO_EXTENSIONS.includes(ext);
 }
 
-// Rest unchanged (updateVideos, lazyAutoplayObserver)
 if (typeof window !== 'undefined') {
   const updateVideos = () => {
     const isDev = window.location.href.includes('/dev/');

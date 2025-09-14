@@ -45,10 +45,8 @@ export async function generatePictureMarkup({
   customClasses = customClasses.trim();
   extraStyles = extraStyles.trim();
 
-  // Log inputs for debugging
   if (isDev) console.log('Generating picture markup for:', { src, lightSrc, darkSrc, alt, lightAlt, darkAlt, noResponsive });
 
-  // Skip validation to bypass 404 issues
   const isSvg = src.endsWith('.svg') || lightSrc.endsWith('.svg') || darkSrc.endsWith('.svg');
   const effectiveNoResponsive = noResponsive || isSvg;
 
@@ -203,7 +201,8 @@ export async function generatePictureMarkup({
         if (isDev) console.error('Image Worker error:', error, { workerSrc, workerLightSrc, workerDarkSrc });
         const primarySrc = lightSrc || darkSrc || src;
         const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
-        resolve(`<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`);
+        const fallbackImg = `<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`;
+        resolve(fallbackImg);
       } else {
         markupCache.set(cacheKey, markup);
         if (isDev) console.log('Image Worker generated markup:', markup.substring(0, 200));
@@ -216,7 +215,8 @@ export async function generatePictureMarkup({
       if (isDev) console.error('Image Worker failed:', err, { src, lightSrc, darkSrc });
       const primarySrc = lightSrc || darkSrc || src;
       const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
-      resolve(`<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`);
+      const fallbackImg = `<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`;
+      resolve(fallbackImg);
       worker.terminate();
       URL.revokeObjectURL(workerUrl);
     };
