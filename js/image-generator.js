@@ -200,7 +200,10 @@ export async function generatePictureMarkup({
     });
   `;
 
-  if (isDev) console.log('Worker code before blob creation:', workerCode.substring(0, 200) + '...');
+  if (isDev) {
+    console.log('Worker code before blob creation:', workerCode);
+    console.log('Worker code length:', workerCode.length);
+  }
 
   const blob = new Blob([workerCode], { type: 'application/javascript' });
   const workerUrl = URL.createObjectURL(blob);
