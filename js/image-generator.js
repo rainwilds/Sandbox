@@ -122,7 +122,7 @@ export async function generatePictureMarkup({
         }
         for (const source of sources) {
           if (!VALID_EXTENSIONS.test(source)) {
-            self.postMessage({ markup: `<img src="${source}" alt="Invalid image source" loading="lazy">`, error: 'Invalid image source: ' + source });
+            self.postMessage({ markup: \`<img src="\${source}" alt="Invalid image source" loading="lazy">\`, error: 'Invalid image source: ' + source });
             return;
           }
         }
@@ -158,11 +158,13 @@ export async function generatePictureMarkup({
         if (noResponsive || primarySrc.endsWith('.svg')) {
           if (lightSrc) {
             markup.push(
-              '<source media="(prefers-color-scheme: light)" type="' + getImageType(lightSrc) + '" srcset="' + lightSrc + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : lightAlt ? ' alt="' + lightAlt + '"' : '') + '>');
+              '<source media="(prefers-color-scheme: light)" type="' + getImageType(lightSrc) + '" srcset="' + lightSrc + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : lightAlt ? ' alt="' + lightAlt + '"' : '') + '>'
+            );
           }
           if (darkSrc) {
             markup.push(
-              '<source media="(prefers-color-scheme: dark)" type="' + getImageType(darkSrc) + '" srcset="' + darkSrc + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : darkAlt ? ' alt="' + darkAlt + '"' : '') + '>');
+              '<source media="(prefers-color-scheme: dark)" type="' + getImageType(darkSrc) + '" srcset="' + darkSrc + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : darkAlt ? ' alt="' + darkAlt + '"' : '') + '>'
+            );
           }
           if (src) {
             markup.push('<source type="' + getImageType(src) + '" srcset="' + src + '" sizes="' + sizes + '"' + altAttr + '>');
@@ -171,11 +173,13 @@ export async function generatePictureMarkup({
           FORMATS.forEach((format) => {
             if (lightSrc && lightBaseFilename && !lightSrc.endsWith('.svg')) {
               markup.push(
-                '<source media="(prefers-color-scheme: light)" type="image/' + format + '" srcset="' + generateSrcset(lightBaseFilename, format) + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : lightAlt ? ' alt="' + lightAlt + '"' : '') + '>');
+                '<source media="(prefers-color-scheme: light)" type="image/' + format + '" srcset="' + generateSrcset(lightBaseFilename, format) + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : lightAlt ? ' alt="' + lightAlt + '"' : '') + '>'
+              );
             }
             if (darkSrc && darkBaseFilename && !darkSrc.endsWith('.svg')) {
               markup.push(
-                '<source media="(prefers-color-scheme: dark)" type="image/' + format + '" srcset="' + generateSrcset(darkBaseFilename, format) + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : darkAlt ? ' alt="' + darkAlt + '"' : '') + '>');
+                '<source media="(prefers-color-scheme: dark)" type="image/' + format + '" srcset="' + generateSrcset(darkBaseFilename, format) + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : darkAlt ? ' alt="' + darkAlt + '"' : '') + '>'
+              );
             }
             if (!primarySrc.endsWith('.svg')) {
               markup.push('<source type="image/' + format + '" srcset="' + generateSrcset(baseFilename, format) + '" sizes="' + sizes + '"' + altAttr + '>');
@@ -184,7 +188,7 @@ export async function generatePictureMarkup({
         }
 
         markup.push(
-          '<img src="' + primarySrc + '"' + altAttr + loadingAttr + fetchPriorityAttr + ' onerror="this.src=\'https://placehold.co/3000x2000\'; this.alt=\'' + (primaryAlt || 'Placeholder image') + '\'; this.onerror=null;">'
+          '<img src="' + primarySrc + '"' + altAttr + loadingAttr + fetchPriorityAttr + ' onerror="this.src=\\'https://placehold.co/3000x2000\\'; this.alt=\\'' + (primaryAlt || 'Placeholder image') + '\\'; this.onerror=null;">'
         );
         markup.push('</picture>');
 
@@ -199,7 +203,7 @@ export async function generatePictureMarkup({
       } catch (error) {
         const primarySrc = lightSrc || darkSrc || src;
         const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
-        const fallbackImg = `<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`;
+        const fallbackImg = \`<img src="\${primarySrc || 'https://placehold.co/3000x2000'}" alt="\${primaryAlt}" loading="lazy">\`;
         self.postMessage({ markup: fallbackImg, error: error.message });
       }
     });
@@ -208,10 +212,10 @@ export async function generatePictureMarkup({
   if (isDev) {
     console.log('Worker code:', workerCode);
     const lines = workerCode.split('\n');
-    console.log('Line 118:', lines[117]);
-    console.log('Line 119:', lines[118]);
-    console.log('Line 120:', lines[119]);
-    console.log('Line 121:', lines[120]);
+    console.log('Line 122:', lines[121]);
+    console.log('Line 123:', lines[122]);
+    console.log('Line 124:', lines[123]);
+    console.log('Line 125:', lines[124]);
     try {
       new Function(workerCode);
       console.log('Worker code syntax is valid');
@@ -323,7 +327,7 @@ if (typeof window !== 'undefined') {
 
 export const BACKDROP_FILTER_MAP = {
   'backdrop-filter-blur-small': 'blur(var(--blur-small))',
-  'backdrop-filter-blur-medium': 'blur(var(--blur-medium))',
+  'backdrop-filter-blur-medium': 'blur(var--blur-medium))',
   'backdrop-filter-blur-large': 'blur(var(--blur-large))',
   'backdrop-filter-grayscale-small': 'grayscale(var(--grayscale-small))',
   'backdrop-filter-grayscale-medium': 'grayscale(var(--grayscale-medium))',

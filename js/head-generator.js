@@ -1,7 +1,8 @@
 /* global document, window, console, fetch, Promise, requestIdleCallback */
 (async () => {
     // Browser-compatible dev detection
-    const isDev = window.location.href.includes('/dev/');
+    const isDev = window.location.href.includes('/dev/') ||
+      new URLSearchParams(window.location.search).get('debug') === 'true';
     const log = (message) => { if (isDev) console.log(`[HeadGenerator] ${new Date().toLocaleTimeString()} ${message}`); };
 
     // Cache for setup.json

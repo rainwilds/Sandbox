@@ -21,6 +21,7 @@ export async function generateVideoMarkup({
   preload = 'metadata',
   controls = false
 } = {}) {
+  markupCache.clear(); // Clear cache for debugging
   const isDev = window.location.href.includes('/dev/') ||
     new URLSearchParams(window.location.search).get('debug') === 'true';
   const cacheKey = JSON.stringify({ src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses, extraClasses, loading, autoplay, muted, loop, playsinline, disablePip, preload, controls });
