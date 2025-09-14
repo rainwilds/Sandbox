@@ -144,16 +144,16 @@
                     const extraStyles = attrs.height ? `height: ${attrs.height}` : '';
                     try {
                         const logoMarkup = await generatePictureMarkup({
-                            fullSrc: attrs.fullPrimarySrc,
-                            fullLightSrc: attrs.fullLightSrc,
-                            fullDarkSrc: attrs.fullDarkSrc,
-                            fullAlt: attrs.fullPrimaryAlt,
-                            fullLightAlt: attrs.fullLightAlt,
-                            fullDarkAlt: attrs.fullDarkAlt,
+                            src: attrs.fullPrimarySrc,
+                            lightSrc: attrs.fullLightSrc,
+                            darkSrc: attrs.fullDarkSrc,
+                            alt: attrs.fullPrimaryAlt || attrs.fullLightAlt || attrs.fullDarkAlt,
+                            lightAlt: attrs.fullLightAlt,
+                            darkAlt: attrs.fullDarkAlt,
                             iconSrc: attrs.iconPrimarySrc,
                             iconLightSrc: attrs.iconLightSrc,
                             iconDarkSrc: attrs.iconDarkSrc,
-                            iconAlt: attrs.iconPrimaryAlt,
+                            iconAlt: attrs.iconPrimaryAlt || attrs.iconLightAlt || attrs.iconDarkAlt,
                             iconLightAlt: attrs.iconLightAlt,
                             iconDarkAlt: attrs.iconDarkAlt,
                             isDecorative: attrs.isDecorative || false,
@@ -162,8 +162,10 @@
                             fetchPriority: '',
                             extraClasses: [],
                             breakpoint: attrs.breakpoint,
-                            extraStyles: extraStyles
+                            extraStyles: extraStyles,
+                            noResponsive: attrs.fullLightSrc.includes('.svg') // Skip responsive for SVGs
                         });
+                        if (isDev) console.log('CustomLogo markup generated:', logoMarkup.substring(0, 200));
                         logoHTML = `
                             ${styleTag}
                             <div class="${positionClass}">
@@ -172,12 +174,21 @@
                         `;
                         if (isDev) console.log('CustomLogo rendered successfully');
                     } catch (error) {
-                        console.error('Error generating logo markup:', error);
-                        logoHTML = '<div>Error rendering logo</div>';
+                        console.error('Error generating logo markup:', error, { attrs });
+                        logoHTML = `
+                            ${styleTag}
+                            <div class="${positionClass}">
+                                <a href="/"><img src="https://placehold.co/300x40" alt="Error loading logo" loading="lazy"></a>
+                            </div>
+                        `;
                     }
                 } else {
                     console.warn('No valid logo sources provided, skipping render.');
-                    logoHTML = '<div>No logo sources provided</div>';
+                    logoHTML = `
+                        <div class="place-self-center">
+                            <a href="/"><img src="https://placehold.co/300x40" alt="No logo sources provided" loading="lazy"></a>
+                        </div>
+                    `;
                 }
                 this.innerHTML = logoHTML;
             }
@@ -208,7 +219,7 @@
                         const attrs = this.getAttributes();
                         const breakpoint = parseInt(attrs.breakpoint, 10);
                         const isBelowBreakpoint = breakpoint && window.matchMedia(`(max-width: ${breakpoint - 1}px)`).matches;
-                        let selectedSrc = attrs.fullLightSrc;
+                        let selectedSrc = attrs.fullLightSrc || attrs.iconLightSrc;
                         let matchedMedia = 'none';
                         sources.forEach(source => {
                             const media = source.getAttribute('media');
@@ -217,7 +228,8 @@
                                 matchedMedia = media;
                             }
                         });
-                        if (img.src !== selectedSrc) {
+                        if (img.src !== selectedSrc && selectedSrc) {
+                            if (window.location.href.includes('/dev/')) console.log('Updating logo src:', { selectedSrc, matchedMedia, prefersDark });
                             img.src = selectedSrc;
                         }
                     }
