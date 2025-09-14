@@ -625,7 +625,7 @@ class CustomBlock extends HTMLElement {
             shadowClass: '',
             innerShadowClass: ''
         } : this.getAttributes();
-        if (isDev) console.log('Rendering CustomBlock with attrs:', attrs);
+        if (isDev) console.log('Rendering CustomBlock with attrs:', { backgroundSrc: attrs.backgroundSrc, backgroundLightSrc: attrs.backgroundLightSrc, backgroundDarkSrc: attrs.backgroundDarkSrc, primarySrc: attrs.primarySrc, primaryLightSrc: attrs.primaryLightSrc, primaryDarkSrc: attrs.primaryDarkSrc });
         if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
             console.error(`<custom-block img-background-src="${attrs.backgroundSrc || 'not provided'}" img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> requires an img-background-alt attribute for accessibility unless img-background-decorative is present.`);
         }
@@ -678,13 +678,15 @@ class CustomBlock extends HTMLElement {
         if (!isFallback && attrs.sectionTitle && !attrs.buttonText) {
             blockElement.setAttribute('data-section-title', 'true');
         }
-        // Background media rendering (moved before innerDiv)
+        // Background media rendering
         const validateSrc = async (url) => {
             if (!url || isDev) return true; // Skip validation in dev mode
             try {
                 const res = await fetch(url, { method: 'HEAD', mode: 'cors' });
+                if (isDev) console.log(`Validated ${url}: ${res.ok}`);
                 return res.ok;
-            } catch {
+            } catch (error) {
+                if (isDev) console.warn(`Validation failed for ${url}:`, error);
                 return false;
             }
         };
@@ -768,11 +770,12 @@ class CustomBlock extends HTMLElement {
                             mobileWidth: attrs.backgroundMobileWidth,
                             tabletWidth: attrs.backgroundTabletWidth,
                             desktopWidth: attrs.backgroundDesktopWidth,
+                            noResponsive: attrs.backgroundSrc?.endsWith('.svg') || attrs.backgroundLightSrc?.endsWith('.svg') || attrs.backgroundDarkSrc?.endsWith('.svg'),
                             aspectRatio: attrs.backgroundAspectRatio,
                             includeSchema: attrs.backgroundIncludeSchema,
                             extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover;` : ''
                         });
-                        if (isDev) console.log('Picture markup generated:', pictureMarkup.substring(0, 200));
+                        if (isDev) console.log('Background picture markup generated:', pictureMarkup.substring(0, 200));
                         const pictureDiv = document.createElement('div');
                         pictureDiv.innerHTML = pictureMarkup;
                         const pictureElement = pictureDiv.querySelector('picture');
@@ -781,15 +784,24 @@ class CustomBlock extends HTMLElement {
                             if (isDev) console.log('Background image appended successfully');
                         } else {
                             console.warn('Failed to parse picture markup:', pictureMarkup);
-                            blockElement.appendChild(document.createElement('img')).setAttribute('src', 'https://placehold.co/3000x2000');
+                            const fallbackImg = document.createElement('img');
+                            fallbackImg.src = 'https://placehold.co/3000x2000';
+                            fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                            blockElement.appendChild(fallbackImg);
                         }
                     } catch (error) {
-                        console.error('Error generating picture markup:', error);
-                        blockElement.appendChild(document.createElement('img')).setAttribute('src', 'https://placehold.co/3000x2000');
+                        console.error('Error generating picture markup:', error, { src: attrs.backgroundSrc, lightSrc: attrs.backgroundLightSrc, darkSrc: attrs.backgroundDarkSrc });
+                        const fallbackImg = document.createElement('img');
+                        fallbackImg.src = 'https://placehold.co/3000x2000';
+                        fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                        blockElement.appendChild(fallbackImg);
                     }
                 } else {
                     console.warn('Invalid background image sources:', sources.filter((_, i) => !validations[i]));
-                    blockElement.appendChild(document.createElement('img')).setAttribute('src', 'https://placehold.co/3000x2000');
+                    const fallbackImg = document.createElement('img');
+                    fallbackImg.src = 'https://placehold.co/3000x2000';
+                    fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                    blockElement.appendChild(fallbackImg);
                 }
             }
             if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
@@ -959,215 +971,100 @@ class CustomBlock extends HTMLElement {
             groupDiv.appendChild(buttonElement);
         }
         innerDiv.appendChild(groupDiv);
-        // Background media rendering (moved before innerDiv)
-        if (!isMediaOnly && (hasBackgroundImage || hasVideoBackground)) {
-            if (hasVideoBackground) {
-                const sources = [attrs.videoBackgroundSrc, attrs.videoBackgroundLightSrc, attrs.videoBackgroundDarkSrc].filter(Boolean);
-                const validations = await Promise.all(sources.map(validateSrc));
-                if (validations.every(v => v)) {
-                    try {
-                        const videoMarkup = await generateVideoMarkup({
-                            src: attrs.videoBackgroundSrc,
-                            lightSrc: attrs.videoBackgroundLightSrc,
-                            darkSrc: attrs.videoBackgroundDarkSrc,
-                            poster: attrs.videoBackgroundPoster,
-                            lightPoster: attrs.videoBackgroundLightPoster,
-                            darkPoster: attrs.videoBackgroundDarkPoster,
-                            alt: attrs.videoBackgroundAlt,
-                            customClasses: mediaClasses,
-                            extraClasses: [],
-                            loading: attrs.videoBackgroundLoading,
-                            autoplay: attrs.videoBackgroundAutoplay,
-                            muted: attrs.videoBackgroundMuted,
-                            loop: attrs.videoBackgroundLoop,
-                            playsinline: attrs.videoBackgroundPlaysinline,
-                            disablePip: attrs.videoBackgroundDisablePip,
-                            preload: attrs.videoBackgroundLoading === 'lazy' ? 'metadata' : attrs.videoBackgroundLoading,
-                            controls: false
-                        });
-                        if (isDev) console.log('Video markup generated:', videoMarkup.substring(0, 200));
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = videoMarkup;
-                        const videoElement = tempDiv.querySelector('video');
-                        if (videoElement) {
-                            blockElement.insertBefore(videoElement, blockElement.firstChild);
-                            if (isDev) console.log('Video prepended successfully');
-                        } else {
-                            console.warn('Failed to parse video markup:', videoMarkup);
-                            blockElement.insertBefore(document.createElement('p'), blockElement.firstChild).textContent = 'Video unavailable';
-                        }
-                    } catch (error) {
-                        console.error('Error generating video markup:', error);
-                        blockElement.insertBefore(document.createElement('p'), blockElement.firstChild).textContent = 'Video unavailable';
-                    }
-                } else {
-                    console.warn('Invalid video sources:', sources.filter((_, i) => !validations[i]));
-                    blockElement.insertBefore(document.createElement('p'), blockElement.firstChild).textContent = 'Video unavailable';
-                }
-            } else if (hasBackgroundImage) {
-                const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
-                const sources = [attrs.backgroundSrc, attrs.backgroundLightSrc, attrs.backgroundDarkSrc].filter(Boolean);
-                const validations = await Promise.all(sources.map(validateSrc));
-                if (src && validations.every(v => v)) {
-                    try {
-                        const pictureMarkup = await generatePictureMarkup({
-                            src: attrs.backgroundSrc,
-                            lightSrc: attrs.backgroundLightSrc,
-                            darkSrc: attrs.backgroundDarkSrc,
-                            alt: attrs.backgroundAlt,
-                            lightAlt: attrs.backgroundLightAlt,
-                            darkAlt: attrs.backgroundDarkAlt,
-                            isDecorative: attrs.backgroundIsDecorative,
-                            customClasses: mediaClasses,
-                            loading: attrs.backgroundLoading,
-                            fetchPriority: attrs.backgroundFetchPriority,
-                            extraClasses: [],
-                            mobileWidth: attrs.backgroundMobileWidth,
-                            tabletWidth: attrs.backgroundTabletWidth,
-                            desktopWidth: attrs.backgroundDesktopWidth,
-                            aspectRatio: attrs.backgroundAspectRatio,
-                            includeSchema: attrs.backgroundIncludeSchema,
-                            extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover;` : ''
-                        });
-                        if (isDev) console.log('Picture markup generated:', pictureMarkup.substring(0, 200));
-                        const pictureDiv = document.createElement('div');
-                        pictureDiv.innerHTML = pictureMarkup;
-                        const pictureElement = pictureDiv.querySelector('picture');
-                        if (pictureElement) {
-                            blockElement.insertBefore(pictureElement, blockElement.firstChild);
-                            if (isDev) console.log('Background image prepended successfully');
-                        } else {
-                            console.warn('Failed to parse picture markup:', pictureMarkup);
-                            blockElement.insertBefore(document.createElement('img'), blockElement.firstChild).setAttribute('src', 'https://placehold.co/3000x2000');
-                        }
-                    } catch (error) {
-                        console.error('Error generating picture markup:', error);
-                        blockElement.insertBefore(document.createElement('img'), blockElement.firstChild).setAttribute('src', 'https://placehold.co/3000x2000');
-                    }
-                } else {
-                    console.warn('Invalid background image sources:', sources.filter((_, i) => !validations[i]));
-                    blockElement.insertBefore(document.createElement('img'), blockElement.firstChild).setAttribute('src', 'https://placehold.co/3000x2000');
-                }
-            }
-            if (attrs.hasBackgroundOverlay) {
-                const overlayClasses = [attrs.backgroundOverlayClass];
-                if (attrs.backgroundImageNoise) overlayClasses.push('background-image-noise');
-                if (attrs.backgroundGradientClass) overlayClasses.push(attrs.backgroundGradientClass);
-                const backdropFilterValues = attrs.backdropFilterClasses
-                    .filter(cls => cls.startsWith('backdrop-filter'))
-                    .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
-                    .filter(val => val);
-                const filteredOverlayClasses = attrs.backdropFilterClasses
-                    .filter(cls => !cls.startsWith('backdrop-filter'))
-                    .concat(overlayClasses)
-                    .filter(cls => cls);
-                const overlayDiv = document.createElement('div');
-                if (filteredOverlayClasses.length) overlayDiv.className = filteredOverlayClasses.join(' ').trim();
-                if (backdropFilterValues.length) overlayDiv.style.backdropFilter = backdropFilterValues.join(' ');
-                blockElement.appendChild(overlayDiv);
-            }
-        }
         const appendMedia = async (position) => {
             if (!((hasPrimaryImage || hasVideoPrimary) && ['top', 'bottom', 'left', 'right'].includes(position))) return;
             const mediaDiv = document.createElement('div');
             const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
-            const validateSrc = async (url) => {
-                if (!url || isDev) return true;
+            const sources = [attrs.primarySrc, attrs.primaryLightSrc, attrs.primaryDarkSrc, attrs.videoPrimarySrc, attrs.videoPrimaryLightSrc, attrs.videoPrimaryDarkSrc].filter(Boolean);
+            const validations = await Promise.all(sources.map(validateSrc));
+            if (src && validations.every(v => v)) {
                 try {
-                    const res = await fetch(url, { method: 'HEAD', mode: 'cors' });
-                    return res.ok;
-                } catch {
-                    return false;
-                }
-            };
-            if (src) {
-                const sources = [attrs.primarySrc, attrs.primaryLightSrc, attrs.primaryDarkSrc, attrs.videoPrimarySrc, attrs.videoPrimaryLightSrc, attrs.videoPrimaryDarkSrc].filter(Boolean);
-                const validations = await Promise.all(sources.map(validateSrc));
-                if (validations.every(v => v)) {
-                    try {
-                        if (hasPrimaryImage) {
-                            const pictureMarkup = await generatePictureMarkup({
-                                src: src,
-                                lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
-                                darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
-                                alt: attrs.primaryAlt,
-                                isDecorative: attrs.primaryIsDecorative,
-                                customClasses: mediaClasses,
-                                loading: attrs.primaryLoading,
-                                fetchPriority: attrs.primaryFetchPriority,
-                                extraClasses: [],
-                                mobileWidth: attrs.primaryMobileWidth,
-                                tabletWidth: attrs.primaryTabletWidth,
-                                desktopWidth: attrs.primaryDesktopWidth,
-                                aspectRatio: attrs.primaryAspectRatio,
-                                includeSchema: attrs.primaryIncludeSchema
-                            });
-                            if (isDev) console.log('Primary picture markup generated:', pictureMarkup.substring(0, 200));
-                            mediaDiv.innerHTML = pictureMarkup;
-                            const pictureElement = mediaDiv.querySelector('picture');
-                            if (pictureElement) {
-                                if (position === 'left' || position === 'right') {
-                                    if (position === 'left') blockElement.appendChild(pictureElement);
-                                    blockElement.appendChild(innerDiv);
-                                    if (position === 'right') blockElement.appendChild(pictureElement);
-                                } else {
-                                    blockElement.appendChild(position === 'top' ? pictureElement : innerDiv);
-                                    blockElement.appendChild(position === 'top' ? innerDiv : pictureElement);
-                                }
-                                if (isDev) console.log(`Primary image (${position}) appended successfully`);
-                            } else {
-                                console.warn('Failed to parse primary picture markup:', pictureMarkup);
+                    if (hasPrimaryImage) {
+                        const pictureMarkup = await generatePictureMarkup({
+                            src: src,
+                            lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
+                            darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
+                            alt: attrs.primaryAlt,
+                            isDecorative: attrs.primaryIsDecorative,
+                            customClasses: mediaClasses,
+                            loading: attrs.primaryLoading,
+                            fetchPriority: attrs.primaryFetchPriority,
+                            extraClasses: [],
+                            mobileWidth: attrs.primaryMobileWidth,
+                            tabletWidth: attrs.primaryTabletWidth,
+                            desktopWidth: attrs.primaryDesktopWidth,
+                            noResponsive: attrs.primarySrc?.endsWith('.svg') || attrs.primaryLightSrc?.endsWith('.svg') || attrs.primaryDarkSrc?.endsWith('.svg'),
+                            aspectRatio: attrs.primaryAspectRatio,
+                            includeSchema: attrs.primaryIncludeSchema
+                        });
+                        if (isDev) console.log('Primary picture markup generated:', pictureMarkup.substring(0, 200));
+                        mediaDiv.innerHTML = pictureMarkup;
+                        const pictureElement = mediaDiv.querySelector('picture');
+                        if (pictureElement) {
+                            if (position === 'left' || position === 'right') {
+                                if (position === 'left') blockElement.appendChild(pictureElement);
                                 blockElement.appendChild(innerDiv);
-                            }
-                        } else if (hasVideoPrimary) {
-                            const videoMarkup = await generateVideoMarkup({
-                                src: attrs.videoPrimarySrc,
-                                lightSrc: attrs.videoPrimaryLightSrc,
-                                darkSrc: attrs.videoPrimaryDarkSrc,
-                                poster: attrs.videoPrimaryPoster,
-                                lightPoster: attrs.videoPrimaryLightPoster,
-                                darkPoster: attrs.videoPrimaryDarkPoster,
-                                alt: attrs.videoPrimaryAlt,
-                                customClasses: mediaClasses,
-                                extraClasses: [],
-                                loading: attrs.videoPrimaryLoading,
-                                autoplay: attrs.videoPrimaryAutoplay,
-                                muted: attrs.videoPrimaryMuted,
-                                loop: attrs.videoPrimaryLoop,
-                                playsinline: attrs.videoPrimaryPlaysinline,
-                                disablePip: attrs.videoPrimaryDisablePip,
-                                preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
-                                controls: false
-                            });
-                            if (isDev) console.log('Primary video markup generated:', videoMarkup.substring(0, 200));
-                            const tempDiv = document.createElement('div');
-                            tempDiv.innerHTML = videoMarkup;
-                            const videoElement = tempDiv.querySelector('video');
-                            if (videoElement) {
-                                if (position === 'left' || position === 'right') {
-                                    if (position === 'left') blockElement.appendChild(videoElement);
-                                    blockElement.appendChild(innerDiv);
-                                    if (position === 'right') blockElement.appendChild(videoElement);
-                                } else {
-                                    blockElement.appendChild(position === 'top' ? videoElement : innerDiv);
-                                    blockElement.appendChild(position === 'top' ? innerDiv : videoElement);
-                                }
-                                if (isDev) console.log(`Primary video (${position}) appended successfully`);
+                                if (position === 'right') blockElement.appendChild(pictureElement);
                             } else {
-                                console.warn('Failed to parse primary video markup:', videoMarkup);
-                                blockElement.appendChild(innerDiv);
+                                blockElement.appendChild(position === 'top' ? pictureElement : innerDiv);
+                                blockElement.appendChild(position === 'top' ? innerDiv : pictureElement);
                             }
+                            if (isDev) console.log(`Primary image (${position}) appended successfully`);
+                        } else {
+                            console.warn('Failed to parse primary picture markup:', pictureMarkup);
+                            const fallbackImg = document.createElement('img');
+                            fallbackImg.src = 'https://placehold.co/3000x2000';
+                            fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                            blockElement.appendChild(fallbackImg);
                         }
-                    } catch (error) {
-                        console.error(`Error generating ${hasPrimaryImage ? 'picture' : 'video'} markup (${position}):`, error);
-                        blockElement.appendChild(innerDiv);
+                    } else if (hasVideoPrimary) {
+                        const videoMarkup = await generateVideoMarkup({
+                            src: attrs.videoPrimarySrc,
+                            lightSrc: attrs.videoPrimaryLightSrc,
+                            darkSrc: attrs.videoPrimaryDarkSrc,
+                            poster: attrs.videoPrimaryPoster,
+                            lightPoster: attrs.videoPrimaryLightPoster,
+                            darkPoster: attrs.videoPrimaryDarkPoster,
+                            alt: attrs.videoPrimaryAlt,
+                            customClasses: mediaClasses,
+                            extraClasses: [],
+                            loading: attrs.videoPrimaryLoading,
+                            autoplay: attrs.videoPrimaryAutoplay,
+                            muted: attrs.videoPrimaryMuted,
+                            loop: attrs.videoPrimaryLoop,
+                            playsinline: attrs.videoPrimaryPlaysinline,
+                            disablePip: attrs.videoPrimaryDisablePip,
+                            preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                            controls: false
+                        });
+                        if (isDev) console.log('Primary video markup generated:', videoMarkup.substring(0, 200));
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = videoMarkup;
+                        const videoElement = tempDiv.querySelector('video');
+                        if (videoElement) {
+                            if (position === 'left' || position === 'right') {
+                                if (position === 'left') blockElement.appendChild(videoElement);
+                                blockElement.appendChild(innerDiv);
+                                if (position === 'right') blockElement.appendChild(videoElement);
+                            } else {
+                                blockElement.appendChild(position === 'top' ? videoElement : innerDiv);
+                                blockElement.appendChild(position === 'top' ? innerDiv : videoElement);
+                            }
+                            if (isDev) console.log(`Primary video (${position}) appended successfully`);
+                        } else {
+                            console.warn('Failed to parse primary video markup:', videoMarkup);
+                            blockElement.appendChild(innerDiv);
+                        }
                     }
-                } else {
-                    console.warn('Invalid primary sources:', sources.filter((_, i) => !validations[i]));
-                    blockElement.appendChild(innerDiv);
+                } catch (error) {
+                    console.error(`Error generating ${hasPrimaryImage ? 'picture' : 'video'} markup (${position}):`, error, { src: attrs.primarySrc, lightSrc: attrs.primaryLightSrc, darkSrc: attrs.primaryDarkSrc });
+                    const fallbackImg = document.createElement('img');
+                    fallbackImg.src = 'https://placehold.co/3000x2000';
+                    fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                    blockElement.appendChild(fallbackImg);
                 }
             } else {
-                console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
+                console.warn('Invalid primary sources:', sources.filter((_, i) => !validations[i]));
                 blockElement.appendChild(innerDiv);
             }
         };
