@@ -44,7 +44,7 @@ class CustomBlock extends HTMLElement {
         { maxWidth: 2560, baseValue: '100vw' },
     ];
     static #DEFAULT_SIZE_VALUE = 3840;
-    static #BASE_PATH = './img/responsive/';
+    static #BASE_PATH = '/Sandbox/img/responsive/';
     static BACKDROP_FILTER_MAP = {
         'backdrop-filter-blur-small': 'blur(var(--blur-small))',
         'backdrop-filter-blur-medium': 'blur(var(--blur-medium))',
@@ -421,7 +421,7 @@ class CustomBlock extends HTMLElement {
             primaryFetchPriority: validFetchPriorities.includes(primaryFetchPriority) ? primaryFetchPriority : '',
             primaryLoading: this.getAttribute('img-primary-loading') || 'lazy',
             primaryPosition,
-            videoBackgroundSrc: videoBackgroundSrc || (videoBackgroundLightSrc && videoBackgroundDarkSrc ? '' : null),
+            videoBackgroundSrc: videoBackgroundSrc,
             videoBackgroundLightSrc: videoBackgroundLightSrc,
             videoBackgroundDarkSrc: videoBackgroundDarkSrc,
             videoBackgroundPoster: this.getAttribute('video-background-poster') || '',
@@ -434,7 +434,7 @@ class CustomBlock extends HTMLElement {
             videoBackgroundLoop: this.hasAttribute('video-background-loop'),
             videoBackgroundPlaysinline: this.hasAttribute('video-background-playsinline'),
             videoBackgroundDisablePip: this.hasAttribute('video-background-disable-pip'),
-            videoPrimarySrc: videoPrimarySrc || (videoPrimaryLightSrc && videoPrimaryDarkSrc ? '' : null),
+            videoPrimarySrc: videoPrimarySrc,
             videoPrimaryLightSrc: videoPrimaryLightSrc,
             videoPrimaryDarkSrc: videoPrimaryDarkSrc,
             videoPrimaryPoster: this.getAttribute('video-primary-poster') || '',
@@ -625,7 +625,7 @@ class CustomBlock extends HTMLElement {
             shadowClass: '',
             innerShadowClass: ''
         } : this.getAttributes();
-        if (isDev) console.log('Rendering CustomBlock with attrs:', { backgroundSrc: attrs.backgroundSrc, backgroundLightSrc: attrs.backgroundLightSrc, backgroundDarkSrc: attrs.backgroundDarkSrc, primarySrc: attrs.primarySrc, primaryLightSrc: attrs.primaryLightSrc, primaryDarkSrc: attrs.primaryDarkSrc });
+        if (isDev) console.log('Rendering CustomBlock with attrs:', { backgroundSrc: attrs.backgroundSrc, backgroundLightSrc: attrs.backgroundLightSrc, backgroundDarkSrc: attrs.backgroundDarkSrc, primarySrc: attrs.primarySrc, primaryLightSrc: attrs.primaryLightSrc, primaryDarkSrc: attrs.primaryDarkSrc, videoBackgroundSrc: attrs.videoBackgroundSrc, videoBackgroundLightSrc: attrs.videoBackgroundLightSrc, videoBackgroundDarkSrc: attrs.videoBackgroundDarkSrc });
         if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
             console.error(`<custom-block img-background-src="${attrs.backgroundSrc || 'not provided'}" img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> requires an img-background-alt attribute for accessibility unless img-background-decorative is present.`);
         }
@@ -692,22 +692,23 @@ class CustomBlock extends HTMLElement {
         };
         if (isMediaOnly && !hasPrimaryImage && !hasVideoPrimary) {
             const videoAttrs = {
-                videoBackgroundSrc: attrs['video-background-src']?.trim() || '',
-                videoBackgroundLightSrc: attrs['video-background-light-src']?.trim() || '',
-                videoBackgroundDarkSrc: attrs['video-background-dark-src']?.trim() || '',
-                videoBackgroundPoster: attrs['video-background-poster']?.trim() || '',
-                videoBackgroundLightPoster: attrs['video-background-light-poster']?.trim() || '',
-                videoBackgroundDarkPoster: attrs['video-background-dark-poster']?.trim() || '',
-                videoBackgroundAlt: attrs['video-background-alt']?.trim() || 'Video content',
-                videoBackgroundLoading: attrs['video-background-loading'] || 'lazy',
-                videoBackgroundAutoplay: attrs.hasOwnProperty('video-background-autoplay'),
-                videoBackgroundMuted: attrs.hasOwnProperty('video-background-muted'),
-                videoBackgroundLoop: attrs.hasOwnProperty('video-background-loop'),
-                videoBackgroundPlaysinline: attrs.hasOwnProperty('video-background-playsinline'),
-                videoBackgroundDisablePip: attrs.hasOwnProperty('video-background-disable-pip'),
+                videoBackgroundSrc: attrs.videoBackgroundSrc?.trim() || '',
+                videoBackgroundLightSrc: attrs.videoBackgroundLightSrc?.trim() || '',
+                videoBackgroundDarkSrc: attrs.videoBackgroundDarkSrc?.trim() || '',
+                videoBackgroundPoster: attrs.videoBackgroundPoster?.trim() || '',
+                videoBackgroundLightPoster: attrs.videoBackgroundLightPoster?.trim() || '',
+                videoBackgroundDarkPoster: attrs.videoBackgroundDarkPoster?.trim() || '',
+                videoBackgroundAlt: attrs.videoBackgroundAlt?.trim() || 'Video content',
+                videoBackgroundLoading: attrs.videoBackgroundLoading || 'lazy',
+                videoBackgroundAutoplay: attrs.videoBackgroundAutoplay,
+                videoBackgroundMuted: attrs.videoBackgroundMuted,
+                videoBackgroundLoop: attrs.videoBackgroundLoop,
+                videoBackgroundPlaysinline: attrs.videoBackgroundPlaysinline,
+                videoBackgroundDisablePip: attrs.videoBackgroundDisablePip,
             };
             if (hasVideoBackground) {
                 const sources = [videoAttrs.videoBackgroundSrc, videoAttrs.videoBackgroundLightSrc, videoAttrs.videoBackgroundDarkSrc].filter(Boolean);
+                if (isDev) console.log('Video background sources:', sources);
                 const validations = await Promise.all(sources.map(validateSrc));
                 if (validations.every(v => v)) {
                     try {
@@ -730,28 +731,29 @@ class CustomBlock extends HTMLElement {
                             preload: videoAttrs.videoBackgroundLoading === 'lazy' ? 'metadata' : videoAttrs.videoBackgroundLoading,
                             controls: false
                         });
-                        if (isDev) console.log('Video markup generated:', videoMarkup.substring(0, 200));
+                        if (isDev) console.log('Video background markup generated:', videoMarkup.substring(0, 200));
                         const tempDiv = document.createElement('div');
                         tempDiv.innerHTML = videoMarkup;
                         const videoElement = tempDiv.querySelector('video');
                         if (videoElement) {
                             blockElement.appendChild(videoElement);
-                            if (isDev) console.log('Video appended successfully');
+                            if (isDev) console.log('Video background appended successfully');
                         } else {
-                            console.warn('Failed to parse video markup:', videoMarkup);
+                            console.warn('Failed to parse video background markup:', videoMarkup);
                             blockElement.appendChild(document.createElement('p')).textContent = 'Video unavailable';
                         }
                     } catch (error) {
-                        console.error('Error generating video markup:', error);
+                        console.error('Error generating video background markup:', error, { sources });
                         blockElement.appendChild(document.createElement('p')).textContent = 'Video unavailable';
                     }
                 } else {
-                    console.warn('Invalid video sources:', sources.filter((_, i) => !validations[i]));
+                    console.warn('Invalid video background sources:', sources.filter((_, i) => !validations[i]));
                     blockElement.appendChild(document.createElement('p')).textContent = 'Video unavailable';
                 }
             } else if (hasBackgroundImage) {
                 const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
                 const sources = [attrs.backgroundSrc, attrs.backgroundLightSrc, attrs.backgroundDarkSrc].filter(Boolean);
+                if (isDev) console.log('Background image sources:', sources);
                 const validations = await Promise.all(sources.map(validateSrc));
                 if (src && validations.every(v => v)) {
                     try {
@@ -790,7 +792,7 @@ class CustomBlock extends HTMLElement {
                             blockElement.appendChild(fallbackImg);
                         }
                     } catch (error) {
-                        console.error('Error generating picture markup:', error, { src: attrs.backgroundSrc, lightSrc: attrs.backgroundLightSrc, darkSrc: attrs.backgroundDarkSrc });
+                        console.error('Error generating picture markup:', error, { sources });
                         const fallbackImg = document.createElement('img');
                         fallbackImg.src = 'https://placehold.co/3000x2000';
                         fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
@@ -976,12 +978,13 @@ class CustomBlock extends HTMLElement {
             const mediaDiv = document.createElement('div');
             const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
             const sources = [attrs.primarySrc, attrs.primaryLightSrc, attrs.primaryDarkSrc, attrs.videoPrimarySrc, attrs.videoPrimaryLightSrc, attrs.videoPrimaryDarkSrc].filter(Boolean);
+            if (isDev) console.log('Primary media sources:', sources);
             const validations = await Promise.all(sources.map(validateSrc));
             if (src && validations.every(v => v)) {
                 try {
                     if (hasPrimaryImage) {
                         const pictureMarkup = await generatePictureMarkup({
-                            src: src,
+                            src: attrs.primarySrc,
                             lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
                             darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
                             alt: attrs.primaryAlt,
@@ -997,7 +1000,7 @@ class CustomBlock extends HTMLElement {
                             aspectRatio: attrs.primaryAspectRatio,
                             includeSchema: attrs.primaryIncludeSchema
                         });
-                        if (isDev) console.log('Primary picture markup generated:', pictureMarkup.substring(0, 200));
+                        if (isDev) console.log('Primary picture markup generated:', pictureMarkup);
                         mediaDiv.innerHTML = pictureMarkup;
                         const pictureElement = mediaDiv.querySelector('picture');
                         if (pictureElement) {
@@ -1037,7 +1040,7 @@ class CustomBlock extends HTMLElement {
                             preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
                             controls: false
                         });
-                        if (isDev) console.log('Primary video markup generated:', videoMarkup.substring(0, 200));
+                        if (isDev) console.log('Primary video markup generated:', videoMarkup);
                         const tempDiv = document.createElement('div');
                         tempDiv.innerHTML = videoMarkup;
                         const videoElement = tempDiv.querySelector('video');
@@ -1057,7 +1060,7 @@ class CustomBlock extends HTMLElement {
                         }
                     }
                 } catch (error) {
-                    console.error(`Error generating ${hasPrimaryImage ? 'picture' : 'video'} markup (${position}):`, error, { src: attrs.primarySrc, lightSrc: attrs.primaryLightSrc, darkSrc: attrs.primaryDarkSrc });
+                    console.error(`Error generating ${hasPrimaryImage ? 'picture' : 'video'} markup (${position}):`, error, { sources });
                     const fallbackImg = document.createElement('img');
                     fallbackImg.src = 'https://placehold.co/3000x2000';
                     fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';

@@ -36,9 +36,9 @@ export async function generatePictureMarkup({
     return markupCache.get(cacheKey);
   }
 
-  src = src.trim();
-  lightSrc = lightSrc.trim();
-  darkSrc = darkSrc.trim();
+  src = src.trim().replace('./', '/Sandbox/');
+  lightSrc = lightSrc.trim().replace('./', '/Sandbox/');
+  darkSrc = darkSrc.trim().replace('./', '/Sandbox/');
   alt = alt.trim();
   lightAlt = lightAlt.trim();
   darkAlt = darkAlt.trim();
@@ -62,7 +62,7 @@ export async function generatePictureMarkup({
       { maxWidth: 2560, baseValue: '100vw' },
     ];
     const DEFAULT_SIZE_VALUE = 3840;
-    const BASE_PATH = './img/responsive/';
+    const BASE_PATH = '/Sandbox/img/responsive/';
     const VALID_EXTENSIONS = /\\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
 
     function getImageType(src) {
@@ -111,12 +111,19 @@ export async function generatePictureMarkup({
 
       try {
         const sources = [src, lightSrc, darkSrc].filter(Boolean);
-        if (!sources.length) throw new Error('At least one valid image source must be provided');
+        if (!sources.length) {
+          self.postMessage({ markup: '<img src="https://placehold.co/3000x2000" alt="No image source provided" loading="lazy">', error: 'No valid image sources' });
+          return;
+        }
         for (const source of sources) {
-          if (!VALID_EXTENSIONS.test(source)) throw new Error('Invalid image source: ' + source);
+          if (!VALID_EXTENSIONS.test(source)) {
+            self.postMessage({ markup: `<img src="${source}" alt="Invalid image source" loading="lazy">`, error: 'Invalid image source: ' + source });
+            return;
+          }
         }
         if (!isDecorative && !alt && !(lightSrc && lightAlt) && !(darkSrc && darkAlt)) {
-          throw new Error('Alt attribute is required for non-decorative images');
+          self.postMessage({ markup: '<img src="https://placehold.co/3000x2000" alt="Missing alt text" loading="lazy">', error: 'Alt attribute required' });
+          return;
         }
 
         const validatedBreakpoint = breakpoint && WIDTHS.includes(parseInt(breakpoint, 10)) ? parseInt(breakpoint, 10) : '';
@@ -185,7 +192,10 @@ export async function generatePictureMarkup({
         const result = markup.join('');
         self.postMessage({ markup: result });
       } catch (error) {
-        self.postMessage({ error: error.message, src, lightSrc, darkSrc });
+        const primarySrc = lightSrc || darkSrc || src;
+        const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
+        const fallbackImg = `<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`;
+        self.postMessage({ markup: fallbackImg, error: error.message });
       }
     });
   `;
@@ -199,10 +209,7 @@ export async function generatePictureMarkup({
       const { markup, error, src: workerSrc, lightSrc: workerLightSrc, darkSrc: workerDarkSrc } = e.data;
       if (error) {
         if (isDev) console.error('Image Worker error:', error, { workerSrc, workerLightSrc, workerDarkSrc });
-        const primarySrc = lightSrc || darkSrc || src;
-        const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
-        const fallbackImg = `<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`;
-        resolve(fallbackImg);
+        resolve(markup); // Use the fallback markup provided by the Worker
       } else {
         markupCache.set(cacheKey, markup);
         if (isDev) console.log('Image Worker generated markup:', markup.substring(0, 200));

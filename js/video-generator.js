@@ -28,12 +28,12 @@ export async function generateVideoMarkup({
     return markupCache.get(cacheKey);
   }
 
-  src = src.trim();
-  lightSrc = lightSrc.trim();
-  darkSrc = darkSrc.trim();
-  poster = poster.trim();
-  lightPoster = lightPoster.trim();
-  darkPoster = darkPoster.trim();
+  src = src.trim().replace('./', '/Sandbox/');
+  lightSrc = lightSrc.trim().replace('./', '/Sandbox/');
+  darkSrc = darkSrc.trim().replace('./', '/Sandbox/');
+  poster = poster.trim().replace('./', '/Sandbox/');
+  lightPoster = lightPoster.trim().replace('./', '/Sandbox/');
+  darkPoster = darkPoster.trim().replace('./', '/Sandbox/');
 
   if (isDev) console.log('Generating video markup for:', { src, lightSrc, darkSrc, poster, lightPoster, darkPoster });
 
@@ -103,7 +103,9 @@ export async function generateVideoMarkup({
         \`;
         self.postMessage({ markup });
       } catch (error) {
-        self.postMessage({ error: error.message, src, lightSrc, darkSrc });
+        const primarySrc = lightSrc || darkSrc || src;
+        const fallbackVideo = `<video><p>Error generating video: ${error.message}</p><a href="${primarySrc || '#'}" >Download video</a></video>`;
+        self.postMessage({ markup: fallbackVideo, error: error.message });
       }
     });
   `;
@@ -117,9 +119,7 @@ export async function generateVideoMarkup({
       const { markup, error, src: workerSrc, lightSrc: workerLightSrc, darkSrc: workerDarkSrc } = e.data;
       if (error) {
         if (isDev) console.error('Video Worker error:', error, { workerSrc, workerLightSrc, workerDarkSrc });
-        const primarySrc = lightSrc || darkSrc || src;
-        const fallbackVideo = `<video><p>Error generating video: ${error}</p><a href="${primarySrc || '#'}" >Download video</a></video>`;
-        resolve(fallbackVideo);
+        resolve(markup); // Use the fallback markup provided by the Worker
       } else {
         markupCache.set(cacheKey, markup);
         if (isDev) console.log('Video Worker generated markup:', markup.substring(0, 200));
