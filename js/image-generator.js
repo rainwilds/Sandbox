@@ -24,7 +24,7 @@ export async function generatePictureMarkup({
   extraStyles = '',
 } = {}) {
   const isDev = typeof window !== 'undefined' && (
-    window.location.href.includes('/dev/') || 
+    window.location.href.includes('/dev/') ||
     new URLSearchParams(window.location.search).get('debug') === 'true'
   );
 
@@ -264,7 +264,7 @@ export async function generatePictureMarkup({
 }
 
 if (typeof window !== 'undefined') {
-  const isDev = window.location.href.includes('/dev/') || 
+  const isDev = window.location.href.includes('/dev/') ||
     new URLSearchParams(window.location.search).get('debug') === 'true';
   const WIDTHS = [768, 1024, 1366, 1920, 2560];
 
