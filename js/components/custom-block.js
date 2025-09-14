@@ -79,7 +79,7 @@ class CustomBlock extends HTMLElement {
         'video-primary-playsinline', 'video-primary-poster', 'video-primary-src'
     ];
 
-    // Helper to append video element from markup (extracted to reduce duplication)
+    // Helper to append video element from markup
     appendVideoFromMarkup(markup, blockElement, isDev = window.location.href.includes('/dev/')) {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = markup;
@@ -89,7 +89,6 @@ class CustomBlock extends HTMLElement {
             blockElement.appendChild(videoElement);
         } else {
             console.warn('Failed to parse video markup:', markup);
-            // Fallback: Append a placeholder div
             const placeholder = document.createElement('div');
             placeholder.innerHTML = '<p>Video unavailable</p>';
             placeholder.className = 'video-placeholder';
@@ -97,7 +96,7 @@ class CustomBlock extends HTMLElement {
         }
     }
 
-    // Helper to append picture element from markup (similar, for consistency)
+    // Helper to append picture element from markup
     appendPictureFromMarkup(markup, blockElement, mediaType = 'background', isDev = window.location.href.includes('/dev/')) {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = markup;
@@ -382,7 +381,7 @@ class CustomBlock extends HTMLElement {
             if (validPositions.includes(buttonIconPosition)) {
                 sanitizedButtonIconPosition = buttonIconPosition;
             } else {
-                console.warn(`Invalid button-icon-position value "${buttonIconPosition}" in <custom-block>. Must be 'left' or 'right'. Ignoring.`);
+                console.warn(`Invalid button-icon-position value "${buttonIconPosition}" in <custom-block>. Must be ' left' or 'right'. Ignoring.`);
             }
         }
         const buttonIconOffset = this.getAttribute('button-icon-offset') || '';
@@ -525,12 +524,12 @@ class CustomBlock extends HTMLElement {
         return this.cachedAttributes;
     }
 
-    async initialize() {  // Made async to support awaiting render()
+    async initialize() {
         if (this.isInitialized || !this.isVisible) return;
         console.log('** CustomBlock start...', this.outerHTML);
         this.isInitialized = true;
         try {
-            const cardElement = await this.render();  // Await the async render
+            const cardElement = await this.render();
             if (cardElement) {
                 this.replaceWith(cardElement);
                 this.callbacks.forEach(callback => callback());
@@ -569,7 +568,7 @@ class CustomBlock extends HTMLElement {
         this.callbacks.push(callback);
     }
 
-    async render(isFallback = false) {  // Made async to await media generation
+    async render(isFallback = false) {
         const isDev = window.location.href.includes('/dev/');
         let newCriticalAttrsHash;
         if (!isFallback) {
@@ -578,7 +577,7 @@ class CustomBlock extends HTMLElement {
                 criticalAttrs[attr] = this.getAttribute(attr) || '';
             });
             newCriticalAttrsHash = JSON.stringify(criticalAttrs);
-            if (this.criticalAttributesHash === newCriticalAttrsHash) {  // Simplified cache check
+            if (this.criticalAttributesHash === newCriticalAttrsHash) {
                 const cached = CustomBlock.#renderCacheMap.get(this);
                 if (cached) {
                     if (isDev) console.log('Using cached render for CustomBlock:', this.outerHTML);
@@ -588,7 +587,6 @@ class CustomBlock extends HTMLElement {
         }
 
         const attrs = isFallback ? {
-            // ... (fallback attrs unchanged, omitted for brevity)
             effects: '',
             sectionTitle: false,
             heading: '',
@@ -827,14 +825,14 @@ class CustomBlock extends HTMLElement {
             }
             if (!isFallback) {
                 CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
-                this.criticalAttributesHash = newCriticalAttrsHash;  // Update hash after successful render
+                this.criticalAttributesHash = newCriticalAttrsHash;
             }
             return blockElement;
         }
 
-        // Button-only case (unchanged, synchronous)
+        // Button-only case
         if (isButtonOnly) {
-            const buttonClasses = ['button', attrs.buttonClass].filter(cls => cls).join(' ');
+            const buttonClasses = ['button', attrs.buttonClass].filter(cls => cls).join(' ').trim();
             const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
             buttonElement.className = buttonClasses;
             if (attrs.buttonStyle) buttonElement.setAttribute('style', attrs.buttonStyle);
@@ -979,7 +977,7 @@ class CustomBlock extends HTMLElement {
         }
         innerDiv.appendChild(groupDiv);
 
-        // Append background media (await if video)
+        // Append background media
         if (hasBackgroundImage || hasVideoBackground) {
             if (hasVideoBackground) {
                 const videoMarkup = await generateVideoMarkup({
@@ -1050,13 +1048,13 @@ class CustomBlock extends HTMLElement {
             blockElement.appendChild(overlayDiv);
         }
 
-        // Append primary media (top/bottom/left/right positions, await if video)
-        const appendPrimaryMedia = async (position) => {
-            const isLeftOrRight = position === 'left' || position === 'right';
-            const mediaDiv = document.createElement('div');
+        // Append primary media with correct positioning relative to innerDiv
+        if (hasPrimaryImage || hasVideoPrimary) {
+            const position = attrs.primaryPosition;
             const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc;
             const videoSrc = attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
             if (src || videoSrc) {
+                let mediaElement = null;
                 if (hasPrimaryImage && src) {
                     const pictureMarkup = generatePictureMarkup({
                         src,
@@ -1074,7 +1072,14 @@ class CustomBlock extends HTMLElement {
                         aspectRatio: attrs.primaryAspectRatio,
                         includeSchema: attrs.primaryIncludeSchema
                     });
-                    this.appendPictureFromMarkup(pictureMarkup, mediaDiv, 'primary', isDev);
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = pictureMarkup;
+                    mediaElement = tempDiv.querySelector('picture');
+                    if (mediaElement) {
+                        if (isDev) console.log(`Appending primary picture (position: ${position})`);
+                    } else {
+                        console.warn('Failed to parse primary picture markup:', pictureMarkup);
+                    }
                 } else if (hasVideoPrimary && videoSrc) {
                     const videoMarkup = await generateVideoMarkup({
                         src: attrs.videoPrimarySrc,
@@ -1096,43 +1101,68 @@ class CustomBlock extends HTMLElement {
                         controls: false
                     });
                     if (isDev) console.log('Primary video markup generated:', videoMarkup);
-                    this.appendVideoFromMarkup(videoMarkup, mediaDiv, isDev);
-                }
-                if (isLeftOrRight) {
-                    if (position === 'left') {
-                        blockElement.appendChild(mediaDiv);
-                        blockElement.appendChild(innerDiv);
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = videoMarkup;
+                    mediaElement = tempDiv.querySelector('video');
+                    if (mediaElement) {
+                        if (isDev) console.log(`Appending primary video (position: ${position})`);
                     } else {
-                        blockElement.appendChild(innerDiv);
-                        blockElement.appendChild(mediaDiv);
+                        console.warn('Failed to parse primary video markup:', videoMarkup);
+                    }
+                }
+
+                if (mediaElement) {
+                    // Append media and innerDiv in correct order based on position
+                    if (position === 'top') {
+                        blockElement.appendChild(mediaElement);
+                        if (groupDiv.hasChildNodes()) {
+                            blockElement.appendChild(innerDiv);
+                            if (isDev) console.log('Appended media then innerDiv for top position');
+                        }
+                    } else if (position === 'bottom') {
+                        if (groupDiv.hasChildNodes()) {
+                            blockElement.appendChild(innerDiv);
+                            if (isDev) console.log('Appended innerDiv for bottom position');
+                        }
+                        blockElement.appendChild(mediaElement);
+                        if (isDev) console.log('Appended media for bottom position');
+                    } else if (position === 'left') {
+                        blockElement.appendChild(mediaElement);
+                        if (groupDiv.hasChildNodes()) {
+                            blockElement.appendChild(innerDiv);
+                            if (isDev) console.log('Appended media then innerDiv for left position');
+                        }
+                    } else if (position === 'right') {
+                        if (groupDiv.hasChildNodes()) {
+                            blockElement.appendChild(innerDiv);
+                            if (isDev) console.log('Appended innerDiv for right position');
+                        }
+                        blockElement.appendChild(mediaElement);
+                        if (isDev) console.log('Appended media for right position');
                     }
                 } else {
-                    blockElement.appendChild(mediaDiv);
+                    console.warn('No valid primary media element; appending innerDiv only');
+                    if (groupDiv.hasChildNodes()) {
+                        blockElement.appendChild(innerDiv);
+                    }
                 }
             } else {
-                console.warn('No valid primary source provided for <custom-block>. Skipping primary rendering.');
-                if (!isLeftOrRight) blockElement.appendChild(innerDiv);
-            }
-        };
-
-        if (hasPrimaryImage || hasVideoPrimary) {
-            const position = attrs.primaryPosition;
-            if (position === 'top' || position === 'bottom') {
-                await appendPrimaryMedia(position);
-                if (position === 'bottom') {
-                    blockElement.appendChild(innerDiv);  // Inner after top media, before bottom
+                console.warn('No valid primary source provided for <custom-block>. Appending innerDiv only.');
+                if (groupDiv.hasChildNodes()) {
+                    blockElement.appendChild(innerDiv);
                 }
-            } else {
-                await appendPrimaryMedia(position);
             }
         } else {
-            blockElement.appendChild(innerDiv);
+            // No primary media; append innerDiv if it has content
+            if (groupDiv.hasChildNodes()) {
+                blockElement.appendChild(innerDiv);
+                if (isDev) console.log('Appended innerDiv (no primary media)');
+            }
         }
 
         if (!isFallback && blockElement.querySelector('img')) {
             const images = blockElement.querySelectorAll('img');
             images.forEach(img => {
-                // ... (attribute removal unchanged)
                 img.removeAttribute('img-background-light-src');
                 img.removeAttribute('img-background-dark-src');
                 img.removeAttribute('img-background-alt');
@@ -1173,7 +1203,6 @@ class CustomBlock extends HTMLElement {
 
     static get observedAttributes() {
         return [
-            // ... (unchanged, omitted for brevity)
             'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
             'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
             'button-href', 'button-icon', 'button-icon-offset', 'button-icon-position', 'button-icon-size',
@@ -1207,8 +1236,8 @@ class CustomBlock extends HTMLElement {
         if (!this.isInitialized || !this.isVisible) return;
         if (CustomBlock.#criticalAttributes.includes(name)) {
             this.cachedAttributes = null;
-            this.criticalAttributesHash = null;  // Invalidate cache on change
-            this.initialize();  // Re-init async
+            this.criticalAttributesHash = null;
+            this.initialize();
         }
     }
 }
@@ -1218,5 +1247,5 @@ try {
 } catch (error) {
     console.error('Error defining CustomBlock element:', error);
 }
-console.log('CustomBlock version: 2025-09-14');  // Updated date
+console.log('CustomBlock version: 2025-09-14');
 export { CustomBlock };
