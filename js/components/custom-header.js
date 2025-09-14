@@ -32,7 +32,7 @@
                 const validLogoPlacements = ['independent', 'nav'];
                 if (!VALID_ALIGNMENTS.includes(attrs.navAlignment)) {
                     console.warn(`Invalid nav-alignment "${attrs.navAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Defaulting to 'center'.`);
-                    attrs.navAlignment = '';
+                    attrs.navAlignment = 'center';
                 }
                 if (!validLogoPlacements.includes(attrs.logoPlacement)) {
                     console.warn(`Invalid logo-placement "${attrs.logoPlacement}". Defaulting to 'independent'.`);
@@ -41,14 +41,19 @@
                 return attrs;
             }
 
-            render(isFallback = false) {
+            async render(isFallback = false) {  // Made async to await super.render()
+                const isDev = window.location.href.includes('/dev/');
                 const attrs = this.getAttributes();
-                let blockElement = super.render(isFallback);
-                if (!blockElement) {
+                let blockElement = await super.render(isFallback);  // Await the Promise from parent
+                if (!blockElement || !(blockElement instanceof HTMLElement)) {
+                    console.warn('Super render failed; creating fallback block element.');
                     blockElement = document.createElement('div');
                 }
+
+                // Set role
                 blockElement.setAttribute('role', 'banner');
 
+                // Update classes (merge with existing)
                 const existingClasses = blockElement.className.split(' ').filter(cls => cls);
                 const headerClasses = [
                     ...existingClasses,
@@ -58,82 +63,94 @@
                     attrs.shadowClass,
                     attrs.sticky ? 'sticky' : ''
                 ].filter(cls => cls).join(' ').trim();
-
                 if (headerClasses) {
                     blockElement.className = headerClasses;
                 }
 
-                const customLogo = this.querySelector('custom-logo');
-                const customNav = this.querySelector('custom-nav');
-                let logoHTML = '';
-                let navHTML = '';
-                let navContainerClasses = '';
-                let navContainerStyle = '';
-
-                if (customLogo && !isFallback) {
-                    if (customElements.get('custom-logo')) {
+                // Await child renders if not fallback (children like custom-logo/custom-nav are slotted)
+                if (!isFallback) {
+                    // Query and await upgrade/render of direct children
+                    const customLogo = this.querySelector('custom-logo');
+                    const customNav = this.querySelector('custom-nav');
+                    if (customLogo && customElements.get('custom-logo')) {
+                        if (isDev) console.log('Upgrading custom-logo child');
                         customElements.upgrade(customLogo);
-                        logoHTML = customLogo.innerHTML || customLogo.render?.() || '';
-                    } else {
-                        console.warn('custom-logo not defined, skipping rendering.');
-                        logoHTML = '<div>Logo placeholder</div>';
+                        // If child has async render, await it (assume it has initialize like parent)
+                        if (customLogo.initialize && !customLogo.isInitialized) {
+                            await customLogo.initialize();
+                        }
                     }
-                }
-
-                if (customNav && !isFallback) {
-                    if (customElements.get('custom-nav')) {
+                    if (customNav && customElements.get('custom-nav')) {
+                        if (isDev) console.log('Upgrading custom-nav child');
                         customElements.upgrade(customNav);
-                        navHTML = customNav.innerHTML || customNav.render?.() || '';
-                        navContainerClasses = customNav.getAttribute('nav-container-class') || '';
-                        navContainerStyle = customNav.getAttribute('nav-container-style') || '';
-                    } else {
-                        console.warn('custom-nav not defined, skipping rendering.');
-                        navHTML = '<div>Navigation placeholder</div>';
+                        if (customNav.initialize && !customNav.isInitialized) {
+                            await customNav.initialize();
+                        }
                     }
                 }
 
-                let innerHTML = blockElement.innerHTML;
-                if (attrs.logoPlacement === 'nav' && logoHTML && navHTML) {
-                    const combinedStyles = [
-                        attrs.navLogoContainerStyle,
-                        'z-index: 2'
-                    ].filter(s => s).join('; ').trim();
-                    const navAlignClass = attrs.navAlignment ? alignMap[attrs.navAlignment] : '';
-                    innerHTML = `
-                        <div${attrs.navLogoContainerClass ? ` class="${attrs.navLogoContainerClass}"` : ''}${combinedStyles ? ` style="${combinedStyles}"` : ''}>
-                            ${logoHTML}
-                            <div${navAlignClass ? ` class="${navAlignClass} ${navContainerClasses}"` : navContainerClasses ? ` class="${navContainerClasses}"` : ''}${navContainerStyle ? ` style="${navContainerStyle}"` : ''}>
-                                ${navHTML}
+                // Get composed innerHTML from children (they render into this)
+                let innerHTML = this.innerHTML;  // Leverages slotted children's output
+
+                // Handle logo placement in nav
+                if (attrs.logoPlacement === 'nav') {
+                    const customLogo = this.querySelector('custom-logo');
+                    const customNav = this.querySelector('custom-nav');
+                    if (customLogo && customNav && !isFallback) {
+                        const logoHTML = customLogo.outerHTML || '';  // Full rendered logo
+                        const navHTML = customNav.outerHTML || '';     // Full rendered nav
+                        const combinedStyles = [
+                            attrs.navLogoContainerStyle,
+                            'z-index: 2'
+                        ].filter(s => s).join('; ').trim();
+                        const navAlignClass = attrs.navAlignment ? alignMap[attrs.navAlignment] : '';
+                        const navContainerClasses = customNav.getAttribute('nav-container-class') || '';
+                        const navContainerStyle = customNav.getAttribute('nav-container-style') || '';
+
+                        innerHTML = `
+                            <div${attrs.navLogoContainerClass ? ` class="${attrs.navLogoContainerClass}"` : ''}${combinedStyles ? ` style="${combinedStyles}"` : ''}>
+                                ${logoHTML}
+                                <div${navAlignClass ? ` class="${navAlignClass} ${navContainerClasses}"` : navContainerClasses ? ` class="${navContainerClasses}"` : ''}${navContainerStyle ? ` style="${navContainerStyle}"` : ''}>
+                                    ${navHTML}
+                                </div>
                             </div>
-                        </div>
-                        ${innerHTML}
-                    `;
+                            ${innerHTML}  <!-- Preserve any other content -->
+                        `;
+                        if (isDev) console.log('Composed nav-with-logo HTML');
+                    }
                 } else {
-                    innerHTML = logoHTML + navHTML + innerHTML;
+                    // Independent: Just use innerHTML (logo + nav side-by-side)
+                    if (isDev) console.log('Using independent placement with innerHTML');
                 }
+
+                // Set the composed innerHTML
                 blockElement.innerHTML = innerHTML;
 
+                // Apply sticky styles
                 if (attrs.sticky) {
                     blockElement.style.position = 'sticky';
                     blockElement.style.top = '0';
                     blockElement.style.zIndex = '1000';
                 }
 
+                if (isDev) console.log('CustomHeader render complete:', blockElement.outerHTML.substring(0, 200) + '...');
                 return blockElement;
             }
 
             connectedCallback() {
+                // Remove direct render() call; let parent's initialize() handle it
                 super.connectedCallback();
-                this.render();
             }
 
-            attributeChangedCallback(name, oldValue, newValue) {
+            async attributeChangedCallback(name, oldValue, newValue) {
                 super.attributeChangedCallback(name, oldValue, newValue);
                 if (this.isInitialized && this.isVisible) {
-                    this.render();
+                    // Await re-render on changes
+                    await this.render();
                 }
             }
         }
+
         customElements.define('custom-header', CustomHeader);
         console.log('CustomHeader defined successfully');
     } catch (error) {
