@@ -200,6 +200,8 @@ export async function generatePictureMarkup({
     });
   `;
 
+  if (isDev) console.log('Worker code before blob creation:', workerCode.substring(0, 200) + '...');
+
   const blob = new Blob([workerCode], { type: 'application/javascript' });
   const workerUrl = URL.createObjectURL(blob);
 
@@ -233,6 +235,11 @@ export async function generatePictureMarkup({
       includeSchema, customClasses, loading, fetchPriority, extraClasses,
       noResponsive: effectiveNoResponsive, breakpoint
     });
+  }).catch((error) => {
+    if (isDev) console.error('Promise failed in generatePictureMarkup:', error);
+    const primarySrc = lightSrc || darkSrc || src;
+    const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
+    return `<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`;
   });
 }
 
