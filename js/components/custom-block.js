@@ -625,7 +625,7 @@ class CustomBlock extends HTMLElement {
             shadowClass: '',
             innerShadowClass: ''
         } : this.getAttributes();
-        if (isDev) console.log('Rendering CustomBlock with attrs:', { backgroundSrc: attrs.backgroundSrc, backgroundLightSrc: attrs.backgroundLightSrc, backgroundDarkSrc: attrs.backgroundDarkSrc, primarySrc: attrs.primarySrc, primaryLightSrc: attrs.primaryLightSrc, primaryDarkSrc: attrs.primaryDarkSrc, videoBackgroundSrc: attrs.videoBackgroundSrc, videoBackgroundLightSrc: attrs.videoBackgroundLightSrc, videoBackgroundDarkSrc: attrs.videoBackgroundDarkSrc, videoPrimarySrc: attrs.videoPrimarySrc, primaryPosition: attrs.primaryPosition });
+        if (isDev) console.log('Rendering CustomBlock with attrs:', { backgroundSrc: attrs.backgroundSrc, backgroundLightSrc: attrs.backgroundLightSrc, backgroundDarkSrc: attrs.backgroundDarkSrc, primarySrc: attrs.primarySrc, primaryLightSrc: attrs.primaryLightSrc, primaryDarkSrc: attrs.primaryDarkSrc, videoBackgroundSrc: attrs.videoBackgroundSrc, videoBackgroundLightSrc: attrs.videoBackgroundLightSrc, videoBackgroundDarkSrc: attrs.videoBackgroundDarkSrc, videoPrimarySrc: attrs.videoPrimarySrc, primaryPosition: attrs.primaryPosition, backgroundColorClass: attrs.backgroundColorClass });
         if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
             console.error(`<custom-block img-background-src="${attrs.backgroundSrc || 'not provided'}" img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> requires an img-background-alt attribute for accessibility unless img-background-decorative is present.`);
         }
@@ -672,6 +672,17 @@ class CustomBlock extends HTMLElement {
             const paddingRegex = /(padding[^:]*:[^;]+;)/gi;
             outerStyles = outerStyles.replace(paddingRegex, '').trim();
             if (outerStyles) blockElement.setAttribute('style', outerStyles);
+        }
+        // Fallback for background colors
+        const backgroundColorMap = {
+            'background-color-1': window.matchMedia('(prefers-color-scheme: dark)').matches ? '#141b32' : '#faf9f3',
+            'background-color-2': window.matchMedia('(prefers-color-scheme: dark)').matches ? '#414f89' : '#ebe8de',
+            'background-color-3': window.matchMedia('(prefers-color-scheme: dark)').matches ? 'rgba(69, 15, 59, 0.5)' : 'rgba(159, 54, 140, 0.2)'
+        };
+        if (attrs.backgroundColorClass && backgroundColorMap[attrs.backgroundColorClass]) {
+            const existingStyles = blockElement.getAttribute('style') || '';
+            blockElement.setAttribute('style', `${existingStyles}; background-color: ${backgroundColorMap[attrs.backgroundColorClass]}`);
+            if (isDev) console.log(`Applied inline background-color for ${attrs.backgroundColorClass}: ${backgroundColorMap[attrs.backgroundColorClass]}`);
         }
         if (!isFallback && (hasPrimaryImage || hasVideoPrimary)) {
             blockElement.setAttribute('data-primary-position', attrs.primaryPosition);
