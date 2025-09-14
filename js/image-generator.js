@@ -32,7 +32,7 @@ export async function generatePictureMarkup({
   });
 
   if (markupCache.has(cacheKey)) {
-    if (isDev) console.log('Using cached picture markup');
+    if (isDev) console.log('Using cached picture markup for:', { src, lightSrc, darkSrc });
     return markupCache.get(cacheKey);
   }
 
@@ -45,25 +45,12 @@ export async function generatePictureMarkup({
   customClasses = customClasses.trim();
   extraStyles = extraStyles.trim();
 
-  const validateSrc = async (url) => {
-    if (!url || isDev || url.endsWith('.svg')) return true; // Skip validation for dev mode or SVGs
-    try {
-      const res = await fetch(url, { method: 'HEAD', mode: 'cors' });
-      if (isDev) console.log(`Validated ${url}: ${res.ok}`);
-      return res.ok;
-    } catch (error) {
-      if (isDev) console.warn(`Validation failed for ${url}:`, error);
-      return false;
-    }
-  };
+  // Log inputs for debugging
+  if (isDev) console.log('Generating picture markup for:', { src, lightSrc, darkSrc, alt, lightAlt, darkAlt, noResponsive });
 
-  const sources = [src, lightSrc, darkSrc].filter(Boolean);
-  const validations = await Promise.all(sources.map(validateSrc));
-  if (!validations.every(v => v)) {
-    const invalidSources = sources.filter((_, i) => !validations[i]);
-    if (isDev) console.warn('Invalid image sources:', invalidSources);
-    return `<img src="https://placehold.co/3000x2000" alt="Error loading image" loading="lazy">`;
-  }
+  // Skip validation to bypass 404 issues
+  const isSvg = src.endsWith('.svg') || lightSrc.endsWith('.svg') || darkSrc.endsWith('.svg');
+  const effectiveNoResponsive = noResponsive || isSvg;
 
   const workerCode = `
     const WIDTHS = [768, 1024, 1366, 1920, 2560];
@@ -121,7 +108,7 @@ export async function generatePictureMarkup({
         src, lightSrc, darkSrc, alt, lightAlt, darkAlt,
         isDecorative, mobileWidth, tabletWidth, desktopWidth, aspectRatio,
         includeSchema, customClasses, loading, fetchPriority, extraClasses,
-        noResponsive, breakpoint, extraStyles
+        noResponsive, breakpoint
       } = e.data;
 
       try {
@@ -147,9 +134,8 @@ export async function generatePictureMarkup({
         }
         allClasses.push('animate', 'animate-fade-in');
         const classAttr = allClasses.length ? ' class="' + allClasses.join(' ') + '"' : '';
-        const styleAttr = extraStyles ? ' style="' + extraStyles + '"' : '';
 
-        const markup = ['<picture' + classAttr + styleAttr + '>'];
+        const markup = ['<picture' + classAttr + '>'];
 
         const generateSrcset = (filename, format) =>
           BASE_PATH + filename + '.' + format + ' 3840w' + ', ' + WIDTHS.map((w) => BASE_PATH + filename + '-' + w + '.' + format + ' ' + w + 'w').join(', ');
@@ -201,7 +187,7 @@ export async function generatePictureMarkup({
         const result = markup.join('');
         self.postMessage({ markup: result });
       } catch (error) {
-        self.postMessage({ error: error.message });
+        self.postMessage({ error: error.message, src, lightSrc, darkSrc });
       }
     });
   `;
@@ -212,10 +198,12 @@ export async function generatePictureMarkup({
   return new Promise((resolve) => {
     const worker = new Worker(workerUrl);
     worker.onmessage = (e) => {
-      const { markup, error } = e.data;
+      const { markup, error, src: workerSrc, lightSrc: workerLightSrc, darkSrc: workerDarkSrc } = e.data;
       if (error) {
-        if (isDev) console.error('Image Worker error:', error, { src, lightSrc, darkSrc });
-        resolve(`<img src="https://placehold.co/3000x2000" alt="Error loading image" loading="lazy">`);
+        if (isDev) console.error('Image Worker error:', error, { workerSrc, workerLightSrc, workerDarkSrc });
+        const primarySrc = lightSrc || darkSrc || src;
+        const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
+        resolve(`<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`);
       } else {
         markupCache.set(cacheKey, markup);
         if (isDev) console.log('Image Worker generated markup:', markup.substring(0, 200));
@@ -226,7 +214,9 @@ export async function generatePictureMarkup({
     };
     worker.onerror = (err) => {
       if (isDev) console.error('Image Worker failed:', err, { src, lightSrc, darkSrc });
-      resolve(`<img src="https://placehold.co/3000x2000" alt="Error loading image" loading="lazy">`);
+      const primarySrc = lightSrc || darkSrc || src;
+      const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
+      resolve(`<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`);
       worker.terminate();
       URL.revokeObjectURL(workerUrl);
     };
@@ -234,7 +224,7 @@ export async function generatePictureMarkup({
       src, lightSrc, darkSrc, alt, lightAlt, darkAlt,
       isDecorative, mobileWidth, tabletWidth, desktopWidth, aspectRatio,
       includeSchema, customClasses, loading, fetchPriority, extraClasses,
-      noResponsive, breakpoint, extraStyles
+      noResponsive: effectiveNoResponsive, breakpoint
     });
   });
 }
@@ -296,7 +286,7 @@ export const BACKDROP_FILTER_MAP = {
   'backdrop-filter-blur-small': 'blur(var(--blur-small))',
   'backdrop-filter-blur-medium': 'blur(var(--blur-medium))',
   'backdrop-filter-blur-large': 'blur(var(--blur-large))',
-  'backdrop-filter-grayscale-small': 'grayscale(var--grayscale-small))',
+  'backdrop-filter-grayscale-small': 'grayscale(var(--grayscale-small))',
   'backdrop-filter-grayscale-medium': 'grayscale(var(--grayscale-medium))',
   'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))',
 };
