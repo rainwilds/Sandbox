@@ -23,7 +23,11 @@ export async function generatePictureMarkup({
   breakpoint = '',
   extraStyles = '',
 } = {}) {
-  const isDev = typeof window !== 'undefined' && window.location.href.includes('/dev/');
+  const isDev = typeof window !== 'undefined' && (
+    window.location.href.includes('/dev/') || 
+    new URLSearchParams(window.location.search).get('debug') === 'true'
+  );
+
   const cacheKey = JSON.stringify({
     src, lightSrc, darkSrc, alt, lightAlt, darkAlt,
     isDecorative, mobileWidth, tabletWidth, desktopWidth, aspectRatio,
@@ -46,9 +50,6 @@ export async function generatePictureMarkup({
   extraStyles = extraStyles.trim();
 
   if (isDev) console.log('Generating picture markup for:', { src, lightSrc, darkSrc, alt, lightAlt, darkAlt, noResponsive });
-
-  const isSvg = src.endsWith('.svg') || lightSrc.endsWith('.svg') || darkSrc.endsWith('.svg');
-  const effectiveNoResponsive = noResponsive || isSvg;
 
   const workerCode = `
     const WIDTHS = [768, 1024, 1366, 1920, 2560];
@@ -184,7 +185,7 @@ export async function generatePictureMarkup({
         markup.push('</picture>');
 
         if (includeSchema) {
-          markup.unshift(
+          markup.push(
             '<script type="application/ld+json">{"@context":"http://schema.org","@type":"ImageObject","url":"' + primarySrc + '","alternateName":"' + primaryAlt + '"}</script>'
           );
         }
@@ -201,9 +202,18 @@ export async function generatePictureMarkup({
   `;
 
   if (isDev) {
-    console.log('Worker code before blob creation:', workerCode);
-    console.log('Worker code length:', workerCode.length);
-    console.log('Worker code line 120 check:', workerCode.split('\n')[119]); // Line 120 is index 119
+    console.log('Worker code:', workerCode);
+    const lines = workerCode.split('\n');
+    console.log('Line 118:', lines[117]);
+    console.log('Line 119:', lines[118]);
+    console.log('Line 120:', lines[119]);
+    console.log('Line 121:', lines[120]);
+    try {
+      new Function(workerCode);
+      console.log('Worker code syntax is valid');
+    } catch (syntaxError) {
+      console.error('Syntax error in workerCode:', syntaxError);
+    }
   }
 
   const blob = new Blob([workerCode], { type: 'application/javascript' });
@@ -215,7 +225,7 @@ export async function generatePictureMarkup({
       const { markup, error, src: workerSrc, lightSrc: workerLightSrc, darkSrc: workerDarkSrc } = e.data;
       if (error) {
         if (isDev) console.error('Image Worker error:', error, { workerSrc, workerLightSrc, workerDarkSrc });
-        resolve(markup); // Use the fallback markup provided by the Worker
+        resolve(markup);
       } else {
         markupCache.set(cacheKey, markup);
         if (isDev) console.log('Image Worker generated markup:', markup.substring(0, 200));
@@ -225,7 +235,13 @@ export async function generatePictureMarkup({
       URL.revokeObjectURL(workerUrl);
     };
     worker.onerror = (err) => {
-      if (isDev) console.error('Image Worker failed:', err, { src, lightSrc, darkSrc });
+      if (isDev) console.error('Image Worker failed:', err, {
+        message: err.message,
+        filename: err.filename,
+        lineno: err.lineno,
+        colno: err.colno,
+        src, lightSrc, darkSrc
+      });
       const primarySrc = lightSrc || darkSrc || src;
       const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
       const fallbackImg = `<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`;
@@ -248,7 +264,8 @@ export async function generatePictureMarkup({
 }
 
 if (typeof window !== 'undefined') {
-  const isDev = window.location.href.includes('/dev/');
+  const isDev = window.location.href.includes('/dev/') || 
+    new URLSearchParams(window.location.search).get('debug') === 'true';
   const WIDTHS = [768, 1024, 1366, 1920, 2560];
 
   const updatePictureSources = () => {
