@@ -1,3 +1,5 @@
+export const VALID_EXTENSIONS = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
+
 export const VALID_ALIGNMENTS = [
     'center', 'top', 'bottom', 'left', 'right',
     'top-left', 'top-center', 'top-right',
