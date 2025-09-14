@@ -81,7 +81,7 @@ class CustomBlock extends HTMLElement {
 
     getAttributes() {
         if (this.cachedAttributes) return this.cachedAttributes;
-        const isDev = window.location.href.includes('/dev/');
+        const isDev = window.location.href.includes('/dev/') || new URLSearchParams(window.location.search).get('debug') === 'true';
         const backgroundFetchPriority = this.getAttribute('img-background-fetchpriority') || '';
         const primaryFetchPriority = this.getAttribute('img-primary-fetchpriority') || '';
         const validFetchPriorities = ['high', 'low', 'auto', ''];
@@ -91,13 +91,13 @@ class CustomBlock extends HTMLElement {
         if (!validFetchPriorities.includes(primaryFetchPriority)) {
             console.warn(`Invalid img-primary-fetchpriority value "${primaryFetchPriority}" in <custom-block>. Using default.`);
         }
-        let primaryPosition = this.getAttribute('img-primary-position') || 'none';
+        let primaryPosition = this.getAttribute('img-primary-position') || 'top'; // Default to 'top'
         if (primaryPosition === 'above') primaryPosition = 'top';
         if (primaryPosition === 'below') primaryPosition = 'bottom';
         const validPositions = ['none', 'top', 'bottom', 'left', 'right'];
         if (!validPositions.includes(primaryPosition)) {
-            console.warn(`Invalid img-primary-position value "${primaryPosition}" in <custom-block>. Using default 'none'.`);
-            primaryPosition = 'none';
+            console.warn(`Invalid img-primary-position value "${primaryPosition}" in <custom-block>. Using default 'top'.`);
+            primaryPosition = 'top';
         }
         const backgroundOverlay = this.getAttribute('background-overlay') || '';
         let backgroundOverlayClass = '';
@@ -469,7 +469,7 @@ class CustomBlock extends HTMLElement {
 
     async initialize() {
         if (this.isInitialized || !this.isVisible) return;
-        const isDev = window.location.href.includes('/dev/');
+        const isDev = window.location.href.includes('/dev/') || new URLSearchParams(window.location.search).get('debug') === 'true';
         if (isDev) console.log('** CustomBlock start...', this.outerHTML);
         this.isInitialized = true;
         try {
@@ -512,7 +512,7 @@ class CustomBlock extends HTMLElement {
     }
 
     async render(isFallback = false) {
-        const isDev = window.location.href.includes('/dev/');
+        const isDev = window.location.href.includes('/dev/') || new URLSearchParams(window.location.search).get('debug') === 'true';
         let newCriticalAttrsHash;
         if (!isFallback) {
             const criticalAttrs = {};
@@ -586,7 +586,7 @@ class CustomBlock extends HTMLElement {
             primaryIncludeSchema: false,
             primaryFetchPriority: '',
             primaryLoading: 'lazy',
-            primaryPosition: 'none',
+            primaryPosition: 'top',
             videoBackgroundSrc: '',
             videoBackgroundLightSrc: '',
             videoBackgroundDarkSrc: '',
@@ -625,7 +625,7 @@ class CustomBlock extends HTMLElement {
             shadowClass: '',
             innerShadowClass: ''
         } : this.getAttributes();
-        if (isDev) console.log('Rendering CustomBlock with attrs:', { backgroundSrc: attrs.backgroundSrc, backgroundLightSrc: attrs.backgroundLightSrc, backgroundDarkSrc: attrs.backgroundDarkSrc, primarySrc: attrs.primarySrc, primaryLightSrc: attrs.primaryLightSrc, primaryDarkSrc: attrs.primaryDarkSrc, videoBackgroundSrc: attrs.videoBackgroundSrc, videoBackgroundLightSrc: attrs.videoBackgroundLightSrc, videoBackgroundDarkSrc: attrs.videoBackgroundDarkSrc });
+        if (isDev) console.log('Rendering CustomBlock with attrs:', { backgroundSrc: attrs.backgroundSrc, backgroundLightSrc: attrs.backgroundLightSrc, backgroundDarkSrc: attrs.backgroundDarkSrc, primarySrc: attrs.primarySrc, primaryLightSrc: attrs.primaryLightSrc, primaryDarkSrc: attrs.primaryDarkSrc, videoBackgroundSrc: attrs.videoBackgroundSrc, videoBackgroundLightSrc: attrs.videoBackgroundLightSrc, videoBackgroundDarkSrc: attrs.videoBackgroundDarkSrc, videoPrimarySrc: attrs.videoPrimarySrc, primaryPosition: attrs.primaryPosition });
         if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
             console.error(`<custom-block img-background-src="${attrs.backgroundSrc || 'not provided'}" img-background-light-src="${attrs.backgroundLightSrc || 'not provided'}" img-background-dark-src="${attrs.backgroundDarkSrc || 'not provided'}"> requires an img-background-alt attribute for accessibility unless img-background-decorative is present.`);
         }
@@ -634,8 +634,9 @@ class CustomBlock extends HTMLElement {
         }
         const hasVideoBackground = !isFallback && !!(attrs.videoBackgroundSrc || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc);
         const hasBackgroundImage = !isFallback && !!(attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc) && !hasVideoBackground;
-        const hasPrimaryImage = !isFallback && !!(attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc) && ['top', 'bottom', 'left', 'right'].includes(attrs.primaryPosition);
-        const hasVideoPrimary = !isFallback && !!(attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc) && ['top', 'bottom', 'left', 'right'].includes(attrs.primaryPosition);
+        const hasPrimaryImage = !isFallback && !!(attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc);
+        const hasVideoPrimary = !isFallback && !!(attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc);
+        if (isDev) console.log('Media check:', { hasVideoBackground, hasBackgroundImage, hasPrimaryImage, hasVideoPrimary, primaryPosition: attrs.primaryPosition });
         const isMediaOnly = !isFallback &&
             !this.hasAttribute('heading') &&
             !this.hasAttribute('sub-heading') &&
@@ -974,7 +975,7 @@ class CustomBlock extends HTMLElement {
         }
         innerDiv.appendChild(groupDiv);
         const appendMedia = async (position) => {
-            if (!((hasPrimaryImage || hasVideoPrimary) && ['top', 'bottom', 'left', 'right'].includes(position))) return;
+            if (!(hasPrimaryImage || hasVideoPrimary)) return;
             const mediaDiv = document.createElement('div');
             const src = attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc || attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc;
             const sources = [attrs.primarySrc, attrs.primaryLightSrc, attrs.primaryDarkSrc, attrs.videoPrimarySrc, attrs.videoPrimaryLightSrc, attrs.videoPrimaryDarkSrc].filter(Boolean);
@@ -1160,5 +1161,7 @@ try {
 } catch (error) {
     console.error('Error defining CustomBlock element:', error);
 }
+
 console.log('CustomBlock version: 2025-09-14');
+
 export { CustomBlock };
