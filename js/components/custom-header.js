@@ -49,7 +49,7 @@
                 const attrs = this.getAttributes();
                 let blockElement;
                 try {
-                    blockElement = await super.render(isFallback); // Await parent's async render
+                    blockElement = await super.render(isFallback);
                     if (!blockElement || !(blockElement instanceof HTMLElement)) {
                         console.warn('Super render failed; creating fallback block element.');
                         blockElement = document.createElement('div');
@@ -59,10 +59,8 @@
                     blockElement = document.createElement('div');
                 }
 
-                // Set role
                 blockElement.setAttribute('role', 'banner');
 
-                // Update classes
                 const existingClasses = blockElement.className.split(' ').filter(cls => cls);
                 const headerClasses = [
                     ...existingClasses,
@@ -76,7 +74,6 @@
                     blockElement.className = headerClasses;
                 }
 
-                // Await/upgrade children
                 let logoHTML = '';
                 let navHTML = '';
                 if (!isFallback) {
@@ -91,6 +88,7 @@
                                 logoHTML = customLogo.innerHTML;
                             } catch (error) {
                                 console.error('Error rendering custom-logo:', error);
+                                logoHTML = '<div>Error rendering logo</div>';
                             }
                         }
                     }
@@ -103,14 +101,13 @@
                                 navHTML = customNav.innerHTML;
                             } catch (error) {
                                 console.error('Error rendering custom-nav:', error);
+                                navHTML = '<div>Error rendering nav</div>';
                             }
                         }
                     }
-                    // Microtask delay for async child renders
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
-                // Compose innerHTML
                 let innerHTML = blockElement.innerHTML || '';
                 if (attrs.logoPlacement === 'nav' && logoHTML && navHTML) {
                     const combinedStyles = [
@@ -118,13 +115,13 @@
                         'z-index: 2'
                     ].filter(s => s).join('; ').trim();
                     const navAlignClass = attrs.navAlignment ? alignMap[attrs.navAlignment] : '';
-                    const navContainerClasses = customNav ? (customNav.getAttribute('nav-container-class') || '') : '';
-                    const navContainerStyle = customNav ? (customNav.getAttribute('nav-container-style') || '') : '';
+                    const navContainerClasses = this.querySelector('custom-nav')?.getAttribute('nav-container-class') || '';
+                    const navContainerStyle = this.querySelector('custom-nav')?.getAttribute('nav-container-style') || '';
 
                     innerHTML = `
                         <div${attrs.navLogoContainerClass ? ` class="${attrs.navLogoContainerClass}"` : ''}${combinedStyles ? ` style="${combinedStyles}"` : ''}>
                             ${logoHTML}
-                            <div${navAlignClass ? ` class="${navAlignClass} ${navContainerClasses}"` : navContainerClasses ? ` class="${navContainerClasses}"` : ''}${navContainerStyle ? ` style="${navContainerStyle}"` : ''}>
+                            <div${navAlignClass || navContainerClasses ? ` class="${[navAlignClass, navContainerClasses].filter(cls => cls).join(' ')}"` : ''}${navContainerStyle ? ` style="${navContainerStyle}"` : ''}>
                                 ${navHTML}
                             </div>
                         </div>
@@ -136,10 +133,8 @@
                     if (isDev) console.log('Composed independent:', innerHTML.substring(0, 200) + '...');
                 }
 
-                // Set composed innerHTML
                 blockElement.innerHTML = innerHTML;
 
-                // Apply sticky styles
                 if (attrs.sticky) {
                     blockElement.style.position = 'sticky';
                     blockElement.style.top = '0';
@@ -151,7 +146,7 @@
             }
 
             async connectedCallback() {
-                await super.connectedCallback(); // Await parent's async init
+                await super.connectedCallback();
             }
 
             async attributeChangedCallback(name, oldValue, newValue) {

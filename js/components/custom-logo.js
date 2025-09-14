@@ -1,7 +1,9 @@
+/* global customElements, console, window, ResizeObserver, MutationObserver */
 (async () => {
     try {
         const { generatePictureMarkup } = await import('../image-generator.js');
         const { VALID_ALIGNMENTS, alignMap } = await import('../shared.js');
+        console.log('Successfully imported generatePictureMarkup and alignMap');
 
         class CustomLogo extends HTMLElement {
             static get observedAttributes() {
@@ -30,15 +32,12 @@
                 this.handleThemeChange = this.handleThemeChange.bind(this);
                 this.handleResize = this.handleResize.bind(this);
                 this.handleMutation = this.handleMutation.bind(this);
-                this._cachedAttrs = null; // Cache for attributes
+                this._cachedAttrs = null;
             }
 
             getAttributes() {
-                // Return cached attributes if available
-                if (this._cachedAttrs) {
-                    return this._cachedAttrs;
-                }
-
+                if (this._cachedAttrs) return this._cachedAttrs;
+                const isDev = window.location.href.includes('/dev/');
                 const attrs = {
                     fullPrimarySrc: this.getAttribute('logo-full-primary-src') || '',
                     fullLightSrc: this.getAttribute('logo-full-light-src') || '',
@@ -58,15 +57,13 @@
                     height: this.getAttribute('logo-height') || ''
                 };
 
-                // Validate that at least one valid source is provided for full and/or icon
                 const hasFullSource = attrs.fullPrimarySrc || (attrs.fullLightSrc && attrs.fullDarkSrc);
                 const hasIconSource = attrs.iconPrimarySrc || (attrs.iconLightSrc && attrs.iconDarkSrc);
                 if (!hasFullSource && !hasIconSource) {
-                    console.error('At least one of logo-full-primary-src, (logo-full-light-src and logo-full-dark-src), logo-icon-primary-src, or (logo-icon-light-src and logo-icon-dark-src) must be provided');
+                    console.error('At least one valid logo source (full or icon) must be provided.');
                     return attrs;
                 }
 
-                // Validate light/dark pairs if provided
                 const validatePair = (light, dark, label) => {
                     if ((light || dark) && !(light && dark)) {
                         console.error(`Both ${label}-light-src and ${label}-dark-src must be provided if one is specified.`);
@@ -79,8 +76,7 @@
                     return attrs;
                 }
 
-                // Validate alt attributes for non-decorative images
-                if (!attrs.fullPrimaryAlt && !attrs.fullLightAlt && !attrs.fullDarkAlt && 
+                if (!attrs.fullPrimaryAlt && !attrs.fullLightAlt && !attrs.fullDarkAlt &&
                     !attrs.iconPrimaryAlt && !attrs.iconLightAlt && !attrs.iconDarkAlt) {
                     attrs.isDecorative = true;
                 } else {
@@ -91,39 +87,40 @@
                         console.error('logo-icon-primary-alt is required when logo-icon-primary-src is provided.');
                     }
                     if (attrs.fullLightSrc && attrs.fullDarkSrc && !(attrs.fullLightAlt && attrs.fullDarkAlt)) {
-                        console.error('Both logo-full-light-alt and logo-full-dark-alt are required when logo-full-light-src and logo-full-dark-src are provided.');
+                        console.error('Both logo-full-light-alt and logo-full-dark-alt are required.');
                     }
                     if (attrs.iconLightSrc && attrs.iconDarkSrc && !(attrs.iconLightAlt && attrs.iconDarkAlt)) {
-                        console.error('Both logo-icon-light-alt and logo-icon-dark-alt are required when logo-icon-light-src and logo-icon-dark-src are provided.');
+                        console.error('Both logo-icon-light-alt and logo-icon-dark-alt are required.');
                     }
                 }
 
-                // Validate height
                 if (attrs.height) {
                     const validLength = attrs.height.match(/^(\d*\.?\d+)(px|rem|em|vh|vw)$/);
                     if (!validLength) {
-                        console.warn(`Invalid logo-height value "${attrs.height}". Must be a valid CSS length (e.g., "40px", "2rem"). Ignoring.`);
+                        console.warn(`Invalid logo-height "${attrs.height}". Ignoring.`);
                         attrs.height = '';
                     }
                 }
 
                 if (attrs.fullPosition && !VALID_ALIGNMENTS.includes(attrs.fullPosition)) {
-                    console.warn(`Invalid logo-full-position "${attrs.fullPosition}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Ignoring.`);
+                    console.warn(`Invalid logo-full-position "${attrs.fullPosition}". Ignoring.`);
                     attrs.fullPosition = '';
                 }
                 if (attrs.iconPosition && !VALID_ALIGNMENTS.includes(attrs.iconPosition)) {
-                    console.warn(`Invalid logo-icon-position "${attrs.iconPosition}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Ignoring.`);
+                    console.warn(`Invalid logo-icon-position "${attrs.iconPosition}". Ignoring.`);
                     attrs.iconPosition = '';
                 }
 
-                this._cachedAttrs = { ...attrs }; // Cache attributes
+                this._cachedAttrs = { ...attrs };
+                if (isDev) console.log('CustomLogo attributes:', attrs);
                 return attrs;
             }
 
-            render() {
+            async render() {
+                const isDev = window.location.href.includes('/dev/');
                 const attrs = this.getAttributes();
                 let logoHTML = '';
-                const hasValidSource = attrs.fullPrimarySrc || attrs.fullLightSrc || attrs.fullDarkSrc || 
+                const hasValidSource = attrs.fullPrimarySrc || attrs.fullLightSrc || attrs.fullDarkSrc ||
                                       attrs.iconPrimarySrc || attrs.iconLightSrc || attrs.iconDarkSrc;
                 if (hasValidSource) {
                     let positionClass = attrs.fullPosition ? alignMap[attrs.fullPosition] : 'place-self-center';
@@ -145,52 +142,58 @@
                     }
 
                     const extraStyles = attrs.height ? `height: ${attrs.height}` : '';
-                    const logoMarkup = generatePictureMarkup({
-                        fullSrc: attrs.fullPrimarySrc,
-                        fullLightSrc: attrs.fullLightSrc,
-                        fullDarkSrc: attrs.fullDarkSrc,
-                        fullAlt: attrs.fullPrimaryAlt,
-                        fullLightAlt: attrs.fullLightAlt,
-                        fullDarkAlt: attrs.fullDarkAlt,
-                        iconSrc: attrs.iconPrimarySrc,
-                        iconLightSrc: attrs.iconLightSrc,
-                        iconDarkSrc: attrs.iconDarkSrc,
-                        iconAlt: attrs.iconPrimaryAlt,
-                        iconLightAlt: attrs.iconLightAlt,
-                        iconDarkAlt: attrs.iconDarkAlt,
-                        isDecorative: attrs.isDecorative || false,
-                        customClasses: '',
-                        loading: 'lazy',
-                        fetchPriority: '',
-                        extraClasses: [],
-                        breakpoint: attrs.breakpoint,
-                        extraStyles: extraStyles
-                    });
-                    logoHTML = `
-                        ${styleTag}
-                        <div class="${positionClass}">
-                            <a href="/">${logoMarkup}</a>
-                        </div>
-                    `;
+                    try {
+                        const logoMarkup = await generatePictureMarkup({
+                            fullSrc: attrs.fullPrimarySrc,
+                            fullLightSrc: attrs.fullLightSrc,
+                            fullDarkSrc: attrs.fullDarkSrc,
+                            fullAlt: attrs.fullPrimaryAlt,
+                            fullLightAlt: attrs.fullLightAlt,
+                            fullDarkAlt: attrs.fullDarkAlt,
+                            iconSrc: attrs.iconPrimarySrc,
+                            iconLightSrc: attrs.iconLightSrc,
+                            iconDarkSrc: attrs.iconDarkSrc,
+                            iconAlt: attrs.iconPrimaryAlt,
+                            iconLightAlt: attrs.iconLightAlt,
+                            iconDarkAlt: attrs.iconDarkAlt,
+                            isDecorative: attrs.isDecorative || false,
+                            customClasses: '',
+                            loading: 'lazy',
+                            fetchPriority: '',
+                            extraClasses: [],
+                            breakpoint: attrs.breakpoint,
+                            extraStyles: extraStyles
+                        });
+                        logoHTML = `
+                            ${styleTag}
+                            <div class="${positionClass}">
+                                <a href="/">${logoMarkup}</a>
+                            </div>
+                        `;
+                        if (isDev) console.log('CustomLogo rendered successfully');
+                    } catch (error) {
+                        console.error('Error generating logo markup:', error);
+                        logoHTML = '<div>Error rendering logo</div>';
+                    }
                 } else {
                     console.warn('No valid logo sources provided, skipping render.');
                     logoHTML = '<div>No logo sources provided</div>';
                 }
-                this.innerHTML = logoHTML; // Use light DOM
+                this.innerHTML = logoHTML;
             }
 
-            handleThemeChange(event) {
+            async handleThemeChange(event) {
                 if (this.isConnected) {
-                    this.render();
+                    await this.render();
                 }
             }
 
-            handleResize() {
+            async handleResize() {
                 if (this.isConnected) {
                     const attrs = this.getAttributes();
                     const breakpoint = parseInt(attrs.breakpoint, 10);
                     const isBelowBreakpoint = breakpoint && window.matchMedia(`(max-width: ${breakpoint - 1}px)`).matches;
-                    this.render();
+                    await this.render();
                 }
             }
 
@@ -199,6 +202,7 @@
                     if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
                         const img = mutation.target;
                         const picture = this.querySelector('picture');
+                        if (!picture) return;
                         const sources = picture.querySelectorAll('source');
                         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
                         const attrs = this.getAttributes();
@@ -220,8 +224,8 @@
                 });
             }
 
-            connectedCallback() {
-                this.render();
+            async connectedCallback() {
+                await this.render();
                 const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
                 prefersDarkQuery.addEventListener('change', this.handleThemeChange);
                 const resizeObserver = new ResizeObserver(this.handleResize);
@@ -247,10 +251,10 @@
                 window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', this.handleThemeChange);
             }
 
-            attributeChangedCallback() {
+            async attributeChangedCallback() {
                 if (this.isConnected) {
-                    this._cachedAttrs = null; // Invalidate cache on attr change
-                    this.render();
+                    this._cachedAttrs = null;
+                    await this.render();
                 }
             }
         }
