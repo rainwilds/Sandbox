@@ -381,7 +381,7 @@ class CustomBlock extends HTMLElement {
             if (validPositions.includes(buttonIconPosition)) {
                 sanitizedButtonIconPosition = buttonIconPosition;
             } else {
-                console.warn(`Invalid button-icon-position value "${buttonIconPosition}" in <custom-block>. Must be ' left' or 'right'. Ignoring.`);
+                console.warn(`Invalid button-icon-position value "${buttonIconPosition}" in <custom-block>. Must be 'left' or 'right'. Ignoring.`);
             }
         }
         const buttonIconOffset = this.getAttribute('button-icon-offset') || '';
@@ -585,7 +585,6 @@ class CustomBlock extends HTMLElement {
                 }
             }
         }
-
         const attrs = isFallback ? {
             effects: '',
             sectionTitle: false,
@@ -735,7 +734,6 @@ class CustomBlock extends HTMLElement {
         mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass);
         if (attrs.effects) mainDivClassList.push(attrs.effects);
         blockElement.className = mainDivClassList.filter(cls => cls).join(' ').trim();
-
         if (attrs.styleAttribute && !isFallback) {
             let outerStyles = attrs.styleAttribute;
             const paddingRegex = /(padding[^:]*:[^;]+;)/gi;
@@ -743,7 +741,6 @@ class CustomBlock extends HTMLElement {
             outerStyles = outerStyles.replace(paddingRegex, '').trim();
             if (outerStyles) blockElement.setAttribute('style', outerStyles);
         }
-
         if (!isFallback && (hasPrimaryImage || hasVideoPrimary)) {
             blockElement.setAttribute('data-primary-position', attrs.primaryPosition);
         }
@@ -778,7 +775,7 @@ class CustomBlock extends HTMLElement {
             } else if (hasBackgroundImage) {
                 const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
                 if (src) {
-                    const pictureMarkup = generatePictureMarkup({
+                    const pictureMarkup = await generatePictureMarkup({
                         src: attrs.backgroundSrc,
                         lightSrc: attrs.backgroundLightSrc,
                         darkSrc: attrs.backgroundDarkSrc,
@@ -895,7 +892,6 @@ class CustomBlock extends HTMLElement {
         const filteredInnerBackdropClasses = attrs.innerBackdropFilterClasses
             .filter(cls => !cls.startsWith('backdrop-filter'));
         innerDivClassList.push(...filteredInnerBackdropClasses);
-
         const innerDiv = document.createElement('div');
         if (innerDivClassList.length) innerDiv.className = innerDivClassList.join(' ').trim();
         if (attrs.innerStyle || innerBackdropFilterValues.length) {
@@ -903,7 +899,6 @@ class CustomBlock extends HTMLElement {
             innerDiv.setAttribute('style', style);
         }
         innerDiv.setAttribute('aria-live', 'polite');
-
         const textAlignMap = {
             'left': 'flex-column-left text-align-left',
             'center': 'flex-column-center text-align-center',
@@ -912,7 +907,6 @@ class CustomBlock extends HTMLElement {
         const groupDiv = document.createElement('div');
         groupDiv.setAttribute('role', 'group');
         if (attrs.textAlignment) groupDiv.className = textAlignMap[attrs.textAlignment];
-
         if (attrs.icon) {
             const iconSpan = document.createElement('span');
             iconSpan.className = `icon${attrs.iconClass ? ` ${attrs.iconClass}` : ''}`;
@@ -1004,7 +998,7 @@ class CustomBlock extends HTMLElement {
             } else if (hasBackgroundImage) {
                 const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
                 if (src) {
-                    const pictureMarkup = generatePictureMarkup({
+                    const pictureMarkup = await generatePictureMarkup({
                         src: attrs.backgroundSrc,
                         lightSrc: attrs.backgroundLightSrc,
                         darkSrc: attrs.backgroundDarkSrc,
@@ -1029,7 +1023,6 @@ class CustomBlock extends HTMLElement {
                 }
             }
         }
-
         if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
             const overlayClasses = [attrs.backgroundOverlayClass];
             if (attrs.backgroundImageNoise) overlayClasses.push('background-image-noise');
@@ -1056,7 +1049,7 @@ class CustomBlock extends HTMLElement {
             if (src || videoSrc) {
                 let mediaElement = null;
                 if (hasPrimaryImage && src) {
-                    const pictureMarkup = generatePictureMarkup({
+                    const pictureMarkup = await generatePictureMarkup({
                         src,
                         lightSrc: attrs.primaryLightSrc || attrs.primarySrc,
                         darkSrc: attrs.primaryDarkSrc || attrs.primarySrc,
@@ -1110,7 +1103,6 @@ class CustomBlock extends HTMLElement {
                         console.warn('Failed to parse primary video markup:', videoMarkup);
                     }
                 }
-
                 if (mediaElement) {
                     // Append media and innerDiv in correct order based on position
                     if (position === 'top') {
@@ -1198,6 +1190,7 @@ class CustomBlock extends HTMLElement {
             CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
             this.criticalAttributesHash = newCriticalAttrsHash;
         }
+
         return blockElement;
     }
 
@@ -1247,5 +1240,6 @@ try {
 } catch (error) {
     console.error('Error defining CustomBlock element:', error);
 }
+
 console.log('CustomBlock version: 2025-09-14');
 export { CustomBlock };
