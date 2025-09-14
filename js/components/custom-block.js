@@ -91,7 +91,7 @@ class CustomBlock extends HTMLElement {
         if (!validFetchPriorities.includes(primaryFetchPriority)) {
             console.warn(`Invalid img-primary-fetchpriority value "${primaryFetchPriority}" in <custom-block>. Using default.`);
         }
-        let primaryPosition = this.getAttribute('img-primary-position') || 'top'; // Default to 'top'
+        let primaryPosition = this.getAttribute('img-primary-position') || 'top';
         if (primaryPosition === 'above') primaryPosition = 'top';
         if (primaryPosition === 'below') primaryPosition = 'bottom';
         const validPositions = ['none', 'top', 'bottom', 'left', 'right'];
@@ -691,7 +691,8 @@ class CustomBlock extends HTMLElement {
                 return false;
             }
         };
-        if (isMediaOnly && !hasPrimaryImage && !hasVideoPrimary) {
+        // Always attempt to render background media if present
+        if (hasVideoBackground) {
             const videoAttrs = {
                 videoBackgroundSrc: attrs.videoBackgroundSrc?.trim() || '',
                 videoBackgroundLightSrc: attrs.videoBackgroundLightSrc?.trim() || '',
@@ -707,123 +708,135 @@ class CustomBlock extends HTMLElement {
                 videoBackgroundPlaysinline: attrs.videoBackgroundPlaysinline,
                 videoBackgroundDisablePip: attrs.videoBackgroundDisablePip,
             };
-            if (hasVideoBackground) {
-                const sources = [videoAttrs.videoBackgroundSrc, videoAttrs.videoBackgroundLightSrc, videoAttrs.videoBackgroundDarkSrc].filter(Boolean);
-                if (isDev) console.log('Video background sources:', sources);
-                const validations = await Promise.all(sources.map(validateSrc));
-                if (validations.every(v => v)) {
-                    try {
-                        const videoMarkup = await generateVideoMarkup({
-                            src: videoAttrs.videoBackgroundSrc,
-                            lightSrc: videoAttrs.videoBackgroundLightSrc,
-                            darkSrc: videoAttrs.videoBackgroundDarkSrc,
-                            poster: videoAttrs.videoBackgroundPoster,
-                            lightPoster: videoAttrs.videoBackgroundLightPoster,
-                            darkPoster: videoAttrs.videoBackgroundDarkPoster,
-                            alt: videoAttrs.videoBackgroundAlt,
-                            customClasses: mediaClasses,
-                            extraClasses: [],
-                            loading: videoAttrs.videoBackgroundLoading,
-                            autoplay: videoAttrs.videoBackgroundAutoplay,
-                            muted: videoAttrs.videoBackgroundMuted,
-                            loop: videoAttrs.videoBackgroundLoop,
-                            playsinline: videoAttrs.videoBackgroundPlaysinline,
-                            disablePip: videoAttrs.videoBackgroundDisablePip,
-                            preload: videoAttrs.videoBackgroundLoading === 'lazy' ? 'metadata' : videoAttrs.videoBackgroundLoading,
-                            controls: false
-                        });
-                        if (isDev) console.log('Video background markup generated:', videoMarkup.substring(0, 200));
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = videoMarkup;
-                        const videoElement = tempDiv.querySelector('video');
-                        if (videoElement) {
-                            blockElement.appendChild(videoElement);
-                            if (isDev) console.log('Video background appended successfully');
-                        } else {
-                            console.warn('Failed to parse video background markup:', videoMarkup);
-                            blockElement.appendChild(document.createElement('p')).textContent = 'Video unavailable';
-                        }
-                    } catch (error) {
-                        console.error('Error generating video background markup:', error, { sources });
+            const sources = [videoAttrs.videoBackgroundSrc, videoAttrs.videoBackgroundLightSrc, videoAttrs.videoBackgroundDarkSrc].filter(Boolean);
+            if (isDev) console.log('Video background sources:', sources);
+            const validations = await Promise.all(sources.map(validateSrc));
+            if (validations.every(v => v)) {
+                try {
+                    const videoMarkup = await generateVideoMarkup({
+                        src: videoAttrs.videoBackgroundSrc,
+                        lightSrc: videoAttrs.videoBackgroundLightSrc,
+                        darkSrc: videoAttrs.videoBackgroundDarkSrc,
+                        poster: videoAttrs.videoBackgroundPoster,
+                        lightPoster: videoAttrs.videoBackgroundLightPoster,
+                        darkPoster: videoAttrs.videoBackgroundDarkPoster,
+                        alt: videoAttrs.videoBackgroundAlt,
+                        customClasses: mediaClasses,
+                        extraClasses: [],
+                        loading: videoAttrs.videoBackgroundLoading,
+                        autoplay: videoAttrs.videoBackgroundAutoplay,
+                        muted: videoAttrs.videoBackgroundMuted,
+                        loop: videoAttrs.videoBackgroundLoop,
+                        playsinline: videoAttrs.videoBackgroundPlaysinline,
+                        disablePip: videoAttrs.videoBackgroundDisablePip,
+                        preload: videoAttrs.videoBackgroundLoading === 'lazy' ? 'metadata' : videoAttrs.videoBackgroundLoading,
+                        controls: false
+                    });
+                    if (isDev) console.log('Video background markup generated:', videoMarkup.substring(0, 200));
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = videoMarkup;
+                    const videoElement = tempDiv.querySelector('video');
+                    if (videoElement) {
+                        blockElement.appendChild(videoElement);
+                        if (isDev) console.log('Video background appended successfully');
+                    } else {
+                        console.warn('Failed to parse video background markup:', videoMarkup);
                         blockElement.appendChild(document.createElement('p')).textContent = 'Video unavailable';
                     }
-                } else {
-                    console.warn('Invalid video background sources:', sources.filter((_, i) => !validations[i]));
+                } catch (error) {
+                    console.error('Error generating video background markup:', error, { sources });
                     blockElement.appendChild(document.createElement('p')).textContent = 'Video unavailable';
                 }
-            } else if (hasBackgroundImage) {
-                const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
-                const sources = [attrs.backgroundSrc, attrs.backgroundLightSrc, attrs.backgroundDarkSrc].filter(Boolean);
-                if (isDev) console.log('Background image sources:', sources);
-                const validations = await Promise.all(sources.map(validateSrc));
-                if (src && validations.every(v => v)) {
-                    try {
-                        const pictureMarkup = await generatePictureMarkup({
-                            src: attrs.backgroundSrc,
-                            lightSrc: attrs.backgroundLightSrc,
-                            darkSrc: attrs.backgroundDarkSrc,
-                            alt: attrs.backgroundAlt,
-                            lightAlt: attrs.backgroundLightAlt,
-                            darkAlt: attrs.backgroundDarkAlt,
-                            isDecorative: attrs.backgroundIsDecorative,
-                            customClasses: mediaClasses,
-                            loading: attrs.backgroundLoading,
-                            fetchPriority: attrs.backgroundFetchPriority,
-                            extraClasses: [],
-                            mobileWidth: attrs.backgroundMobileWidth,
-                            tabletWidth: attrs.backgroundTabletWidth,
-                            desktopWidth: attrs.backgroundDesktopWidth,
-                            noResponsive: attrs.backgroundSrc?.endsWith('.svg') || attrs.backgroundLightSrc?.endsWith('.svg') || attrs.backgroundDarkSrc?.endsWith('.svg'),
-                            aspectRatio: attrs.backgroundAspectRatio,
-                            includeSchema: attrs.backgroundIncludeSchema,
-                            extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover;` : ''
-                        });
-                        if (isDev) console.log('Background picture markup generated:', pictureMarkup.substring(0, 200));
-                        const pictureDiv = document.createElement('div');
-                        pictureDiv.innerHTML = pictureMarkup;
-                        const pictureElement = pictureDiv.querySelector('picture');
-                        if (pictureElement) {
-                            blockElement.appendChild(pictureElement);
-                            if (isDev) console.log('Background image appended successfully');
-                        } else {
-                            console.warn('Failed to parse picture markup:', pictureMarkup);
-                            const fallbackImg = document.createElement('img');
-                            fallbackImg.src = 'https://placehold.co/3000x2000';
-                            fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
-                            blockElement.appendChild(fallbackImg);
-                        }
-                    } catch (error) {
-                        console.error('Error generating picture markup:', error, { sources });
+            } else {
+                console.warn('Invalid video background sources:', sources.filter((_, i) => !validations[i]));
+                blockElement.appendChild(document.createElement('p')).textContent = 'Video unavailable';
+            }
+        } else if (hasBackgroundImage) {
+            const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
+            const sources = [attrs.backgroundSrc, attrs.backgroundLightSrc, attrs.backgroundDarkSrc].filter(Boolean);
+            if (isDev) console.log('Background image sources:', sources);
+            const validations = await Promise.all(sources.map(validateSrc));
+            if (src && validations.every(v => v)) {
+                try {
+                    const pictureMarkup = await generatePictureMarkup({
+                        src: attrs.backgroundSrc,
+                        lightSrc: attrs.backgroundLightSrc,
+                        darkSrc: attrs.backgroundDarkSrc,
+                        alt: attrs.backgroundAlt,
+                        lightAlt: attrs.backgroundLightAlt,
+                        darkAlt: attrs.backgroundDarkAlt,
+                        isDecorative: attrs.backgroundIsDecorative,
+                        customClasses: mediaClasses,
+                        loading: attrs.backgroundLoading,
+                        fetchPriority: attrs.backgroundFetchPriority,
+                        extraClasses: ['background-image-element'],
+                        mobileWidth: attrs.backgroundMobileWidth,
+                        tabletWidth: attrs.backgroundTabletWidth,
+                        desktopWidth: attrs.backgroundDesktopWidth,
+                        noResponsive: attrs.backgroundSrc?.endsWith('.svg') || attrs.backgroundLightSrc?.endsWith('.svg') || attrs.backgroundDarkSrc?.endsWith('.svg'),
+                        aspectRatio: attrs.backgroundAspectRatio,
+                        includeSchema: attrs.backgroundIncludeSchema,
+                        extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;` : 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;'
+                    });
+                    if (isDev) console.log('Background picture markup generated:', pictureMarkup.substring(0, 200));
+                    const pictureDiv = document.createElement('div');
+                    pictureDiv.innerHTML = pictureMarkup;
+                    const pictureElement = pictureDiv.querySelector('picture');
+                    if (pictureElement) {
+                        blockElement.appendChild(pictureElement);
+                        if (isDev) console.log('Background image appended successfully');
+                    } else {
+                        console.warn('Failed to parse picture markup:', pictureMarkup);
                         const fallbackImg = document.createElement('img');
                         fallbackImg.src = 'https://placehold.co/3000x2000';
                         fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                        fallbackImg.className = 'background-image-element';
+                        fallbackImg.style.cssText = attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;` : 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;';
                         blockElement.appendChild(fallbackImg);
                     }
-                } else {
-                    console.warn('Invalid background image sources:', sources.filter((_, i) => !validations[i]));
+                } catch (error) {
+                    console.error('Error generating picture markup:', error, { sources });
                     const fallbackImg = document.createElement('img');
                     fallbackImg.src = 'https://placehold.co/3000x2000';
                     fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                    fallbackImg.className = 'background-image-element';
+                    fallbackImg.style.cssText = attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;` : 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;';
                     blockElement.appendChild(fallbackImg);
                 }
+            } else {
+                console.warn('Invalid background image sources:', sources.filter((_, i) => !validations[i]));
+                const fallbackImg = document.createElement('img');
+                fallbackImg.src = 'https://placehold.co/3000x2000';
+                fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                fallbackImg.className = 'background-image-element';
+                fallbackImg.style.cssText = attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;` : 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;';
+                blockElement.appendChild(fallbackImg);
             }
-            if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
-                const overlayClasses = [attrs.backgroundOverlayClass];
-                if (attrs.backgroundImageNoise) overlayClasses.push('background-image-noise');
-                if (attrs.backgroundGradientClass) overlayClasses.push(attrs.backgroundGradientClass);
-                const backdropFilterValues = attrs.backdropFilterClasses
-                    .filter(cls => cls.startsWith('backdrop-filter'))
-                    .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
-                    .filter(val => val);
-                const filteredOverlayClasses = attrs.backdropFilterClasses
-                    .filter(cls => !cls.startsWith('backdrop-filter'))
-                    .concat(overlayClasses)
-                    .filter(cls => cls);
-                const overlayDiv = document.createElement('div');
-                if (filteredOverlayClasses.length) overlayDiv.className = filteredOverlayClasses.join(' ').trim();
-                if (backdropFilterValues.length) overlayDiv.style.backdropFilter = backdropFilterValues.join(' ');
-                blockElement.appendChild(overlayDiv);
-            }
+        }
+        if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
+            const overlayClasses = [attrs.backgroundOverlayClass];
+            if (attrs.backgroundImageNoise) overlayClasses.push('background-image-noise');
+            if (attrs.backgroundGradientClass) overlayClasses.push(attrs.backgroundGradientClass);
+            const backdropFilterValues = attrs.backdropFilterClasses
+                .filter(cls => cls.startsWith('backdrop-filter'))
+                .map(cls => CustomBlock.BACKDROP_FILTER_MAP[cls] || '')
+                .filter(val => val);
+            const filteredOverlayClasses = attrs.backdropFilterClasses
+                .filter(cls => !cls.startsWith('backdrop-filter'))
+                .concat(overlayClasses)
+                .filter(cls => cls);
+            const overlayDiv = document.createElement('div');
+            if (filteredOverlayClasses.length) overlayDiv.className = filteredOverlayClasses.join(' ').trim();
+            if (backdropFilterValues.length) overlayDiv.style.backdropFilter = backdropFilterValues.join(' ');
+            overlayDiv.style.position = 'absolute';
+            overlayDiv.style.top = '0';
+            overlayDiv.style.left = '0';
+            overlayDiv.style.width = '100%';
+            overlayDiv.style.height = '100%';
+            overlayDiv.style.zIndex = '0';
+            blockElement.appendChild(overlayDiv);
+        }
+        if (isMediaOnly && !hasPrimaryImage && !hasVideoPrimary) {
             if (!isFallback && !blockElement.hasChildNodes()) {
                 console.error('Media-only block has no valid content:', this.outerHTML);
                 return await this.render(true);
