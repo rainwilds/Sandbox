@@ -1,3 +1,4 @@
+/* global customElements, console, HTMLElement */
 (async () => {
     try {
         const { CustomBlock } = await import('./custom-block.js');
@@ -24,6 +25,7 @@
 
             getAttributes() {
                 const attrs = super.getAttributes();
+                const isDev = window.location.href.includes('/dev/');
                 attrs.sticky = this.hasAttribute('sticky');
                 attrs.logoPlacement = this.getAttribute('logo-placement') || 'independent';
                 attrs.navLogoContainerStyle = this.getAttribute('nav-logo-container-style') || '';
@@ -38,22 +40,29 @@
                     console.warn(`Invalid logo-placement "${attrs.logoPlacement}". Defaulting to 'independent'.`);
                     attrs.logoPlacement = 'independent';
                 }
+                if (isDev) console.log('CustomHeader attributes:', attrs);
                 return attrs;
             }
 
-            async render(isFallback = false) {  // Async to await super & children
+            async render(isFallback = false) {
                 const isDev = window.location.href.includes('/dev/');
                 const attrs = this.getAttributes();
-                let blockElement = await super.render(isFallback);  // Await parent's render
-                if (!blockElement || !(blockElement instanceof HTMLElement)) {
-                    console.warn('Super render failed; creating fallback block element.');
+                let blockElement;
+                try {
+                    blockElement = await super.render(isFallback); // Await parent's async render
+                    if (!blockElement || !(blockElement instanceof HTMLElement)) {
+                        console.warn('Super render failed; creating fallback block element.');
+                        blockElement = document.createElement('div');
+                    }
+                } catch (error) {
+                    console.error('Error in super.render:', error);
                     blockElement = document.createElement('div');
                 }
 
                 // Set role
                 blockElement.setAttribute('role', 'banner');
 
-                // Update classes (merge with existing)
+                // Update classes
                 const existingClasses = blockElement.className.split(' ').filter(cls => cls);
                 const headerClasses = [
                     ...existingClasses,
@@ -67,39 +76,42 @@
                     blockElement.className = headerClasses;
                 }
 
-                // Await/upgrade children to ensure they render (trigger their render/initialize)
+                // Await/upgrade children
+                let logoHTML = '';
+                let navHTML = '';
                 if (!isFallback) {
                     const customLogo = this.querySelector('custom-logo');
                     const customNav = this.querySelector('custom-nav');
                     if (customLogo) {
                         if (isDev) console.log('Triggering custom-logo render');
                         customElements.upgrade(customLogo);
-                        if (customLogo.render) await customLogo.render();  // Explicitly call if not auto
+                        if (customLogo.render) {
+                            try {
+                                await customLogo.render();
+                                logoHTML = customLogo.innerHTML;
+                            } catch (error) {
+                                console.error('Error rendering custom-logo:', error);
+                            }
+                        }
                     }
                     if (customNav) {
                         if (isDev) console.log('Triggering custom-nav render');
                         customElements.upgrade(customNav);
-                        if (customNav.render) await customNav.render();
+                        if (customNav.render) {
+                            try {
+                                await customNav.render();
+                                navHTML = customNav.innerHTML;
+                            } catch (error) {
+                                console.error('Error rendering custom-nav:', error);
+                            }
+                        }
                     }
-                    // Small delay for async child renders (if any)
+                    // Microtask delay for async child renders
                     await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
-                // Extract pure innerHTML from children (flattens, removes wrapper tags)
-                let logoHTML = '';
-                let navHTML = '';
-                const customLogo = this.querySelector('custom-logo');
-                const customNav = this.querySelector('custom-nav');
-                if (customLogo && !isFallback) {
-                    logoHTML = customLogo.innerHTML;  // Pure content, no <custom-logo> tag
-                }
-                if (customNav && !isFallback) {
-                    navHTML = customNav.innerHTML;  // Pure content, no <custom-nav> tag
-                    // Append nav-container attrs to the extracted div (if present)
-                }
-
-                // Compose innerHTML using extracted HTML
-                let innerHTML = blockElement.innerHTML || '';  // Preserve parent's content (e.g., heading/text)
+                // Compose innerHTML
+                let innerHTML = blockElement.innerHTML || '';
                 if (attrs.logoPlacement === 'nav' && logoHTML && navHTML) {
                     const combinedStyles = [
                         attrs.navLogoContainerStyle,
@@ -118,14 +130,13 @@
                         </div>
                         ${innerHTML}
                     `;
-                    if (isDev) console.log('Composed nav-with-logo (flattened HTML):', innerHTML.substring(0, 200) + '...');
+                    if (isDev) console.log('Composed nav-with-logo:', innerHTML.substring(0, 200) + '...');
                 } else {
-                    // Independent: Concat extracted HTML + parent's inner
                     innerHTML = `${logoHTML}${navHTML}${innerHTML}`;
-                    if (isDev) console.log('Composed independent (flattened HTML):', innerHTML.substring(0, 200) + '...');
+                    if (isDev) console.log('Composed independent:', innerHTML.substring(0, 200) + '...');
                 }
 
-                // Set the composed innerHTML (now pure HTML, no child tags)
+                // Set composed innerHTML
                 blockElement.innerHTML = innerHTML;
 
                 // Apply sticky styles
@@ -135,18 +146,27 @@
                     blockElement.style.zIndex = '1000';
                 }
 
-                if (isDev) console.log('CustomHeader render complete (flattened):', blockElement.outerHTML.substring(0, 300) + '...');
+                if (isDev) console.log('CustomHeader render complete:', blockElement.outerHTML.substring(0, 300) + '...');
                 return blockElement;
             }
 
-            connectedCallback() {
-                super.connectedCallback();  // Let parent handle async init
+            async connectedCallback() {
+                await super.connectedCallback(); // Await parent's async init
             }
 
             async attributeChangedCallback(name, oldValue, newValue) {
-                super.attributeChangedCallback(name, oldValue, newValue);
-                if (this.isInitialized && this.isVisible) {
-                    await this.render();  // Re-render async
+                if (!this.isInitialized || !this.isVisible) return;
+                const isDev = window.location.href.includes('/dev/');
+                if (super.observedAttributes.includes(name) || this.constructor.observedAttributes.includes(name)) {
+                    this.cachedAttributes = null;
+                    try {
+                        const cardElement = await this.render();
+                        this.replaceWith(cardElement);
+                        if (isDev) console.log('CustomHeader re-rendered due to attribute change:', name);
+                    } catch (error) {
+                        console.error('Error re-rendering CustomHeader:', error);
+                        this.replaceWith(await this.render(true));
+                    }
                 }
             }
         }
