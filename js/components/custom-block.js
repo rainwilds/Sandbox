@@ -667,22 +667,41 @@ class CustomBlock extends HTMLElement {
         mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass);
         if (attrs.effects) mainDivClassList.push(attrs.effects);
         blockElement.className = mainDivClassList.filter(cls => cls).join(' ').trim();
+        // Handle style attribute (clean up padding and only set if content remains)
         if (attrs.styleAttribute && !isFallback) {
             let outerStyles = attrs.styleAttribute;
-            const paddingRegex = /(padding[^:]*:[^;]+;)/gi;
+            const paddingRegex = /(padding[^:]*:[^;]+;?)/gi;  // Improved regex to catch trailing semicolons
             outerStyles = outerStyles.replace(paddingRegex, '').trim();
-            if (outerStyles) blockElement.setAttribute('style', outerStyles);
+
+            // Only set style attribute if there's actual content left
+            if (outerStyles && outerStyles !== ';') {
+                // Clean up any stray semicolons at start/end
+                outerStyles = outerStyles.replace(/^;|;$/g, '').trim();
+                if (outerStyles) {
+                    blockElement.setAttribute('style', outerStyles);
+                }
+            }
         }
-        // Fallback for background colors
+
+        // Handle background color (avoid leading semicolon)
         const backgroundColorMap = {
             'background-color-1': window.matchMedia('(prefers-color-scheme: dark)').matches ? '#141b32' : '#faf9f3',
             'background-color-2': window.matchMedia('(prefers-color-scheme: dark)').matches ? '#414f89' : '#ebe8de',
             'background-color-3': window.matchMedia('(prefers-color-scheme: dark)').matches ? 'rgba(69, 15, 59, 0.5)' : 'rgba(159, 54, 140, 0.2)'
         };
+
         if (attrs.backgroundColorClass && backgroundColorMap[attrs.backgroundColorClass]) {
+            const bgColor = backgroundColorMap[attrs.backgroundColorClass];
             const existingStyles = blockElement.getAttribute('style') || '';
-            blockElement.setAttribute('style', `${existingStyles}; background-color: ${backgroundColorMap[attrs.backgroundColorClass]}`);
-            if (isDev) console.log(`Applied inline background-color for ${attrs.backgroundColorClass}: ${backgroundColorMap[attrs.backgroundColorClass]}`);
+
+            // If no existing styles, just set the background color
+            // If existing styles exist, append with proper separator
+            const newStyle = existingStyles
+                ? `${existingStyles.trim()}${existingStyles.endsWith(';') ? '' : ';'} background-color: ${bgColor}`
+                : `background-color: ${bgColor}`;
+
+            blockElement.setAttribute('style', newStyle);
+            if (isDev) console.log(`Applied inline background-color for ${attrs.backgroundColorClass}: ${bgColor}`);
         }
         if (!isFallback && (hasPrimaryImage || hasVideoPrimary)) {
             blockElement.setAttribute('data-primary-position', attrs.primaryPosition);
