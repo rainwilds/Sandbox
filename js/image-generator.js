@@ -41,9 +41,9 @@ export async function generatePictureMarkup({
     return markupCache.get(cacheKey);
   }
 
-  src = src.trim().replace('./', '/Sandbox/');
-  lightSrc = lightSrc.trim().replace('./', '/Sandbox/');
-  darkSrc = darkSrc.trim().replace('./', '/Sandbox/');
+  src = src.trim();
+  lightSrc = lightSrc.trim();
+  darkSrc = darkSrc.trim();
   alt = alt.trim();
   lightAlt = lightAlt.trim();
   darkAlt = darkAlt.trim();
