@@ -187,9 +187,14 @@ export async function generatePictureMarkup({
           });
         }
 
-        markup.push(
-          '<img src="' + primarySrc + '"' + altAttr + loadingAttr + fetchPriorityAttr + ' onerror="this.src=\\'https://placehold.co/3000x2000\\'; this.alt=\\'' + (primaryAlt || 'Placeholder image') + '\\'; this.onerror=null;">'
-        );
+// Transform responsive path to primary path and change format to .jpg
+const primarySrcForFallback = primarySrc
+    .replace('/responsive/', '/primary/')
+    .replace(/\.(jxl|avif|webp|jpeg)$/, '.jpg');
+
+markup.push(
+  '<img src="' + primarySrcForFallback + '"' + altAttr + loadingAttr + fetchPriorityAttr + ' onerror="this.src=\'https://placehold.co/3000x2000\'; this.alt=\'' + (primaryAlt || 'Placeholder image') + '\'; this.onerror=null;">'
+);
         markup.push('</picture>');
 
         if (includeSchema) {
