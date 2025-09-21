@@ -834,15 +834,29 @@ class CustomBlock extends HTMLElement {
                 .filter(cls => !cls.startsWith('backdrop-filter'))
                 .concat(overlayClasses)
                 .filter(cls => cls);
+
             const overlayDiv = document.createElement('div');
             if (filteredOverlayClasses.length) overlayDiv.className = filteredOverlayClasses.join(' ').trim();
-            if (backdropFilterValues.length) overlayDiv.style.backdropFilter = backdropFilterValues.join(' ');
-            overlayDiv.style.position = 'absolute';
-            overlayDiv.style.top = '0';
-            overlayDiv.style.left = '0';
-            overlayDiv.style.width = '100%';
-            overlayDiv.style.height = '100%';
-            overlayDiv.style.zIndex = '0';
+
+            // FIXED: Only add positioning styles if backdrop-filter is present
+            let overlayStyle = '';
+            if (backdropFilterValues.length) {
+                overlayStyle = `backdrop-filter: ${backdropFilterValues.join(' ')}; `;
+                // Add positioning only when backdrop-filter is applied
+                overlayStyle += 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;';
+                overlayDiv.setAttribute('style', overlayStyle);
+            } else {
+                // No inline styles needed if only backdrop-filter classes are empty
+                if (filteredOverlayClasses.length === 0) {
+                    overlayDiv.style.position = 'absolute';
+                    overlayDiv.style.top = '0';
+                    overlayDiv.style.left = '0';
+                    overlayDiv.style.width = '100%';
+                    overlayDiv.style.height = '100%';
+                    overlayDiv.style.zIndex = '0';
+                }
+            }
+
             blockElement.appendChild(overlayDiv);
         }
         if (isMediaOnly && !hasPrimaryImage && !hasVideoPrimary) {
@@ -920,26 +934,26 @@ class CustomBlock extends HTMLElement {
         innerDivClassList.push(...filteredInnerBackdropClasses);
         const innerDiv = document.createElement('div');
         if (innerDivClassList.length) innerDiv.className = innerDivClassList.join(' ').trim();
-if (attrs.innerStyle || innerBackdropFilterValues.length) {
-    // FIXED: Only set style if there's actual content
-    let styleContent = '';
-    
-    // Add innerStyle if it exists and isn't empty
-    if (attrs.innerStyle && attrs.innerStyle.trim()) {
-        styleContent += attrs.innerStyle.trim();
-    }
-    
-    // Add backdrop-filter if there are values
-    if (innerBackdropFilterValues.length) {
-        if (styleContent) styleContent += '; ';
-        styleContent += `backdrop-filter: ${innerBackdropFilterValues.join(' ')}`;
-    }
-    
-    // Only set the attribute if there's actual content
-    if (styleContent.trim()) {
-        innerDiv.setAttribute('style', styleContent.trim());
-    }
-}
+        if (attrs.innerStyle || innerBackdropFilterValues.length) {
+            // FIXED: Only set style if there's actual content
+            let styleContent = '';
+
+            // Add innerStyle if it exists and isn't empty
+            if (attrs.innerStyle && attrs.innerStyle.trim()) {
+                styleContent += attrs.innerStyle.trim();
+            }
+
+            // Add backdrop-filter if there are values
+            if (innerBackdropFilterValues.length) {
+                if (styleContent) styleContent += '; ';
+                styleContent += `backdrop-filter: ${innerBackdropFilterValues.join(' ')}`;
+            }
+
+            // Only set the attribute if there's actual content
+            if (styleContent.trim()) {
+                innerDiv.setAttribute('style', styleContent.trim());
+            }
+        }
         innerDiv.setAttribute('aria-live', 'polite');
         const textAlignMap = {
             'left': 'flex-column-left text-align-left',
