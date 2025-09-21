@@ -28,20 +28,6 @@ export async function generatePictureMarkup({
     new URLSearchParams(window.location.search).get('debug') === 'true'
   );
 
-  // DEBUG LOGGING
-  if (isDev) {
-    console.log('=== generatePictureMarkup CALLED WITH ===');
-    console.log('src:', src);
-    console.log('lightSrc:', lightSrc);
-    console.log('darkSrc:', darkSrc);
-    console.log('alt:', alt);
-    console.log('isDecorative:', isDecorative);
-    console.log('extraClasses:', extraClasses);
-    console.log('customClasses:', customClasses);
-    console.log('noResponsive:', noResponsive);
-    console.log('====================================');
-  }
-
   // Trim all inputs
   src = src.trim();
   lightSrc = lightSrc.trim();
@@ -58,21 +44,18 @@ export async function generatePictureMarkup({
   // Validate inputs
   const sources = [src, lightSrc, darkSrc].filter(Boolean);
   if (!sources.length) {
-    if (isDev) console.warn('No valid image sources provided');
     return '<picture><img src="https://placehold.co/3000x2000" alt="No image source provided" loading="lazy"></picture>';
   }
 
   // Validate extensions
   for (const source of sources) {
     if (!VALID_EXTENSIONS.test(source)) {
-      if (isDev) console.warn('Invalid image source extension:', source);
-      return `<picture><img src="${source}" alt="Invalid image source" loading="lazy"></picture>`;
+      return '<picture><img src="' + source + '" alt="Invalid image source" loading="lazy"></picture>';
     }
   }
 
   // Validate alt text
   if (!isDecorative && !alt && !(lightSrc && lightAlt) && !(darkSrc && darkAlt)) {
-    if (isDev) console.warn('Alt attribute required for non-decorative images');
     return '<picture><img src="https://placehold.co/3000x2000" alt="Missing alt text" loading="lazy"></picture>';
   }
 
@@ -84,7 +67,6 @@ export async function generatePictureMarkup({
   });
 
   if (markupCache.has(cacheKey)) {
-    if (isDev) console.log('Using cached picture markup');
     return markupCache.get(cacheKey);
   }
 
@@ -95,15 +77,15 @@ export async function generatePictureMarkup({
 
     // Build classes
     const allClasses = [...new Set([
-      ...customClasses.split(/\s+/),
+      ...customClasses.split(/\s+/), 
       ...(Array.isArray(extraClasses) ? extraClasses : []).flatMap(c => c.split(/\s+/))
     ].filter(Boolean))];
-
+    
     if (aspectRatio && ['16/9', '9/16', '3/2', '2/3', '1/1', '21/9'].includes(aspectRatio)) {
       allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
     }
     allClasses.push('animate', 'animate-fade-in');
-
+    
     const classAttr = allClasses.length ? ` class="${allClasses.join(' ')}"` : '';
 
     // Generate sizes
@@ -130,8 +112,8 @@ export async function generatePictureMarkup({
     };
 
     const sizes = SIZES_BREAKPOINTS.map((bp) => {
-      const width = bp.maxWidth <= 768 ? parsedWidths.mobile :
-        bp.maxWidth <= 1024 ? parsedWidths.tablet : parsedWidths.desktop;
+      const width = bp.maxWidth <= 768 ? parsedWidths.mobile : 
+                   bp.maxWidth <= 1024 ? parsedWidths.tablet : parsedWidths.desktop;
       return `(max-width: ${bp.maxWidth}px) ${width * 100}vw`;
     }).join(', ') + `, ${DEFAULT_SIZE_VALUE * parsedWidths.desktop}px`;
 
@@ -173,7 +155,7 @@ export async function generatePictureMarkup({
     const fallbackSrc = primarySrc
       .replace('/responsive/', '/primary/')
       .replace(/\.(jxl|avif|webp|jpeg)$/i, '.jpg');
-
+    
     const imgAttrs = [
       `src="${fallbackSrc}"`,
       isDecorative ? 'alt="" role="presentation"' : `alt="${primaryAlt}"`,
@@ -203,11 +185,10 @@ export async function generatePictureMarkup({
     if (isDev) {
       console.error('Error generating picture markup:', error);
     }
-
+    
     const primarySrc = lightSrc || darkSrc || src;
     const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
-    // FIXED: Wrap fallback in <picture> so parsing doesn't fail
-    return '<picture><img src="' + (primarySrc || 'https://placehold.co/3000x2000') + '" alt="' + primaryAlt + '" loading="lazy"></picture>';
+    return `<picture><img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy"></picture>`;
   }
 }
 
@@ -220,35 +201,23 @@ function getImageType(src) {
 
 function generateSrcset(originalSrc, format, widths) {
   if (!originalSrc) return '';
-
+  
   // FIXED: Always use /img/responsive/ for responsive variants
   const responsiveDir = '/img/responsive/';
-
-  // Get just the filename from original source
-  const filenameWithExt = originalSrc.split('/').pop();
-  const filename = filenameWithExt.replace(/\.[^/.]+$/, ""); // Remove original extension
-
-  if (isDev) {
-    console.log(`Generating srcset for ${originalSrc} -> format ${format}:`);
-    console.log(`  Using directory: ${responsiveDir}`);
-    console.log(`  Filename: ${filename}`);
-  }
-
-  // Generate variants using responsive directory
+  
+  // Get only the filename base (without path or extension)
+  const filename = originalSrc.split('/').pop().replace(/\.[^/.]+$/, "");
+  
+  // Generate variants
   const variants = widths.map(w => {
     const variantName = `${filename}-${w}`;
-    const variantPath = `${responsiveDir}${variantName}.${format}`;
-    if (isDev) console.log(`  Variant ${w}w: ${variantPath}`);
-    return `${variantPath} ${w}w`;
+    return `${responsiveDir}${variantName}.${format} ${w}w`;
   });
-
-  // Full-size version using responsive directory
+  
+  // Full-size version
   const fullSizePath = `${responsiveDir}${filename}.${format}`;
-  if (isDev) console.log(`  Full size 3840w: ${fullSizePath}`);
-
-  const srcset = `${fullSizePath} 3840w, ${variants.join(', ')}`;
-
-  return srcset;
+  
+  return `${fullSizePath} 3840w, ${variants.join(', ')}`;
 }
 
 if (typeof window !== 'undefined') {
