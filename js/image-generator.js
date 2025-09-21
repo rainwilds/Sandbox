@@ -55,79 +55,57 @@ export async function generatePictureMarkup({
 
   if (isDev) console.log('Generating picture markup for:', { src, lightSrc, darkSrc, alt, lightAlt, darkAlt, noResponsive, effectiveNoResponsive });
 
-  // ULTRA-SIMPLE WORKER FOR TESTING
-  const workerCode = `
-    console.log('=== WORKER SCRIPT LOADED SUCCESSFULLY ===');
-    
-    self.addEventListener('message', (e) => {
-      console.log('=== WORKER MESSAGE RECEIVED ===');
-      console.log('Worker data:', e.data);
-      
-      try {
-        const data = e.data;
-        const primarySrc = data.lightSrc || data.darkSrc || data.src;
-        const primaryAlt = data.isDecorative ? '' : (data.lightAlt || data.darkAlt || data.alt || 'test alt');
-        
-        console.log('Primary src for markup:', primarySrc);
-        console.log('Primary alt for markup:', primaryAlt);
-        
-        // Create simple but valid picture markup
-        let markup = '<picture class="animate animate-fade-in">';
-        markup += '<source type="image/jpeg" srcset="' + primarySrc + '">';
-        markup += '<img src="' + primarySrc.replace('/responsive/', '/primary/').replace(/\\.(jxl|avif|webp|jpeg)$/, '.jpg') + '"';
-        markup += ' alt="' + primaryAlt + '" loading="' + (data.loading || 'lazy') + '"';
-        markup += ' onerror="this.src=\'https://placehold.co/3000x2000\'; this.alt=\'Fallback image\'; this.onerror=null;"';
-        markup += '></picture>';
-        
-        console.log('=== WORKER GENERATED MARKUP ===');
-        console.log(markup);
-        console.log('=== END WORKER MARKUP ===');
-        
-        self.postMessage({ markup: markup });
-      } catch (error) {
-        console.error('=== WORKER ERROR ===');
-        console.error('Error:', error);
-        console.error('Stack:', error.stack);
-        self.postMessage({ 
-          markup: '<img src="https://placehold.co/3000x2000" alt="Worker error" loading="lazy">', 
-          error: 'Worker internal error: ' + error.message 
-        });
-      }
-    });
-    
-    console.log('=== WORKER SETUP COMPLETE ===');
-  `;
+  // FIXED WORKER CODE - PROPER ESCAPING
+  const workerCode = [
+    'console.log("=== WORKER SCRIPT LOADED SUCCESSFULLY ===");',
+    '',
+    'self.addEventListener("message", (e) => {',
+    '  console.log("=== WORKER MESSAGE RECEIVED ===");',
+    '  console.log("Worker data:", e.data);',
+    '  ',
+    '  try {',
+    '    const data = e.data;',
+    '    const primarySrc = data.lightSrc || data.darkSrc || data.src;',
+    '    const primaryAlt = data.isDecorative ? "" : (data.lightAlt || data.darkAlt || data.alt || "test alt");',
+    '    ',
+    '    console.log("Primary src for markup:", primarySrc);',
+    '    console.log("Primary alt for markup:", primaryAlt);',
+    '    ',
+    '    // Create simple but valid picture markup',
+    '    let markup = \'<picture class="animate animate-fade-in">\';',
+    '    markup += \'<source type="image/jpeg" srcset="\' + primarySrc + \'" />\';',
+    '    ',
+    '    // FIXED: Proper escaping for onerror attribute',
+    '    const fallbackSrc = "https://placehold.co/3000x2000";',
+    '    const fallbackAlt = primaryAlt || "Fallback image";',
+    '    markup += \'<img src="\' + primarySrc.replace("/responsive/", "/primary/").replace(/\\.(jxl|avif|webp|jpeg)$/, ".jpg") + \'"',
+    '    markup += " alt=\\" " + primaryAlt + " \\" loading=\\" " + (data.loading || \\"lazy\\") + " \\"";',
+    '    markup += " onerror=\\"this.src=\\"" + fallbackSrc + "\\"; this.alt=\\"" + fallbackAlt + "\\"; this.onerror=null; \\" />";',
+    '    markup += "</picture>";',
+    '    ',
+    '    console.log("=== WORKER GENERATED MARKUP ===");',
+    '    console.log(markup);',
+    '    console.log("=== END WORKER MARKUP ===");',
+    '    ',
+    '    self.postMessage({ markup: markup });',
+    '  } catch (error) {',
+    '    console.error("=== WORKER ERROR ===");',
+    '    console.error("Error:", error);',
+    '    console.error("Stack:", error.stack);',
+    '    self.postMessage({ ',
+    '      markup: \'<img src="https://placehold.co/3000x2000" alt="Worker error" loading="lazy">\', ',
+    '      error: "Worker internal error: " + error.message ',
+    '    });',
+    '  }',
+    '});',
+    '',
+    'console.log("=== WORKER SETUP COMPLETE ===");'
+  ].join('\n');
 
   if (isDev) {
     console.log('=== GENERATE PICTURE MARKUP DEBUG ===');
     console.log('Worker code length:', workerCode.length);
-    console.log('First 200 chars of worker code:', workerCode.substring(0, 200));
-    
-    // Test worker syntax
-    try {
-      console.log('Testing worker syntax...');
-      const testBlob = new Blob([workerCode], { type: 'application/javascript' });
-      const testUrl = URL.createObjectURL(testBlob);
-      const testWorker = new Worker(testUrl);
-      
-      testWorker.onmessage = (e) => {
-        console.log('Worker syntax test PASSED:', e.data);
-        testWorker.terminate();
-        URL.revokeObjectURL(testUrl);
-      };
-      
-      testWorker.onerror = (err) => {
-        console.error('Worker syntax test FAILED:', err);
-        testWorker.terminate();
-        URL.revokeObjectURL(testUrl);
-      };
-      
-      // Post a test message
-      testWorker.postMessage({ test: 'hello' });
-      
-    } catch (testError) {
-      console.error('Worker creation test FAILED:', testError);
-    }
+    console.log('Worker code preview:', workerCode.substring(0, 300));
   }
 
   const blob = new Blob([workerCode], { type: 'application/javascript' });
@@ -144,96 +122,105 @@ export async function generatePictureMarkup({
       console.log('Parameters being sent:', { src, lightSrc, darkSrc, alt, isDecorative });
     }
 
+    let worker;
     try {
-      const worker = new Worker(workerUrl);
-      
+      worker = new Worker(workerUrl);
       if (isDev) {
         console.log('Worker object created successfully');
       }
-      
-      worker.onmessage = (e) => {
-        if (isDev) {
-          console.log('=== WORKER ONMESSAGE ===');
-          console.log('Received from worker:', e.data);
-        }
-        
-        const { markup, error, src: workerSrc, lightSrc: workerLightSrc, darkSrc: workerDarkSrc } = e.data;
-        
-        if (error) {
-          if (isDev) {
-            console.error('=== WORKER ERROR RESPONSE ===');
-            console.error('Error from worker:', error);
-            console.error('Sources:', { workerSrc, workerLightSrc, workerDarkSrc });
-          }
-          resolve(markup);
-        } else {
-          markupCache.set(cacheKey, markup);
-          if (isDev) {
-            console.log('=== SUCCESSFUL MARKUP FROM WORKER ===');
-            console.log('Markup length:', markup.length);
-            console.log('Markup preview:', markup.substring(0, 200));
-          }
-          resolve(markup);
-        }
-        
-        worker.terminate();
-        URL.revokeObjectURL(workerUrl);
-      };
-      
-      worker.onerror = (err) => {
-        console.error('=== CRITICAL: WORKER ONERROR FIRED ===');
-        console.error('Error details:', {
-          message: err.message,
-          filename: err.filename,
-          lineno: err.lineno,
-          colno: err.colno
-        });
-        console.error('Full error object:', err);
-        
-        if (isDev) {
-          console.error('Image Worker failed completely:', err, {
-            src, lightSrc, darkSrc
-          });
-        }
-        
-        const primarySrc = lightSrc || darkSrc || src;
-        const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
-        const fallbackImg = `<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`;
-        resolve(fallbackImg);
-        worker.terminate();
-        URL.revokeObjectURL(workerUrl);
-      };
-      
+    } catch (creationError) {
+      console.error('=== CRITICAL: WORKER CREATION FAILED ===');
+      console.error('Error creating worker:', creationError);
+      const primarySrc = lightSrc || darkSrc || src;
+      const primaryAlt = lightAlt || darkAlt || alt || 'Worker creation failed';
+      resolve(`<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`);
+      return;
+    }
+
+    worker.onmessage = (e) => {
       if (isDev) {
-        console.log('=== POSTING MESSAGE TO WORKER ===');
+        console.log('=== WORKER ONMESSAGE ===');
+        console.log('Received from worker:', e.data);
       }
-      
+
+      const { markup, error } = e.data;
+
+      if (error) {
+        if (isDev) {
+          console.error('=== WORKER ERROR RESPONSE ===');
+          console.error('Error from worker:', error);
+        }
+        resolve(markup);
+      } else {
+        markupCache.set(cacheKey, markup);
+        if (isDev) {
+          console.log('=== SUCCESSFUL MARKUP FROM WORKER ===');
+          console.log('Markup length:', markup.length);
+          console.log('Markup preview:', markup.substring(0, 200));
+          if (markup.includes('<picture>')) {
+            console.log('✅ PICTURE ELEMENT DETECTED');
+          } else {
+            console.log('❌ NO PICTURE ELEMENT - ONLY IMG');
+          }
+        }
+        resolve(markup);
+      }
+
+      worker.terminate();
+      URL.revokeObjectURL(workerUrl);
+    };
+
+    worker.onerror = (err) => {
+      console.error('=== CRITICAL: WORKER ONERROR FIRED ===');
+      console.error('Error details:', {
+        message: err.message,
+        filename: err.filename,
+        lineno: err.lineno,
+        colno: err.colno
+      });
+      console.error('Full error object:', err);
+
+      if (isDev) {
+        console.error('Image Worker failed completely:', err, {
+          src, lightSrc, darkSrc
+        });
+      }
+
+      const primarySrc = lightSrc || darkSrc || src;
+      const primaryAlt = lightAlt || darkAlt || alt || 'Worker error';
+      const fallbackImg = `<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`;
+      resolve(fallbackImg);
+      worker.terminate();
+      URL.revokeObjectURL(workerUrl);
+    };
+
+    if (isDev) {
+      console.log('=== POSTING MESSAGE TO WORKER ===');
+    }
+
+    try {
       worker.postMessage({
         src, lightSrc, darkSrc, alt, lightAlt, darkAlt,
         isDecorative, mobileWidth, tabletWidth, desktopWidth, aspectRatio,
         includeSchema, customClasses, loading, fetchPriority, extraClasses,
         noResponsive, breakpoint
       });
-      
-    } catch (workerCreationError) {
-      console.error('=== CRITICAL: WORKER CREATION FAILED ===');
-      console.error('Error creating worker:', workerCreationError);
-      console.error('Stack:', workerCreationError.stack);
-      
+    } catch (postError) {
+      console.error('=== CRITICAL: WORKER POSTMESSAGE FAILED ===');
+      console.error('Error posting to worker:', postError);
       const primarySrc = lightSrc || darkSrc || src;
-      const primaryAlt = lightAlt || darkAlt || alt || 'Error creating worker';
-      const fallbackImg = `<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`;
-      resolve(fallbackImg);
+      const primaryAlt = lightAlt || darkAlt || alt || 'Post message failed';
+      resolve(`<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`);
     }
   }).catch((error) => {
     console.error('=== CRITICAL: PROMISE CATCH FIRED ===');
     console.error('Promise error:', error);
     console.error('Stack:', error.stack);
-    
+
     if (isDev) {
       console.error('Promise failed in generatePictureMarkup:', error);
     }
-    
+
     const primarySrc = lightSrc || darkSrc || src;
     const primaryAlt = lightAlt || darkAlt || alt || 'Promise failed';
     return `<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`;
