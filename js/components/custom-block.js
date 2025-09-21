@@ -920,10 +920,26 @@ class CustomBlock extends HTMLElement {
         innerDivClassList.push(...filteredInnerBackdropClasses);
         const innerDiv = document.createElement('div');
         if (innerDivClassList.length) innerDiv.className = innerDivClassList.join(' ').trim();
-        if (attrs.innerStyle || innerBackdropFilterValues.length) {
-            const style = innerBackdropFilterValues.length ? `${attrs.innerStyle}; backdrop-filter: ${innerBackdropFilterValues.join(' ')}` : attrs.innerStyle;
-            innerDiv.setAttribute('style', style);
-        }
+if (attrs.innerStyle || innerBackdropFilterValues.length) {
+    // FIXED: Only set style if there's actual content
+    let styleContent = '';
+    
+    // Add innerStyle if it exists and isn't empty
+    if (attrs.innerStyle && attrs.innerStyle.trim()) {
+        styleContent += attrs.innerStyle.trim();
+    }
+    
+    // Add backdrop-filter if there are values
+    if (innerBackdropFilterValues.length) {
+        if (styleContent) styleContent += '; ';
+        styleContent += `backdrop-filter: ${innerBackdropFilterValues.join(' ')}`;
+    }
+    
+    // Only set the attribute if there's actual content
+    if (styleContent.trim()) {
+        innerDiv.setAttribute('style', styleContent.trim());
+    }
+}
         innerDiv.setAttribute('aria-live', 'polite');
         const textAlignMap = {
             'left': 'flex-column-left text-align-left',
