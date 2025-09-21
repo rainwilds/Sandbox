@@ -45,7 +45,7 @@ export async function generatePictureMarkup({
     console.log('Generating picture markup for:', { 
       src, lightSrc, darkSrc, alt, lightAlt, darkAlt, 
       noResponsive, effectiveNoResponsive, customClasses, 
-      loading, fetchPriority, extraClasses 
+      loading, fetchPriority 
     });
   }
 
@@ -129,10 +129,9 @@ export async function generatePictureMarkup({
       return `(max-width: ${bp.maxWidth}px) ${width * 100}vw`;
     }).join(', ') + `, ${DEFAULT_SIZE_VALUE * parsedWidths.desktop}px`;
 
-    // Build markup
+    // FIXED: Generate sources using RESPONSIVE paths, not primary
     let markup = `<picture${classAttr}>`;
 
-    // Generate sources
     const FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
 
     if (effectiveNoResponsive || primarySrc.endsWith('.svg')) {
@@ -147,7 +146,7 @@ export async function generatePictureMarkup({
         markup += `<source type="${getImageType(src)}" srcset="${src}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : ` alt="${primaryAlt}"`}>`;
       }
     } else {
-      // Responsive sources for each format
+      // FIXED: Responsive sources using the ORIGINAL responsive paths
       FORMATS.forEach((format) => {
         if (lightSrc && !lightSrc.endsWith('.svg')) {
           const lightSrcset = generateSrcset(lightSrc, format, WIDTHS);
@@ -164,9 +163,9 @@ export async function generatePictureMarkup({
       });
     }
 
-    // Generate fallback img
+    // FIXED: ONLY the fallback img uses /primary/ path
     const fallbackSrc = primarySrc
-      .replace('/responsive/', '/primary/')
+      .replace('/responsive/', '/primary/')  // Only for fallback
       .replace(/\.(jxl|avif|webp|jpeg)$/i, '.jpg');
     
     const imgAttrs = [
@@ -188,8 +187,10 @@ export async function generatePictureMarkup({
     markupCache.set(cacheKey, markup);
 
     if (isDev) {
-      console.log('Generated picture markup:');
-      console.log(markup.substring(0, 300) + (markup.length > 300 ? '...' : ''));
+      console.log('Generated picture markup preview:');
+      console.log(markup.substring(0, 400) + (markup.length > 400 ? '...' : ''));
+      console.log('Sources will load from:', primarySrc);
+      console.log('Fallback loads from:', fallbackSrc);
     }
 
     return markup;
@@ -212,24 +213,40 @@ function getImageType(src) {
   return ext === 'svg' ? 'image/svg+xml' : `image/${ext}`;
 }
 
+// FIXED: Generate responsive sources using the ORIGINAL path (not primary)
 function generateSrcset(originalSrc, format, widths) {
   if (!originalSrc) return '';
   
-  // Get directory and filename
+  // Get directory and filename from the ORIGINAL source path
   const parts = originalSrc.split('/');
   const filenameWithExt = parts.pop();
-  const directory = parts.join('/') + '/';
-  const filename = filenameWithExt.replace(/\.[^/.]+$/, ""); // Remove extension
+  const directory = parts.join('/') + '/';  // Keep original directory (responsive)
+  const filename = filenameWithExt.replace(/\.[^/.]+$/, ""); // Remove original extension
   const originalExt = filenameWithExt.split('.').pop();
   
-  // Generate variants for this format
+  if (isDev) {
+    console.log(`Generating srcset for ${originalSrc} -> format ${format}:`);
+    console.log(`  Directory: ${directory}`);
+    console.log(`  Filename: ${filename}`);
+    console.log(`  Original ext: ${originalExt}`);
+  }
+  
+  // Generate variants for this format using the SAME directory
   const variants = widths.map(w => {
     const variantName = `${filename}-${w}`;
-    return `${directory}${variantName}.${format} ${w}w`;
+    const variantPath = `${directory}${variantName}.${format}`;
+    if (isDev) console.log(`  Variant ${w}w: ${variantPath}`);
+    return `${variantPath} ${w}w`;
   });
   
-  // Add the full-size version
-  return `${directory}${filename}.${format} 3840w, ${variants.join(', ')}`;
+  // Full-size version using the same directory
+  const fullSizePath = `${directory}${filename}.${format}`;
+  if (isDev) console.log(`  Full size 3840w: ${fullSizePath}`);
+  
+  const srcset = `${fullSizePath} 3840w, ${variants.join(', ')}`;
+  if (isDev) console.log(`  Final srcset: ${srcset.substring(0, 100)}...`);
+  
+  return srcset;
 }
 
 if (typeof window !== 'undefined') {
