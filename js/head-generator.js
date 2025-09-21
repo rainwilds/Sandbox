@@ -282,13 +282,13 @@
     // Main execution
     try {
         log('Starting HeadGenerator');
-        const customHead = document.querySelector('[data-custom-head]');
+        const customHead = document.querySelector('data-custom-head');
         if (!customHead) {
             warn('No data-custom-head element found');
             return;
         }
 
-        log(`Found data-custom-head elements: ${document.querySelectorAll('[data-custom-head]').length}`);
+        log(`Found data-custom-head elements: ${document.querySelectorAll('data-custom-head').length}`);
 
         // Gather attributes
         const attributes = {};
