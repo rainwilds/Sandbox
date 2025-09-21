@@ -41,21 +41,26 @@ export async function generatePictureMarkup({
   const isSvg = src.endsWith('.svg') || lightSrc.endsWith('.svg') || darkSrc.endsWith('.svg');
   const effectiveNoResponsive = noResponsive || isSvg;
 
+  if (isDev) console.log('Generating picture markup for:', { src, lightSrc, darkSrc, alt, lightAlt, darkAlt, noResponsive, effectiveNoResponsive });
+
   // Validate inputs
   const sources = [src, lightSrc, darkSrc].filter(Boolean);
   if (!sources.length) {
+    if (isDev) console.warn('No valid image sources provided');
     return '<picture><img src="https://placehold.co/3000x2000" alt="No image source provided" loading="lazy"></picture>';
   }
 
   // Validate extensions
   for (const source of sources) {
     if (!VALID_EXTENSIONS.test(source)) {
+      if (isDev) console.warn('Invalid image source extension:', source);
       return '<picture><img src="' + source + '" alt="Invalid image source" loading="lazy"></picture>';
     }
   }
 
   // Validate alt text
   if (!isDecorative && !alt && !(lightSrc && lightAlt) && !(darkSrc && darkAlt)) {
+    if (isDev) console.warn('Alt attribute required for non-decorative images');
     return '<picture><img src="https://placehold.co/3000x2000" alt="Missing alt text" loading="lazy"></picture>';
   }
 
@@ -67,6 +72,7 @@ export async function generatePictureMarkup({
   });
 
   if (markupCache.has(cacheKey)) {
+    if (isDev) console.log('Using cached picture markup for:', { src, lightSrc, darkSrc });
     return markupCache.get(cacheKey);
   }
 
@@ -153,9 +159,8 @@ export async function generatePictureMarkup({
 
     // Generate fallback img
     const fallbackSrc = primarySrc
-      .replace('/responsive/', '/primary/')
-      .replace(/\.(jxl|avif|webp|jpeg)$/i, '.jpg');
-    
+      .replace(/\.[^/.]+$/, '.jpg');
+
     const imgAttrs = [
       `src="${fallbackSrc}"`,
       isDecorative ? 'alt="" role="presentation"' : `alt="${primaryAlt}"`,
@@ -174,21 +179,10 @@ export async function generatePictureMarkup({
     // Cache the result
     markupCache.set(cacheKey, markup);
 
-    if (isDev) {
-      console.log('Generated picture markup preview:');
-      console.log(markup.substring(0, 400) + (markup.length > 400 ? '...' : ''));
-    }
-
     return markup;
 
   } catch (error) {
-    if (isDev) {
-      console.error('Error generating picture markup:', error);
-    }
-    
-    const primarySrc = lightSrc || darkSrc || src;
-    const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
-    return `<picture><img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy"></picture>`;
+    return '<picture><img src="https://placehold.co/3000x2000" alt="Error loading image" loading="lazy"></picture>';
   }
 }
 
@@ -201,22 +195,23 @@ function getImageType(src) {
 
 function generateSrcset(originalSrc, format, widths) {
   if (!originalSrc) return '';
-  
-  // FIXED: Always use /img/responsive/ for responsive variants
-  const responsiveDir = '/img/responsive/';
-  
-  // Get only the filename base (without path or extension)
+
+  // Get the directory from originalSrc, replace 'primary' with 'responsive' if present
+  let directory = originalSrc.replace(/[^/]+$/, ''); // Get path up to last /
+  directory = directory.replace(/primary\//, 'responsive/');
+
+  // Get filename without extension
   const filename = originalSrc.split('/').pop().replace(/\.[^/.]+$/, "");
-  
+
   // Generate variants
   const variants = widths.map(w => {
     const variantName = `${filename}-${w}`;
-    return `${responsiveDir}${variantName}.${format} ${w}w`;
+    return `${directory}${variantName}.${format} ${w}w`;
   });
-  
+
   // Full-size version
-  const fullSizePath = `${responsiveDir}${filename}.${format}`;
-  
+  const fullSizePath = `${directory}${filename}.${format}`;
+
   return `${fullSizePath} 3840w, ${variants.join(', ')}`;
 }
 
