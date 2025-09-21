@@ -1,15 +1,54 @@
 /* global customElements, console, HTMLElement */
 (async () => {
+    // Browser-compatible dev detection
+    const isDev = window.location.href.includes('/dev/') ||
+      new URLSearchParams(window.location.search).get('debug') === 'true';
+
+    // Debug logging methods
+    const log = (message, data = null) => {
+        if (isDev) {
+            console.groupCollapsed(`%c[CustomHeader] ${new Date().toLocaleTimeString()} ${message}`, 'color: #2196F3; font-weight: bold;');
+            if (data) {
+                console.log('%cData:', 'color: #4CAF50;', data);
+            }
+            console.trace();
+            console.groupEnd();
+        }
+    };
+
+    const warn = (message, data = null) => {
+        if (isDev) {
+            console.groupCollapsed(`%c[CustomHeader] ⚠️ ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
+            if (data) {
+                console.log('%cData:', 'color: #4CAF50;', data);
+            }
+            console.trace();
+            console.groupEnd();
+        }
+    };
+
+    const error = (message, data = null) => {
+        if (isDev) {
+            console.groupCollapsed(`%c[CustomHeader] ❌ ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
+            if (data) {
+                console.log('%cData:', 'color: #4CAF50;', data);
+            }
+            console.trace();
+            console.groupEnd();
+        }
+    };
+
     try {
+        log('Starting CustomHeader definition');
         const { CustomBlock } = await import('./custom-block.js');
         const { VALID_ALIGNMENTS, alignMap } = await import('../shared.js');
-        console.log('Successfully imported CustomBlock and alignMap');
+        log('Successfully imported CustomBlock and alignMap');
 
         await Promise.all([
             customElements.whenDefined('custom-logo'),
             customElements.whenDefined('custom-nav')
         ]);
-        console.log('CustomLogo and CustomNav defined');
+        log('CustomLogo and CustomNav defined');
 
         class CustomHeader extends CustomBlock {
             static get observedAttributes() {
@@ -25,7 +64,6 @@
 
             getAttributes() {
                 const attrs = super.getAttributes();
-                const isDev = window.location.href.includes('/dev/');
                 attrs.sticky = this.hasAttribute('sticky');
                 attrs.logoPlacement = this.getAttribute('logo-placement') || 'independent';
                 attrs.navLogoContainerStyle = this.getAttribute('nav-logo-container-style') || '';
@@ -33,29 +71,29 @@
                 attrs.navAlignment = this.getAttribute('nav-alignment') || 'center';
                 const validLogoPlacements = ['independent', 'nav'];
                 if (!VALID_ALIGNMENTS.includes(attrs.navAlignment)) {
-                    console.warn(`Invalid nav-alignment "${attrs.navAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Defaulting to 'center'.`);
+                    warn(`Invalid nav-alignment "${attrs.navAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Defaulting to 'center'.`);
                     attrs.navAlignment = 'center';
                 }
                 if (!validLogoPlacements.includes(attrs.logoPlacement)) {
-                    console.warn(`Invalid logo-placement "${attrs.logoPlacement}". Defaulting to 'independent'.`);
+                    warn(`Invalid logo-placement "${attrs.logoPlacement}". Defaulting to 'independent'.`);
                     attrs.logoPlacement = 'independent';
                 }
-                if (isDev) console.log('CustomHeader attributes:', attrs);
+                log('CustomHeader attributes', attrs);
                 return attrs;
             }
 
             async render(isFallback = false) {
-                const isDev = window.location.href.includes('/dev/');
+                log(`Starting render ${isFallback ? '(fallback)' : ''}`);
                 const attrs = this.getAttributes();
                 let blockElement;
                 try {
                     blockElement = await super.render(isFallback);
                     if (!blockElement || !(blockElement instanceof HTMLElement)) {
-                        console.warn('Super render failed; creating fallback block element.');
+                        warn('Super render failed; creating fallback block element.');
                         blockElement = document.createElement('div');
                     }
-                } catch (error) {
-                    console.error('Error in super.render:', error);
+                } catch (err) {
+                    error('Error in super.render', { error: err.message });
                     blockElement = document.createElement('div');
                 }
 
@@ -72,6 +110,7 @@
                 ].filter(cls => cls).join(' ').trim();
                 if (headerClasses) {
                     blockElement.className = headerClasses;
+                    log('Applied header classes', { classes: headerClasses });
                 }
 
                 let logoHTML = '';
@@ -80,27 +119,29 @@
                     const customLogo = this.querySelector('custom-logo');
                     const customNav = this.querySelector('custom-nav');
                     if (customLogo) {
-                        if (isDev) console.log('Triggering custom-logo render');
+                        log('Triggering custom-logo render');
                         customElements.upgrade(customLogo);
                         if (customLogo.render) {
                             try {
                                 await customLogo.render();
                                 logoHTML = customLogo.innerHTML;
+                                log('CustomLogo rendered successfully', { htmlLength: logoHTML.length });
                             } catch (error) {
-                                console.error('Error rendering custom-logo:', error);
+                                error('Error rendering custom-logo', { error: error.message });
                                 logoHTML = '<div>Error rendering logo</div>';
                             }
                         }
                     }
                     if (customNav) {
-                        if (isDev) console.log('Triggering custom-nav render');
+                        log('Triggering custom-nav render');
                         customElements.upgrade(customNav);
                         if (customNav.render) {
                             try {
                                 await customNav.render();
                                 navHTML = customNav.innerHTML;
+                                log('CustomNav rendered successfully', { htmlLength: navHTML.length });
                             } catch (error) {
-                                console.error('Error rendering custom-nav:', error);
+                                error('Error rendering custom-nav', { error: error.message });
                                 navHTML = '<div>Error rendering nav</div>';
                             }
                         }
@@ -127,10 +168,10 @@
                         </div>
                         ${innerHTML}
                     `;
-                    if (isDev) console.log('Composed nav-with-logo:', innerHTML.substring(0, 200) + '...');
+                    log('Composed nav-with-logo', { htmlPreview: innerHTML.substring(0, 200) + '...' });
                 } else {
                     innerHTML = `${logoHTML}${navHTML}${innerHTML}`;
-                    if (isDev) console.log('Composed independent:', innerHTML.substring(0, 200) + '...');
+                    log('Composed independent', { htmlPreview: innerHTML.substring(0, 200) + '...' });
                 }
 
                 blockElement.innerHTML = innerHTML;
@@ -139,27 +180,29 @@
                     blockElement.style.position = 'sticky';
                     blockElement.style.top = '0';
                     blockElement.style.zIndex = '1000';
+                    log('Applied sticky positioning');
                 }
 
-                if (isDev) console.log('CustomHeader render complete:', blockElement.outerHTML.substring(0, 300) + '...');
+                log('CustomHeader render complete', { outerHTMLPreview: blockElement.outerHTML.substring(0, 300) + '...' });
                 return blockElement;
             }
 
             async connectedCallback() {
+                log('Connected to DOM');
                 await super.connectedCallback();
             }
 
             async attributeChangedCallback(name, oldValue, newValue) {
                 if (!this.isInitialized || !this.isVisible) return;
-                const isDev = window.location.href.includes('/dev/');
+                log('Attribute changed', { name, oldValue, newValue });
                 if (super.observedAttributes.includes(name) || this.constructor.observedAttributes.includes(name)) {
                     this.cachedAttributes = null;
                     try {
                         const cardElement = await this.render();
                         this.replaceWith(cardElement);
-                        if (isDev) console.log('CustomHeader re-rendered due to attribute change:', name);
+                        log('CustomHeader re-rendered due to attribute change', { name });
                     } catch (error) {
-                        console.error('Error re-rendering CustomHeader:', error);
+                        error('Error re-rendering CustomHeader', { error: error.message });
                         this.replaceWith(await this.render(true));
                     }
                 }
@@ -167,8 +210,8 @@
         }
 
         customElements.define('custom-header', CustomHeader);
-        console.log('CustomHeader defined successfully');
-    } catch (error) {
-        console.error('Failed to import CustomBlock or define CustomHeader:', error);
+        log('CustomHeader defined successfully');
+    } catch (err) {
+        error('Failed to import CustomBlock or define CustomHeader', { error: err.message });
     }
 })();
