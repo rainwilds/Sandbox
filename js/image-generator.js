@@ -95,15 +95,15 @@ export async function generatePictureMarkup({
 
     // Build classes
     const allClasses = [...new Set([
-      ...customClasses.split(/\s+/), 
+      ...customClasses.split(/\s+/),
       ...(Array.isArray(extraClasses) ? extraClasses : []).flatMap(c => c.split(/\s+/))
     ].filter(Boolean))];
-    
+
     if (aspectRatio && ['16/9', '9/16', '3/2', '2/3', '1/1', '21/9'].includes(aspectRatio)) {
       allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
     }
     allClasses.push('animate', 'animate-fade-in');
-    
+
     const classAttr = allClasses.length ? ` class="${allClasses.join(' ')}"` : '';
 
     // Generate sizes
@@ -130,8 +130,8 @@ export async function generatePictureMarkup({
     };
 
     const sizes = SIZES_BREAKPOINTS.map((bp) => {
-      const width = bp.maxWidth <= 768 ? parsedWidths.mobile : 
-                   bp.maxWidth <= 1024 ? parsedWidths.tablet : parsedWidths.desktop;
+      const width = bp.maxWidth <= 768 ? parsedWidths.mobile :
+        bp.maxWidth <= 1024 ? parsedWidths.tablet : parsedWidths.desktop;
       return `(max-width: ${bp.maxWidth}px) ${width * 100}vw`;
     }).join(', ') + `, ${DEFAULT_SIZE_VALUE * parsedWidths.desktop}px`;
 
@@ -173,7 +173,7 @@ export async function generatePictureMarkup({
     const fallbackSrc = primarySrc
       .replace('/responsive/', '/primary/')
       .replace(/\.(jxl|avif|webp|jpeg)$/i, '.jpg');
-    
+
     const imgAttrs = [
       `src="${fallbackSrc}"`,
       isDecorative ? 'alt="" role="presentation"' : `alt="${primaryAlt}"`,
@@ -203,7 +203,7 @@ export async function generatePictureMarkup({
     if (isDev) {
       console.error('Error generating picture markup:', error);
     }
-    
+
     const primarySrc = lightSrc || darkSrc || src;
     const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
     // FIXED: Wrap fallback in <picture> so parsing doesn't fail
@@ -220,23 +220,35 @@ function getImageType(src) {
 
 function generateSrcset(originalSrc, format, widths) {
   if (!originalSrc) return '';
-  
-  // Get directory and filename from the ORIGINAL source path
-  const parts = originalSrc.split('/');
-  const filenameWithExt = parts.pop();
-  const directory = parts.join('/') + '/';  // Keep original directory (responsive)
+
+  // FIXED: Always use /img/responsive/ for responsive variants
+  const responsiveDir = '/img/responsive/';
+
+  // Get just the filename from original source
+  const filenameWithExt = originalSrc.split('/').pop();
   const filename = filenameWithExt.replace(/\.[^/.]+$/, ""); // Remove original extension
-  
-  // Generate variants for this format using the SAME directory
+
+  if (isDev) {
+    console.log(`Generating srcset for ${originalSrc} -> format ${format}:`);
+    console.log(`  Using directory: ${responsiveDir}`);
+    console.log(`  Filename: ${filename}`);
+  }
+
+  // Generate variants using responsive directory
   const variants = widths.map(w => {
     const variantName = `${filename}-${w}`;
-    return `${directory}${variantName}.${format} ${w}w`;
+    const variantPath = `${responsiveDir}${variantName}.${format}`;
+    if (isDev) console.log(`  Variant ${w}w: ${variantPath}`);
+    return `${variantPath} ${w}w`;
   });
-  
-  // Full-size version using the same directory
-  const fullSizePath = `${directory}${filename}.${format}`;
-  
-  return `${fullSizePath} 3840w, ${variants.join(', ')}`;
+
+  // Full-size version using responsive directory
+  const fullSizePath = `${responsiveDir}${filename}.${format}`;
+  if (isDev) console.log(`  Full size 3840w: ${fullSizePath}`);
+
+  const srcset = `${fullSizePath} 3840w, ${variants.join(', ')}`;
+
+  return srcset;
 }
 
 if (typeof window !== 'undefined') {
