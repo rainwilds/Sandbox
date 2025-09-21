@@ -23,24 +23,12 @@ export async function generatePictureMarkup({
   breakpoint = '',
   extraStyles = '',
 } = {}) {
-  markupCache.clear(); // Clear cache for debugging
   const isDev = typeof window !== 'undefined' && (
     window.location.href.includes('/dev/') ||
     new URLSearchParams(window.location.search).get('debug') === 'true'
   );
 
-  const cacheKey = JSON.stringify({
-    src, lightSrc, darkSrc, alt, lightAlt, darkAlt,
-    isDecorative, mobileWidth, tabletWidth, desktopWidth, aspectRatio,
-    includeSchema, customClasses, loading, fetchPriority, extraClasses,
-    noResponsive, breakpoint, extraStyles
-  });
-
-  if (markupCache.has(cacheKey)) {
-    if (isDev) console.log('Using cached picture markup for:', { src, lightSrc, darkSrc });
-    return markupCache.get(cacheKey);
-  }
-
+  // Trim all inputs
   src = src.trim();
   lightSrc = lightSrc.trim();
   darkSrc = darkSrc.trim();
@@ -53,178 +41,195 @@ export async function generatePictureMarkup({
   const isSvg = src.endsWith('.svg') || lightSrc.endsWith('.svg') || darkSrc.endsWith('.svg');
   const effectiveNoResponsive = noResponsive || isSvg;
 
-  if (isDev) console.log('Generating picture markup for:', { src, lightSrc, darkSrc, alt, lightAlt, darkAlt, noResponsive, effectiveNoResponsive });
-
-  // FIXED WORKER CODE - PROPER ESCAPING
-  const workerCode = [
-    'console.log("=== WORKER SCRIPT LOADED SUCCESSFULLY ===");',
-    '',
-    'self.addEventListener("message", (e) => {',
-    '  console.log("=== WORKER MESSAGE RECEIVED ===");',
-    '  console.log("Worker data:", e.data);',
-    '  ',
-    '  try {',
-    '    const data = e.data;',
-    '    const primarySrc = data.lightSrc || data.darkSrc || data.src;',
-    '    const primaryAlt = data.isDecorative ? "" : (data.lightAlt || data.darkAlt || data.alt || "test alt");',
-    '    ',
-    '    console.log("Primary src for markup:", primarySrc);',
-    '    console.log("Primary alt for markup:", primaryAlt);',
-    '    ',
-    '    // Create simple but valid picture markup',
-    '    let markup = \'<picture class="animate animate-fade-in">\';',
-    '    markup += \'<source type="image/jpeg" srcset="\' + primarySrc + \'" />\';',
-    '    ',
-    '    // FIXED: Proper escaping for onerror attribute',
-    '    const fallbackSrc = "https://placehold.co/3000x2000";',
-    '    const fallbackAlt = primaryAlt || "Fallback image";',
-    '    markup += \'<img src="\' + primarySrc.replace("/responsive/", "/primary/").replace(/\\.(jxl|avif|webp|jpeg)$/, ".jpg") + \'"',
-    '    markup += " alt=\\" " + primaryAlt + " \\" loading=\\" " + (data.loading || \\"lazy\\") + " \\"";',
-    '    markup += " onerror=\\"this.src=\\"" + fallbackSrc + "\\"; this.alt=\\"" + fallbackAlt + "\\"; this.onerror=null; \\" />";',
-    '    markup += "</picture>";',
-    '    ',
-    '    console.log("=== WORKER GENERATED MARKUP ===");',
-    '    console.log(markup);',
-    '    console.log("=== END WORKER MARKUP ===");',
-    '    ',
-    '    self.postMessage({ markup: markup });',
-    '  } catch (error) {',
-    '    console.error("=== WORKER ERROR ===");',
-    '    console.error("Error:", error);',
-    '    console.error("Stack:", error.stack);',
-    '    self.postMessage({ ',
-    '      markup: \'<img src="https://placehold.co/3000x2000" alt="Worker error" loading="lazy">\', ',
-    '      error: "Worker internal error: " + error.message ',
-    '    });',
-    '  }',
-    '});',
-    '',
-    'console.log("=== WORKER SETUP COMPLETE ===");'
-  ].join('\n');
-
   if (isDev) {
-    console.log('=== GENERATE PICTURE MARKUP DEBUG ===');
-    console.log('Worker code length:', workerCode.length);
-    console.log('Worker code preview:', workerCode.substring(0, 300));
+    console.log('Generating picture markup for:', { 
+      src, lightSrc, darkSrc, alt, lightAlt, darkAlt, 
+      noResponsive, effectiveNoResponsive, customClasses, 
+      loading, fetchPriority, extraClasses 
+    });
   }
 
-  const blob = new Blob([workerCode], { type: 'application/javascript' });
-  const workerUrl = URL.createObjectURL(blob);
-
-  if (isDev) {
-    console.log('=== WORKER CREATION ===');
-    console.log('Blob created, URL:', workerUrl);
+  // Validate inputs
+  const sources = [src, lightSrc, darkSrc].filter(Boolean);
+  if (!sources.length) {
+    if (isDev) console.warn('No valid image sources provided');
+    return '<img src="https://placehold.co/3000x2000" alt="No image source provided" loading="lazy">';
   }
 
-  return new Promise((resolve, reject) => {
-    if (isDev) {
-      console.log('=== CREATING WORKER ===');
-      console.log('Parameters being sent:', { src, lightSrc, darkSrc, alt, isDecorative });
+  // Validate extensions
+  for (const source of sources) {
+    if (!VALID_EXTENSIONS.test(source)) {
+      if (isDev) console.warn('Invalid image source extension:', source);
+      return `<img src="${source}" alt="Invalid image source" loading="lazy">`;
     }
+  }
 
-    let worker;
-    try {
-      worker = new Worker(workerUrl);
-      if (isDev) {
-        console.log('Worker object created successfully');
-      }
-    } catch (creationError) {
-      console.error('=== CRITICAL: WORKER CREATION FAILED ===');
-      console.error('Error creating worker:', creationError);
-      const primarySrc = lightSrc || darkSrc || src;
-      const primaryAlt = lightAlt || darkAlt || alt || 'Worker creation failed';
-      resolve(`<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`);
-      return;
-    }
+  // Validate alt text
+  if (!isDecorative && !alt && !(lightSrc && lightAlt) && !(darkSrc && darkAlt)) {
+    if (isDev) console.warn('Alt attribute required for non-decorative images');
+    return '<img src="https://placehold.co/3000x2000" alt="Missing alt text" loading="lazy">';
+  }
 
-    worker.onmessage = (e) => {
-      if (isDev) {
-        console.log('=== WORKER ONMESSAGE ===');
-        console.log('Received from worker:', e.data);
-      }
-
-      const { markup, error } = e.data;
-
-      if (error) {
-        if (isDev) {
-          console.error('=== WORKER ERROR RESPONSE ===');
-          console.error('Error from worker:', error);
-        }
-        resolve(markup);
-      } else {
-        markupCache.set(cacheKey, markup);
-        if (isDev) {
-          console.log('=== SUCCESSFUL MARKUP FROM WORKER ===');
-          console.log('Markup length:', markup.length);
-          console.log('Markup preview:', markup.substring(0, 200));
-          if (markup.includes('<picture>')) {
-            console.log('✅ PICTURE ELEMENT DETECTED');
-          } else {
-            console.log('❌ NO PICTURE ELEMENT - ONLY IMG');
-          }
-        }
-        resolve(markup);
-      }
-
-      worker.terminate();
-      URL.revokeObjectURL(workerUrl);
-    };
-
-    worker.onerror = (err) => {
-      console.error('=== CRITICAL: WORKER ONERROR FIRED ===');
-      console.error('Error details:', {
-        message: err.message,
-        filename: err.filename,
-        lineno: err.lineno,
-        colno: err.colno
-      });
-      console.error('Full error object:', err);
-
-      if (isDev) {
-        console.error('Image Worker failed completely:', err, {
-          src, lightSrc, darkSrc
-        });
-      }
-
-      const primarySrc = lightSrc || darkSrc || src;
-      const primaryAlt = lightAlt || darkAlt || alt || 'Worker error';
-      const fallbackImg = `<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`;
-      resolve(fallbackImg);
-      worker.terminate();
-      URL.revokeObjectURL(workerUrl);
-    };
-
-    if (isDev) {
-      console.log('=== POSTING MESSAGE TO WORKER ===');
-    }
-
-    try {
-      worker.postMessage({
-        src, lightSrc, darkSrc, alt, lightAlt, darkAlt,
-        isDecorative, mobileWidth, tabletWidth, desktopWidth, aspectRatio,
-        includeSchema, customClasses, loading, fetchPriority, extraClasses,
-        noResponsive, breakpoint
-      });
-    } catch (postError) {
-      console.error('=== CRITICAL: WORKER POSTMESSAGE FAILED ===');
-      console.error('Error posting to worker:', postError);
-      const primarySrc = lightSrc || darkSrc || src;
-      const primaryAlt = lightAlt || darkAlt || alt || 'Post message failed';
-      resolve(`<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`);
-    }
-  }).catch((error) => {
-    console.error('=== CRITICAL: PROMISE CATCH FIRED ===');
-    console.error('Promise error:', error);
-    console.error('Stack:', error.stack);
-
-    if (isDev) {
-      console.error('Promise failed in generatePictureMarkup:', error);
-    }
-
-    const primarySrc = lightSrc || darkSrc || src;
-    const primaryAlt = lightAlt || darkAlt || alt || 'Promise failed';
-    return `<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`;
+  const cacheKey = JSON.stringify({
+    src, lightSrc, darkSrc, alt, lightAlt, darkAlt,
+    isDecorative, mobileWidth, tabletWidth, desktopWidth, aspectRatio,
+    includeSchema, customClasses, loading, fetchPriority, extraClasses,
+    noResponsive, breakpoint, extraStyles
   });
+
+  if (markupCache.has(cacheKey)) {
+    if (isDev) console.log('Using cached picture markup');
+    return markupCache.get(cacheKey);
+  }
+
+  try {
+    // Determine primary source and alt
+    const primarySrc = lightSrc || darkSrc || src;
+    const primaryAlt = isDecorative ? '' : (lightAlt || darkAlt || alt);
+
+    // Build classes
+    const allClasses = [...new Set([
+      ...customClasses.split(/\s+/), 
+      ...extraClasses.flatMap(c => c.split(/\s+/))
+    ].filter(Boolean))];
+    
+    if (aspectRatio && ['16/9', '9/16', '3/2', '2/3', '1/1', '21/9'].includes(aspectRatio)) {
+      allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
+    }
+    allClasses.push('animate', 'animate-fade-in');
+    
+    const classAttr = allClasses.length ? ` class="${allClasses.join(' ')}"` : '';
+
+    // Generate sizes
+    const WIDTHS = [768, 1024, 1366, 1920, 2560];
+    const SIZES_BREAKPOINTS = [
+      { maxWidth: 768, baseValue: '100vw' },
+      { maxWidth: 1024, baseValue: '100vw' },
+      { maxWidth: 1366, baseValue: '100vw' },
+      { maxWidth: 1920, baseValue: '100vw' },
+      { maxWidth: 2560, baseValue: '100vw' },
+    ];
+    const DEFAULT_SIZE_VALUE = 3840;
+
+    function parseWidth(widthStr) {
+      const vwMatch = widthStr.match(/(\d+)vw/);
+      if (vwMatch) return parseInt(vwMatch[1], 10) / 100;
+      return 1.0;
+    }
+
+    const parsedWidths = {
+      mobile: parseWidth(mobileWidth),
+      tablet: parseWidth(tabletWidth),
+      desktop: parseWidth(desktopWidth),
+    };
+
+    const sizes = SIZES_BREAKPOINTS.map((bp) => {
+      const width = bp.maxWidth <= 768 ? parsedWidths.mobile : 
+                   bp.maxWidth <= 1024 ? parsedWidths.tablet : parsedWidths.desktop;
+      return `(max-width: ${bp.maxWidth}px) ${width * 100}vw`;
+    }).join(', ') + `, ${DEFAULT_SIZE_VALUE * parsedWidths.desktop}px`;
+
+    // Build markup
+    let markup = `<picture${classAttr}>`;
+
+    // Generate sources
+    const FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
+
+    if (effectiveNoResponsive || primarySrc.endsWith('.svg')) {
+      // Simple sources for SVG or no-responsive
+      if (lightSrc) {
+        markup += `<source media="(prefers-color-scheme: light)" type="${getImageType(lightSrc)}" srcset="${lightSrc}" sizes="${sizes}"${lightAlt ? ` alt="${lightAlt}"` : ''}>`;
+      }
+      if (darkSrc) {
+        markup += `<source media="(prefers-color-scheme: dark)" type="${getImageType(darkSrc)}" srcset="${darkSrc}" sizes="${sizes}"${darkAlt ? ` alt="${darkAlt}"` : ''}>`;
+      }
+      if (src) {
+        markup += `<source type="${getImageType(src)}" srcset="${src}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : ` alt="${primaryAlt}"`}>`;
+      }
+    } else {
+      // Responsive sources for each format
+      FORMATS.forEach((format) => {
+        if (lightSrc && !lightSrc.endsWith('.svg')) {
+          const lightSrcset = generateSrcset(lightSrc, format, WIDTHS);
+          markup += `<source media="(prefers-color-scheme: light)" type="image/${format}" srcset="${lightSrcset}" sizes="${sizes}"${lightAlt ? ` alt="${lightAlt}"` : ''}>`;
+        }
+        if (darkSrc && !darkSrc.endsWith('.svg')) {
+          const darkSrcset = generateSrcset(darkSrc, format, WIDTHS);
+          markup += `<source media="(prefers-color-scheme: dark)" type="image/${format}" srcset="${darkSrcset}" sizes="${sizes}"${darkAlt ? ` alt="${darkAlt}"` : ''}>`;
+        }
+        if (!primarySrc.endsWith('.svg')) {
+          const primarySrcset = generateSrcset(primarySrc, format, WIDTHS);
+          markup += `<source type="image/${format}" srcset="${primarySrcset}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : ` alt="${primaryAlt}"`}>`;
+        }
+      });
+    }
+
+    // Generate fallback img
+    const fallbackSrc = primarySrc
+      .replace('/responsive/', '/primary/')
+      .replace(/\.(jxl|avif|webp|jpeg)$/i, '.jpg');
+    
+    const imgAttrs = [
+      `src="${fallbackSrc}"`,
+      isDecorative ? 'alt="" role="presentation"' : `alt="${primaryAlt}"`,
+      `loading="${loading}"`,
+      fetchPriority ? `fetchpriority="${fetchPriority}"` : '',
+      `onerror="this.src='https://placehold.co/3000x2000'; this.alt='${primaryAlt || 'Fallback image'}'; this.onerror=null;"`
+    ].filter(Boolean).join(' ');
+
+    markup += `<img ${imgAttrs}></picture>`;
+
+    // Add schema if requested
+    if (includeSchema && primarySrc && primaryAlt) {
+      markup += `<script type="application/ld+json">{"@context":"http://schema.org","@type":"ImageObject","url":"${primarySrc}","alternateName":"${primaryAlt}"}</script>`;
+    }
+
+    // Cache the result
+    markupCache.set(cacheKey, markup);
+
+    if (isDev) {
+      console.log('Generated picture markup:');
+      console.log(markup.substring(0, 300) + (markup.length > 300 ? '...' : ''));
+    }
+
+    return markup;
+
+  } catch (error) {
+    if (isDev) {
+      console.error('Error generating picture markup:', error);
+    }
+    
+    const primarySrc = lightSrc || darkSrc || src;
+    const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
+    return `<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`;
+  }
+}
+
+// Helper functions
+function getImageType(src) {
+  if (!src) return '';
+  const ext = src.split('.').pop().toLowerCase();
+  return ext === 'svg' ? 'image/svg+xml' : `image/${ext}`;
+}
+
+function generateSrcset(originalSrc, format, widths) {
+  if (!originalSrc) return '';
+  
+  // Get directory and filename
+  const parts = originalSrc.split('/');
+  const filenameWithExt = parts.pop();
+  const directory = parts.join('/') + '/';
+  const filename = filenameWithExt.replace(/\.[^/.]+$/, ""); // Remove extension
+  const originalExt = filenameWithExt.split('.').pop();
+  
+  // Generate variants for this format
+  const variants = widths.map(w => {
+    const variantName = `${filename}-${w}`;
+    return `${directory}${variantName}.${format} ${w}w`;
+  });
+  
+  // Add the full-size version
+  return `${directory}${filename}.${format} 3840w, ${variants.join(', ')}`;
 }
 
 if (typeof window !== 'undefined') {
