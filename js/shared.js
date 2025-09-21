@@ -1,5 +1,11 @@
+// Regular expression for validating image file extensions.
+// Matches common formats like jpg, jpeg, png, webp, avif, jxl, svg (case-insensitive).
+// Used to ensure source URLs in image generators are valid images.
 export const VALID_EXTENSIONS = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
 
+// Array of valid alignment strings for positioning elements.
+// Includes basic directions and combinations for flexible grid placements.
+// Used in validation to prevent invalid layout configurations.
 export const VALID_ALIGNMENTS = [
     'center', 'top', 'bottom', 'left', 'right',
     'top-left', 'top-center', 'top-right',
@@ -7,6 +13,9 @@ export const VALID_ALIGNMENTS = [
     'center-left', 'center-right'
 ];
 
+// Object mapping alignment strings to CSS class names.
+// Translates semantic alignments to place-self utilities for CSS Grid.
+// Enables easy application of positioning in components like logos or navs.
 export const alignMap = {
     'center': 'place-self-center',
     'top': 'place-self-top',
@@ -23,4 +32,7 @@ export const alignMap = {
     'center-right': 'place-self-center-right'
 };
 
+// Array of valid video file extensions.
+// Limited to mp4 and webm for broad browser compatibility in video sources.
+// Used in video generators to validate and process video URLs.
 export const VALID_VIDEO_EXTENSIONS = ['mp4', 'webm'];

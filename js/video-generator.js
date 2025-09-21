@@ -1,8 +1,13 @@
-// video-generator.js full code
+// Import shared constants for valid video extensions.
+// Used to validate source URLs in the worker code.
 import { VALID_VIDEO_EXTENSIONS } from './shared.js';
 
+// Cache for generated video markup to improve performance on repeated calls with same parameters.
 const markupCache = new Map();
 
+// Main exported function to generate <video> markup asynchronously using a Web Worker.
+// Supports light/dark theme variants, posters, custom classes, autoplay, mute, loop, and more.
+// Clears cache for debugging; uses Worker to offload computation from main thread.
 export async function generateVideoMarkup({
   src = '',
   lightSrc = '',
@@ -22,15 +27,19 @@ export async function generateVideoMarkup({
   preload = 'metadata',
   controls = false
 } = {}) {
+  // Clear cache explicitly for debugging purposes to ensure fresh generation each time in dev mode.
   markupCache.clear(); // Clear cache for debugging
+  // Check if debug mode is enabled via URL for logging.
   const isDev = window.location.href.includes('/dev/') ||
     new URLSearchParams(window.location.search).get('debug') === 'true';
+  // Create cache key from all parameters for quick lookup.
   const cacheKey = JSON.stringify({ src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses, extraClasses, loading, autoplay, muted, loop, playsinline, disablePip, preload, controls });
   if (markupCache.has(cacheKey)) {
     if (isDev) console.log('Using cached video markup:', { src, lightSrc, darkSrc });
     return markupCache.get(cacheKey);
   }
 
+  // Trim all input strings to remove leading/trailing whitespace.
   src = src.trim();
   lightSrc = lightSrc.trim();
   darkSrc = darkSrc.trim();
@@ -38,8 +47,11 @@ export async function generateVideoMarkup({
   lightPoster = lightPoster.trim();
   darkPoster = darkPoster.trim();
 
+  // Log inputs in dev mode for debugging.
   if (isDev) console.log('Generating video markup for:', { src, lightSrc, darkSrc, poster, lightPoster, darkPoster });
 
+  // Blob of JavaScript code that runs in the Web Worker.
+  // Defines validation and markup generation logic isolated from main thread.
   const workerCode = `
   const VALID_VIDEO_EXTENSIONS = ['mp4', 'webm'];
 
@@ -113,6 +125,8 @@ export async function generateVideoMarkup({
   });
   `;
 
+  // Log worker code and specific lines in dev mode for inspection.
+  // Validate syntax with new Function to catch errors early.
   if (isDev) {
     console.log('Video Worker code:', workerCode);
     const lines = workerCode.split('\n');
@@ -128,9 +142,12 @@ export async function generateVideoMarkup({
     }
   }
 
+  // Create Blob from worker code and generate object URL for Worker instantiation.
   const blob = new Blob([workerCode], { type: 'application/javascript' });
   const workerUrl = URL.createObjectURL(blob);
 
+  // Return a Promise that resolves with the generated markup or fallback on error.
+  // Uses Worker to compute markup off-main-thread; terminates and revokes URL after use.
   return new Promise((resolve) => {
     const worker = new Worker(workerUrl);
     worker.onmessage = (e) => {
@@ -161,9 +178,14 @@ export async function generateVideoMarkup({
   });
 }
 
+// Client-side code for handling theme changes and lazy autoplay.
+// Runs only in browser; updates video sources/posters on theme switch and autoplays when in view.
 if (typeof window !== 'undefined') {
+  // Check debug mode for potential logging (though not used here).
   const isDev = window.location.href.includes('/dev/') ||
     new URLSearchParams(window.location.search).get('debug') === 'true';
+  // Function to update video posters and sources based on current color scheme.
+  // Reloads video if source changes while preserving play state and time.
   const updateVideos = () => {
     document.querySelectorAll('video[id^="custom-video"]').forEach(video => {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -221,6 +243,8 @@ if (typeof window !== 'undefined') {
     });
   };
 
+  // IntersectionObserver for lazy autoplay of videos.
+  // Plays videos when they enter the viewport (with margin); unobserves after.
   const lazyAutoplayObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
@@ -231,6 +255,7 @@ if (typeof window !== 'undefined') {
     });
   }, { rootMargin: '50px' });
 
+  // DOMContentLoaded event to initialize updates and observers.
   document.addEventListener('DOMContentLoaded', () => {
     updateVideos();
     document.querySelectorAll('video[autoplay]').forEach(video => {
@@ -238,5 +263,6 @@ if (typeof window !== 'undefined') {
     });
   });
 
+  // Listen for theme changes to update videos.
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updateVideos);
 }
