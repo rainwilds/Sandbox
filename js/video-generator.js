@@ -1,3 +1,4 @@
+// video-generator.js full code
 import { VALID_VIDEO_EXTENSIONS } from './shared.js';
 
 const markupCache = new Map();
@@ -183,7 +184,7 @@ if (typeof window !== 'undefined') {
         const currentTime = video.currentTime;
         while (video.firstChild) video.removeChild(video.firstChild);
 
-        const addSource = (videoSrc, mediaQuery) => {
+        const addSources = (videoSrc, mediaQuery) => {
           const trimmedSrc = (videoSrc || '').trim();
           if (!trimmedSrc || !VALID_VIDEO_EXTENSIONS.some(ext => trimmedSrc.endsWith('.' + ext))) {
             return;
@@ -205,9 +206,9 @@ if (typeof window !== 'undefined') {
           video.appendChild(mp4Source);
         };
 
-        if (lightSrc) addSource(lightSrc, '(prefers-color-scheme: light)');
-        if (darkSrc) addSource(darkSrc, '(prefers-color-scheme: dark)');
-        addSource(defaultSrc);
+        if (lightSrc) addSources(lightSrc, '(prefers-color-scheme: light)');
+        if (darkSrc) addSources(darkSrc, '(prefers-color-scheme: dark)');
+        addSources(defaultSrc);
 
         const fallbackP = document.createElement('p');
         fallbackP.innerHTML = `Your browser does not support the video tag. <a href="${defaultSrc || '#'}">Download video</a>`;
