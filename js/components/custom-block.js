@@ -1,21 +1,23 @@
 /* global HTMLElement, IntersectionObserver, document, window, JSON, console */
 
-// Import necessary modules for image and video generation, as well as shared constants for alignments.
-// These are used throughout the class for rendering media and validating attributes.
+// Import necessary modules for generating responsive image and video markup.
+// These functions handle the creation of <picture> and <video> elements with multiple sources for different formats and themes.
+// Also import shared constants for validating and mapping alignment values used in layout positioning.
 import { generatePictureMarkup } from '../image-generator.js';
 import { generateVideoMarkup } from '../video-generator.js';
 import { VALID_ALIGNMENTS, alignMap } from '../shared.js';
 
 // Define the CustomBlock web component class.
-// This class extends HTMLElement to create a versatile custom element for blocks with text, media, buttons, and effects.
-// It uses IntersectionObserver for lazy initialization and includes extensive attribute handling and rendering logic.
+// This class extends HTMLElement to create a versatile custom element that can render blocks with various content types including text, headings, icons, buttons, images, videos, and effects.
+// It supports lazy initialization using IntersectionObserver, attribute-based configuration, media handling with light/dark modes, and caching for performance optimization.
 class CustomBlock extends HTMLElement {
-    // Private field for counting ignored attribute changes during initial load.
-    // Helps in batching logs to reduce console noise.
+    // Private field to count ignored attribute changes during the initial loading phase.
+    // This helps in batching and reducing the number of log messages for changes that occur before the component is ready.
     #ignoredChangeCount;
 
-    // Constructor for initializing the component instance.
-    // Sets up visibility and initialization flags, callbacks, caches, debug mode, and observer for lazy loading.
+    // Constructor for initializing each instance of the component.
+    // Sets up state flags for visibility and initialization, arrays for callbacks, caches for attributes and rendering, debug mode based on URL parameters.
+    // Observes the element for intersection to trigger lazy loading and adds it to the observed instances set.
     constructor() {
         super();
         this.isVisible = false;
@@ -31,9 +33,9 @@ class CustomBlock extends HTMLElement {
         CustomBlock.#observedInstances.add(this);
     }
 
-    // Static private IntersectionObserver for detecting when elements enter the viewport.
-    // Configured with a root margin for pre-loading slightly before visibility.
-    // Unobserves and initializes instances when they intersect.
+    // Static private IntersectionObserver instance shared across all CustomBlock elements.
+    // This observer watches for when elements enter the viewport (with a 50px root margin for pre-loading).
+    // When an element intersects, it sets visibility, unobserves it, removes from the set, and triggers initialization.
     static #observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -48,28 +50,28 @@ class CustomBlock extends HTMLElement {
         });
     }, { rootMargin: '50px' });
 
-    // Static private WeakSet to track observed instances.
-    // WeakSet allows garbage collection of unobserved elements.
+    // Static private WeakSet to keep track of currently observed instances.
+    // Using WeakSet allows automatic garbage collection when elements are removed from the DOM.
     static #observedInstances = new WeakSet();
 
-    // Static private WeakMap for caching rendered elements.
-    // Uses weak references to allow garbage collection.
+    // Static private WeakMap for caching rendered DOM elements per instance.
+    // Keys are weak references to instances, allowing GC; used to avoid re-rendering unchanged blocks.
     static #renderCacheMap = new WeakMap();
 
-    // Static constants for responsive image widths.
-    // Used in generating picture markup for different screen sizes.
+    // Static array of breakpoint widths for generating responsive image sources.
+    // These values correspond to common screen sizes for optimizing image loading.
     static #WIDTHS = [768, 1024, 1366, 1920, 2560];
 
-    // Static constants for image formats in order of preference.
-    // Used for modern format support in picture sources.
+    // Static array of preferred image formats in order of modern browser support.
+    // Used to generate <source> elements in <picture> for optimal format selection.
     static #FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
 
-    // Static set of valid aspect ratios.
-    // Validates user-provided aspect ratios for images.
+    // Static Set of allowed aspect ratio strings for image validation.
+    // Ensures only supported ratios are used to prevent rendering errors.
     static #VALID_ASPECT_RATIOS = new Set(['16/9', '9/16', '3/2', '2/3', '1/1', '21/9']);
 
-    // Static breakpoints for sizes attribute in picture markup.
-    // Defines how image sizes are calculated based on viewport width.
+    // Static array of size breakpoints for calculating image sizes attribute.
+    // Defines how image width is computed based on viewport size for responsive design.
     static #SIZES_BREAKPOINTS = [
         { maxWidth: 768, baseValue: '100vw' },
         { maxWidth: 1024, baseValue: '100vw' },
@@ -78,16 +80,16 @@ class CustomBlock extends HTMLElement {
         { maxWidth: 2560, baseValue: '100vw' },
     ];
 
-    // Static default maximum image size value.
-    // Used as fallback for largest breakpoint.
+    // Static default value for the largest image size in pixels.
+    // Used as a fallback for maximum resolution in source sets.
     static #DEFAULT_SIZE_VALUE = 3840;
 
-    // Static base path for responsive images.
-    // Prefix for generated image URLs.
+    // Static base path prefix for responsive image URLs.
+    // All generated image paths are relative to this directory.
     static #BASE_PATH = '/Sandbox/img/responsive/';
 
-    // Static mapping for backdrop filter classes to CSS values.
-    // Translates class names to actual filter properties.
+    // Static object mapping backdrop filter class names to their CSS values.
+    // Allows easy translation of semantic classes to actual filter properties for effects like blur or grayscale.
     static BACKDROP_FILTER_MAP = {
         'backdrop-filter-blur-small': 'blur(var(--blur-small))',
         'backdrop-filter-blur-medium': 'blur(var(--blur-medium))',
@@ -97,8 +99,8 @@ class CustomBlock extends HTMLElement {
         'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))'
     };
 
-    // Static list of critical attributes that trigger re-initialization when changed.
-    // These affect core rendering and require full re-processing.
+    // Static array of critical attributes that, when changed, trigger a full re-initialization.
+    // These attributes affect core structure or content, requiring re-rendering.
     static #criticalAttributes = [
         'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
         'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
@@ -125,9 +127,8 @@ class CustomBlock extends HTMLElement {
         'video-primary-playsinline', 'video-primary-poster', 'video-primary-src'
     ];
 
-    // Debug logging methods with reduced noise
-    // These private methods provide structured console output only when debug mode is enabled.
-    // #log for general info, #warn for warnings, #error for errors, all with color-coding and traces.
+    // Private debug logging method for general information.
+    // Outputs collapsible group with blue styling only if debug is enabled.
     #log(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ${message}`, 'color: #2196F3; font-weight: bold;');
@@ -138,6 +139,9 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
+
+    // Private debug logging method for warnings.
+    // Outputs collapsible group with orange styling only if debug is enabled.
     #warn(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ⚠️  ${message}`, 'color: #FF9800; font-weight: bold;');
@@ -148,6 +152,9 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
+
+    // Private debug logging method for errors.
+    // Outputs collapsible group with red styling only if debug is enabled.
     #error(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ❌ ${message}`, 'color: #F44336; font-weight: bold;');
@@ -159,9 +166,9 @@ class CustomBlock extends HTMLElement {
         }
     }
 
-    // Gather and validate all component attributes.
-    // Caches results for performance; includes extensive validation and sanitization for security and correctness.
-    // Throws errors for critical misconfigurations like incomplete light/dark pairs.
+    // Method to get and cache all attributes.
+    // Parses, validates, and sanitizes attributes like fetch priorities, positions, overlays, gradients, tags, alignments, colors, shadows, media sources.
+    // Throws errors for invalid media configurations; warns for invalid values and applies defaults.
     getAttributes() {
         if (this.cachedAttributes) {
             this.#log('Using cached attributes', { elementId: this.id || 'no-id' });
@@ -745,64 +752,73 @@ class CustomBlock extends HTMLElement {
             shadowClass,
             innerShadowClass
         };
+
         const criticalAttrs = {};
         CustomBlock.#criticalAttributes.forEach(attr => {
             criticalAttrs[attr] = this.getAttribute(attr) || '';
         });
         this.criticalAttributesHash = JSON.stringify(criticalAttrs);
-        this.#log('Attributes parsed successfully', {
+
+        this.#log('Attributes parsed successfully', { 
             elementId: this.id || 'no-id',
             criticalHashLength: this.criticalAttributesHash.length,
             hasMedia: !!(this.cachedAttributes.backgroundSrc || this.cachedAttributes.primarySrc || this.cachedAttributes.videoBackgroundSrc || this.cachedAttributes.videoPrimarySrc)
         });
+
         return this.cachedAttributes;
     }
-    // Initialize the component when it becomes visible.
-    // Calls render and replaces the element; handles errors with fallback rendering.
+
+    // Initialize the component when it becomes visible in the viewport.
+    // Calls the render method to generate the content, replaces the custom element with the rendered block,
+    // executes any registered callbacks, and handles errors by falling back to a safe render mode.
     async initialize() {
         if (this.isInitialized || !this.isVisible) {
-            this.#log('Skipping initialization', {
-                isInitialized: this.isInitialized,
+            this.#log('Skipping initialization', { 
+                isInitialized: this.isInitialized, 
                 isVisible: this.isVisible,
-                elementId: this.id || 'no-id'
+                elementId: this.id || 'no-id' 
             });
             return;
         }
+
         this.#log('Starting initialization', { elementId: this.id || 'no-id' });
+
         this.isInitialized = true;
         try {
             const cardElement = await this.render();
             if (cardElement) {
                 this.replaceWith(cardElement);
                 this.callbacks.forEach(callback => callback());
-                this.#log('Initialization completed successfully', {
+                this.#log('Initialization completed successfully', { 
                     elementId: this.id || 'no-id',
-                    childCount: cardElement.childElementCount
+                    childCount: cardElement.childElementCount 
                 });
             } else {
                 this.#error('Render returned null, using fallback', { elementId: this.id || 'no-id' });
                 this.replaceWith(await this.render(true));
             }
         } catch (error) {
-            this.#error('Initialization failed', {
-                error: error.message,
+            this.#error('Initialization failed', { 
+                error: error.message, 
                 stack: error.stack,
                 elementId: this.id || 'no-id',
-                outerHTML: this.outerHTML.substring(0, 200) + '...'
+                outerHTML: this.outerHTML.substring(0, 200) + '...' 
             });
             this.replaceWith(await this.render(true));
         }
     }
-    // Lifecycle callback when element is added to DOM.
-    // Triggers initialization if visible.
+
+    // Lifecycle callback invoked when the element is inserted into the DOM.
+    // Logs the connection and triggers initialization if the element is already visible.
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
         if (this.isVisible) {
             await this.initialize();
         }
     }
-    // Lifecycle callback when element is removed from DOM.
-    // Cleans up observers and caches to prevent memory leaks.
+
+    // Lifecycle callback invoked when the element is removed from the DOM.
+    // Logs the disconnection, unobserves if still being observed, clears callbacks and caches to free memory and prevent leaks.
     disconnectedCallback() {
         this.#log('Disconnected from DOM', { elementId: this.id || 'no-id' });
         if (CustomBlock.#observedInstances.has(this)) {
@@ -815,18 +831,22 @@ class CustomBlock extends HTMLElement {
         this.criticalAttributesHash = null;
         CustomBlock.#renderCacheMap.delete(this);
     }
-    // Add a callback to be executed after rendering.
-    // Useful for post-render operations.
+
+    // Method to register callbacks that are executed after successful initialization.
+    // Useful for post-render hooks or integrations with other components.
     addCallback(callback) {
         this.#log('Callback added', { callbackName: callback.name || 'anonymous', elementId: this.id || 'no-id' });
         this.callbacks.push(callback);
     }
-    // Core rendering method.
-    // Handles fallback mode, caching, attribute preparation, media detection, content type, block creation,
-    // style application, media rendering (images/videos), overlays, content assembly, and cleanup.
-    // Returns the rendered element.
+
+    // Core method to render the block's content based on attributes.
+    // Handles fallback rendering for errors, checks cache for unchanged critical attributes to avoid re-rendering.
+    // Prepares attributes, detects media and content types, creates the block element, applies classes and styles.
+    // Renders background/primary media (images/videos), overlays, content (headings, text, buttons, icons).
+    // Cleans up unnecessary attributes from images and caches the result for future use.
     async render(isFallback = false) {
         this.#log(`Starting render ${isFallback ? '(fallback)' : ''}`, { elementId: this.id || 'no-id' });
+
         let newCriticalAttrsHash;
         if (!isFallback) {
             const criticalAttrs = {};
@@ -834,12 +854,13 @@ class CustomBlock extends HTMLElement {
                 criticalAttrs[attr] = this.getAttribute(attr) || '';
             });
             newCriticalAttrsHash = JSON.stringify(criticalAttrs);
-           
+            
             if (CustomBlock.#renderCacheMap.has(this) && this.criticalAttributesHash === newCriticalAttrsHash) {
                 this.#log('Using cached render', { elementId: this.id || 'no-id' });
                 return CustomBlock.#renderCacheMap.get(this).cloneNode(true);
             }
         }
+
         const attrs = isFallback ? {
             effects: '',
             sectionTitle: false,
@@ -1072,10 +1093,11 @@ class CustomBlock extends HTMLElement {
         };
         // Always attempt to render background media if present
         if (hasVideoBackground) {
-            this.#log('Rendering video background', {
+            this.#log('Rendering video background', { 
                 elementId: this.id || 'no-id',
-                sources: [attrs.videoBackgroundSrc, attrs.videoBackgroundLightSrc, attrs.videoBackgroundDarkSrc].filter(Boolean)
+                sources: [attrs.videoBackgroundSrc, attrs.videoBackgroundLightSrc, attrs.videoBackgroundDarkSrc].filter(Boolean) 
             });
+
             const videoAttrs = {
                 videoBackgroundSrc: attrs.videoBackgroundSrc?.trim() || '',
                 videoBackgroundLightSrc: attrs.videoBackgroundLightSrc?.trim() || '',
@@ -1091,8 +1113,10 @@ class CustomBlock extends HTMLElement {
                 videoBackgroundPlaysinline: attrs.videoBackgroundPlaysinline,
                 videoBackgroundDisablePip: attrs.videoBackgroundDisablePip,
             };
+
             const sources = [videoAttrs.videoBackgroundSrc, videoAttrs.videoBackgroundLightSrc, videoAttrs.videoBackgroundDarkSrc].filter(Boolean);
             const validations = await Promise.all(sources.map(validateSrc));
+
             if (validations.every(v => v)) {
                 try {
                     const videoMarkup = await generateVideoMarkup({
@@ -1114,11 +1138,13 @@ class CustomBlock extends HTMLElement {
                         preload: videoAttrs.videoBackgroundLoading === 'lazy' ? 'metadata' : videoAttrs.videoBackgroundLoading,
                         controls: false
                     });
-                    this.#log('Video markup generated successfully', {
+
+                    this.#log('Video markup generated successfully', { 
                         elementId: this.id || 'no-id',
                         markupLength: videoMarkup.length,
-                        markupPreview: videoMarkup.substring(0, 100)
+                        markupPreview: videoMarkup.substring(0, 100) 
                     });
+
                     const tempDiv = document.createElement('div');
                     tempDiv.innerHTML = videoMarkup;
                     const videoElement = tempDiv.querySelector('video');
@@ -1126,35 +1152,37 @@ class CustomBlock extends HTMLElement {
                         blockElement.appendChild(videoElement);
                         this.#log('Video background element appended', { elementId: this.id || 'no-id' });
                     } else {
-                        this.#warn('Failed to parse video markup', {
-                            markup: videoMarkup.substring(0, 200),
-                            elementId: this.id || 'no-id'
+                        this.#warn('Failed to parse video markup', { 
+                            markup: videoMarkup.substring(0, 200), 
+                            elementId: this.id || 'no-id' 
                         });
                         blockElement.appendChild(document.createElement('p')).textContent = 'Video unavailable';
                     }
                 } catch (error) {
-                    this.#error('Video markup generation failed', {
-                        error: error.message,
+                    this.#error('Video markup generation failed', { 
+                        error: error.message, 
                         sources,
-                        elementId: this.id || 'no-id'
+                        elementId: this.id || 'no-id' 
                     });
                     blockElement.appendChild(document.createElement('p')).textContent = 'Video unavailable';
                 }
             } else {
-                this.#warn('Video validation failed', {
+                this.#warn('Video validation failed', { 
                     sources: sources.filter((_, i) => !validations[i]),
-                    elementId: this.id || 'no-id'
+                    elementId: this.id || 'no-id' 
                 });
                 blockElement.appendChild(document.createElement('p')).textContent = 'Video unavailable';
             }
         } else if (hasBackgroundImage) {
-            this.#log('Rendering background image', {
+            this.#log('Rendering background image', { 
                 elementId: this.id || 'no-id',
-                sources: [attrs.backgroundSrc, attrs.backgroundLightSrc, attrs.backgroundDarkSrc].filter(Boolean)
+                sources: [attrs.backgroundSrc, attrs.backgroundLightSrc, attrs.backgroundDarkSrc].filter(Boolean) 
             });
+
             const src = attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc;
             const sources = [attrs.backgroundSrc, attrs.backgroundLightSrc, attrs.backgroundDarkSrc].filter(Boolean);
             const validations = await Promise.all(sources.map(validateSrc));
+
             if (src && validations.every(v => v)) {
                 try {
                     const pictureMarkup = await generatePictureMarkup({
@@ -1177,11 +1205,13 @@ class CustomBlock extends HTMLElement {
                         includeSchema: attrs.backgroundIncludeSchema,
                         extraStyles: attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition}; object-fit: cover; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;` : 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;'
                     });
-                    this.#log('Background image markup generated', {
+
+                    this.#log('Background image markup generated', { 
                         elementId: this.id || 'no-id',
                         markupLength: pictureMarkup.length,
-                        markupPreview: pictureMarkup.substring(0, 100)
+                        markupPreview: pictureMarkup.substring(0, 100) 
                     });
+
                     const pictureDiv = document.createElement('div');
                     pictureDiv.innerHTML = pictureMarkup;
                     const pictureElement = pictureDiv.querySelector('picture');
@@ -1216,6 +1246,9 @@ class CustomBlock extends HTMLElement {
                 blockElement.appendChild(fallbackImg);
             }
         }
+
+        // Render background overlay if enabled and background media is present.
+        // Applies classes for overlay effects, noise, gradients, and computes backdrop-filter style.
         if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
             const overlayClasses = [attrs.backgroundOverlayClass];
             if (attrs.backgroundImageNoise) overlayClasses.push('background-image-noise');
@@ -1240,6 +1273,9 @@ class CustomBlock extends HTMLElement {
             }
             blockElement.appendChild(overlayDiv);
         }
+
+        // Handle media-only mode (no content, just background or primary media).
+        // Uses fallback if no content; caches and returns the element.
         if (isMediaOnly && !hasPrimaryImage && !hasVideoPrimary) {
             if (!isFallback && !blockElement.hasChildNodes()) {
                 this.#error('Media-only block has no valid content', { outerHTML: this.outerHTML });
@@ -1251,6 +1287,9 @@ class CustomBlock extends HTMLElement {
             }
             return blockElement;
         }
+
+        // Handle button-only mode (no other content, just a button).
+        // Constructs button element with classes, styles, attributes, icon positioning; caches and returns.
         if (isButtonOnly) {
             const buttonClasses = ['button', attrs.buttonClass].filter(cls => cls).join(' ');
             const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
@@ -1295,6 +1334,9 @@ class CustomBlock extends HTMLElement {
             }
             return blockElement;
         }
+
+        // Construct inner content div for non-media/button modes.
+        // Applies padding, classes for backgrounds, borders, alignments, shadows, and backdrop filters.
         const innerPaddingClasses = attrs.customClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
         const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls)];
         if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
@@ -1545,8 +1587,9 @@ class CustomBlock extends HTMLElement {
         }
         return blockElement;
     }
-    // Define all observed attributes for the component.
-    // Includes all critical attributes that trigger changes.
+
+    // Define all attributes that the component observes for changes.
+    // When any change, it may trigger re-rendering if critical.
     static get observedAttributes() {
         return [
             'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
@@ -1578,9 +1621,9 @@ class CustomBlock extends HTMLElement {
         ];
     }
 
-    // Lifecycle callback for attribute changes.
-    // Ignores changes until initialized and visible; batches ignore logs.
-    // Re-initializes on critical changes.
+    // Lifecycle callback for when an observed attribute changes.
+    // Ignores changes if not initialized or visible; batches ignore logs to reduce noise.
+    // For critical attributes, clears cache and re-initializes the component.
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) {
             this.#ignoredChangeCount++;
@@ -1597,15 +1640,16 @@ class CustomBlock extends HTMLElement {
     }
 }
 
-// Attempt to define the custom element.
+// Attempt to define the custom element in the CustomElementsRegistry.
+// Logs an error if definition fails (e.g., name conflict).
 try {
     customElements.define('custom-block', CustomBlock);
 } catch (error) {
     console.error('Error defining CustomBlock element:', error);
 }
 
-// Log version for reference.
+// Log the component version for reference and debugging.
 console.log('CustomBlock version: 2025-09-14');
 
-// Export the class for use in other modules.
+// Export the class for potential use in other modules or extensions.
 export { CustomBlock };
