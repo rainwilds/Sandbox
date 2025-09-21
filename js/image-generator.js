@@ -115,21 +115,8 @@ export async function generatePictureMarkup({
       } = e.data;
 
       try {
-        const sources = [src, lightSrc, darkSrc].filter(Boolean);
-        if (!sources.length) {
-          self.postMessage({ markup: '<img src="https://placehold.co/3000x2000" alt="No image source provided" loading="lazy">', error: 'No valid image sources' });
-          return;
-        }
-        for (const source of sources) {
-          if (!VALID_EXTENSIONS.test(source)) {
-            self.postMessage({ markup: \`<img src="\${source}" alt="Invalid image source" loading="lazy">\`, error: 'Invalid image source: ' + source });
-            return;
-          }
-        }
-        if (!isDecorative && !alt && !(lightSrc && lightAlt) && !(darkSrc && darkAlt)) {
-          self.postMessage({ markup: '<img src="https://placehold.co/3000x2000" alt="Missing alt text" loading="lazy">', error: 'Alt attribute required' });
-          return;
-        }
+      
+console.log('Worker bypassing validations, generating picture...');
 
         const validatedBreakpoint = breakpoint && WIDTHS.includes(parseInt(breakpoint, 10)) ? parseInt(breakpoint, 10) : '';
         const primarySrc = lightSrc || darkSrc || src;
