@@ -1,9 +1,48 @@
 /* global customElements, console, window, ResizeObserver, MutationObserver */
 (async () => {
+    // Browser-compatible dev detection
+    const isDev = window.location.href.includes('/dev/') ||
+      new URLSearchParams(window.location.search).get('debug') === 'true';
+
+    // Debug logging methods
+    const log = (message, data = null) => {
+        if (isDev) {
+            console.groupCollapsed(`%c[CustomLogo] ${new Date().toLocaleTimeString()} ${message}`, 'color: #2196F3; font-weight: bold;');
+            if (data) {
+                console.log('%cData:', 'color: #4CAF50;', data);
+            }
+            console.trace();
+            console.groupEnd();
+        }
+    };
+
+    const warn = (message, data = null) => {
+        if (isDev) {
+            console.groupCollapsed(`%c[CustomLogo] ⚠️ ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
+            if (data) {
+                console.log('%cData:', 'color: #4CAF50;', data);
+            }
+            console.trace();
+            console.groupEnd();
+        }
+    };
+
+    const error = (message, data = null) => {
+        if (isDev) {
+            console.groupCollapsed(`%c[CustomLogo] ❌ ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
+            if (data) {
+                console.log('%cData:', 'color: #4CAF50;', data);
+            }
+            console.trace();
+            console.groupEnd();
+        }
+    };
+
     try {
+        log('Starting CustomLogo definition');
         const { generatePictureMarkup } = await import('../image-generator.js');
         const { VALID_ALIGNMENTS, alignMap } = await import('../shared.js');
-        console.log('Successfully imported generatePictureMarkup and alignMap');
+        log('Successfully imported generatePictureMarkup and alignMap');
 
         class CustomLogo extends HTMLElement {
             static get observedAttributes() {
@@ -29,6 +68,7 @@
 
             constructor() {
                 super();
+                log('Constructor called');
                 this.handleThemeChange = this.handleThemeChange.bind(this);
                 this.handleResize = this.handleResize.bind(this);
                 this.handleMutation = this.handleMutation.bind(this);
@@ -36,8 +76,11 @@
             }
 
             getAttributes() {
-                if (this._cachedAttrs) return this._cachedAttrs;
-                const isDev = window.location.href.includes('/dev/');
+                if (this._cachedAttrs) {
+                    log('Using cached attributes');
+                    return this._cachedAttrs;
+                }
+                log('Parsing new attributes');
                 const attrs = {
                     fullPrimarySrc: this.getAttribute('logo-full-primary-src') || '',
                     fullLightSrc: this.getAttribute('logo-full-light-src') || '',
@@ -60,13 +103,13 @@
                 const hasFullSource = attrs.fullPrimarySrc || (attrs.fullLightSrc && attrs.fullDarkSrc);
                 const hasIconSource = attrs.iconPrimarySrc || (attrs.iconLightSrc && attrs.iconDarkSrc);
                 if (!hasFullSource && !hasIconSource) {
-                    console.error('At least one valid logo source (full or icon) must be provided.');
+                    error('At least one valid logo source (full or icon) must be provided.');
                     return attrs;
                 }
 
                 const validatePair = (light, dark, label) => {
                     if ((light || dark) && !(light && dark)) {
-                        console.error(`Both ${label}-light-src and ${label}-dark-src must be provided if one is specified.`);
+                        error(`Both ${label}-light-src and ${label}-dark-src must be provided if one is specified.`);
                         return false;
                     }
                     return true;
@@ -81,43 +124,43 @@
                     attrs.isDecorative = true;
                 } else {
                     if (attrs.fullPrimarySrc && !attrs.fullPrimaryAlt) {
-                        console.error('logo-full-primary-alt is required when logo-full-primary-src is provided.');
+                        error('logo-full-primary-alt is required when logo-full-primary-src is provided.');
                     }
                     if (attrs.iconPrimarySrc && !attrs.iconPrimaryAlt) {
-                        console.error('logo-icon-primary-alt is required when logo-icon-primary-src is provided.');
+                        error('logo-icon-primary-alt is required when logo-icon-primary-src is provided.');
                     }
                     if (attrs.fullLightSrc && attrs.fullDarkSrc && !(attrs.fullLightAlt && attrs.fullDarkAlt)) {
-                        console.error('Both logo-full-light-alt and logo-full-dark-alt are required.');
+                        error('Both logo-full-light-alt and logo-full-dark-alt are required.');
                     }
                     if (attrs.iconLightSrc && attrs.iconDarkSrc && !(attrs.iconLightAlt && attrs.iconDarkAlt)) {
-                        console.error('Both logo-icon-light-alt and logo-icon-dark-alt are required.');
+                        error('Both logo-icon-light-alt and logo-icon-dark-alt are required.');
                     }
                 }
 
                 if (attrs.height) {
                     const validLength = attrs.height.match(/^(\d*\.?\d+)(px|rem|em|vh|vw)$/);
                     if (!validLength) {
-                        console.warn(`Invalid logo-height "${attrs.height}". Ignoring.`);
+                        warn(`Invalid logo-height "${attrs.height}". Ignoring.`);
                         attrs.height = '';
                     }
                 }
 
                 if (attrs.fullPosition && !VALID_ALIGNMENTS.includes(attrs.fullPosition)) {
-                    console.warn(`Invalid logo-full-position "${attrs.fullPosition}". Ignoring.`);
+                    warn(`Invalid logo-full-position "${attrs.fullPosition}". Ignoring.`);
                     attrs.fullPosition = '';
                 }
                 if (attrs.iconPosition && !VALID_ALIGNMENTS.includes(attrs.iconPosition)) {
-                    console.warn(`Invalid logo-icon-position "${attrs.iconPosition}". Ignoring.`);
+                    warn(`Invalid logo-icon-position "${attrs.iconPosition}". Ignoring.`);
                     attrs.iconPosition = '';
                 }
 
                 this._cachedAttrs = { ...attrs };
-                if (isDev) console.log('CustomLogo attributes:', attrs);
+                log('Attributes parsed successfully', attrs);
                 return attrs;
             }
 
             async render() {
-                const isDev = window.location.href.includes('/dev/');
+                log('Starting render');
                 const attrs = this.getAttributes();
                 let logoHTML = '';
                 const hasValidSource = attrs.fullPrimarySrc || attrs.fullLightSrc || attrs.fullDarkSrc ||
@@ -165,16 +208,16 @@
                             extraStyles: extraStyles,
                             noResponsive: attrs.fullLightSrc.includes('.svg') // Skip responsive for SVGs
                         });
-                        if (isDev) console.log('CustomLogo markup generated:', logoMarkup.substring(0, 200));
+                        log('Logo markup generated', { markupPreview: logoMarkup.substring(0, 200) + '...' });
                         logoHTML = `
                             ${styleTag}
                             <div class="${positionClass}">
                                 <a href="/">${logoMarkup}</a>
                             </div>
                         `;
-                        if (isDev) console.log('CustomLogo rendered successfully');
-                    } catch (error) {
-                        console.error('Error generating logo markup:', error, { attrs });
+                        log('CustomLogo rendered successfully');
+                    } catch (err) {
+                        error('Error generating logo markup', { error: err.message, attrs });
                         logoHTML = `
                             ${styleTag}
                             <div class="${positionClass}">
@@ -183,7 +226,7 @@
                         `;
                     }
                 } else {
-                    console.warn('No valid logo sources provided, skipping render.');
+                    warn('No valid logo sources provided, skipping render.');
                     logoHTML = `
                         <div class="place-self-center">
                             <a href="/"><img src="https://placehold.co/300x40" alt="No logo sources provided" loading="lazy"></a>
@@ -191,15 +234,18 @@
                     `;
                 }
                 this.innerHTML = logoHTML;
+                log('Render complete', { innerHTMLPreview: this.innerHTML.substring(0, 200) + '...' });
             }
 
             async handleThemeChange(event) {
+                log('Theme change detected', { matchesDark: event.matches });
                 if (this.isConnected) {
                     await this.render();
                 }
             }
 
             async handleResize() {
+                log('Window resize detected');
                 if (this.isConnected) {
                     const attrs = this.getAttributes();
                     const breakpoint = parseInt(attrs.breakpoint, 10);
@@ -209,6 +255,7 @@
             }
 
             handleMutation(mutations) {
+                log('Mutation observed', { mutationCount: mutations.length });
                 mutations.forEach(mutation => {
                     if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
                         const img = mutation.target;
@@ -229,7 +276,7 @@
                             }
                         });
                         if (img.src !== selectedSrc && selectedSrc) {
-                            if (window.location.href.includes('/dev/')) console.log('Updating logo src:', { selectedSrc, matchedMedia, prefersDark });
+                            log('Updating logo src', { selectedSrc, matchedMedia, prefersDark });
                             img.src = selectedSrc;
                         }
                     }
@@ -237,6 +284,7 @@
             }
 
             async connectedCallback() {
+                log('Connected to DOM');
                 await this.render();
                 const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
                 prefersDarkQuery.addEventListener('change', this.handleThemeChange);
@@ -252,6 +300,7 @@
             }
 
             disconnectedCallback() {
+                log('Disconnected from DOM');
                 if (this.resizeObserver) {
                     this.resizeObserver.disconnect();
                     this.resizeObserver = null;
@@ -264,6 +313,7 @@
             }
 
             async attributeChangedCallback() {
+                log('Attribute changed');
                 if (this.isConnected) {
                     this._cachedAttrs = null;
                     await this.render();
@@ -273,11 +323,13 @@
 
         if (!customElements.get('custom-logo')) {
             customElements.define('custom-logo', CustomLogo);
+            log('CustomLogo defined successfully');
         }
         document.querySelectorAll('custom-logo').forEach(element => {
             customElements.upgrade(element);
+            log('Upgraded existing custom-logo element');
         });
-    } catch (error) {
-        console.error('Failed to import generatePictureMarkup or define CustomLogo:', error);
+    } catch (err) {
+        error('Failed to import generatePictureMarkup or define CustomLogo', { error: err.message });
     }
 })();
