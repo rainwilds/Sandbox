@@ -1,10 +1,12 @@
-/* global customElements, console, window, ResizeObserver, MutationObserver */
 (async () => {
-    // Browser-compatible dev detection
+    // Check if debug mode is enabled by looking for '/dev/' in the URL or '?debug=true' in the query parameters.
+    // This allows for conditional logging without affecting production performance.
     const isDev = window.location.href.includes('/dev/') ||
       new URLSearchParams(window.location.search).get('debug') === 'true';
 
-    // Debug logging methods
+    // Define a logging function that only outputs in debug mode.
+    // Uses console.groupCollapsed for organized, collapsible output with color styling.
+    // Includes a timestamp, message, optional data, and a stack trace for debugging.
     const log = (message, data = null) => {
         if (isDev) {
             console.groupCollapsed(`%c[CustomNav] ${new Date().toLocaleTimeString()} ${message}`, 'color: #2196F3; font-weight: bold;');
@@ -16,6 +18,8 @@
         }
     };
 
+    // Define a warning logging function similar to log, but with yellow styling and a warning emoji.
+    // Used for non-critical issues like invalid attributes.
     const warn = (message, data = null) => {
         if (isDev) {
             console.groupCollapsed(`%c[CustomNav] ⚠️ ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
@@ -27,6 +31,8 @@
         }
     };
 
+    // Define an error logging function with red styling and an error emoji.
+    // Used for critical failures like import errors.
     const error = (message, data = null) => {
         if (isDev) {
             console.groupCollapsed(`%c[CustomNav] ❌ ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
@@ -39,12 +45,18 @@
     };
 
     try {
-        log('Starting CustomNav definition');
+        // Asynchronously import required dependencies.
+        // BACKDROP_FILTER_MAP from custom-block.js for handling backdrop filter effects.
+        // VALID_ALIGNMENTS and alignMap from shared.js for validation and mapping of alignment attributes.
         const { BACKDROP_FILTER_MAP } = await import('./custom-block.js');
         const { VALID_ALIGNMENTS, alignMap } = await import('../shared.js');
         log('Successfully imported BACKDROP_FILTER_MAP and alignMap');
 
+        // Define the CustomNav web component class.
+        // Extends HTMLElement to create a custom element for navigation menus.
         class CustomNav extends HTMLElement {
+            // Specify attributes to observe for changes.
+            // When any of these change, attributeChangedCallback is triggered.
             static get observedAttributes() {
                 return [
                     'nav',
@@ -65,6 +77,8 @@
                 ];
             }
 
+            // Collect and validate all observed attributes.
+            // Returns an object with sanitized and defaulted attribute values.
             getAttributes() {
                 log('Parsing attributes');
                 const attrs = {};
@@ -92,6 +106,9 @@
                 return attrs;
             }
 
+            // Render the navigation HTML based on attributes.
+            // Constructs the container, nav element, toggle button, and link list.
+            // Attaches click event for toggling mobile menu.
             render() {
                 log('Starting render');
                 const attrs = this.getAttributes();
@@ -127,6 +144,7 @@
                 `;
                 log('Inner HTML set', { innerHTMLPreview: this.innerHTML.substring(0, 200) + '...' });
 
+                // Set up toggle functionality for mobile/responsive views
                 const hamburger = this.querySelector('button[aria-controls="nav-menu"]');
                 const navMenu = this.querySelector('#nav-menu');
                 if (hamburger && navMenu) {
@@ -140,11 +158,13 @@
                 log('Render complete');
             }
 
+            // Render the component when it's added to the DOM
             connectedCallback() {
                 log('Connected to DOM');
                 this.render();
             }
 
+            // Re-render the component when an observed attribute changes
             attributeChangedCallback() {
                 log('Attribute changed');
                 if (this.isConnected) {
@@ -152,10 +172,12 @@
                 }
             }
         }
+        // Define the custom element if not already defined
         if (!customElements.get('custom-nav')) {
             customElements.define('custom-nav', CustomNav);
             log('CustomNav defined successfully');
         }
+        // Upgrade any existing custom-nav elements in the document
         document.querySelectorAll('custom-nav').forEach(element => {
             customElements.upgrade(element);
             log('Upgraded existing custom-nav element');
