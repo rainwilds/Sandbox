@@ -3,7 +3,40 @@
     // Browser-compatible dev detection
     const isDev = window.location.href.includes('/dev/') ||
       new URLSearchParams(window.location.search).get('debug') === 'true';
-    const log = (message) => { if (isDev) console.log(`[HeadGenerator] ${new Date().toLocaleTimeString()} ${message}`); };
+
+    // Debug logging methods
+    const log = (message, data = null) => {
+        if (isDev) {
+            console.groupCollapsed(`%c[HeadGenerator] ${new Date().toLocaleTimeString()} ${message}`, 'color: #2196F3; font-weight: bold;');
+            if (data) {
+                console.log('%cData:', 'color: #4CAF50;', data);
+            }
+            console.trace();
+            console.groupEnd();
+        }
+    };
+
+    const warn = (message, data = null) => {
+        if (isDev) {
+            console.groupCollapsed(`%c[HeadGenerator] ⚠️ ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
+            if (data) {
+                console.log('%cData:', 'color: #4CAF50;', data);
+            }
+            console.trace();
+            console.groupEnd();
+        }
+    };
+
+    const error = (message, data = null) => {
+        if (isDev) {
+            console.groupCollapsed(`%c[HeadGenerator] ❌ ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
+            if (data) {
+                console.log('%cData:', 'color: #4CAF50;', data);
+            }
+            console.trace();
+            console.groupEnd();
+        }
+    };
 
     // Cache for setup.json
     let setupCache = null;
@@ -32,28 +65,30 @@
             return setupCache;
         }
         try {
+            log('Fetching setup.json');
             const response = await fetch('./JSON/setup.json', { cache: 'force-cache' });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             const jsonText = await response.text();
             setupCache = JSON.parse(jsonText);
-            if (isDev) log('Loaded setup.json: ' + JSON.stringify(setupCache, null, 2));
+            log('Loaded setup.json', setupCache);
             return setupCache;
-        } catch (error) {
-            console.error('Failed to load setup.json:', error);
+        } catch (err) {
+            error('Failed to load setup.json', { error: err.message });
             return defaultSetup;
         }
     }
 
     // Function to load components in parallel
     async function loadComponents(components) {
+        log('Loading components', { components });
         const componentImports = components.split(' ').map(async (component) => {
             try {
                 const module = await import(`./components/${component}.js`);
                 log(`Loaded module: ./components/${component}.js`);
                 return module;
-            } catch (error) {
-                console.error(`Failed to load component ${component}:`, error);
+            } catch (err) {
+                error(`Failed to load component ${component}`, { error: err.message });
                 return null;
             }
         });
@@ -62,7 +97,7 @@
 
     // Function to create and append DOM elements asynchronously
     async function updateHead(attributes) {
-        if (isDev) log('updateHead called with attributes: ' + JSON.stringify(attributes, null, 2));
+        log('updateHead called with attributes', attributes);
         const head = document.head;
         const criticalFrag = document.createDocumentFragment();  // For SEO-critical and render-critical
         const deferredFrag = document.createDocumentFragment();  // For non-critical (JSON-LD, Snipcart)
@@ -80,14 +115,14 @@
                 link.type = font.type ?? 'font/woff2';
                 link.crossOrigin = font.crossorigin ?? 'anonymous';
                 criticalFrag.appendChild(link);
-                if (isDev) log(`Added font preload: ${fontUrl}`);
+                log(`Added font preload: ${fontUrl}`);
                 hasValidFonts = true;
             } else {
-                console.warn('Skipping invalid font entry:', font);
+                warn('Skipping invalid font entry', font);
             }
         });
         if (!hasValidFonts) {
-            log('No valid fonts in setup.json; relying on CSS @font-face');
+            warn('No valid fonts in setup.json; relying on CSS @font-face');
         }
 
         // Stylesheet: Critical for FCP
@@ -107,7 +142,7 @@
             criticalFrag.appendChild(script);
             log(`Added Font Awesome Kit script: ${faKitUrl}`);
         } else {
-            console.warn('No Font Awesome kit URL found; icons may not load');
+            warn('No Font Awesome kit URL found; icons may not load');
         }
 
         // Meta tags: Critical for SEO
@@ -140,7 +175,7 @@
             }
             meta.content = content;
             criticalFrag.appendChild(meta);
-            if (isDev) log(`Added ${name} meta with content: ${content}`);
+            log(`Added ${name} meta with content: ${content}`);
         });
 
         // Canonical link: Critical for SEO
@@ -211,7 +246,7 @@
             if (favicon.sizes) link.sizes = favicon.sizes;
             if (favicon.type) link.type = favicon.type;
             criticalFrag.appendChild(link);
-            if (isDev) log(`Added favicon: ${favicon.href}`);
+            log(`Added favicon: ${favicon.href}`);
         });
 
         // Snipcart: Non-critical, defer
@@ -230,11 +265,12 @@
 
         // Append critical elements immediately
         head.appendChild(criticalFrag);
+        log('Appended critical elements to head', { count: criticalFrag.childNodes.length });
 
         // Defer non-critical appends
         const appendDeferred = () => {
             head.appendChild(deferredFrag);
-            if (isDev) log('Deferred elements appended');
+            log('Appended deferred elements to head', { count: deferredFrag.childNodes.length });
         };
         if (window.requestIdleCallback) {
             requestIdleCallback(appendDeferred, { timeout: 2000 });
@@ -245,13 +281,14 @@
 
     // Main execution
     try {
-        const customHead = document.querySelector('data-custom-head');
+        log('Starting HeadGenerator');
+        const customHead = document.querySelector('[data-custom-head]');
         if (!customHead) {
-            log('No data-custom-head element found');
+            warn('No data-custom-head element found');
             return;
         }
 
-        log(`Found data-custom-head elements: ${document.querySelectorAll('data-custom-head').length}`);
+        log(`Found data-custom-head elements: ${document.querySelectorAll('[data-custom-head]').length}`);
 
         // Gather attributes
         const attributes = {};
@@ -262,7 +299,7 @@
                 attributes[key] = value;
             }
         }
-        if (isDev) log('Merged attributes: ' + JSON.stringify(attributes, null, 2));
+        log('Merged attributes', attributes);
 
         // Load components
         if (attributes.components) {
@@ -275,7 +312,7 @@
         // Remove data-custom-head element
         customHead.remove();
         log('Removed data-custom-head element');
-    } catch (error) {
-        console.error('Error in HeadGenerator:', error);
+    } catch (err) {
+        error('Error in HeadGenerator', { error: err.message, stack: err.stack });
     }
 })();
