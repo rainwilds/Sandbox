@@ -67,7 +67,6 @@ export async function generatePictureMarkup({
     { maxWidth: 2560, baseValue: '100vw' },
   ];
   const DEFAULT_SIZE_VALUE = 3840;
-  // REMOVED HARDCODED BASE_PATH - we'll use the actual paths
   const VALID_EXTENSIONS = /\\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
 
   function getImageType(src) {
@@ -78,30 +77,27 @@ export async function generatePictureMarkup({
 
   function getBaseFilename(src) {
     if (!src) return null;
-    // Extract just the filename without path or extension
     const filename = src.split('/').pop();
     return filename ? filename.split('.').slice(0, -1).join('.') : null;
   };
 
-  // NEW: Function to generate responsive variants from the original path
   function generateResponsiveSrcset(originalSrc, widths) {
     if (!originalSrc) return '';
     
-    // Get the directory and filename parts
     const parts = originalSrc.split('/');
     const filenameWithExt = parts.pop();
     const directory = parts.join('/') + '/';
     const filename = getBaseFilename(originalSrc);
+    const extension = filenameWithExt.split('.').pop();
     
     if (!filename) return originalSrc;
     
-    // Generate srcset with same directory structure
     const variants = widths.map(w => {
       const variantName = filename + '-' + w;
-      return directory + variantName + '.' + filenameWithExt.split('.').pop() + ' ' + w + 'w';
+      return directory + variantName + '.' + extension + ' ' + w + 'w';
     });
     
-    return directory + filename + '.' + filenameWithExt.split('.').pop() + ' 3840w, ' + variants.join(', ');
+    return directory + filename + '.' + extension + ' 3840w, ' + variants.join(', ');
   };
 
   function parseWidth(widthStr, winWidth) {
@@ -147,7 +143,7 @@ export async function generatePictureMarkup({
       const loadingAttr = ['eager', 'lazy'].includes(loading) ? ' loading="' + loading + '"' : ' loading="lazy"';
       const fetchPriorityAttr = ['high', 'low', 'auto'].includes(fetchPriority) ? ' fetchpriority="' + fetchPriority + '"' : '';
 
-      const allClasses = [...new Set([customClasses, ...extraClasses].flatMap((c) => c.split(/\\\\s+/)).filter(Boolean))];
+      const allClasses = [...new Set([customClasses, ...extraClasses].flatMap((c) => c.split(/\\s+/)).filter(Boolean))];
       if (aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio)) {
         allClasses.push('aspect-ratio-' + aspectRatio.replace('/', '-'));
       }
@@ -157,9 +153,6 @@ export async function generatePictureMarkup({
       const markup = ['<picture' + classAttr + '>'];
 
       const sizes = generateSizes(mobileWidth, tabletWidth, desktopWidth);
-      const baseFilename = getBaseFilename(lightSrc || darkSrc || src);
-      const lightBaseFilename = lightSrc ? getBaseFilename(lightSrc) : null;
-      const darkBaseFilename = darkSrc ? getBaseFilename(darkSrc) : null;
 
       if (noResponsive || primarySrc.endsWith('.svg')) {
         if (lightSrc) {
@@ -177,21 +170,18 @@ export async function generatePictureMarkup({
         }
       } else {
         FORMATS.forEach((format) => {
-          if (lightSrc && lightBaseFilename && !lightSrc.endsWith('.svg')) {
-            // Use the actual lightSrc path for srcset generation
+          if (lightSrc && !lightSrc.endsWith('.svg')) {
             markup.push(
-              '<source media="(prefers-color-scheme: light)" type="image/' + format + '" srcset="' + generateResponsiveSrcset(lightSrc, WIDTHS) + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : lightAlt ? ' alt="' + lightAlt + '"' : '') + '>'
+              '<source media="(prefers-color-scheme: light)" type="image/' + format + '" srcset="' + generateResponsiveSrcset(lightSrc.replace(/\\.[^.]+$/, '.' + format), WIDTHS) + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : lightAlt ? ' alt="' + lightAlt + '"' : '') + '>'
             );
           }
-          if (darkSrc && darkBaseFilename && !darkSrc.endsWith('.svg')) {
-            // Use the actual darkSrc path for srcset generation
+          if (darkSrc && !darkSrc.endsWith('.svg')) {
             markup.push(
-              '<source media="(prefers-color-scheme: dark)" type="image/' + format + '" srcset="' + generateResponsiveSrcset(darkSrc, WIDTHS) + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : darkAlt ? ' alt="' + darkAlt + '"' : '') + '>'
+              '<source media="(prefers-color-scheme: dark)" type="image/' + format + '" srcset="' + generateResponsiveSrcset(darkSrc.replace(/\\.[^.]+$/, '.' + format), WIDTHS) + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : darkAlt ? ' alt="' + darkAlt + '"' : '') + '>'
             );
           }
           if (!primarySrc.endsWith('.svg')) {
-            // Use the actual primarySrc path for srcset generation
-            markup.push('<source type="image/' + format + '" srcset="' + generateResponsiveSrcset(primarySrc, WIDTHS) + '" sizes="' + sizes + '"' + altAttr + '>');
+            markup.push('<source type="image/' + format + '" srcset="' + generateResponsiveSrcset(primarySrc.replace(/\\.[^.]+$/, '.' + format), WIDTHS) + '" sizes="' + sizes + '"' + altAttr + '>');
           }
         });
       }
@@ -199,7 +189,7 @@ export async function generatePictureMarkup({
       // Transform responsive path to primary path and change format to .jpg
       const primarySrcForFallback = primarySrc
           .replace('/responsive/', '/primary/')
-          .replace(/\.(jxl|avif|webp|jpeg)$/, '.jpg');
+          .replace(/\\.(jxl|avif|webp|jpeg)$/, '.jpg');
 
       markup.push(
         '<img src="' + primarySrcForFallback + '"' + altAttr + loadingAttr + fetchPriorityAttr + ' onerror="this.src=\'https://placehold.co/3000x2000\'; this.alt=\'' + (primaryAlt || 'Placeholder image') + '\'; this.onerror=null;">'
@@ -219,7 +209,8 @@ export async function generatePictureMarkup({
       console.error('Stack:', error.stack);
       const primarySrc = lightSrc || darkSrc || src;
       const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
-      const fallbackImg = \`<img src="\${primarySrc || 'https://placehold.co/3000x2000'}" alt="\${primaryAlt}" loading="lazy">\`;
+      // FIXED: Proper escaping for template literal in worker
+      const fallbackImg = '<img src="' + (primarySrc || 'https://placehold.co/3000x2000') + '" alt="' + primaryAlt + '" loading="lazy">';
       self.postMessage({ markup: fallbackImg, error: error.message });
     }
   });
