@@ -39,78 +39,93 @@ export async function generateVideoMarkup({
 
   if (isDev) console.log('Generating video markup for:', { src, lightSrc, darkSrc, poster, lightPoster, darkPoster });
 
-  const workerCode = [
-    'const VALID_VIDEO_EXTENSIONS = [\'mp4\', \'webm\'];',
-    '',
-    'function isValidVideoExt(videoSrc) {',
-    '  if (!videoSrc) return false;',
-    '  const ext = videoSrc.split(\'.\').pop()?.toLowerCase();',
-    '  return ext && VALID_VIDEO_EXTENSIONS.includes(ext);',
-    '};',
-    '',
-    'self.addEventListener(\'message\', (e) => {',
-    '  const { src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses, extraClasses, loading, autoplay, muted, loop, playsinline, disablePip, preload, controls } = e.data;',
-    '',
-    '  try {',
-    '    const classList = [customClasses, ...extraClasses].filter(Boolean).join(\' \').trim();',
-    '    const videoId = `custom-video-${Math.random().toString(36).substring(2, 11)}`;',
-    '    const isMuted = (autoplay || muted) ? \'muted\' : \'\';',
-    '    const posterAttr = poster ? `poster="${poster}"` : \'\';',
-    '    const dataAttrs = [',
-    '      lightPoster ? `data-light-poster="${lightPoster}"` : \'\',',
-    '      darkPoster ? `data-dark-poster="${darkPoster}"` : \'\',',
-    '      lightSrc ? `data-light-src="${lightSrc}"` : \'\',',
-    '      darkSrc ? `data-dark-src="${darkSrc}"` : \'\',',
-    '      src ? `data-default-src="${src}"` : \'\'',
-    '    ].filter(Boolean).join(\' \');',
-    '',
-    '    let innerHTML = \'\';',
-    '    const addSourcesHTML = (videoSrc, mediaQuery) => {',
-    '      const trimmedSrc = (videoSrc || \'\').trim();',
-    '      if (!trimmedSrc || !isValidVideoExt(trimmedSrc)) {',
-    '        return \'\';',
-    '      }',
-    '      const ext = trimmedSrc.split(\'.\').pop().toLowerCase();',
-    '      const baseSrc = trimmedSrc.slice(0, -(ext.length + 1));',
-    '      const mediaAttr = mediaQuery ? ` media="${mediaQuery}"` : \'\';',
-    '      return `',
-    '        <source src="${baseSrc}.webm" type="video/webm"${mediaAttr}>',
-    '        <source src="${baseSrc}.mp4" type="video/mp4"${mediaAttr}>',
-    '      `;',
-    '    };',
-    '    if (lightSrc) innerHTML += addSourcesHTML(lightSrc, \'(prefers-color-scheme: light)\');',
-    '    if (darkSrc) innerHTML += addSourcesHTML(darkSrc, \'(prefers-color-scheme: dark)\');',
-    '    const defaultSrc = lightSrc || darkSrc || src;',
-    '    innerHTML += addSourcesHTML(defaultSrc);',
-    '    innerHTML += `<p>Your browser does not support the video tag. <a href="${defaultSrc || '#'}" >Download video</a></p>`;',
-    '',
-    '    const markup = `',
-    '      <video',
-    '        id="${videoId}"',
-    '        ${autoplay ? \'autoplay\' : \'\'}',
-    '        ${isMuted}',
-    '        ${loop ? \'loop\' : \'\'}',
-    '        ${playsinline ? \'playsinline\' : \'\'}',
-    '        ${disablePip ? \'disablepictureinpicture\' : \'\'}',
-    '        ${controls ? \'controls\' : \'\'}',
-    '        preload="${preload}"',
-    '        loading="${loading === \'lazy\' ? \'lazy\' : \'eager\'}"',
-    '        class="${classList}"',
-    '        title="${alt}"',
-    '        aria-label="${alt}"',
-    '        ${posterAttr}',
-    '        ${dataAttrs}>',
-    '        ${innerHTML}',
-    '      </video>',
-    '    `;',
-    '    self.postMessage({ markup });',
-    '  } catch (error) {',
-    '    const primarySrc = lightSrc || darkSrc || src;',
-    '    const fallbackVideo = `<video><p>Error generating video: ${error.message}</p><a href="${primarySrc || '#'}" >Download video</a></video>`;',
-    '    self.postMessage({ markup: fallbackVideo, error: error.message });',
-    '  }',
-    '});'
-  ].join('\n');
+  const workerCode = `
+  const VALID_VIDEO_EXTENSIONS = ['mp4', 'webm'];
+
+  function isValidVideoExt(videoSrc) {
+    if (!videoSrc) return false;
+    const ext = videoSrc.split('.').pop()?.toLowerCase();
+    return ext && VALID_VIDEO_EXTENSIONS.includes(ext);
+  };
+
+  self.addEventListener('message', (e) => {
+    const { src, lightSrc, darkSrc, poster, lightPoster, darkPoster, alt, customClasses, extraClasses, loading, autoplay, muted, loop, playsinline, disablePip, preload, controls } = e.data;
+
+    try {
+      const classList = [customClasses, ...extraClasses].filter(Boolean).join(' ').trim();
+      const videoId = \`custom-video-\${Math.random().toString(36).substring(2, 11)}\`;
+      const isMuted = (autoplay || muted) ? 'muted' : '';
+      const posterAttr = poster ? \`poster="\${poster}"\` : '';
+      const dataAttrs = [
+        lightPoster ? \`data-light-poster="\${lightPoster}"\` : '',
+        darkPoster ? \`data-dark-poster="\${darkPoster}"\` : '',
+        lightSrc ? \`data-light-src="\${lightSrc}"\` : '',
+        darkSrc ? \`data-dark-src="\${darkSrc}"\` : '',
+        src ? \`data-default-src="\${src}"\` : ''
+      ].filter(Boolean).join(' ');
+
+      let innerHTML = '';
+      const addSourcesHTML = (videoSrc, mediaQuery) => {
+        const trimmedSrc = (videoSrc || '').trim();
+        if (!trimmedSrc || !isValidVideoExt(trimmedSrc)) {
+          return '';
+        }
+        const ext = trimmedSrc.split('.').pop().toLowerCase();
+        const baseSrc = trimmedSrc.slice(0, -(ext.length + 1));
+        const mediaAttr = mediaQuery ? \` media="\${mediaQuery}"\` : '';
+        return \`
+          <source src="\${baseSrc}.webm" type="video/webm"\${mediaAttr}>
+          <source src="\${baseSrc}.mp4" type="video/mp4"\${mediaAttr}>
+        \`;
+      };
+      if (lightSrc) innerHTML += addSourcesHTML(lightSrc, '(prefers-color-scheme: light)');
+      if (darkSrc) innerHTML += addSourcesHTML(darkSrc, '(prefers-color-scheme: dark)');
+      const defaultSrc = lightSrc || darkSrc || src;
+      innerHTML += addSourcesHTML(defaultSrc);
+      innerHTML += \`<p>Your browser does not support the video tag. <a href="\${defaultSrc || '#'}" >Download video</a></p>\`;
+
+      const markup = \`
+        <video
+          id="\${videoId}"
+          \${autoplay ? 'autoplay' : ''}
+          \${isMuted}
+          \${loop ? 'loop' : ''}
+          \${playsinline ? 'playsinline' : ''}
+          \${disablePip ? 'disablepictureinpicture' : ''}
+          \${controls ? 'controls' : ''}
+          preload="\${preload}"
+          loading="\${loading === 'lazy' ? 'lazy' : 'eager'}"
+          class="\${classList}"
+          title="\${alt}"
+          aria-label="\${alt}"
+          \${posterAttr}
+          \${dataAttrs}>
+          \${innerHTML}
+        </video>
+      \`;
+      self.postMessage({ markup });
+    } catch (error) {
+      const primarySrc = lightSrc || darkSrc || src;
+      const fallbackVideo = \`<video><p>Error generating video: \${error.message}</p><a href="\${primarySrc || '#'}" >Download video</a></video>\`;
+      self.postMessage({ markup: fallbackVideo, error: error.message });
+    }
+  });
+  `;
+
+  if (isDev) {
+    console.log('Video Worker code:', workerCode);
+    const lines = workerCode.split('\n');
+    console.log('Line 105:', lines[104]);
+    console.log('Line 106:', lines[105]);
+    console.log('Line 107:', lines[106]);
+    console.log('Line 108:', lines[107]);
+    try {
+      new Function(workerCode);
+      console.log('Video Worker code syntax is valid');
+    } catch (syntaxError) {
+      console.error('Syntax error in Video Worker code:', syntaxError);
+    }
+  }
 
   const blob = new Blob([workerCode], { type: 'application/javascript' });
   const workerUrl = URL.createObjectURL(blob);
@@ -205,14 +220,12 @@ if (typeof window !== 'undefined') {
     });
   };
 
-  const lazyLoadObserver = new IntersectionObserver((entries) => {
+  const lazyAutoplayObserver = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         const video = entry.target;
-        if (video.autoplay) {
-          video.play().catch(e => console.warn('Autoplay failed:', e));
-        }
-        lazyLoadObserver.unobserve(video);
+        video.play().catch(e => console.warn('Autoplay failed:', e));
+        lazyAutoplayObserver.unobserve(video);
       }
     });
   }, { rootMargin: '50px' });
@@ -220,7 +233,7 @@ if (typeof window !== 'undefined') {
   document.addEventListener('DOMContentLoaded', () => {
     updateVideos();
     document.querySelectorAll('video[autoplay]').forEach(video => {
-      lazyLoadObserver.observe(video);
+      lazyAutoplayObserver.observe(video);
     });
   });
 
