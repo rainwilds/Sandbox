@@ -5,6 +5,8 @@ import { generateVideoMarkup } from '../video-generator.js';
 import { VALID_ALIGNMENTS, alignMap } from '../shared.js';
 
 class CustomBlock extends HTMLElement {
+    #ignoredChangeCount;
+
     constructor() {
         super();
         this.isVisible = false;
