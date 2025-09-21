@@ -56,150 +56,174 @@ export async function generatePictureMarkup({
   if (isDev) console.log('Generating picture markup for:', { src, lightSrc, darkSrc, alt, lightAlt, darkAlt, noResponsive, effectiveNoResponsive });
 
   const workerCode = `
-    const WIDTHS = [768, 1024, 1366, 1920, 2560];
-    const FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
-    const VALID_ASPECT_RATIOS = new Set(['16/9', '9/16', '3/2', '2/3', '1/1', '21/9']);
-    const SIZES_BREAKPOINTS = [
-      { maxWidth: 768, baseValue: '100vw' },
-      { maxWidth: 1024, baseValue: '100vw' },
-      { maxWidth: 1366, baseValue: '100vw' },
-      { maxWidth: 1920, baseValue: '100vw' },
-      { maxWidth: 2560, baseValue: '100vw' },
-    ];
-    const DEFAULT_SIZE_VALUE = 3840;
-    const BASE_PATH = '/Sandbox/img/responsive/';
-    const VALID_EXTENSIONS = /\\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
+  const WIDTHS = [768, 1024, 1366, 1920, 2560];
+  const FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
+  const VALID_ASPECT_RATIOS = new Set(['16/9', '9/16', '3/2', '2/3', '1/1', '21/9']);
+  const SIZES_BREAKPOINTS = [
+    { maxWidth: 768, baseValue: '100vw' },
+    { maxWidth: 1024, baseValue: '100vw' },
+    { maxWidth: 1366, baseValue: '100vw' },
+    { maxWidth: 1920, baseValue: '100vw' },
+    { maxWidth: 2560, baseValue: '100vw' },
+  ];
+  const DEFAULT_SIZE_VALUE = 3840;
+  // REMOVED HARDCODED BASE_PATH - we'll use the actual paths
+  const VALID_EXTENSIONS = /\\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
 
-    function getImageType(src) {
-      if (!src) return '';
-      const ext = src.split('.').pop().toLowerCase();
-      return ext === 'svg' ? 'image/svg+xml' : 'image/' + ext;
+  function getImageType(src) {
+    if (!src) return '';
+    const ext = src.split('.').pop().toLowerCase();
+    return ext === 'svg' ? 'image/svg+xml' : 'image/' + ext;
+  };
+
+  function getBaseFilename(src) {
+    if (!src) return null;
+    // Extract just the filename without path or extension
+    const filename = src.split('/').pop();
+    return filename ? filename.split('.').slice(0, -1).join('.') : null;
+  };
+
+  // NEW: Function to generate responsive variants from the original path
+  function generateResponsiveSrcset(originalSrc, widths) {
+    if (!originalSrc) return '';
+    
+    // Get the directory and filename parts
+    const parts = originalSrc.split('/');
+    const filenameWithExt = parts.pop();
+    const directory = parts.join('/') + '/';
+    const filename = getBaseFilename(originalSrc);
+    
+    if (!filename) return originalSrc;
+    
+    // Generate srcset with same directory structure
+    const variants = widths.map(w => {
+      const variantName = filename + '-' + w;
+      return directory + variantName + '.' + filenameWithExt.split('.').pop() + ' ' + w + 'w';
+    });
+    
+    return directory + filename + '.' + filenameWithExt.split('.').pop() + ' 3840w, ' + variants.join(', ');
+  };
+
+  function parseWidth(widthStr, winWidth) {
+    winWidth = winWidth || 1920;
+    if (typeof widthStr === 'number') return Math.max(0.1, Math.min(2.0, widthStr / winWidth));
+    const vwMatch = widthStr.match(/(\\d+)vw/);
+    if (vwMatch) return Math.max(0.1, Math.min(2.0, parseInt(vwMatch[1], 10) / 100));
+    const pxMatch = widthStr.match(/(\\d+)px/);
+    if (pxMatch) return Math.max(0.1, Math.min(2.0, parseInt(pxMatch[1], 10) / winWidth));
+    return 1.0;
+  };
+
+  function generateSizes(mobileWidth, tabletWidth, desktopWidth) {
+    const parsedWidths = {
+      mobile: parseWidth(mobileWidth),
+      tablet: parseWidth(tabletWidth),
+      desktop: parseWidth(desktopWidth),
     };
+    return [
+      SIZES_BREAKPOINTS.map((bp) =>
+        '(max-width: ' + bp.maxWidth + 'px) ' +
+        ((bp.maxWidth <= 768 ? parsedWidths.mobile : bp.maxWidth <= 1024 ? parsedWidths.tablet : parsedWidths.desktop) * 100) + 'vw'
+      ).join(', '),
+      (DEFAULT_SIZE_VALUE * parsedWidths.desktop) + 'px'
+    ].join(', ');
+  };
 
-    function getBaseFilename(src) {
-      if (!src) return null;
-      return src.split('/').pop().split('.').slice(0, -1).join('.');
-    };
+  self.addEventListener('message', (e) => {
+    const {
+      src, lightSrc, darkSrc, alt, lightAlt, darkAlt,
+      isDecorative, mobileWidth, tabletWidth, desktopWidth, aspectRatio,
+      includeSchema, customClasses, loading, fetchPriority, extraClasses,
+      noResponsive, breakpoint
+    } = e.data;
 
-    function parseWidth(widthStr, winWidth) {
-      winWidth = winWidth || 1920;
-      if (typeof widthStr === 'number') return Math.max(0.1, Math.min(2.0, widthStr / winWidth));
-      const vwMatch = widthStr.match(/(\\d+)vw/);
-      if (vwMatch) return Math.max(0.1, Math.min(2.0, parseInt(vwMatch[1], 10) / 100));
-      const pxMatch = widthStr.match(/(\\d+)px/);
-      if (pxMatch) return Math.max(0.1, Math.min(2.0, parseInt(pxMatch[1], 10) / winWidth));
-      return 1.0;
-    };
+    console.log('Worker bypassing validations, generating picture...');
 
-    function generateSizes(mobileWidth, tabletWidth, desktopWidth) {
-      const parsedWidths = {
-        mobile: parseWidth(mobileWidth),
-        tablet: parseWidth(tabletWidth),
-        desktop: parseWidth(desktopWidth),
-      };
-      return [
-        SIZES_BREAKPOINTS.map((bp) =>
-          '(max-width: ' + bp.maxWidth + 'px) ' +
-          ((bp.maxWidth <= 768 ? parsedWidths.mobile : bp.maxWidth <= 1024 ? parsedWidths.tablet : parsedWidths.desktop) * 100) + 'vw'
-        ).join(', '),
-        (DEFAULT_SIZE_VALUE * parsedWidths.desktop) + 'px'
-      ].join(', ');
-    };
+    try {
+      const validatedBreakpoint = breakpoint && WIDTHS.includes(parseInt(breakpoint, 10)) ? parseInt(breakpoint, 10) : '';
+      const primarySrc = lightSrc || darkSrc || src;
+      const primaryAlt = isDecorative ? '' : (lightAlt || darkAlt || alt);
+      const altAttr = isDecorative ? ' alt="" role="presentation"' : ' alt="' + primaryAlt + '"';
+      const loadingAttr = ['eager', 'lazy'].includes(loading) ? ' loading="' + loading + '"' : ' loading="lazy"';
+      const fetchPriorityAttr = ['high', 'low', 'auto'].includes(fetchPriority) ? ' fetchpriority="' + fetchPriority + '"' : '';
 
-    self.addEventListener('message', (e) => {
-      const {
-        src, lightSrc, darkSrc, alt, lightAlt, darkAlt,
-        isDecorative, mobileWidth, tabletWidth, desktopWidth, aspectRatio,
-        includeSchema, customClasses, loading, fetchPriority, extraClasses,
-        noResponsive, breakpoint
-      } = e.data;
+      const allClasses = [...new Set([customClasses, ...extraClasses].flatMap((c) => c.split(/\\\\s+/)).filter(Boolean))];
+      if (aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio)) {
+        allClasses.push('aspect-ratio-' + aspectRatio.replace('/', '-'));
+      }
+      allClasses.push('animate', 'animate-fade-in');
+      const classAttr = allClasses.length ? ' class="' + allClasses.join(' ') + '"' : '';
 
-      try {
-      
-console.log('Worker bypassing validations, generating picture...');
+      const markup = ['<picture' + classAttr + '>'];
 
-        const validatedBreakpoint = breakpoint && WIDTHS.includes(parseInt(breakpoint, 10)) ? parseInt(breakpoint, 10) : '';
-        const primarySrc = lightSrc || darkSrc || src;
-        const primaryAlt = isDecorative ? '' : (lightAlt || darkAlt || alt);
-        const altAttr = isDecorative ? ' alt="" role="presentation"' : ' alt="' + primaryAlt + '"';
-        const loadingAttr = ['eager', 'lazy'].includes(loading) ? ' loading="' + loading + '"' : ' loading="lazy"';
-        const fetchPriorityAttr = ['high', 'low', 'auto'].includes(fetchPriority) ? ' fetchpriority="' + fetchPriority + '"' : '';
+      const sizes = generateSizes(mobileWidth, tabletWidth, desktopWidth);
+      const baseFilename = getBaseFilename(lightSrc || darkSrc || src);
+      const lightBaseFilename = lightSrc ? getBaseFilename(lightSrc) : null;
+      const darkBaseFilename = darkSrc ? getBaseFilename(darkSrc) : null;
 
-        const allClasses = [...new Set([customClasses, ...extraClasses].flatMap((c) => c.split(/\\s+/)).filter(Boolean))];
-        if (aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio)) {
-          allClasses.push('aspect-ratio-' + aspectRatio.replace('/', '-'));
-        }
-        allClasses.push('animate', 'animate-fade-in');
-        const classAttr = allClasses.length ? ' class="' + allClasses.join(' ') + '"' : '';
-
-        const markup = ['<picture' + classAttr + '>'];
-
-        const generateSrcset = (filename, format) =>
-          BASE_PATH + filename + '.' + format + ' 3840w' + ', ' + WIDTHS.map((w) => BASE_PATH + filename + '-' + w + '.' + format + ' ' + w + 'w').join(', ');
-
-        const sizes = generateSizes(mobileWidth, tabletWidth, desktopWidth);
-        const baseFilename = getBaseFilename(lightSrc || darkSrc || src);
-        const lightBaseFilename = lightSrc ? getBaseFilename(lightSrc) : null;
-        const darkBaseFilename = darkSrc ? getBaseFilename(darkSrc) : null;
-
-        if (noResponsive || primarySrc.endsWith('.svg')) {
-          if (lightSrc) {
-            markup.push(
-              '<source media="(prefers-color-scheme: light)" type="' + getImageType(lightSrc) + '" srcset="' + lightSrc + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : lightAlt ? ' alt="' + lightAlt + '"' : '') + '>'
-            );
-          }
-          if (darkSrc) {
-            markup.push(
-              '<source media="(prefers-color-scheme: dark)" type="' + getImageType(darkSrc) + '" srcset="' + darkSrc + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : darkAlt ? ' alt="' + darkAlt + '"' : '') + '>'
-            );
-          }
-          if (src) {
-            markup.push('<source type="' + getImageType(src) + '" srcset="' + src + '" sizes="' + sizes + '"' + altAttr + '>');
-          }
-        } else {
-          FORMATS.forEach((format) => {
-            if (lightSrc && lightBaseFilename && !lightSrc.endsWith('.svg')) {
-              markup.push(
-                '<source media="(prefers-color-scheme: light)" type="image/' + format + '" srcset="' + generateSrcset(lightBaseFilename, format) + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : lightAlt ? ' alt="' + lightAlt + '"' : '') + '>'
-              );
-            }
-            if (darkSrc && darkBaseFilename && !darkSrc.endsWith('.svg')) {
-              markup.push(
-                '<source media="(prefers-color-scheme: dark)" type="image/' + format + '" srcset="' + generateSrcset(darkBaseFilename, format) + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : darkAlt ? ' alt="' + darkAlt + '"' : '') + '>'
-              );
-            }
-            if (!primarySrc.endsWith('.svg')) {
-              markup.push('<source type="image/' + format + '" srcset="' + generateSrcset(baseFilename, format) + '" sizes="' + sizes + '"' + altAttr + '>');
-            }
-          });
-        }
-
-// Transform responsive path to primary path and change format to .jpg
-const primarySrcForFallback = primarySrc
-    .replace('/responsive/', '/primary/')
-    .replace(/\.(jxl|avif|webp|jpeg)$/, '.jpg');
-
-markup.push(
-  '<img src="' + primarySrcForFallback + '"' + altAttr + loadingAttr + fetchPriorityAttr + ' onerror="this.src=\'https://placehold.co/3000x2000\'; this.alt=\'' + (primaryAlt || 'Placeholder image') + '\'; this.onerror=null;">'
-);
-        markup.push('</picture>');
-
-        if (includeSchema) {
+      if (noResponsive || primarySrc.endsWith('.svg')) {
+        if (lightSrc) {
           markup.push(
-            '<script type="application/ld+json">{"@context":"http://schema.org","@type":"ImageObject","url":"' + primarySrc + '","alternateName":"' + primaryAlt + '"}</script>'
+            '<source media="(prefers-color-scheme: light)" type="' + getImageType(lightSrc) + '" srcset="' + lightSrc + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : lightAlt ? ' alt="' + lightAlt + '"' : '') + '>'
           );
         }
-
-        const result = markup.join('');
-        self.postMessage({ markup: result });
-      } catch (error) {
-        const primarySrc = lightSrc || darkSrc || src;
-        const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
-        const fallbackImg = \`<img src="\${primarySrc || 'https://placehold.co/3000x2000'}" alt="\${primaryAlt}" loading="lazy">\`;
-        self.postMessage({ markup: fallbackImg, error: error.message });
+        if (darkSrc) {
+          markup.push(
+            '<source media="(prefers-color-scheme: dark)" type="' + getImageType(darkSrc) + '" srcset="' + darkSrc + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : darkAlt ? ' alt="' + darkAlt + '"' : '') + '>'
+          );
+        }
+        if (src) {
+          markup.push('<source type="' + getImageType(src) + '" srcset="' + src + '" sizes="' + sizes + '"' + altAttr + '>');
+        }
+      } else {
+        FORMATS.forEach((format) => {
+          if (lightSrc && lightBaseFilename && !lightSrc.endsWith('.svg')) {
+            // Use the actual lightSrc path for srcset generation
+            markup.push(
+              '<source media="(prefers-color-scheme: light)" type="image/' + format + '" srcset="' + generateResponsiveSrcset(lightSrc, WIDTHS) + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : lightAlt ? ' alt="' + lightAlt + '"' : '') + '>'
+            );
+          }
+          if (darkSrc && darkBaseFilename && !darkSrc.endsWith('.svg')) {
+            // Use the actual darkSrc path for srcset generation
+            markup.push(
+              '<source media="(prefers-color-scheme: dark)" type="image/' + format + '" srcset="' + generateResponsiveSrcset(darkSrc, WIDTHS) + '" sizes="' + sizes + '"' + (isDecorative ? ' alt="" role="presentation"' : darkAlt ? ' alt="' + darkAlt + '"' : '') + '>'
+            );
+          }
+          if (!primarySrc.endsWith('.svg')) {
+            // Use the actual primarySrc path for srcset generation
+            markup.push('<source type="image/' + format + '" srcset="' + generateResponsiveSrcset(primarySrc, WIDTHS) + '" sizes="' + sizes + '"' + altAttr + '>');
+          }
+        });
       }
-    });
-  `;
+
+      // Transform responsive path to primary path and change format to .jpg
+      const primarySrcForFallback = primarySrc
+          .replace('/responsive/', '/primary/')
+          .replace(/\.(jxl|avif|webp|jpeg)$/, '.jpg');
+
+      markup.push(
+        '<img src="' + primarySrcForFallback + '"' + altAttr + loadingAttr + fetchPriorityAttr + ' onerror="this.src=\'https://placehold.co/3000x2000\'; this.alt=\'' + (primaryAlt || 'Placeholder image') + '\'; this.onerror=null;">'
+      );
+      markup.push('</picture>');
+
+      if (includeSchema) {
+        markup.push(
+          '<script type="application/ld+json">{"@context":"http://schema.org","@type":"ImageObject","url":"' + primarySrc + '","alternateName":"' + primaryAlt + '"}</script>'
+        );
+      }
+
+      const result = markup.join('');
+      self.postMessage({ markup: result });
+    } catch (error) {
+      console.error('Worker error details:', error);
+      console.error('Stack:', error.stack);
+      const primarySrc = lightSrc || darkSrc || src;
+      const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
+      const fallbackImg = \`<img src="\${primarySrc || 'https://placehold.co/3000x2000'}" alt="\${primaryAlt}" loading="lazy">\`;
+      self.postMessage({ markup: fallbackImg, error: error.message });
+    }
+  });
+`;
 
   if (isDev) {
     console.log('Worker code:', workerCode);
