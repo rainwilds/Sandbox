@@ -1,10 +1,14 @@
-/* global customElements, console, window, ResizeObserver, MutationObserver */
 (async () => {
     // Browser-compatible dev detection
+    // This checks if the current URL contains '/dev/' or has '?debug=true' in the query string.
+    // Enables debug mode for logging without impacting production environments.
     const isDev = window.location.href.includes('/dev/') ||
       new URLSearchParams(window.location.search).get('debug') === 'true';
 
     // Debug logging methods
+    // Define a logging function that only outputs in debug mode.
+    // Uses console.groupCollapsed for organized, collapsible output with color styling.
+    // Includes a timestamp, message, optional data, and a stack trace for easy debugging.
     const log = (message, data = null) => {
         if (isDev) {
             console.groupCollapsed(`%c[CustomLogo] ${new Date().toLocaleTimeString()} ${message}`, 'color: #2196F3; font-weight: bold;');
@@ -16,6 +20,8 @@
         }
     };
 
+    // Define a warning logging function similar to log, but with yellow styling and a warning emoji.
+    // Used for non-critical issues like invalid attributes or missing required values.
     const warn = (message, data = null) => {
         if (isDev) {
             console.groupCollapsed(`%c[CustomLogo] ⚠️ ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
@@ -27,6 +33,8 @@
         }
     };
 
+    // Define an error logging function with red styling and an error emoji.
+    // Used for critical failures like missing sources or markup generation errors.
     const error = (message, data = null) => {
         if (isDev) {
             console.groupCollapsed(`%c[CustomLogo] ❌ ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
@@ -39,12 +47,18 @@
     };
 
     try {
-        log('Starting CustomLogo definition');
+        // Asynchronously import required dependencies.
+        // generatePictureMarkup from image-generator.js for creating responsive logo images.
+        // VALID_ALIGNMENTS and alignMap from shared.js for validating and mapping alignment positions.
         const { generatePictureMarkup } = await import('../image-generator.js');
         const { VALID_ALIGNMENTS, alignMap } = await import('../shared.js');
         log('Successfully imported generatePictureMarkup and alignMap');
 
+        // Define the CustomLogo web component class.
+        // Extends HTMLElement to create a custom element for responsive logos with light/dark variants and breakpoints.
         class CustomLogo extends HTMLElement {
+            // Specify attributes to observe for changes.
+            // When any of these change, attributeChangedCallback is triggered to re-render.
             static get observedAttributes() {
                 return [
                     'logo-full-primary-src',
@@ -66,6 +80,8 @@
                 ];
             }
 
+            // Constructor for initializing the component.
+            // Binds event handlers and sets up private cached attributes variable.
             constructor() {
                 super();
                 log('Constructor called');
@@ -75,6 +91,9 @@
                 this._cachedAttrs = null;
             }
 
+            // Collect and validate all observed attributes.
+            // Caches results for performance; includes extensive validation for sources, alts, positions, and sizes.
+            // Returns an object with sanitized and defaulted attribute values.
             getAttributes() {
                 if (this._cachedAttrs) {
                     log('Using cached attributes');
@@ -159,6 +178,9 @@
                 return attrs;
             }
 
+            // Render the logo HTML using generatePictureMarkup.
+            // Handles full/icon variants, breakpoints, positions, and heights.
+            // Falls back to placeholder if generation fails.
             async render() {
                 log('Starting render');
                 const attrs = this.getAttributes();
@@ -237,6 +259,8 @@
                 log('Render complete', { innerHTMLPreview: this.innerHTML.substring(0, 200) + '...' });
             }
 
+            // Handle system theme changes (light/dark mode).
+            // Re-renders the component to update logo variants if connected.
             async handleThemeChange(event) {
                 log('Theme change detected', { matchesDark: event.matches });
                 if (this.isConnected) {
@@ -244,6 +268,8 @@
                 }
             }
 
+            // Handle window resize events.
+            // Checks breakpoint and re-renders to switch between full/icon logos if applicable.
             async handleResize() {
                 log('Window resize detected');
                 if (this.isConnected) {
@@ -254,6 +280,8 @@
                 }
             }
 
+            // Observe mutations on the img element's src attribute.
+            // Dynamically updates the image source based on current media queries (theme/breakpoint).
             handleMutation(mutations) {
                 log('Mutation observed', { mutationCount: mutations.length });
                 mutations.forEach(mutation => {
@@ -283,6 +311,8 @@
                 });
             }
 
+            // Set up event listeners and observers when connected to DOM.
+            // Renders initially, listens for theme changes, resizes, and img mutations.
             async connectedCallback() {
                 log('Connected to DOM');
                 await this.render();
@@ -299,6 +329,8 @@
                 }
             }
 
+            // Clean up event listeners and observers when disconnected from DOM.
+            // Prevents memory leaks by removing resize/mutation observers and theme listener.
             disconnectedCallback() {
                 log('Disconnected from DOM');
                 if (this.resizeObserver) {
@@ -312,6 +344,8 @@
                 window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', this.handleThemeChange);
             }
 
+            // Re-render on attribute changes.
+            // Clears cache and calls render if the element is connected.
             async attributeChangedCallback() {
                 log('Attribute changed');
                 if (this.isConnected) {
@@ -321,6 +355,8 @@
             }
         }
 
+        // Define the custom element if not already defined.
+        // Upgrades any existing elements in the document.
         if (!customElements.get('custom-logo')) {
             customElements.define('custom-logo', CustomLogo);
             log('CustomLogo defined successfully');
