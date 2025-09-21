@@ -41,26 +41,21 @@ export async function generatePictureMarkup({
   const isSvg = src.endsWith('.svg') || lightSrc.endsWith('.svg') || darkSrc.endsWith('.svg');
   const effectiveNoResponsive = noResponsive || isSvg;
 
-  if (isDev) console.log('Generating picture markup for:', { src, lightSrc, darkSrc, alt, lightAlt, darkAlt, noResponsive, effectiveNoResponsive });
-
   // Validate inputs
   const sources = [src, lightSrc, darkSrc].filter(Boolean);
   if (!sources.length) {
-    if (isDev) console.warn('No valid image sources provided');
     return '<picture><img src="https://placehold.co/3000x2000" alt="No image source provided" loading="lazy"></picture>';
   }
 
   // Validate extensions
   for (const source of sources) {
     if (!VALID_EXTENSIONS.test(source)) {
-      if (isDev) console.warn('Invalid image source extension:', source);
       return '<picture><img src="' + source + '" alt="Invalid image source" loading="lazy"></picture>';
     }
   }
 
   // Validate alt text
   if (!isDecorative && !alt && !(lightSrc && lightAlt) && !(darkSrc && darkAlt)) {
-    if (isDev) console.warn('Alt attribute required for non-decorative images');
     return '<picture><img src="https://placehold.co/3000x2000" alt="Missing alt text" loading="lazy"></picture>';
   }
 
@@ -72,7 +67,6 @@ export async function generatePictureMarkup({
   });
 
   if (markupCache.has(cacheKey)) {
-    if (isDev) console.log('Using cached picture markup for:', { src, lightSrc, darkSrc });
     return markupCache.get(cacheKey);
   }
 
@@ -179,6 +173,11 @@ export async function generatePictureMarkup({
     // Cache the result
     markupCache.set(cacheKey, markup);
 
+    if (isDev) {
+      console.log('Generated picture markup preview:');
+      console.log(markup.substring(0, 400) + (markup.length > 400 ? '...' : ''));
+    }
+
     return markup;
 
   } catch (error) {
@@ -196,21 +195,20 @@ function getImageType(src) {
 function generateSrcset(originalSrc, format, widths) {
   if (!originalSrc) return '';
 
-  // Get the directory from originalSrc, replace 'primary' with 'responsive' if present
-  let directory = originalSrc.replace(/[^/]+$/, ''); // Get path up to last /
-  directory = directory.replace(/primary\//, 'responsive/');
-
+  // Use relative path for responsive variants
+  const responsiveDir = './img/responsive/';
+  
   // Get filename without extension
   const filename = originalSrc.split('/').pop().replace(/\.[^/.]+$/, "");
 
   // Generate variants
   const variants = widths.map(w => {
     const variantName = `${filename}-${w}`;
-    return `${directory}${variantName}.${format} ${w}w`;
+    return `${responsiveDir}${variantName}.${format} ${w}w`;
   });
 
   // Full-size version
-  const fullSizePath = `${directory}${filename}.${format}`;
+  const fullSizePath = `${responsiveDir}${filename}.${format}`;
 
   return `${fullSizePath} 3840w, ${variants.join(', ')}`;
 }
