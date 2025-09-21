@@ -836,25 +836,17 @@ class CustomBlock extends HTMLElement {
                 .filter(cls => cls);
 
             const overlayDiv = document.createElement('div');
-            if (filteredOverlayClasses.length) overlayDiv.className = filteredOverlayClasses.join(' ').trim();
 
-            // FIXED: Only add positioning styles if backdrop-filter is present
-            let overlayStyle = '';
+            // Always add the positioning class instead of inline styles
+            overlayDiv.classList.add('overlay-position');
+
+            if (filteredOverlayClasses.length) {
+                overlayDiv.className = filteredOverlayClasses.join(' ').trim();
+            }
+
+            // FIXED: Only add backdrop-filter inline style - NO positioning
             if (backdropFilterValues.length) {
-                overlayStyle = `backdrop-filter: ${backdropFilterValues.join(' ')}; `;
-                // Add positioning only when backdrop-filter is applied
-                overlayStyle += 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;';
-                overlayDiv.setAttribute('style', overlayStyle);
-            } else {
-                // No inline styles needed if only backdrop-filter classes are empty
-                if (filteredOverlayClasses.length === 0) {
-                    overlayDiv.style.position = 'absolute';
-                    overlayDiv.style.top = '0';
-                    overlayDiv.style.left = '0';
-                    overlayDiv.style.width = '100%';
-                    overlayDiv.style.height = '100%';
-                    overlayDiv.style.zIndex = '0';
-                }
+                overlayDiv.style.backdropFilter = backdropFilterValues.join(' ');
             }
 
             blockElement.appendChild(overlayDiv);
