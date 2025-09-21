@@ -28,6 +28,19 @@ export async function generatePictureMarkup({
     new URLSearchParams(window.location.search).get('debug') === 'true'
   );
 
+  if (isDev) {
+    console.log('=== generatePictureMarkup CALLED WITH ===');
+    console.log('src:', src);
+    console.log('lightSrc:', lightSrc);
+    console.log('darkSrc:', darkSrc);
+    console.log('alt:', alt);
+    console.log('isDecorative:', isDecorative);
+    console.log('extraClasses:', extraClasses);
+    console.log('customClasses:', customClasses);
+    console.log('noResponsive:', noResponsive);
+    console.log('====================================');
+  }
+
   // Trim all inputs
   src = src.trim();
   lightSrc = lightSrc.trim();
@@ -42,10 +55,10 @@ export async function generatePictureMarkup({
   const effectiveNoResponsive = noResponsive || isSvg;
 
   if (isDev) {
-    console.log('Generating picture markup for:', { 
-      src, lightSrc, darkSrc, alt, lightAlt, darkAlt, 
-      noResponsive, effectiveNoResponsive, customClasses, 
-      loading, fetchPriority 
+    console.log('Generating picture markup for:', {
+      src, lightSrc, darkSrc, alt, lightAlt, darkAlt,
+      noResponsive, effectiveNoResponsive, customClasses,
+      loading, fetchPriority
     });
   }
 
@@ -89,15 +102,15 @@ export async function generatePictureMarkup({
 
     // Build classes
     const allClasses = [...new Set([
-      ...customClasses.split(/\s+/), 
+      ...customClasses.split(/\s+/),
       ...extraClasses.flatMap(c => c.split(/\s+/))
     ].filter(Boolean))];
-    
+
     if (aspectRatio && ['16/9', '9/16', '3/2', '2/3', '1/1', '21/9'].includes(aspectRatio)) {
       allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
     }
     allClasses.push('animate', 'animate-fade-in');
-    
+
     const classAttr = allClasses.length ? ` class="${allClasses.join(' ')}"` : '';
 
     // Generate sizes
@@ -124,8 +137,8 @@ export async function generatePictureMarkup({
     };
 
     const sizes = SIZES_BREAKPOINTS.map((bp) => {
-      const width = bp.maxWidth <= 768 ? parsedWidths.mobile : 
-                   bp.maxWidth <= 1024 ? parsedWidths.tablet : parsedWidths.desktop;
+      const width = bp.maxWidth <= 768 ? parsedWidths.mobile :
+        bp.maxWidth <= 1024 ? parsedWidths.tablet : parsedWidths.desktop;
       return `(max-width: ${bp.maxWidth}px) ${width * 100}vw`;
     }).join(', ') + `, ${DEFAULT_SIZE_VALUE * parsedWidths.desktop}px`;
 
@@ -167,7 +180,7 @@ export async function generatePictureMarkup({
     const fallbackSrc = primarySrc
       .replace('/responsive/', '/primary/')  // Only for fallback
       .replace(/\.(jxl|avif|webp|jpeg)$/i, '.jpg');
-    
+
     const imgAttrs = [
       `src="${fallbackSrc}"`,
       isDecorative ? 'alt="" role="presentation"' : `alt="${primaryAlt}"`,
@@ -199,7 +212,7 @@ export async function generatePictureMarkup({
     if (isDev) {
       console.error('Error generating picture markup:', error);
     }
-    
+
     const primarySrc = lightSrc || darkSrc || src;
     const primaryAlt = lightAlt || darkAlt || alt || 'Error loading image';
     return `<img src="${primarySrc || 'https://placehold.co/3000x2000'}" alt="${primaryAlt}" loading="lazy">`;
@@ -216,21 +229,21 @@ function getImageType(src) {
 // FIXED: Generate responsive sources using the ORIGINAL path (not primary)
 function generateSrcset(originalSrc, format, widths) {
   if (!originalSrc) return '';
-  
+
   // Get directory and filename from the ORIGINAL source path
   const parts = originalSrc.split('/');
   const filenameWithExt = parts.pop();
   const directory = parts.join('/') + '/';  // Keep original directory (responsive)
   const filename = filenameWithExt.replace(/\.[^/.]+$/, ""); // Remove original extension
   const originalExt = filenameWithExt.split('.').pop();
-  
+
   if (isDev) {
     console.log(`Generating srcset for ${originalSrc} -> format ${format}:`);
     console.log(`  Directory: ${directory}`);
     console.log(`  Filename: ${filename}`);
     console.log(`  Original ext: ${originalExt}`);
   }
-  
+
   // Generate variants for this format using the SAME directory
   const variants = widths.map(w => {
     const variantName = `${filename}-${w}`;
@@ -238,14 +251,14 @@ function generateSrcset(originalSrc, format, widths) {
     if (isDev) console.log(`  Variant ${w}w: ${variantPath}`);
     return `${variantPath} ${w}w`;
   });
-  
+
   // Full-size version using the same directory
   const fullSizePath = `${directory}${filename}.${format}`;
   if (isDev) console.log(`  Full size 3840w: ${fullSizePath}`);
-  
+
   const srcset = `${fullSizePath} 3840w, ${variants.join(', ')}`;
   if (isDev) console.log(`  Final srcset: ${srcset.substring(0, 100)}...`);
-  
+
   return srcset;
 }
 

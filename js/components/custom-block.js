@@ -776,6 +776,7 @@ class CustomBlock extends HTMLElement {
                         darkAlt: attrs.backgroundDarkAlt,
                         isDecorative: attrs.backgroundIsDecorative,
                         customClasses: mediaClasses,
+                        extraClasses: [], // ← ADD THIS LINE
                         loading: attrs.backgroundLoading,
                         fetchPriority: attrs.backgroundFetchPriority,
                         mobileWidth: attrs.backgroundMobileWidth,
@@ -1012,6 +1013,7 @@ class CustomBlock extends HTMLElement {
                             alt: attrs.primaryAlt,
                             isDecorative: attrs.primaryIsDecorative,
                             customClasses: mediaClasses,
+                            extraClasses: [], // ← ADD THIS LINE
                             loading: attrs.primaryLoading,
                             fetchPriority: attrs.primaryFetchPriority,
                             mobileWidth: attrs.primaryMobileWidth,
