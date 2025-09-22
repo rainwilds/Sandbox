@@ -59,6 +59,250 @@ export async function generatePictureMarkup({
   customClasses = customClasses.trim();
   extraStyles = extraStyles.trim();
 
+  // Set fallback alts if specific ones not provided
+  if (lightAlt === '' && lightSrc !== '' && alt !== '') lightAlt = alt;
+  if (darkAlt === '' && darkSrc !== '' && alt !== '') darkAlt = alt;
+  if (iconAlt === '' && iconSrc !== '' && alt !== '') iconAlt = alt;
+  if (iconLightAlt === '' && iconLightSrc !== '' && (iconAlt !== '' || alt !== '')) iconLightAlt = iconAlt || alt;
+  if (iconDarkAlt === '' && iconDarkSrc !== '' && (iconAlt !== '' || alt !== '')) iconDarkAlt = iconAlt || alt;
+
+  // Determine if the image is SVG, which affects responsive handling.
+  const isSvg = src.endsWith('.svg') || lightSrc.endsWith('.svg') || darkSrc.endsWith('.svg') ||
+                iconSrc.endsWith('.svg') || iconLightSrc.endsWith('.svg') || iconDarkSrc.endsWith('.svg');
+  const effectiveNoResponsive = noResponsive || isSvg;
+
+  // Validate that at least one source is provided.
+  const allSources = [src, lightSrc, darkSrc, iconSrc, iconLightSrc, iconDarkSrc].filter(Boolean);
+  if (!allSources.length) {
+    return '<picture><img src="https://placehold.co/3000x2000" alt="No image source provided" loading="lazy"></picture>';
+  }
+
+  // Validate file extensions for all sources.
+  for (const source of allSources) {
+    if (!VALID_EXTENSIONS.test(source)) {
+      return '<picture><img src="' + source + '" alt="Invalid image source" loading="lazy"></picture>';
+    }
+  }
+
+  // Ensure alt text is provided unless decorative.
+  if (!isDecorative) {
+    if (src && !alt) {
+      return '<picture><img src="https://placehold.co/3000x2000" alt="Missing alt text for primary src" loading="lazy"></picture>';
+    }
+    if (lightSrc && !lightAlt) {
+      return '<picture><img src="https://placehold.co/3000x2000" alt="Missing alt text for light src" loading="lazy"></picture>';
+    }
+    if (darkSrc && !darkAlt) {
+      return '<picture><img src="https://placehold.co/3000x2000" alt="Missing alt text for dark src" loading="lazy"></picture>';
+    }
+    if (iconSrc && !iconAlt) {
+      return '<picture><img src="https://placehold.co/3000x2000" alt="Missing alt text for icon src" loading="lazy"></picture>';
+    }
+    if (iconLightSrc && !iconLightAlt) {
+      return '<picture><img src="https://placehold.co/3000x2000" alt="Missing alt text for icon light src" loading="lazy"></picture>';
+    }
+    if (iconDarkSrc && !iconDarkAlt) {
+      return '<picture><img src="https://placehold.co/3000x2000" alt="Missing alt text for icon dark src" loading="lazy"></picture>';
+    }
+  }
+
+  // Determine presence of icons and breakpoint.
+  const hasIcon = iconSrc || (iconLightSrc && iconDarkSrc);
+  const hasFull = src || (lightSrc && darkSrc);
+  const hasBreakpoint = breakpoint && Number.isInteger(parseInt(breakpoint, 10)) && [768, 1024, 1366, 1920, 2560].includes(parseInt(breakpoint, 10));
+  if (hasIcon && !hasBreakpoint && isDev) {
+    console.warn('Icon sources provided without a valid breakpoint. Using full sources only.');
+  }
+  if (!hasIcon && hasBreakpoint && isDev) {
+    console.warn('Breakpoint provided without icon sources. Ignoring breakpoint.');
+  }
+
+  let prefersDark = false;
+  let isBelowBreakpoint = false;
+  if (typeof window !== 'undefined') {
+    prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    if (hasBreakpoint) {
+      const bp = parseInt(breakpoint, 10);
+      isBelowBreakpoint = window.matchMedia(`(max-width: ${bp - 1}px)`).matches;
+    }
+  }
+
+  // Create a cache key from all parameters for quick lookup.
+  const cacheKey = JSON.stringify({
+    src, lightSrc, darkSrc, alt, lightAlt, darkAlt,
+    iconSrc, iconLightSrc, iconDarkSrc, iconAlt, iconLightAlt, iconDarkAlt,
+    isDecorative, mobileWidth, tabletWidth, desktopWidth, aspectRatio,
+    includeSchema, customClasses, loading, fetchPriority, extraClasses,
+    noResponsive, breakpoint, extraStyles, prefersDark, isBelowBreakpoint
+  });
+
+  if (markupCache.has(cacheKey)) {
+    return markupCache.get(cacheKey);
+  }
+
+  try {
+    // Determine primary source and alt for fallback.
+    let primarySrc = '';
+    let primaryAlt = '';
+    if (hasBreakpoint && hasIcon && isBelowBreakpoint) {
+      primarySrc = prefersDark ? iconLightSrc : iconDarkSrc || iconSrc;
+      primaryAlt = isDecorative ? '' : (prefersDark ? iconLightAlt : iconDarkAlt || iconAlt);
+    } else {
+      primarySrc = prefersDark ? darkSrc : lightSrc || src;
+      primaryAlt = isDecorative ? '' : (prefersDark ? darkAlt : lightAlt || alt);
+    }
+
+    if (!primarySrc) {
+      primarySrc = lightSrc || iconLightSrc || darkSrc || iconDarkSrc || src || iconSrc;
+      primaryAlt = isDecorative ? '' : (lightAlt || iconLightAlt || darkAlt || iconDarkAlt || alt || iconAlt);
+    }
+
+    // Build combined classes array, removing duplicates.
+    const allClasses = [...new Set([
+      ...customClasses.split(/\s+/), 
+      ...(Array.isArray(extraClasses) ? extraClasses : []).flatMap(c => c.split(/\s+/))
+    ].filter(Boolean))];
+    
+    // Add aspect ratio class if valid.
+    if (aspectRatio && ['16/9', '9/16', '3/2', '2/3', '1/1', '21/9'].includes(aspectRatio)) {
+      allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
+    }
+    // Add default animation classes.
+    allClasses.push('animate', 'animate-fade-in');
+    
+    const classAttr = allClasses.length ? ` class="${allClasses.join(' ')}"` : '';
+
+    // Generate sizes attribute string based on breakpoints and widths.
+    const WIDTHS = [768, 1024, 1366, 1920, 2560];
+    const SIZES_BREAKPOINTS = [
+      { maxWidth: 768, baseValue: '100vw' },
+      { maxWidth: 1024, baseValue: '100vw' },
+      { maxWidth: 1366, baseValue: '100vw' },
+      { maxWidth: 1920, baseValue: '100vw' },
+      { maxWidth: 2560, baseValue: '100vw' },
+    ];
+    const DEFAULT_SIZE_VALUE = 3840;
+
+    function parseWidth(widthStr) {
+      const vwMatch = widthStr.match(/(\d+)vw No results, probably not public.
+
+Proceed with the fix.
+
+Update the code by adding the fallback lines after trimming.
+
+Before // Ensure alt text is provided unless decorative.
+
+Add:
+
+// Set fallback alts if specific ones not provided
+
+lightAlt = lightAlt || alt;
+
+darkAlt = darkAlt || alt;
+
+iconAlt = iconAlt || alt;
+
+iconLightAlt = iconLightAlt || iconAlt || alt;
+
+iconDarkAlt = iconDarkAlt || iconAlt || alt;
+
+Yes, simpler.
+
+Since they are strings, empty or provided.
+
+Then, the validation will use the fallen back.
+
+If lightSrc && !lightAlt (after fallback), then error, but if alt provided, lightAlt = alt, so !lightAlt false.
+
+Yes.
+
+If no alt at all, error, which is good.
+
+Probably in custom-block, they provide primary-alt or something.
+
+Yes.
+
+Also, if they use lightSrc without alt or lightAlt, error, but previously if loose, but anyway.
+
+I think this will make it work.
+
+For the primaryAlt in the catch all:
+
+primaryAlt = isDecorative ? '' : (lightAlt || darkAlt || alt || iconLightAlt || iconDarkAlt || iconAlt);
+
+Yes.
+
+Update that.
+
+Now, output the updated code.```javascript
+/* global document, window, console, fetch, Promise, requestIdleCallback */
+
+// Import shared constants for valid image extensions.
+// Used to validate source URLs before processing.
+import { VALID_EXTENSIONS } from './shared.js';
+
+// Cache for generated markup to improve performance on repeated calls with same parameters.
+const markupCache = new Map();
+
+// Main exported function to generate <picture> markup for responsive images.
+// Supports light/dark themes, aspect ratios, schema, custom classes, lazy loading, and more.
+// Returns HTML string or fallback on errors.
+export async function generatePictureMarkup({
+  src = '',
+  lightSrc = '',
+  darkSrc = '',
+  alt = '',
+  lightAlt = '',
+  darkAlt = '',
+  iconSrc = '',
+  iconLightSrc = '',
+  iconDarkSrc = '',
+  iconAlt = '',
+  iconLightAlt = '',
+  iconDarkAlt = '',
+  isDecorative = false,
+  mobileWidth = '100vw',
+  tabletWidth = '100vw',
+  desktopWidth = '100vw',
+  aspectRatio = '',
+  includeSchema = false,
+  customClasses = '',
+  loading = 'lazy',
+  fetchPriority = '',
+  extraClasses = [],
+  noResponsive = false,
+  breakpoint = '',
+  extraStyles = '',
+} = {}) {
+  // Check if debug mode is enabled via URL for logging.
+  const isDev = typeof window !== 'undefined' && (
+    window.location.href.includes('/dev/') ||
+    new URLSearchParams(window.location.search).get('debug') === 'true'
+  );
+
+  // Trim all input strings to remove leading/trailing whitespace.
+  src = src.trim();
+  lightSrc = lightSrc.trim();
+  darkSrc = darkSrc.trim();
+  alt = alt.trim();
+  lightAlt = lightAlt.trim();
+  darkAlt = darkAlt.trim();
+  iconSrc = iconSrc.trim();
+  iconLightSrc = iconLightSrc.trim();
+  iconDarkSrc = iconDarkSrc.trim();
+  iconAlt = iconAlt.trim();
+  iconLightAlt = iconLightAlt.trim();
+  iconDarkAlt = iconDarkAlt.trim();
+  customClasses = customClasses.trim();
+  extraStyles = extraStyles.trim();
+
+  // Set fallback alts if specific ones not provided
+  lightAlt = lightAlt || alt;
+  darkAlt = darkAlt || alt;
+  iconAlt = iconAlt || alt;
+  iconLightAlt = iconLightAlt || iconAlt || alt;
+  iconDarkAlt = iconDarkAlt || iconAlt || alt;
+
   // Determine if the image is SVG, which affects responsive handling.
   const isSvg = src.endsWith('.svg') || lightSrc.endsWith('.svg') || darkSrc.endsWith('.svg') ||
                 iconSrc.endsWith('.svg') || iconLightSrc.endsWith('.svg') || iconDarkSrc.endsWith('.svg');
