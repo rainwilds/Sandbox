@@ -38,9 +38,6 @@
         }
     };
 
-    // Cache for setup.json
-    let setupCache = null;
-
     // Default setup configuration
     const defaultSetup = {
         fonts: [],
@@ -55,26 +52,86 @@
             favicons: []
         },
         business: {},
-        font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' }
+        font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' },
+        media: {
+            responsive_images: {
+                directory_path: '/img/responsive/'
+            }
+        }
     };
 
-    // Function to fetch and cache setup.json
-    async function fetchSetup() {
-        if (setupCache) {
-            log('Using cached setup.json');
-            return setupCache;
+    // Global config cache (accessible by other modules)
+    window.__SETUP_CONFIG__ = null;
+
+    // Function to load setup.json using preloaded resource
+    async function loadSetup() {
+        // Check if we already have the config cached
+        if (window.__SETUP_CONFIG__) {
+            log('Using cached setup.json from global');
+            return window.__SETUP_CONFIG__;
         }
+
+        // Try to use the preloaded resource first
+        const preloadLink = document.querySelector('link[rel="preload"][href="./JSON/setup.json"]');
+        if (preloadLink) {
+            try {
+                // Use the preloaded resource via fetch with cache: 'only-if-cached'
+                const response = await fetch('./JSON/setup.json', { 
+                    cache: 'only-if-cached',
+                    mode: 'same-origin'
+                });
+                
+                if (response.ok) {
+                    const jsonText = await response.text();
+                    const setup = JSON.parse(jsonText);
+                    
+                    // Merge with defaults to ensure required structure
+                    const mergedSetup = {
+                        ...defaultSetup,
+                        ...setup,
+                        general: { ...defaultSetup.general, ...setup.general },
+                        business: { ...defaultSetup.business, ...setup.business },
+                        media: { ...defaultSetup.media, ...(setup.media || {}) }
+                    };
+                    
+                    // Cache globally for other modules
+                    window.__SETUP_CONFIG__ = mergedSetup;
+                    log('Loaded setup.json from preload', { keys: Object.keys(mergedSetup) });
+                    return mergedSetup;
+                }
+            } catch (preloadError) {
+                if (isDev) warn('Preloaded setup.json failed, falling back to regular fetch', preloadError);
+            }
+        }
+
+        // Fallback to regular fetch
         try {
-            log('Fetching setup.json');
+            log('Fetching setup.json (fallback)');
             const response = await fetch('./JSON/setup.json', { cache: 'force-cache' });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
             const jsonText = await response.text();
-            setupCache = JSON.parse(jsonText);
-            log('Loaded setup.json', setupCache);
-            return setupCache;
+            const setup = JSON.parse(jsonText);
+            
+            // Merge with defaults to ensure required structure
+            const mergedSetup = {
+                ...defaultSetup,
+                ...setup,
+                general: { ...defaultSetup.general, ...setup.general },
+                business: { ...defaultSetup.business, ...setup.business },
+                media: { ...defaultSetup.media, ...(setup.media || {}) }
+            };
+            
+            // Cache globally for other modules
+            window.__SETUP_CONFIG__ = mergedSetup;
+            log('Loaded setup.json (fallback)', { keys: Object.keys(mergedSetup) });
+            return mergedSetup;
         } catch (err) {
             error('Failed to load setup.json', { error: err.message });
+            
+            // Cache the default config globally
+            window.__SETUP_CONFIG__ = defaultSetup;
+            log('Using default setup configuration');
             return defaultSetup;
         }
     }
@@ -102,8 +159,10 @@
         const criticalFrag = document.createDocumentFragment();  // For SEO-critical and render-critical
         const deferredFrag = document.createDocumentFragment();  // For non-critical (JSON-LD, Snipcart)
 
+        // Load setup config
+        const setup = await loadSetup();
+
         // Fonts: Critical for rendering
-        const setup = await fetchSetup();
         let hasValidFonts = false;
         setup.fonts.forEach(font => {
             const fontUrl = font.href ?? font.url ?? '';
@@ -312,6 +371,9 @@
         // Remove data-custom-head element
         customHead.remove();
         log('Removed data-custom-head element');
+        
+        // Log completion
+        log('HeadGenerator completed successfully');
     } catch (err) {
         error('Error in HeadGenerator', { error: err.message, stack: err.stack });
     }

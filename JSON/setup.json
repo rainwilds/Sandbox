@@ -86,5 +86,10 @@
   },
   "font_awesome": {
     "kit_url": "https://kit.fontawesome.com/85d1e578b1.js"
+  },
+  "media": {
+    "responsive_images": {
+      "directory_path": "/Sandbox/img/responsive/"
+    }
   }
 }

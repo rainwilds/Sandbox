@@ -1,5 +1,8 @@
 /* global document, window, console, fetch, Promise, requestIdleCallback */
 
+// Import config loader for responsive image path
+import { getImageResponsivePath } from './config.js';
+
 // Internal constants for image validation and responsive generation (not exported).
 const VALID_IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
 const IMAGE_WIDTHS = [768, 1024, 1366, 1920, 2560];
@@ -13,7 +16,19 @@ const SIZES_BREAKPOINTS = [
     { maxWidth: 2560, baseValue: '100vw' },
 ];
 const DEFAULT_IMAGE_SIZE_VALUE = 3840;
-const IMAGE_RESPONSIVE_DIRECTORY_PATH = '/Sandbox/img/responsive/';
+
+// Get responsive directory path from config (with fallback)
+let IMAGE_RESPONSIVE_DIRECTORY_PATH = '/img/responsive/'; // Fallback
+(async () => {
+  try {
+    IMAGE_RESPONSIVE_DIRECTORY_PATH = await getImageResponsivePath();
+    if (typeof window !== 'undefined' && window.console && window.console.debug) {
+      console.debug('Loaded responsive image path from config:', IMAGE_RESPONSIVE_DIRECTORY_PATH);
+    }
+  } catch (error) {
+    console.warn('Failed to load responsive image path from config, using fallback:', error);
+  }
+})();
 
 // Cache for generated markup to improve performance on repeated calls with same parameters.
 const markupCache = new Map();
@@ -351,6 +366,9 @@ export async function generatePictureMarkup({
     return markup;
 
   } catch (error) {
+    if (isDev) {
+      console.error('Error generating picture markup:', error);
+    }
     return '<picture><img src="https://placehold.co/3000x2000" alt="Error loading image" loading="lazy"></picture>';
   }
 }
@@ -367,7 +385,7 @@ function getImageType(src) {
 function generateSrcset(originalSrc, format, widths) {
   if (!originalSrc) return '';
 
-  // Use relative path for responsive variants
+  // Use config path for responsive variants
   const responsiveDir = IMAGE_RESPONSIVE_DIRECTORY_PATH;
   
   // Get filename without extension

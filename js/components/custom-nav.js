@@ -46,11 +46,10 @@
 
     try {
         // Asynchronously import required dependencies.
-        // BACKDROP_FILTER_MAP from custom-block.js for handling backdrop filter effects.
+        // BACKDROP_FILTER_MAP from shared.js for handling backdrop filter effects.
         // VALID_ALIGNMENTS and VALID_ALIGN_MAP from shared.js for validation and mapping of alignment attributes.
-        const { BACKDROP_FILTER_MAP } = await import('./custom-block.js');
-        const { VALID_ALIGNMENTS, VALID_ALIGN_MAP } = await import('../shared.js');
-        log('Successfully imported BACKDROP_FILTER_MAP and VALID_ALIGN_MAP');
+        const { BACKDROP_FILTER_MAP, VALID_ALIGNMENTS, VALID_ALIGN_MAP } = await import('../shared.js');
+        log('Successfully imported BACKDROP_FILTER_MAP, VALID_ALIGNMENTS, and VALID_ALIGN_MAP from shared.js');
 
         // Define the CustomNav web component class.
         // Extends HTMLElement to create a custom element for navigation menus.
@@ -183,6 +182,6 @@
             log('Upgraded existing custom-nav element');
         });
     } catch (err) {
-        error('Failed to import BACKDROP_FILTER_MAP or define CustomNav', { error: err.message });
+        error('Failed to import shared.js or define CustomNav', { error: err.message });
     }
 })();
