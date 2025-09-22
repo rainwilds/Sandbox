@@ -1,7 +1,7 @@
 /* global document, window, console, fetch, Promise, requestIdleCallback */
 
 // Import shared constants for valid image extensions.
-// Used to validate source URLs before processing. 
+// Used to validate source URLs before processing.
 import { VALID_EXTENSIONS } from './shared.js';
 
 // Cache for generated markup to improve performance on repeated calls with same parameters.
@@ -58,6 +58,11 @@ export async function generatePictureMarkup({
   iconDarkAlt = iconDarkAlt.trim();
   customClasses = customClasses.trim();
   extraStyles = extraStyles.trim();
+
+  // If no alt texts are provided at all, treat as decorative
+  if (!alt && !lightAlt && !darkAlt && !iconAlt && !iconLightAlt && !iconDarkAlt) {
+    isDecorative = true;
+  }
 
   // Set fallback alts if specific ones not provided
   lightAlt = lightAlt || alt;
