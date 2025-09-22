@@ -4,6 +4,20 @@
 // Used to validate source URLs before processing.
 import { VALID_IMAGE_EXTENSIONS } from './shared.js';
 
+// Image-specific constants for responsive image generation.
+export const IMAGE_WIDTHS = [768, 1024, 1366, 1920, 2560];
+export const IMAGE_FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
+export const VALID_ASPECT_RATIOS = new Set(['16/9', '9/16', '3/2', '2/3', '1/1', '21/9']);
+export const SIZES_BREAKPOINTS = [
+    { maxWidth: 768, baseValue: '100vw' },
+    { maxWidth: 1024, baseValue: '100vw' },
+    { maxWidth: 1366, baseValue: '100vw' },
+    { maxWidth: 1920, baseValue: '100vw' },
+    { maxWidth: 2560, baseValue: '100vw' },
+];
+export const DEFAULT_IMAGE_SIZE_VALUE = 3840;
+export const IMAGE_RESPONSIVE_DIRECTORY_PATH = '/Sandbox/img/responsive/';
+
 // Cache for generated markup to improve performance on repeated calls with same parameters.
 const markupCache = new Map();
 
@@ -115,7 +129,7 @@ export async function generatePictureMarkup({
   // Determine presence of icons and breakpoint.
   const hasIcon = iconSrc || (iconLightSrc && iconDarkSrc);
   const hasFull = src || (lightSrc && darkSrc);
-  const hasBreakpoint = breakpoint && Number.isInteger(parseInt(breakpoint, 10)) && [768, 1024, 1366, 1920, 2560].includes(parseInt(breakpoint, 10));
+  const hasBreakpoint = breakpoint && Number.isInteger(parseInt(breakpoint, 10)) && IMAGE_WIDTHS.includes(parseInt(breakpoint, 10));
   if (hasIcon && !hasBreakpoint && isDev) {
     console.warn('Icon sources provided without a valid breakpoint. Using full sources only.');
   }
@@ -170,7 +184,7 @@ export async function generatePictureMarkup({
     ].filter(Boolean))];
     
     // Add aspect ratio class if valid.
-    if (aspectRatio && ['16/9', '9/16', '3/2', '2/3', '1/1', '21/9'].includes(aspectRatio)) {
+    if (aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio)) {
       allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
     }
     // Add default animation classes.
@@ -179,16 +193,6 @@ export async function generatePictureMarkup({
     const classAttr = allClasses.length ? ` class="${allClasses.join(' ')}"` : '';
 
     // Generate sizes attribute string based on breakpoints and widths.
-    const WIDTHS = [768, 1024, 1366, 1920, 2560];
-    const SIZES_BREAKPOINTS = [
-      { maxWidth: 768, baseValue: '100vw' },
-      { maxWidth: 1024, baseValue: '100vw' },
-      { maxWidth: 1366, baseValue: '100vw' },
-      { maxWidth: 1920, baseValue: '100vw' },
-      { maxWidth: 2560, baseValue: '100vw' },
-    ];
-    const DEFAULT_SIZE_VALUE = 3840;
-
     function parseWidth(widthStr) {
       const vwMatch = widthStr.match(/(\d+)vw/);
       if (vwMatch) return parseInt(vwMatch[1], 10) / 100;
@@ -205,12 +209,10 @@ export async function generatePictureMarkup({
       const width = bp.maxWidth <= 768 ? parsedWidths.mobile : 
                    bp.maxWidth <= 1024 ? parsedWidths.tablet : parsedWidths.desktop;
       return `(max-width: ${bp.maxWidth}px) ${width * 100}vw`;
-    }).join(', ') + `, ${DEFAULT_SIZE_VALUE * parsedWidths.desktop}px`;
+    }).join(', ') + `, ${DEFAULT_IMAGE_SIZE_VALUE * parsedWidths.desktop}px`;
 
     // Start building the <picture> markup.
     let markup = `<picture${classAttr}>`;
-
-    const FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
 
     // Helper to add a source element.
     const addSource = (media, type, srcset, sizes, dataAlt) => {
@@ -265,48 +267,48 @@ export async function generatePictureMarkup({
       const maxSmall = bpValue ? bpValue - 1 : 0;
       const minLarge = bpValue || 0;
 
-      FORMATS.forEach((format) => {
+      IMAGE_FORMATS.forEach((format) => {
         if (hasBreakpoint && hasIcon) {
           // Add sources for small screens (icons)
           if (iconLightSrc) {
-            const srcset = generateSrcset(iconLightSrc, format, WIDTHS);
+            const srcset = generateSrcset(iconLightSrc, format, IMAGE_WIDTHS);
             addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: dark)`, `image/${format}`, srcset, sizes, iconLightAlt);
           }
           if (iconDarkSrc) {
-            const srcset = generateSrcset(iconDarkSrc, format, WIDTHS);
+            const srcset = generateSrcset(iconDarkSrc, format, IMAGE_WIDTHS);
             addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, `image/${format}`, srcset, sizes, iconDarkAlt);
           }
           if (iconSrc) {
-            const srcset = generateSrcset(iconSrc, format, WIDTHS);
+            const srcset = generateSrcset(iconSrc, format, IMAGE_WIDTHS);
             addSource(`(max-width: ${maxSmall}px)`, `image/${format}`, srcset, sizes, iconAlt);
           }
 
           // Add sources for large screens (full)
           if (lightSrc) {
-            const srcset = generateSrcset(lightSrc, format, WIDTHS);
+            const srcset = generateSrcset(lightSrc, format, IMAGE_WIDTHS);
             addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: light)`, `image/${format}`, srcset, sizes, lightAlt);
           }
           if (darkSrc) {
-            const srcset = generateSrcset(darkSrc, format, WIDTHS);
+            const srcset = generateSrcset(darkSrc, format, IMAGE_WIDTHS);
             addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: dark)`, `image/${format}`, srcset, sizes, darkAlt);
           }
           if (src) {
-            const srcset = generateSrcset(src, format, WIDTHS);
+            const srcset = generateSrcset(src, format, IMAGE_WIDTHS);
             addSource(`(min-width: ${minLarge}px)`, `image/${format}`, srcset, sizes, alt);
           }
         } else {
           // No breakpoint or no icons: use full sources only
           if (lightSrc) {
-            const srcset = generateSrcset(lightSrc, format, WIDTHS);
+            const srcset = generateSrcset(lightSrc, format, IMAGE_WIDTHS);
             addSource(`(prefers-color-scheme: light)`, `image/${format}`, srcset, sizes, lightAlt);
           }
           if (darkSrc) {
-            const srcset = generateSrcset(darkSrc, format, WIDTHS);
+            const srcset = generateSrcset(darkSrc, format, IMAGE_WIDTHS);
             addSource(`(prefers-color-scheme: dark)`, `image/${format}`, srcset, sizes, darkAlt);
           }
           // Only add the default source if no light/dark variants exist
           if (!lightSrc && !darkSrc && src) {
-            const srcset = generateSrcset(src, format, WIDTHS);
+            const srcset = generateSrcset(src, format, IMAGE_WIDTHS);
             addSource('', `image/${format}`, srcset, sizes, alt);
           }
         }
@@ -369,7 +371,7 @@ function generateSrcset(originalSrc, format, widths) {
   if (!originalSrc) return '';
 
   // Use relative path for responsive variants
-  const responsiveDir = './img/responsive/';
+  const responsiveDir = IMAGE_RESPONSIVE_DIRECTORY_PATH;
   
   // Get filename without extension
   const filename = originalSrc.split('/').pop().replace(/\.[^/.]+$/, "");
@@ -383,7 +385,7 @@ function generateSrcset(originalSrc, format, widths) {
   // Full-size version
   const fullSizePath = `${responsiveDir}${filename}.${format}`;
 
-  return `${fullSizePath} 3840w, ${variants.join(', ')}`;
+  return `${fullSizePath} ${DEFAULT_IMAGE_SIZE_VALUE}w, ${variants.join(', ')}`;
 }
 
 // Client-side code for handling theme changes and lazy loading.
@@ -391,7 +393,6 @@ function generateSrcset(originalSrc, format, widths) {
 if (typeof window !== 'undefined') {
   const isDev = window.location.href.includes('/dev/') ||
     new URLSearchParams(window.location.search).get('debug') === 'true';
-  const WIDTHS = [768, 1024, 1366, 1920, 2560];
 
   // Function to update <img> src based on current media queries (theme/breakpoint).
   const updatePictureSources = () => {
@@ -449,17 +450,7 @@ if (typeof window !== 'undefined') {
   // Listen for theme changes to update sources.
   window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', updatePictureSources);
   // Listen for breakpoint changes to update sources.
-  WIDTHS.forEach((bp) => {
+  IMAGE_WIDTHS.forEach((bp) => {
     window.matchMedia(`(max-width: ${bp - 1}px)`).addEventListener('change', updatePictureSources);
   });
 }
-
-// Export backdrop filter map, possibly for use in other components (though seems unrelated to images).
-export const BACKDROP_FILTER_MAP = {
-  'backdrop-filter-blur-small': 'blur(var(--blur-small))',
-  'backdrop-filter-blur-medium': 'blur(var(--blur-medium))',
-  'backdrop-filter-blur-large': 'blur(var(--blur-large))',
-  'backdrop-filter-grayscale-small': 'grayscale(var(--grayscale-small))',
-  'backdrop-filter-grayscale-medium': 'grayscale(var(--grayscale-medium))',
-  'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))',
-};

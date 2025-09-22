@@ -36,3 +36,15 @@ export const VALID_ALIGN_MAP = {
 // Matches common formats like mp4, webm (case-insensitive) for broad browser compatibility.
 // Used in video generators to validate and process video URLs.
 export const VALID_VIDEO_EXTENSIONS = /\.(mp4|webm)$/i;
+
+// Object mapping backdrop filter class names to their CSS values.
+// Translates semantic backdrop filter classes to actual CSS filter properties.
+// Used in components for applying effects like blur or grayscale to overlays and backgrounds.
+export const BACKDROP_FILTER_MAP = {
+    'backdrop-filter-blur-small': 'blur(var(--blur-small))',
+    'backdrop-filter-blur-medium': 'blur(var(--blur-medium))',
+    'backdrop-filter-blur-large': 'blur(var(--blur-large))',
+    'backdrop-filter-grayscale-small': 'grayscale(var(--grayscale-small))',
+    'backdrop-filter-grayscale-medium': 'grayscale(var(--grayscale-medium))',
+    'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))'
+};
