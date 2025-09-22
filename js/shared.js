@@ -32,7 +32,7 @@ export const alignMap = {
     'center-right': 'place-self-center-right'
 };
 
-// Array of valid video file extensions.
-// Limited to mp4 and webm for broad browser compatibility in video sources.
+// Regular expression for validating video file extensions.
+// Matches common formats like mp4, webm (case-insensitive) for broad browser compatibility.
 // Used in video generators to validate and process video URLs.
-export const VALID_VIDEO_EXTENSIONS = ['mp4', 'webm'];
+export const VALID_VIDEO_EXTENSIONS = /\.(mp4|webm)$/i;
