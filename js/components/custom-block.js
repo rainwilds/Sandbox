@@ -5,6 +5,7 @@
 import { generatePictureMarkup } from '../image-generator.js';
 import { generateVideoMarkup } from '../video-generator.js';
 import { VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } from '../shared.js';
+
 // Define the CustomBlock web component class.
 // This class extends HTMLElement to create a versatile custom element that can render blocks with various content types including text, headings, icons, buttons, images, videos, and effects.
 // It supports lazy initialization using IntersectionObserver, attribute-based configuration, media handling with light/dark modes, and caching for performance optimization.
