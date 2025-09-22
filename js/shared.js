@@ -1,8 +1,3 @@
-// Regular expression for validating image file extensions.
-// Matches common formats like jpg, jpeg, png, webp, avif, jxl, svg (case-insensitive).
-// Used to ensure source URLs in image generators are valid images.
-export const VALID_IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
-
 // Array of valid alignment strings for positioning elements.
 // Includes basic directions and combinations for flexible grid placements.
 // Used in validation to prevent invalid layout configurations.
@@ -31,11 +26,6 @@ export const VALID_ALIGN_MAP = {
     'center-left': 'place-self-center-left',
     'center-right': 'place-self-center-right'
 };
-
-// Regular expression for validating video file extensions.
-// Matches common formats like mp4, webm (case-insensitive) for broad browser compatibility.
-// Used in video generators to validate and process video URLs.
-export const VALID_VIDEO_EXTENSIONS = /\.(mp4|webm)$/i;
 
 // Object mapping backdrop filter class names to their CSS values.
 // Translates semantic backdrop filter classes to actual CSS filter properties.

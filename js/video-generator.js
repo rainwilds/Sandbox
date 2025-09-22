@@ -1,6 +1,7 @@
-// Import shared constants for valid video extensions.
-// Used to validate source URLs in the worker code.
-import { VALID_VIDEO_EXTENSIONS } from './shared.js';
+/* global document */
+
+// Internal constants for video validation and responsive generation (not exported).
+const VALID_VIDEO_EXTENSIONS = /\.(mp4|webm)$/i;
 
 // Cache for generated video markup to improve performance on repeated calls with same parameters.
 const markupCache = new Map();

@@ -1,22 +1,19 @@
 /* global document, window, console, fetch, Promise, requestIdleCallback */
 
-// Import shared constants for valid image extensions.
-// Used to validate source URLs before processing.
-import { VALID_IMAGE_EXTENSIONS } from './shared.js';
-
-// Image-specific constants for responsive image generation.
-export const IMAGE_WIDTHS = [768, 1024, 1366, 1920, 2560];
-export const IMAGE_FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
-export const VALID_ASPECT_RATIOS = new Set(['16/9', '9/16', '3/2', '2/3', '1/1', '21/9']);
-export const SIZES_BREAKPOINTS = [
+// Internal constants for image validation and responsive generation (not exported).
+const VALID_IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
+const IMAGE_WIDTHS = [768, 1024, 1366, 1920, 2560];
+const IMAGE_FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
+const VALID_ASPECT_RATIOS = new Set(['16/9', '9/16', '3/2', '2/3', '1/1', '21/9']);
+const SIZES_BREAKPOINTS = [
     { maxWidth: 768, baseValue: '100vw' },
     { maxWidth: 1024, baseValue: '100vw' },
     { maxWidth: 1366, baseValue: '100vw' },
     { maxWidth: 1920, baseValue: '100vw' },
     { maxWidth: 2560, baseValue: '100vw' },
 ];
-export const DEFAULT_IMAGE_SIZE_VALUE = 3840;
-export const IMAGE_RESPONSIVE_DIRECTORY_PATH = '/Sandbox/img/responsive/';
+const DEFAULT_IMAGE_SIZE_VALUE = 3840;
+const IMAGE_RESPONSIVE_DIRECTORY_PATH = '/Sandbox/img/responsive/';
 
 // Cache for generated markup to improve performance on repeated calls with same parameters.
 const markupCache = new Map();
