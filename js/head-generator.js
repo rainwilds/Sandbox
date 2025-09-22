@@ -74,7 +74,7 @@ const defaultSetup = {
 // Global config cache (accessible by other modules)
 window.__SETUP_CONFIG__ = null;
 
-// Function to load setup.json using relative path from /js/ directory
+// Function to load setup.json using root-relative path
 async function loadSetup() {
     // Check if we already have the config cached
     if (window.__SETUP_CONFIG__) {
@@ -82,52 +82,9 @@ async function loadSetup() {
         return window.__SETUP_CONFIG__;
     }
 
-    // Relative path from /js/ to root /JSON/setup.json
-    const setupPath = '../JSON/setup.json';
+    // Use root-relative path to match HTML preload
+    const setupPath = './JSON/setup.json';
 
-    // Try to use the preloaded resource first (preload is root-relative)
-    const preloadLink = document.querySelector('link[rel="preload"][href="./JSON/setup.json"]');
-    if (preloadLink) {
-        try {
-            log('Found preload link, attempting to use cached resource');
-            // Use root-relative path to match preload exactly
-            const response = await fetch('./JSON/setup.json', { 
-                cache: 'only-if-cached',
-                mode: 'cors',
-                credentials: 'omit'
-            });
-            
-            if (response.ok) {
-                const jsonText = await response.text();
-                const setup = JSON.parse(jsonText);
-                
-                const mergedSetup = {
-                    ...defaultSetup,
-                    ...setup,
-                    general: { ...defaultSetup.general, ...(setup.general || {}) },
-                    business: { ...defaultSetup.business, ...(setup.business || {}) },
-                    media: { ...defaultSetup.media, ...(setup.media || {}) },
-                    fonts: setup.fonts || defaultSetup.fonts,
-                    font_awesome: { ...defaultSetup.font_awesome, ...(setup.font_awesome || {}) }
-                };
-                
-                window.__SETUP_CONFIG__ = mergedSetup;
-                log('Loaded setup.json from preload', { 
-                    path: './JSON/setup.json',
-                    keys: Object.keys(mergedSetup),
-                    responsivePath: mergedSetup.media?.responsive_images?.directory_path
-                });
-                return mergedSetup;
-            }
-        } catch (preloadError) {
-            warn('Preloaded setup.json failed, falling back to regular fetch', { 
-                path: './JSON/setup.json',
-                error: preloadError.message 
-            });
-        }
-    }
-
-    // Fallback to regular fetch with relative path from /js/
     try {
         log(`Fetching setup.json from: ${setupPath}`);
         const response = await fetch(setupPath, { 
@@ -157,7 +114,7 @@ async function loadSetup() {
         };
         
         window.__SETUP_CONFIG__ = mergedSetup;
-        log('Loaded setup.json (fallback)', { 
+        log('Loaded setup.json', { 
             path: setupPath,
             keys: Object.keys(mergedSetup),
             responsivePath: mergedSetup.media?.responsive_images?.directory_path
@@ -358,12 +315,12 @@ async function updateHead(attributes) {
         warn('No valid fonts in setup.json; relying on CSS @font-face');
     }
 
-    // Stylesheet: Critical for FCP (root-relative from /js/)
+    // Stylesheet: Critical for FCP (root-relative from page)
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = '../styles.css';  // From /js/ to root /styles.css
+    styleLink.href = './styles.css';  // Relative to page /Sandbox/block.html
     criticalFrag.appendChild(styleLink);
-    log('Applied stylesheet: ../styles.css');
+    log('Applied stylesheet: ./styles.css');
 
     // Font Awesome: Semi-critical
     const faKitUrl = setup.font_awesome?.kit_url ?? setup.font_awesome?.kitUrl ?? 'https://kit.fontawesome.com/85d1e578b1.js';
@@ -487,12 +444,12 @@ async function updateHead(attributes) {
         log('Skipped empty JSON-LD schema');
     }
 
-    // Favicons: Critical for branding (root-relative from /js/)
+    // Favicons: Critical for branding (root-relative from page)
     const faviconPaths = (setup.general?.favicons ?? [
-        { rel: 'apple-touch-icon', sizes: '180x180', href: '../img/icons/apple-touch-icon.png' },
-        { rel: 'icon', type: 'image/png', sizes: '32x32', href: '../img/icons/favicon-32x32.png' },
-        { rel: 'icon', type: 'image/png', sizes: '16x16', href: '../img/icons/favicon-16x16.png' },
-        { rel: 'icon', type: 'image/x-icon', href: '../img/icons/favicon.ico' }
+        { rel: 'apple-touch-icon', sizes: '180x180', href: './img/icons/apple-touch-icon.png' },
+        { rel: 'icon', type: 'image/png', sizes: '32x32', href: './img/icons/favicon-32x32.png' },
+        { rel: 'icon', type: 'image/png', sizes: '16x16', href: './img/icons/favicon-16x16.png' },
+        { rel: 'icon', type: 'image/x-icon', href: './img/icons/favicon.ico' }
     ]).filter(f => f.href && !f.href.includes('...'));
 
     faviconPaths.forEach(favicon => {

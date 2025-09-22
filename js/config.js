@@ -38,7 +38,6 @@ const error = (message, data = null) => {
         console.trace();
         console.groupEnd();
     }
-    // Always log errors to console.error for visibility
     console.error(`[Config] ${message}`, data);
 };
 
@@ -63,8 +62,8 @@ export async function getConfig() {
     return cachedConfig;
   }
 
-  // Use ROOT-relative path to match HTML preload (from /js/ perspective, this is ../JSON/)
-  const setupPath = '../JSON/setup.json';
+  // Use ROOT-relative path to match HTML preload
+  const setupPath = './JSON/setup.json';
 
   try {
     // Default setup for merging
@@ -89,29 +88,14 @@ export async function getConfig() {
       }
     };
 
-    // Try to use the preloaded resource first
-    const preloadLink = document.querySelector('link[rel="preload"][href="./JSON/setup.json"]');
-    let response;
-    
-    if (preloadLink) {
-      log('Found preload link, attempting to use cached resource');
-      // Use the path that matches the preload (root-relative)
-      response = await fetch('./JSON/setup.json', { 
-        cache: 'only-if-cached',
-        mode: 'cors',
-        credentials: 'omit'
-      });
-    } else {
-      // Fallback to regular fetch with relative path from /js/
-      log(`No preload found, fetching from: ${setupPath}`);
-      response = await fetch(setupPath, { 
-        cache: 'force-cache',
-        mode: 'cors',
-        credentials: 'omit'
-      });
-    }
+    log(`Fetching config with force-cache from: ${setupPath}`);
+    const response = await fetch(setupPath, { 
+      cache: 'force-cache',
+      mode: 'cors',
+      credentials: 'omit'
+    });
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.url || setupPath}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${setupPath}`);
 
     const jsonText = await response.text();
     const setup = JSON.parse(jsonText);
@@ -131,7 +115,7 @@ export async function getConfig() {
     }
 
     log('Configuration loaded successfully', { 
-      path: preloadLink ? './JSON/setup.json' : setupPath,
+      path: setupPath,
       keys: Object.keys(cachedConfig),
       hasMedia: !!cachedConfig.media,
       responsivePath: cachedConfig.media?.responsive_images?.directory_path,
