@@ -219,8 +219,8 @@ export async function generatePictureMarkup({
     if (effectiveNoResponsive) {
       // For non-responsive or SVG images, generate simple <source> elements without width variants.
       const bpValue = parseInt(breakpoint, 10);
-      const maxSmall = bpValue - 1;
-      const minLarge = bpValue;
+      const maxSmall = bpValue ? bpValue - 1 : 0;
+      const minLarge = bpValue || 0;
 
       if (hasBreakpoint && hasIcon) {
         // Add sources for small screens (icons)
@@ -246,21 +246,23 @@ export async function generatePictureMarkup({
         }
       } else {
         // No breakpoint or no icons: use full sources only
+        // Always generate light/dark sources with media queries if they exist
         if (lightSrc) {
           addSource(`(prefers-color-scheme: light)`, getImageType(lightSrc), lightSrc, sizes, lightAlt);
         }
         if (darkSrc) {
           addSource(`(prefers-color-scheme: dark)`, getImageType(darkSrc), darkSrc, sizes, darkAlt);
         }
-        if (src) {
+        // Only add the default source if no light/dark variants exist
+        if (!lightSrc && !darkSrc && src) {
           addSource('', getImageType(src), src, sizes, alt);
         }
       }
     } else {
       // For responsive images, generate <source> elements for each format with width variants.
       const bpValue = parseInt(breakpoint, 10);
-      const maxSmall = bpValue - 1;
-      const minLarge = bpValue;
+      const maxSmall = bpValue ? bpValue - 1 : 0;
+      const minLarge = bpValue || 0;
 
       FORMATS.forEach((format) => {
         if (hasBreakpoint && hasIcon) {
@@ -301,7 +303,8 @@ export async function generatePictureMarkup({
             const srcset = generateSrcset(darkSrc, format, WIDTHS);
             addSource(`(prefers-color-scheme: dark)`, `image/${format}`, srcset, sizes, darkAlt);
           }
-          if (src) {
+          // Only add the default source if no light/dark variants exist
+          if (!lightSrc && !darkSrc && src) {
             const srcset = generateSrcset(src, format, WIDTHS);
             addSource('', `image/${format}`, srcset, sizes, alt);
           }
