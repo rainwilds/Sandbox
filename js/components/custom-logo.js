@@ -5,7 +5,7 @@
     const isDev = window.location.href.includes('/dev/') ||
       new URLSearchParams(window.location.search).get('debug') === 'true';
 
-    // Debug logging methods
+    // Debug logging VALID_ALIGN_MAP
     // Define a logging function that only outputs in debug mode.
     // Uses console.groupCollapsed for organized, collapsible output with color styling.
     // Includes a timestamp, message, optional data, and a stack trace for easy debugging.

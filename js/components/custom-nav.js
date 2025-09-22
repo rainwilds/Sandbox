@@ -47,10 +47,10 @@
     try {
         // Asynchronously import required dependencies.
         // BACKDROP_FILTER_MAP from custom-block.js for handling backdrop filter effects.
-        // VALID_ALIGNMENTS and alignMap from shared.js for validation and mapping of alignment attributes.
+        // VALID_ALIGNMENTS and VALID_ALIGN_MAP from shared.js for validation and mapping of alignment attributes.
         const { BACKDROP_FILTER_MAP } = await import('./custom-block.js');
-        const { VALID_ALIGNMENTS, alignMap } = await import('../shared.js');
-        log('Successfully imported BACKDROP_FILTER_MAP and alignMap');
+        const { VALID_ALIGNMENTS, VALID_ALIGN_MAP } = await import('../shared.js');
+        log('Successfully imported BACKDROP_FILTER_MAP and VALID_ALIGN_MAP');
 
         // Define the CustomNav web component class.
         // Extends HTMLElement to create a custom element for navigation menus.
@@ -112,7 +112,7 @@
             render() {
                 log('Starting render');
                 const attrs = this.getAttributes();
-                const navAlignClass = attrs.navPosition ? alignMap[attrs.navPosition] : '';
+                const navAlignClass = attrs.navPosition ? VALID_ALIGN_MAP[attrs.navPosition] : '';
                 const navClasses = [
                     attrs.navClass,
                     `nav-${attrs.navOrientation}`,

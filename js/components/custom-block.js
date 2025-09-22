@@ -5,7 +5,7 @@
 // Also import shared constants for validating and mapping alignment values used in layout positioning.
 import { generatePictureMarkup } from '../image-generator.js';
 import { generateVideoMarkup } from '../video-generator.js';
-import { VALID_ALIGNMENTS, alignMap } from '../shared.js';
+import { VALID_ALIGNMENTS, VALID_ALIGN_MAP } from '../shared.js';
 
 // Define the CustomBlock web component class.
 // This class extends HTMLElement to create a versatile custom element that can render blocks with various content types including text, headings, icons, buttons, images, videos, and effects.
@@ -1340,7 +1340,7 @@ class CustomBlock extends HTMLElement {
         if (attrs.innerBorderRadiusClass) innerDivClassList.push(attrs.innerBorderRadiusClass);
         if (attrs.innerBackgroundOverlayClass) innerDivClassList.push(attrs.innerBackgroundOverlayClass);
         if (attrs.innerBackgroundGradientClass) innerDivClassList.push(attrs.innerBackgroundGradientClass);
-        if (attrs.innerAlignment) innerDivClassList.push(alignMap[attrs.innerAlignment]);
+        if (attrs.innerAlignment) innerDivClassList.push(VALID_ALIGN_MAP[attrs.innerAlignment]);
         if (attrs.innerShadowClass) innerDivClassList.push(attrs.innerShadowClass);
         const innerBackdropFilterValues = attrs.innerBackdropFilterClasses
             .filter(cls => cls.startsWith('backdrop-filter'))
@@ -1369,14 +1369,14 @@ class CustomBlock extends HTMLElement {
             }
         }
         innerDiv.setAttribute('aria-live', 'polite');
-        const textAlignMap = {
+        const textVALID_ALIGN_MAP = {
             'left': 'flex-column-left text-align-left',
             'center': 'flex-column-center text-align-center',
             'right': 'flex-column-right text-align-right'
         };
         const groupDiv = document.createElement('div');
         groupDiv.setAttribute('role', 'group');
-        if (attrs.textAlignment) groupDiv.className = textAlignMap[attrs.textAlignment];
+        if (attrs.textAlignment) groupDiv.className = textVALID_ALIGN_MAP[attrs.textAlignment];
         if (attrs.icon) {
             const iconSpan = document.createElement('span');
             iconSpan.className = `icon${attrs.iconClass ? ` ${attrs.iconClass}` : ''}`;

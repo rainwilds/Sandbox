@@ -49,10 +49,10 @@
     try {
         // Asynchronously import required dependencies.
         // CustomBlock from custom-block.js as the base class for extension.
-        // VALID_ALIGNMENTS and alignMap from shared.js for validating and mapping alignment attributes.
+        // VALID_ALIGNMENTS and VALID_ALIGN_MAP from shared.js for validating and mapping alignment attributes.
         const { CustomBlock } = await import('./custom-block.js');
-        const { VALID_ALIGNMENTS, alignMap } = await import('../shared.js');
-        log('Successfully imported CustomBlock and alignMap');
+        const { VALID_ALIGNMENTS, VALID_ALIGN_MAP } = await import('../shared.js');
+        log('Successfully imported CustomBlock and VALID_ALIGN_MAP');
 
         // Wait for dependent custom elements to be defined.
         // Ensures custom-logo and custom-nav are ready before proceeding, as they are rendered within the header.
@@ -177,7 +177,7 @@
                         attrs.navLogoContainerStyle,
                         'z-index: 2'
                     ].filter(s => s).join('; ').trim();
-                    const navAlignClass = attrs.navAlignment ? alignMap[attrs.navAlignment] : '';
+                    const navAlignClass = attrs.navAlignment ? VALID_ALIGN_MAP[attrs.navAlignment] : '';
                     const navContainerClasses = this.querySelector('custom-nav')?.getAttribute('nav-container-class') || '';
                     const navContainerStyle = this.querySelector('custom-nav')?.getAttribute('nav-container-style') || '';
 

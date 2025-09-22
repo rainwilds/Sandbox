@@ -16,7 +16,7 @@ export const VALID_ALIGNMENTS = [
 // Object mapping alignment strings to CSS class names.
 // Translates semantic alignments to place-self utilities for CSS Grid.
 // Enables easy application of positioning in components like logos or navs.
-export const alignMap = {
+export const VALID_ALIGN_MAP = {
     'center': 'place-self-center',
     'top': 'place-self-top',
     'bottom': 'place-self-bottom',
