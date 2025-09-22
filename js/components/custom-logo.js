@@ -49,10 +49,10 @@
     try {
         // Asynchronously import required dependencies.
         // generatePictureMarkup from image-generator.js for creating responsive logo images.
-        // VALID_ALIGNMENTS and alignMap from shared.js for validating and mapping alignment positions.
+        // VALID_ALIGNMENTS and VALID_ALIGN_MAP from shared.js for validating and mapping alignment positions.
         const { generatePictureMarkup } = await import('../image-generator.js');
-        const { VALID_ALIGNMENTS, alignMap } = await import('../shared.js');
-        log('Successfully imported generatePictureMarkup and alignMap');
+        const { VALID_ALIGNMENTS, VALID_ALIGN_MAP } = await import('../shared.js');
+        log('Successfully imported generatePictureMarkup and VALID_ALIGN_MAP');
 
         // Define the CustomLogo web component class.
         // Extends HTMLElement to create a custom element for responsive logos with light/dark variants and breakpoints.
@@ -188,7 +188,7 @@
                 const hasValidSource = attrs.fullPrimarySrc || attrs.fullLightSrc || attrs.fullDarkSrc ||
                                       attrs.iconPrimarySrc || attrs.iconLightSrc || attrs.iconDarkSrc;
                 if (hasValidSource) {
-                    let positionClass = attrs.fullPosition ? alignMap[attrs.fullPosition] : 'place-self-center';
+                    let positionClass = attrs.fullPosition ? VALID_ALIGN_MAP[attrs.fullPosition] : 'place-self-center';
                     let styleTag = '';
                     const hasBreakpoint = attrs.breakpoint && [768, 1024, 1366, 1920, 2560].includes(parseInt(attrs.breakpoint, 10));
                     const hasIconSource = attrs.iconPrimarySrc || (attrs.iconLightSrc && attrs.iconDarkSrc);
