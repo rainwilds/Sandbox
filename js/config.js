@@ -19,28 +19,11 @@ export async function getConfig() {
     return cachedConfig;
   }
 
+  // Relative path from /js/ to /JSON/setup.json
+  const setupPath = '../JSON/setup.json';
+
   try {
-    // Try to use the preloaded resource first
-    const preloadLink = document.querySelector('link[rel="preload"][href="./JSON/setup.json"]');
-    let response;
-    
-    if (preloadLink) {
-      // Use the preloaded resource via fetch with cache: 'only-if-cached'
-      response = await fetch('./JSON/setup.json', { 
-        cache: 'only-if-cached',
-        mode: 'same-origin'
-      });
-    } else {
-      // Fallback to regular fetch
-      response = await fetch('./JSON/setup.json', { cache: 'force-cache' });
-    }
-
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const jsonText = await response.text();
-    const setup = JSON.parse(jsonText);
-    
-    // Merge with defaults to ensure required structure
+    // Default setup for merging
     const defaultSetup = {
       fonts: [],
       general: {
@@ -57,11 +40,31 @@ export async function getConfig() {
       font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' },
       media: {
         responsive_images: {
-          directory_path: '/img/responsive/'
+          directory_path: '/img/responsive/'  // Fallback
         }
       }
     };
 
+    // Try to use the preloaded resource first
+    const preloadLink = document.querySelector(`link[rel="preload"][href="${setupPath}"]`);
+    let response;
+    
+    if (preloadLink) {
+      response = await fetch(setupPath, { 
+        cache: 'only-if-cached',
+        mode: 'same-origin'
+      });
+    } else {
+      // Fallback to regular fetch
+      response = await fetch(setupPath, { cache: 'force-cache' });
+    }
+
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${setupPath}`);
+
+    const jsonText = await response.text();
+    const setup = JSON.parse(jsonText);
+    
+    // Merge with defaults to ensure required structure
     cachedConfig = {
       ...defaultSetup,
       ...setup,
@@ -76,16 +79,17 @@ export async function getConfig() {
     }
 
     if (typeof window !== 'undefined' && window.console && window.console.debug) {
-      console.debug('Loaded configuration:', { 
+      console.debug('Loaded configuration from:', setupPath, { 
         keys: Object.keys(cachedConfig),
         hasMedia: !!cachedConfig.media,
-        hasBusiness: !!cachedConfig.business
+        responsivePath: cachedConfig.media?.responsive_images?.directory_path,
+        businessName: cachedConfig.business?.name
       });
     }
 
     return cachedConfig;
   } catch (error) {
-    console.warn('Failed to load config, using defaults:', error);
+    console.warn(`Failed to load config from ${setupPath}, using defaults:`, error);
     
     // Use defaults and cache globally
     cachedConfig = defaultSetup;
@@ -132,7 +136,7 @@ export async function getGeneralConfig() {
   return config.general || {};
 }
 
-// Synchronous access for immediate use (with fallback)
+// Synchronous access for immediate use (with global fallback)
 export function getSyncImageResponsivePath() {
   return window.__SETUP_CONFIG__?.media?.responsive_images?.directory_path || '/img/responsive/';
 }
