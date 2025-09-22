@@ -88,9 +88,7 @@ async function loadSetup() {
     try {
         log(`Fetching setup.json from: ${setupPath}`);
         const response = await fetch(setupPath, { 
-            cache: 'force-cache',
-            mode: 'cors',
-            credentials: 'omit'
+            cache: 'force-cache'  // Remove mode and credentials for default same-origin behavior
         });
         
         if (!response.ok) throw new Error(`HTTP ${response.status}: ${setupPath}`);
@@ -296,7 +294,7 @@ async function updateHead(attributes, setup) {
         const fontUrl = font.href ?? font.url ?? '';
         if (fontUrl) {
             const link = document.createElement('link');
-            link.rel = 'link';
+            link.rel = 'preload';
             link.href = fontUrl;
             link.as = font.as ?? 'font';
             link.type = font.type ?? 'font/woff2';
