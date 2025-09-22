@@ -36,6 +36,7 @@ export async function generatePictureMarkup({
   noResponsive = false,
   breakpoint = '',
   extraStyles = '',
+  isBackground = false, // New parameter to identify background images
 } = {}) {
   // Check if debug mode is enabled via URL for logging.
   const isDev = typeof window !== 'undefined' && (
@@ -138,7 +139,7 @@ export async function generatePictureMarkup({
     iconSrc, iconLightSrc, iconDarkSrc, iconAlt, iconLightAlt, iconDarkAlt,
     isDecorative, mobileWidth, tabletWidth, desktopWidth, aspectRatio,
     includeSchema, customClasses, loading, fetchPriority, extraClasses,
-    noResponsive, breakpoint, extraStyles, prefersDark, isBelowBreakpoint
+    noResponsive, breakpoint, extraStyles, isBackground, prefersDark, isBelowBreakpoint
   });
 
   if (markupCache.has(cacheKey)) {
@@ -320,10 +321,13 @@ export async function generatePictureMarkup({
       fallbackSrc = primarySrc.replace(/\.[^/.]+$/, '.jpg');
     }
 
+    // Only apply extraStyles if it's not a background image
+    const styleAttr = (!isBackground && extraStyles) ? `style="${extraStyles}"` : '';
+
     const imgAttrs = [
       `src="${fallbackSrc}"`,
       isDecorative ? 'alt="" role="presentation"' : `alt="${primaryAlt}"`,
-      extraStyles ? `style="${extraStyles}"` : '',
+      styleAttr,
       `loading="${loading}"`,
       fetchPriority ? `fetchpriority="${fetchPriority}"` : '',
       `onerror="this.src='https://placehold.co/3000x2000'; this.alt='${primaryAlt || 'Fallback image'}'; this.onerror=null;"`
