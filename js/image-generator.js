@@ -1,7 +1,7 @@
 /* global document, window, console, fetch, Promise, requestIdleCallback */
 
 // Import shared constants for valid image extensions.
-// Used to validate source URLs before processing.
+// Used to validate source URLs before processing. 
 import { VALID_EXTENSIONS } from './shared.js';
 
 // Cache for generated markup to improve performance on repeated calls with same parameters.
