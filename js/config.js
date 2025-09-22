@@ -1,4 +1,44 @@
-/* global fetch, document, window */
+/* global fetch, document, window, console */
+
+// Browser-compatible dev detection
+const isDev = typeof window !== 'undefined' && (
+  window.location.href.includes('/dev/') ||
+  new URLSearchParams(window.location.search).get('debug') === 'true'
+);
+
+// Debug logging methods (same as head-generator.js)
+const log = (message, data = null) => {
+    if (isDev) {
+        console.groupCollapsed(`%c[Config] ${new Date().toLocaleTimeString()} ${message}`, 'color: #2196F3; font-weight: bold;');
+        if (data) {
+            console.log('%cData:', 'color: #4CAF50;', data);
+        }
+        console.trace();
+        console.groupEnd();
+    }
+};
+
+const warn = (message, data = null) => {
+    if (isDev) {
+        console.groupCollapsed(`%c[Config] ⚠️ ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
+        if (data) {
+            console.log('%cData:', 'color: #4CAF50;', data);
+        }
+        console.trace();
+        console.groupEnd();
+    }
+};
+
+const error = (message, data = null) => {
+    if (isDev) {
+        console.groupCollapsed(`%c[Config] ❌ ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
+        if (data) {
+            console.log('%cData:', 'color: #4CAF50;', data);
+        }
+        console.trace();
+        console.groupEnd();
+    }
+};
 
 // Global config cache (populated by head-generator.js)
 let cachedConfig = null;
@@ -11,11 +51,13 @@ export async function getConfig() {
   // Check if head-generator already loaded it globally
   if (window.__SETUP_CONFIG__) {
     cachedConfig = window.__SETUP_CONFIG__;
+    log('Using cached config from global');
     return cachedConfig;
   }
 
   // Check local cache
   if (cachedConfig) {
+    log('Using local config cache');
     return cachedConfig;
   }
 
@@ -46,20 +88,28 @@ export async function getConfig() {
     };
 
     // Try to use the preloaded resource first
-    const preloadLink = document.querySelector(`link[rel="preload"][href="${setupPath}"]`);
+    const preloadLink = document.querySelector(`link[rel="preload"][href="./JSON/setup.json"]`); // Note: from root
     let response;
     
     if (preloadLink) {
-      response = await fetch(setupPath, { 
+      log('Found preload link, attempting to use cached resource');
+      // Use the exact path that was preloaded (from root perspective)
+      response = await fetch('./JSON/setup.json', { 
         cache: 'only-if-cached',
-        mode: 'same-origin'
+        mode: 'cors',  // Match preload's crossOrigin="anonymous"
+        credentials: 'omit'
       });
     } else {
-      // Fallback to regular fetch
-      response = await fetch(setupPath, { cache: 'force-cache' });
+      // Fallback to regular fetch with relative path from /js/
+      log(`No preload found, fetching from: ${setupPath}`);
+      response = await fetch(setupPath, { 
+        cache: 'force-cache',
+        mode: 'cors',
+        credentials: 'omit'
+      });
     }
 
-    if (!response.ok) throw new Error(`HTTP ${response.status}: ${setupPath}`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.url}`);
 
     const jsonText = await response.text();
     const setup = JSON.parse(jsonText);
@@ -78,24 +128,27 @@ export async function getConfig() {
       window.__SETUP_CONFIG__ = cachedConfig;
     }
 
-    if (typeof window !== 'undefined' && window.console && window.console.debug) {
-      console.debug('Loaded configuration from:', setupPath, { 
-        keys: Object.keys(cachedConfig),
-        hasMedia: !!cachedConfig.media,
-        responsivePath: cachedConfig.media?.responsive_images?.directory_path,
-        businessName: cachedConfig.business?.name
-      });
-    }
+    log('Configuration loaded successfully', { 
+      path: preloadLink ? './JSON/setup.json' : setupPath,
+      keys: Object.keys(cachedConfig),
+      hasMedia: !!cachedConfig.media,
+      responsivePath: cachedConfig.media?.responsive_images?.directory_path,
+      businessName: cachedConfig.business?.name
+    });
 
     return cachedConfig;
-  } catch (error) {
-    console.warn(`Failed to load config from ${setupPath}, using defaults:`, error);
+  } catch (err) {
+    error(`Failed to load config from ${setupPath}:`, { 
+      error: err.message,
+      stack: err.stack 
+    });
     
     // Use defaults and cache globally
     cachedConfig = defaultSetup;
     if (!window.__SETUP_CONFIG__) {
       window.__SETUP_CONFIG__ = cachedConfig;
     }
+    warn('Using default configuration');
     return cachedConfig;
   }
 }
@@ -105,8 +158,11 @@ export async function getConfig() {
  * @returns {Promise<string>} The directory path
  */
 export async function getImageResponsivePath() {
+  log('Getting image responsive path');
   const config = await getConfig();
-  return config.media?.responsive_images?.directory_path || '/img/responsive/';
+  const path = config.media?.responsive_images?.directory_path || '/img/responsive/';
+  log(`Responsive image path: ${path}`);
+  return path;
 }
 
 /**
@@ -138,5 +194,9 @@ export async function getGeneralConfig() {
 
 // Synchronous access for immediate use (with global fallback)
 export function getSyncImageResponsivePath() {
-  return window.__SETUP_CONFIG__?.media?.responsive_images?.directory_path || '/img/responsive/';
+  const path = window.__SETUP_CONFIG__?.media?.responsive_images?.directory_path || '/img/responsive/';
+  if (isDev) {
+    log(`Sync responsive path: ${path} (global: ${!!window.__SETUP_CONFIG__})`);
+  }
+  return path;
 }
