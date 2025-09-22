@@ -1,7 +1,7 @@
 // Regular expression for validating image file extensions.
 // Matches common formats like jpg, jpeg, png, webp, avif, jxl, svg (case-insensitive).
 // Used to ensure source URLs in image generators are valid images.
-export const VALID_EXTENSIONS = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
+export const VALID_IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
 
 // Array of valid alignment strings for positioning elements.
 // Includes basic directions and combinations for flexible grid placements.

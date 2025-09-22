@@ -2,7 +2,7 @@
 
 // Import shared constants for valid image extensions.
 // Used to validate source URLs before processing.
-import { VALID_EXTENSIONS } from './shared.js';
+import { VALID_IMAGE_EXTENSIONS } from './shared.js';
 
 // Cache for generated markup to improve performance on repeated calls with same parameters.
 const markupCache = new Map();
@@ -85,7 +85,7 @@ export async function generatePictureMarkup({
 
   // Validate file extensions for all sources.
   for (const source of allSources) {
-    if (!VALID_EXTENSIONS.test(source)) {
+    if (!VALID_IMAGE_EXTENSIONS.test(source)) {
       return '<picture><img src="' + source + '" alt="Invalid image source" loading="lazy"></picture>';
     }
   }
