@@ -85,12 +85,12 @@ async function loadSetup() {
     // Relative path from /js/ to root /JSON/setup.json
     const setupPath = '../JSON/setup.json';
 
-    // Try to use the preloaded resource first
+    // Try to use the preloaded resource first (preload is root-relative)
     const preloadLink = document.querySelector('link[rel="preload"][href="./JSON/setup.json"]');
     if (preloadLink) {
         try {
-            log(`Attempting to use preloaded resource: ${setupPath}`);
-            // Use root-relative path to match preload
+            log('Found preload link, attempting to use cached resource');
+            // Use root-relative path to match preload exactly
             const response = await fetch('./JSON/setup.json', { 
                 cache: 'only-if-cached',
                 mode: 'cors',
@@ -115,21 +115,19 @@ async function loadSetup() {
                 log('Loaded setup.json from preload', { 
                     path: './JSON/setup.json',
                     keys: Object.keys(mergedSetup),
-                    responsivePath: mergedSetup.media?.responsive_images?.directory_path,
-                    businessName: mergedSetup.business?.name,
-                    fontCount: mergedSetup.fonts?.length || 0
+                    responsivePath: mergedSetup.media?.responsive_images?.directory_path
                 });
                 return mergedSetup;
             }
         } catch (preloadError) {
             warn('Preloaded setup.json failed, falling back to regular fetch', { 
-                path: setupPath, 
+                path: './JSON/setup.json',
                 error: preloadError.message 
             });
         }
     }
 
-    // Fallback to regular fetch with relative path
+    // Fallback to regular fetch with relative path from /js/
     try {
         log(`Fetching setup.json from: ${setupPath}`);
         const response = await fetch(setupPath, { 
@@ -162,9 +160,7 @@ async function loadSetup() {
         log('Loaded setup.json (fallback)', { 
             path: setupPath,
             keys: Object.keys(mergedSetup),
-            responsivePath: mergedSetup.media?.responsive_images?.directory_path,
-            businessName: mergedSetup.business?.name,
-            fontCount: mergedSetup.fonts?.length || 0
+            responsivePath: mergedSetup.media?.responsive_images?.directory_path
         });
         return mergedSetup;
     } catch (err) {
@@ -365,7 +361,7 @@ async function updateHead(attributes) {
     // Stylesheet: Critical for FCP (root-relative from /js/)
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = '../styles.css';  // From /js/ to root
+    styleLink.href = '../styles.css';  // From /js/ to root /styles.css
     criticalFrag.appendChild(styleLink);
     log('Applied stylesheet: ../styles.css');
 
@@ -559,7 +555,7 @@ async function updateHead(attributes) {
         for (const attr of customHead.attributes) {
             const key = attr.name.replace(/^data-/, '');
             const value = attr.value?.trim();
-            if (value) {  // Truthy check (not null/undefined/empty string)
+            if (value) {  // Truthy check
                 attributes[key] = value;
             }
         }

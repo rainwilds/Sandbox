@@ -67,7 +67,7 @@ export async function getConfig() {
   const setupPath = '../JSON/setup.json';
 
   try {
-    // Default setup for merging (YOUR correct fallback path!)
+    // Default setup for merging
     const defaultSetup = {
       fonts: [],
       general: {
@@ -84,7 +84,7 @@ export async function getConfig() {
       font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' },
       media: {
         responsive_images: {
-          directory_path: '/Sandbox/img/responsive/'  // ← Your correct path!
+          directory_path: '/Sandbox/img/responsive/'  // Your correct path!
         }
       }
     };
@@ -95,7 +95,7 @@ export async function getConfig() {
     
     if (preloadLink) {
       log('Found preload link, attempting to use cached resource');
-      // Use the path that matches the preload (root-relative from JS perspective)
+      // Use the path that matches the preload (root-relative)
       response = await fetch('./JSON/setup.json', { 
         cache: 'only-if-cached',
         mode: 'cors',
@@ -116,32 +116,13 @@ export async function getConfig() {
     const jsonText = await response.text();
     const setup = JSON.parse(jsonText);
     
-    // Validate and merge with defaults
-    if (!setup || typeof setup !== 'object') {
-      throw new Error('Invalid JSON structure in setup.json');
-    }
-    
     // Merge with defaults to ensure required structure
     cachedConfig = {
       ...defaultSetup,
       ...setup,
-      general: { 
-        ...defaultSetup.general, 
-        ...(setup.general || {}) 
-      },
-      business: { 
-        ...defaultSetup.business, 
-        ...(setup.business || {}) 
-      },
-      media: { 
-        ...defaultSetup.media, 
-        ...(setup.media || {}) 
-      },
-      fonts: setup.fonts || defaultSetup.fonts,
-      font_awesome: { 
-        ...defaultSetup.font_awesome, 
-        ...(setup.font_awesome || {}) 
-      }
+      general: { ...defaultSetup.general, ...(setup.general || {}) },
+      business: { ...defaultSetup.business, ...(setup.business || {}) },
+      media: { ...defaultSetup.media, ...(setup.media || {}) }
     };
 
     // Cache globally for other modules if not already set
@@ -154,16 +135,14 @@ export async function getConfig() {
       keys: Object.keys(cachedConfig),
       hasMedia: !!cachedConfig.media,
       responsivePath: cachedConfig.media?.responsive_images?.directory_path,
-      businessName: cachedConfig.business?.name,
-      fontCount: cachedConfig.fonts?.length || 0
+      businessName: cachedConfig.business?.name
     });
 
     return cachedConfig;
   } catch (err) {
     error(`Failed to load config from ${setupPath}:`, { 
       error: err.message,
-      stack: err.stack,
-      url: err.url
+      stack: err.stack 
     });
     
     // Use defaults and cache globally
@@ -193,7 +172,6 @@ export async function getImageResponsivePath() {
  * @returns {Promise<Object>} Business configuration
  */
 export async function getBusinessInfo() {
-  log('Getting business info');
   const config = await getConfig();
   return config.business || {};
 }
@@ -203,7 +181,6 @@ export async function getBusinessInfo() {
  * @returns {Promise<Object>} Theme color configuration
  */
 export async function getThemeColors() {
-  log('Getting theme colors');
   const config = await getConfig();
   return config.general?.theme_colors || {};
 }
@@ -213,16 +190,11 @@ export async function getThemeColors() {
  * @returns {Promise<Object>} General configuration
  */
 export async function getGeneralConfig() {
-  log('Getting general config');
   const config = await getConfig();
   return config.general || {};
 }
 
 // Synchronous access for immediate use (with global fallback)
 export function getSyncImageResponsivePath() {
-  const path = window.__SETUP_CONFIG__?.media?.responsive_images?.directory_path || '/Sandbox/img/responsive/';
-  if (isDev) {
-    log(`Sync responsive path: ${path} (global: ${!!window.__SETUP_CONFIG__})`);
-  }
-  return path;
+  return window.__SETUP_CONFIG__?.media?.responsive_images?.directory_path || '/Sandbox/img/responsive/';
 }
