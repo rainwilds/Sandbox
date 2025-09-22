@@ -17,6 +17,12 @@ export async function generatePictureMarkup({
   alt = '',
   lightAlt = '',
   darkAlt = '',
+  iconSrc = '',
+  iconLightSrc = '',
+  iconDarkSrc = '',
+  iconAlt = '',
+  iconLightAlt = '',
+  iconDarkAlt = '',
   isDecorative = false,
   mobileWidth = '100vw',
   tabletWidth = '100vw',
@@ -44,34 +50,69 @@ export async function generatePictureMarkup({
   alt = alt.trim();
   lightAlt = lightAlt.trim();
   darkAlt = darkAlt.trim();
+  iconSrc = iconSrc.trim();
+  iconLightSrc = iconLightSrc.trim();
+  iconDarkSrc = iconDarkSrc.trim();
+  iconAlt = iconAlt.trim();
+  iconLightAlt = iconLightAlt.trim();
+  iconDarkAlt = iconDarkAlt.trim();
   customClasses = customClasses.trim();
   extraStyles = extraStyles.trim();
 
   // Determine if the image is SVG, which affects responsive handling.
-  const isSvg = src.endsWith('.svg') || lightSrc.endsWith('.svg') || darkSrc.endsWith('.svg');
+  const isSvg = src.endsWith('.svg') || lightSrc.endsWith('.svg') || darkSrc.endsWith('.svg') ||
+                iconSrc.endsWith('.svg') || iconLightSrc.endsWith('.svg') || iconDarkSrc.endsWith('.svg');
   const effectiveNoResponsive = noResponsive || isSvg;
 
   // Validate that at least one source is provided.
-  const sources = [src, lightSrc, darkSrc].filter(Boolean);
-  if (!sources.length) {
+  const allSources = [src, lightSrc, darkSrc, iconSrc, iconLightSrc, iconDarkSrc].filter(Boolean);
+  if (!allSources.length) {
     return '<picture><img src="https://placehold.co/3000x2000" alt="No image source provided" loading="lazy"></picture>';
   }
 
   // Validate file extensions for all sources.
-  for (const source of sources) {
+  for (const source of allSources) {
     if (!VALID_EXTENSIONS.test(source)) {
       return '<picture><img src="' + source + '" alt="Invalid image source" loading="lazy"></picture>';
     }
   }
 
   // Ensure alt text is provided unless decorative.
-  if (!isDecorative && !alt && !(lightSrc && lightAlt) && !(darkSrc && darkAlt)) {
-    return '<picture><img src="https://placehold.co/3000x2000" alt="Missing alt text" loading="lazy"></picture>';
+  if (!isDecorative) {
+    if (src && !alt) {
+      return '<picture><img src="https://placehold.co/3000x2000" alt="Missing alt text for primary src" loading="lazy"></picture>';
+    }
+    if (lightSrc && !lightAlt) {
+      return '<picture><img src="https://placehold.co/3000x2000" alt="Missing alt text for light src" loading="lazy"></picture>';
+    }
+    if (darkSrc && !darkAlt) {
+      return '<picture><img src="https://placehold.co/3000x2000" alt="Missing alt text for dark src" loading="lazy"></picture>';
+    }
+    if (iconSrc && !iconAlt) {
+      return '<picture><img src="https://placehold.co/3000x2000" alt="Missing alt text for icon src" loading="lazy"></picture>';
+    }
+    if (iconLightSrc && !iconLightAlt) {
+      return '<picture><img src="https://placehold.co/3000x2000" alt="Missing alt text for icon light src" loading="lazy"></picture>';
+    }
+    if (iconDarkSrc && !iconDarkAlt) {
+      return '<picture><img src="https://placehold.co/3000x2000" alt="Missing alt text for icon dark src" loading="lazy"></picture>';
+    }
+  }
+
+  // Determine presence of icons and breakpoint.
+  const hasIcon = iconSrc || (iconLightSrc && iconDarkSrc);
+  const hasBreakpoint = breakpoint && Number.isInteger(parseInt(breakpoint, 10)) && [768, 1024, 1366, 1920, 2560].includes(parseInt(breakpoint, 10));
+  if (hasIcon && !hasBreakpoint && isDev) {
+    console.warn('Icon sources provided without a valid breakpoint. Using full sources only.');
+  }
+  if (!hasIcon && hasBreakpoint && isDev) {
+    console.warn('Breakpoint provided without icon sources. Ignoring breakpoint.');
   }
 
   // Create a cache key from all parameters for quick lookup.
   const cacheKey = JSON.stringify({
     src, lightSrc, darkSrc, alt, lightAlt, darkAlt,
+    iconSrc, iconLightSrc, iconDarkSrc, iconAlt, iconLightAlt, iconDarkAlt,
     isDecorative, mobileWidth, tabletWidth, desktopWidth, aspectRatio,
     includeSchema, customClasses, loading, fetchPriority, extraClasses,
     noResponsive, breakpoint, extraStyles
@@ -83,8 +124,8 @@ export async function generatePictureMarkup({
 
   try {
     // Determine primary source and alt for fallback.
-    const primarySrc = lightSrc || darkSrc || src;
-    const primaryAlt = isDecorative ? '' : (lightAlt || darkAlt || alt);
+    const primarySrc = src || lightSrc || darkSrc;
+    const primaryAlt = isDecorative ? '' : (alt || lightAlt || darkAlt);
 
     // Build combined classes array, removing duplicates.
     const allClasses = [...new Set([
@@ -135,42 +176,116 @@ export async function generatePictureMarkup({
 
     const FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
 
-    if (effectiveNoResponsive || primarySrc.endsWith('.svg')) {
+    // Helper to add a source element.
+    const addSource = (media, type, srcset, sizes, dataAlt) => {
+      markup += `<source${media ? ` media="${media}"` : ''} type="${type}" srcset="${srcset}" sizes="${sizes}"${dataAlt ? ` data-alt="${dataAlt}"` : ''}>`;
+    };
+
+    if (effectiveNoResponsive) {
       // For non-responsive or SVG images, generate simple <source> elements without width variants.
-      if (lightSrc) {
-        markup += `<source media="(prefers-color-scheme: light)" type="${getImageType(lightSrc)}" srcset="${lightSrc}" sizes="${sizes}"${lightAlt ? ` alt="${lightAlt}"` : ''}>`;
-      }
-      if (darkSrc) {
-        markup += `<source media="(prefers-color-scheme: dark)" type="${getImageType(darkSrc)}" srcset="${darkSrc}" sizes="${sizes}"${darkAlt ? ` alt="${darkAlt}"` : ''}>`;
-      }
-      if (src) {
-        markup += `<source type="${getImageType(src)}" srcset="${src}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : ` alt="${primaryAlt}"`}>`;
+      const bpValue = parseInt(breakpoint, 10);
+      const maxSmall = bpValue - 1;
+      const minLarge = bpValue;
+
+      if (hasBreakpoint && hasIcon) {
+        // Add sources for small screens (icons)
+        if (iconLightSrc) {
+          addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, getImageType(iconLightSrc), iconLightSrc, sizes, iconLightAlt);
+        }
+        if (iconDarkSrc) {
+          addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: dark)`, getImageType(iconDarkSrc), iconDarkSrc, sizes, iconDarkAlt);
+        }
+        if (iconSrc) {
+          addSource(`(max-width: ${maxSmall}px)`, getImageType(iconSrc), iconSrc, sizes, iconAlt);
+        }
+
+        // Add sources for large screens (full)
+        if (lightSrc) {
+          addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: light)`, getImageType(lightSrc), lightSrc, sizes, lightAlt);
+        }
+        if (darkSrc) {
+          addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: dark)`, getImageType(darkSrc), darkSrc, sizes, darkAlt);
+        }
+        if (src) {
+          addSource(`(min-width: ${minLarge}px)`, getImageType(src), src, sizes, alt);
+        }
+      } else {
+        // No breakpoint or no icons: use full sources only
+        if (lightSrc) {
+          addSource(`(prefers-color-scheme: light)`, getImageType(lightSrc), lightSrc, sizes, lightAlt);
+        }
+        if (darkSrc) {
+          addSource(`(prefers-color-scheme: dark)`, getImageType(darkSrc), darkSrc, sizes, darkAlt);
+        }
+        if (src) {
+          addSource('', getImageType(src), src, sizes, alt);
+        }
       }
     } else {
       // For responsive images, generate <source> elements for each format with width variants.
+      const bpValue = parseInt(breakpoint, 10);
+      const maxSmall = bpValue - 1;
+      const minLarge = bpValue;
+
       FORMATS.forEach((format) => {
-        if (lightSrc && !lightSrc.endsWith('.svg')) {
-          const lightSrcset = generateSrcset(lightSrc, format, WIDTHS);
-          markup += `<source media="(prefers-color-scheme: light)" type="image/${format}" srcset="${lightSrcset}" sizes="${sizes}"${lightAlt ? ` alt="${lightAlt}"` : ''}>`;
-        }
-        if (darkSrc && !darkSrc.endsWith('.svg')) {
-          const darkSrcset = generateSrcset(darkSrc, format, WIDTHS);
-          markup += `<source media="(prefers-color-scheme: dark)" type="image/${format}" srcset="${darkSrcset}" sizes="${sizes}"${darkAlt ? ` alt="${darkAlt}"` : ''}>`;
-        }
-        if (!primarySrc.endsWith('.svg')) {
-          const primarySrcset = generateSrcset(primarySrc, format, WIDTHS);
-          markup += `<source type="image/${format}" srcset="${primarySrcset}" sizes="${sizes}"${isDecorative ? ' alt="" role="presentation"' : ` alt="${primaryAlt}"`}>`;
+        if (hasBreakpoint && hasIcon) {
+          // Add sources for small screens (icons)
+          if (iconLightSrc) {
+            const srcset = generateSrcset(iconLightSrc, format, WIDTHS);
+            addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, `image/${format}`, srcset, sizes, iconLightAlt);
+          }
+          if (iconDarkSrc) {
+            const srcset = generateSrcset(iconDarkSrc, format, WIDTHS);
+            addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: dark)`, `image/${format}`, srcset, sizes, iconDarkAlt);
+          }
+          if (iconSrc) {
+            const srcset = generateSrcset(iconSrc, format, WIDTHS);
+            addSource(`(max-width: ${maxSmall}px)`, `image/${format}`, srcset, sizes, iconAlt);
+          }
+
+          // Add sources for large screens (full)
+          if (lightSrc) {
+            const srcset = generateSrcset(lightSrc, format, WIDTHS);
+            addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: light)`, `image/${format}`, srcset, sizes, lightAlt);
+          }
+          if (darkSrc) {
+            const srcset = generateSrcset(darkSrc, format, WIDTHS);
+            addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: dark)`, `image/${format}`, srcset, sizes, darkAlt);
+          }
+          if (src) {
+            const srcset = generateSrcset(src, format, WIDTHS);
+            addSource(`(min-width: ${minLarge}px)`, `image/${format}`, srcset, sizes, alt);
+          }
+        } else {
+          // No breakpoint or no icons: use full sources only
+          if (lightSrc) {
+            const srcset = generateSrcset(lightSrc, format, WIDTHS);
+            addSource(`(prefers-color-scheme: light)`, `image/${format}`, srcset, sizes, lightAlt);
+          }
+          if (darkSrc) {
+            const srcset = generateSrcset(darkSrc, format, WIDTHS);
+            addSource(`(prefers-color-scheme: dark)`, `image/${format}`, srcset, sizes, darkAlt);
+          }
+          if (src) {
+            const srcset = generateSrcset(src, format, WIDTHS);
+            addSource('', `image/${format}`, srcset, sizes, alt);
+          }
         }
       });
     }
 
     // Generate fallback <img> element with JPEG source and error handling.
-    const fallbackSrc = primarySrc
-      .replace(/\.[^/.]+$/, '.jpg');
+    let fallbackSrc;
+    if (isSvg) {
+      fallbackSrc = primarySrc;
+    } else {
+      fallbackSrc = primarySrc.replace(/\.[^/.]+$/, '.jpg');
+    }
 
     const imgAttrs = [
       `src="${fallbackSrc}"`,
       isDecorative ? 'alt="" role="presentation"' : `alt="${primaryAlt}"`,
+      extraStyles ? `style="${extraStyles}"` : '',
       `loading="${loading}"`,
       fetchPriority ? `fetchpriority="${fetchPriority}"` : '',
       `onerror="this.src='https://placehold.co/3000x2000'; this.alt='${primaryAlt || 'Fallback image'}'; this.onerror=null;"`
@@ -242,18 +357,24 @@ if (typeof window !== 'undefined') {
       const img = picture.querySelector('img');
       const sources = picture.querySelectorAll('source');
       let selectedSrc = img.src;
+      let selectedAlt = img.alt;
       let matchedMedia = 'none';
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       sources.forEach((source) => {
         if (source.media && window.matchMedia(source.media).matches) {
           const srcset = source.getAttribute('srcset');
           selectedSrc = srcset.includes(',') ? srcset.split(',')[0].split(' ')[0] : srcset;
+          const dataAlt = source.getAttribute('data-alt');
+          if (dataAlt !== null) {
+            selectedAlt = dataAlt;
+          }
           matchedMedia = source.media;
         }
       });
       if (img.src !== selectedSrc && selectedSrc) {
-        if (isDev) console.log('Updating img src:', { selectedSrc, matchedMedia, prefersDark });
+        if (isDev) console.log('Updating img src and alt:', { selectedSrc, selectedAlt, matchedMedia, prefersDark });
         img.src = selectedSrc;
+        img.alt = selectedAlt;
       }
     });
   };
