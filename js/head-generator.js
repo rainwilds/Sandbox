@@ -1,9 +1,10 @@
 /* global document, window, console, fetch, Promise, requestIdleCallback */
 
-// Define logging functions at module scope (outside IIFE)
+// Browser-compatible dev detection
 const isDev = window.location.href.includes('/dev/') ||
   new URLSearchParams(window.location.search).get('debug') === 'true';
 
+// Debug logging methods (module scope)
 const log = (message, data = null) => {
     if (isDev) {
         console.groupCollapsed(`%c[HeadGenerator] ${new Date().toLocaleTimeString()} ${message}`, 'color: #2196F3; font-weight: bold;');
@@ -50,13 +51,22 @@ const defaultSetup = {
         ogLocale: 'en_US',
         ogType: 'website',
         siteName: 'Site Name',
-        favicons: []
+        favicons: [],
+        robots: 'index, follow',
+        x: {
+            card: 'summary_large_image',
+            domain: window.location.hostname
+        },
+        theme_colors: {
+            light: '#000000',
+            dark: '#000000'
+        }
     },
     business: {},
     font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' },
     media: {
         responsive_images: {
-            directory_path: '/Sandbox/img/responsive/'  // ← Match your setup.json
+            directory_path: '/Sandbox/img/responsive/'  // Your correct fallback
         }
     }
 };
@@ -72,7 +82,7 @@ async function loadSetup() {
         return window.__SETUP_CONFIG__;
     }
 
-    // Relative path from /js/ to /JSON/setup.json
+    // Relative path from /js/ to root /JSON/setup.json
     const setupPath = '../JSON/setup.json';
 
     // Try to use the preloaded resource first
@@ -80,7 +90,8 @@ async function loadSetup() {
     if (preloadLink) {
         try {
             log(`Attempting to use preloaded resource: ${setupPath}`);
-            const response = await fetch('./JSON/setup.json', {  // Use root-relative path for preload
+            // Use root-relative path to match preload
+            const response = await fetch('./JSON/setup.json', { 
                 cache: 'only-if-cached',
                 mode: 'cors',
                 credentials: 'omit'
@@ -93,16 +104,20 @@ async function loadSetup() {
                 const mergedSetup = {
                     ...defaultSetup,
                     ...setup,
-                    general: { ...defaultSetup.general, ...setup.general },
-                    business: { ...defaultSetup.business, ...setup.business },
-                    media: { ...defaultSetup.media, ...(setup.media || {}) }
+                    general: { ...defaultSetup.general, ...(setup.general || {}) },
+                    business: { ...defaultSetup.business, ...(setup.business || {}) },
+                    media: { ...defaultSetup.media, ...(setup.media || {}) },
+                    fonts: setup.fonts || defaultSetup.fonts,
+                    font_awesome: { ...defaultSetup.font_awesome, ...(setup.font_awesome || {}) }
                 };
                 
                 window.__SETUP_CONFIG__ = mergedSetup;
                 log('Loaded setup.json from preload', { 
-                    path: setupPath,
+                    path: './JSON/setup.json',
                     keys: Object.keys(mergedSetup),
-                    responsivePath: mergedSetup.media?.responsive_images?.directory_path 
+                    responsivePath: mergedSetup.media?.responsive_images?.directory_path,
+                    businessName: mergedSetup.business?.name,
+                    fontCount: mergedSetup.fonts?.length || 0
                 });
                 return mergedSetup;
             }
@@ -122,24 +137,34 @@ async function loadSetup() {
             mode: 'cors',
             credentials: 'omit'
         });
+        
         if (!response.ok) throw new Error(`HTTP ${response.status}: ${setupPath}`);
         
         const jsonText = await response.text();
         const setup = JSON.parse(jsonText);
         
+        // Validate JSON structure
+        if (!setup || typeof setup !== 'object') {
+            throw new Error('Invalid JSON structure in setup.json');
+        }
+        
         const mergedSetup = {
             ...defaultSetup,
             ...setup,
-            general: { ...defaultSetup.general, ...setup.general },
-            business: { ...defaultSetup.business, ...setup.business },
-            media: { ...defaultSetup.media, ...(setup.media || {}) }
+            general: { ...defaultSetup.general, ...(setup.general || {}) },
+            business: { ...defaultSetup.business, ...(setup.business || {}) },
+            media: { ...defaultSetup.media, ...(setup.media || {}) },
+            fonts: setup.fonts || defaultSetup.fonts,
+            font_awesome: { ...defaultSetup.font_awesome, ...(setup.font_awesome || {}) }
         };
         
         window.__SETUP_CONFIG__ = mergedSetup;
         log('Loaded setup.json (fallback)', { 
             path: setupPath,
             keys: Object.keys(mergedSetup),
-            responsivePath: mergedSetup.media?.responsive_images?.directory_path 
+            responsivePath: mergedSetup.media?.responsive_images?.directory_path,
+            businessName: mergedSetup.business?.name,
+            fontCount: mergedSetup.fonts?.length || 0
         });
         return mergedSetup;
     } catch (err) {
@@ -191,7 +216,10 @@ async function loadModule(moduleName) {
     const modulePath = PATH_MAP[moduleName];
     if (!modulePath) {
         const err = new Error(`Unknown module: ${moduleName}`);
-        error(`Module not found in PATH_MAP`, { moduleName, available: Object.keys(PATH_MAP) });
+        error(`Module not found in PATH_MAP`, { 
+            moduleName, 
+            available: Object.keys(PATH_MAP) 
+        });
         throw err;
     }
 
@@ -314,7 +342,7 @@ async function updateHead(attributes) {
 
     // Fonts: Critical for rendering
     let hasValidFonts = false;
-    setup.fonts?.forEach(font => {
+    (setup.fonts || []).forEach(font => {
         const fontUrl = font.href ?? font.url ?? '';
         if (fontUrl) {
             const link = document.createElement('link');
@@ -334,10 +362,10 @@ async function updateHead(attributes) {
         warn('No valid fonts in setup.json; relying on CSS @font-face');
     }
 
-    // Stylesheet: Critical for FCP
+    // Stylesheet: Critical for FCP (root-relative from /js/)
     const styleLink = document.createElement('link');
     styleLink.rel = 'stylesheet';
-    styleLink.href = '../styles.css';  // Relative from /js/ to root
+    styleLink.href = '../styles.css';  // From /js/ to root
     criticalFrag.appendChild(styleLink);
     log('Applied stylesheet: ../styles.css');
 
@@ -360,13 +388,13 @@ async function updateHead(attributes) {
         { name: 'title', content: attributes.title ?? setup.general?.title ?? 'Default Title' },
         { name: 'author', content: setup.business?.author ?? 'Author' },
         { name: 'description', content: attributes.description ?? setup.general?.description ?? 'Default Description' },
-        { name: 'og:locale', content: setup.general?.og?.locale ?? 'en_US' },
-        { name: 'og:url', content: attributes.canonical ?? setup.general?.canonical ?? window.location.href },
-        { name: 'og:type', content: setup.general?.ogType ?? 'website' },
-        { name: 'og:title', content: attributes.title ?? setup.general?.title ?? 'Default Title' },
-        { name: 'og:description', content: attributes.description ?? setup.general?.description ?? 'Default Description' },
-        { name: 'og:image', content: setup.business?.image ?? '' },
-        { name: 'og:site_name', content: setup.general?.og?.site_name ?? 'Site Name' },
+        { name: 'og:locale', property: true, content: setup.general?.og?.locale ?? 'en_US' },
+        { name: 'og:url', property: true, content: attributes.canonical ?? setup.general?.canonical ?? window.location.href },
+        { name: 'og:type', property: true, content: setup.general?.ogType ?? 'website' },
+        { name: 'og:title', property: true, content: attributes.title ?? setup.general?.title ?? 'Default Title' },
+        { name: 'og:description', property: true, content: attributes.description ?? setup.general?.description ?? 'Default Description' },
+        { name: 'og:image', property: true, content: setup.business?.image ?? '' },
+        { name: 'og:site_name', property: true, content: setup.general?.og?.site_name ?? 'Site Name' },
         { name: 'twitter:card', content: setup.general?.x?.card ?? 'summary_large_image' },
         { name: 'twitter:domain', content: setup.general?.x?.domain ?? window.location.hostname },
         { name: 'twitter:url', content: attributes.canonical ?? setup.general?.canonical ?? window.location.href },
@@ -375,16 +403,16 @@ async function updateHead(attributes) {
         { name: 'twitter:image', content: setup.business?.image ?? '' }
     ].filter(({ content }) => content);
 
-    metaTags.forEach(({ name, content }) => {
+    metaTags.forEach(({ name, property, content }) => {
         const meta = document.createElement('meta');
-        if (name.startsWith('og:')) {
+        if (property) {
             meta.setAttribute('property', name);
         } else {
             meta.name = name;
         }
         meta.content = content;
         criticalFrag.appendChild(meta);
-        log(`Added ${name} meta with content: ${content}`);
+        log(`Added ${property ? 'property' : 'name'} "${name}" with content: ${content}`);
     });
 
     // Canonical link: Critical for SEO
@@ -399,7 +427,7 @@ async function updateHead(attributes) {
 
     // Theme color: Critical for visual
     const themeColor = setup.general?.theme_colors?.light ?? '#000000';
-    if (themeColor) {
+    if (themeColor && themeColor !== '#000000') {
         const meta = document.createElement('meta');
         meta.name = 'theme-color';
         meta.content = themeColor;
@@ -407,7 +435,7 @@ async function updateHead(attributes) {
         criticalFrag.appendChild(meta);
         log(`Updated theme-color (light): ${themeColor}`);
         
-        const darkTheme = setup.general?.theme_colors?.dark ?? '#000000';
+        const darkTheme = setup.general?.theme_colors?.dark ?? themeColor;
         if (darkTheme !== themeColor) {
             const darkMeta = document.createElement('meta');
             darkMeta.name = 'theme-color';
@@ -425,28 +453,45 @@ async function updateHead(attributes) {
         "name": setup.business?.name ?? '',
         "url": setup.business?.url ?? '',
         "telephone": setup.business?.telephone ?? '',
-        "address": setup.business?.address ?? null,
-        "openingHours": setup.business?.openingHours ?? '',
-        "geo": setup.business?.geo ?? null,
+        "address": setup.business?.address ? {
+            "@type": "PostalAddress",
+            "streetAddress": setup.business.address.streetAddress,
+            "addressLocality": setup.business.address.addressLocality,
+            "addressRegion": setup.business.address.addressRegion,
+            "postalCode": setup.business.address.postalCode,
+            "addressCountry": setup.business.address.addressCountry
+        } : null,
+        "openingHours": setup.business?.openingHours?.split(',') || [],
+        "geo": setup.business?.geo ? {
+            "@type": "GeoCoordinates",
+            "latitude": setup.business.geo.latitude,
+            "longitude": setup.business.geo.longitude
+        } : null,
         "image": setup.business?.image ?? '',
         "logo": setup.business?.logo ?? '',
-        "sameAs": setup.business?.sameAs ?? []
+        "sameAs": setup.business?.sameAs || []
     };
     
-    // Only add if there's meaningful data
-    const hasValidData = Object.values(jsonLd).some(v => v && (typeof v === 'string' ? v.trim() : true));
-    if (hasValidData) {
+    // Filter out empty values
+    const cleanedJsonLd = Object.fromEntries(
+        Object.entries(jsonLd).filter(([_, value]) => value && (Array.isArray(value) ? value.length > 0 : true))
+    );
+    
+    if (Object.keys(cleanedJsonLd).length > 1) {  // At least @context + one more
         const script = document.createElement('script');
         script.type = 'application/ld+json';
-        script.textContent = JSON.stringify(jsonLd, null, 2);
+        script.textContent = JSON.stringify(cleanedJsonLd, null, 2);
         deferredFrag.appendChild(script);
         log('Added Organization JSON-LD schema (deferred)', { 
-            name: jsonLd.name,
-            url: jsonLd.url 
+            name: cleanedJsonLd.name,
+            url: cleanedJsonLd.url,
+            sameAsCount: cleanedJsonLd.sameAs?.length || 0
         });
+    } else {
+        log('Skipped empty JSON-LD schema');
     }
 
-    // Favicons: Critical for branding
+    // Favicons: Critical for branding (root-relative from /js/)
     const faviconPaths = (setup.general?.favicons ?? [
         { rel: 'apple-touch-icon', sizes: '180x180', href: '../img/icons/apple-touch-icon.png' },
         { rel: 'icon', type: 'image/png', sizes: '32x32', href: '../img/icons/favicon-32x32.png' },
@@ -514,7 +559,7 @@ async function updateHead(attributes) {
         for (const attr of customHead.attributes) {
             const key = attr.name.replace(/^data-/, '');
             const value = attr.value?.trim();
-            if (value ?? false) {
+            if (value) {  // Truthy check (not null/undefined/empty string)
                 attributes[key] = value;
             }
         }
@@ -532,9 +577,11 @@ async function updateHead(attributes) {
         customHead.remove();
         log('Removed data-custom-head element');
         
-        // Log completion
         log('HeadGenerator completed successfully');
     } catch (err) {
-        error('Error in HeadGenerator', { error: err.message, stack: err.stack });
+        error('Error in HeadGenerator', { 
+            error: err.message, 
+            stack: err.stack 
+        });
     }
 })();
