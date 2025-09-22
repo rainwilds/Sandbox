@@ -284,14 +284,11 @@ async function loadComponents(componentList) {
 }
 
 // Function to create and append DOM elements asynchronously
-async function updateHead(attributes) {
+async function updateHead(attributes, setup) {
     log('updateHead called with attributes', attributes);
     const head = document.head;
     const criticalFrag = document.createDocumentFragment();
     const deferredFrag = document.createDocumentFragment();
-
-    // Load setup config
-    const setup = await loadSetup();
 
     // Fonts: Critical for rendering
     let hasValidFonts = false;
@@ -299,7 +296,7 @@ async function updateHead(attributes) {
         const fontUrl = font.href ?? font.url ?? '';
         if (fontUrl) {
             const link = document.createElement('link');
-            link.rel = 'preload';
+            link.rel = 'link';
             link.href = fontUrl;
             link.as = font.as ?? 'font';
             link.type = font.type ?? 'font/woff2';
@@ -496,6 +493,9 @@ async function updateHead(attributes) {
 
 // Main execution (async IIFE)
 (async () => {
+    // Start loading setup.json immediately to utilize preload sooner
+    const setupPromise = loadSetup();
+
     try {
         log('Starting HeadGenerator');
         
@@ -523,8 +523,11 @@ async function updateHead(attributes) {
             await loadComponents(attributes.components);
         }
 
-        // Update head
-        await updateHead(attributes);
+        // Await the early-loaded setup
+        const setup = await setupPromise;
+
+        // Update head with loaded setup
+        await updateHead(attributes, setup);
 
         // Remove data-custom-head element
         customHead.remove();
