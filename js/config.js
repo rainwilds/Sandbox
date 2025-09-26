@@ -4,7 +4,7 @@
 'use strict';
 
 const isDev = typeof window !== 'undefined' && (
-  window.location.href.includes('/dev/') ||
+  window.location.pathname.includes('/dev/') ||
   new URLSearchParams(window.location.search).get('debug') === 'true'
 );
 
