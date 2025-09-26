@@ -1,136 +1,130 @@
 /* global fetch, document, window, console */
 
-// Browser-compatible dev detection
+// Use strict mode for better compliance and error catching
 'use strict';
 
+// Browser-compatible dev detection (modernized with URL API)
 const isDev = typeof window !== 'undefined' && (
   window.location.pathname.includes('/dev/') ||
   new URLSearchParams(window.location.search).get('debug') === 'true'
 );
 
-// Debug logging methods
-const log = (message, data = null) => {
-  if (isDev) {
-    console.groupCollapsed(`%c[Config] ${new Date().toLocaleTimeString()} ${message}`, 'color: #2196F3; font-weight: bold;');
-    if (data) {
-      console.log('%cData:', 'color: #4CAF50;', data);
+// Debug logging methods (consolidated and optimized)
+const createLogger = (prefix) => ({
+  log: (message, data = null) => {
+    if (isDev) {
+      console.groupCollapsed(`%c[${prefix}] ${new Date().toLocaleTimeString()} ${message}`, 'color: #2196F3; font-weight: bold;');
+      if (data) console.log('%cData:', 'color: #4CAF50;', data);
+      console.trace();
+      console.groupEnd();
     }
-    console.trace();
-    console.groupEnd();
-  }
-};
-
-const warn = (message, data = null) => {
-  if (isDev) {
-    console.groupCollapsed(`%c[Config] ⚠️ ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
-    if (data) {
-      console.log('%cData:', 'color: #4CAF50;', data);
+  },
+  warn: (message, data = null) => {
+    if (isDev) {
+      console.groupCollapsed(`%c[${prefix}] ⚠️ ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
+      if (data) console.log('%cData:', 'color: #4CAF50;', data);
+      console.trace();
+      console.groupEnd();
     }
-    console.trace();
-    console.groupEnd();
-  }
-};
-
-const error = (message, data = null) => {
-  if (isDev) {
-    console.groupCollapsed(`%c[Config] ❌ ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
-    if (data) {
-      console.log('%cData:', 'color: #4CAF50;', data);
+  },
+  error: (message, data = null) => {
+    if (isDev) {
+      console.groupCollapsed(`%c[${prefix}] ❌ ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
+      if (data) console.log('%cData:', 'color: #4CAF50;', data);
+      console.trace();
+      console.groupEnd();
     }
-    console.trace();
-    console.groupEnd();
+    console.error(`[${prefix}] ${message}`, data);
   }
-  console.error(`[Config] ${message}`, data);
-};
+});
 
-// Global config cache (populated by head-generator.js)
+const logger = createLogger('Config');
+
+// Global config cache (populated by head-generator.js or this module)
 let cachedConfig = null;
+
+// Default setup for merging (optimized structure)
+const defaultSetup = {
+  fonts: [],
+  general: {
+    title: 'Default Title',
+    description: 'Default Description',
+    canonical: window.location.href,
+    themeColor: '#000000',
+    ogLocale: 'en_US',
+    ogType: 'website',
+    siteName: 'Site Name',
+    favicons: [
+      { rel: 'apple-touch-icon', sizes: '180x180', href: './img/icons/apple-touch-icon.png' },
+      { rel: 'icon', type: 'image/png', sizes: '32x32', href: './img/icons/favicon-32x32.png' },
+      { rel: 'icon', type: 'image/png', sizes: '16x16', href: './img/icons/favicon-16x16.png' },
+      { rel: 'icon', type: 'image/x-icon', href: './img/icons/favicon.ico' }
+    ],
+    robots: 'index, follow',
+    x: {
+      card: 'summary_large_image',
+      domain: window.location.hostname
+    },
+    theme_colors: {
+      light: '#000000',
+      dark: '#000000'
+    }
+  },
+  business: {},
+  font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' },
+  media: {
+    responsive_images: {
+      directory_path: '/Sandbox/img/responsive/'
+    }
+  }
+};
 
 /**
  * Get the full configuration object
  * @returns {Promise<Object>} The configuration object
  */
 export async function getConfig() {
-  // Check if head-generator already loaded it globally
+  // Check global cache first (set by head-generator or others)
   if (window.__SETUP_CONFIG__) {
     cachedConfig = window.__SETUP_CONFIG__;
-    log('Using cached config from global');
+    logger.log('Using cached config from global');
     return cachedConfig;
   }
 
   // Check local cache
   if (cachedConfig) {
-    log('Using local config cache');
+    logger.log('Using local config cache');
     return cachedConfig;
   }
 
-  // Use ROOT-relative path to match HTML preload
+  // Root-relative path for consistency with HTML preload
   const setupPath = './JSON/setup.json';
 
   try {
-    // Default setup for merging
-    const defaultSetup = {
-      fonts: [],
-      general: {
-        title: 'Default Title',
-        description: 'Default Description',
-        canonical: window.location.href,
-        themeColor: '#000000',
-        ogLocale: 'en_US',
-        ogType: 'website',
-        siteName: 'Site Name',
-        favicons: [
-          { rel: 'apple-touch-icon', sizes: '180x180', href: './img/icons/apple-touch-icon.png' },
-          { rel: 'icon', type: 'image/png', sizes: '32x32', href: './img/icons/favicon-32x32.png' },
-          { rel: 'icon', type: 'image/png', sizes: '16x16', href: './img/icons/favicon-16x16.png' },
-          { rel: 'icon', type: 'image/x-icon', href: './img/icons/favicon.ico' }
-        ],
-        robots: 'index, follow',
-        x: {
-          card: 'summary_large_image',
-          domain: window.location.hostname
-        },
-        theme_colors: {
-          light: '#000000',
-          dark: '#000000'
-        }
-      },
-      business: {},
-      font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' },
-      media: {
-        responsive_images: {
-          directory_path: '/Sandbox/img/responsive/'
-        }
-      }
-    };
-
-    log(`Fetching config with force-cache from: ${setupPath}`);
+    logger.log(`Fetching config with force-cache from: ${setupPath}`);
     const response = await fetch(setupPath, {
-      cache: 'force-cache',
-      mode: 'cors',
-      credentials: 'omit'
+      cache: 'force-cache'
     });
 
     if (!response.ok) throw new Error(`HTTP ${response.status}: ${setupPath}`);
 
-    const jsonText = await response.text();
-    const setup = JSON.parse(jsonText);
+    const setup = await response.json();
 
-    // Merge with defaults to ensure required structure
+    // Merge with defaults using modern spread (ensures deep merge for objects)
     cachedConfig = {
       ...defaultSetup,
       ...setup,
       general: { ...defaultSetup.general, ...(setup.general || {}) },
       business: { ...defaultSetup.business, ...(setup.business || {}) },
-      media: { ...defaultSetup.media, ...(setup.media || {}) }
+      media: { ...defaultSetup.media, ...(setup.media || {}) },
+      fonts: setup.fonts || defaultSetup.fonts,
+      font_awesome: { ...defaultSetup.font_awesome, ...(setup.font_awesome || {}) }
     };
 
-    // Cache globally for other modules if not already set
-    if (!window.__SETUP_CONFIG__) {
-      window.__SETUP_CONFIG__ = cachedConfig;
-    }
+    // Cache globally for other modules
+    window.__SETUP_CONFIG__ = cachedConfig;
 
-    log('Configuration loaded successfully', {
+    logger.log('Configuration loaded successfully', {
       path: setupPath,
       keys: Object.keys(cachedConfig),
       hasMedia: !!cachedConfig.media,
@@ -140,17 +134,15 @@ export async function getConfig() {
 
     return cachedConfig;
   } catch (err) {
-    error(`Failed to load config from ${setupPath}:`, {
+    logger.error(`Failed to load config from ${setupPath}:`, {
       error: err.message,
       stack: err.stack
     });
 
-    // Use defaults and cache globally
+    // Fallback to defaults and cache
     cachedConfig = defaultSetup;
-    if (!window.__SETUP_CONFIG__) {
-      window.__SETUP_CONFIG__ = cachedConfig;
-    }
-    warn('Using default configuration');
+    window.__SETUP_CONFIG__ = cachedConfig;
+    logger.warn('Using default configuration');
     return cachedConfig;
   }
 }
@@ -160,11 +152,8 @@ export async function getConfig() {
  * @returns {Promise<string>} The directory path
  */
 export async function getImageResponsivePath() {
-  log('Getting image responsive path');
   const config = await getConfig();
-  const path = config.media?.responsive_images?.directory_path || '/Sandbox/img/responsive/';
-  log(`Responsive image path: ${path}`);
-  return path;
+  return config.media?.responsive_images?.directory_path || '/Sandbox/img/responsive/';
 }
 
 /**
