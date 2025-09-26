@@ -10,37 +10,37 @@ const isDev = typeof window !== 'undefined' && (
 
 // Debug logging methods
 const log = (message, data = null) => {
-    if (isDev) {
-        console.groupCollapsed(`%c[Config] ${new Date().toLocaleTimeString()} ${message}`, 'color: #2196F3; font-weight: bold;');
-        if (data) {
-            console.log('%cData:', 'color: #4CAF50;', data);
-        }
-        console.trace();
-        console.groupEnd();
+  if (isDev) {
+    console.groupCollapsed(`%c[Config] ${new Date().toLocaleTimeString()} ${message}`, 'color: #2196F3; font-weight: bold;');
+    if (data) {
+      console.log('%cData:', 'color: #4CAF50;', data);
     }
+    console.trace();
+    console.groupEnd();
+  }
 };
 
 const warn = (message, data = null) => {
-    if (isDev) {
-        console.groupCollapsed(`%c[Config] ⚠️ ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
-        if (data) {
-            console.log('%cData:', 'color: #4CAF50;', data);
-        }
-        console.trace();
-        console.groupEnd();
+  if (isDev) {
+    console.groupCollapsed(`%c[Config] ⚠️ ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
+    if (data) {
+      console.log('%cData:', 'color: #4CAF50;', data);
     }
+    console.trace();
+    console.groupEnd();
+  }
 };
 
 const error = (message, data = null) => {
-    if (isDev) {
-        console.groupCollapsed(`%c[Config] ❌ ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
-        if (data) {
-            console.log('%cData:', 'color: #4CAF50;', data);
-        }
-        console.trace();
-        console.groupEnd();
+  if (isDev) {
+    console.groupCollapsed(`%c[Config] ❌ ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
+    if (data) {
+      console.log('%cData:', 'color: #4CAF50;', data);
     }
-    console.error(`[Config] ${message}`, data);
+    console.trace();
+    console.groupEnd();
+  }
+  console.error(`[Config] ${message}`, data);
 };
 
 // Global config cache (populated by head-generator.js)
@@ -79,19 +79,33 @@ export async function getConfig() {
         ogLocale: 'en_US',
         ogType: 'website',
         siteName: 'Site Name',
-        favicons: []
+        favicons: [
+          { rel: 'apple-touch-icon', sizes: '180x180', href: './img/icons/apple-touch-icon.png' },
+          { rel: 'icon', type: 'image/png', sizes: '32x32', href: './img/icons/favicon-32x32.png' },
+          { rel: 'icon', type: 'image/png', sizes: '16x16', href: './img/icons/favicon-16x16.png' },
+          { rel: 'icon', type: 'image/x-icon', href: './img/icons/favicon.ico' }
+        ],
+        robots: 'index, follow',
+        x: {
+          card: 'summary_large_image',
+          domain: window.location.hostname
+        },
+        theme_colors: {
+          light: '#000000',
+          dark: '#000000'
+        }
       },
       business: {},
       font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' },
       media: {
         responsive_images: {
-          directory_path: '/Sandbox/img/responsive/'  // Your correct path!
+          directory_path: '/Sandbox/img/responsive/'
         }
       }
     };
 
     log(`Fetching config with force-cache from: ${setupPath}`);
-    const response = await fetch(setupPath, { 
+    const response = await fetch(setupPath, {
       cache: 'force-cache',
       mode: 'cors',
       credentials: 'omit'
@@ -101,7 +115,7 @@ export async function getConfig() {
 
     const jsonText = await response.text();
     const setup = JSON.parse(jsonText);
-    
+
     // Merge with defaults to ensure required structure
     cachedConfig = {
       ...defaultSetup,
@@ -116,7 +130,7 @@ export async function getConfig() {
       window.__SETUP_CONFIG__ = cachedConfig;
     }
 
-    log('Configuration loaded successfully', { 
+    log('Configuration loaded successfully', {
       path: setupPath,
       keys: Object.keys(cachedConfig),
       hasMedia: !!cachedConfig.media,
@@ -126,11 +140,11 @@ export async function getConfig() {
 
     return cachedConfig;
   } catch (err) {
-    error(`Failed to load config from ${setupPath}:`, { 
+    error(`Failed to load config from ${setupPath}:`, {
       error: err.message,
-      stack: err.stack 
+      stack: err.stack
     });
-    
+
     // Use defaults and cache globally
     cachedConfig = defaultSetup;
     if (!window.__SETUP_CONFIG__) {
