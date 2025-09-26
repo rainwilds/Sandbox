@@ -1,6 +1,8 @@
 /* global fetch, document, window, console */
 
 // Browser-compatible dev detection
+'use strict';
+
 const isDev = typeof window !== 'undefined' && (
   window.location.href.includes('/dev/') ||
   new URLSearchParams(window.location.search).get('debug') === 'true'
