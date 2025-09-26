@@ -353,9 +353,9 @@ async function updateHead(attributes, setup) {
     // Early config load for parallelism
     const setupPromise = getConfig();
 
-    const customHead = document.querySelector('[data-custom-head]');
+    const customHead = document.querySelector('data-custom-head');
     if (!customHead) {
-      logger.warn('No [data-custom-head] element found');
+      logger.warn('No data-custom-head element found');
       return;
     }
 
@@ -380,7 +380,7 @@ async function updateHead(attributes, setup) {
 
     // Cleanup
     customHead.remove();
-    logger.log('Removed [data-custom-head] element');
+    logger.log('Removed data-custom-head element');
 
     logger.log('HeadGenerator completed successfully');
   } catch (err) {
