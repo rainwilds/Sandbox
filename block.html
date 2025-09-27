@@ -156,17 +156,20 @@
         <custom-block
             heading="Explore Nature"
             heading-tag="h2"
-            text="Discover breathtaking landscapes with a centered layout and a call-to-action button."
+            text="Discover breathtaking landscapes with a centered layout."
             button-text="Learn More"
             button-href="#nature"
             button-icon='<i class="fa-solid fa-leaf"></i>'
             button-icon-position="left"
-            button-icon-offset="var(--space-small)"
+            button-icon-offset="var(--space-medium)"
             class="padding-medium border-small"
             background-overlay="background-overlay-1"
             img-background-src="img/primary/tourism-photography-light-1.jpg"
             img-background-alt="Nature landscape background"
             img-background-position="center"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="80vw"
+            img-background-desktop-width="1200px"
             text-alignment="center"
             inner-alignment="center">
         </custom-block>
@@ -175,7 +178,7 @@
         <custom-block
             heading="Adventure Awaits"
             heading-tag="h3"
-            text="Experience thrilling adventures with a video background and subtle overlay."
+            text="Experience thrilling adventures with a video background."
             button-text="Join Now"
             button-href="#adventure"
             class="padding-small border-medium"
@@ -193,7 +196,7 @@
         <!-- Block 3: Primary Image on Right with Text and Icon -->
         <custom-block
             heading="City Vibes"
-            text="Urban exploration with an image positioned to the right and a Font Awesome icon."
+            text="Urban exploration with an image on the right."
             icon='<i class="fa-solid fa-city fa-chisel"></i>'
             icon-size="2rem"
             icon-style="color: #333;"
@@ -203,6 +206,9 @@
             img-primary-src="img/primary/tourism-photography-light-2.jpg"
             img-primary-alt="Cityscape image"
             img-primary-position="right"
+            img-primary-mobile-width="100vw"
+            img-primary-tablet-width="50vw"
+            img-primary-desktop-width="600px"
             inner-alignment="left"
             inner-background-color="background-color-1">
         </custom-block>
@@ -229,8 +235,10 @@
             button-icon='<i class="fa-solid fa-rocket"></i>'
             button-icon-position="right"
             button-icon-size="1.5rem"
+            button-icon-offset="var(--space-large)"
             class="padding-small border-small"
-            inner-alignment="center">
+            inner-alignment="center"
+            inner-class="padding-small">
         </custom-block>
 
         <!-- Block 6: Text-Only Block with Sub-Heading and Shadow -->
@@ -239,7 +247,7 @@
             heading-tag="h1"
             sub-heading="A Journey of Passion"
             sub-heading-tag="h4"
-            text="Learn about our mission to inspire and connect through storytelling."
+            text="Learn about our mission to inspire and connect."
             class="padding-huge"
             inner-shadow="shadow-heavy"
             inner-background-color="background-color-2"
@@ -250,7 +258,7 @@
         <!-- Block 7: Primary Video with Top Position and Backdrop Filter -->
         <custom-block
             heading="Experience the Journey"
-            text="Watch our latest video showcasing incredible destinations."
+            text="Watch our latest video of incredible destinations."
             button-text="Watch Now"
             button-href="#video"
             class="padding-medium border-large"
@@ -267,14 +275,148 @@
         <!-- Block 8: Background Image with Custom Border -->
         <custom-block
             heading="Dream Destinations"
-            text="Plan your next getaway with our curated travel guides."
+            text="Plan your next getaway with our travel guides."
             button-text="Plan Trip"
             button-href="#plan"
             class="padding-large border-large border-radius-large"
             background-overlay="background-overlay-1"
             img-background-src="img/primary/tourism-photography-dark-3.jpg"
             img-background-alt="Destination background"
-            img-background-position="top-right">
+            img-background-position="top-right"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="80vw"
+            img-background-desktop-width="1200px">
+        </custom-block>
+
+        <!-- Block 9: Background Image with Left-Aligned Text and Button -->
+        <custom-block
+            heading="Mountain Retreat"
+            heading-tag="h2"
+            text="Escape to serene mountain landscapes."
+            button-text="Book Now"
+            button-href="#mountain"
+            button-icon='<i class="fa-solid fa-mountain"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-tiny)"
+            class="padding-medium border-medium"
+            background-overlay="background-overlay-2"
+            img-background-src="img/primary/tourism-photography-light-4.jpg"
+            img-background-alt="Mountain landscape background"
+            img-background-position="top-left"
+            text-alignment="left"
+            inner-alignment="left">
+        </custom-block>
+
+        <!-- Block 10: Primary Image on Left with Text -->
+        <custom-block
+            heading="Coastal Bliss"
+            text="Relax by the sea with stunning views."
+            class="padding-large border-small space-between"
+            img-primary-src="img/primary/tourism-photography-dark-4.jpg"
+            img-primary-alt="Coastal view image"
+            img-primary-position="left"
+            img-primary-mobile-width="100vw"
+            img-primary-tablet-width="50vw"
+            img-primary-desktop-width="600px"
+            inner-alignment="right"
+            inner-background-color="background-color-1">
+        </custom-block>
+
+        <!-- Block 11: Video Background with Right-Aligned Content -->
+        <custom-block
+            heading="Wild Safari"
+            heading-tag="h3"
+            text="Join a thrilling safari adventure."
+            button-text="Discover More"
+            button-href="#safari"
+            class="padding-small border-large"
+            background-overlay="background-overlay-3"
+            video-background-src="video/video1.mp4"
+            video-background-poster="img/primary/tourism-photography-dark-5.jpg"
+            video-background-alt="Safari video background"
+            video-background-autoplay
+            video-background-muted
+            video-background-loop
+            text-alignment="right"
+            inner-alignment="right">
+        </custom-block>
+
+        <!-- Block 12: Text-Only with Icon and Shadow -->
+        <custom-block
+            heading="Our Vision"
+            heading-tag="h2"
+            text="Building a future of sustainable travel."
+            icon='<i class="fa-solid fa-globe"></i>'
+            icon-size="2.5rem"
+            icon-style="color: #444;"
+            class="padding-huge border-medium"
+            inner-shadow="shadow-light"
+            inner-background-color="background-color-2"
+            text-alignment="center"
+            inner-class="border-small border-radius-small">
+        </custom-block>
+
+        <!-- Block 13: Primary Video on Bottom -->
+        <custom-block
+            heading="Cultural Journey"
+            text="Immerse yourself in vibrant cultures."
+            button-text="Explore Culture"
+            button-href="#culture"
+            class="padding-medium border-large"
+            video-primary-src="video/video2.mp4"
+            video-primary-poster="img/primary/tourism-photography-dark-6.jpg"
+            video-primary-alt="Cultural video"
+            video-primary-position="bottom"
+            video-primary-autoplay
+            video-primary-muted
+            inner-alignment="center">
+        </custom-block>
+
+        <!-- Block 14: Media-Only Block with Background Image -->
+        <custom-block
+            background-overlay="background-overlay-1"
+            background-image-noise
+            img-background-src="img/primary/tourism-photography-light-3.jpg"
+            img-background-alt="Tropical background"
+            img-background-position="center-right"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="80vw"
+            img-background-desktop-width="1000px"
+            class="border-medium padding-tiny">
+        </custom-block>
+
+        <!-- Block 15: Button-Only with Large Icon -->
+        <custom-block
+            button-text="Sign Up"
+            button-href="#signup"
+            button-class="custom-button"
+            button-style="background-color: #28a745; color: white; padding: 10px 20px;"
+            button-icon='<i class="fa-solid fa-user-plus"></i>'
+            button-icon-position="right"
+            button-icon-size="1.8rem"
+            button-icon-offset="var(--space-huge)"
+            class="padding-medium border-small"
+            inner-alignment="center"
+            inner-class="padding-medium">
+        </custom-block>
+
+        <!-- Block 16: Background Image with Sub-Heading and Gradient -->
+        <custom-block
+            heading="Urban Adventure"
+            heading-tag="h2"
+            sub-heading="Discover the City"
+            sub-heading-tag="h3"
+            text="Experience the pulse of urban life."
+            button-text="Start Exploring"
+            button-href="#urban"
+            class="padding-large border-large border-radius-medium"
+            background-overlay="background-overlay-2"
+            background-gradient="background-gradient-2"
+            img-background-src="img/primary/tourism-photography-dark-1.jpg"
+            img-background-alt="Urban landscape background"
+            img-background-position="bottom-left"
+            text-alignment="left"
+            inner-alignment="left">
         </custom-block>
     </div>
 </section>        
