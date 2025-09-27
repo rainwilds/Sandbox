@@ -121,13 +121,12 @@
 
                 blockElement.setAttribute('role', 'banner');
 
-                blockElement.classList.add(attrs.backgroundColorClass);
-                blockElement.classList.add(attrs.borderClass);
-                blockElement.classList.add(attrs.borderRadiusClass);
-                blockElement.classList.add(attrs.shadowClass);
-                if (attrs.sticky) {
-                    blockElement.classList.add('sticky');
-                }
+                // Safely add classes only if they are non-empty strings
+                if (attrs.backgroundColorClass) blockElement.classList.add(attrs.backgroundColorClass);
+                if (attrs.borderClass) blockElement.classList.add(attrs.borderClass);
+                if (attrs.borderRadiusClass) blockElement.classList.add(attrs.borderRadiusClass);
+                if (attrs.shadowClass) blockElement.classList.add(attrs.shadowClass);
+                if (attrs.sticky) blockElement.classList.add('sticky');
                 log('Applied header classes', { classes: blockElement.className });
 
                 let logoHTML = '';
