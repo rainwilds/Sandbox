@@ -75,12 +75,13 @@
                     'logo-placement',
                     'nav-logo-container-style',
                     'nav-logo-container-class',
-                    'nav-alignment'
+                    'nav-alignment',
+                    'inner-alignment'
                 ];
             }
 
             // Extend base getAttributes to include header-specific attributes.
-            // Validates and defaults values like sticky, logo placement, and navigation alignment.
+            // Validates and defaults values like sticky, logo placement, navigation alignment, and inner alignment.
             getAttributes() {
                 const attrs = super.getAttributes();
                 attrs.sticky = this.hasAttribute('sticky');
@@ -88,6 +89,7 @@
                 attrs.navLogoContainerStyle = this.getAttribute('nav-logo-container-style') || '';
                 attrs.navLogoContainerClass = this.getAttribute('nav-logo-container-class') || '';
                 attrs.navAlignment = this.getAttribute('nav-alignment') || 'center';
+                attrs.innerAlignment = this.getAttribute('inner-alignment') || 'center';
                 const validLogoPlacements = ['independent', 'nav'];
                 if (!VALID_ALIGNMENTS.includes(attrs.navAlignment)) {
                     warn(`Invalid nav-alignment "${attrs.navAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Defaulting to 'center'.`);
@@ -96,6 +98,10 @@
                 if (!validLogoPlacements.includes(attrs.logoPlacement)) {
                     warn(`Invalid logo-placement "${attrs.logoPlacement}". Defaulting to 'independent'.`);
                     attrs.logoPlacement = 'independent';
+                }
+                if (!VALID_ALIGNMENTS.includes(attrs.innerAlignment)) {
+                    warn(`Invalid inner-alignment "${attrs.innerAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Defaulting to 'center'.`);
+                    attrs.innerAlignment = 'center';
                 }
                 log('CustomHeader attributes', attrs);
                 return attrs;
@@ -127,7 +133,12 @@
                 if (attrs.borderRadiusClass) blockElement.classList.add(attrs.borderRadiusClass);
                 if (attrs.shadowClass) blockElement.classList.add(attrs.shadowClass);
                 if (attrs.sticky) blockElement.classList.add('sticky');
-                log('Applied header classes', { classes: blockElement.className });
+                if (attrs.innerAlignment) blockElement.classList.add(VALID_ALIGN_MAP[attrs.innerAlignment]);
+                // Ensure blockElement supports centering
+                blockElement.style.display = 'grid';
+                blockElement.style.placeItems = 'center';
+                blockElement.style.height = '100%';
+                log('Applied header classes and styles', { classes: blockElement.className, styles: blockElement.style.cssText });
 
                 let logoHTML = '';
                 let navHTML = '';
