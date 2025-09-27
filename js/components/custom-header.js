@@ -112,14 +112,19 @@
                     blockElement = await super.render(isFallback);
                     if (!blockElement || !(blockElement instanceof HTMLElement)) {
                         warn('Super render failed; creating fallback block element.');
-                        blockElement = document.createElement('div');
+                        blockElement = document.createElement('header');
                     }
                 } catch (err) {
                     error('Error in super.render', { error: err.message });
-                    blockElement = document.createElement('div');
+                    blockElement = document.createElement('header');
                 }
 
-                blockElement.setAttribute('role', 'banner');
+                // Use semantic <header> element for better SEO and accessibility; no need for role="banner" as it's implicit.
+                if (blockElement.tagName !== 'HEADER') {
+                    const newBlockElement = document.createElement('header');
+                    newBlockElement.innerHTML = blockElement.innerHTML;
+                    blockElement = newBlockElement;
+                }
 
                 const existingClasses = blockElement.className.split(' ').filter(cls => cls);
                 const headerClasses = [
@@ -148,8 +153,8 @@
                                 await customLogo.render();
                                 logoHTML = customLogo.innerHTML;
                                 log('CustomLogo rendered successfully', { htmlLength: logoHTML.length });
-                            } catch (error) {
-                                error('Error rendering custom-logo', { error: error.message });
+                            } catch (err) {
+                                error('Error rendering custom-logo', { error: err.message });
                                 logoHTML = '<div>Error rendering logo</div>';
                             }
                         }
@@ -162,13 +167,13 @@
                                 await customNav.render();
                                 navHTML = customNav.innerHTML;
                                 log('CustomNav rendered successfully', { htmlLength: navHTML.length });
-                            } catch (error) {
-                                error('Error rendering custom-nav', { error: error.message });
+                            } catch (err) {
+                                error('Error rendering custom-nav', { error: err.message });
                                 navHTML = '<div>Error rendering nav</div>';
                             }
                         }
                     }
-                    await new Promise(resolve => setTimeout(resolve, 0));
+                    // Removed unnecessary setTimeout(0) for better performance.
                 }
 
                 let innerHTML = blockElement.innerHTML || '';
@@ -225,11 +230,11 @@
                 if (super.observedAttributes.includes(name) || this.constructor.observedAttributes.includes(name)) {
                     this.cachedAttributes = null;
                     try {
-                        const cardElement = await this.render();
-                        this.replaceWith(cardElement);
+                        const blockElement = await this.render();
+                        this.replaceWith(blockElement);
                         log('CustomHeader re-rendered due to attribute change', { name });
-                    } catch (error) {
-                        error('Error re-rendering CustomHeader', { error: error.message });
+                    } catch (err) {
+                        error('Error re-rendering CustomHeader', { error: err.message });
                         this.replaceWith(await this.render(true));
                     }
                 }
