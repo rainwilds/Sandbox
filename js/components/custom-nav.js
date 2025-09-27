@@ -1,116 +1,106 @@
 (async () => {
-    // Check if debug mode is enabled by looking for '/dev/' in the URL or '?debug=true' in the query parameters.
-    // This allows for conditional logging without affecting production performance.
+    // Check for debug mode via URL patterns for conditional logging without production impact.
     const isDev = window.location.href.includes('/dev/') ||
       new URLSearchParams(window.location.search).get('debug') === 'true';
 
-    // Define a logging function that only outputs in debug mode.
-    // Uses console.groupCollapsed for organized, collapsible output with color styling.
-    // Includes a timestamp, message, optional data, and a stack trace for debugging.
+    // Logging utility with collapsible groups, timestamps, and styling; noop in production.
     const log = (message, data = null) => {
         if (isDev) {
             console.groupCollapsed(`%c[CustomNav] ${new Date().toLocaleTimeString()} ${message}`, 'color: #2196F3; font-weight: bold;');
-            if (data) {
-                console.log('%cData:', 'color: #4CAF50;', data);
-            }
+            if (data) console.log('%cData:', 'color: #4CAF50;', data);
             console.trace();
             console.groupEnd();
         }
     };
 
-    // Define a warning logging function similar to log, but with yellow styling and a warning emoji.
-    // Used for non-critical issues like invalid attributes.
+    // Warning logger for non-critical issues.
     const warn = (message, data = null) => {
         if (isDev) {
             console.groupCollapsed(`%c[CustomNav] ⚠️ ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
-            if (data) {
-                console.log('%cData:', 'color: #4CAF50;', data);
-            }
+            if (data) console.log('%cData:', 'color: #4CAF50;', data);
             console.trace();
             console.groupEnd();
         }
     };
 
-    // Define an error logging function with red styling and an error emoji.
-    // Used for critical failures like import errors.
+    // Error logger for critical failures.
     const error = (message, data = null) => {
         if (isDev) {
             console.groupCollapsed(`%c[CustomNav] ❌ ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
-            if (data) {
-                console.log('%cData:', 'color: #4CAF50;', data);
-            }
+            if (data) console.log('%cData:', 'color: #4CAF50;', data);
             console.trace();
             console.groupEnd();
         }
     };
 
     try {
-        // Asynchronously import required dependencies.
-        // BACKDROP_FILTER_MAP from shared.js for handling backdrop filter effects.
-        // VALID_ALIGNMENTS and VALID_ALIGN_MAP from shared.js for validation and mapping of alignment attributes.
+        // Dynamically import shared constants for tree-shaking and deferred loading.
         const { BACKDROP_FILTER_MAP, VALID_ALIGNMENTS, VALID_ALIGN_MAP } = await import('../shared.js');
-        log('Successfully imported BACKDROP_FILTER_MAP, VALID_ALIGNMENTS, and VALID_ALIGN_MAP from shared.js');
+        log('Imported shared constants successfully');
 
-        // Define the CustomNav web component class.
-        // Extends HTMLElement to create a custom element for navigation menus.
         class CustomNav extends HTMLElement {
-            // Specify attributes to observe for changes.
-            // When any of these change, attributeChangedCallback is triggered.
-            static get observedAttributes() {
-                return [
-                    'nav',
-                    'nav-position',
-                    'nav-class',
-                    'nav-style',
-                    'nav-aria-label',
-                    'nav-toggle-class',
-                    'nav-toggle-icon',
-                    'nav-orientation',
-                    'nav-container-class',
-                    'nav-container-style',
-                    'nav-background-color',
-                    'nav-background-image-noise',
-                    'nav-border',
-                    'nav-border-radius',
-                    'nav-backdrop-filter'
-                ];
-            }
+            // Observed attributes for reactive updates.
+            static observedAttributes = [
+                'nav',
+                'nav-position',
+                'nav-class',
+                'nav-style',
+                'nav-aria-label',
+                'nav-toggle-class',
+                'nav-toggle-icon',
+                'nav-orientation',
+                'nav-container-class',
+                'nav-container-style',
+                'nav-background-color',
+                'nav-background-image-noise',
+                'nav-border',
+                'nav-border-radius',
+                'nav-backdrop-filter'
+            ];
 
-            // Collect and validate all observed attributes.
-            // Returns an object with sanitized and defaulted attribute values.
-            getAttributes() {
+            // Parse and sanitize attributes with defaults and validation.
+            #getAttributes() {
                 log('Parsing attributes');
-                const attrs = {};
-                attrs.nav = this.getAttribute('nav') ? JSON.parse(this.getAttribute('nav')) : null;
-                attrs.navPosition = this.getAttribute('nav-position') || '';
-                attrs.navClass = this.getAttribute('nav-class') || '';
-                attrs.navStyle = this.getAttribute('nav-style') || '';
-                attrs.navAriaLabel = this.getAttribute('nav-aria-label') || 'Main navigation';
-                attrs.navToggleClass = this.getAttribute('nav-toggle-class') || '';
-                attrs.navToggleIcon = this.getAttribute('nav-toggle-icon') || '<i class="fa-light fa-bars"></i>';
-                attrs.navOrientation = this.getAttribute('nav-orientation') || 'horizontal';
-                attrs.navContainerClass = this.getAttribute('nav-container-class') || '';
-                attrs.navContainerStyle = this.getAttribute('nav-container-style') || '';
-                attrs.navBackgroundColor = this.getAttribute('nav-background-color') || '';
-                attrs.navBackgroundImageNoise = this.hasAttribute('nav-background-image-noise');
-                attrs.navBorder = this.getAttribute('nav-border') || '';
-                attrs.navBorderRadius = this.getAttribute('nav-border-radius') || '';
-                attrs.navBackdropFilter = this.getAttribute('nav-backdrop-filter')?.split(' ').filter(cls => cls) || [];
+                const attrs = {
+                    nav: null,
+                    navPosition: this.getAttribute('nav-position') || '',
+                    navClass: this.getAttribute('nav-class') || '',
+                    navStyle: this.getAttribute('nav-style') || '',
+                    navAriaLabel: this.getAttribute('nav-aria-label') || 'Main navigation',
+                    navToggleClass: this.getAttribute('nav-toggle-class') || '',
+                    navToggleIcon: this.getAttribute('nav-toggle-icon') || '<i class="fa-light fa-bars"></i>',
+                    navOrientation: this.getAttribute('nav-orientation') || 'horizontal',
+                    navContainerClass: this.getAttribute('nav-container-class') || '',
+                    navContainerStyle: this.getAttribute('nav-container-style') || '',
+                    navBackgroundColor: this.getAttribute('nav-background-color') || '',
+                    navBackgroundImageNoise: this.hasAttribute('nav-background-image-noise'),
+                    navBorder: this.getAttribute('nav-border') || '',
+                    navBorderRadius: this.getAttribute('nav-border-radius') || '',
+                    navBackdropFilter: this.getAttribute('nav-backdrop-filter')?.trim().split(/\s+/) || []
+                };
+
+                // Safe JSON parsing for nav data.
+                try {
+                    const navAttr = this.getAttribute('nav');
+                    if (navAttr) attrs.nav = JSON.parse(navAttr);
+                } catch (e) {
+                    warn('Invalid JSON in "nav" attribute; ignoring', { error: e.message });
+                }
 
                 if (!VALID_ALIGNMENTS.includes(attrs.navPosition)) {
-                    warn(`Invalid nav-position "${attrs.navPosition}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Ignoring.`);
+                    warn(`Invalid nav-position "${attrs.navPosition}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Using default.`);
                     attrs.navPosition = '';
                 }
-                log('Attributes parsed successfully', attrs);
+
+                log('Attributes parsed', attrs);
                 return attrs;
             }
 
-            // Render the navigation HTML based on attributes.
-            // Constructs the container, nav element, toggle button, and link list.
-            // Attaches click event for toggling mobile menu.
-            render() {
-                log('Starting render');
-                const attrs = this.getAttributes();
+            // Render method: Builds DOM efficiently using template literals.
+            #render() {
+                log('Rendering component');
+                const attrs = this.#getAttributes();
+                const uniqueId = `nav-menu-${Math.random().toString(36).slice(2, 11)}`; // Unique ID to avoid conflicts.
                 const navAlignClass = attrs.navPosition ? VALID_ALIGN_MAP[attrs.navPosition] : '';
                 const navClasses = [
                     attrs.navClass,
@@ -119,21 +109,24 @@
                     attrs.navBorder,
                     attrs.navBorderRadius,
                     ...attrs.navBackdropFilter.filter(cls => !cls.startsWith('backdrop-filter'))
-                ].filter(cls => cls).join(' ').trim();
+                ].filter(Boolean).join(' ');
                 const navBackdropFilterStyle = attrs.navBackdropFilter
                     .filter(cls => cls.startsWith('backdrop-filter'))
                     .map(cls => BACKDROP_FILTER_MAP[cls] || '')
-                    .filter(val => val)
+                    .filter(Boolean)
                     .join(' ');
-                const navStyle = [attrs.navStyle, navBackdropFilterStyle].filter(s => s).join('; ').trim();
+                const navStyle = [attrs.navStyle, navBackdropFilterStyle, attrs.navBackgroundColor ? `background-color: ${attrs.navBackgroundColor};` : '']
+                    .filter(Boolean)
+                    .join('; ');
 
+                // Use innerHTML for simplicity; small component size minimizes reflows.
                 this.innerHTML = `
                     <div class="${navAlignClass} ${attrs.navContainerClass}"${attrs.navContainerStyle ? ` style="${attrs.navContainerStyle}"` : ''}>
                         <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${navStyle ? ` style="${navStyle}"` : ''}>
-                            <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="nav-menu" aria-label="Toggle navigation">
+                            <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="${uniqueId}" aria-label="Toggle navigation">
                                 <span class="hamburger-icon">${attrs.navToggleIcon}</span>
                             </button>
-                            <ul class="nav-links" id="nav-menu">
+                            <ul class="nav-links" id="${uniqueId}" style="display: none;">
                                 ${attrs.nav?.map(link => `
                                     <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
                                 `).join('') || ''}
@@ -141,47 +134,46 @@
                         </nav>
                     </div>
                 `;
-                log('Inner HTML set', { innerHTMLPreview: this.innerHTML.substring(0, 200) + '...' });
 
-                // Set up toggle functionality for mobile/responsive views
-                const hamburger = this.querySelector('button[aria-controls="nav-menu"]');
-                const navMenu = this.querySelector('#nav-menu');
-                if (hamburger && navMenu) {
-                    hamburger.addEventListener('click', () => {
-                        const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
-                        hamburger.setAttribute('aria-expanded', !isExpanded);
-                        navMenu.style.display = isExpanded ? 'none' : 'block';
-                        log('Toggle navigation clicked', { isExpanded: !isExpanded });
-                    });
+                // Setup toggle event; use class-based toggling for better CSS control and performance.
+                const toggle = this.querySelector('button[aria-controls]');
+                const menu = this.querySelector('.nav-links');
+                if (toggle && menu) {
+                    toggle.addEventListener('click', () => {
+                        const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+                        toggle.setAttribute('aria-expanded', String(!isExpanded));
+                        menu.classList.toggle('is-open', !isExpanded); // Prefer class toggle over inline style for CSSOM efficiency.
+                        log('Toggled navigation', { isExpanded: !isExpanded });
+                    }, { once: false, passive: true }); // Passive for scroll performance.
                 }
+
                 log('Render complete');
             }
 
-            // Render the component when it's added to the DOM
             connectedCallback() {
                 log('Connected to DOM');
-                this.render();
+                this.#render();
             }
 
-            // Re-render the component when an observed attribute changes
             attributeChangedCallback() {
                 log('Attribute changed');
-                if (this.isConnected) {
-                    this.render();
-                }
+                if (this.isConnected) this.#render();
             }
         }
-        // Define the custom element if not already defined
+
+        // Define custom element only if not registered, per spec.
         if (!customElements.get('custom-nav')) {
             customElements.define('custom-nav', CustomNav);
-            log('CustomNav defined successfully');
+            log('Defined custom-nav');
         }
-        // Upgrade any existing custom-nav elements in the document
-        document.querySelectorAll('custom-nav').forEach(element => {
-            customElements.upgrade(element);
-            log('Upgraded existing custom-nav element');
+
+        // Upgrade existing elements if any.
+        document.querySelectorAll('custom-nav:not([defined])').forEach(el => {
+            customElements.upgrade(el);
+            el.setAttribute('defined', '');
+            log('Upgraded existing custom-nav');
         });
     } catch (err) {
-        error('Failed to import shared.js or define CustomNav', { error: err.message });
+        error('Initialization failed', { error: err.message });
     }
 })();
