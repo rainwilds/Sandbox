@@ -34,25 +34,34 @@
         log('Imported shared constants successfully');
 
         class CustomNav extends HTMLElement {
-            static observedAttributes = [
-                'nav',
-                'nav-position',
-                'nav-class',
-                'nav-style',
-                'nav-aria-label',
-                'nav-toggle-class',
-                'nav-toggle-icon',
-                'nav-orientation',
-                'nav-container-class',
-                'nav-container-style',
-                'nav-background-color',
-                'nav-background-image-noise',
-                'nav-border',
-                'nav-border-radius',
-                'nav-backdrop-filter'
-            ];
+            static get observedAttributes() {
+                return [
+                    'nav',
+                    'nav-position',
+                    'nav-class',
+                    'nav-style',
+                    'nav-aria-label',
+                    'nav-toggle-class',
+                    'nav-toggle-icon',
+                    'nav-orientation',
+                    'nav-container-class',
+                    'nav-container-style',
+                    'nav-background-color',
+                    'nav-background-image-noise',
+                    'nav-border',
+                    'nav-border-radius',
+                    'nav-backdrop-filter'
+                ];
+            }
 
-            #getAttributes() {
+            #cachedAttrs = null;
+            #renderTimeout = null;
+
+            getAttributes() {
+                if (this.#cachedAttrs) {
+                    log('Using cached attributes');
+                    return this.#cachedAttrs;
+                }
                 log('Parsing attributes');
                 const attrs = {
                     nav: null,
@@ -80,6 +89,7 @@
                         if (!Array.isArray(attrs.nav)) {
                             throw new Error('Parsed nav attribute is not an array');
                         }
+                        log('Nav attribute parsed successfully', { nav: attrs.nav });
                     } else {
                         warn('No nav attribute provided; rendering empty navigation');
                     }
@@ -89,17 +99,23 @@
                 }
 
                 if (!VALID_ALIGNMENTS.includes(attrs.navPosition)) {
-                    warn(`Invalid nav-position "${attrs.navPosition}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Using default.`);
+                    warn(`Invalid nav-position "${attrs.navPosition}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Ignoring.`);
                     attrs.navPosition = '';
                 }
 
-                log('Attributes parsed', attrs);
+                this.#cachedAttrs = attrs;
+                log('Attributes parsed successfully', attrs);
                 return attrs;
             }
 
-            #render() {
-                log('Rendering component');
-                const attrs = this.#getAttributes();
+            debounceRender() {
+                if (this.#renderTimeout) clearTimeout(this.#renderTimeout);
+                this.#renderTimeout = setTimeout(() => this.render(), 0);
+            }
+
+            render() {
+                log('Starting render');
+                const attrs = this.getAttributes();
                 const uniqueId = `nav-menu-${Math.random().toString(36).slice(2, 11)}`;
                 const navAlignClass = attrs.navPosition ? VALID_ALIGN_MAP[attrs.navPosition] : '';
                 const navClasses = [
@@ -109,17 +125,17 @@
                     attrs.navBorder,
                     attrs.navBorderRadius,
                     ...attrs.navBackdropFilter.filter(cls => !cls.startsWith('backdrop-filter'))
-                ].filter(Boolean).join(' ');
+                ].filter(cls => cls).join(' ').trim();
                 const navBackdropFilterStyle = attrs.navBackdropFilter
                     .filter(cls => cls.startsWith('backdrop-filter'))
                     .map(cls => BACKDROP_FILTER_MAP[cls] || '')
-                    .filter(Boolean)
+                    .filter(val => val)
                     .join(' ');
                 const navStyle = [
                     attrs.navStyle,
                     navBackdropFilterStyle,
                     attrs.navBackgroundColor ? `background-color: ${attrs.navBackgroundColor};` : ''
-                ].filter(Boolean).join('; ');
+                ].filter(s => s).join('; ').trim();
 
                 this.innerHTML = `
                     <div class="${navAlignClass} ${attrs.navContainerClass}"${attrs.navContainerStyle ? ` style="${attrs.navContainerStyle}"` : ''}>
@@ -127,7 +143,7 @@
                             <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="${uniqueId}" aria-label="Toggle navigation">
                                 <span class="hamburger-icon">${attrs.navToggleIcon}</span>
                             </button>
-                            <ul class="nav-links" id="${uniqueId}" style="${attrs.navOrientation === 'horizontal' ? 'display: flex;' : 'display: none;'}">
+                            <ul class="nav-links" id="${uniqueId}">
                                 ${attrs.nav?.map(link => `
                                     <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
                                 `).join('') || '<li>No navigation links provided</li>'}
@@ -135,61 +151,46 @@
                         </nav>
                     </div>
                 `;
+                log('Inner HTML set', { innerHTML: this.innerHTML });
 
-                const styleEl = document.createElement('style');
-                styleEl.textContent = `
-                    custom-nav .nav-links.is-open {
-                        display: block !important;
-                    }
-                    custom-nav .nav-links {
-                        list-style: none;
-                        margin: 0;
-                        padding: 0;
-                        ${attrs.navOrientation === 'horizontal' ? 'display: flex; gap: 1rem;' : ''}
-                    }
-                    custom-nav .nav-links li a {
-                        text-decoration: none;
-                        color: inherit;
-                    }
-                `;
-                this.appendChild(styleEl);
-
-                const toggle = this.querySelector('button[aria-controls]');
-                const menu = this.querySelector('.nav-links');
-                if (toggle && menu) {
-                    toggle.addEventListener('click', () => {
-                        const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
-                        toggle.setAttribute('aria-expanded', String(!isExpanded));
-                        menu.classList.toggle('is-open', !isExpanded);
-                        log('Toggled navigation', { isExpanded: !isExpanded });
-                    }, { once: false, passive: true });
+                const hamburger = this.querySelector(`button[aria-controls="${uniqueId}"]`);
+                const navMenu = this.querySelector(`#${uniqueId}`);
+                if (hamburger && navMenu) {
+                    hamburger.addEventListener('click', () => {
+                        const isExpanded = hamburger.getAttribute('aria-expanded') === 'true';
+                        hamburger.setAttribute('aria-expanded', !isExpanded);
+                        navMenu.style.display = isExpanded ? 'none' : 'block';
+                        log('Toggle navigation clicked', { isExpanded: !isExpanded });
+                    });
+                } else {
+                    warn('Toggle button or menu not found', { hamburger: !!hamburger, navMenu: !!navMenu });
                 }
-
                 log('Render complete');
             }
 
             connectedCallback() {
                 log('Connected to DOM');
-                this.#render();
+                this.debounceRender();
             }
 
             attributeChangedCallback() {
                 log('Attribute changed');
-                if (this.isConnected) this.#render();
+                this.#cachedAttrs = null; // Invalidate cache on attribute change
+                if (this.isConnected) this.debounceRender();
             }
         }
 
         if (!customElements.get('custom-nav')) {
             customElements.define('custom-nav', CustomNav);
-            log('Defined custom-nav');
+            log('CustomNav defined successfully');
         }
 
-        document.querySelectorAll('custom-nav:not([defined])').forEach(el => {
-            customElements.upgrade(el);
-            el.setAttribute('defined', '');
-            log('Upgraded existing custom-nav');
+        document.querySelectorAll('custom-nav:not([defined])').forEach(element => {
+            customElements.upgrade(element);
+            element.setAttribute('defined', '');
+            log('Upgraded existing custom-nav element');
         });
     } catch (err) {
-        error('Initialization failed', { error: err.message });
+        error('Failed to import shared.js or define CustomNav', { error: err.message });
     }
 })();
