@@ -1,9 +1,7 @@
 (async () => {
-    // Browser-compatible dev detection
     const isDev = window.location.href.includes('/dev/') ||
       new URLSearchParams(window.location.search).get('debug') === 'true';
 
-    // Debug logging methods
     const log = (message, data = null) => {
         if (isDev) {
             console.groupCollapsed(`%c[CustomHeader] ${new Date().toLocaleTimeString()} ${message}`, 'color: #2196F3; font-weight: bold;');
@@ -56,7 +54,15 @@
                     'logo-placement',
                     'nav-logo-container-style',
                     'nav-logo-container-class',
-                    'nav-alignment'
+                    'nav-alignment',
+                    'heading',
+                    'heading-tag',
+                    'inner-alignment',
+                    'text-alignment',
+                    'img-background-alt',
+                    'img-background-light-src',
+                    'img-background-dark-src',
+                    'background-overlay'
                 ];
             }
 
@@ -67,10 +73,22 @@
                 attrs.navLogoContainerStyle = this.getAttribute('nav-logo-container-style') || '';
                 attrs.navLogoContainerClass = this.getAttribute('nav-logo-container-class') || '';
                 attrs.navAlignment = this.getAttribute('nav-alignment') || 'center';
+                attrs.heading = this.getAttribute('heading') || '';
+                attrs.headingTag = this.getAttribute('heading-tag') || 'h1';
+                attrs.innerAlignment = this.getAttribute('inner-alignment') || 'center';
+                attrs.textAlignment = this.getAttribute('text-alignment') || 'center';
+                attrs.imgBackgroundAlt = this.getAttribute('img-background-alt') || 'Background image';
+                attrs.imgBackgroundLightSrc = this.getAttribute('img-background-light-src') || '';
+                attrs.imgBackgroundDarkSrc = this.getAttribute('img-background-dark-src') || '';
+                attrs.backgroundOverlay = this.getAttribute('background-overlay') || '';
                 const validLogoPlacements = ['independent', 'nav'];
                 if (!VALID_ALIGNMENTS.includes(attrs.navAlignment)) {
                     warn(`Invalid nav-alignment "${attrs.navAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Defaulting to 'center'.`);
                     attrs.navAlignment = 'center';
+                }
+                if (!VALID_ALIGNMENTS.includes(attrs.innerAlignment)) {
+                    warn(`Invalid inner-alignment "${attrs.innerAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Defaulting to 'center'.`);
+                    attrs.innerAlignment = 'center';
                 }
                 if (!validLogoPlacements.includes(attrs.logoPlacement)) {
                     warn(`Invalid logo-placement "${attrs.logoPlacement}". Defaulting to 'independent'.`);
@@ -104,11 +122,12 @@
                     blockElement = newBlockElement;
                 }
 
-                blockElement.removeAttribute('role');
-
+                blockElement.setAttribute('data-section-title', 'true');
                 const existingClasses = blockElement.className.split(' ').filter(cls => cls);
                 const headerClasses = [
                     ...existingClasses,
+                    'block',
+                    'background-image',
                     attrs.backgroundColorClass,
                     attrs.borderClass,
                     attrs.borderRadiusClass,
@@ -122,9 +141,12 @@
 
                 let logoHTML = '';
                 let navHTML = '';
+                let pictureHTML = '';
+                let headingHTML = '';
                 if (!isFallback) {
                     const customLogo = this.querySelector('custom-logo');
                     const customNav = this.querySelector('custom-nav');
+
                     if (customLogo) {
                         log('Triggering custom-logo render');
                         customElements.upgrade(customLogo);
@@ -153,34 +175,80 @@
                             }
                         }
                     }
+
+                    if (attrs.imgBackgroundLightSrc || attrs.imgBackgroundDarkSrc) {
+                        pictureHTML = `
+                            <picture class="animate animate-fade-in">
+                                ${attrs.imgBackgroundLightSrc ? `
+                                    <source media="(prefers-color-scheme: light)" type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-light-4.jxl 3840w, /Sandbox/img/responsive/tourism-photography-light-4-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-light-4-1024.jxl 1024w, /Sandbox/img/responsive/tourism-photography-light-4-1366.jxl 1366w, /Sandbox/img/responsive/tourism-photography-light-4-1920.jxl 1920w, /Sandbox/img/responsive/tourism-photography-light-4-2560.jxl 2560w" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px" data-alt="${attrs.imgBackgroundAlt}">
+                                    <source media="(prefers-color-scheme: light)" type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-light-4.avif 3840w, /Sandbox/img/responsive/tourism-photography-light-4-768.avif 768w, /Sandbox/img/responsive/tourism-photography-light-4-1024.avif 1024w, /Sandbox/img/responsive/tourism-photography-light-4-1366.avif 1366w, /Sandbox/img/responsive/tourism-photography-light-4-1920.avif 1920w, /Sandbox/img/responsive/tourism-photography-light-4-2560.avif 2560w" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px" data-alt="${attrs.imgBackgroundAlt}">
+                                    <source media="(prefers-color-scheme: light)" type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-light-4.webp 3840w, /Sandbox/img/responsive/tourism-photography-light-4-768.webp 768w, /Sandbox/img/responsive/tourism-photography-light-4-1024.webp 1024w, /Sandbox/img/responsive/tourism-photography-light-4-1366.webp 1366w, /Sandbox/img/responsive/tourism-photography-light-4-1920.webp 1920w, /Sandbox/img/responsive/tourism-photography-light-4-2560.webp 2560w" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px" data-alt="${attrs.imgBackgroundAlt}">
+                                    <source media="(prefers-color-scheme: light)" type="image/jpeg" srcset="/Sandbox/img/responsive/tourism-photography-light-4.jpeg 3840w, /Sandbox/img/responsive/tourism-photography-light-4-768.jpeg 768w, /Sandbox/img/responsive/tourism-photography-light-4-1024.jpeg 1024w, /Sandbox/img/responsive/tourism-photography-light-4-1366.jpeg 1366w, /Sandbox/img/responsive/tourism-photography-light-4-1920.jpeg 1920w, /Sandbox/img/responsive/tourism-photography-light-4-2560.jpeg 2560w" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px" data-alt="${attrs.imgBackgroundAlt}">
+                                ` : ''}
+                                ${attrs.imgBackgroundDarkSrc ? `
+                                    <source media="(prefers-color-scheme: dark)" type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-dark-6.jxl 3840w, /Sandbox/img/responsive/tourism-photography-dark-6-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-dark-6-1024.jxl 1024w, /Sandbox/img/responsive/tourism-photography-dark-6-1366.jxl 1366w, /Sandbox/img/responsive/tourism-photography-dark-6-1920.jxl 1920w, /Sandbox/img/responsive/tourism-photography-dark-6-2560.jxl 2560w" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px" data-alt="${attrs.imgBackgroundAlt}">
+                                    <source media="(prefers-color-scheme: dark)" type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-dark-6.avif 3840w, /Sandbox/img/responsive/tourism-photography-dark-6-768.avif 768w, /Sandbox/img/responsive/tourism-photography-dark-6-1024.avif 1024w, /Sandbox/img/responsive/tourism-photography-dark-6-1366.avif 1366w, /Sandbox/img/responsive/tourism-photography-dark-6-1920.avif 1920w, /Sandbox/img/responsive/tourism-photography-dark-6-2560.avif 2560w" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px" data-alt="${attrs.imgBackgroundAlt}">
+                                    <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-dark-6.webp 3840w, /Sandbox/img/responsive/tourism-photography-dark-6-768.webp 768w, /Sandbox/img/responsive/tourism-photography-dark-6-1024.webp 1024w, /Sandbox/img/responsive/tourism-photography-dark-6-1366.webp 1366w, /Sandbox/img/responsive/tourism-photography-dark-6-1920.webp 1920w, /Sandbox/img/responsive/tourism-photography-dark-6-2560.webp 2560w" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px" data-alt="${attrs.imgBackgroundAlt}">
+                                    <source media="(prefers-color-scheme: dark)" type="image/jpeg" srcset="/Sandbox/img/responsive/tourism-photography-dark-6.jpeg 3840w, /Sandbox/img/responsive/tourism-photography-dark-6-768.jpeg 768w, /Sandbox/img/responsive/tourism-photography-dark-6-1024.jpeg 1024w, /Sandbox/img/responsive/tourism-photography-dark-6-1366.jpeg 1366w, /Sandbox/img/responsive/tourism-photography-dark-6-1920.jpeg 1920w, /Sandbox/img/responsive/tourism-photography-dark-6-2560.jpeg 2560w" sizes="(max-width: 768px) 100vw, (max-width: 1024px) 100vw, (max-width: 1366px) 100vw, (max-width: 1920px) 100vw, (max-width: 2560px) 100vw, 3840px" data-alt="${attrs.imgBackgroundAlt}">
+                                ` : ''}
+                                <img src="${attrs.imgBackgroundDarkSrc || attrs.imgBackgroundLightSrc}" alt="${attrs.imgBackgroundAlt}" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='${attrs.imgBackgroundAlt}'; this.onerror=null;">
+                            </picture>
+                        `;
+                        log('Generated picture element', { htmlLength: pictureHTML.length });
+                    }
+
+                    if (attrs.heading) {
+                        const alignClass = VALID_ALIGN_MAP[attrs.innerAlignment] || 'place-self-center';
+                        headingHTML = `
+                            <div class="${alignClass}" aria-live="polite">
+                                <div role="group" class="flex-column-center text-align-${attrs.textAlignment}">
+                                    <${attrs.headingTag}>${attrs.heading}</${attrs.headingTag}>
+                                </div>
+                            </div>
+                        `;
+                        log('Generated heading', { htmlLength: headingHTML.length });
+                    }
+
+                    await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
-                let innerHTML = blockElement.innerHTML || '';
+                let innerContent = '';
                 if (attrs.logoPlacement === 'nav' && logoHTML && navHTML) {
                     const combinedStyles = [
                         attrs.navLogoContainerStyle,
                         'z-index: 2'
                     ].filter(s => s).join('; ').trim();
-                    const navAlignClass = attrs.navAlignment ? VALID_ALIGN_MAP[attrs.navAlignment] : '';
+                    const navAlignClass = attrs.navAlignment ? VALID_ALIGN_MAP[attrs.navAlignment] : 'place-self-center';
                     const navContainerClasses = this.querySelector('custom-nav')?.getAttribute('nav-container-class') || '';
                     const navContainerStyle = this.querySelector('custom-nav')?.getAttribute('nav-container-style') || '';
 
-                    innerHTML = `
+                    innerContent = `
                         <div${attrs.navLogoContainerClass ? ` class="${attrs.navLogoContainerClass}"` : ''}${combinedStyles ? ` style="${combinedStyles}"` : ''}>
                             ${logoHTML}
                             <div${navAlignClass || navContainerClasses ? ` class="${[navAlignClass, navContainerClasses].filter(cls => cls).join(' ')}"` : ''}${navContainerStyle ? ` style="${navContainerStyle}"` : ''}>
                                 ${navHTML}
                             </div>
                         </div>
-                        ${innerHTML}
                     `;
-                    log('Composed nav-with-logo', { htmlPreview: innerHTML.substring(0, 200) + '...' });
+                    log('Composed nav-with-logo', { htmlPreview: innerContent.substring(0, 200) + '...' });
                 } else {
-                    innerHTML = `${logoHTML}${navHTML}${innerHTML}`;
-                    log('Composed independent', { htmlPreview: innerHTML.substring(0, 200) + '...' });
+                    innerContent = `${logoHTML}${navHTML}`;
+                    log('Composed independent', { htmlPreview: innerContent.substring(0, 200) + '...' });
                 }
 
-                blockElement.innerHTML = innerHTML;
+                blockElement.innerHTML = `
+                    <div>
+                        ${innerContent}
+                        ${pictureHTML}
+                        ${attrs.backgroundOverlay ? `<div class="${attrs.backgroundOverlay}"></div>` : ''}
+                        ${headingHTML}
+                    </div>
+                `;
+
+                if (attrs.sticky) {
+                    blockElement.classList.add('sticky');
+                    log('Applied sticky positioning');
+                }
 
                 log('CustomHeader render complete', { outerHTMLPreview: blockElement.outerHTML.substring(0, 300) + '...' });
                 return blockElement;
