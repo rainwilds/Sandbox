@@ -112,11 +112,11 @@
                     blockElement = await super.render(isFallback);
                     if (!blockElement || !(blockElement instanceof HTMLElement)) {
                         warn('Super render failed; creating fallback block element.');
-                        blockElement = document.createElement('div');
+                        blockElement = document.createElement('header');
                     }
                 } catch (err) {
                     error('Error in super.render', { error: err.message });
-                    blockElement = document.createElement('div');
+                    blockElement = document.createElement('header');
                 }
 
                 blockElement.setAttribute('role', 'banner');
@@ -168,7 +168,6 @@
                             }
                         }
                     }
-                    await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
                 let innerHTML = blockElement.innerHTML || '';
