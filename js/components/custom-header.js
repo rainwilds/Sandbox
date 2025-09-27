@@ -121,19 +121,14 @@
 
                 blockElement.setAttribute('role', 'banner');
 
-                const existingClasses = blockElement.className.split(' ').filter(cls => cls);
-                const headerClasses = [
-                    ...existingClasses,
-                    attrs.backgroundColorClass,
-                    attrs.borderClass,
-                    attrs.borderRadiusClass,
-                    attrs.shadowClass,
-                    attrs.sticky ? 'sticky' : ''
-                ].filter(cls => cls).join(' ').trim();
-                if (headerClasses) {
-                    blockElement.className = headerClasses;
-                    log('Applied header classes', { classes: headerClasses });
+                blockElement.classList.add(attrs.backgroundColorClass);
+                blockElement.classList.add(attrs.borderClass);
+                blockElement.classList.add(attrs.borderRadiusClass);
+                blockElement.classList.add(attrs.shadowClass);
+                if (attrs.sticky) {
+                    blockElement.classList.add('sticky');
                 }
+                log('Applied header classes', { classes: blockElement.className });
 
                 let logoHTML = '';
                 let navHTML = '';
