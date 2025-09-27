@@ -1187,7 +1187,16 @@ class CustomBlock extends HTMLElement {
             } else {
                 buttonElement.textContent = attrs.buttonText;
             }
-            blockElement.appendChild(buttonElement);
+            // Check if inner div is needed based on inner-alignment or inner-class
+            if (attrs.innerCustomClasses) {
+                const innerDiv = document.createElement('div');
+                const innerDivClassList = attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-'));
+                if (innerDivClassList.length) innerDiv.className = innerDivClassList.join(' ').trim();
+                innerDiv.appendChild(buttonElement);
+                blockElement.appendChild(innerDiv);
+            } else {
+                blockElement.appendChild(buttonElement);
+            }
             if (!isFallback) {
                 CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
                 this.lastAttributes = newCriticalAttrsHash;
@@ -1197,7 +1206,7 @@ class CustomBlock extends HTMLElement {
         // Construct inner content div for non-media/button modes.
         // Applies padding, classes for backgrounds, borders, alignments, shadows, and backdrop filters.
         const innerPaddingClasses = attrs.customClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
-        const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls)];
+        const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-'))];
         if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
         if (attrs.innerBackgroundColorClass) innerDivClassList.push(attrs.innerBackgroundColorClass);
         if (attrs.innerBackgroundImageNoise) innerDivClassList.push('background-image-noise');
@@ -1205,7 +1214,6 @@ class CustomBlock extends HTMLElement {
         if (attrs.innerBorderRadiusClass) innerDivClassList.push(attrs.innerBorderRadiusClass);
         if (attrs.innerBackgroundOverlayClass) innerDivClassList.push(attrs.innerBackgroundOverlayClass);
         if (attrs.innerBackgroundGradientClass) innerDivClassList.push(attrs.innerBackgroundGradientClass);
-        if (attrs.innerAlignment) innerDivClassList.push(VALID_ALIGN_MAP[attrs.innerAlignment]);
         if (attrs.innerShadowClass) innerDivClassList.push(attrs.innerShadowClass);
         const innerBackdropFilterValues = attrs.innerBackdropFilterClasses
             .filter(cls => cls.startsWith('backdrop-filter'))
@@ -1235,9 +1243,9 @@ class CustomBlock extends HTMLElement {
         }
         innerDiv.setAttribute('aria-live', 'polite');
         const textVALID_ALIGN_MAP = {
-            'left': 'flex-column-left text-align-left',
-            'center': 'flex-column-center text-align-center',
-            'right': 'flex-column-right text-align-right'
+            'left': 'text-align-left',
+            'center': 'text-align-center',
+            'right': 'text-align-right'
         };
         const groupDiv = document.createElement('div');
         groupDiv.setAttribute('role', 'group');
@@ -1504,6 +1512,6 @@ try {
     console.error('Error defining CustomBlock element:', error);
 }
 // Log the component version for reference and debugging.
-console.log('CustomBlock version: 2025-09-26');
+console.log('CustomBlock version: 2025-09-27');
 // Export the class for potential use in other modules or extensions.
 export { CustomBlock };
