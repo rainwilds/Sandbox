@@ -162,8 +162,8 @@ export async function generatePictureMarkup({
     let primarySrc = '';
     let primaryAlt = '';
     if (hasBreakpoint && hasIcon && isBelowBreakpoint) {
-      primarySrc = prefersDark ? iconDarkSrc : iconLightSrc || iconSrc;
-      primaryAlt = isDecorative ? '' : (prefersDark ? iconDarkAlt : iconLightAlt || iconAlt);
+      primarySrc = prefersDark ? iconLightSrc : iconDarkSrc || iconSrc;
+      primaryAlt = isDecorative ? '' : (prefersDark ? iconLightAlt : iconDarkAlt || iconAlt);
     } else {
       primarySrc = prefersDark ? darkSrc : lightSrc || src;
       primaryAlt = isDecorative ? '' : (prefersDark ? darkAlt : lightAlt || alt);
@@ -223,8 +223,8 @@ export async function generatePictureMarkup({
       // For non-responsive or SVG images, generate simple <source> elements without width variants.
       if (hasBreakpoint && hasIcon) {
         // Add sources for small screens (icons)
-        if (iconLightSrc) addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, getImageType(iconLightSrc), iconLightSrc, sizes, iconLightAlt);
-        if (iconDarkSrc) addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: dark)`, getImageType(iconDarkSrc), iconDarkSrc, sizes, iconDarkAlt);
+        if (iconLightSrc) addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: dark)`, getImageType(iconLightSrc), iconLightSrc, sizes, iconLightAlt);
+        if (iconDarkSrc) addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, getImageType(iconDarkSrc), iconDarkSrc, sizes, iconDarkAlt);
         if (iconSrc) addSource(`(max-width: ${maxSmall}px)`, getImageType(iconSrc), iconSrc, sizes, iconAlt);
 
         // Add sources for large screens (full)
@@ -244,11 +244,11 @@ export async function generatePictureMarkup({
           // Add sources for small screens (icons)
           if (iconLightSrc) {
             const srcset = generateSrcset(iconLightSrc, format, IMAGE_WIDTHS);
-            addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, `image/${format}`, srcset, sizes, iconLightAlt);
+            addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: dark)`, `image/${format}`, srcset, sizes, iconLightAlt);
           }
           if (iconDarkSrc) {
             const srcset = generateSrcset(iconDarkSrc, format, IMAGE_WIDTHS);
-            addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: dark)`, `image/${format}`, srcset, sizes, iconDarkAlt);
+            addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, `image/${format}`, srcset, sizes, iconDarkAlt);
           }
           if (iconSrc) {
             const srcset = generateSrcset(iconSrc, format, IMAGE_WIDTHS);
