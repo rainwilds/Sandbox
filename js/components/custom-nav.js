@@ -61,7 +61,7 @@
                     navStyle: this.getAttribute('nav-style') || '',
                     navAriaLabel: this.getAttribute('nav-aria-label') || 'Main navigation',
                     navToggleClass: this.getAttribute('nav-toggle-class') || '',
-                    navToggleIcon: this.getAttribute('nav-toggle-icon') || '<i class="fa-light fa-bars"></i>',
+                    navToggleIcon: this.getAttribute('nav-toggle-icon') || '<i class="fa-solid fa-bars"></i>',
                     navOrientation: this.getAttribute('nav-orientation') || 'horizontal',
                     navContainerClass: this.getAttribute('nav-container-class') || '',
                     navContainerStyle: this.getAttribute('nav-container-style') || '',
@@ -72,11 +72,9 @@
                     navBackdropFilter: this.getAttribute('nav-backdrop-filter')?.trim().split(/\s+/) || []
                 };
 
-                // Robust JSON parsing for nav attribute
                 try {
                     const navAttr = this.getAttribute('nav');
                     if (navAttr) {
-                        // Normalize whitespace and newlines
                         const normalizedNav = navAttr.replace(/\s+/g, ' ').trim();
                         attrs.nav = JSON.parse(normalizedNav);
                         if (!Array.isArray(attrs.nav)) {
@@ -123,7 +121,6 @@
                     attrs.navBackgroundColor ? `background-color: ${attrs.navBackgroundColor};` : ''
                 ].filter(Boolean).join('; ');
 
-                // Render with fallback for empty navigation
                 this.innerHTML = `
                     <div class="${navAlignClass} ${attrs.navContainerClass}"${attrs.navContainerStyle ? ` style="${attrs.navContainerStyle}"` : ''}>
                         <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${navStyle ? ` style="${navStyle}"` : ''}>
@@ -139,7 +136,6 @@
                     </div>
                 `;
 
-                // Inject critical CSS for visibility
                 const styleEl = document.createElement('style');
                 styleEl.textContent = `
                     custom-nav .nav-links.is-open {
@@ -158,7 +154,6 @@
                 `;
                 this.appendChild(styleEl);
 
-                // Setup toggle event
                 const toggle = this.querySelector('button[aria-controls]');
                 const menu = this.querySelector('.nav-links');
                 if (toggle && menu) {
@@ -166,7 +161,7 @@
                         const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
                         toggle.setAttribute('aria-expanded', String(!isExpanded));
                         menu.classList.toggle('is-open', !isExpanded);
-                        log tune('Toggled navigation', { isExpanded: !isExpanded });
+                        log('Toggled navigation', { isExpanded: !isExpanded });
                     }, { once: false, passive: true });
                 }
 
