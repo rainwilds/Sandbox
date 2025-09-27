@@ -1,9 +1,7 @@
 (async () => {
-    // Check for debug mode via URL patterns for conditional logging without production impact.
     const isDev = window.location.href.includes('/dev/') ||
       new URLSearchParams(window.location.search).get('debug') === 'true';
 
-    // Logging utility with collapsible groups, timestamps, and styling; noop in production.
     const log = (message, data = null) => {
         if (isDev) {
             console.groupCollapsed(`%c[CustomNav] ${new Date().toLocaleTimeString()} ${message}`, 'color: #2196F3; font-weight: bold;');
@@ -13,7 +11,6 @@
         }
     };
 
-    // Warning logger for non-critical issues.
     const warn = (message, data = null) => {
         if (isDev) {
             console.groupCollapsed(`%c[CustomNav] ⚠️ ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
@@ -23,7 +20,6 @@
         }
     };
 
-    // Error logger for critical failures.
     const error = (message, data = null) => {
         if (isDev) {
             console.groupCollapsed(`%c[CustomNav] ❌ ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
@@ -34,12 +30,10 @@
     };
 
     try {
-        // Dynamically import shared constants for tree-shaking and deferred loading.
         const { BACKDROP_FILTER_MAP, VALID_ALIGNMENTS, VALID_ALIGN_MAP } = await import('../shared.js');
         log('Imported shared constants successfully');
 
         class CustomNav extends HTMLElement {
-            // Observed attributes for reactive updates.
             static observedAttributes = [
                 'nav',
                 'nav-position',
@@ -58,7 +52,6 @@
                 'nav-backdrop-filter'
             ];
 
-            // Parse and sanitize attributes with defaults and validation.
             #getAttributes() {
                 log('Parsing attributes');
                 const attrs = {
@@ -79,12 +72,22 @@
                     navBackdropFilter: this.getAttribute('nav-backdrop-filter')?.trim().split(/\s+/) || []
                 };
 
-                // Safe JSON parsing for nav data.
+                // Robust JSON parsing for nav attribute
                 try {
                     const navAttr = this.getAttribute('nav');
-                    if (navAttr) attrs.nav = JSON.parse(navAttr);
+                    if (navAttr) {
+                        // Normalize whitespace and newlines
+                        const normalizedNav = navAttr.replace(/\s+/g, ' ').trim();
+                        attrs.nav = JSON.parse(normalizedNav);
+                        if (!Array.isArray(attrs.nav)) {
+                            throw new Error('Parsed nav attribute is not an array');
+                        }
+                    } else {
+                        warn('No nav attribute provided; rendering empty navigation');
+                    }
                 } catch (e) {
-                    warn('Invalid JSON in "nav" attribute; ignoring', { error: e.message });
+                    warn('Failed to parse nav JSON; rendering empty navigation', { error: e.message, navAttr: this.getAttribute('nav') });
+                    attrs.nav = null;
                 }
 
                 if (!VALID_ALIGNMENTS.includes(attrs.navPosition)) {
@@ -96,11 +99,10 @@
                 return attrs;
             }
 
-            // Render method: Builds DOM efficiently using template literals.
             #render() {
                 log('Rendering component');
                 const attrs = this.#getAttributes();
-                const uniqueId = `nav-menu-${Math.random().toString(36).slice(2, 11)}`; // Unique ID to avoid conflicts.
+                const uniqueId = `nav-menu-${Math.random().toString(36).slice(2, 11)}`;
                 const navAlignClass = attrs.navPosition ? VALID_ALIGN_MAP[attrs.navPosition] : '';
                 const navClasses = [
                     attrs.navClass,
@@ -115,36 +117,57 @@
                     .map(cls => BACKDROP_FILTER_MAP[cls] || '')
                     .filter(Boolean)
                     .join(' ');
-                const navStyle = [attrs.navStyle, navBackdropFilterStyle, attrs.navBackgroundColor ? `background-color: ${attrs.navBackgroundColor};` : '']
-                    .filter(Boolean)
-                    .join('; ');
+                const navStyle = [
+                    attrs.navStyle,
+                    navBackdropFilterStyle,
+                    attrs.navBackgroundColor ? `background-color: ${attrs.navBackgroundColor};` : ''
+                ].filter(Boolean).join('; ');
 
-                // Use innerHTML for simplicity; small component size minimizes reflows.
+                // Render with fallback for empty navigation
                 this.innerHTML = `
                     <div class="${navAlignClass} ${attrs.navContainerClass}"${attrs.navContainerStyle ? ` style="${attrs.navContainerStyle}"` : ''}>
                         <nav aria-label="${attrs.navAriaLabel}"${navClasses ? ` class="${navClasses}"` : ''}${navStyle ? ` style="${navStyle}"` : ''}>
                             <button${attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : ''} aria-expanded="false" aria-controls="${uniqueId}" aria-label="Toggle navigation">
                                 <span class="hamburger-icon">${attrs.navToggleIcon}</span>
                             </button>
-                            <ul class="nav-links" id="${uniqueId}" style="display: none;">
+                            <ul class="nav-links" id="${uniqueId}" style="${attrs.navOrientation === 'horizontal' ? 'display: flex;' : 'display: none;'}">
                                 ${attrs.nav?.map(link => `
                                     <li><a href="${link.href || '#'}"${link.href ? '' : ' aria-disabled="true"'}>${link.text || 'Link'}</a></li>
-                                `).join('') || ''}
+                                `).join('') || '<li>No navigation links provided</li>'}
                             </ul>
                         </nav>
                     </div>
                 `;
 
-                // Setup toggle event; use class-based toggling for better CSS control and performance.
+                // Inject critical CSS for visibility
+                const styleEl = document.createElement('style');
+                styleEl.textContent = `
+                    custom-nav .nav-links.is-open {
+                        display: block !important;
+                    }
+                    custom-nav .nav-links {
+                        list-style: none;
+                        margin: 0;
+                        padding: 0;
+                        ${attrs.navOrientation === 'horizontal' ? 'display: flex; gap: 1rem;' : ''}
+                    }
+                    custom-nav .nav-links li a {
+                        text-decoration: none;
+                        color: inherit;
+                    }
+                `;
+                this.appendChild(styleEl);
+
+                // Setup toggle event
                 const toggle = this.querySelector('button[aria-controls]');
                 const menu = this.querySelector('.nav-links');
                 if (toggle && menu) {
                     toggle.addEventListener('click', () => {
                         const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
                         toggle.setAttribute('aria-expanded', String(!isExpanded));
-                        menu.classList.toggle('is-open', !isExpanded); // Prefer class toggle over inline style for CSSOM efficiency.
-                        log('Toggled navigation', { isExpanded: !isExpanded });
-                    }, { once: false, passive: true }); // Passive for scroll performance.
+                        menu.classList.toggle('is-open', !isExpanded);
+                        log tune('Toggled navigation', { isExpanded: !isExpanded });
+                    }, { once: false, passive: true });
                 }
 
                 log('Render complete');
@@ -161,13 +184,11 @@
             }
         }
 
-        // Define custom element only if not registered, per spec.
         if (!customElements.get('custom-nav')) {
             customElements.define('custom-nav', CustomNav);
             log('Defined custom-nav');
         }
 
-        // Upgrade existing elements if any.
         document.querySelectorAll('custom-nav:not([defined])').forEach(el => {
             customElements.upgrade(el);
             el.setAttribute('defined', '');
