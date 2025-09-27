@@ -166,18 +166,16 @@
 
                 let innerHTML = blockElement.innerHTML || '';
                 if (attrs.logoPlacement === 'nav' && logoHTML && navHTML) {
-                    const combinedStyles = [
-                        attrs.navLogoContainerStyle,
-                        'z-index: 2'
-                    ].filter(s => s).join('; ').trim();
                     const navAlignClass = attrs.navAlignment ? VALID_ALIGN_MAP[attrs.navAlignment] : '';
                     const navContainerClasses = this.querySelector('custom-nav')?.getAttribute('nav-container-class') || '';
                     const navContainerStyle = this.querySelector('custom-nav')?.getAttribute('nav-container-style') || '';
+                    const combinedNavClasses = navAlignClass || navContainerClasses ? `${navAlignClass} ${navContainerClasses}`.trim() : '';
+                    const combinedStyles = attrs.navLogoContainerStyle ? `${attrs.navLogoContainerStyle}; z-index: 2` : 'z-index: 2';
 
                     innerHTML = `
                         <div${attrs.navLogoContainerClass ? ` class="${attrs.navLogoContainerClass}"` : ''}${combinedStyles ? ` style="${combinedStyles}"` : ''}>
                             ${logoHTML}
-                            <div${navAlignClass || navContainerClasses ? ` class="${[navAlignClass, navContainerClasses].filter(cls => cls).join(' ')}"` : ''}${navContainerStyle ? ` style="${navContainerStyle}"` : ''}>
+                            <div${combinedNavClasses ? ` class="${combinedNavClasses}"` : ''}${navContainerStyle ? ` style="${navContainerStyle}"` : ''}>
                                 ${navHTML}
                             </div>
                         </div>
