@@ -161,8 +161,7 @@
             button-href="#nature"
             button-icon='<i class="fa-chisel fa-regular fa-leaf"></i>'
             button-icon-position="left"
-            button-icon-offset="var(--space-medium)"
-            class="padding-medium"
+            button-icon-offset="var(--space-small)"
             background-overlay="background-overlay-1"
             img-background-src="img/primary/tourism-photography-light-1.jpg"
             img-background-alt="Nature landscape background"
@@ -171,7 +170,8 @@
             img-background-tablet-width="80vw"
             img-background-desktop-width="1200px"
             text-alignment="center"
-            inner-alignment="center">
+            inner-alignment="center"
+            inner-class="padding-medium">
         </custom-block>
 
         <!-- Block 2: Video Background with Overlay and Gradient -->
@@ -184,7 +184,6 @@
             button-icon='<i class="fa-chisel fa-regular fa-compass"></i>'
             button-icon-position="right"
             button-icon-offset="var(--space-small)"
-            class="padding-small"
             background-overlay="background-overlay-2"
             background-gradient="background-gradient-1"
             video-background-src="video/video1.mp4"
@@ -193,9 +192,10 @@
             video-background-autoplay
             video-background-muted
             video-background-loop
-            inner-shadow="shadow-medium"
             text-alignment="right"
-            inner-alignment="right">
+            inner-alignment="right"
+            inner-shadow="shadow-medium"
+            inner-class="padding-small">
         </custom-block>
 
         <!-- Block 3: Primary Image on Right with Text and Icon -->
@@ -204,10 +204,9 @@
             text="Urban exploration with an image on the right."
             icon='<i class="fa-chisel fa-regular fa-city"></i>'
             icon-size="2rem"
-            icon-style="color: #333;"
             button-text="Explore City"
             button-href="#city"
-            class="padding-medium space-between"
+            class="space-between"
             img-primary-src="img/primary/tourism-photography-light-2.jpg"
             img-primary-alt="Cityscape image"
             img-primary-position="right"
@@ -215,7 +214,8 @@
             img-primary-tablet-width="50vw"
             img-primary-desktop-width="600px"
             inner-alignment="left"
-            inner-background-color="background-color-1">
+            inner-background-color="background-color-1"
+            inner-class="padding-medium color-invert">
         </custom-block>
 
         <!-- Block 4: Media-Only Block with Background Image and Noise -->
@@ -227,23 +227,22 @@
             img-background-position="bottom-center"
             img-background-mobile-width="100vw"
             img-background-tablet-width="80vw"
-            img-background-desktop-width="1200px"
-            class="padding-tiny">
+            img-background-desktop-width="1200px">
         </custom-block>
 
         <!-- Block 5: Button-Only Block with Custom Styling and Border -->
         <custom-block
-            button-text="Get Started"
-            button-href="#start"
+            button-text="Start Now"
+            button-href="#start-now"
             button-class="custom-button"
-            button-style="background-color: #007bff; color: white; padding: 12px 24px;"
-            button-icon='<i class="fa-chisel fa-regular fa-rocket"></i>'
+            button-style="background-color: #ff5733; color: white; padding: 10px 20px;"
+            button-icon='<i class="fa-chisel fa-regular fa-star"></i>'
             button-icon-position="right"
             button-icon-size="1.5rem"
-            button-icon-offset="var(--space-large)"
-            class="padding-small border-small"
+            button-icon-offset="var(--space-small)"
+            class="border-small"
             inner-alignment="center"
-            inner-class="padding-small">
+            inner-class="padding-medium">
         </custom-block>
 
         <!-- Block 6: Text-Only Block with Sub-Heading and Shadow -->
@@ -255,12 +254,11 @@
             text="Learn about our mission to inspire and connect."
             icon='<i class="fa-chisel fa-regular fa-book"></i>'
             icon-size="2.5rem"
-            icon-style="color: #444;"
-            class="padding-huge"
             inner-shadow="shadow-heavy"
             inner-background-color="background-color-2"
             text-alignment="left"
-            inner-alignment="left">
+            inner-alignment="left"
+            inner-class="padding-huge color-invert">
         </custom-block>
 
         <!-- Block 7: Primary Video with Top Position and Border -->
@@ -271,8 +269,8 @@
             button-href="#video"
             button-icon='<i class="fa-chisel fa-regular fa-video"></i>'
             button-icon-position="left"
-            button-icon-offset="var(--space-tiny)"
-            class="padding-medium border-large"
+            button-icon-offset="var(--space-small)"
+            class="border-large"
             video-primary-src="video/video2.mp4"
             video-primary-poster="img/primary/tourism-photography-light-3.jpg"
             video-primary-alt="Travel video"
@@ -280,7 +278,8 @@
             video-primary-autoplay
             video-primary-muted
             inner-backdrop-filter="backdrop-filter-blur-10"
-            inner-alignment="center">
+            inner-alignment="center"
+            inner-class="padding-medium">
         </custom-block>
 
         <!-- Block 8: Background Image with Custom Styling -->
@@ -289,7 +288,9 @@
             text="Plan your next getaway with our travel guides."
             button-text="Plan Trip"
             button-href="#plan"
-            class="padding-large"
+            button-icon='<i class="fa-chisel fa-regular fa-plane"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-small)"
             background-overlay="background-overlay-1"
             img-background-src="img/primary/tourism-photography-dark-3.jpg"
             img-background-alt="Destination background"
@@ -298,7 +299,8 @@
             img-background-tablet-width="80vw"
             img-background-desktop-width="1200px"
             text-alignment="right"
-            inner-alignment="right">
+            inner-alignment="right"
+            inner-class="padding-large">
         </custom-block>
 
         <!-- Block 9: Background Image with Left-Aligned Text and Button -->
@@ -310,14 +312,14 @@
             button-href="#mountain"
             button-icon='<i class="fa-chisel fa-regular fa-mountain"></i>'
             button-icon-position="left"
-            button-icon-offset="var(--space-huge)"
-            class="padding-medium"
+            button-icon-offset="var(--space-small)"
             background-overlay="background-overlay-2"
             img-background-src="img/primary/tourism-photography-light-4.jpg"
             img-background-alt="Mountain landscape background"
             img-background-position="top-left"
             text-alignment="left"
-            inner-alignment="left">
+            inner-alignment="left"
+            inner-class="padding-medium">
         </custom-block>
 
         <!-- Block 10: Primary Image on Left with Text -->
@@ -326,8 +328,7 @@
             text="Relax by the sea with stunning views."
             icon='<i class="fa-chisel fa-regular fa-water"></i>'
             icon-size="2rem"
-            icon-style="color: #555;"
-            class="padding-large space-between"
+            class="space-between"
             img-primary-src="img/primary/tourism-photography-dark-4.jpg"
             img-primary-alt="Coastal view image"
             img-primary-position="left"
@@ -335,7 +336,8 @@
             img-primary-tablet-width="50vw"
             img-primary-desktop-width="600px"
             inner-alignment="right"
-            inner-background-color="background-color-1">
+            inner-background-color="background-color-1"
+            inner-class="padding-large color-invert">
         </custom-block>
 
         <!-- Block 11: Video Background with Right-Aligned Content -->
@@ -347,8 +349,7 @@
             button-href="#safari"
             button-icon='<i class="fa-chisel fa-regular fa-binoculars"></i>'
             button-icon-position="right"
-            button-icon-offset="var(--space-medium)"
-            class="padding-small"
+            button-icon-offset="var(--space-small)"
             background-overlay="background-overlay-3"
             video-background-src="video/video1.mp4"
             video-background-poster="img/primary/tourism-photography-dark-5.jpg"
@@ -357,7 +358,9 @@
             video-background-muted
             video-background-loop
             text-alignment="right"
-            inner-alignment="right">
+            inner-alignment="right"
+            inner-shadow="shadow-light"
+            inner-class="padding-small">
         </custom-block>
 
         <!-- Block 12: Text-Only Block with Icon and Shadow -->
@@ -367,12 +370,11 @@
             text="Building a future of sustainable travel."
             icon='<i class="fa-chisel fa-regular fa-globe"></i>'
             icon-size="2.5rem"
-            icon-style="color: #444;"
-            class="padding-huge"
             inner-shadow="shadow-light"
             inner-background-color="background-color-2"
             text-alignment="center"
-            inner-alignment="center">
+            inner-alignment="center"
+            inner-class="padding-huge color-invert">
         </custom-block>
 
         <!-- Block 13: Primary Video on Bottom with Border -->
@@ -384,14 +386,15 @@
             button-icon='<i class="fa-chisel fa-regular fa-masks-theater"></i>'
             button-icon-position="left"
             button-icon-offset="var(--space-small)"
-            class="padding-medium border-medium"
+            class="border-medium"
             video-primary-src="video/video2.mp4"
             video-primary-poster="img/primary/tourism-photography-dark-6.jpg"
             video-primary-alt="Cultural video"
             video-primary-position="bottom"
             video-primary-autoplay
             video-primary-muted
-            inner-alignment="center">
+            inner-alignment="center"
+            inner-class="padding-medium">
         </custom-block>
 
         <!-- Block 14: Media-Only Block with Background Image -->
@@ -403,8 +406,7 @@
             img-background-position="center-right"
             img-background-mobile-width="100vw"
             img-background-tablet-width="80vw"
-            img-background-desktop-width="1000px"
-            class="padding-tiny">
+            img-background-desktop-width="1000px">
         </custom-block>
 
         <!-- Block 15: Button-Only with Large Icon -->
@@ -416,8 +418,7 @@
             button-icon='<i class="fa-chisel fa-regular fa-user-plus"></i>'
             button-icon-position="right"
             button-icon-size="1.8rem"
-            button-icon-offset="var(--space-huge)"
-            class="padding-medium"
+            button-icon-offset="var(--space-small)"
             inner-alignment="center"
             inner-class="padding-medium">
         </custom-block>
@@ -433,15 +434,16 @@
             button-href="#urban"
             button-icon='<i class="fa-chisel fa-regular fa-building"></i>'
             button-icon-position="left"
-            button-icon-offset="var(--space-large)"
-            class="padding-large border-large border-radius-medium"
+            button-icon-offset="var(--space-small)"
+            class="border-large border-radius-medium"
             background-overlay="background-overlay-2"
             background-gradient="background-gradient-2"
             img-background-src="img/primary/tourism-photography-dark-1.jpg"
             img-background-alt="Urban landscape background"
             img-background-position="bottom-left"
             text-alignment="left"
-            inner-alignment="left">
+            inner-alignment="left"
+            inner-class="padding-large">
         </custom-block>
     </div>
 </section>        
