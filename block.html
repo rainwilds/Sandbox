@@ -159,10 +159,10 @@
             text="Discover breathtaking landscapes with a centered layout."
             button-text="Learn More"
             button-href="#nature"
-            button-icon='<i class="fa-solid fa-leaf"></i>'
+            button-icon='<i class="fa-chisel fa-regular fa-leaf"></i>'
             button-icon-position="left"
             button-icon-offset="var(--space-medium)"
-            class="padding-medium border-small"
+            class="padding-medium"
             background-overlay="background-overlay-1"
             img-background-src="img/primary/tourism-photography-light-1.jpg"
             img-background-alt="Nature landscape background"
@@ -181,7 +181,10 @@
             text="Experience thrilling adventures with a video background."
             button-text="Join Now"
             button-href="#adventure"
-            class="padding-small border-medium"
+            button-icon='<i class="fa-chisel fa-regular fa-compass"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-small)"
+            class="padding-small"
             background-overlay="background-overlay-2"
             background-gradient="background-gradient-1"
             video-background-src="video/video1.mp4"
@@ -190,19 +193,21 @@
             video-background-autoplay
             video-background-muted
             video-background-loop
-            inner-shadow="shadow-medium">
+            inner-shadow="shadow-medium"
+            text-alignment="right"
+            inner-alignment="right">
         </custom-block>
 
         <!-- Block 3: Primary Image on Right with Text and Icon -->
         <custom-block
             heading="City Vibes"
             text="Urban exploration with an image on the right."
-            icon='<i class="fa-solid fa-city fa-chisel"></i>'
+            icon='<i class="fa-chisel fa-regular fa-city"></i>'
             icon-size="2rem"
             icon-style="color: #333;"
             button-text="Explore City"
             button-href="#city"
-            class="padding-medium border-small space-between"
+            class="padding-medium space-between"
             img-primary-src="img/primary/tourism-photography-light-2.jpg"
             img-primary-alt="Cityscape image"
             img-primary-position="right"
@@ -223,16 +228,16 @@
             img-background-mobile-width="100vw"
             img-background-tablet-width="80vw"
             img-background-desktop-width="1200px"
-            class="border-large padding-tiny">
+            class="padding-tiny">
         </custom-block>
 
-        <!-- Block 5: Button-Only Block with Custom Styling -->
+        <!-- Block 5: Button-Only Block with Custom Styling and Border -->
         <custom-block
             button-text="Get Started"
             button-href="#start"
             button-class="custom-button"
             button-style="background-color: #007bff; color: white; padding: 12px 24px;"
-            button-icon='<i class="fa-solid fa-rocket"></i>'
+            button-icon='<i class="fa-chisel fa-regular fa-rocket"></i>'
             button-icon-position="right"
             button-icon-size="1.5rem"
             button-icon-offset="var(--space-large)"
@@ -248,19 +253,25 @@
             sub-heading="A Journey of Passion"
             sub-heading-tag="h4"
             text="Learn about our mission to inspire and connect."
+            icon='<i class="fa-chisel fa-regular fa-book"></i>'
+            icon-size="2.5rem"
+            icon-style="color: #444;"
             class="padding-huge"
             inner-shadow="shadow-heavy"
             inner-background-color="background-color-2"
             text-alignment="left"
-            inner-class="border-medium border-radius-medium">
+            inner-alignment="left">
         </custom-block>
 
-        <!-- Block 7: Primary Video with Top Position and Backdrop Filter -->
+        <!-- Block 7: Primary Video with Top Position and Border -->
         <custom-block
             heading="Experience the Journey"
             text="Watch our latest video of incredible destinations."
             button-text="Watch Now"
             button-href="#video"
+            button-icon='<i class="fa-chisel fa-regular fa-video"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-tiny)"
             class="padding-medium border-large"
             video-primary-src="video/video2.mp4"
             video-primary-poster="img/primary/tourism-photography-light-3.jpg"
@@ -272,20 +283,22 @@
             inner-alignment="center">
         </custom-block>
 
-        <!-- Block 8: Background Image with Custom Border -->
+        <!-- Block 8: Background Image with Custom Styling -->
         <custom-block
             heading="Dream Destinations"
             text="Plan your next getaway with our travel guides."
             button-text="Plan Trip"
             button-href="#plan"
-            class="padding-large border-large border-radius-large"
+            class="padding-large"
             background-overlay="background-overlay-1"
             img-background-src="img/primary/tourism-photography-dark-3.jpg"
             img-background-alt="Destination background"
             img-background-position="top-right"
             img-background-mobile-width="100vw"
             img-background-tablet-width="80vw"
-            img-background-desktop-width="1200px">
+            img-background-desktop-width="1200px"
+            text-alignment="right"
+            inner-alignment="right">
         </custom-block>
 
         <!-- Block 9: Background Image with Left-Aligned Text and Button -->
@@ -295,10 +308,10 @@
             text="Escape to serene mountain landscapes."
             button-text="Book Now"
             button-href="#mountain"
-            button-icon='<i class="fa-solid fa-mountain"></i>'
+            button-icon='<i class="fa-chisel fa-regular fa-mountain"></i>'
             button-icon-position="left"
-            button-icon-offset="var(--space-tiny)"
-            class="padding-medium border-medium"
+            button-icon-offset="var(--space-huge)"
+            class="padding-medium"
             background-overlay="background-overlay-2"
             img-background-src="img/primary/tourism-photography-light-4.jpg"
             img-background-alt="Mountain landscape background"
@@ -311,7 +324,10 @@
         <custom-block
             heading="Coastal Bliss"
             text="Relax by the sea with stunning views."
-            class="padding-large border-small space-between"
+            icon='<i class="fa-chisel fa-regular fa-water"></i>'
+            icon-size="2rem"
+            icon-style="color: #555;"
+            class="padding-large space-between"
             img-primary-src="img/primary/tourism-photography-dark-4.jpg"
             img-primary-alt="Coastal view image"
             img-primary-position="left"
@@ -329,7 +345,10 @@
             text="Join a thrilling safari adventure."
             button-text="Discover More"
             button-href="#safari"
-            class="padding-small border-large"
+            button-icon='<i class="fa-chisel fa-regular fa-binoculars"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-medium)"
+            class="padding-small"
             background-overlay="background-overlay-3"
             video-background-src="video/video1.mp4"
             video-background-poster="img/primary/tourism-photography-dark-5.jpg"
@@ -341,28 +360,31 @@
             inner-alignment="right">
         </custom-block>
 
-        <!-- Block 12: Text-Only with Icon and Shadow -->
+        <!-- Block 12: Text-Only Block with Icon and Shadow -->
         <custom-block
             heading="Our Vision"
             heading-tag="h2"
             text="Building a future of sustainable travel."
-            icon='<i class="fa-solid fa-globe"></i>'
+            icon='<i class="fa-chisel fa-regular fa-globe"></i>'
             icon-size="2.5rem"
             icon-style="color: #444;"
-            class="padding-huge border-medium"
+            class="padding-huge"
             inner-shadow="shadow-light"
             inner-background-color="background-color-2"
             text-alignment="center"
-            inner-class="border-small border-radius-small">
+            inner-alignment="center">
         </custom-block>
 
-        <!-- Block 13: Primary Video on Bottom -->
+        <!-- Block 13: Primary Video on Bottom with Border -->
         <custom-block
             heading="Cultural Journey"
             text="Immerse yourself in vibrant cultures."
             button-text="Explore Culture"
             button-href="#culture"
-            class="padding-medium border-large"
+            button-icon='<i class="fa-chisel fa-regular fa-masks-theater"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-small)"
+            class="padding-medium border-medium"
             video-primary-src="video/video2.mp4"
             video-primary-poster="img/primary/tourism-photography-dark-6.jpg"
             video-primary-alt="Cultural video"
@@ -382,7 +404,7 @@
             img-background-mobile-width="100vw"
             img-background-tablet-width="80vw"
             img-background-desktop-width="1000px"
-            class="border-medium padding-tiny">
+            class="padding-tiny">
         </custom-block>
 
         <!-- Block 15: Button-Only with Large Icon -->
@@ -391,16 +413,16 @@
             button-href="#signup"
             button-class="custom-button"
             button-style="background-color: #28a745; color: white; padding: 10px 20px;"
-            button-icon='<i class="fa-solid fa-user-plus"></i>'
+            button-icon='<i class="fa-chisel fa-regular fa-user-plus"></i>'
             button-icon-position="right"
             button-icon-size="1.8rem"
             button-icon-offset="var(--space-huge)"
-            class="padding-medium border-small"
+            class="padding-medium"
             inner-alignment="center"
             inner-class="padding-medium">
         </custom-block>
 
-        <!-- Block 16: Background Image with Sub-Heading and Gradient -->
+        <!-- Block 16: Background Image with Sub-Heading and Border -->
         <custom-block
             heading="Urban Adventure"
             heading-tag="h2"
@@ -409,6 +431,9 @@
             text="Experience the pulse of urban life."
             button-text="Start Exploring"
             button-href="#urban"
+            button-icon='<i class="fa-chisel fa-regular fa-building"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-large)"
             class="padding-large border-large border-radius-medium"
             background-overlay="background-overlay-2"
             background-gradient="background-gradient-2"
