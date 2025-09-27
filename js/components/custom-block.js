@@ -5,7 +5,6 @@
 import { generatePictureMarkup } from '../image-generator.js';
 import { generateVideoMarkup } from '../video-generator.js';
 import { VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } from '../shared.js';
-
 // Define the CustomBlock web component class.
 // This class extends HTMLElement to create a versatile custom element that can render blocks with various content types including text, headings, icons, buttons, images, videos, and effects.
 // It supports lazy initialization using IntersectionObserver, attribute-based configuration, media handling with light/dark modes, and caching for performance optimization.
@@ -62,10 +61,7 @@ class CustomBlock extends HTMLElement {
         'heading', 'heading-tag', 'icon', 'icon-class', 'icon-size', 'icon-style',
         'img-background-alt', 'img-background-aspect-ratio', 'img-background-desktop-width',
         'img-background-light-src', 'img-background-mobile-width', 'img-background-position',
-        'img-background-src', 'img-background-tablet-width', 'img-primary-alt',
-        'img-primary-aspect-ratio', 'img-primary-desktop-width', 'img-primary-light-src',
-        'img-primary-mobile-width', 'img-primary-position', 'img-primary-src',
-        'img-primary-tablet-width', 'inner-alignment', 'inner-backdrop-filter',
+        'img-background-src', 'img-background-tablet-width', 'inner-alignment', 'inner-backdrop-filter',
         'inner-background-color', 'inner-background-gradient', 'inner-background-image-noise',
         'inner-background-overlay', 'inner-border', 'inner-border-radius', 'inner-class',
         'inner-shadow', 'inner-style', 'section-title', 'style', 'sub-heading', 'sub-heading-tag',
@@ -1055,6 +1051,7 @@ class CustomBlock extends HTMLElement {
             const validations = await Promise.all(sources.map(validateSrc));
             if (src && validations.every(v => v)) {
                 try {
+                    const extraStyles = attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition};` : '';
                     const pictureMarkup = await generatePictureMarkup({
                         src: attrs.backgroundSrc,
                         lightSrc: attrs.backgroundLightSrc,
@@ -1073,8 +1070,8 @@ class CustomBlock extends HTMLElement {
                         noResponsive: attrs.backgroundSrc?.endsWith('.svg') || attrs.backgroundLightSrc?.endsWith('.svg') || attrs.backgroundDarkSrc?.endsWith('.svg'),
                         aspectRatio: attrs.backgroundAspectRatio,
                         includeSchema: attrs.backgroundIncludeSchema,
-                        extraStyles: '', // No inline styles
-                        isBackground: true // Prevent inline styles on the img element
+                        extraStyles,
+                        isBackground: true // Prevent other inline styles on the img element
                     });
                     this.#log('Background image markup generated', {
                         elementId: this.id || 'no-id',
@@ -1507,6 +1504,6 @@ try {
     console.error('Error defining CustomBlock element:', error);
 }
 // Log the component version for reference and debugging.
-console.log('CustomBlock version: 2025-09-14');
+console.log('CustomBlock version: 2025-09-26');
 // Export the class for potential use in other modules or extensions.
 export { CustomBlock };
