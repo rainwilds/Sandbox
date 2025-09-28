@@ -49,10 +49,10 @@
     try {
         // Asynchronously import required dependencies.
         // CustomBlock from custom-block.js as the base class for extension.
-        // VALID_ALIGNMENTS and VALID_ALIGN_MAP from shared.js for validating and mapping alignment attributes.
+        // VALID_ALIGNMENTS, VALID_ALIGN_MAP, and BACKDROP_FILTER_MAP from shared.js for validating and mapping attributes.
         const { CustomBlock } = await import('./custom-block.js');
-        const { VALID_ALIGNMENTS, VALID_ALIGN_MAP } = await import('../shared.js');
-        log('Successfully imported CustomBlock and VALID_ALIGN_MAP');
+        const { VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } = await import('../shared.js');
+        log('Successfully imported CustomBlock, VALID_ALIGN_MAP, and BACKDROP_FILTER_MAP');
 
         // Wait for dependent custom elements to be defined.
         // Ensures custom-logo and custom-nav are ready before proceeding, as they are rendered within the header.
@@ -75,7 +75,8 @@
                     'logo-placement',
                     'nav-logo-container-style',
                     'nav-logo-container-class',
-                    'nav-alignment'
+                    'nav-alignment',
+                    'backdrop-filter'
                 ];
             }
 
@@ -88,6 +89,7 @@
                 attrs.navLogoContainerStyle = this.getAttribute('nav-logo-container-style') || '';
                 attrs.navLogoContainerClass = this.getAttribute('nav-logo-container-class') || '';
                 attrs.navAlignment = this.getAttribute('nav-alignment') || 'center';
+                attrs.backdropFilter = this.getAttribute('backdrop-filter') || '';
                 const validLogoPlacements = ['independent', 'nav'];
                 if (!VALID_ALIGNMENTS.includes(attrs.navAlignment)) {
                     warn(`Invalid nav-alignment "${attrs.navAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Defaulting to 'center'.`);
@@ -96,6 +98,10 @@
                 if (!validLogoPlacements.includes(attrs.logoPlacement)) {
                     warn(`Invalid logo-placement "${attrs.logoPlacement}". Defaulting to 'independent'.`);
                     attrs.logoPlacement = 'independent';
+                }
+                if (attrs.backdropFilter && !Object.keys(BACKDROP_FILTER_MAP).includes(`backdrop-filter-${attrs.backdropFilter}`)) {
+                    warn(`Invalid backdrop-filter "${attrs.backdropFilter}". Clearing it.`);
+                    attrs.backdropFilter = '';
                 }
                 log('CustomHeader attributes', attrs);
                 return attrs;
@@ -128,6 +134,13 @@
                 if (attrs.shadowClass) blockElement.classList.add(attrs.shadowClass);
                 if (attrs.sticky) blockElement.classList.add('sticky');
                 log('Applied header classes', { classes: blockElement.className });
+
+                // Apply backdrop filter if specified
+                if (attrs.backdropFilter) {
+                    const filterClass = `backdrop-filter-${attrs.backdropFilter}`;
+                    blockElement.style.backdropFilter = BACKDROP_FILTER_MAP[filterClass] || '';
+                    log('Applied backdrop filter', { filter: blockElement.style.backdropFilter });
+                }
 
                 let logoHTML = '';
                 let navHTML = '';
