@@ -112,34 +112,30 @@
                     blockElement = await super.render(isFallback);
                     if (!blockElement || !(blockElement instanceof HTMLElement)) {
                         warn('Super render failed; creating fallback block element.');
-                        blockElement = document.createElement('div');
+                        blockElement = document.createElement('header');
                     }
                 } catch (err) {
                     error('Error in super.render', { error: err.message });
-                    blockElement = document.createElement('div');
+                    blockElement = document.createElement('header');
                 }
 
                 blockElement.setAttribute('role', 'banner');
 
-                const existingClasses = blockElement.className.split(' ').filter(cls => cls);
-                const headerClasses = [
-                    ...existingClasses,
-                    attrs.backgroundColorClass,
-                    attrs.borderClass,
-                    attrs.borderRadiusClass,
-                    attrs.shadowClass,
-                    attrs.sticky ? 'sticky' : ''
-                ].filter(cls => cls).join(' ').trim();
-                if (headerClasses) {
-                    blockElement.className = headerClasses;
-                    log('Applied header classes', { classes: headerClasses });
-                }
+                // Safely add classes only if they are non-empty strings
+                if (attrs.backgroundColorClass) blockElement.classList.add(attrs.backgroundColorClass);
+                if (attrs.borderClass) blockElement.classList.add(attrs.borderClass);
+                if (attrs.borderRadiusClass) blockElement.classList.add(attrs.borderRadiusClass);
+                if (attrs.shadowClass) blockElement.classList.add(attrs.shadowClass);
+                if (attrs.sticky) blockElement.classList.add('sticky');
+                log('Applied header classes', { classes: blockElement.className });
 
                 let logoHTML = '';
                 let navHTML = '';
+                let customLogo = null;
+                let customNav = null;
                 if (!isFallback) {
-                    const customLogo = this.querySelector('custom-logo');
-                    const customNav = this.querySelector('custom-nav');
+                    customLogo = this.querySelector('custom-logo');
+                    customNav = this.querySelector('custom-nav');
                     if (customLogo) {
                         log('Triggering custom-logo render');
                         customElements.upgrade(customLogo);
@@ -168,23 +164,20 @@
                             }
                         }
                     }
-                    await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
                 let innerHTML = blockElement.innerHTML || '';
                 if (attrs.logoPlacement === 'nav' && logoHTML && navHTML) {
-                    const combinedStyles = [
-                        attrs.navLogoContainerStyle,
-                        'z-index: 2'
-                    ].filter(s => s).join('; ').trim();
                     const navAlignClass = attrs.navAlignment ? VALID_ALIGN_MAP[attrs.navAlignment] : '';
-                    const navContainerClasses = this.querySelector('custom-nav')?.getAttribute('nav-container-class') || '';
-                    const navContainerStyle = this.querySelector('custom-nav')?.getAttribute('nav-container-style') || '';
+                    const navContainerClasses = customNav?.getAttribute('nav-container-class') || '';
+                    const navContainerStyle = customNav?.getAttribute('nav-container-style') || '';
+                    const combinedNavClasses = navAlignClass || navContainerClasses ? `${navAlignClass} ${navContainerClasses}`.trim() : '';
+                    const combinedStyles = attrs.navLogoContainerStyle ? `${attrs.navLogoContainerStyle}; z-index: 2` : 'z-index: 2';
 
                     innerHTML = `
                         <div${attrs.navLogoContainerClass ? ` class="${attrs.navLogoContainerClass}"` : ''}${combinedStyles ? ` style="${combinedStyles}"` : ''}>
                             ${logoHTML}
-                            <div${navAlignClass || navContainerClasses ? ` class="${[navAlignClass, navContainerClasses].filter(cls => cls).join(' ')}"` : ''}${navContainerStyle ? ` style="${navContainerStyle}"` : ''}>
+                            <div${combinedNavClasses ? ` class="${combinedNavClasses}"` : ''}${navContainerStyle ? ` style="${navContainerStyle}"` : ''}>
                                 ${navHTML}
                             </div>
                         </div>
