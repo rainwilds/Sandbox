@@ -112,22 +112,28 @@
                     blockElement = await super.render(isFallback);
                     if (!blockElement || !(blockElement instanceof HTMLElement)) {
                         warn('Super render failed; creating fallback block element.');
-                        blockElement = document.createElement('header');
+                        blockElement = document.createElement('div');
                     }
                 } catch (err) {
                     error('Error in super.render', { error: err.message });
-                    blockElement = document.createElement('header');
+                    blockElement = document.createElement('div');
                 }
 
                 blockElement.setAttribute('role', 'banner');
 
-                // Safely add classes only if they are non-empty strings
-                if (attrs.backgroundColorClass) blockElement.classList.add(attrs.backgroundColorClass);
-                if (attrs.borderClass) blockElement.classList.add(attrs.borderClass);
-                if (attrs.borderRadiusClass) blockElement.classList.add(attrs.borderRadiusClass);
-                if (attrs.shadowClass) blockElement.classList.add(attrs.shadowClass);
-                if (attrs.sticky) blockElement.classList.add('sticky');
-                log('Applied header classes', { classes: blockElement.className });
+                const existingClasses = blockElement.className.split(' ').filter(cls => cls);
+                const headerClasses = [
+                    ...existingClasses,
+                    attrs.backgroundColorClass,
+                    attrs.borderClass,
+                    attrs.borderRadiusClass,
+                    attrs.shadowClass,
+                    attrs.sticky ? 'sticky' : ''
+                ].filter(cls => cls).join(' ').trim();
+                if (headerClasses) {
+                    blockElement.className = headerClasses;
+                    log('Applied header classes', { classes: headerClasses });
+                }
 
                 let logoHTML = '';
                 let navHTML = '';
@@ -162,6 +168,7 @@
                             }
                         }
                     }
+                    await new Promise(resolve => setTimeout(resolve, 0));
                 }
 
                 let innerHTML = blockElement.innerHTML || '';
