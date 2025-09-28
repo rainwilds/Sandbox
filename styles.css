@@ -1089,7 +1089,7 @@
 
         &>div:not(.background-overlay):has(p) {
             z-index: 2;
-            height: min-content;
+            /* height: min-content; */
         }
 
         /* &>div:has(nav) {
