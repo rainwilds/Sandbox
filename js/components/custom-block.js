@@ -1245,14 +1245,9 @@ class CustomBlock extends HTMLElement {
             innerDiv.classList.add(VALID_ALIGN_MAP[attrs.innerAlignment]);
         }
         innerDiv.setAttribute('aria-live', 'polite');
-        const textAlignMap = {
-            'left': VALID_ALIGN_MAP['left'],
-            'center': VALID_ALIGN_MAP['center'],
-            'right': VALID_ALIGN_MAP['right']
-        };
         const groupDiv = document.createElement('div');
         groupDiv.setAttribute('role', 'group');
-        if (attrs.textAlignment) groupDiv.className = textAlignMap[attrs.textAlignment];
+        if (attrs.textAlignment) groupDiv.style.textAlign = attrs.textAlignment;
         if (attrs.icon) {
             const iconSpan = document.createElement('span');
             iconSpan.className = `icon${attrs.iconClass ? ` ${attrs.iconClass}` : ''}`;
