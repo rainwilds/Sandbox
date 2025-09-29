@@ -1241,15 +1241,18 @@ class CustomBlock extends HTMLElement {
                 innerDiv.setAttribute('style', styleContent.trim());
             }
         }
+        if (attrs.innerAlignment) {
+            innerDiv.classList.add(VALID_ALIGN_MAP[attrs.innerAlignment]);
+        }
         innerDiv.setAttribute('aria-live', 'polite');
-        const textVALID_ALIGN_MAP = {
-            'left': 'text-align-left',
-            'center': 'text-align-center',
-            'right': 'text-align-right'
+        const textAlignMap = {
+            'left': VALID_ALIGN_MAP['left'],
+            'center': VALID_ALIGN_MAP['center'],
+            'right': VALID_ALIGN_MAP['right']
         };
         const groupDiv = document.createElement('div');
         groupDiv.setAttribute('role', 'group');
-        if (attrs.textAlignment) groupDiv.className = textVALID_ALIGN_MAP[attrs.textAlignment];
+        if (attrs.textAlignment) groupDiv.className = textAlignMap[attrs.textAlignment];
         if (attrs.icon) {
             const iconSpan = document.createElement('span');
             iconSpan.className = `icon${attrs.iconClass ? ` ${attrs.iconClass}` : ''}`;
