@@ -215,6 +215,14 @@
 
                 blockElement.innerHTML = innerHTML;
 
+                // Adjust for heading alignment
+                const ariaLiveDiv = blockElement.querySelector('div[aria-live="polite"]');
+                if (ariaLiveDiv) {
+                    ariaLiveDiv.style.display = 'grid';
+                    ariaLiveDiv.style.placeContent = '';
+                    log('Set aria-live div to display: grid and removed place-content');
+                }
+
                 // Replace text-align-* with place-self-* and add width: fit-content
                 const groupDiv = blockElement.querySelector('div[role="group"]');
                 if (groupDiv) {
