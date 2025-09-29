@@ -180,7 +180,17 @@
                 }
 
                 let innerHTML = blockElement.innerHTML || '';
+                let styleHTML = '';
                 if (attrs.logoPlacement === 'nav' && logoHTML && navHTML) {
+                    styleHTML = `
+                        <style>
+                            @media (max-width: 1023px) {
+                                .logo-container {
+                                    place-self: center !important;
+                                }
+                            }
+                        </style>
+                    `;
                     const navAlignClass = attrs.navAlignment ? VALID_ALIGN_MAP[attrs.navAlignment] : '';
                     const navContainerClasses = customNav?.getAttribute('nav-container-class') || '';
                     const navContainerStyle = customNav?.getAttribute('nav-container-style') || '';
@@ -188,6 +198,7 @@
                     const combinedStyles = attrs.navLogoContainerStyle ? `${attrs.navLogoContainerStyle}; z-index: 2` : 'z-index: 2';
 
                     innerHTML = `
+                        ${styleHTML}
                         <div${attrs.navLogoContainerClass ? ` class="${attrs.navLogoContainerClass}"` : ''}${combinedStyles ? ` style="${combinedStyles}"` : ''}>
                             ${logoHTML}
                             <div${combinedNavClasses ? ` class="${combinedNavClasses}"` : ''}${navContainerStyle ? ` style="${navContainerStyle}"` : ''}>
@@ -203,6 +214,21 @@
                 }
 
                 blockElement.innerHTML = innerHTML;
+
+                // Replace text-align-* with place-self-* and add width: fit-content
+                const groupDiv = blockElement.querySelector('div[role="group"]');
+                if (groupDiv) {
+                    const textAlignClass = Array.from(groupDiv.classList).find(cls => cls.startsWith('text-align-'));
+                    if (textAlignClass) {
+                        groupDiv.classList.remove(textAlignClass);
+                        const alignment = textAlignClass.replace('text-align-', '');
+                        if (VALID_ALIGNMENTS.includes(alignment)) {
+                            groupDiv.classList.add(VALID_ALIGN_MAP[alignment]);
+                            groupDiv.style.width = 'fit-content';
+                            log('Replaced text-align class with place-self equivalent', { alignment });
+                        }
+                    }
+                }
 
                 if (attrs.sticky) {
                     blockElement.style.position = 'sticky';
