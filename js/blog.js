@@ -2,7 +2,7 @@ async function getManifest() {
   try {
     const cached = localStorage.getItem('blog-manifest');
     if (cached) return JSON.parse(cached);
-    const response = await fetch('/blog/manifest.json');
+    const response = await fetch('blog/manifest.json');
     if (!response.ok) throw new Error('Failed to fetch manifest');
     const manifest = await response.json();
     localStorage.setItem('blog-manifest', JSON.stringify(manifest));
@@ -15,7 +15,7 @@ async function getManifest() {
 
 async function renderPost(slug) {
   try {
-    const response = await fetch(`/blog/${slug}.md`);
+    const response = await fetch(`blog/${slug}.md`);
     if (!response.ok) throw new Error(`Failed to fetch ${slug}.md`);
     const text = await response.text();
     const frontmatterMatch = text.match(/^---\n([\s\S]*?)\n---\n/);
@@ -138,7 +138,7 @@ async function renderCategory(category) {
 
 const path = window.location.pathname;
 const params = new URLSearchParams(window.location.search);
-if (path === '/' || path === '/blog.html') {
+if (path === '/' || path === 'blog.html') {
   renderIndex();
 } else if (path === '/post.html' && params.get('slug')) {
   renderPost(params.get('slug'));
