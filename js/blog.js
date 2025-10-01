@@ -12,7 +12,7 @@ async function getManifest() {
       return JSON.parse(cached);
     }
     const response = await fetch(`${basePath}blog/manifest.json`);
-    if (!response.ok) throw new Error(`Failed to fetch manifest: ${response.status}`);
+    if (!response.ok) throw new Error(`Failed to fetch manifest: ${response.status} ${response.statusText}`);
     const manifest = await response.json();
     localStorage.setItem('blog-manifest', JSON.stringify(manifest));
     console.log('📦 Manifest loaded:', manifest);
@@ -27,13 +27,20 @@ async function renderPost(slug) {
   try {
     const config = await getConfig();
     const basePath = config.general?.basePath || '/';
-    console.log(`📄 Fetching post from: ${basePath}post/${slug}.md`); // Debug
-    const response = await fetch(`${basePath}post/${slug}.md`);
-    if (!response.ok) throw new Error(`Failed to fetch ${slug}.md: ${response.status}`);
+    const postUrl = `${basePath}post/${slug}.md`;
+    console.log(`📄 Fetching post from: ${postUrl}`); // Debug
+    const response = await fetch(postUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch ${slug}.md: ${response.status} ${response.statusText}`);
+    }
     const text = await response.text();
+    console.log(`📄 Post fetched successfully, length: ${text.length} characters`);
 
     // Loosened regex: allows optional whitespace and is more forgiving
     const frontmatterMatch = text.match(/^-{3}\s*\n([\s\S]*?)\n-{3}\s*\n/);
+    if (!frontmatterMatch) {
+      console.warn('⚠️ No frontmatter found in post');
+    }
     const frontmatter = frontmatterMatch ? frontmatterMatch[1] : '';
     const content = frontmatterMatch ? text.slice(frontmatterMatch[0].length) : text;
 
@@ -44,15 +51,19 @@ async function renderPost(slug) {
       const value = rest.join(':').trim(); // handles values with colons
       if (key && value) data[key.trim()] = value;
     });
-
     console.log('📝 Post data parsed:', data); // Debug
+
     const html = marked.parse(content);
+    console.log('📝 Markdown parsed to HTML:', html.slice(0, 100) + '...'); // Debug snippet
     const postContent = document.querySelector('#post-content');
     if (postContent) {
       postContent.innerHTML = html;
       document.title = data.title || 'Blog Post';
       document.querySelector('meta[name="description"]')?.setAttribute('content', data.excerpt || '');
+      // Update canonical URL dynamically
+      document.querySelector('link[rel="canonical"]')?.setAttribute('href', `${window.location.origin}${basePath}post.html?slug=${slug}`);
       if (data.featuredImage) {
+        console.log(`🖼️ Adding featured image: ${data.featuredImage}`);
         postContent.insertAdjacentHTML('afterbegin', `
           <custom-block
             img-primary-src="${data.featuredImage}"
@@ -67,13 +78,13 @@ async function renderPost(slug) {
       }
       console.log('✅ Post rendered successfully');
     } else {
-      console.warn('⚠️ No #post-content element found in the DOM.');
+      console.error('❌ No #post-content element found in the DOM.');
     }
   } catch (error) {
     console.error('❌ Error rendering post:', error);
     const postContent = document.querySelector('#post-content');
     if (postContent) {
-      postContent.innerHTML = '<p>Error loading post</p>';
+      postContent.innerHTML = '<p>Error loading post: ' + error.message + '</p>';
     }
   }
 }
@@ -125,7 +136,7 @@ async function renderIndex() {
     console.error('❌ Error rendering index:', error);
     const container = document.querySelector('#blog-index');
     if (container) {
-      container.innerHTML = '<p>Error loading posts</p>';
+      container.innerHTML = '<p>Error loading posts: ' + error.message + '</p>';
     }
   }
 }
@@ -165,7 +176,7 @@ async function renderCategory(category) {
     console.error('❌ Error rendering category:', error);
     const container = document.querySelector('#blog-index');
     if (container) {
-      container.innerHTML = '<p>Error loading posts</p>';
+      container.innerHTML = '<p>Error loading posts: ' + error.message + '</p>';
     }
   }
 }
