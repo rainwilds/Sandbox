@@ -47,9 +47,10 @@ async function renderPost(slug) {
       document.title = data.title || 'Blog Post';
       document.querySelector('meta[name="description"]')?.setAttribute('content', data.excerpt || '');
       if (data.featuredImage) {
+        const featuredImageSrc = `${basePath}${data.featuredImage.startsWith('/') ? data.featuredImage.slice(1) : data.featuredImage}`;
         postContent.insertAdjacentHTML('afterbegin', `
           <custom-block
-            img-primary-src="${data.featuredImage}"
+            img-primary-src="${featuredImageSrc}"
             img-primary-alt="${data.featuredImageAlt || `Featured image for ${data.title}`}"
             img-primary-mobile-width="${data.featuredImageMobileWidth || '100vw'}"
             img-primary-tablet-width="${data.featuredImageTabletWidth || '50vw'}"
@@ -68,6 +69,8 @@ async function renderPost(slug) {
 
 async function renderIndex() {
   try {
+    const config = await getConfig();
+    const basePath = config.general?.basePath || '/';
     const manifest = await getManifest();
     console.log("📦 Manifest loaded:", manifest);
 
@@ -89,12 +92,13 @@ async function renderIndex() {
 
     manifest.forEach(post => {
       console.log("📝 Rendering post:", post.slug, post.title);
+      const featuredImageSrc = post.featuredImage ? `${basePath}${post.featuredImage.startsWith('/') ? post.featuredImage.slice(1) : post.featuredImage}` : '';
 
       container.innerHTML += `
         <custom-block
           heading="${post.title}"
           text="${post.excerpt}"
-          img-primary-src="${post.featuredImage}"
+          img-primary-src="${featuredImageSrc}"
           img-primary-alt="${post.featuredImageAlt}"
           img-primary-mobile-width="${post.featuredImageMobileWidth}"
           img-primary-tablet-width="${post.featuredImageTabletWidth}"
@@ -119,17 +123,21 @@ async function renderIndex() {
 
 async function renderCategory(category) {
   try {
+    const config = await getConfig();
+    const basePath = config.general?.basePath || '/';
     const manifest = await getManifest();
     const filteredPosts = manifest.filter(post => post.categories.includes(category));
     const container = document.querySelector('#blog-index');
     if (container) {
       container.innerHTML = `<h1>Posts in ${category.charAt(0).toUpperCase() + category.slice(1)}</h1>`;
       filteredPosts.forEach(post => {
+        const featuredImageSrc = post.featuredImage ? `${basePath}${post.featuredImage.startsWith('/') ? post.featuredImage.slice(1) : post.featuredImage}` : '';
+
         container.innerHTML += `
           <custom-block
             heading="${post.title}"
             text="${post.excerpt}"
-            img-primary-src="${post.featuredImage}"
+            img-primary-src="${featuredImageSrc}"
             img-primary-alt="${post.featuredImageAlt}"
             img-primary-mobile-width="${post.featuredImageMobileWidth}"
             img-primary-tablet-width="${post.featuredImageTabletWidth}"
