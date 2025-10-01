@@ -145,7 +145,7 @@ async function renderCategory(category) {
 
 const path = window.location.pathname;
 const params = new URLSearchParams(window.location.search);
-if (path === '/' || path === '/blog.html') {
+if (path.endsWith('/blog.html') || path === '/' || path.endsWith('/index.html')) {
   renderIndex();
 } else if (path === '/post.html' && params.get('slug')) {
   renderPost(params.get('slug'));

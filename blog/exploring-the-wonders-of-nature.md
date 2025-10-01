@@ -15,3 +15,4 @@ featuredImageLoading: lazy
 
 Nature offers endless inspiration. In this post, we'll explore breathtaking scenes.
 
+container.innerHTML += `<p>${post.title} – ${post.excerpt}</p>`;
