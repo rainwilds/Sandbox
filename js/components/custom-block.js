@@ -645,6 +645,7 @@ class CustomBlock extends HTMLElement {
         this.#log('Callback added', { callbackName: callback.name || 'anonymous', elementId: this.id || 'no-id' });
         this.callbacks.push(callback);
     }
+    // In custom-block.js, replace the render method with this version
     async render(isFallback = false) {
         this.#log(`Starting render ${isFallback ? '(fallback)' : ''}`, { elementId: this.id || 'no-id' });
         let newCriticalAttrsHash;
@@ -799,22 +800,21 @@ class CustomBlock extends HTMLElement {
             primaryPosition: attrs.primaryPosition
         });
         const isMediaOnly = !isFallback &&
-            !this.hasAttribute('heading') &&
-            !this.hasAttribute('sub-heading') &&
-            !this.hasAttribute('icon') &&
-            !this.hasAttribute('text') &&
-            !this.hasAttribute('button-text') &&
+            !attrs.heading &&
+            !attrs.subHeading &&
+            !attrs.icon &&
+            !attrs.text &&
+            !attrs.buttonText &&
             (hasBackgroundImage || hasVideoBackground || hasVideoPrimary);
         const isButtonOnly = !isFallback &&
-            !this.hasAttribute('heading') &&
-            !this.hasAttribute('sub-heading') &&
-            !this.hasAttribute('icon') &&
-            !this.hasAttribute('text') &&
+            !attrs.heading &&
+            !attrs.subHeading &&
+            !attrs.icon &&
+            !attrs.text &&
             !hasBackgroundImage &&
             !hasVideoBackground &&
             !hasPrimaryImage &&
             !hasVideoPrimary &&
-            this.hasAttribute('button-text') &&
             attrs.buttonText;
         this.#log('Content type detection', {
             elementId: this.id || 'no-id',
@@ -981,23 +981,29 @@ class CustomBlock extends HTMLElement {
                     } else {
                         this.#warn('Failed to parse picture markup', { markup: pictureMarkup.substring(0, 200) });
                         const fallbackImg = document.createElement('img');
-                        fallbackImg.src = 'https://placehold.co/3000x2000';
+                        fallbackImg.src = 'https://placehold.co/300x200';
                         fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                        fallbackImg.style.width = '100%';
                         blockElement.appendChild(fallbackImg);
+                        this.#log('Fallback background image appended', { src: fallbackImg.src });
                     }
                 } catch (error) {
                     this.#error('Error generating picture markup', { error, sources });
                     const fallbackImg = document.createElement('img');
-                    fallbackImg.src = 'https://placehold.co/3000x2000';
+                    fallbackImg.src = 'https://placehold.co/300x200';
                     fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                    fallbackImg.style.width = '100%';
                     blockElement.appendChild(fallbackImg);
+                    this.#log('Fallback background image appended', { src: fallbackImg.src });
                 }
             } else {
                 this.#warn('Invalid background image sources', { invalidSources: sources.filter((_, i) => !validations[i]) });
                 const fallbackImg = document.createElement('img');
-                fallbackImg.src = 'https://placehold.co/3000x2000';
+                fallbackImg.src = 'https://placehold.co/300x200';
                 fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                fallbackImg.style.width = '100%';
                 blockElement.appendChild(fallbackImg);
+                this.#log('Fallback background image appended', { src: fallbackImg.src });
             }
         }
         if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
@@ -1023,8 +1029,9 @@ class CustomBlock extends HTMLElement {
             blockElement.appendChild(overlayDiv);
         }
         if (isMediaOnly && !hasPrimaryImage && !hasVideoPrimary) {
+            this.#log('Media-only block detected', { elementId: this.id || 'no-id' });
             if (!isFallback && !blockElement.hasChildNodes()) {
-                this.#error('Media-only block has no valid content', { outerHTML: this.outerHTML });
+                this.#error('Media-only block has no valid content, falling back', { outerHTML: this.outerHTML });
                 return await this.render(true);
             }
             if (!isFallback) {
@@ -1034,6 +1041,7 @@ class CustomBlock extends HTMLElement {
             return blockElement;
         }
         if (isButtonOnly) {
+            this.#log('Button-only block detected', { elementId: this.id || 'no-id' });
             const buttonClasses = ['button', attrs.buttonClass].filter(cls => cls).join(' ').trim();
             const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
             buttonElement.className = buttonClasses;
@@ -1085,6 +1093,8 @@ class CustomBlock extends HTMLElement {
             }
             return blockElement;
         }
+        // Render heading, text, and button even if not media-only or button-only
+        this.#log('Rendering content block', { elementId: this.id || 'no-id', hasContent: !!(attrs.heading || attrs.text || attrs.buttonText) });
         const innerPaddingClasses = attrs.customClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
         const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-'))];
         if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
@@ -1142,11 +1152,13 @@ class CustomBlock extends HTMLElement {
             const headingElement = document.createElement(attrs.headingTag);
             headingElement.textContent = attrs.heading;
             groupDiv.appendChild(headingElement);
+            this.#log('Heading appended', { text: attrs.heading });
         }
         if (attrs.text) {
             const textElement = document.createElement('p');
             textElement.textContent = attrs.text;
             groupDiv.appendChild(textElement);
+            this.#log('Text appended', { text: attrs.text });
         }
         if (attrs.buttonText) {
             const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
@@ -1185,82 +1197,62 @@ class CustomBlock extends HTMLElement {
                 buttonElement.textContent = attrs.buttonText;
             }
             groupDiv.appendChild(buttonElement);
+            this.#log('Button appended', { text: attrs.buttonText, href: attrs.buttonHref });
         }
         innerDiv.appendChild(groupDiv);
         const appendMedia = async (position) => {
-            if (!(hasPrimaryImage || hasVideoPrimary)) return;
+            if (!(hasPrimaryImage || hasVideoPrimary)) {
+                this.#log('No primary media to append', { elementId: this.id || 'no-id' });
+                blockElement.appendChild(innerDiv);
+                return;
+            }
             const mediaDiv = document.createElement('div');
             const sources = [attrs.primarySrc, attrs.primaryLightSrc, attrs.primaryDarkSrc, attrs.videoPrimarySrc, attrs.videoPrimaryLightSrc, attrs.videoPrimaryDarkSrc].filter(Boolean);
             this.#log('Primary media sources', { sources, elementId: this.id || 'no-id' });
             const validations = await Promise.all(sources.map(src => this.validateSrc(src)));
             if (sources.length && validations.every(v => v)) {
                 try {
-                    // In custom-block.js, update the hasPrimaryImage block in the render method:
                     if (hasPrimaryImage) {
-                        this.#log('Rendering background image', {
-                            elementId: this.id || 'no-id',
-                            sources: [attrs.primarySrc, attrs.primaryLightSrc, attrs.primaryDarkSrc].filter(Boolean)
+                        const pictureMarkup = await generatePictureMarkup({
+                            src: attrs.primarySrc,
+                            lightSrc: attrs.primaryLightSrc,
+                            darkSrc: attrs.primaryDarkSrc,
+                            alt: attrs.primaryAlt,
+                            lightAlt: attrs.primaryLightAlt,
+                            darkAlt: attrs.primaryDarkAlt,
+                            isDecorative: attrs.primaryIsDecorative,
+                            customClasses: mediaClasses,
+                            extraClasses: [],
+                            loading: attrs.primaryLoading,
+                            fetchPriority: attrs.primaryFetchPriority,
+                            mobileWidth: attrs.primaryMobileWidth,
+                            tabletWidth: attrs.primaryTabletWidth,
+                            desktopWidth: attrs.primaryDesktopWidth,
+                            noResponsive: attrs.primarySrc?.endsWith('.svg') || attrs.primaryLightSrc?.endsWith('.svg') || attrs.primaryDarkSrc?.endsWith('.svg'),
+                            aspectRatio: attrs.primaryAspectRatio,
+                            includeSchema: attrs.primaryIncludeSchema
                         });
-                        const sources = [attrs.primarySrc, attrs.primaryLightSrc, attrs.primaryDarkSrc].filter(Boolean);
-                        const validations = await Promise.all(sources.map(src => this.validateSrc(src)));
-                        if (sources.length && validations.every(v => v)) {
-                            try {
-                                const pictureMarkup = await generatePictureMarkup({
-                                    src: attrs.primarySrc,
-                                    lightSrc: attrs.primaryLightSrc,
-                                    darkSrc: attrs.primaryDarkSrc,
-                                    alt: attrs.primaryAlt,
-                                    lightAlt: attrs.primaryLightAlt,
-                                    darkAlt: attrs.primaryDarkAlt,
-                                    isDecorative: attrs.primaryIsDecorative,
-                                    customClasses: mediaClasses,
-                                    extraClasses: [],
-                                    loading: attrs.primaryLoading,
-                                    fetchPriority: attrs.primaryFetchPriority,
-                                    mobileWidth: attrs.primaryMobileWidth,
-                                    tabletWidth: attrs.primaryTabletWidth,
-                                    desktopWidth: attrs.primaryDesktopWidth,
-                                    noResponsive: attrs.primarySrc?.endsWith('.svg') || attrs.primaryLightSrc?.endsWith('.svg') || attrs.primaryDarkSrc?.endsWith('.svg'),
-                                    aspectRatio: attrs.primaryAspectRatio,
-                                    includeSchema: attrs.primaryIncludeSchema
-                                });
-                                this.#log('Primary image markup generated', {
-                                    elementId: this.id || 'no-id',
-                                    markupLength: pictureMarkup.length,
-                                    markupPreview: pictureMarkup.substring(0, 100)
-                                });
-                                const pictureDiv = document.createElement('div');
-                                pictureDiv.innerHTML = pictureMarkup;
-                                const pictureElement = pictureDiv.querySelector('picture');
-                                if (pictureElement) {
-                                    blockElement.appendChild(pictureElement);
-                                    this.#log('Primary image appended successfully');
-                                } else {
-                                    this.#warn('Failed to parse primary picture markup', { markup: pictureMarkup.substring(0, 200) });
-                                    const fallbackImg = document.createElement('img');
-                                    fallbackImg.src = 'https://placehold.co/300x200';
-                                    fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
-                                    fallbackImg.style.width = '100%';
-                                    blockElement.appendChild(fallbackImg);
-                                    this.#log('Fallback image appended', { src: fallbackImg.src });
-                                }
-                            } catch (error) {
-                                this.#error('Error generating picture markup', { error, sources });
-                                const fallbackImg = document.createElement('img');
-                                fallbackImg.src = 'https://placehold.co/300x200';
-                                fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
-                                fallbackImg.style.width = '100%';
-                                blockElement.appendChild(fallbackImg);
-                                this.#log('Fallback image appended', { src: fallbackImg.src });
+                        this.#log('Primary picture markup generated', { markup: pictureMarkup.substring(0, 100) });
+                        mediaDiv.innerHTML = pictureMarkup;
+                        const pictureElement = mediaDiv.querySelector('picture');
+                        if (pictureElement) {
+                            if (position === 'left' || position === 'right') {
+                                if (position === 'left') blockElement.appendChild(pictureElement);
+                                blockElement.appendChild(innerDiv);
+                                if (position === 'right') blockElement.appendChild(pictureElement);
+                            } else {
+                                blockElement.appendChild(position === 'top' ? pictureElement : innerDiv);
+                                blockElement.appendChild(position === 'top' ? innerDiv : pictureElement);
                             }
+                            this.#log(`Primary image (${position}) appended successfully`);
                         } else {
-                            this.#warn('Invalid primary image sources', { invalidSources: sources.filter((_, i) => !validations[i]) });
+                            this.#warn('Failed to parse primary picture markup', { markup: pictureMarkup.substring(0, 200) });
                             const fallbackImg = document.createElement('img');
                             fallbackImg.src = 'https://placehold.co/300x200';
                             fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
                             fallbackImg.style.width = '100%';
                             blockElement.appendChild(fallbackImg);
-                            this.#log('Fallback image appended', { src: fallbackImg.src });
+                            this.#log('Fallback primary image appended', { src: fallbackImg.src });
                         }
                     } else if (hasVideoPrimary) {
                         const videoMarkup = await generateVideoMarkup({
@@ -1304,20 +1296,24 @@ class CustomBlock extends HTMLElement {
                 } catch (error) {
                     this.#error(`Error generating ${hasPrimaryImage ? 'picture' : 'video'} markup (${position})`, { error: error.message, sources });
                     const fallbackImg = document.createElement('img');
-                    fallbackImg.src = 'https://placehold.co/3000x2000';
+                    fallbackImg.src = 'https://placehold.co/300x200';
                     fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                    fallbackImg.style.width = '100%';
                     blockElement.appendChild(fallbackImg);
+                    this.#log('Fallback primary image appended', { src: fallbackImg.src });
                 }
             } else {
                 this.#warn('Invalid primary sources', { invalidSources: sources.filter((_, i) => !validations[i]) });
                 blockElement.appendChild(innerDiv);
+                const fallbackImg = document.createElement('img');
+                fallbackImg.src = 'https://placehold.co/300x200';
+                fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                fallbackImg.style.width = '100%';
+                blockElement.appendChild(fallbackImg);
+                this.#log('Fallback primary image appended', { src: fallbackImg.src });
             }
         };
-        if (hasPrimaryImage || hasVideoPrimary) {
-            await appendMedia(attrs.primaryPosition);
-        } else {
-            blockElement.appendChild(innerDiv);
-        }
+        await appendMedia(attrs.primaryPosition);
         if (!isFallback && blockElement.querySelector('img')) {
             const images = blockElement.querySelectorAll('img');
             images.forEach(img => {
@@ -1354,6 +1350,7 @@ class CustomBlock extends HTMLElement {
             CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
             this.lastAttributes = newCriticalAttrsHash;
         }
+        this.#log('Render completed', { elementId: this.id || 'no-id', html: blockElement.outerHTML.substring(0, 200) });
         return blockElement;
     }
     static get observedAttributes() {
