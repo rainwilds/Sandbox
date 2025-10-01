@@ -2,16 +2,24 @@ export async function generateManifest(postSlugs) {
   const manifest = [];
   for (const slug of postSlugs) {
     try {
-      const response = await fetch(`/Sandbox/blog/${slug}.md`);
+      // Use relative path so it works on GitHub Pages under /Sandbox/
+      const response = await fetch(`blog/${slug}.md`);
       if (!response.ok) throw new Error(`Failed to fetch ${slug}.md`);
       const text = await response.text();
-      const frontmatterMatch = text.match(/^---\n([\s\S]*?)\n---\n/);
+
+      // More forgiving regex: allows optional whitespace and is less brittle
+      const frontmatterMatch = text.match(/^-{3}\s*\n([\s\S]*?)\n-{3}\s*\n/);
       const frontmatter = frontmatterMatch ? frontmatterMatch[1] : '';
       const data = {};
+
+      // Safer parsing: handles blank lines and values with colons
       frontmatter.split('\n').forEach(line => {
-        const [key, value] = line.split(':').map(s => s.trim());
-        if (key && value) data[key] = value;
+        if (!line.trim()) return;
+        const [key, ...rest] = line.split(':');
+        const value = rest.join(':').trim();
+        if (key && value) data[key.trim()] = value;
       });
+
       manifest.push({
         slug: slug.replace('.md', ''),
         title: data.title || 'Untitled',
