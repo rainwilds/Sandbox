@@ -1,5 +1,5 @@
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('Color setup script is running');
+window.addEventListener('load', () => {
+    console.log('Load event fired');
     const root = document.documentElement;
 
     function normalizeCssColor(str) {
@@ -20,6 +20,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    console.log('Example var: ' + getComputedStyle(root).getPropertyValue('--color-background-light'));
+
     // Derive and set light primary opaque
     let lightPrimarySolid = getComputedStyle(root).getPropertyValue('--color-accent-light-primary').trim();
     lightPrimarySolid = normalizeCssColor(lightPrimarySolid);
@@ -31,40 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
         .css();
     root.style.setProperty('--color-accent-opaque-light-primary', lightPrimaryDerived);
 
-    // Derive and set light secondary opaque
-    let lightSecondarySolid = getComputedStyle(root).getPropertyValue('--color-accent-light-secondary').trim();
-    lightSecondarySolid = normalizeCssColor(lightSecondarySolid);
-    const lightSecondaryDerived = chroma(lightSecondarySolid)
-        .set('hsl.h', 301)
-        .set('hsl.s', chroma(lightSecondarySolid).get('hsl.s') * 1.48)
-        .set('hsl.l', chroma(lightSecondarySolid).get('hsl.l') * 0.86)
-        .alpha(0.2)
-        .css();
-    root.style.setProperty('--color-accent-opaque-light-secondary', lightSecondaryDerived);
+    // Similar for others...
 
-    // Derive and set dark primary opaque
-    let darkPrimarySolid = getComputedStyle(root).getPropertyValue('--color-accent-dark-primary').trim();
-    darkPrimarySolid = normalizeCssColor(darkPrimarySolid);
-    const darkPrimaryDerived = chroma(darkPrimarySolid)
-        .set('hsl.h', 311)
-        .set('hsl.s', chroma(darkPrimarySolid).get('hsl.s') * 3.76)
-        .set('hsl.l', chroma(darkPrimarySolid).get('hsl.l') * 0.27)
-        .alpha(0.5)
-        .css();
-    root.style.setProperty('--color-accent-opaque-dark-primary', darkPrimaryDerived);
+    // (keep the derivation code)
 
-    // Derive and set dark secondary opaque
-    let darkSecondarySolid = getComputedStyle(root).getPropertyValue('--color-accent-dark-secondary').trim();
-    darkSecondarySolid = normalizeCssColor(darkSecondarySolid);
-    const darkSecondaryDerived = chroma(darkSecondarySolid)
-        .set('hsl.h', 311)
-        .set('hsl.s', chroma(darkSecondarySolid).get('hsl.s') * 1.5)
-        .set('hsl.l', chroma(darkSecondarySolid).get('hsl.l') * 0.25)
-        .alpha(0.5)
-        .css();
-    root.style.setProperty('--color-accent-opaque-dark-secondary', darkSecondaryDerived);
-
-    // Now generate swatches for all --color-* variables
+    // Now generate swatches
     const styles = getComputedStyle(root);
     const colorVars = [];
     for (let i = 0; i < styles.length; i++) {
@@ -73,12 +46,15 @@ document.addEventListener('DOMContentLoaded', () => {
             colorVars.push(prop);
         }
     }
+    console.log('Number of color vars: ' + colorVars.length);
+    console.log(colorVars);
 
     const palette = document.getElementById('color-palette');
     if (palette) {
         colorVars.forEach(varName => {
             let value = styles.getPropertyValue(varName).trim();
-            if (value && value !== 'none' && value !== '') {  // Skip invalid or empty
+            console.log(varName + ': ' + value);
+            if (value && value !== 'none' && value !== '') {
                 const div = document.createElement('div');
                 div.className = 'color-swatch';
                 div.style.backgroundColor = value;
@@ -92,7 +68,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 div.appendChild(nameSpan);
                 div.appendChild(valueSpan);
 
-                // Set text color based on luminance for readability
                 try {
                     value = normalizeCssColor(value);
                     const color = chroma(value);
