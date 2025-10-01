@@ -33,5 +33,5 @@ async function generateManifest(postSlugs) {
   console.log(JSON.stringify(manifest, null, 2));
 }
 
-// Run in console: replace with your slugs
+// Run with your post slugs (add more as needed)
 generateManifest(['exploring-the-wonders-of-nature']);
