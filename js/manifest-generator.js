@@ -1,4 +1,4 @@
-async function generateManifest(postSlugs) {
+export async function generateManifest(postSlugs) {
   const manifest = [];
   for (const slug of postSlugs) {
     try {
@@ -30,8 +30,5 @@ async function generateManifest(postSlugs) {
       console.error(`Error processing ${slug}:`, error);
     }
   }
-  console.log(JSON.stringify(manifest, null, 2));
+  return manifest;  // Return the manifest array for use in .then()
 }
-
-// Run with your post slugs (add more as needed)
-generateManifest(['exploring-the-wonders-of-nature']);
