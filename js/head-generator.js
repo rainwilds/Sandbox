@@ -1,16 +1,11 @@
 /* global document, window, console, Promise, requestIdleCallback */
 
-// Use strict mode for better compliance and error catching
 'use strict';
 
-// Import config utilities (removes duplication)
 import { getConfig } from './config.js';
 
-// Browser-compatible dev detection (modernized)
-const isDev = window.location.pathname.includes('/dev/') ||
-  new URLSearchParams(window.location.search).get('debug') === 'true';
+const isDev = window.location.pathname.includes('/dev/') || new URLSearchParams(window.location.search).get('debug') === 'true';
 
-// Debug logging methods (consolidated and optimized)
 const createLogger = (prefix) => ({
   log: (message, data = null) => {
     if (isDev) {
@@ -41,7 +36,6 @@ const createLogger = (prefix) => ({
 
 const logger = createLogger('HeadGenerator');
 
-// Dependency mapping: component → required modules (unchanged, assumed optimal)
 const DEPENDENCIES = {
   'shared': [],
   'config': [],
@@ -53,7 +47,6 @@ const DEPENDENCIES = {
   'custom-header': ['image-generator', 'shared']
 };
 
-// Path mapping for modules (unchanged)
 const PATH_MAP = {
   'config': './config.js',
   'image-generator': './image-generator.js',
@@ -65,7 +58,6 @@ const PATH_MAP = {
   'custom-header': './components/custom-header.js'
 };
 
-// Function to load a single module (optimized with error handling)
 async function loadModule(moduleName) {
   const modulePath = PATH_MAP[moduleName];
   if (!modulePath) {
@@ -73,7 +65,6 @@ async function loadModule(moduleName) {
     logger.error(`Module not found in PATH_MAP`, { moduleName, available: Object.keys(PATH_MAP) });
     throw err;
   }
-
   try {
     logger.log(`Loading module: ${modulePath}`);
     const module = await import(modulePath);
@@ -85,11 +76,8 @@ async function loadModule(moduleName) {
   }
 }
 
-// Function to load a component and its dependencies (recursion optimized)
 async function loadComponentWithDependencies(componentName) {
   logger.log(`Loading component with dependencies: ${componentName}`);
-
-  // Collect all unique dependencies recursively
   const allDependencies = new Set();
   const collectDependencies = (name) => {
     const deps = DEPENDENCIES[name] || [];
@@ -101,11 +89,8 @@ async function loadComponentWithDependencies(componentName) {
     });
   };
   collectDependencies(componentName);
-
-  // Load order: dependencies first, then component
   const loadOrder = [...allDependencies, componentName];
   logger.log(`Load order for ${componentName}:`, loadOrder);
-
   const results = [];
   for (const moduleName of loadOrder) {
     const result = await loadModule(moduleName);
@@ -114,60 +99,46 @@ async function loadComponentWithDependencies(componentName) {
       throw result.error;
     }
   }
-
-  // Check for missing direct dependencies
   const directDeps = DEPENDENCIES[componentName] || [];
   const missingDeps = directDeps.filter(dep => results.find(r => r.name === dep)?.module === null);
   if (missingDeps.length > 0) {
     logger.warn(`Component ${componentName} loaded but missing dependencies:`, missingDeps);
   }
-
   logger.log(`Component ${componentName} loaded successfully with ${results.length} modules`);
   return results;
 }
 
-// Function to load components selectively (parallelized where possible)
 async function loadComponents(componentList) {
   if (!componentList) {
     logger.log('No components specified, skipping');
     return [];
   }
-
   logger.log('Loading requested components', { components: componentList });
-  const components = componentList.split(' ').filter(c => c.trim());
-
+  const components = componentList.split(',').map(c => c.trim()).filter(c => c); // Split on commas
   const loadPromises = components.map(component =>
     loadComponentWithDependencies(component).catch(err => {
       logger.error(`Failed to load component ${component}`, { error: err.message, stack: err.stack });
       return [];
     })
   );
-
   const allResults = (await Promise.all(loadPromises)).flat();
-
-  // Summary (optimized calculation)
   const successfulComponents = allResults.filter(r => components.includes(r.name) && r.module).length;
   const totalComponents = components.length;
   const successfulModules = allResults.filter(r => r.module).length;
   const totalModules = allResults.length;
-
   logger.log(`Component loading summary: ${successfulComponents}/${totalComponents} components, ${successfulModules}/${totalModules} modules`, {
     components,
     successful: allResults.filter(r => r.module && components.includes(r.name)).map(r => r.name),
     failed: allResults.filter(r => r.error && components.includes(r.name)).map(r => r.name)
   });
-
   return allResults;
 }
 
-// Function to create and append DOM elements (optimized for performance: fragments, filtering)
 async function updateHead(attributes, setup) {
   logger.log('updateHead called with attributes', attributes);
   const head = document.head;
   const criticalFrag = document.createDocumentFragment();
   const deferredFrag = document.createDocumentFragment();
-
-  // Fonts: Critical preloads (filtered for validity)
   const validFonts = (setup.fonts || []).filter(font => font.href || font.url);
   if (validFonts.length > 0) {
     validFonts.forEach(font => {
@@ -184,15 +155,11 @@ async function updateHead(attributes, setup) {
   } else {
     logger.warn('No valid fonts in setup.json; relying on CSS @font-face');
   }
-
-  // Stylesheet: Critical (root-relative)
   const styleLink = document.createElement('link');
   styleLink.rel = 'stylesheet';
   styleLink.href = './styles.css';
   criticalFrag.appendChild(styleLink);
   logger.log('Applied stylesheet: ./styles.css');
-
-  // Font Awesome: Async load (critical but non-blocking)
   const faKitUrl = setup.font_awesome?.kit_url ?? setup.font_awesome?.kitUrl;
   if (faKitUrl) {
     const script = document.createElement('script');
@@ -204,8 +171,6 @@ async function updateHead(attributes, setup) {
   } else {
     logger.warn('No Font Awesome kit URL found; icons may not load');
   }
-
-  // Meta tags: Critical for SEO (filtered for content)
   const metaTags = [
     { name: 'robots', content: setup.general?.robots },
     { name: 'title', content: attributes.title ?? setup.general?.title },
@@ -225,7 +190,6 @@ async function updateHead(attributes, setup) {
     { name: 'twitter:description', content: attributes.description ?? setup.general?.description },
     { name: 'twitter:image', content: setup.business?.image }
   ].filter(tag => tag.content?.trim());
-
   metaTags.forEach(({ name, property, content }) => {
     const meta = document.createElement('meta');
     if (property) meta.setAttribute('property', name);
@@ -234,16 +198,12 @@ async function updateHead(attributes, setup) {
     criticalFrag.appendChild(meta);
     logger.log(`Added ${property ? 'property' : 'name'} "${name}" with content: ${content}`);
   });
-
-  // Canonical: Critical for SEO
   const canonicalUrl = attributes.canonical ?? setup.general?.canonical ?? window.location.href;
   const canonicalLink = document.createElement('link');
   canonicalLink.rel = 'canonical';
   canonicalLink.href = canonicalUrl;
   criticalFrag.appendChild(canonicalLink);
   logger.log('Added canonical link: ' + canonicalUrl);
-
-  // Theme colors: Critical for PWA/visuals
   const lightTheme = setup.general?.theme_colors?.light ?? '#000000';
   const darkTheme = setup.general?.theme_colors?.dark ?? lightTheme;
   const themeMetaLight = document.createElement('meta');
@@ -252,7 +212,6 @@ async function updateHead(attributes, setup) {
   themeMetaLight.media = '(prefers-color-scheme: light)';
   criticalFrag.appendChild(themeMetaLight);
   logger.log(`Updated theme-color (light): ${lightTheme}`);
-
   if (darkTheme !== lightTheme) {
     const themeMetaDark = document.createElement('meta');
     themeMetaDark.name = 'theme-color';
@@ -261,8 +220,6 @@ async function updateHead(attributes, setup) {
     criticalFrag.appendChild(themeMetaDark);
     logger.log(`Updated theme-color (dark): ${darkTheme}`);
   }
-
-  // JSON-LD: Deferred for performance (cleaned aggressively)
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -277,7 +234,7 @@ async function updateHead(attributes, setup) {
       "postalCode": setup.business.address.postalCode,
       "addressCountry": setup.business.address.addressCountry
     } : undefined,
-    "openingHours": setup.business?.openingHours?.split(',')?.map(s => s.trim()).filter(Boolean),
+    "openingHours": setup.business?.openingHours?.split(',').map(s => s.trim()).filter(Boolean),
     "geo": setup.business?.geo ? {
       "@type": "GeoCoordinates",
       "latitude": setup.business.geo.latitude,
@@ -287,9 +244,8 @@ async function updateHead(attributes, setup) {
     "logo": setup.business?.logo,
     "sameAs": setup.business?.sameAs?.filter(Boolean) || []
   };
-
   const cleanedJsonLd = Object.fromEntries(Object.entries(jsonLd).filter(([_, v]) => v !== undefined && (Array.isArray(v) ? v.length : true)));
-  if (Object.keys(cleanedJsonLd).length > 2) {  // @context, @type + at least one property
+  if (Object.keys(cleanedJsonLd).length > 2) {
     const script = document.createElement('script');
     script.type = 'application/ld+json';
     script.textContent = JSON.stringify(cleanedJsonLd, null, 2);
@@ -302,8 +258,6 @@ async function updateHead(attributes, setup) {
   } else {
     logger.log('Skipped empty JSON-LD schema');
   }
-
-  // Favicons: Critical (filtered for validity)
   const favicons = (setup.general?.favicons || []).filter(f => f.href?.trim());
   favicons.forEach(favicon => {
     const link = document.createElement('link');
@@ -314,8 +268,6 @@ async function updateHead(attributes, setup) {
     criticalFrag.appendChild(link);
     logger.log(`Added favicon: ${favicon.href}`);
   });
-
-  // Snipcart: Deferred (non-critical)
   if (setup.general?.include_e_commerce && setup.general?.snipcart) {
     const snipcart = setup.general.snipcart;
     const script = document.createElement('script');
@@ -328,12 +280,8 @@ async function updateHead(attributes, setup) {
     deferredFrag.appendChild(script);
     logger.log('Added Snipcart script (deferred)', { version: snipcart.version });
   }
-
-  // Append critical immediately for FCP
   head.appendChild(criticalFrag);
   logger.log('Appended critical elements to head', { count: criticalFrag.childNodes.length });
-
-  // Defer non-critical (use requestIdleCallback with fallback)
   const appendDeferred = () => {
     head.appendChild(deferredFrag);
     logger.log('Appended deferred elements to head', { count: deferredFrag.childNodes.length });
@@ -345,43 +293,28 @@ async function updateHead(attributes, setup) {
   }
 }
 
-// Main execution (async IIFE, optimized flow)
 (async () => {
   try {
     logger.log('Starting HeadGenerator');
-
-    // Early config load for parallelism
     const setupPromise = getConfig();
-
     const customHead = document.querySelector('data-custom-head');
     if (!customHead) {
       logger.warn('No data-custom-head element found');
       return;
     }
-
-    // Gather attributes (modernized with dataset)
     const attributes = {};
     for (const [key, value] of Object.entries(customHead.dataset)) {
       const trimmed = value?.trim();
       if (trimmed) attributes[key] = trimmed;
     }
     logger.log('Merged attributes', attributes);
-
-    // Load components if specified (parallel with config)
     if (attributes.components) {
       await loadComponents(attributes.components);
     }
-
-    // Await config
     const setup = await setupPromise;
-
-    // Update head
     await updateHead(attributes, setup);
-
-    // Cleanup
     customHead.remove();
     logger.log('Removed data-custom-head element');
-
     logger.log('HeadGenerator completed successfully');
   } catch (err) {
     logger.error('Error in HeadGenerator', { error: err.message, stack: err.stack });

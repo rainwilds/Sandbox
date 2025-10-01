@@ -1195,45 +1195,72 @@ class CustomBlock extends HTMLElement {
             const validations = await Promise.all(sources.map(src => this.validateSrc(src)));
             if (sources.length && validations.every(v => v)) {
                 try {
+                    // In custom-block.js, update the hasPrimaryImage block in the render method:
                     if (hasPrimaryImage) {
-                        const pictureMarkup = await generatePictureMarkup({
-                            src: attrs.primarySrc,
-                            lightSrc: attrs.primaryLightSrc,
-                            darkSrc: attrs.primaryDarkSrc,
-                            alt: attrs.primaryAlt,
-                            lightAlt: attrs.primaryLightAlt,
-                            darkAlt: attrs.primaryDarkAlt,
-                            isDecorative: attrs.primaryIsDecorative,
-                            customClasses: mediaClasses,
-                            extraClasses: [],
-                            loading: attrs.primaryLoading,
-                            fetchPriority: attrs.primaryFetchPriority,
-                            mobileWidth: attrs.primaryMobileWidth,
-                            tabletWidth: attrs.primaryTabletWidth,
-                            desktopWidth: attrs.primaryDesktopWidth,
-                            noResponsive: attrs.primarySrc?.endsWith('.svg') || attrs.primaryLightSrc?.endsWith('.svg') || attrs.primaryDarkSrc?.endsWith('.svg'),
-                            aspectRatio: attrs.primaryAspectRatio,
-                            includeSchema: attrs.primaryIncludeSchema
+                        this.#log('Rendering background image', {
+                            elementId: this.id || 'no-id',
+                            sources: [attrs.primarySrc, attrs.primaryLightSrc, attrs.primaryDarkSrc].filter(Boolean)
                         });
-                        this.#log('Primary picture markup generated', { markup: pictureMarkup.substring(0, 100) });
-                        mediaDiv.innerHTML = pictureMarkup;
-                        const pictureElement = mediaDiv.querySelector('picture');
-                        if (pictureElement) {
-                            if (position === 'left' || position === 'right') {
-                                if (position === 'left') blockElement.appendChild(pictureElement);
-                                blockElement.appendChild(innerDiv);
-                                if (position === 'right') blockElement.appendChild(pictureElement);
-                            } else {
-                                blockElement.appendChild(position === 'top' ? pictureElement : innerDiv);
-                                blockElement.appendChild(position === 'top' ? innerDiv : pictureElement);
+                        const sources = [attrs.primarySrc, attrs.primaryLightSrc, attrs.primaryDarkSrc].filter(Boolean);
+                        const validations = await Promise.all(sources.map(src => this.validateSrc(src)));
+                        if (sources.length && validations.every(v => v)) {
+                            try {
+                                const pictureMarkup = await generatePictureMarkup({
+                                    src: attrs.primarySrc,
+                                    lightSrc: attrs.primaryLightSrc,
+                                    darkSrc: attrs.primaryDarkSrc,
+                                    alt: attrs.primaryAlt,
+                                    lightAlt: attrs.primaryLightAlt,
+                                    darkAlt: attrs.primaryDarkAlt,
+                                    isDecorative: attrs.primaryIsDecorative,
+                                    customClasses: mediaClasses,
+                                    extraClasses: [],
+                                    loading: attrs.primaryLoading,
+                                    fetchPriority: attrs.primaryFetchPriority,
+                                    mobileWidth: attrs.primaryMobileWidth,
+                                    tabletWidth: attrs.primaryTabletWidth,
+                                    desktopWidth: attrs.primaryDesktopWidth,
+                                    noResponsive: attrs.primarySrc?.endsWith('.svg') || attrs.primaryLightSrc?.endsWith('.svg') || attrs.primaryDarkSrc?.endsWith('.svg'),
+                                    aspectRatio: attrs.primaryAspectRatio,
+                                    includeSchema: attrs.primaryIncludeSchema
+                                });
+                                this.#log('Primary image markup generated', {
+                                    elementId: this.id || 'no-id',
+                                    markupLength: pictureMarkup.length,
+                                    markupPreview: pictureMarkup.substring(0, 100)
+                                });
+                                const pictureDiv = document.createElement('div');
+                                pictureDiv.innerHTML = pictureMarkup;
+                                const pictureElement = pictureDiv.querySelector('picture');
+                                if (pictureElement) {
+                                    blockElement.appendChild(pictureElement);
+                                    this.#log('Primary image appended successfully');
+                                } else {
+                                    this.#warn('Failed to parse primary picture markup', { markup: pictureMarkup.substring(0, 200) });
+                                    const fallbackImg = document.createElement('img');
+                                    fallbackImg.src = 'https://placehold.co/300x200';
+                                    fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                                    fallbackImg.style.width = '100%';
+                                    blockElement.appendChild(fallbackImg);
+                                    this.#log('Fallback image appended', { src: fallbackImg.src });
+                                }
+                            } catch (error) {
+                                this.#error('Error generating picture markup', { error, sources });
+                                const fallbackImg = document.createElement('img');
+                                fallbackImg.src = 'https://placehold.co/300x200';
+                                fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                                fallbackImg.style.width = '100%';
+                                blockElement.appendChild(fallbackImg);
+                                this.#log('Fallback image appended', { src: fallbackImg.src });
                             }
-                            this.#log(`Primary image (${position}) appended successfully`);
                         } else {
-                            this.#warn('Failed to parse primary picture markup', { markup: pictureMarkup.substring(0, 200) });
+                            this.#warn('Invalid primary image sources', { invalidSources: sources.filter((_, i) => !validations[i]) });
                             const fallbackImg = document.createElement('img');
-                            fallbackImg.src = 'https://placehold.co/3000x2000';
+                            fallbackImg.src = 'https://placehold.co/300x200';
                             fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                            fallbackImg.style.width = '100%';
                             blockElement.appendChild(fallbackImg);
+                            this.#log('Fallback image appended', { src: fallbackImg.src });
                         }
                     } else if (hasVideoPrimary) {
                         const videoMarkup = await generateVideoMarkup({

@@ -6,7 +6,6 @@ async function getManifest() {
     if (cached) {
       const parsed = JSON.parse(cached);
       console.log('📦 Using cached manifest:', parsed);
-      // Validate cache: expect 2 posts
       if (parsed.length === 2) {
         return parsed;
       }
@@ -78,7 +77,7 @@ async function renderPost(slug) {
       await waitForCustomElement('custom-block');
       postContent.insertAdjacentHTML('afterbegin', `
         <custom-block
-          img-primary-src="/Sandbox${data.featuredImage}"
+          img-primary-src="${data.featuredImage}"
           img-primary-alt="${data.featuredImageAlt || `Featured image for ${data.title}`}"
           img-primary-mobile-width="${data.featuredImageMobileWidth || '100vw'}"
           img-primary-tablet-width="${data.featuredImageTabletWidth || '50vw'}"
@@ -144,7 +143,7 @@ async function renderIndex() {
         <custom-block
           heading="${post.title || 'Untitled'}"
           text="${post.excerpt || ''}"
-          img-primary-src="/Sandbox${post.featuredImage || ''}"
+          img-primary-src="${post.featuredImage || ''}"
           img-primary-alt="${post.featuredImageAlt || ''}"
           img-primary-mobile-width="${post.featuredImageMobileWidth || '100vw'}"
           img-primary-tablet-width="${post.featuredImageTabletWidth || '50vw'}"
@@ -204,7 +203,7 @@ async function renderCategory(category) {
           <custom-block
             heading="${post.title || 'Untitled'}"
             text="${post.excerpt || ''}"
-            img-primary-src="/Sandbox${post.featuredImage || ''}"
+            img-primary-src="${post.featuredImage || ''}"
             img-primary-alt="${post.featuredImageAlt || ''}"
             img-primary-mobile-width="${post.featuredImageMobileWidth || '100vw'}"
             img-primary-tablet-width="${post.featuredImageTabletWidth || '50vw'}"
