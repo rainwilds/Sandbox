@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="preconnect" href="https://kit.fontawesome.com" crossorigin="anonymous">
+
+    <link rel="preload" href="./JSON/setup.json" as="fetch" crossorigin="anonymous">
+    <link rel="preload" href="./styles.css" as="style">    
+
+    <script src="js/head-generator.js" type="module"></script>
+
+    <data-custom-head
+        data-components="custom-block"
+        data-title="Block"
+        data-description="Custom block web component"
+        data-canonical="https://rainwilds.github.io/Sandbox/block.html"
+        >
+    </data-custom-head>
+
+</head>
+
+<body>
+
+    <main>
+
+        <section>
+
+            <div>
+                <custom-block
+                    heading="Blocks"
+                    text="Blocks auto-generated">
+                </custom-block>
+            </div>
+        </section>
+
+       
+
+<section>
+    <div class="grid-container-1">
+        <!-- Block 1: Background Image with Centered Text and Button -->
+        <custom-block
+            heading="Explore Nature"
+            heading-tag="h2"
+            text="Discover breathtaking landscapes."
+            button-text="Learn More"
+            button-href="#nature"
+            button-icon='<i class="fa-chisel fa-regular fa-leaf"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-tiny)"
+            background-overlay="background-overlay-1"
+            img-background-src="img/primary/tourism-photography-light-1.jpg"
+            img-background-alt="Nature landscape background"
+            img-background-position="center"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="80vw"
+            img-background-desktop-width="1200px"
+            text-alignment="center"
+            inner-alignment="center"
+            inner-class="padding-medium">
+        </custom-block>
+
+        <!-- Block 2: Video Background with Right-Aligned Content -->
+        <custom-block
+            heading="Adventure Awaits"
+            heading-tag="h3"
+            text="Thrilling adventures with video."
+            button-text="Join Now"
+            button-href="#adventure"
+            button-icon='<i class="fa-chisel fa-regular fa-compass"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-tiny)"
+            background-overlay="background-overlay-2"
+            background-gradient="background-gradient-1"
+            video-background-src="video/video1.mp4"
+            video-background-poster="img/primary/tourism-photography-dark-1.jpg"
+            video-background-alt="Adventure video background"
+            video-background-autoplay
+            video-background-muted
+            video-background-loop
+            text-alignment="right"
+            inner-alignment="right"
+            inner-shadow="shadow-medium"
+            inner-class="padding-small">
+        </custom-block>
+
+      
+</section>
+
+    
+    </main>
+</body>
+</html>
