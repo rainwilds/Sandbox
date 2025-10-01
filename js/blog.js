@@ -145,3 +145,5 @@ if (path === '/' || path === 'blog.html') {
 } else if (path === '/category.html' && params.get('category')) {
   renderCategory(params.get('category'));
 }
+
+window.getManifest = getManifest;
