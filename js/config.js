@@ -43,10 +43,11 @@ const logger = createLogger('Config');
 // Global config cache (populated by head-generator.js or this module)
 let cachedConfig = null;
 
-// Default setup for merging (optimized structure)
+// Default setup for merging (optimized structure, paths relative to base)
 const defaultSetup = {
   fonts: [],
   general: {
+    basePath: '/', // Fallback to root; overridden by setup.json
     title: 'Default Title',
     description: 'Default Description',
     canonical: window.location.href,
@@ -74,7 +75,7 @@ const defaultSetup = {
   font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' },
   media: {
     responsive_images: {
-      directory_path: '/Sandbox/img/responsive/'
+      directory_path: '/img/responsive/' // Relative to basePath
     }
   }
 };
@@ -129,6 +130,7 @@ export async function getConfig() {
       keys: Object.keys(cachedConfig),
       hasMedia: !!cachedConfig.media,
       responsivePath: cachedConfig.media?.responsive_images?.directory_path,
+      basePath: cachedConfig.general?.basePath,
       businessName: cachedConfig.business?.name
     });
 
@@ -153,7 +155,7 @@ export async function getConfig() {
  */
 export async function getImageResponsivePath() {
   const config = await getConfig();
-  return config.media?.responsive_images?.directory_path || '/Sandbox/img/responsive/';
+  return config.media?.responsive_images?.directory_path || '/img/responsive/';
 }
 
 /**
@@ -185,5 +187,5 @@ export async function getGeneralConfig() {
 
 // Synchronous access for immediate use (with global fallback)
 export function getSyncImageResponsivePath() {
-  return window.__SETUP_CONFIG__?.media?.responsive_images?.directory_path || '/Sandbox/img/responsive/';
+  return window.__SETUP_CONFIG__?.media?.responsive_images?.directory_path || '/img/responsive/';
 }
