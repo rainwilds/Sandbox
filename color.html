@@ -10,15 +10,41 @@
     <link rel="preload" href="./JSON/setup.json" as="fetch" crossorigin="anonymous">
     <link rel="preload" href="./styles.css" as="style">    
 
+    <script src="js/dependencies/chroma.min.cjs"></script>
     <script src="js/head-generator.js" type="module"></script>
 
     <data-custom-head
         data-components="custom-block"
-        data-title="Block"
-        data-description="Custom block web component"
-        data-canonical="https://rainwilds.github.io/Sandbox/block.html"
+        data-title="Colors"
+        data-description="Color palette test page"
+        data-canonical="https://rainwilds.github.io/Sandbox/color.html"
         >
     </data-custom-head>
+
+    <style>
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .color-swatch {
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            font-family: monospace;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+        }
+
+        .color-swatch span {
+            margin: 0.25rem 0;
+        }
+    </style>
 
 </head>
 
@@ -89,7 +115,100 @@
       
 </section>
 
+        <section>
+            <h2>Color Palette</h2>
+            <div class="color-palette" id="color-palette"></div>
+        </section>
     
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const root = document.documentElement;
+
+            // Derive and set light primary opaque
+            const lightPrimarySolid = getComputedStyle(root).getPropertyValue('--color-accent-light-primary').trim();
+            const lightPrimaryDerived = chroma(lightPrimarySolid)
+                .set('hsl.h', 311)
+                .set('hsl.s', chroma(lightPrimarySolid).get('hsl.s') * 3.77)
+                .set('hsl.l', chroma(lightPrimarySolid).get('hsl.l') * 0.51)
+                .alpha(0.2)
+                .css();
+            root.style.setProperty('--color-accent-opaque-light-primary', lightPrimaryDerived);
+
+            // Derive and set light secondary opaque
+            const lightSecondarySolid = getComputedStyle(root).getPropertyValue('--color-accent-light-secondary').trim();
+            const lightSecondaryDerived = chroma(lightSecondarySolid)
+                .set('hsl.h', 301)
+                .set('hsl.s', chroma(lightSecondarySolid).get('hsl.s') * 1.48)
+                .set('hsl.l', chroma(lightSecondarySolid).get('hsl.l') * 0.86)
+                .alpha(0.2)
+                .css();
+            root.style.setProperty('--color-accent-opaque-light-secondary', lightSecondaryDerived);
+
+            // Derive and set dark primary opaque
+            const darkPrimarySolid = getComputedStyle(root).getPropertyValue('--color-accent-dark-primary').trim();
+            const darkPrimaryDerived = chroma(darkPrimarySolid)
+                .set('hsl.h', 311)
+                .set('hsl.s', chroma(darkPrimarySolid).get('hsl.s') * 3.76)
+                .set('hsl.l', chroma(darkPrimarySolid).get('hsl.l') * 0.27)
+                .alpha(0.5)
+                .css();
+            root.style.setProperty('--color-accent-opaque-dark-primary', darkPrimaryDerived);
+
+            // Derive and set dark secondary opaque
+            const darkSecondarySolid = getComputedStyle(root).getPropertyValue('--color-accent-dark-secondary').trim();
+            const darkSecondaryDerived = chroma(darkSecondarySolid)
+                .set('hsl.h', 311)
+                .set('hsl.s', chroma(darkSecondarySolid).get('hsl.s') * 1.5)
+                .set('hsl.l', chroma(darkSecondarySolid).get('hsl.l') * 0.25)
+                .alpha(0.5)
+                .css();
+            root.style.setProperty('--color-accent-opaque-dark-secondary', darkSecondaryDerived);
+
+            // Now generate swatches for all --color-* variables
+            const styles = getComputedStyle(root);
+            const colorVars = [];
+            for (let i = 0; i < styles.length; i++) {
+                const prop = styles[i];
+                if (prop.startsWith('--color-')) {
+                    colorVars.push(prop);
+                }
+            }
+
+            const palette = document.getElementById('color-palette');
+            colorVars.forEach(varName => {
+                const value = styles.getPropertyValue(varName).trim();
+                if (value) {  // Skip if empty
+                    const div = document.createElement('div');
+                    div.className = 'color-swatch';
+                    div.style.backgroundColor = value;
+
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = varName;
+
+                    const valueSpan = document.createElement('span');
+                    valueSpan.textContent = value;
+
+                    div.appendChild(nameSpan);
+                    div.appendChild(valueSpan);
+
+                    // Set text color based on luminance for readability
+                    try {
+                        const color = chroma(value);
+                        const textColor = color.luminance() > 0.5 ? 'black' : 'white';
+                        nameSpan.style.color = textColor;
+                        valueSpan.style.color = textColor;
+                    } catch (e) {
+                        // If chroma can't parse (invalid color), default to black
+                        nameSpan.style.color = 'black';
+                        valueSpan.style.color = 'black';
+                    }
+
+                    palette.appendChild(div);
+                }
+            });
+        });
+    </script>
 </body>
 </html>
