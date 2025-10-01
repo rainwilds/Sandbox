@@ -27,7 +27,7 @@ async function renderPost(slug) {
   try {
     const config = await getConfig();
     const basePath = config.general?.basePath || '/';
-    const postUrl = `${basePath}post/${slug}.md`;
+    const postUrl = `${basePath}blog/${slug}.md`; // Changed 'posts' to 'blog'
     console.log(`📄 Fetching post from: ${postUrl}`); // Debug
     const response = await fetch(postUrl);
     if (!response.ok) {
