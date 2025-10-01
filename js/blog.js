@@ -55,32 +55,51 @@ async function renderPost(slug) {
 async function renderIndex() {
   try {
     const manifest = await getManifest();
+    console.log("📦 Manifest loaded:", manifest);
+
+    const container = document.querySelector('#blog-index');
+    console.log("🧩 Container found:", container);
+
+    if (!container) {
+      console.warn("⚠️ No #blog-index element found in the DOM.");
+      return;
+    }
+
+    container.innerHTML = '';
+
+    if (!manifest || manifest.length === 0) {
+      console.warn("⚠️ Manifest is empty, nothing to render.");
+      container.innerHTML = '<p>No posts available.</p>';
+      return;
+    }
+
+    manifest.forEach(post => {
+      console.log("📝 Rendering post:", post.slug, post.title);
+
+      container.innerHTML += `
+        <custom-block
+          heading="${post.title}"
+          text="${post.excerpt}"
+          img-primary-src="${post.featuredImage}"
+          img-primary-alt="${post.featuredImageAlt}"
+          img-primary-mobile-width="${post.featuredImageMobileWidth}"
+          img-primary-tablet-width="${post.featuredImageTabletWidth}"
+          img-primary-desktop-width="${post.featuredImageDesktopWidth}"
+          img-primary-aspect-ratio="${post.featuredImageAspectRatio}"
+          img-primary-loading="lazy"
+          button-text="Read More"
+          button-href="/post.html?slug=${post.slug}"
+          button-class="button-primary"
+          shadow="shadow-light"
+          border="border-light"
+        ></custom-block>`;
+    });
+  } catch (error) {
+    console.error('❌ Error rendering index:', error);
     const container = document.querySelector('#blog-index');
     if (container) {
-      container.innerHTML = '';
-      manifest.forEach(post => {
-        container.innerHTML += `
-          <custom-block
-            heading="${post.title}"
-            text="${post.excerpt}"
-            img-primary-src="${post.featuredImage}"
-            img-primary-alt="${post.featuredImageAlt}"
-            img-primary-mobile-width="${post.featuredImageMobileWidth}"
-            img-primary-tablet-width="${post.featuredImageTabletWidth}"
-            img-primary-desktop-width="${post.featuredImageDesktopWidth}"
-            img-primary-aspect-ratio="${post.featuredImageAspectRatio}"
-            img-primary-loading="lazy"
-            button-text="Read More"
-            button-href="/post.html?slug=${post.slug}"
-            button-class="button-primary"
-            shadow="shadow-light"
-            border="border-light"
-          ></custom-block>`;
-      });
+      container.innerHTML = '<p>Error loading posts</p>';
     }
-  } catch (error) {
-    console.error('Error rendering index:', error);
-    document.querySelector('#blog-index').innerHTML = '<p>Error loading posts</p>';
   }
 }
 
