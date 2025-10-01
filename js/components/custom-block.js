@@ -14,6 +14,9 @@ class CustomBlock extends HTMLElement {
     // Private field to count ignored attribute changes during the initial loading phase.
     // This helps in batching and reducing the number of log messages for changes that occur before the component is ready.
     #ignoredChangeCount;
+    // Cache for base path to avoid repeated config fetches
+    #basePath = null;
+
     // Constructor for initializing each instance of the component.
     // Sets up state flags for visibility and initialization, arrays for callbacks, caches for attributes and rendering, debug mode based on URL parameters.
     // Observes the element for intersection to trigger lazy loading and adds it to the observed instances set.
@@ -31,6 +34,7 @@ class CustomBlock extends HTMLElement {
         CustomBlock.#observer.observe(this);
         CustomBlock.#observedInstances.add(this);
     }
+
     // Static private IntersectionObserver instance shared across all CustomBlock elements.
     // This observer watches for when elements enter the viewport (with a 50px root margin for pre-loading).
     // When an element intersects, it sets visibility, unobserves it, removes from the set, and triggers initialization.
@@ -47,12 +51,15 @@ class CustomBlock extends HTMLElement {
             }
         });
     }, { rootMargin: '50px' });
+
     // Static private WeakSet to keep track of currently observed instances.
     // Using WeakSet allows automatic garbage collection when elements are removed from the DOM.
     static #observedInstances = new WeakSet();
+
     // Static private WeakMap for caching rendered DOM elements per instance.
     // Keys are weak references to instances, allowing GC; used to avoid re-rendering unchanged blocks.
     static #renderCacheMap = new WeakMap();
+
     // Static array of critical attributes that, when changed, trigger a full re-initialization.
     // These attributes affect core structure or content, requiring re-rendering.
     static #criticalAttributes = [
@@ -77,6 +84,7 @@ class CustomBlock extends HTMLElement {
         'video-primary-loading', 'video-primary-loop', 'video-primary-muted',
         'video-primary-playsinline', 'video-primary-poster', 'video-primary-src'
     ];
+
     // Private debug logging method for general information.
     // Outputs collapsible group with blue styling only if debug is enabled.
     #log(message, data = null) {
@@ -89,6 +97,7 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
+
     // Private debug logging method for warnings.
     // Outputs collapsible group with orange styling only if debug is enabled.
     #warn(message, data = null) {
@@ -101,6 +110,7 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
+
     // Private debug logging method for errors.
     // Outputs collapsible group with red styling only if debug is enabled.
     #error(message, data = null) {
@@ -113,6 +123,16 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
+
+    // Method to get the base path from config, caching it for performance
+    async #getBasePath() {
+        if (!this.#basePath) {
+            const config = await getConfig();
+            this.#basePath = config.general?.basePath || '/';
+        }
+        return this.#basePath;
+    }
+
     // Method to get and cache all attributes.
     // Parses, validates, and sanitizes attributes like fetch priorities, positions, overlays, gradients, tags, alignments, colors, shadows, media sources.
     // Throws errors for invalid media configurations; warns for invalid values and applies defaults.
