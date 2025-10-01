@@ -3,32 +3,37 @@ import { getConfig } from './config.js'; // Import getConfig for basePath
 
 async function getManifest() {
   try {
-    const config = await getConfig(); // Load config to get basePath
-    const basePath = config.general?.basePath || '/'; // Fallback to root
+    const config = await getConfig();
+    const basePath = config.general?.basePath || '/';
+    console.log(`📡 Fetching manifest from: ${basePath}blog/manifest.json`); // Debug
     const cached = localStorage.getItem('blog-manifest');
-    if (cached) return JSON.parse(cached);
+    if (cached) {
+      console.log('📦 Using cached manifest');
+      return JSON.parse(cached);
+    }
     const response = await fetch(`${basePath}blog/manifest.json`);
-    if (!response.ok) throw new Error('Failed to fetch manifest');
+    if (!response.ok) throw new Error(`Failed to fetch manifest: ${response.status}`);
     const manifest = await response.json();
     localStorage.setItem('blog-manifest', JSON.stringify(manifest));
+    console.log('📦 Manifest loaded:', manifest);
     return manifest;
   } catch (error) {
-    console.error('Error fetching manifest:', error);
+    console.error('❌ Error fetching manifest:', error);
     return [];
   }
 }
 
 async function renderPost(slug) {
   try {
-    const config = await getConfig(); // Load config to get basePath
+    const config = await getConfig();
     const basePath = config.general?.basePath || '/';
-    const response = await fetch(`${basePath}blog/${slug}.md`);
-    if (!response.ok) throw new Error(`Failed to fetch ${slug}.md`);
+    console.log(`📄 Fetching post from: ${basePath}post/${slug}.md`); // Debug
+    const response = await fetch(`${basePath}post/${slug}.md`);
+    if (!response.ok) throw new Error(`Failed to fetch ${slug}.md: ${response.status}`);
     const text = await response.text();
 
     // Loosened regex: allows optional whitespace and is more forgiving
     const frontmatterMatch = text.match(/^-{3}\s*\n([\s\S]*?)\n-{3}\s*\n/);
-
     const frontmatter = frontmatterMatch ? frontmatterMatch[1] : '';
     const content = frontmatterMatch ? text.slice(frontmatterMatch[0].length) : text;
 
@@ -40,6 +45,7 @@ async function renderPost(slug) {
       if (key && value) data[key.trim()] = value;
     });
 
+    console.log('📝 Post data parsed:', data); // Debug
     const html = marked.parse(content);
     const postContent = document.querySelector('#post-content');
     if (postContent) {
@@ -47,10 +53,9 @@ async function renderPost(slug) {
       document.title = data.title || 'Blog Post';
       document.querySelector('meta[name="description"]')?.setAttribute('content', data.excerpt || '');
       if (data.featuredImage) {
-        const featuredImageSrc = `${basePath}${data.featuredImage.startsWith('/') ? data.featuredImage.slice(1) : data.featuredImage}`;
         postContent.insertAdjacentHTML('afterbegin', `
           <custom-block
-            img-primary-src="${featuredImageSrc}"
+            img-primary-src="${data.featuredImage}"
             img-primary-alt="${data.featuredImageAlt || `Featured image for ${data.title}`}"
             img-primary-mobile-width="${data.featuredImageMobileWidth || '100vw'}"
             img-primary-tablet-width="${data.featuredImageTabletWidth || '50vw'}"
@@ -60,17 +65,21 @@ async function renderPost(slug) {
           ></custom-block>
         `);
       }
+      console.log('✅ Post rendered successfully');
+    } else {
+      console.warn('⚠️ No #post-content element found in the DOM.');
     }
   } catch (error) {
-    console.error('Error rendering post:', error);
-    document.querySelector('#post-content').innerHTML = '<p>Error loading post</p>';
+    console.error('❌ Error rendering post:', error);
+    const postContent = document.querySelector('#post-content');
+    if (postContent) {
+      postContent.innerHTML = '<p>Error loading post</p>';
+    }
   }
 }
 
 async function renderIndex() {
   try {
-    const config = await getConfig();
-    const basePath = config.general?.basePath || '/';
     const manifest = await getManifest();
     console.log("📦 Manifest loaded:", manifest);
 
@@ -92,13 +101,12 @@ async function renderIndex() {
 
     manifest.forEach(post => {
       console.log("📝 Rendering post:", post.slug, post.title);
-      const featuredImageSrc = post.featuredImage ? `${basePath}${post.featuredImage.startsWith('/') ? post.featuredImage.slice(1) : post.featuredImage}` : '';
 
       container.innerHTML += `
         <custom-block
           heading="${post.title}"
           text="${post.excerpt}"
-          img-primary-src="${featuredImageSrc}"
+          img-primary-src="${post.featuredImage}"
           img-primary-alt="${post.featuredImageAlt}"
           img-primary-mobile-width="${post.featuredImageMobileWidth}"
           img-primary-tablet-width="${post.featuredImageTabletWidth}"
@@ -112,6 +120,7 @@ async function renderIndex() {
           border="border-light"
         ></custom-block>`;
     });
+    console.log('✅ Index rendered successfully');
   } catch (error) {
     console.error('❌ Error rendering index:', error);
     const container = document.querySelector('#blog-index');
@@ -123,21 +132,18 @@ async function renderIndex() {
 
 async function renderCategory(category) {
   try {
-    const config = await getConfig();
-    const basePath = config.general?.basePath || '/';
     const manifest = await getManifest();
     const filteredPosts = manifest.filter(post => post.categories.includes(category));
+    console.log(`📂 Rendering category: ${category}`, filteredPosts);
     const container = document.querySelector('#blog-index');
     if (container) {
       container.innerHTML = `<h1>Posts in ${category.charAt(0).toUpperCase() + category.slice(1)}</h1>`;
       filteredPosts.forEach(post => {
-        const featuredImageSrc = post.featuredImage ? `${basePath}${post.featuredImage.startsWith('/') ? post.featuredImage.slice(1) : post.featuredImage}` : '';
-
         container.innerHTML += `
           <custom-block
             heading="${post.title}"
             text="${post.excerpt}"
-            img-primary-src="${featuredImageSrc}"
+            img-primary-src="${post.featuredImage}"
             img-primary-alt="${post.featuredImageAlt}"
             img-primary-mobile-width="${post.featuredImageMobileWidth}"
             img-primary-tablet-width="${post.featuredImageTabletWidth}"
@@ -151,21 +157,34 @@ async function renderCategory(category) {
             border="border-light"
           ></custom-block>`;
       });
+      console.log('✅ Category rendered successfully');
+    } else {
+      console.warn('⚠️ No #blog-index element found for category.');
     }
   } catch (error) {
-    console.error('Error rendering category:', error);
-    document.querySelector('#blog-index').innerHTML = '<p>Error loading posts</p>';
+    console.error('❌ Error rendering category:', error);
+    const container = document.querySelector('#blog-index');
+    if (container) {
+      container.innerHTML = '<p>Error loading posts</p>';
+    }
   }
 }
 
+// Routing logic
+console.log('🚀 blog.js loaded, checking path:', window.location.pathname); // Debug
 const path = window.location.pathname;
 const params = new URLSearchParams(window.location.search);
-if (path.endsWith('/blog.html') || path === '/' || path.endsWith('/index.html')) {
+if (path.endsWith('/blog.html') || path.endsWith('/') || path.endsWith('/index.html')) {
+  console.log('🗂️ Rendering index');
   renderIndex();
-} else if (path === '/post.html' && params.get('slug')) {
+} else if (path.endsWith('/post.html') && params.get('slug')) {
+  console.log(`📄 Rendering post with slug: ${params.get('slug')}`);
   renderPost(params.get('slug'));
-} else if (path === '/category.html' && params.get('category')) {
+} else if (path.endsWith('/category.html') && params.get('category')) {
+  console.log(`📂 Rendering category: ${params.get('category')}`);
   renderCategory(params.get('category'));
+} else {
+  console.warn('⚠️ No matching route for path:', path);
 }
 
 // Expose for console debugging
