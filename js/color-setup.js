@@ -1,42 +1,5 @@
-// color-setup.js
-
-function waitForCss(href) {
-    return new Promise(resolve => {
-        // Already loaded?
-        for (const sheet of document.styleSheets) {
-            if (sheet.href && sheet.href.includes(href)) {
-                resolve();
-                return;
-            }
-        }
-
-        // Link already in DOM?
-        const link = [...document.querySelectorAll('link[rel="stylesheet"]')]
-            .find(l => l.href.includes(href));
-
-        if (link) {
-            link.addEventListener('load', () => resolve(), { once: true });
-            return;
-        }
-
-        // Fallback: wait for link to be injected
-        const observer = new MutationObserver(() => {
-            const newLink = [...document.querySelectorAll('link[rel="stylesheet"]')]
-                .find(l => l.href.includes(href));
-            if (newLink) {
-                observer.disconnect();
-                newLink.addEventListener('load', () => resolve(), { once: true });
-            }
-        });
-        observer.observe(document.head, { childList: true, subtree: true });
-    });
-}
-
-window.addEventListener('load', async () => {
-    console.log('Load event fired, waiting for styles.css…');
-    await waitForCss('styles.css');
-    console.log('styles.css is ready — running color setup');
-
+window.addEventListener('load', () => {
+    console.log('Load event fired');
     const root = document.documentElement;
 
     function normalizeCssColor(str) {
@@ -55,6 +18,27 @@ window.addEventListener('load', async () => {
         } else {
             return `rgb(${r},${g},${b})`;
         }
+    }
+
+    // Helper: extract all CSS custom props from stylesheets
+    function getAllCssVars() {
+        const vars = new Set();
+        for (const sheet of document.styleSheets) {
+            try {
+                for (const rule of sheet.cssRules) {
+                    if (rule.style) {
+                        for (const prop of rule.style) {
+                            if (prop.startsWith('--color-')) {
+                                vars.add(prop);
+                            }
+                        }
+                    }
+                }
+            } catch (e) {
+                // Ignore cross-origin stylesheet access errors
+            }
+        }
+        return Array.from(vars);
     }
 
     console.log('Example var: ' + getComputedStyle(root).getPropertyValue('--color-background-light'));
@@ -103,18 +87,14 @@ window.addEventListener('load', async () => {
         .css();
     root.style.setProperty('--color-accent-opaque-dark-secondary', darkSecondaryDerived);
 
-    // Now generate swatches for all --color-* variables
+    // Collect all --color-* variables
     const styles = getComputedStyle(root);
-    const colorVars = [];
-    for (const prop of styles) {
-        if (prop.startsWith('--color-')) {
-            colorVars.push(prop);
-        }
-    }
+    const colorVars = getAllCssVars();
 
     console.log('Number of color vars: ' + colorVars.length);
     console.log(colorVars);
 
+    // Build swatches
     const palette = document.getElementById('color-palette');
     if (palette) {
         colorVars.forEach(varName => {
