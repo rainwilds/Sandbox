@@ -10,10 +10,23 @@
   <pre id="output"></pre>
   <script type="module">
     import { generateManifest } from '/Sandbox/js/manifest-generator.js';
-    generateManifest(['exploring-the-wonders-of-nature']).then(manifest => {
+
+    // Hardcoded list of blog post slugs (update this array with your .md filenames, without .md extension)
+    const blogPostSlugs = [
+      'exploring-the-wonders-of-nature',
+      'discovering-the-mysteries-of-the-cosmos'  // Replace with your actual second post slug
+      
+      // Example: If you have more, just add them here, e.g., 'fourth-post'
+    ];
+
+    // Generate manifest for all slugs
+    generateManifest(blogPostSlugs).then(manifest => {
       const output = document.getElementById('output');
       if (output) output.textContent = JSON.stringify(manifest, null, 2);
       console.log(JSON.stringify(manifest, null, 2));
+    }).catch(error => {
+      console.error('Error generating manifest:', error);
+      document.getElementById('output').textContent = `Error: ${error.message}`;
     });
   </script>
 </body>
