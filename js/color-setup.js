@@ -100,36 +100,49 @@ window.addEventListener('load', () => {
         colorVars.forEach(varName => {
             let value = styles.getPropertyValue(varName).trim();
             console.log(varName + ': ' + value);
-            if (value && value !== 'none' && value !== '') {
-                const div = document.createElement('div');
-                div.className = 'color-swatch';
-                div.style.backgroundColor = value;
 
-                const nameSpan = document.createElement('span');
-                nameSpan.textContent = varName;
+            // Skip if not defined or invalid
+            if (!value || value === 'none') {
+                console.warn(`Skipping ${varName}, no usable value`);
+                return;
+            }
 
-                const valueSpan = document.createElement('span');
-                valueSpan.textContent = value;
+            const div = document.createElement('div');
+            div.className = 'color-swatch';
+            div.style.backgroundColor = value;
 
-                div.appendChild(nameSpan);
-                div.appendChild(valueSpan);
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = varName;
 
-                try {
-                    value = normalizeCssColor(value);
+            const valueSpan = document.createElement('span');
+            valueSpan.textContent = value;
+
+            div.appendChild(nameSpan);
+            div.appendChild(valueSpan);
+
+            try {
+                value = normalizeCssColor(value);
+                // Guard again in case normalizeCssColor returns garbage
+                if (value && chroma.valid(value)) {
                     const color = chroma(value);
                     const textColor = color.luminance() > 0.5 ? 'black' : 'white';
                     nameSpan.style.color = textColor;
                     valueSpan.style.color = textColor;
-                } catch (e) {
-                    console.error(`Error processing ${varName}: ${value}`, e);
+                } else {
+                    console.warn(`Skipping chroma() for ${varName}, invalid value: ${value}`);
                     nameSpan.style.color = 'black';
                     valueSpan.style.color = 'black';
                 }
-
-                palette.appendChild(div);
+            } catch (e) {
+                console.error(`Error processing ${varName}: ${value}`, e);
+                nameSpan.style.color = 'black';
+                valueSpan.style.color = 'black';
             }
+
+            palette.appendChild(div);
         });
     } else {
         console.error('Color palette container not found');
     }
+
 });
