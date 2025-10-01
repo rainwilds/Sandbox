@@ -1,0 +1,16 @@
+[
+  {
+    "slug": "exploring-the-wonders-of-nature",
+    "title": "Untitled",
+    "date": "1970-01-01",
+    "categories": [],
+    "excerpt": "",
+    "featuredImage": "/img/primary/tourism-photography-light-1.jpg",
+    "featuredImageAlt": "Featured image for Untitled",
+    "featuredImageMobileWidth": "100vw",
+    "featuredImageTabletWidth": "50vw",
+    "featuredImageDesktopWidth": "30vw",
+    "featuredImageAspectRatio": "16/9",
+    "featuredImageLoading": "lazy"
+  }
+]
