@@ -127,8 +127,27 @@
         document.addEventListener('DOMContentLoaded', () => {
             const root = document.documentElement;
 
+            function normalizeCssColor(str) {
+                str = str.trim();
+                if (!str.startsWith('rgb')) return str;
+                let isRgba = str.startsWith('rgba');
+                let inner = str.slice(isRgba ? 5 : 4, -1).trim();
+                let parts = inner.split(/\s+|\/+/).filter(p => p !== '');
+                if (parts.length < 3) return str;
+                let r = parts[0], g = parts[1], b = parts[2], a = parts[3] || '1';
+                if (a.endsWith('%')) {
+                    a = parseFloat(a) / 100;
+                }
+                if (isRgba || parts.length === 4) {
+                    return `rgba(${r},${g},${b},${a})`;
+                } else {
+                    return `rgb(${r},${g},${b})`;
+                }
+            }
+
             // Derive and set light primary opaque
-            const lightPrimarySolid = getComputedStyle(root).getPropertyValue('--color-accent-light-primary').trim();
+            let lightPrimarySolid = getComputedStyle(root).getPropertyValue('--color-accent-light-primary').trim();
+            lightPrimarySolid = normalizeCssColor(lightPrimarySolid);
             const lightPrimaryDerived = chroma(lightPrimarySolid)
                 .set('hsl.h', 311)
                 .set('hsl.s', chroma(lightPrimarySolid).get('hsl.s') * 3.77)
@@ -138,7 +157,8 @@
             root.style.setProperty('--color-accent-opaque-light-primary', lightPrimaryDerived);
 
             // Derive and set light secondary opaque
-            const lightSecondarySolid = getComputedStyle(root).getPropertyValue('--color-accent-light-secondary').trim();
+            let lightSecondarySolid = getComputedStyle(root).getPropertyValue('--color-accent-light-secondary').trim();
+            lightSecondarySolid = normalizeCssColor(lightSecondarySolid);
             const lightSecondaryDerived = chroma(lightSecondarySolid)
                 .set('hsl.h', 301)
                 .set('hsl.s', chroma(lightSecondarySolid).get('hsl.s') * 1.48)
@@ -148,7 +168,8 @@
             root.style.setProperty('--color-accent-opaque-light-secondary', lightSecondaryDerived);
 
             // Derive and set dark primary opaque
-            const darkPrimarySolid = getComputedStyle(root).getPropertyValue('--color-accent-dark-primary').trim();
+            let darkPrimarySolid = getComputedStyle(root).getPropertyValue('--color-accent-dark-primary').trim();
+            darkPrimarySolid = normalizeCssColor(darkPrimarySolid);
             const darkPrimaryDerived = chroma(darkPrimarySolid)
                 .set('hsl.h', 311)
                 .set('hsl.s', chroma(darkPrimarySolid).get('hsl.s') * 3.76)
@@ -158,7 +179,8 @@
             root.style.setProperty('--color-accent-opaque-dark-primary', darkPrimaryDerived);
 
             // Derive and set dark secondary opaque
-            const darkSecondarySolid = getComputedStyle(root).getPropertyValue('--color-accent-dark-secondary').trim();
+            let darkSecondarySolid = getComputedStyle(root).getPropertyValue('--color-accent-dark-secondary').trim();
+            darkSecondarySolid = normalizeCssColor(darkSecondarySolid);
             const darkSecondaryDerived = chroma(darkSecondarySolid)
                 .set('hsl.h', 311)
                 .set('hsl.s', chroma(darkSecondarySolid).get('hsl.s') * 1.5)
@@ -179,8 +201,8 @@
 
             const palette = document.getElementById('color-palette');
             colorVars.forEach(varName => {
-                const value = styles.getPropertyValue(varName).trim();
-                if (value) {  // Skip if empty
+                let value = styles.getPropertyValue(varName).trim();
+                if (value && value !== 'none' && value !== '') {  // Skip invalid or empty
                     const div = document.createElement('div');
                     div.className = 'color-swatch';
                     div.style.backgroundColor = value;
@@ -196,12 +218,13 @@
 
                     // Set text color based on luminance for readability
                     try {
+                        value = normalizeCssColor(value);
                         const color = chroma(value);
                         const textColor = color.luminance() > 0.5 ? 'black' : 'white';
                         nameSpan.style.color = textColor;
                         valueSpan.style.color = textColor;
                     } catch (e) {
-                        // If chroma can't parse (invalid color), default to black
+                        console.error(`Error processing ${varName}: ${value}`, e);
                         nameSpan.style.color = 'black';
                         valueSpan.style.color = 'black';
                     }
