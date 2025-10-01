@@ -2,7 +2,7 @@ export async function generateManifest(postSlugs) {
   const manifest = [];
   for (const slug of postSlugs) {
     try {
-      const response = await fetch(`/blog/${slug}.md`);
+      const response = await fetch(`/Sandbox/blog/${slug}.md`);
       if (!response.ok) throw new Error(`Failed to fetch ${slug}.md`);
       const text = await response.text();
       const frontmatterMatch = text.match(/^---\n([\s\S]*?)\n---\n/);
