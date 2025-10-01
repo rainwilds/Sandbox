@@ -18,14 +18,21 @@ async function renderPost(slug) {
     const response = await fetch(`blog/${slug}.md`);
     if (!response.ok) throw new Error(`Failed to fetch ${slug}.md`);
     const text = await response.text();
-    const frontmatterMatch = text.match(/^---\n([\s\S]*?)\n---\n/);
+
+    // Loosened regex: allows optional whitespace and is more forgiving
+    const frontmatterMatch = text.match(/^-{3}\s*\n([\s\S]*?)\n-{3}\s*\n/);
+
     const frontmatter = frontmatterMatch ? frontmatterMatch[1] : '';
     const content = frontmatterMatch ? text.slice(frontmatterMatch[0].length) : text;
+
     const data = {};
     frontmatter.split('\n').forEach(line => {
-      const [key, value] = line.split(':').map(s => s.trim());
-      if (key && value) data[key] = value;
+      if (!line.trim()) return; // skip empty lines
+      const [key, ...rest] = line.split(':');
+      const value = rest.join(':').trim(); // handles values with colons
+      if (key && value) data[key.trim()] = value;
     });
+
     const html = marked.parse(content);
     const postContent = document.querySelector('#post-content');
     if (postContent) {
@@ -138,7 +145,7 @@ async function renderCategory(category) {
 
 const path = window.location.pathname;
 const params = new URLSearchParams(window.location.search);
-if (path === '/' || path === 'blog.html') {
+if (path === '/' || path === '/blog.html') {
   renderIndex();
 } else if (path === '/post.html' && params.get('slug')) {
   renderPost(params.get('slug'));
@@ -146,4 +153,5 @@ if (path === '/' || path === 'blog.html') {
   renderCategory(params.get('category'));
 }
 
+// Expose for console debugging
 window.getManifest = getManifest;
