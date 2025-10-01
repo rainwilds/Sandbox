@@ -85,57 +85,58 @@ class CustomBlock extends HTMLElement {
         'video-primary-playsinline', 'video-primary-poster', 'video-primary-src'
     ];
 
-    // Private debug logging method for general information.
-    // Outputs collapsible group with blue styling only if debug is enabled.
     #log(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ${message}`, 'color: #2196F3; font-weight: bold;');
-            if (data) {
-                console.log('%cData:', 'color: #4CAF50;', data);
-            }
+            if (data) console.log('%cData:', 'color: #4CAF50;', data);
             console.trace();
             console.groupEnd();
         }
     }
 
-    // Private debug logging method for warnings.
-    // Outputs collapsible group with orange styling only if debug is enabled.
     #warn(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ⚠️ ${message}`, 'color: #FF9800; font-weight: bold;');
-            if (data) {
-                console.log('%cData:', 'color: #4CAF50;', data);
-            }
+            if (data) console.log('%cData:', 'color: #4CAF50;', data);
             console.trace();
             console.groupEnd();
         }
     }
 
-    // Private debug logging method for errors.
-    // Outputs collapsible group with red styling only if debug is enabled.
     #error(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ❌ ${message}`, 'color: #F44336; font-weight: bold;');
-            if (data) {
-                console.log('%cData:', 'color: #4CAF50;', data);
-            }
+            if (data) console.log('%cData:', 'color: #4CAF50;', data);
             console.trace();
             console.groupEnd();
         }
     }
 
-    // Method to get the base path from config, caching it for performance
     async #getBasePath() {
         if (!this.#basePath) {
             const config = await getConfig();
             this.#basePath = config.general?.basePath || '/';
+            this.#log('Base path fetched', { basePath: this.#basePath });
         }
         return this.#basePath;
     }
 
-    // Method to get and cache all attributes.
-    // Parses, validates, and sanitizes attributes like fetch priorities, positions, overlays, gradients, tags, alignments, colors, shadows, media sources.
-    // Throws errors for invalid media configurations; warns for invalid values and applies defaults.
+    async validateSrc(url) {
+        if (!url || this.debug) return true;
+        try {
+            const basePath = await this.#getBasePath();
+            const fullSrc = url.startsWith('http') ? url : `${basePath}${url.startsWith('/') ? url.slice(1) : url}`;
+            this.#log(`Validating source URL: ${fullSrc}`, { originalUrl: url, elementId: this.id || 'no-id' });
+            const res = await fetch(fullSrc, { method: 'HEAD', mode: 'cors' });
+            if (!res.ok) throw new Error(`Failed to validate ${url}: ${res.status} ${res.statusText}`);
+            this.#log(`Source validation successful: ${fullSrc}`, { status: res.status });
+            return true;
+        } catch (error) {
+            this.#warn(`Source validation failed: ${error.message}`, { url, elementId: this.id || 'no-id' });
+            return false;
+        }
+    }
+
     getAttributes() {
         if (this.cachedAttributes) {
             this.#log('Using cached attributes', { elementId: this.id || 'no-id' });
@@ -146,87 +147,46 @@ class CustomBlock extends HTMLElement {
         const primaryFetchPriority = this.getAttribute('img-primary-fetchpriority') || '';
         const validFetchPriorities = ['high', 'low', 'auto', ''];
         if (!validFetchPriorities.includes(backgroundFetchPriority)) {
-            this.#warn('Invalid background fetch priority', {
-                value: backgroundFetchPriority,
-                element: this.id || 'no-id',
-                validValues: validFetchPriorities
-            });
+            this.#warn('Invalid background fetch priority', { value: backgroundFetchPriority, element: this.id || 'no-id', validValues: validFetchPriorities });
         }
         if (!validFetchPriorities.includes(primaryFetchPriority)) {
-            this.#warn('Invalid primary fetch priority', {
-                value: primaryFetchPriority,
-                element: this.id || 'no-id',
-                validValues: validFetchPriorities
-            });
+            this.#warn('Invalid primary fetch priority', { value: primaryFetchPriority, element: this.id || 'no-id', validValues: validFetchPriorities });
         }
         let primaryPosition = this.getAttribute('img-primary-position') || 'top';
         if (primaryPosition === 'above') primaryPosition = 'top';
         if (primaryPosition === 'below') primaryPosition = 'bottom';
         const validPositions = ['none', 'top', 'bottom', 'left', 'right'];
         if (!validPositions.includes(primaryPosition)) {
-            this.#warn('Invalid primary position', {
-                value: primaryPosition,
-                element: this.id || 'no-id',
-                default: 'top',
-                validValues: validPositions
-            });
+            this.#warn('Invalid primary position', { value: primaryPosition, element: this.id || 'no-id', default: 'top', validValues: validPositions });
             primaryPosition = 'top';
         }
         const backgroundOverlay = this.getAttribute('background-overlay') || '';
         let backgroundOverlayClass = '';
         if (backgroundOverlay) {
             const match = backgroundOverlay.match(/^background-overlay-(\d+)$/);
-            if (match) {
-                backgroundOverlayClass = `background-overlay-${match[1]}`;
-            } else {
-                this.#warn('Invalid background overlay', {
-                    value: backgroundOverlay,
-                    element: this.id || 'no-id',
-                    expected: 'background-overlay-N (N = number)'
-                });
-            }
+            if (match) backgroundOverlayClass = `background-overlay-${match[1]}`;
+            else this.#warn('Invalid background overlay', { value: backgroundOverlay, element: this.id || 'no-id', expected: 'background-overlay-N (N = number)' });
         }
         const innerBackgroundOverlay = this.getAttribute('inner-background-overlay') || '';
         let innerBackgroundOverlayClass = '';
         if (innerBackgroundOverlay) {
             const match = innerBackgroundOverlay.match(/^background-overlay-(\d+)$/);
-            if (match) {
-                innerBackgroundOverlayClass = `background-overlay-${match[1]}`;
-            } else {
-                this.#warn('Invalid inner background overlay', {
-                    value: innerBackgroundOverlay,
-                    element: this.id || 'no-id',
-                    expected: 'background-overlay-N (N = number)'
-                });
-            }
+            if (match) innerBackgroundOverlayClass = `background-overlay-${match[1]}`;
+            else this.#warn('Invalid inner background overlay', { value: innerBackgroundOverlay, element: this.id || 'no-id', expected: 'background-overlay-N (N = number)' });
         }
         const backgroundGradient = this.getAttribute('background-gradient') || '';
         let backgroundGradientClass = '';
         if (backgroundGradient) {
             const match = backgroundGradient.match(/^background-gradient-(\d+)$/);
-            if (match) {
-                backgroundGradientClass = `background-gradient-${match[1]}`;
-            } else {
-                this.#warn('Invalid background gradient', {
-                    value: backgroundGradient,
-                    element: this.id || 'no-id',
-                    expected: 'background-gradient-N (N = number)'
-                });
-            }
+            if (match) backgroundGradientClass = `background-gradient-${match[1]}`;
+            else this.#warn('Invalid background gradient', { value: backgroundGradient, element: this.id || 'no-id', expected: 'background-gradient-N (N = number)' });
         }
         const innerBackgroundGradient = this.getAttribute('inner-background-gradient') || '';
         let innerBackgroundGradientClass = '';
         if (innerBackgroundGradient) {
             const match = innerBackgroundGradient.match(/^background-gradient-(\d+)$/);
-            if (match) {
-                innerBackgroundGradientClass = `background-gradient-${match[1]}`;
-            } else {
-                this.#warn('Invalid inner background gradient', {
-                    value: innerBackgroundGradient,
-                    element: this.id || 'no-id',
-                    expected: 'background-gradient-N (N = number)'
-                });
-            }
+            if (match) innerBackgroundGradientClass = `background-gradient-${match[1]}`;
+            else this.#warn('Invalid inner background gradient', { value: innerBackgroundGradient, element: this.id || 'no-id', expected: 'background-gradient-N (N = number)' });
         }
         const backdropFilterClasses = this.getAttribute('backdrop-filter')?.split(' ').filter(cls => cls) || [];
         const innerBackdropFilterClasses = this.getAttribute('inner-backdrop-filter')?.split(' ').filter(cls => cls) || [];
@@ -234,51 +194,26 @@ class CustomBlock extends HTMLElement {
         const subHeadingTag = this.getAttribute('sub-heading-tag') || 'h3';
         const validHeadingTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
         if (!validHeadingTags.includes(headingTag.toLowerCase())) {
-            this.#warn('Invalid heading tag', {
-                value: headingTag,
-                element: this.id || 'no-id',
-                default: 'h2',
-                validValues: validHeadingTags
-            });
+            this.#warn('Invalid heading tag', { value: headingTag, element: this.id || 'no-id', default: 'h2', validValues: validHeadingTags });
         }
         if (!validHeadingTags.includes(subHeadingTag.toLowerCase())) {
-            this.#warn('Invalid sub-heading tag', {
-                value: subHeadingTag,
-                element: this.id || 'no-id',
-                default: 'h3',
-                validValues: validHeadingTags
-            });
+            this.#warn('Invalid sub-heading tag', { value: subHeadingTag, element: this.id || 'no-id', default: 'h3', validValues: validHeadingTags });
         }
         const innerAlignment = this.getAttribute('inner-alignment') || '';
         if (innerAlignment && !VALID_ALIGNMENTS.includes(innerAlignment)) {
-            this.#warn('Invalid inner alignment', {
-                value: innerAlignment,
-                element: this.id || 'no-id',
-                validValues: VALID_ALIGNMENTS
-            });
+            this.#warn('Invalid inner alignment', { value: innerAlignment, element: this.id || 'no-id', validValues: VALID_ALIGNMENTS });
         }
         const textAlignment = this.getAttribute('text-alignment') || '';
         const validTextAlignments = ['left', 'center', 'right'];
         if (textAlignment && !validTextAlignments.includes(textAlignment)) {
-            this.#warn('Invalid text alignment', {
-                value: textAlignment,
-                element: this.id || 'no-id',
-                validValues: validTextAlignments
-            });
+            this.#warn('Invalid text alignment', { value: textAlignment, element: this.id || 'no-id', validValues: validTextAlignments });
         }
         const innerBackgroundColor = this.getAttribute('inner-background-color') || '';
         let innerBackgroundColorClass = '';
         if (innerBackgroundColor) {
             const match = innerBackgroundColor.match(/^background-color-(\d+)$/);
-            if (match) {
-                innerBackgroundColorClass = `background-color-${match[1]}`;
-            } else {
-                this.#warn('Invalid inner background color', {
-                    value: innerBackgroundColor,
-                    element: this.id || 'no-id',
-                    expected: 'background-color-N (N = number)'
-                });
-            }
+            if (match) innerBackgroundColorClass = `background-color-${match[1]}`;
+            else this.#warn('Invalid inner background color', { value: innerBackgroundColor, element: this.id || 'no-id', expected: 'background-color-N (N = number)' });
         }
         const shadow = this.getAttribute('shadow') || '';
         let shadowClass = '';
@@ -286,22 +221,14 @@ class CustomBlock extends HTMLElement {
         if (shadow && validShadowClasses.includes(shadow)) {
             shadowClass = shadow;
         } else if (shadow) {
-            this.#warn('Invalid shadow class', {
-                value: shadow,
-                element: this.id || 'no-id',
-                validValues: validShadowClasses
-            });
+            this.#warn('Invalid shadow class', { value: shadow, element: this.id || 'no-id', validValues: validShadowClasses });
         }
         const innerShadow = this.getAttribute('inner-shadow') || '';
         let innerShadowClass = '';
         if (innerShadow && validShadowClasses.includes(innerShadow)) {
             innerShadowClass = innerShadow;
         } else if (innerShadow) {
-            this.#warn('Invalid inner shadow class', {
-                value: innerShadow,
-                element: this.id || 'no-id',
-                validValues: validShadowClasses
-            });
+            this.#warn('Invalid inner shadow class', { value: innerShadow, element: this.id || 'no-id', validValues: validShadowClasses });
         }
         const backgroundSrc = this.getAttribute('img-background-src') || '';
         const backgroundLightSrc = this.getAttribute('img-background-light-src') || '';
@@ -436,11 +363,7 @@ class CustomBlock extends HTMLElement {
         if (iconSize) {
             const remMatch = iconSize.match(/^(\d*\.?\d+)rem$/);
             if (remMatch) sanitizedIconSize = iconSize;
-            else this.#warn('Invalid icon size', {
-                value: iconSize,
-                element: this.id || 'no-id',
-                expected: 'Nrem format'
-            });
+            else this.#warn('Invalid icon size', { value: iconSize, element: this.id || 'no-id', expected: 'Nrem format' });
         }
         const buttonClass = this.getAttribute('button-class') || '';
         let sanitizedButtonClass = '';
