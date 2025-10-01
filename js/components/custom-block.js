@@ -7,7 +7,6 @@ import { getConfig } from '../config.js';
 class CustomBlock extends HTMLElement {
     #ignoredChangeCount;
     #basePath = null;
-
     constructor() {
         super();
         this.isVisible = false;
@@ -22,7 +21,6 @@ class CustomBlock extends HTMLElement {
         CustomBlock.#observer.observe(this);
         CustomBlock.#observedInstances.add(this);
     }
-
     static #observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -36,7 +34,6 @@ class CustomBlock extends HTMLElement {
             }
         });
     }, { rootMargin: '50px' });
-
     static #observedInstances = new WeakSet();
     static #renderCacheMap = new WeakMap();
     static #criticalAttributes = [
@@ -61,7 +58,6 @@ class CustomBlock extends HTMLElement {
         'video-primary-loading', 'video-primary-loop', 'video-primary-muted',
         'video-primary-playsinline', 'video-primary-poster', 'video-primary-src'
     ];
-
     #log(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ${message}`, 'color: #2196F3; font-weight: bold;');
@@ -70,7 +66,6 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
-
     #warn(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ⚠️ ${message}`, 'color: #FF9800; font-weight: bold;');
@@ -79,7 +74,6 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
-
     #error(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ❌ ${message}`, 'color: #F44336; font-weight: bold;');
@@ -88,7 +82,6 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
-
     async #getBasePath() {
         if (!this.#basePath) {
             const config = await getConfig();
@@ -97,7 +90,6 @@ class CustomBlock extends HTMLElement {
         }
         return this.#basePath;
     }
-
     async validateSrc(url) {
         if (!url || this.debug) {
             this.#log('Skipping validation', { url, reason: this.debug ? 'Debug mode' : 'Empty URL' });
@@ -116,7 +108,6 @@ class CustomBlock extends HTMLElement {
             return false;
         }
     }
-
     async getAttributes() {
         if (this.cachedAttributes) {
             this.#log('Using cached attributes', { elementId: this.id || 'no-id' });
@@ -595,7 +586,6 @@ class CustomBlock extends HTMLElement {
         });
         return this.cachedAttributes;
     }
-
     async initialize() {
         if (this.isInitialized || !this.isVisible) {
             this.#log('Skipping initialization', {
@@ -605,11 +595,12 @@ class CustomBlock extends HTMLElement {
             });
             return;
         }
-        this.#log('Starting initialization', { elementId: this.id || 'no-id' });
+        this.#log('Starting initialization', { elementId: this.id || 'no-id', outerHTML: this.outerHTML });
         this.isInitialized = true;
         try {
             const cardElement = await this.render();
             if (cardElement) {
+                this.#log('Render successful, replacing element', { elementId: this.id || 'no-id', cardElement: cardElement.outerHTML.substring(0, 200) });
                 this.replaceWith(cardElement);
                 this.callbacks.forEach(callback => callback());
                 this.#log('Initialization completed successfully', {
@@ -618,26 +609,26 @@ class CustomBlock extends HTMLElement {
                 });
             } else {
                 this.#error('Render returned null, using fallback', { elementId: this.id || 'no-id' });
-                this.replaceWith(await this.render(true));
+                const fallbackElement = await this.render(true);
+                this.replaceWith(fallbackElement);
             }
         } catch (error) {
             this.#error('Initialization failed', {
                 error: error.message,
                 stack: error.stack,
                 elementId: this.id || 'no-id',
-                outerHTML: this.outerHTML.substring(0, 200) + '...'
+                outerHTML: this.outerHTML.substring(0, 200)
             });
-            this.replaceWith(await this.render(true));
+            const fallbackElement = await this.render(true);
+            this.replaceWith(fallbackElement);
         }
     }
-
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
         if (this.isVisible) {
             await this.initialize();
         }
     }
-
     disconnectedCallback() {
         this.#log('Disconnected from DOM', { elementId: this.id || 'no-id' });
         if (CustomBlock.#observedInstances.has(this)) {
@@ -650,12 +641,10 @@ class CustomBlock extends HTMLElement {
         this.criticalAttributesHash = null;
         CustomBlock.#renderCacheMap.delete(this);
     }
-
     addCallback(callback) {
         this.#log('Callback added', { callbackName: callback.name || 'anonymous', elementId: this.id || 'no-id' });
         this.callbacks.push(callback);
     }
-
     async render(isFallback = false) {
         this.#log(`Starting render ${isFallback ? '(fallback)' : ''}`, { elementId: this.id || 'no-id' });
         let newCriticalAttrsHash;
@@ -773,10 +762,13 @@ class CustomBlock extends HTMLElement {
         this.#log('Render attributes prepared', {
             elementId: this.id || 'no-id',
             isFallback,
-            hasBackground: !!(attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc),
-            hasPrimary: !!(attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc),
-            hasVideoBackground: !!(attrs.videoBackgroundSrc || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc),
-            hasVideoPrimary: !!(attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc)
+            attrs: {
+                heading: attrs.heading,
+                text: attrs.text,
+                imgPrimarySrc: attrs.primarySrc,
+                buttonText: attrs.buttonText,
+                buttonHref: attrs.buttonHref
+            }
         });
         if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
             this.#error('Missing background alt text', {
@@ -1042,7 +1034,7 @@ class CustomBlock extends HTMLElement {
             return blockElement;
         }
         if (isButtonOnly) {
-            const buttonClasses = ['button', attrs.buttonClass].filter(cls => cls).join(' ');
+            const buttonClasses = ['button', attrs.buttonClass].filter(cls => cls).join(' ').trim();
             const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
             buttonElement.className = buttonClasses;
             if (attrs.buttonStyle) buttonElement.setAttribute('style', attrs.buttonStyle);
@@ -1337,7 +1329,6 @@ class CustomBlock extends HTMLElement {
         }
         return blockElement;
     }
-
     static get observedAttributes() {
         return [
             'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
@@ -1368,7 +1359,6 @@ class CustomBlock extends HTMLElement {
             'video-primary-src'
         ];
     }
-
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) {
             this.#ignoredChangeCount++;
@@ -1384,12 +1374,10 @@ class CustomBlock extends HTMLElement {
         }
     }
 }
-
 try {
     customElements.define('custom-block', CustomBlock);
 } catch (error) {
     console.error('Error defining CustomBlock element:', error);
 }
-
 console.log('CustomBlock version: 2025-09-27');
 export { CustomBlock };
