@@ -33,19 +33,48 @@ window.addEventListener('load', () => {
         .css();
     root.style.setProperty('--color-accent-opaque-light-primary', lightPrimaryDerived);
 
-    // Similar for others...
+    // Derive and set light secondary opaque
+    let lightSecondarySolid = getComputedStyle(root).getPropertyValue('--color-accent-light-secondary').trim();
+    lightSecondarySolid = normalizeCssColor(lightSecondarySolid);
+    const lightSecondaryDerived = chroma(lightSecondarySolid)
+        .set('hsl.h', 301)
+        .set('hsl.s', chroma(lightSecondarySolid).get('hsl.s') * 1.48)
+        .set('hsl.l', chroma(lightSecondarySolid).get('hsl.l') * 0.86)
+        .alpha(0.2)
+        .css();
+    root.style.setProperty('--color-accent-opaque-light-secondary', lightSecondaryDerived);
 
-    // (keep the derivation code)
+    // Derive and set dark primary opaque
+    let darkPrimarySolid = getComputedStyle(root).getPropertyValue('--color-accent-dark-primary').trim();
+    darkPrimarySolid = normalizeCssColor(darkPrimarySolid);
+    const darkPrimaryDerived = chroma(darkPrimarySolid)
+        .set('hsl.h', 311)
+        .set('hsl.s', chroma(darkPrimarySolid).get('hsl.s') * 3.76)
+        .set('hsl.l', chroma(darkPrimarySolid).get('hsl.l') * 0.27)
+        .alpha(0.5)
+        .css();
+    root.style.setProperty('--color-accent-opaque-dark-primary', darkPrimaryDerived);
 
-    // Now generate swatches
+    // Derive and set dark secondary opaque
+    let darkSecondarySolid = getComputedStyle(root).getPropertyValue('--color-accent-dark-secondary').trim();
+    darkSecondarySolid = normalizeCssColor(darkSecondarySolid);
+    const darkSecondaryDerived = chroma(darkSecondarySolid)
+        .set('hsl.h', 311)
+        .set('hsl.s', chroma(darkSecondarySolid).get('hsl.s') * 1.5)
+        .set('hsl.l', chroma(darkSecondarySolid).get('hsl.l') * 0.25)
+        .alpha(0.5)
+        .css();
+    root.style.setProperty('--color-accent-opaque-dark-secondary', darkSecondaryDerived);
+
+    // Now generate swatches for all --color-* variables
     const styles = getComputedStyle(root);
     const colorVars = [];
-    for (let i = 0; i < styles.length; i++) {
-        const prop = styles[i];
+    for (const prop of styles) {
         if (prop.startsWith('--color-')) {
             colorVars.push(prop);
         }
     }
+
     console.log('Number of color vars: ' + colorVars.length);
     console.log(colorVars);
 
