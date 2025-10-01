@@ -1,5 +1,42 @@
-window.addEventListener('load', () => {
-    console.log('Load event fired');
+// color-setup.js
+
+function waitForCss(href) {
+    return new Promise(resolve => {
+        // Already loaded?
+        for (const sheet of document.styleSheets) {
+            if (sheet.href && sheet.href.includes(href)) {
+                resolve();
+                return;
+            }
+        }
+
+        // Link already in DOM?
+        const link = [...document.querySelectorAll('link[rel="stylesheet"]')]
+            .find(l => l.href.includes(href));
+
+        if (link) {
+            link.addEventListener('load', () => resolve(), { once: true });
+            return;
+        }
+
+        // Fallback: wait for link to be injected
+        const observer = new MutationObserver(() => {
+            const newLink = [...document.querySelectorAll('link[rel="stylesheet"]')]
+                .find(l => l.href.includes(href));
+            if (newLink) {
+                observer.disconnect();
+                newLink.addEventListener('load', () => resolve(), { once: true });
+            }
+        });
+        observer.observe(document.head, { childList: true, subtree: true });
+    });
+}
+
+window.addEventListener('load', async () => {
+    console.log('Load event fired, waiting for styles.css…');
+    await waitForCss('styles.css');
+    console.log('styles.css is ready — running color setup');
+
     const root = document.documentElement;
 
     function normalizeCssColor(str) {
@@ -7,7 +44,7 @@ window.addEventListener('load', () => {
         if (!str.startsWith('rgb')) return str;
         let isRgba = str.startsWith('rgba');
         let inner = str.slice(isRgba ? 5 : 4, -1).trim();
-        let parts = inner.split(/\s+|\//).filter(p => p !== '');
+        let parts = inner.split(/[\s,\/]+/).filter(Boolean);
         if (parts.length < 3) return str;
         let r = parts[0], g = parts[1], b = parts[2], a = parts[3] || '1';
         if (a.endsWith('%')) {
