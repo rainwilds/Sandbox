@@ -11,7 +11,7 @@
     <link rel="preload" href="./styles.css" as="style">    
     <link rel="stylesheet" href="./styles.css">
 
-    <script src="js/dependencies/chroma.min.cjs"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chroma-js@2/chroma.min.js"></script>
     <script src="js/head-generator.js" type="module"></script>
 
     <data-custom-head
@@ -44,6 +44,10 @@
 
         .color-swatch span {
             margin: 0.25rem 0;
+        }
+
+        script {
+            display: none !important;
         }
     </style>
 
@@ -123,8 +127,9 @@
     
     </main>
 
-    <script>
+    <script type="text/javascript">
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('Script is running');
             const root = document.documentElement;
 
             function normalizeCssColor(str) {
@@ -132,7 +137,7 @@
                 if (!str.startsWith('rgb')) return str;
                 let isRgba = str.startsWith('rgba');
                 let inner = str.slice(isRgba ? 5 : 4, -1).trim();
-                let parts = inner.split(/\s+|\/+/).filter(p => p !== '');
+                let parts = inner.split(/\s+|\//).filter(p => p !== '');
                 if (parts.length < 3) return str;
                 let r = parts[0], g = parts[1], b = parts[2], a = parts[3] || '1';
                 if (a.endsWith('%')) {
