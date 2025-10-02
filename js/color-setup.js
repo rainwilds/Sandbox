@@ -62,10 +62,10 @@ window.addEventListener('load', () => {
     }
 
     function updateColorScales(styles, changedVar = null) {
-        const lightPrimary = styles.getPropertyValue('--color-light-scale-1').trim();
-        const lightSecondary = styles.getPropertyValue('--color-light-scale-6').trim() || blendRgbaWithBackground(styles.getPropertyValue('--color-accent-opaque-light-secondary').trim(), '#ffffff');
-        const darkPrimary = styles.getPropertyValue('--color-dark-scale-1').trim();
-        const darkSecondary = styles.getPropertyValue('--color-dark-scale-6').trim() || blendRgbaWithBackground(styles.getPropertyValue('--color-accent-opaque-dark-secondary').trim(), '#000000');
+        const lightPrimary = styles.getPropertyValue('--color-light-scale-1').trim() || '#cacdd6';
+        const lightSecondary = styles.getPropertyValue('--color-light-scale-6').trim() || '#f8f7f7';
+        const darkPrimary = styles.getPropertyValue('--color-dark-scale-1').trim() || '#868eaa';
+        const darkSecondary = styles.getPropertyValue('--color-dark-scale-6').trim() || '#140612';
 
         if ((changedVar === '--color-light-scale-1' || changedVar === '--color-light-scale-6') && lightPrimary && lightSecondary) {
             const startColor = changedVar === '--color-light-scale-6' ? lightSecondary : lightPrimary;
@@ -101,6 +101,29 @@ window.addEventListener('load', () => {
                 console.warn(`No value for ${varName} in swatch update`);
             }
         });
+    }
+
+    function waitForStylesheet(href, callback, timeout = 10000) {
+        const start = Date.now();
+        const check = () => {
+            const sheets = Array.from(document.styleSheets).map(sheet => sheet.href || 'inline');
+            for (const sheet of document.styleSheets) {
+                if (sheet.href && (sheet.href.includes(href) || sheet.href.includes('styles.css'))) {
+                    console.log(`✅ Found ${sheet.href}`);
+                    callback();
+                    return true;
+                }
+            }
+            if (Date.now() - start > timeout) {
+                console.error(`Timeout waiting for ${href}`);
+                console.log('Final stylesheets:', sheets);
+                callback(); // Proceed with fallback values
+                return false;
+            }
+            console.log(`Waiting for ${href}…`);
+            setTimeout(check, 100);
+        };
+        check();
     }
 
     function initializeColorPalette() {
@@ -139,13 +162,19 @@ window.addEventListener('load', () => {
         ];
 
         const colorVars = [];
-        // Check each known variable explicitly
         knownColorVars.forEach(prop => {
             const value = styles.getPropertyValue(prop).trim();
             if (value) {
                 colorVars.push(prop);
             } else {
                 console.warn(`No value found for ${prop}`);
+                // Set fallback values for critical variables
+                if (prop === '--color-light-scale-1') root.style.setProperty(prop, '#cacdd6');
+                if (prop === '--color-light-scale-6') root.style.setProperty(prop, '#f8f7f7');
+                if (prop === '--color-dark-scale-1') root.style.setProperty(prop, '#868eaa');
+                if (prop === '--color-dark-scale-6') root.style.setProperty(prop, '#140612');
+                if (prop === '--color-background-light') root.style.setProperty(prop, '#faf9f3');
+                if (prop === '--color-background-dark') root.style.setProperty(prop, '#141b32');
             }
         });
 
@@ -189,7 +218,7 @@ window.addEventListener('load', () => {
                 return;
             }
 
-            const value = styles.getPropertyValue(varName).trim();
+            const value = styles.getPropertyValue(varName).trim() || root.style.getPropertyValue(varName).trim();
             if (!value) {
                 console.warn(`Skipping ${varName}, empty value`);
                 return;
@@ -238,6 +267,6 @@ window.addEventListener('load', () => {
         }
     });
 
-    // Initialize the palette
-    initializeColorPalette();
+    // Wait for styles.css before initializing
+    waitForStylesheet('styles.css', initializeColorPalette);
 });
