@@ -31,7 +31,6 @@
             gap: 1rem;
             padding: 1rem;
         }
-
         .color-swatch {
             padding: 1rem;
             border-radius: 8px;
@@ -43,13 +42,8 @@
             font-family: monospace;
             border: 1px solid rgba(0, 0, 0, 0.1);
         }
-
         .color-swatch span {
             margin: 0.25rem 0;
-        }
-
-        script {
-            display: none !important;
         }
     </style>
 
@@ -123,8 +117,15 @@
 </section>
 
         <section>
-            <h2>Color Palette</h2>
-            <div class="color-palette" id="color-palette"></div>
+
+                <div>
+                    <custom-block
+                        heading="Color Palette"
+                        text="Range of theme colors">
+                    </custom-block>
+                <div class="color-palette" id="color-palette"></div>
+            </div>
+
         </section>
     
     </main>
