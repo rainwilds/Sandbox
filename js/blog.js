@@ -1,3 +1,52 @@
+// blog.js
+async function fetchManifest() {
+  try {
+    console.log('📋 Fetching manifest from: /blog/manifest.json');
+    const response = await fetch('/blog/manifest.json');
+    console.log('🌐 Manifest fetch response:', response.status, response.statusText, response.url);
+    if (!response.ok) throw new Error(`Failed to fetch manifest.json: ${response.statusText}`);
+    const manifest = await response.json();
+    console.log('📋 Manifest fetched:', manifest);
+    return manifest;
+  } catch (error) {
+    console.error('❌ Error fetching manifest:', error.message);
+    return [];
+  }
+}
+
+async function renderBlogIndex() {
+  const blogIndex = document.querySelector('#blog-index');
+  if (!blogIndex) {
+    console.error('❌ No #blog-index element found in DOM');
+    return;
+  }
+  console.log('🧩 Blog index container found:', blogIndex);
+
+  const posts = await fetchManifest();
+  if (posts.length === 0) {
+    blogIndex.innerHTML = '<p>No blog posts available.</p>';
+    console.warn('⚠️ No posts found in manifest');
+    return;
+  }
+
+  const html = posts.map(post => `
+    <article>
+      <h2><a href="/Sandbox/post.html?slug=${post.slug}">${post.title}</a></h2>
+      <p><small>Posted on ${post.date}</small></p>
+      <p>${post.excerpt}</p>
+      ${post.featuredImage ? `
+        <img src="${post.featuredImage}" 
+             alt="${post.featuredImageAlt || `Image for ${post.title}`}" 
+             style="width: ${post.featuredImageDesktopWidth}; aspect-ratio: ${post.featuredImageAspectRatio};"
+             loading="${post.featuredImageLoading}">
+      ` : ''}
+    </article>
+  `).join('');
+  
+  blogIndex.innerHTML = html;
+  console.log('🖌️ Blog index rendered:', html);
+}
+
 async function renderPost(slug) {
   try {
     console.log(`📄 Fetching post from: /Sandbox/blog/${slug}.md`);
@@ -78,3 +127,34 @@ async function renderPost(slug) {
     }
   }
 }
+
+async function waitForCustomElement(name) {
+  return new Promise((resolve) => {
+    if (customElements.get(name)) {
+      resolve();
+      return;
+    }
+    customElements.whenDefined(name).then(resolve);
+  });
+}
+
+// Initialize based on page
+document.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const slug = urlParams.get('slug');
+  const isBlogIndex = document.querySelector('#blog-index') !== null;
+
+  if (isBlogIndex) {
+    console.log('🚀 Rendering blog index');
+    renderBlogIndex();
+  } else if (slug) {
+    console.log(`🚀 Rendering single post with slug: ${slug}`);
+    renderPost(slug);
+  } else {
+    console.error('❌ No slug provided for post page');
+    const postContent = document.querySelector('#post-content');
+    if (postContent) {
+      postContent.innerHTML = '<p>Error: No post specified. Please provide a valid slug.</p>';
+    }
+  }
+});
