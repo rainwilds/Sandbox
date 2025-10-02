@@ -17,19 +17,22 @@ window.addEventListener('load', () => {
         return isRgba || parts.length === 4 ? `rgba(${r},${g},${b},${a})` : `rgb(${r},${g},${b})`;
     }
 
-    function waitForStylesheet(href, callback, timeout = 5000) {
+    function waitForStylesheet(href, callback, timeout = 10000) {
         const start = Date.now();
         const check = () => {
+            const sheets = Array.from(document.styleSheets).map(sheet => sheet.href || 'inline');
+            console.log('Available stylesheets:', sheets);
             for (const sheet of document.styleSheets) {
-                if (sheet.href && sheet.href.includes(href)) {
-                    console.log(`✅ Found ${href}`);
+                if (sheet.href && (sheet.href.includes(href) || sheet.href.includes('styles.css'))) {
+                    console.log(`✅ Found ${sheet.href}`);
                     callback();
                     return true;
                 }
             }
             if (Date.now() - start > timeout) {
                 console.error(`Timeout waiting for ${href}`);
-                callback(); // Run anyway to avoid hanging
+                console.log('Final stylesheets:', sheets);
+                callback();
                 return false;
             }
             console.log(`Waiting for ${href}…`);
@@ -40,60 +43,53 @@ window.addEventListener('load', () => {
 
     waitForStylesheet('styles.css', () => {
         console.log('Running color setup');
-        const styles = getComputedStyle(root);
-        const colorVars = [];
-
-        // Get all properties and filter for --color-*
-        const allProps = window.getComputedStyle(root);
-        for (let i = 0; i < allProps.length; i++) {
-            const prop = allProps.item(i);
-            if (prop.startsWith('--color-')) {
-                colorVars.push(prop);
+        setTimeout(() => {
+            const styles = getComputedStyle(root);
+            const colorVars = [];
+            const allProps = window.getComputedStyle(root);
+            for (let i = 0; i < allProps.length; i++) {
+                const prop = allProps.item(i);
+                if (prop.startsWith('--color-')) {
+                    colorVars.push(prop);
+                }
             }
-        }
+            console.log('Test var: ' + styles.getPropertyValue('--color-background-light'));
+            console.log('Number of color vars: ' + colorVars.length);
+            console.log(colorVars);
 
-        console.log('Test var: ' + styles.getPropertyValue('--color-background-light'));
-        console.log('Number of color vars: ' + colorVars.length);
-        console.log(colorVars);
-
-        const palette = document.getElementById('color-palette');
-        if (palette) {
-            colorVars.forEach(varName => {
-                let value = styles.getPropertyValue(varName).trim();
-                if (!value) {
-                    console.warn(`Skipping ${varName}, empty value`);
-                    return;
-                }
-
-                const div = document.createElement('div');
-                div.className = 'color-swatch';
-                div.style.backgroundColor = value;
-
-                const nameSpan = document.createElement('span');
-                nameSpan.textContent = varName;
-
-                const valueSpan = document.createElement('span');
-                valueSpan.textContent = value;
-
-                div.appendChild(nameSpan);
-                div.appendChild(valueSpan);
-
-                try {
-                    value = normalizeCssColor(value);
-                    if (chroma.valid(value)) {
-                        const color = chroma(value);
-                        const textColor = color.luminance() > 0.5 ? 'black' : 'white';
-                        nameSpan.style.color = textColor;
-                        valueSpan.style.color = textColor;
+            const palette = document.getElementById('color-palette');
+            if (palette) {
+                colorVars.forEach(varName => {
+                    let value = styles.getPropertyValue(varName).trim();
+                    if (!value) {
+                        console.warn(`Skipping ${varName}, empty value`);
+                        return;
                     }
-                } catch (e) {
-                    console.error(`Error processing ${varName}: ${value}`, e);
-                }
-
-                palette.appendChild(div);
-            });
-        } else {
-            console.error('Color palette container not found');
-        }
-    },100);
+                    const div = document.createElement('div');
+                    div.className = 'color-swatch';
+                    div.style.backgroundColor = value;
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = varName;
+                    const valueSpan = document.createElement('span');
+                    valueSpan.textContent = value;
+                    div.appendChild(nameSpan);
+                    div.appendChild(valueSpan);
+                    try {
+                        value = normalizeCssColor(value);
+                        if (chroma.valid(value)) {
+                            const color = chroma(value);
+                            const textColor = color.luminance() > 0.5 ? 'black' : 'white';
+                            nameSpan.style.color = textColor;
+                            valueSpan.style.color = textColor;
+                        }
+                    } catch (e) {
+                        console.error(`Error processing ${varName}: ${value}`, e);
+                    }
+                    palette.appendChild(div);
+                });
+            } else {
+                console.error('Color palette container not found');
+            }
+        }, 200);
+    });
 });

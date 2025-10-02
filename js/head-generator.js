@@ -137,6 +137,7 @@ async function loadComponents(componentList) {
 async function updateHead(attributes, setup) {
   logger.log('updateHead called with attributes', attributes);
   const head = document.head;
+  logger.log('Head before update:', Array.from(head.children).map(el => el.outerHTML));
   const criticalFrag = document.createDocumentFragment();
   const deferredFrag = document.createDocumentFragment();
   const validFonts = (setup.fonts || []).filter(font => font.href || font.url);
@@ -280,15 +281,14 @@ async function updateHead(attributes, setup) {
     deferredFrag.appendChild(script);
     logger.log('Added Snipcart script (deferred)', { version: snipcart.version });
   }
-
-  const existingStyles = Array.from(head.querySelectorAll('style'));
   head.appendChild(criticalFrag);
-  existingStyles.forEach(style => head.appendChild(style)); // Re-append styles
   logger.log('Appended critical elements to head', { count: criticalFrag.childNodes.length });
+  logger.log('Head after critical append:', Array.from(head.children).map(el => el.outerHTML));
+  logger.log('Body children:', Array.from(document.body.children).map(el => el.outerHTML));
   const appendDeferred = () => {
     head.appendChild(deferredFrag);
-    logger.log('Appended critical elements to head', { count: criticalFrag.childNodes.length });
-    logger.log('Head after critical append:', Array.from(head.children).map(el => el.outerHTML));
+    logger.log('Appended deferred elements to head', { count: deferredFrag.childNodes.length });
+    logger.log('Head after deferred append:', Array.from(head.children).map(el => el.outerHTML));
   };
   if (window.requestIdleCallback) {
     requestIdleCallback(appendDeferred, { timeout: 2000 });

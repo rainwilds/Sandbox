@@ -1,8 +1,11 @@
 // blog.js
-async function fetchManifest() {
+import { getGeneralConfig } from './config.js'; // Import config.js to get basePath
+
+async function fetchManifest(basePath) {
+  const manifestPath = `${basePath}blog/manifest.json`;
   try {
-    console.log('📋 Fetching manifest from: /blog/manifest.json');
-    const response = await fetch('/blog/manifest.json');
+    console.log(`📋 Fetching manifest from: ${manifestPath}`);
+    const response = await fetch(manifestPath);
     console.log('🌐 Manifest fetch response:', response.status, response.statusText, response.url);
     if (!response.ok) throw new Error(`Failed to fetch manifest.json: ${response.statusText}`);
     const manifest = await response.json();
@@ -22,7 +25,9 @@ async function renderBlogIndex() {
   }
   console.log('🧩 Blog index container found:', blogIndex);
 
-  const posts = await fetchManifest();
+  const config = await getGeneralConfig();
+  const basePath = config.basePath || '/';
+  const posts = await fetchManifest(basePath);
   if (posts.length === 0) {
     blogIndex.innerHTML = '<p>No blog posts available.</p>';
     console.warn('⚠️ No posts found in manifest');
@@ -31,7 +36,7 @@ async function renderBlogIndex() {
 
   const html = posts.map(post => `
     <article>
-      <h2><a href="/Sandbox/post.html?slug=${post.slug}">${post.title}</a></h2>
+      <h2><a href="${basePath}post.html?slug=${post.slug}">${post.title}</a></h2>
       <p><small>Posted on ${post.date}</small></p>
       <p>${post.excerpt}</p>
       ${post.featuredImage ? `
@@ -48,9 +53,12 @@ async function renderBlogIndex() {
 }
 
 async function renderPost(slug) {
+  const config = await getGeneralConfig();
+  const basePath = config.basePath || '/';
   try {
-    console.log(`📄 Fetching post from: /Sandbox/blog/${slug}.md`);
-    const response = await fetch(`/Sandbox/blog/${slug}.md`);
+    const postPath = `${basePath}blog/${slug}.md`;
+    console.log(`📄 Fetching post from: ${postPath}`);
+    const response = await fetch(postPath);
     console.log('🌐 Fetch response:', response.status, response.statusText, response.url);
     if (!response.ok) throw new Error(`Failed to fetch ${slug}.md: ${response.statusText}`);
     const text = await response.text();
@@ -138,18 +146,17 @@ async function waitForCustomElement(name) {
   });
 }
 
-// Initialize based on page
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   const urlParams = new URLSearchParams(window.location.search);
   const slug = urlParams.get('slug');
   const isBlogIndex = document.querySelector('#blog-index') !== null;
 
   if (isBlogIndex) {
     console.log('🚀 Rendering blog index');
-    renderBlogIndex();
+    await renderBlogIndex();
   } else if (slug) {
     console.log(`🚀 Rendering single post with slug: ${slug}`);
-    renderPost(slug);
+    await renderPost(slug);
   } else {
     console.error('❌ No slug provided for post page');
     const postContent = document.querySelector('#post-content');
