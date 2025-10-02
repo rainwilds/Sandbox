@@ -1,5 +1,5 @@
 // blog.js
-import { getGeneralConfig } from './config.js'; // Import config.js to get basePath
+import { getGeneralConfig, getImageResponsivePath } from './config.js';
 
 async function fetchManifest(basePath) {
   const manifestPath = `${basePath}blog/manifest.json`;
@@ -27,6 +27,7 @@ async function renderBlogIndex() {
 
   const config = await getGeneralConfig();
   const basePath = config.basePath || '/';
+  const imageBasePath = await getImageResponsivePath(); // Use responsive image path
   const posts = await fetchManifest(basePath);
   if (posts.length === 0) {
     blogIndex.innerHTML = '<p>No blog posts available.</p>';
@@ -40,7 +41,7 @@ async function renderBlogIndex() {
       <p><small>Posted on ${post.date}</small></p>
       <p>${post.excerpt}</p>
       ${post.featuredImage ? `
-        <img src="${post.featuredImage}" 
+        <img src="${basePath}${post.featuredImage}" 
              alt="${post.featuredImageAlt || `Image for ${post.title}`}" 
              style="width: ${post.featuredImageDesktopWidth}; aspect-ratio: ${post.featuredImageAspectRatio};"
              loading="${post.featuredImageLoading}">
@@ -87,15 +88,41 @@ async function renderPost(slug) {
     console.log('🧩 Post content container found:', postContent);
     postContent.innerHTML = html;
     console.log('🖌️ HTML inserted into #post-content:', html);
+
+    // Post-process to convert escaped <custom-block> to actual elements
+    const tempContainer = document.createElement('div');
+    tempContainer.innerHTML = html;
+    const customBlockStrings = tempContainer.querySelectorAll('p');
+    customBlockStrings.forEach(p => {
+      if (p.innerHTML.startsWith('&lt;custom-block')) {
+        const customBlockHTML = p.innerHTML
+          .replace(/&lt;/g, '<')
+          .replace(/&gt;/g, '>')
+          .replace(/&quot;/g, '"');
+        const customBlock = document.createElement('custom-block');
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = customBlockHTML;
+        const sourceBlock = tempDiv.querySelector('custom-block');
+        if (sourceBlock) {
+          Array.from(sourceBlock.attributes).forEach(attr => {
+            customBlock.setAttribute(attr.name, attr.value);
+          });
+          p.replaceWith(customBlock);
+        }
+      }
+    });
+    postContent.innerHTML = tempContainer.innerHTML;
+    console.log('🖌️ Processed custom-block elements in Markdown');
+
     document.title = data.title || 'Blog Post';
     document.querySelector('meta[name="description"]')?.setAttribute('content', data.excerpt || '');
     console.log('📝 Updated title and meta description');
     if (data.featuredImage) {
-      console.log(`🖼️ Adding featured image: ${data.featuredImage}`);
+      console.log(`🖼️ Adding featured image: ${basePath}${data.featuredImage}`);
       await waitForCustomElement('custom-block');
       postContent.insertAdjacentHTML('afterbegin', `
         <custom-block
-          img-primary-src="${data.featuredImage}"
+          img-primary-src="${basePath}${data.featuredImage}"
           img-primary-alt="${data.featuredImageAlt || `Featured image for ${data.title}`}"
           img-primary-mobile-width="${data.featuredImageMobileWidth || '100vw'}"
           img-primary-tablet-width="${data.featuredImageTabletWidth || '50vw'}"
