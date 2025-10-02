@@ -3,7 +3,7 @@ window.addEventListener('load', () => {
 
     const root = document.documentElement;
 
-    // Add styles for color inputs (since not in styles.css)
+    // Add styles for color inputs (not in styles.css)
     const style = document.createElement('style');
     style.textContent = `
         .color-inputs {
@@ -97,13 +97,14 @@ window.addEventListener('load', () => {
                 swatch.style.backgroundColor = `var(${varName})`;
                 updateSwatchTextColor(swatch, value);
                 swatch.querySelectorAll('span')[1].textContent = value;
+            } else {
+                console.warn(`No value for ${varName} in swatch update`);
             }
         });
     }
 
     function initializeColorPalette() {
         const styles = getComputedStyle(root);
-        const colorVars = [];
         const knownColorVars = [
             '--color-background-light',
             '--color-background-dark',
@@ -137,27 +138,18 @@ window.addEventListener('load', () => {
             '--color-dark-scale-6'
         ];
 
-        // Collect all color variables
-        const allProps = window.getComputedStyle(root);
-        for (let i = 0; i < allProps.length; i++) {
-            const prop = allProps.item(i);
-            if (prop.startsWith('--color-') && ![
-                '--color-accent-light-primary',
-                '--color-accent-light-secondary',
-                '--color-accent-dark-primary',
-                '--color-accent-dark-secondary'
-            ].includes(prop)) {
+        const colorVars = [];
+        // Check each known variable explicitly
+        knownColorVars.forEach(prop => {
+            const value = styles.getPropertyValue(prop).trim();
+            if (value) {
                 colorVars.push(prop);
+            } else {
+                console.warn(`No value found for ${prop}`);
             }
-        }
-        if (colorVars.length === 0) {
-            console.log('Falling back to known color variables');
-            knownColorVars.forEach(prop => {
-                if (styles.getPropertyValue(prop).trim()) {
-                    colorVars.push(prop);
-                }
-            });
-        }
+        });
+
+        console.log('Detected color variables:', colorVars);
 
         const groups = {
             'color-background': document.getElementById('color-background'),
@@ -241,6 +233,8 @@ window.addEventListener('load', () => {
                 console.log(`Updated ${varName} to ${input.value}`);
                 updateColorScales(getComputedStyle(root), varName);
             });
+        } else {
+            console.warn(`Color input for ${key} not found`);
         }
     });
 
