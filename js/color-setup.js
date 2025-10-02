@@ -46,12 +46,47 @@ window.addEventListener('load', () => {
         setTimeout(() => {
             const styles = getComputedStyle(root);
             const colorVars = [];
+            const knownColorVars = [
+                '--color-background-light',
+                '--color-background-dark',
+                '--color-accent-light-primary',
+                '--color-accent-light-secondary',
+                '--color-accent-dark-primary',
+                '--color-accent-dark-secondary',
+                '--color-accent-opaque-light-primary',
+                '--color-accent-opaque-light-secondary',
+                '--color-accent-opaque-dark-primary',
+                '--color-accent-opaque-dark-secondary',
+                '--color-static-light',
+                '--color-static-dark',
+                '--color-static-dark-1',
+                '--color-static-light-1',
+                '--color-static-dark-2',
+                '--color-static-light-2',
+                '--color-static-dark-4',
+                '--color-static-light-4',
+                '--color-static-dark-6',
+                '--color-static-light-6',
+                '--color-static-dark-8',
+                '--color-static-light-8'
+            ];
+            // Try enumerating all properties
             const allProps = window.getComputedStyle(root);
+            console.log('Total computed properties:', allProps.length);
             for (let i = 0; i < allProps.length; i++) {
                 const prop = allProps.item(i);
                 if (prop.startsWith('--color-')) {
                     colorVars.push(prop);
                 }
+            }
+            // Fallback: explicitly check known variables
+            if (colorVars.length === 0) {
+                console.log('Falling back to known color variables');
+                knownColorVars.forEach(prop => {
+                    if (styles.getPropertyValue(prop).trim()) {
+                        colorVars.push(prop);
+                    }
+                });
             }
             console.log('Test var: ' + styles.getPropertyValue('--color-background-light'));
             console.log('Number of color vars: ' + colorVars.length);
@@ -90,6 +125,6 @@ window.addEventListener('load', () => {
             } else {
                 console.error('Color palette container not found');
             }
-        }, 200);
+        }, 500);
     });
 });
