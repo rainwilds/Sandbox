@@ -27,7 +27,6 @@ async function renderBlogIndex() {
 
   const config = await getGeneralConfig();
   const basePath = config.basePath || '/';
-  const imageBasePath = await getImageResponsivePath(); // Use responsive image path
   const posts = await fetchManifest(basePath);
   if (posts.length === 0) {
     blogIndex.innerHTML = '<p>No blog posts available.</p>';
@@ -37,20 +36,47 @@ async function renderBlogIndex() {
 
   const html = posts.map(post => `
     <article>
+      ${post.featuredImage ? `
+        <custom-block
+          img-primary-src="${basePath}${post.featuredImage.replace(/^\/+/, '')}"
+          img-primary-alt="${post.featuredImageAlt || `Image for ${post.title}`}"
+          img-primary-mobile-width="${post.featuredImageMobileWidth || '100vw'}"
+          img-primary-tablet-width="${post.featuredImageTabletWidth || '50vw'}"
+          img-primary-desktop-width="${post.featuredImageDesktopWidth || '30vw'}"
+          img-primary-aspect-ratio="${post.featuredImageAspectRatio || '16/9'}"
+          img-primary-loading="lazy"
+        ></custom-block>
+      ` : ''}
       <h2><a href="${basePath}post.html?slug=${post.slug}">${post.title}</a></h2>
       <p><small>Posted on ${post.date}</small></p>
       <p>${post.excerpt}</p>
-      ${post.featuredImage ? `
-        <img src="${basePath}${post.featuredImage}" 
-             alt="${post.featuredImageAlt || `Image for ${post.title}`}" 
-             style="width: ${post.featuredImageDesktopWidth}; aspect-ratio: ${post.featuredImageAspectRatio};"
-             loading="${post.featuredImageLoading}">
-      ` : ''}
     </article>
   `).join('');
   
   blogIndex.innerHTML = html;
   console.log('🖌️ Blog index rendered:', html);
+
+  // Initialize custom-block elements
+  const customBlocks = blogIndex.querySelectorAll('custom-block');
+  console.log(`🛠️ Found ${customBlocks.length} custom-block elements in blog index`);
+  if (!customElements.get('custom-block')) {
+    console.error('❌ custom-block custom element is not defined');
+    blogIndex.innerHTML = '<p>Error: custom-block component not loaded</p>';
+    return;
+  }
+  customBlocks.forEach((block, index) => {
+    console.log(`🛠️ Initializing custom-block ${index + 1}/${customBlocks.length}`);
+    if (!block.isConnected) {
+      console.warn(`⚠️ custom-block ${index + 1} is not connected to DOM`);
+      return;
+    }
+    if (typeof block.initialize !== 'function') {
+      console.error(`❌ custom-block ${index + 1} has no initialize method`);
+      return;
+    }
+    block.isVisible = true;
+    block.initialize();
+  });
 }
 
 async function renderPost(slug) {
@@ -77,7 +103,7 @@ async function renderPost(slug) {
       if (key && value) data[key.trim()] = value;
     });
     console.log('📝 Post data parsed:', data);
-    marked.use({ sanitizer: null, mangle: false, breaks: true });
+    marked.use({ sanitizer: null, mangle: false, breaks: true, sanitize: false });
     const html = marked.parse(content, { async: false });
     console.log('📝 Markdown parsed to HTML:', html);
     const postContent = document.querySelector('#post-content');
@@ -86,31 +112,33 @@ async function renderPost(slug) {
       return;
     }
     console.log('🧩 Post content container found:', postContent);
-    postContent.innerHTML = html;
-    console.log('🖌️ HTML inserted into #post-content:', html);
 
-    // Post-process to convert escaped <custom-block> to actual elements
+    // Create a temporary container to process HTML
     const tempContainer = document.createElement('div');
     tempContainer.innerHTML = html;
-    const customBlockStrings = tempContainer.querySelectorAll('p');
-    customBlockStrings.forEach(p => {
-      if (p.innerHTML.startsWith('&lt;custom-block')) {
-        const customBlockHTML = p.innerHTML
+
+    // Convert escaped <custom-block> tags to actual elements
+    const paragraphs = tempContainer.querySelectorAll('p, blockquote');
+    paragraphs.forEach(node => {
+      if (node.innerHTML.includes('&lt;custom-block')) {
+        const customBlockHTML = node.innerHTML
           .replace(/&lt;/g, '<')
           .replace(/&gt;/g, '>')
-          .replace(/&quot;/g, '"');
-        const customBlock = document.createElement('custom-block');
+          .replace(/&quot;/g, '"')
+          .replace(/<blockquote>\s*<\/custom-block>\s*<\/blockquote>/g, '</custom-block>');
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = customBlockHTML;
-        const sourceBlock = tempDiv.querySelector('custom-block');
-        if (sourceBlock) {
-          Array.from(sourceBlock.attributes).forEach(attr => {
-            customBlock.setAttribute(attr.name, attr.value);
+        const customBlock = tempDiv.querySelector('custom-block');
+        if (customBlock) {
+          const newCustomBlock = document.createElement('custom-block');
+          Array.from(customBlock.attributes).forEach(attr => {
+            newCustomBlock.setAttribute(attr.name, attr.value);
           });
-          p.replaceWith(customBlock);
+          node.replaceWith(newCustomBlock);
         }
       }
     });
+
     postContent.innerHTML = tempContainer.innerHTML;
     console.log('🖌️ Processed custom-block elements in Markdown');
 
@@ -118,11 +146,12 @@ async function renderPost(slug) {
     document.querySelector('meta[name="description"]')?.setAttribute('content', data.excerpt || '');
     console.log('📝 Updated title and meta description');
     if (data.featuredImage) {
-      console.log(`🖼️ Adding featured image: ${basePath}${data.featuredImage}`);
+      const imagePath = `${basePath}${data.featuredImage.replace(/^\/+/, '')}`;
+      console.log(`🖼️ Adding featured image: ${imagePath}`);
       await waitForCustomElement('custom-block');
       postContent.insertAdjacentHTML('afterbegin', `
         <custom-block
-          img-primary-src="${basePath}${data.featuredImage}"
+          img-primary-src="${imagePath}"
           img-primary-alt="${data.featuredImageAlt || `Featured image for ${data.title}`}"
           img-primary-mobile-width="${data.featuredImageMobileWidth || '100vw'}"
           img-primary-tablet-width="${data.featuredImageTabletWidth || '50vw'}"
