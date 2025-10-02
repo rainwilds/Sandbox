@@ -1,5 +1,5 @@
 // blog.js
-import { getGeneralConfig, getImageResponsivePath } from './config.js';
+import { getGeneralConfig } from './config.js';
 
 async function fetchManifest(basePath) {
   const manifestPath = `${basePath}blog/manifest.json`;
@@ -33,6 +33,9 @@ async function renderBlogIndex() {
     console.warn('⚠️ No posts found in manifest');
     return;
   }
+
+  // Wait for custom-block to be defined
+  await waitForCustomElement('custom-block');
 
   const html = posts.map(post => `
     <article>
@@ -103,7 +106,17 @@ async function renderPost(slug) {
       if (key && value) data[key.trim()] = value;
     });
     console.log('📝 Post data parsed:', data);
-    marked.use({ sanitizer: null, mangle: false, breaks: true, sanitize: false });
+    marked.use({
+      sanitizer: null,
+      mangle: false,
+      breaks: true,
+      sanitize: false,
+      renderer: {
+        html(html) {
+          return html; // Preserve raw HTML like <custom-block>
+        }
+      }
+    });
     const html = marked.parse(content, { async: false });
     console.log('📝 Markdown parsed to HTML:', html);
     const postContent = document.querySelector('#post-content');
@@ -113,34 +126,37 @@ async function renderPost(slug) {
     }
     console.log('🧩 Post content container found:', postContent);
 
-    // Create a temporary container to process HTML
+    // Post-process to convert <custom-block> tags
     const tempContainer = document.createElement('div');
     tempContainer.innerHTML = html;
-
-    // Convert escaped <custom-block> tags to actual elements
-    const paragraphs = tempContainer.querySelectorAll('p, blockquote');
-    paragraphs.forEach(node => {
-      if (node.innerHTML.includes('&lt;custom-block')) {
-        const customBlockHTML = node.innerHTML
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>')
-          .replace(/&quot;/g, '"')
-          .replace(/<blockquote>\s*<\/custom-block>\s*<\/blockquote>/g, '</custom-block>');
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = customBlockHTML;
-        const customBlock = tempDiv.querySelector('custom-block');
-        if (customBlock) {
-          const newCustomBlock = document.createElement('custom-block');
-          Array.from(customBlock.attributes).forEach(attr => {
-            newCustomBlock.setAttribute(attr.name, attr.value);
-          });
-          node.replaceWith(newCustomBlock);
-        }
-      }
+    const customBlockRegex = /&lt;custom-block([\s\S]*?)&gt;([\s\S]*?)&lt;\/custom-block&gt;/gi;
+    let modifiedHTML = tempContainer.innerHTML;
+    modifiedHTML = modifiedHTML.replace(customBlockRegex, (match, attributes, content) => {
+      const cleanAttributes = attributes
+        .replace(/&quot;/g, '"')
+        .replace(/<br>/g, '');
+      return `<custom-block ${cleanAttributes}>${content}</custom-block>`;
     });
+    tempContainer.innerHTML = modifiedHTML;
+    console.log('🖌️ Processed custom-block elements in Markdown:', tempContainer.innerHTML);
 
     postContent.innerHTML = tempContainer.innerHTML;
-    console.log('🖌️ Processed custom-block elements in Markdown');
+
+    // Initialize custom-block elements from Markdown
+    const markdownCustomBlocks = postContent.querySelectorAll('custom-block');
+    markdownCustomBlocks.forEach((block, index) => {
+      console.log(`🛠️ Initializing Markdown custom-block ${index + 1}/${markdownCustomBlocks.length}`);
+      if (!block.isConnected) {
+        console.warn(`⚠️ Markdown custom-block ${index + 1} is not connected to DOM`);
+        return;
+      }
+      if (typeof block.initialize !== 'function') {
+        console.error(`❌ Markdown custom-block ${index + 1} has no initialize method`);
+        return;
+      }
+      block.isVisible = true;
+      block.initialize();
+    });
 
     document.title = data.title || 'Blog Post';
     document.querySelector('meta[name="description"]')?.setAttribute('content', data.excerpt || '');
@@ -195,10 +211,15 @@ async function renderPost(slug) {
 async function waitForCustomElement(name) {
   return new Promise((resolve) => {
     if (customElements.get(name)) {
+      console.log(`🛠️ Custom element ${name} is defined`);
       resolve();
       return;
     }
-    customElements.whenDefined(name).then(resolve);
+    console.log(`🛠️ Waiting for custom element ${name} to be defined`);
+    customElements.whenDefined(name).then(() => {
+      console.log(`🛠️ Custom element ${name} defined`);
+      resolve();
+    });
   });
 }
 

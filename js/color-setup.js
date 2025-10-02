@@ -17,6 +17,18 @@ window.addEventListener('load', () => {
         return isRgba || parts.length === 4 ? `rgba(${r},${g},${b},${a})` : `rgb(${r},${g},${b})`;
     }
 
+    function blendRgbaWithBackground(rgba, background) {
+        const parts = rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
+        if (!parts) return rgba;
+        const r = parseInt(parts[1]), g = parseInt(parts[2]), b = parseInt(parts[3]);
+        const a = parts[4] ? parseFloat(parts[4]) : 1;
+        const bg = chroma(background).rgb();
+        const blendedR = Math.round(a * r + (1 - a) * bg[0]);
+        const blendedG = Math.round(a * g + (1 - a) * bg[1]);
+        const blendedB = Math.round(a * b + (1 - a) * bg[2]);
+        return `#${((1 << 24) + (blendedR << 16) + (blendedG << 8) + blendedB).toString(16).slice(1).padStart(6, '0')}`;
+    }
+
     function updateSwatchTextColor(swatch, colorValue) {
         try {
             const value = normalizeCssColor(colorValue);
@@ -28,6 +40,31 @@ window.addEventListener('load', () => {
             }
         } catch (e) {
             console.error(`Error processing color: ${colorValue}`, e);
+        }
+    }
+
+    function updateColorScales(styles) {
+        const lightPrimary = styles.getPropertyValue('--color-light-scale-1').trim();
+        const lightSecondary = styles.getPropertyValue('--color-accent-opaque-light-secondary').trim();
+        const darkPrimary = styles.getPropertyValue('--color-dark-scale-1').trim();
+        const darkSecondary = styles.getPropertyValue('--color-accent-opaque-dark-secondary').trim();
+
+        if (lightPrimary && lightSecondary) {
+            const lightSecondarySolid = blendRgbaWithBackground(lightSecondary, '#ffffff');
+            const lightScale = chroma.scale([lightPrimary, lightSecondarySolid]).mode('lch').colors(6);
+            for (let i = 2; i <= 6; i++) {
+                root.style.setProperty(`--color-light-scale-${i}`, lightScale[i - 1]);
+            }
+            console.log('Updated light scale:', lightScale);
+        }
+
+        if (darkPrimary && darkSecondary) {
+            const darkSecondarySolid = blendRgbaWithBackground(darkSecondary, '#000000');
+            const darkScale = chroma.scale([darkPrimary, darkSecondarySolid]).mode('lch').colors(6);
+            for (let i = 2; i <= 6; i++) {
+                root.style.setProperty(`--color-dark-scale-${i}`, darkScale[i - 1]);
+            }
+            console.log('Updated dark scale:', darkScale);
         }
     }
 
@@ -63,10 +100,6 @@ window.addEventListener('load', () => {
             const knownColorVars = [
                 '--color-background-light',
                 '--color-background-dark',
-                '--color-accent-light-primary',
-                '--color-accent-light-secondary',
-                '--color-accent-dark-primary',
-                '--color-accent-dark-secondary',
                 '--color-accent-opaque-light-primary',
                 '--color-accent-opaque-light-secondary',
                 '--color-accent-opaque-dark-primary',
@@ -101,7 +134,12 @@ window.addEventListener('load', () => {
             console.log('Total computed properties:', allProps.length);
             for (let i = 0; i < allProps.length; i++) {
                 const prop = allProps.item(i);
-                if (prop.startsWith('--color-')) {
+                if (prop.startsWith('--color-') && ![
+                    '--color-accent-light-primary',
+                    '--color-accent-light-secondary',
+                    '--color-accent-dark-primary',
+                    '--color-accent-dark-secondary'
+                ].includes(prop)) {
                     colorVars.push(prop);
                 }
             }
@@ -165,7 +203,7 @@ window.addEventListener('load', () => {
                 const div = document.createElement('div');
                 div.className = 'color-swatch';
                 div.style.backgroundColor = `var(${varName})`;
-                div.dataset.varName = varName; // Store for observer
+                div.dataset.varName = varName;
 
                 const nameSpan = document.createElement('span');
                 nameSpan.textContent = varName;
@@ -183,16 +221,20 @@ window.addEventListener('load', () => {
             // Observe style changes on :root
             const observer = new MutationObserver(() => {
                 const styles = getComputedStyle(root);
+                updateColorScales(styles); // Regenerate scales if needed
                 document.querySelectorAll('.color-swatch').forEach(swatch => {
                     const varName = swatch.dataset.varName;
                     const value = styles.getPropertyValue(varName).trim();
                     if (value) {
                         updateSwatchTextColor(swatch, value);
-                        swatch.querySelectorAll('span')[1].textContent = value; // Update displayed value
+                        swatch.querySelectorAll('span')[1].textContent = value;
                     }
                 });
             });
             observer.observe(root, { attributes: true, attributeFilter: ['style'] });
+
+            // Initial scale update
+            updateColorScales(styles);
         }, 500);
     });
 });
