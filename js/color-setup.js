@@ -29,11 +29,11 @@ window.addEventListener('load', () => {
             }
             if (Date.now() - start > timeout) {
                 console.error(`Timeout waiting for ${href}`);
-                callback(); // Run callback anyway to avoid hanging
+                callback(); // Run anyway to avoid hanging
                 return false;
             }
             console.log(`Waiting for ${href}…`);
-            setTimeout(check, 100); // Poll every 100ms
+            setTimeout(check, 100);
         };
         check();
     }
@@ -41,10 +41,18 @@ window.addEventListener('load', () => {
     waitForStylesheet('styles.css', () => {
         console.log('Running color setup');
         const styles = getComputedStyle(root);
-        const colorVars = Object.keys(styles)
-            .filter(prop => prop.startsWith('--color-'))
-            .map(prop => prop);
+        const colorVars = [];
 
+        // Get all properties and filter for --color-*
+        const allProps = window.getComputedStyle(root);
+        for (let i = 0; i < allProps.length; i++) {
+            const prop = allProps.item(i);
+            if (prop.startsWith('--color-')) {
+                colorVars.push(prop);
+            }
+        }
+
+        console.log('Test var: ' + styles.getPropertyValue('--color-background-light'));
         console.log('Number of color vars: ' + colorVars.length);
         console.log(colorVars);
 
@@ -87,5 +95,5 @@ window.addEventListener('load', () => {
         } else {
             console.error('Color palette container not found');
         }
-    });
+    },100);
 });

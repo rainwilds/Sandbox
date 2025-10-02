@@ -280,11 +280,15 @@ async function updateHead(attributes, setup) {
     deferredFrag.appendChild(script);
     logger.log('Added Snipcart script (deferred)', { version: snipcart.version });
   }
+
+  const existingStyles = Array.from(head.querySelectorAll('style'));
   head.appendChild(criticalFrag);
+  existingStyles.forEach(style => head.appendChild(style)); // Re-append styles
   logger.log('Appended critical elements to head', { count: criticalFrag.childNodes.length });
   const appendDeferred = () => {
     head.appendChild(deferredFrag);
-    logger.log('Appended deferred elements to head', { count: deferredFrag.childNodes.length });
+    logger.log('Appended critical elements to head', { count: criticalFrag.childNodes.length });
+    logger.log('Head after critical append:', Array.from(head.children).map(el => el.outerHTML));
   };
   if (window.requestIdleCallback) {
     requestIdleCallback(appendDeferred, { timeout: 2000 });
