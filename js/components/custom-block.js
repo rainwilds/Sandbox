@@ -95,7 +95,11 @@ class CustomBlock extends HTMLElement {
             return true;
         }
         try {
-            const fullSrc = url.startsWith('http') ? url : new URL(url, window.location.origin).href;
+            const basePath = await this.#getBasePath();
+            const normalizedBase = basePath.replace(/^\/+|\/+$/, '');
+            const normalizedUrl = url.replace(/^\/+/, '');
+            let fullPath = normalizedUrl.startsWith(normalizedBase) ? normalizedUrl : normalizedBase + '/' + normalizedUrl;
+            const fullSrc = new URL(fullPath, window.location.origin).href;
             this.#log(`Validating source URL: ${fullSrc}`, { originalUrl: url, elementId: this.id || 'no-id' });
             const res = await fetch(fullSrc, { method: 'HEAD', mode: 'cors' });
             if (!res.ok) throw new Error(`Failed to validate ${url}: ${res.status} ${res.statusText}`);
@@ -200,7 +204,14 @@ class CustomBlock extends HTMLElement {
         } else if (innerShadow) {
             this.#warn('Invalid inner shadow class', { value: innerShadow, element: this.id || 'no-id', validValues: validShadowClasses });
         }
-        const resolvePath = (path) => path ? (path.startsWith('http') ? path : new URL(path, window.location.origin).href) : '';
+        const resolvePath = (path) => {
+            if (!path) return '';
+            if (path.startsWith('http')) return path;
+            const normalizedBase = basePath.replace(/^\/+|\/+$/, '');
+            const normalizedPath = path.replace(/^\/+/, '');
+            const fullPath = normalizedPath.startsWith(normalizedBase) ? normalizedPath : normalizedBase + '/' + normalizedPath;
+            return new URL(fullPath, window.location.origin).href;
+        };
         const backgroundSrc = resolvePath(this.getAttribute('img-background-src') || '');
         const backgroundLightSrc = resolvePath(this.getAttribute('img-background-light-src') || '');
         const backgroundDarkSrc = resolvePath(this.getAttribute('img-background-dark-src') || '');
@@ -1174,7 +1185,7 @@ class CustomBlock extends HTMLElement {
             let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
             if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
                 const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
-                buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonOffset}`;
+                buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
             }
             if (attrs.buttonIcon && attrs.buttonIconPosition === 'left') {
                 const iconSpan = document.createElement('span');
@@ -1248,6 +1259,7 @@ class CustomBlock extends HTMLElement {
                             fallbackImg.src = 'https://placehold.co/300x200';
                             fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
                             fallbackImg.style.width = '100%';
+                            fallbackImg.style.aspectRatio = attrs.primaryAspectRatio || '16/9';
                             blockElement.appendChild(fallbackImg);
                             this.#log('Fallback primary image appended', { src: fallbackImg.src });
                         }
@@ -1296,6 +1308,7 @@ class CustomBlock extends HTMLElement {
                     fallbackImg.src = 'https://placehold.co/300x200';
                     fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
                     fallbackImg.style.width = '100%';
+                    fallbackImg.style.aspectRatio = attrs.primaryAspectRatio || '16/9';
                     blockElement.appendChild(fallbackImg);
                     this.#log('Fallback primary image appended', { src: fallbackImg.src });
                 }
@@ -1306,6 +1319,7 @@ class CustomBlock extends HTMLElement {
                 fallbackImg.src = 'https://placehold.co/300x200';
                 fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
                 fallbackImg.style.width = '100%';
+                fallbackImg.style.aspectRatio = attrs.primaryAspectRatio || '16/9';
                 blockElement.appendChild(fallbackImg);
                 this.#log('Fallback primary image appended', { src: fallbackImg.src });
             }

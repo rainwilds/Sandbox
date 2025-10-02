@@ -45,23 +45,25 @@ window.addEventListener('load', () => {
 
     function updateColorScales(styles, changedVar = null) {
         const lightPrimary = styles.getPropertyValue('--color-light-scale-1').trim();
-        const lightSecondary = styles.getPropertyValue('--color-accent-opaque-light-secondary').trim();
+        const lightSecondary = styles.getPropertyValue('--color-light-scale-6').trim() || blendRgbaWithBackground(styles.getPropertyValue('--color-accent-opaque-light-secondary').trim(), '#ffffff');
         const darkPrimary = styles.getPropertyValue('--color-dark-scale-1').trim();
-        const darkSecondary = styles.getPropertyValue('--color-accent-opaque-dark-secondary').trim();
+        const darkSecondary = styles.getPropertyValue('--color-dark-scale-6').trim() || blendRgbaWithBackground(styles.getPropertyValue('--color-accent-opaque-dark-secondary').trim(), '#000000');
 
-        if (changedVar === '--color-light-scale-1' && lightPrimary && lightSecondary) {
-            const lightSecondarySolid = blendRgbaWithBackground(lightSecondary, '#ffffff');
-            const lightScale = chroma.scale([lightPrimary, lightSecondarySolid]).mode('lch').colors(6);
-            for (let i = 2; i <= 6; i++) {
+        if ((changedVar === '--color-light-scale-1' || changedVar === '--color-light-scale-6') && lightPrimary && lightSecondary) {
+            const startColor = changedVar === '--color-light-scale-6' ? lightSecondary : lightPrimary;
+            const endColor = changedVar === '--color-light-scale-6' ? lightPrimary : lightSecondary;
+            const lightScale = chroma.scale([startColor, endColor]).mode('lch').colors(6);
+            for (let i = 1; i <= 6; i++) {
                 root.style.setProperty(`--color-light-scale-${i}`, lightScale[i - 1]);
             }
             console.log('Updated light scale:', lightScale);
         }
 
-        if (changedVar === '--color-dark-scale-1' && darkPrimary && darkSecondary) {
-            const darkSecondarySolid = blendRgbaWithBackground(darkSecondary, '#000000');
-            const darkScale = chroma.scale([darkPrimary, darkSecondarySolid]).mode('lch').colors(6);
-            for (let i = 2; i <= 6; i++) {
+        if ((changedVar === '--color-dark-scale-1' || changedVar === '--color-dark-scale-6') && darkPrimary && darkSecondary) {
+            const startColor = changedVar === '--color-dark-scale-6' ? darkSecondary : darkPrimary;
+            const endColor = changedVar === '--color-dark-scale-6' ? darkPrimary : darkSecondary;
+            const darkScale = chroma.scale([startColor, endColor]).mode('lch').colors(6);
+            for (let i = 1; i <= 6; i++) {
                 root.style.setProperty(`--color-dark-scale-${i}`, darkScale[i - 1]);
             }
             console.log('Updated dark scale:', darkScale);
@@ -235,7 +237,9 @@ window.addEventListener('load', () => {
 
             // Track last known values for polling
             let lastLightScale1 = styles.getPropertyValue('--color-light-scale-1').trim();
+            let lastLightScale6 = styles.getPropertyValue('--color-light-scale-6').trim();
             let lastDarkScale1 = styles.getPropertyValue('--color-dark-scale-1').trim();
+            let lastDarkScale6 = styles.getPropertyValue('--color-dark-scale-6').trim();
 
             // MutationObserver with debouncing
             let debounceTimeout;
@@ -247,8 +251,12 @@ window.addEventListener('load', () => {
                     let changedVar = null;
                     if (style.includes('--color-light-scale-1')) {
                         changedVar = '--color-light-scale-1';
+                    } else if (style.includes('--color-light-scale-6')) {
+                        changedVar = '--color-light-scale-6';
                     } else if (style.includes('--color-dark-scale-1')) {
                         changedVar = '--color-dark-scale-1';
+                    } else if (style.includes('--color-dark-scale-6')) {
+                        changedVar = '--color-dark-scale-6';
                     }
                     console.log('Style change detected, changed variable:', changedVar, 'Style attribute:', style);
                     updateColorScales(styles, changedVar);
@@ -260,16 +268,26 @@ window.addEventListener('load', () => {
             setInterval(() => {
                 const styles = getComputedStyle(root);
                 const currentLightScale1 = styles.getPropertyValue('--color-light-scale-1').trim();
+                const currentLightScale6 = styles.getPropertyValue('--color-light-scale-6').trim();
                 const currentDarkScale1 = styles.getPropertyValue('--color-dark-scale-1').trim();
+                const currentDarkScale6 = styles.getPropertyValue('--color-dark-scale-6').trim();
                 if (currentLightScale1 !== lastLightScale1) {
                     console.log('Polling detected change in --color-light-scale-1:', currentLightScale1);
                     updateColorScales(styles, '--color-light-scale-1');
                     lastLightScale1 = currentLightScale1;
+                } else if (currentLightScale6 !== lastLightScale6) {
+                    console.log('Polling detected change in --color-light-scale-6:', currentLightScale6);
+                    updateColorScales(styles, '--color-light-scale-6');
+                    lastLightScale6 = currentLightScale6;
                 }
                 if (currentDarkScale1 !== lastDarkScale1) {
                     console.log('Polling detected change in --color-dark-scale-1:', currentDarkScale1);
                     updateColorScales(styles, '--color-dark-scale-1');
                     lastDarkScale1 = currentDarkScale1;
+                } else if (currentDarkScale6 !== lastDarkScale6) {
+                    console.log('Polling detected change in --color-dark-scale-6:', currentDarkScale6);
+                    updateColorScales(styles, '--color-dark-scale-6');
+                    lastDarkScale6 = currentDarkScale6;
                 }
             }, 500);
 
