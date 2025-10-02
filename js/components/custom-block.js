@@ -95,8 +95,7 @@ class CustomBlock extends HTMLElement {
             return true;
         }
         try {
-            const basePath = await this.#getBasePath();
-            const fullSrc = url.startsWith('http') ? url : new URL(url.startsWith('/') ? url.slice(1) : url, window.location.origin + basePath).href;
+            const fullSrc = url.startsWith('http') ? url : new URL(url, window.location.origin).href;
             this.#log(`Validating source URL: ${fullSrc}`, { originalUrl: url, elementId: this.id || 'no-id' });
             const res = await fetch(fullSrc, { method: 'HEAD', mode: 'cors' });
             if (!res.ok) throw new Error(`Failed to validate ${url}: ${res.status} ${res.statusText}`);
@@ -201,7 +200,7 @@ class CustomBlock extends HTMLElement {
         } else if (innerShadow) {
             this.#warn('Invalid inner shadow class', { value: innerShadow, element: this.id || 'no-id', validValues: validShadowClasses });
         }
-        const resolvePath = (path) => path ? (path.startsWith('http') ? path : new URL(path.startsWith('/') ? path.slice(1) : path, window.location.origin + basePath).href) : '';
+        const resolvePath = (path) => path ? (path.startsWith('http') ? path : new URL(path, window.location.origin).href) : '';
         const backgroundSrc = resolvePath(this.getAttribute('img-background-src') || '');
         const backgroundLightSrc = resolvePath(this.getAttribute('img-background-light-src') || '');
         const backgroundDarkSrc = resolvePath(this.getAttribute('img-background-dark-src') || '');
@@ -1175,7 +1174,7 @@ class CustomBlock extends HTMLElement {
             let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
             if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
                 const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
-                buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
+                buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonOffset}`;
             }
             if (attrs.buttonIcon && attrs.buttonIconPosition === 'left') {
                 const iconSpan = document.createElement('span');

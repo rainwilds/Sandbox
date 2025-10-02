@@ -72,6 +72,10 @@ window.addEventListener('load', () => {
             const varName = swatch.dataset.varName;
             const value = styles.getPropertyValue(varName).trim();
             if (value) {
+                // Toggle class to force repaint
+                swatch.classList.remove('color-swatch');
+                void swatch.offsetWidth; // Trigger reflow
+                swatch.classList.add('color-swatch');
                 swatch.style.backgroundColor = `var(${varName})`;
                 updateSwatchTextColor(swatch, value);
                 swatch.querySelectorAll('span')[1].textContent = value;
@@ -229,28 +233,45 @@ window.addEventListener('load', () => {
                 palette.appendChild(div);
             });
 
-            // Debounce observer updates
+            // Track last known values for polling
+            let lastLightScale1 = styles.getPropertyValue('--color-light-scale-1').trim();
+            let lastDarkScale1 = styles.getPropertyValue('--color-dark-scale-1').trim();
+
+            // MutationObserver with debouncing
             let debounceTimeout;
             const observer = new MutationObserver((mutations) => {
                 clearTimeout(debounceTimeout);
                 debounceTimeout = setTimeout(() => {
                     const styles = getComputedStyle(root);
+                    const style = root.getAttribute('style') || '';
                     let changedVar = null;
-                    mutations.forEach(mutation => {
-                        if (mutation.attributeName === 'style') {
-                            const style = root.getAttribute('style') || '';
-                            if (style.includes('--color-light-scale-1')) {
-                                changedVar = '--color-light-scale-1';
-                            } else if (style.includes('--color-dark-scale-1')) {
-                                changedVar = '--color-dark-scale-1';
-                            }
-                        }
-                    });
-                    console.log('Style change detected, changed variable:', changedVar);
+                    if (style.includes('--color-light-scale-1')) {
+                        changedVar = '--color-light-scale-1';
+                    } else if (style.includes('--color-dark-scale-1')) {
+                        changedVar = '--color-dark-scale-1';
+                    }
+                    console.log('Style change detected, changed variable:', changedVar, 'Style attribute:', style);
                     updateColorScales(styles, changedVar);
                 }, 100);
             });
             observer.observe(root, { attributes: true, attributeFilter: ['style'] });
+
+            // Polling fallback
+            setInterval(() => {
+                const styles = getComputedStyle(root);
+                const currentLightScale1 = styles.getPropertyValue('--color-light-scale-1').trim();
+                const currentDarkScale1 = styles.getPropertyValue('--color-dark-scale-1').trim();
+                if (currentLightScale1 !== lastLightScale1) {
+                    console.log('Polling detected change in --color-light-scale-1:', currentLightScale1);
+                    updateColorScales(styles, '--color-light-scale-1');
+                    lastLightScale1 = currentLightScale1;
+                }
+                if (currentDarkScale1 !== lastDarkScale1) {
+                    console.log('Polling detected change in --color-dark-scale-1:', currentDarkScale1);
+                    updateColorScales(styles, '--color-dark-scale-1');
+                    lastDarkScale1 = currentDarkScale1;
+                }
+            }, 500);
 
             // Initial scale update
             updateColorScales(styles);
