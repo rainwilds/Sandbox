@@ -3,6 +3,7 @@ import { generatePictureMarkup } from '../image-generator.js';
 import { generateVideoMarkup } from '../video-generator.js';
 import { VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } from '../shared.js';
 import { getConfig } from '../config.js';
+
 class CustomBlock extends HTMLElement {
     #ignoredChangeCount;
     #basePath = null;
@@ -96,10 +97,7 @@ class CustomBlock extends HTMLElement {
         }
         try {
             const basePath = await this.#getBasePath();
-            const normalizedBase = basePath.replace(/^\/+|\/+$/, '');
-            const normalizedUrl = url.replace(/^\/+/, '');
-            let fullPath = normalizedUrl.startsWith(normalizedBase) ? normalizedUrl : normalizedBase + '/' + normalizedUrl;
-            const fullSrc = new URL(fullPath, window.location.origin).href;
+            const fullSrc = url.startsWith('http') ? url : new URL(url.startsWith('/') ? url.slice(1) : url, window.location.origin + basePath).href;
             this.#log(`Validating source URL: ${fullSrc}`, { originalUrl: url, elementId: this.id || 'no-id' });
             const res = await fetch(fullSrc, { method: 'HEAD', mode: 'cors' });
             if (!res.ok) throw new Error(`Failed to validate ${url}: ${res.status} ${res.statusText}`);
@@ -204,14 +202,7 @@ class CustomBlock extends HTMLElement {
         } else if (innerShadow) {
             this.#warn('Invalid inner shadow class', { value: innerShadow, element: this.id || 'no-id', validValues: validShadowClasses });
         }
-        const resolvePath = (path) => {
-            if (!path) return '';
-            if (path.startsWith('http')) return path;
-            const normalizedBase = basePath.replace(/^\/+|\/+$/, '');
-            const normalizedPath = path.replace(/^\/+/, '');
-            const fullPath = normalizedPath.startsWith(normalizedBase) ? normalizedPath : normalizedBase + '/' + normalizedPath;
-            return new URL(fullPath, window.location.origin).href;
-        };
+        const resolvePath = (path) => path ? (path.startsWith('http') ? path : new URL(path.startsWith('/') ? path.slice(1) : path, window.location.origin + basePath).href) : '';
         const backgroundSrc = resolvePath(this.getAttribute('img-background-src') || '');
         const backgroundLightSrc = resolvePath(this.getAttribute('img-background-light-src') || '');
         const backgroundDarkSrc = resolvePath(this.getAttribute('img-background-dark-src') || '');
@@ -654,6 +645,7 @@ class CustomBlock extends HTMLElement {
         this.#log('Callback added', { callbackName: callback.name || 'anonymous', elementId: this.id || 'no-id' });
         this.callbacks.push(callback);
     }
+    // In custom-block.js, replace the render method with this version
     async render(isFallback = false) {
         this.#log(`Starting render ${isFallback ? '(fallback)' : ''}`, { elementId: this.id || 'no-id' });
         let newCriticalAttrsHash;
@@ -1102,7 +1094,7 @@ class CustomBlock extends HTMLElement {
             return blockElement;
         }
         // Render heading, text, and button even if not media-only or button-only
-        this.#log('Rendering content block', { elementId: this.id || 'no-id', hasContent: !!(attrs.heading || attrs.text || attrs.buttonText || attrs.icon) });
+        this.#log('Rendering content block', { elementId: this.id || 'no-id', hasContent: !!(attrs.heading || attrs.text || attrs.buttonText) });
         const innerPaddingClasses = attrs.customClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
         const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-'))];
         if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
@@ -1259,7 +1251,6 @@ class CustomBlock extends HTMLElement {
                             fallbackImg.src = 'https://placehold.co/300x200';
                             fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
                             fallbackImg.style.width = '100%';
-                            fallbackImg.style.aspectRatio = attrs.primaryAspectRatio || '16/9';
                             blockElement.appendChild(fallbackImg);
                             this.#log('Fallback primary image appended', { src: fallbackImg.src });
                         }
@@ -1308,7 +1299,6 @@ class CustomBlock extends HTMLElement {
                     fallbackImg.src = 'https://placehold.co/300x200';
                     fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
                     fallbackImg.style.width = '100%';
-                    fallbackImg.style.aspectRatio = attrs.primaryAspectRatio || '16/9';
                     blockElement.appendChild(fallbackImg);
                     this.#log('Fallback primary image appended', { src: fallbackImg.src });
                 }
@@ -1319,7 +1309,6 @@ class CustomBlock extends HTMLElement {
                 fallbackImg.src = 'https://placehold.co/300x200';
                 fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
                 fallbackImg.style.width = '100%';
-                fallbackImg.style.aspectRatio = attrs.primaryAspectRatio || '16/9';
                 blockElement.appendChild(fallbackImg);
                 this.#log('Fallback primary image appended', { src: fallbackImg.src });
             }
