@@ -68,7 +68,19 @@ window.addEventListener('load', () => {
                 '--color-static-dark-6',
                 '--color-static-light-6',
                 '--color-static-dark-8',
-                '--color-static-light-8'
+                '--color-static-light-8',
+                '--color-light-scale-1',
+                '--color-light-scale-2',
+                '--color-light-scale-3',
+                '--color-light-scale-4',
+                '--color-light-scale-5',
+                '--color-light-scale-6',
+                '--color-dark-scale-1',
+                '--color-dark-scale-2',
+                '--color-dark-scale-3',
+                '--color-dark-scale-4',
+                '--color-dark-scale-5',
+                '--color-dark-scale-6'
             ];
             // Try enumerating all properties
             const allProps = window.getComputedStyle(root);

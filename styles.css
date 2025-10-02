@@ -130,7 +130,7 @@
         --max-width-medium: 40vw;
         --max-width-large: 60vw;
 
-        --color-background-light: #faf9f3;
+        /* --color-background-light: #faf9f3;
         --color-background-dark: #141b32;
 
         --color-accent-light-primary: #cacdd6;
@@ -154,7 +154,42 @@
         --color-static-dark-6: rgba(0, 0, 0, 0.6);
         --color-static-light-6: rgba(255, 255, 255, 0.6);
         --color-static-dark-8: rgba(0, 0, 0, 0.8);
+        --color-static-light-8: rgba(255, 255, 255, 0.8); */
+
+        --color-background-light: #faf9f3;
+        --color-background-dark: #141b32;
+        --color-accent-light-primary: #cacdd6;
+        --color-accent-light-secondary: #ebe8de;
+        --color-accent-dark-primary: #868eaa;
+        --color-accent-dark-secondary: #414f89;
+        --color-accent-opaque-light-primary: rgba(159, 54, 140, 0.2);
+        --color-accent-opaque-light-secondary: rgba(218, 175, 217, 0.2);
+        --color-accent-opaque-dark-primary: rgba(69, 15, 59, 0.5);
+        --color-accent-opaque-dark-secondary: rgba(40, 12, 35, 0.5);
+        --color-static-light: white;
+        --color-static-dark: black;
+        --color-static-dark-1: rgba(0, 0, 0, 0.1);
+        --color-static-light-1: rgba(255, 255, 255, 0.1);
+        --color-static-dark-2: rgba(0, 0, 0, 0.2);
+        --color-static-light-2: rgba(255, 255, 255, 0.2);
+        --color-static-dark-4: rgba(0, 0, 0, 0.4);
+        --color-static-light-4: rgba(255, 255, 255, 0.4);
+        --color-static-dark-6: rgba(0, 0, 0, 0.6);
+        --color-static-light-6: rgba(255, 255, 255, 0.6);
+        --color-static-dark-8: rgba(0, 0, 0, 0.8);
         --color-static-light-8: rgba(255, 255, 255, 0.8);
+        --color-light-scale-1: #cacdd6;
+        --color-light-scale-2: #d5d8e2;
+        --color-light-scale-3: #e0e2eb;
+        --color-light-scale-4: #e8eaf1;
+        --color-light-scale-5: #f0f1f4;
+        --color-light-scale-6: #f8f7f7;
+        --color-dark-scale-1: #868eaa;
+        --color-dark-scale-2: #6f5b8e;
+        --color-dark-scale-3: #584c74;
+        --color-dark-scale-4: #433e5a;
+        --color-dark-scale-5: #2c2b3e;
+        --color-dark-scale-6: #140612;
 
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
@@ -1858,26 +1893,27 @@ div#products {
 
 
 
-        .color-palette {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            padding: 1rem;
-        }
-        .color-swatch {
-            padding: 1rem;
-            border-radius: 8px;
-            text-align: center;
-            min-height: 100px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            font-family: monospace;
-            border: 1px solid rgba(0, 0, 0, 0.1);
-        }
-        .color-swatch span {
-            margin: 0.25rem 0;
-        }
+.color-palette {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.color-swatch {
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-family: monospace;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.color-swatch span {
+    margin: 0.25rem 0;
+}
 
 
 @media (min-width: 1px) {
