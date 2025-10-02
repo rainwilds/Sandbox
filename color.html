@@ -13,7 +13,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chroma-js@2/chroma.min.js"></script>
 
     <script src="js/head-generator.js" type="module"></script>
-
     <script src="js/color-setup.js" defer></script>
 
     <data-custom-head
@@ -23,15 +22,27 @@
         data-canonical="https://rainwilds.github.io/Sandbox/color.html"
         >
     </data-custom-head>
-
 </head>
 
 <body>
-
     <main>
+        <section>
+            <div>
+                <custom-block
+                    heading="Color Picker"
+                    heading-tag="h2"
+                    text="Select colors to update the palette">
+                </custom-block>
+                <div class="color-inputs">
+                    <label>Light Scale 1: <input type="color" id="light-scale-1" value="#6200ea"></label>
+                    <label>Light Scale 6: <input type="color" id="light-scale-6" value="#bb86fc"></label>
+                    <label>Dark Scale 1: <input type="color" id="dark-scale-1" value="#3700b3"></label>
+                    <label>Dark Scale 6: <input type="color" id="dark-scale-6" value="#03dac6"></label>
+                </div>
+            </div>
+        </section>
 
         <section>
-
             <div>
                 <custom-block
                     heading="Blocks"
@@ -40,140 +51,117 @@
             </div>
         </section>
 
-       
+        <section>
+            <div class="grid-container-1">
+                <custom-block
+                    heading="Explore Nature"
+                    heading-tag="h2"
+                    text="Discover breathtaking landscapes."
+                    button-text="Learn More"
+                    button-href="#nature"
+                    button-icon='<i class="fa-chisel fa-regular fa-leaf"></i>'
+                    button-icon-position="left"
+                    button-icon-offset="var(--space-tiny)"
+                    background-overlay="background-overlay-1"
+                    img-background-src="img/primary/tourism-photography-light-1.jpg"
+                    img-background-alt="Nature landscape background"
+                    img-background-position="center"
+                    img-background-mobile-width="100vw"
+                    img-background-tablet-width="80vw"
+                    img-background-desktop-width="1200px"
+                    text-alignment="center"
+                    inner-alignment="center"
+                    inner-class="padding-medium">
+                </custom-block>
 
-<section>
-    <div class="grid-container-1">
-        <!-- Block 1: Background Image with Centered Text and Button -->
-        <custom-block
-            heading="Explore Nature"
-            heading-tag="h2"
-            text="Discover breathtaking landscapes."
-            button-text="Learn More"
-            button-href="#nature"
-            button-icon='<i class="fa-chisel fa-regular fa-leaf"></i>'
-            button-icon-position="left"
-            button-icon-offset="var(--space-tiny)"
-            background-overlay="background-overlay-1"
-            img-background-src="img/primary/tourism-photography-light-1.jpg"
-            img-background-alt="Nature landscape background"
-            img-background-position="center"
-            img-background-mobile-width="100vw"
-            img-background-tablet-width="80vw"
-            img-background-desktop-width="1200px"
-            text-alignment="center"
-            inner-alignment="center"
-            inner-class="padding-medium">
-        </custom-block>
-
-        <!-- Block 2: Video Background with Right-Aligned Content -->
-        <custom-block
-            heading="Adventure Awaits"
-            heading-tag="h3"
-            text="Thrilling adventures with video."
-            button-text="Join Now"
-            button-href="#adventure"
-            button-icon='<i class="fa-chisel fa-regular fa-compass"></i>'
-            button-icon-position="right"
-            button-icon-offset="var(--space-tiny)"
-            background-overlay="background-overlay-2"
-            background-gradient="background-gradient-1"
-            video-background-src="video/video1.mp4"
-            video-background-poster="img/primary/tourism-photography-dark-1.jpg"
-            video-background-alt="Adventure video background"
-            video-background-autoplay
-            video-background-muted
-            video-background-loop
-            text-alignment="right"
-            inner-alignment="right"
-            inner-shadow="shadow-medium"
-            inner-class="padding-small">
-        </custom-block>
-
-      
-</section>
+                <custom-block
+                    heading="Adventure Awaits"
+                    heading-tag="h3"
+                    text="Thrilling adventures with video."
+                    button-text="Join Now"
+                    button-href="#adventure"
+                    button-icon='<i class="fa-chisel fa-regular fa-compass"></i>'
+                    button-icon-position="right"
+                    button-icon-offset="var(--space-tiny)"
+                    background-overlay="background-overlay-2"
+                    background-gradient="background-gradient-1"
+                    video-background-src="video/video1.mp4"
+                    video-background-poster="img/primary/tourism-photography-dark-1.jpg"
+                    video-background-alt="Adventure video background"
+                    video-background-autoplay
+                    video-background-muted
+                    video-background-loop
+                    text-alignment="right"
+                    inner-alignment="right"
+                    inner-shadow="shadow-medium"
+                    inner-class="padding-small">
+                </custom-block>
+            </div>
+        </section>
 
         <section>
-
             <div>
-
-                                    <custom-block
-                        heading="Color Background"
-                        heading-tag="h3"
-                        >
-                    </custom-block>
+                <custom-block
+                    heading="Color Background"
+                    heading-tag="h3">
+                </custom-block>
                 <div class="color-palette" id="color-background"></div>
             </div>
- </section> 
-<section>
+        </section>
+        <section>
             <div>
-
-                                    <custom-block
-                        heading="Color Accent Light"
-                        heading-tag="h3"
-                        >
-                    </custom-block>
+                <custom-block
+                    heading="Color Accent Light"
+                    heading-tag="h3">
+                </custom-block>
                 <div class="color-palette" id="color-accent-light"></div>
             </div>
- </section> 
-<section>
+        </section>
+        <section>
             <div>
-
-                                    <custom-block
-                        heading="Color Accent Dark"
-                        heading-tag="h3"
-                        >
-                    </custom-block>
+                <custom-block
+                    heading="Color Accent Dark"
+                    heading-tag="h3">
+                </custom-block>
                 <div class="color-palette" id="color-accent-dark"></div>
             </div>
- </section> 
-<section>
+        </section>
+        <section>
             <div>
-
-                                    <custom-block
-                        heading="Color Accent Opaque Light"
-                        heading-tag="h3"
-                        >
-                    </custom-block>
+                <custom-block
+                    heading="Color Accent Opaque Light"
+                    heading-tag="h3">
+                </custom-block>
                 <div class="color-palette" id="color-accent-opaque-light"></div>
             </div>
- </section> 
-            <section>
+        </section>
+        <section>
             <div>
-
-                                    <custom-block
-                        heading="Color Accent Opaque Dark"
-                        heading-tag="h3"
-                        >
-                    </custom-block>
+                <custom-block
+                    heading="Color Accent Opaque Dark"
+                    heading-tag="h3">
+                </custom-block>
                 <div class="color-palette" id="color-accent-opaque-dark"></div>
             </div>
- </section> 
-<section>
+        </section>
+        <section>
             <div>
- 
-                                    <custom-block
-                        heading="Color Static Light"
-                        heading-tag="h3"
-                        >
-                    </custom-block>
+                <custom-block
+                    heading="Color Static Light"
+                    heading-tag="h3">
+                </custom-block>
                 <div class="color-palette" id="color-static-light"></div>
             </div>
- </section> 
-<section>
+        </section>
+        <section>
             <div>
-          
-                                    <custom-block
-                        heading="Color Static Dark"
-                        heading-tag="h3"
-                        >
-                    </custom-block>
+                <custom-block
+                    heading="Color Static Dark"
+                    heading-tag="h3">
+                </custom-block>
                 <div class="color-palette" id="color-static-dark"></div>
             </div>
-       
-             </section>        
-    
+        </section>
     </main>
-
 </body>
 </html>
