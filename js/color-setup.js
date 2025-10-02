@@ -18,6 +18,10 @@ window.addEventListener('load', () => {
             gap: 10px;
             font-size: 16px;
         }
+        .color-inputs input[type="color"] {
+            padding: 0;
+            height: 50px;
+        }
     `;
     document.head.appendChild(style);
 
@@ -67,24 +71,32 @@ window.addEventListener('load', () => {
         const darkPrimary = styles.getPropertyValue('--color-dark-scale-1').trim() || '#868eaa';
         const darkSecondary = styles.getPropertyValue('--color-dark-scale-6').trim() || '#140612';
 
-        if ((changedVar === '--color-light-scale-1' || changedVar === '--color-light-scale-6') && lightPrimary && lightSecondary) {
-            const startColor = changedVar === '--color-light-scale-6' ? lightSecondary : lightPrimary;
-            const endColor = changedVar === '--color-light-scale-6' ? lightPrimary : lightSecondary;
-            const lightScale = chroma.scale([startColor, endColor]).mode('lch').colors(6);
-            for (let i = 1; i <= 6; i++) {
+        if (changedVar === '--color-light-scale-1' && lightPrimary && lightSecondary) {
+            const lightScale = chroma.scale([lightPrimary, lightSecondary]).mode('lch').colors(6);
+            for (let i = 2; i <= 5; i++) {
                 root.style.setProperty(`--color-light-scale-${i}`, lightScale[i - 1]);
             }
-            console.log('Updated light scale:', lightScale);
+            console.log('Updated light scale (1 changed):', lightScale);
+        } else if (changedVar === '--color-light-scale-6' && lightPrimary && lightSecondary) {
+            const lightScale = chroma.scale([lightPrimary, lightSecondary]).mode('lch').colors(6);
+            for (let i = 2; i <= 5; i++) {
+                root.style.setProperty(`--color-light-scale-${i}`, lightScale[i - 1]);
+            }
+            console.log('Updated light scale (6 changed):', lightScale);
         }
 
-        if ((changedVar === '--color-dark-scale-1' || changedVar === '--color-dark-scale-6') && darkPrimary && darkSecondary) {
-            const startColor = changedVar === '--color-dark-scale-6' ? darkSecondary : darkPrimary;
-            const endColor = changedVar === '--color-dark-scale-6' ? darkPrimary : darkSecondary;
-            const darkScale = chroma.scale([startColor, endColor]).mode('lch').colors(6);
-            for (let i = 1; i <= 6; i++) {
+        if (changedVar === '--color-dark-scale-1' && darkPrimary && darkSecondary) {
+            const darkScale = chroma.scale([darkPrimary, darkSecondary]).mode('lch').colors(6);
+            for (let i = 2; i <= 5; i++) {
                 root.style.setProperty(`--color-dark-scale-${i}`, darkScale[i - 1]);
             }
-            console.log('Updated dark scale:', darkScale);
+            console.log('Updated dark scale (1 changed):', darkScale);
+        } else if (changedVar === '--color-dark-scale-6' && darkPrimary && darkSecondary) {
+            const darkScale = chroma.scale([darkPrimary, darkSecondary]).mode('lch').colors(6);
+            for (let i = 2; i <= 5; i++) {
+                root.style.setProperty(`--color-dark-scale-${i}`, darkScale[i - 1]);
+            }
+            console.log('Updated dark scale (6 changed):', darkScale);
         }
 
         document.querySelectorAll('.color-swatch').forEach(swatch => {
@@ -245,27 +257,6 @@ window.addEventListener('load', () => {
         // Initial scale update
         updateColorScales(styles);
     }
-
-    // Set up color input listeners
-    const colorInputs = {
-        'light-scale-1': document.getElementById('light-scale-1'),
-        'light-scale-6': document.getElementById('light-scale-6'),
-        'dark-scale-1': document.getElementById('dark-scale-1'),
-        'dark-scale-6': document.getElementById('dark-scale-6')
-    };
-
-    Object.entries(colorInputs).forEach(([key, input]) => {
-        if (input) {
-            input.addEventListener('input', () => {
-                const varName = `--color-${key}`;
-                root.style.setProperty(varName, input.value);
-                console.log(`Updated ${varName} to ${input.value}`);
-                updateColorScales(getComputedStyle(root), varName);
-            });
-        } else {
-            console.warn(`Color input for ${key} not found`);
-        }
-    });
 
     // Wait for styles.css before initializing
     waitForStylesheet('styles.css', initializeColorPalette);
