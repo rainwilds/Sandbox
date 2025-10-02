@@ -43,13 +43,13 @@ window.addEventListener('load', () => {
         }
     }
 
-    function updateColorScales(styles) {
+    function updateColorScales(styles, changedVar = null) {
         const lightPrimary = styles.getPropertyValue('--color-light-scale-1').trim();
         const lightSecondary = styles.getPropertyValue('--color-accent-opaque-light-secondary').trim();
         const darkPrimary = styles.getPropertyValue('--color-dark-scale-1').trim();
         const darkSecondary = styles.getPropertyValue('--color-accent-opaque-dark-secondary').trim();
 
-        if (lightPrimary && lightSecondary) {
+        if (changedVar === '--color-light-scale-1' && lightPrimary && lightSecondary) {
             const lightSecondarySolid = blendRgbaWithBackground(lightSecondary, '#ffffff');
             const lightScale = chroma.scale([lightPrimary, lightSecondarySolid]).mode('lch').colors(6);
             for (let i = 2; i <= 6; i++) {
@@ -58,7 +58,7 @@ window.addEventListener('load', () => {
             console.log('Updated light scale:', lightScale);
         }
 
-        if (darkPrimary && darkSecondary) {
+        if (changedVar === '--color-dark-scale-1' && darkPrimary && darkSecondary) {
             const darkSecondarySolid = blendRgbaWithBackground(darkSecondary, '#000000');
             const darkScale = chroma.scale([darkPrimary, darkSecondarySolid]).mode('lch').colors(6);
             for (let i = 2; i <= 6; i++) {
@@ -66,6 +66,17 @@ window.addEventListener('load', () => {
             }
             console.log('Updated dark scale:', darkScale);
         }
+
+        // Force swatch updates
+        document.querySelectorAll('.color-swatch').forEach(swatch => {
+            const varName = swatch.dataset.varName;
+            const value = styles.getPropertyValue(varName).trim();
+            if (value) {
+                swatch.style.backgroundColor = `var(${varName})`;
+                updateSwatchTextColor(swatch, value);
+                swatch.querySelectorAll('span')[1].textContent = value;
+            }
+        });
     }
 
     function waitForStylesheet(href, callback, timeout = 10000) {
@@ -218,18 +229,26 @@ window.addEventListener('load', () => {
                 palette.appendChild(div);
             });
 
-            // Observe style changes on :root
-            const observer = new MutationObserver(() => {
-                const styles = getComputedStyle(root);
-                updateColorScales(styles); // Regenerate scales if needed
-                document.querySelectorAll('.color-swatch').forEach(swatch => {
-                    const varName = swatch.dataset.varName;
-                    const value = styles.getPropertyValue(varName).trim();
-                    if (value) {
-                        updateSwatchTextColor(swatch, value);
-                        swatch.querySelectorAll('span')[1].textContent = value;
-                    }
-                });
+            // Debounce observer updates
+            let debounceTimeout;
+            const observer = new MutationObserver((mutations) => {
+                clearTimeout(debounceTimeout);
+                debounceTimeout = setTimeout(() => {
+                    const styles = getComputedStyle(root);
+                    let changedVar = null;
+                    mutations.forEach(mutation => {
+                        if (mutation.attributeName === 'style') {
+                            const style = root.getAttribute('style') || '';
+                            if (style.includes('--color-light-scale-1')) {
+                                changedVar = '--color-light-scale-1';
+                            } else if (style.includes('--color-dark-scale-1')) {
+                                changedVar = '--color-dark-scale-1';
+                            }
+                        }
+                    });
+                    console.log('Style change detected, changed variable:', changedVar);
+                    updateColorScales(styles, changedVar);
+                }, 100);
             });
             observer.observe(root, { attributes: true, attributeFilter: ['style'] });
 
