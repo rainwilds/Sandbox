@@ -114,7 +114,7 @@ async function loadComponents(componentList) {
     return [];
   }
   logger.log('Loading requested components', { components: componentList });
-  const components = componentList.split(',').map(c => c.trim()).filter(c => c); // Split on commas
+  const components = componentList.split(/\s+/).map(c => c.trim()).filter(c => c);
   const loadPromises = components.map(component =>
     loadComponentWithDependencies(component).catch(err => {
       logger.error(`Failed to load component ${component}`, { error: err.message, stack: err.stack });
