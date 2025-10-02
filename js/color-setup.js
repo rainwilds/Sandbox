@@ -17,6 +17,20 @@ window.addEventListener('load', () => {
         return isRgba || parts.length === 4 ? `rgba(${r},${g},${b},${a})` : `rgb(${r},${g},${b})`;
     }
 
+    function updateSwatchTextColor(swatch, colorValue) {
+        try {
+            const value = normalizeCssColor(colorValue);
+            if (chroma.valid(value)) {
+                const color = chroma(value);
+                const textColor = color.luminance() > 0.5 ? 'black' : 'white';
+                const spans = swatch.querySelectorAll('span');
+                spans.forEach(span => span.style.color = textColor);
+            }
+        } catch (e) {
+            console.error(`Error processing color: ${colorValue}`, e);
+        }
+    }
+
     function waitForStylesheet(href, callback, timeout = 10000) {
         const start = Date.now();
         const check = () => {
@@ -104,39 +118,81 @@ window.addEventListener('load', () => {
             console.log('Number of color vars: ' + colorVars.length);
             console.log(colorVars);
 
-            const palette = document.getElementById('color-palette');
-            if (palette) {
-                colorVars.forEach(varName => {
-                    let value = styles.getPropertyValue(varName).trim();
-                    if (!value) {
-                        console.warn(`Skipping ${varName}, empty value`);
-                        return;
+            const groups = {
+                'color-background': document.getElementById('color-background'),
+                'color-accent-light': document.getElementById('color-accent-light'),
+                'color-accent-dark': document.getElementById('color-accent-dark'),
+                'color-accent-opaque-light': document.getElementById('color-accent-opaque-light'),
+                'color-accent-opaque-dark': document.getElementById('color-accent-opaque-dark'),
+                'color-static-light': document.getElementById('color-static-light'),
+                'color-static-dark': document.getElementById('color-static-dark')
+            };
+
+            colorVars.forEach(varName => {
+                let groupKey = '';
+                if (varName.includes('background')) {
+                    groupKey = 'color-background';
+                } else if (varName.includes('accent-light') && !varName.includes('opaque')) {
+                    groupKey = 'color-accent-light';
+                } else if (varName.includes('accent-dark') && !varName.includes('opaque')) {
+                    groupKey = 'color-accent-dark';
+                } else if (varName.includes('accent-opaque-light')) {
+                    groupKey = 'color-accent-opaque-light';
+                } else if (varName.includes('accent-opaque-dark')) {
+                    groupKey = 'color-accent-opaque-dark';
+                } else if (varName.includes('static-light')) {
+                    groupKey = 'color-static-light';
+                } else if (varName.includes('static-dark')) {
+                    groupKey = 'color-static-dark';
+                } else if (varName.includes('light-scale')) {
+                    groupKey = 'color-accent-light';
+                } else if (varName.includes('dark-scale')) {
+                    groupKey = 'color-accent-dark';
+                }
+
+                const palette = groups[groupKey];
+                if (!palette) {
+                    console.warn(`No palette found for ${varName}`);
+                    return;
+                }
+
+                const value = styles.getPropertyValue(varName).trim();
+                if (!value) {
+                    console.warn(`Skipping ${varName}, empty value`);
+                    return;
+                }
+
+                const div = document.createElement('div');
+                div.className = 'color-swatch';
+                div.style.backgroundColor = `var(${varName})`;
+                div.dataset.varName = varName; // Store for observer
+
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = varName;
+
+                const valueSpan = document.createElement('span');
+                valueSpan.textContent = value;
+
+                div.appendChild(nameSpan);
+                div.appendChild(valueSpan);
+
+                updateSwatchTextColor(div, value);
+                palette.appendChild(div);
+            });
+
+            // Observe style changes on :root
+            const observer = new MutationObserver(() => {
+                const styles = getComputedStyle(root);
+                document.querySelectorAll('.color-swatch').forEach(swatch => {
+                    const varName = swatch.dataset.varName;
+                    const value = styles.getPropertyValue(varName).trim();
+                    if (value) {
+                        updateSwatchTextColor(swatch, value);
+                        swatch.querySelectorAll('span')[1].textContent = value; // Update displayed value
                     }
-                    const div = document.createElement('div');
-                    div.className = 'color-swatch';
-                    div.style.backgroundColor = value;
-                    const nameSpan = document.createElement('span');
-                    nameSpan.textContent = varName;
-                    const valueSpan = document.createElement('span');
-                    valueSpan.textContent = value;
-                    div.appendChild(nameSpan);
-                    div.appendChild(valueSpan);
-                    try {
-                        value = normalizeCssColor(value);
-                        if (chroma.valid(value)) {
-                            const color = chroma(value);
-                            const textColor = color.luminance() > 0.5 ? 'black' : 'white';
-                            nameSpan.style.color = textColor;
-                            valueSpan.style.color = textColor;
-                        }
-                    } catch (e) {
-                        console.error(`Error processing ${varName}: ${value}`, e);
-                    }
-                    palette.appendChild(div);
                 });
-            } else {
-                console.error('Color palette container not found');
-            }
+            });
+            observer.observe(root, { attributes: true, attributeFilter: ['style'] });
         }, 500);
     });
 });
