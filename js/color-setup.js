@@ -1,45 +1,56 @@
-window.addEventListener('load', () => {
+let isInitialized = false;
+
+function setupColorPalette() {
+    if (isInitialized) {
+        console.log('Color palette already initialized, skipping');
+        return;
+    }
+    isInitialized = true;
+
     console.log('Load event fired');
 
     const root = document.documentElement;
 
-    // Add styles for color inputs, swatches, and copy button
-    const style = document.createElement('style');
-    style.textContent = `
-        .color-inputs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 20px;
-            margin: 20px 0;
-        }
-        .color-inputs label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 16px;
-        }
-        .color-inputs input[type="color"] {
-            padding: 0;
-            height: 50px;
-        }
-        .color-inputs button {
-            padding: 10px 20px;
-            font-size: 16px;
-            cursor: pointer;
-            background-color: #f0f0f0;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        .color-inputs button:hover {
-            background-color: #e0e0e0;
-        }
-        .color-swatch span {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-    `;
-    document.head.appendChild(style);
+    // Add styles for color inputs, swatches, and copy button only if not already present
+    if (!document.querySelector('style[data-color-setup]')) {
+        const style = document.createElement('style');
+        style.setAttribute('data-color-setup', 'true');
+        style.textContent = `
+            .color-inputs {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 20px;
+                margin: 20px 0;
+            }
+            .color-inputs label {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 16px;
+            }
+            .color-inputs input[type="color"] {
+                padding: 0;
+                height: 50px;
+            }
+            .color-inputs button {
+                padding: 10px 20px;
+                font-size: 16px;
+                cursor: pointer;
+                background-color: #f0f0f0;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
+            .color-inputs button:hover {
+                background-color: #e0e0e0;
+            }
+            .color-swatch span {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        `;
+        document.head.appendChild(style);
+    }
 
     function normalizeCssColor(str) {
         str = str.trim();
@@ -258,10 +269,10 @@ window.addEventListener('load', () => {
         console.log('Detected color variables:', colorVars);
 
         // Set initial input values to match CSS variables
-        const lightScale1 = styles.getPropertyValue('--color-light-scale-1').trim() || '#cacdd6';
-        const lightScale6 = styles.getPropertyValue('--color-light-scale-6').trim() || '#f8f7f7';
-        const darkScale1 = styles.getPropertyValue('--color-dark-scale-1').trim() || '#868eaa';
-        const darkScale6 = styles.getPropertyValue('--color-dark-scale-6').trim() || '#140612';
+        const lightScale1 = updatedStyles.getPropertyValue('--color-light-scale-1').trim() || '#cacdd6';
+        const lightScale6 = updatedStyles.getPropertyValue('--color-light-scale-6').trim() || '#f8f7f7';
+        const darkScale1 = updatedStyles.getPropertyValue('--color-dark-scale-1').trim() || '#868eaa';
+        const darkScale6 = updatedStyles.getPropertyValue('--color-dark-scale-6').trim() || '#140612';
 
         document.getElementById('light-scale-1').value = lightScale1;
         document.getElementById('light-scale-6').value = lightScale6;
@@ -277,6 +288,11 @@ window.addEventListener('load', () => {
             'color-static-light': document.getElementById('color-static-light'),
             'color-static-dark': document.getElementById('color-static-dark')
         };
+
+        // Clear existing swatches to prevent duplicates
+        Object.values(groups).forEach(palette => {
+            if (palette) palette.innerHTML = '';
+        });
 
         colorVars.forEach(varName => {
             let groupKey = '';
@@ -407,4 +423,8 @@ window.addEventListener('load', () => {
 
     // Wait for styles.css before initializing
     waitForStylesheet('styles.css', initializeColorPalette);
-});
+}
+
+// Remove any existing load listeners to prevent duplicates
+window.removeEventListener('load', setupColorPalette);
+window.addEventListener('load', setupColorPalette);
