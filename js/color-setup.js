@@ -167,7 +167,7 @@ window.addEventListener('load', () => {
             '--color-light-scale-6',
             '--color-dark-scale-1',
             '--color-dark-scale-2',
-            '--color-light-scale-3',
+            '--color-dark-scale-3',
             '--color-dark-scale-4',
             '--color-dark-scale-5',
             '--color-dark-scale-6'
