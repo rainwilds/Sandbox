@@ -3,7 +3,7 @@ window.addEventListener('load', () => {
 
     const root = document.documentElement;
 
-    // Add styles for color inputs (not in styles.css)
+    // Add styles for color inputs and swatches
     const style = document.createElement('style');
     style.textContent = `
         .color-inputs {
@@ -21,6 +21,11 @@ window.addEventListener('load', () => {
         .color-inputs input[type="color"] {
             padding: 0;
             height: 50px;
+        }
+        .color-swatch span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     `;
     document.head.appendChild(style);
@@ -168,10 +173,6 @@ window.addEventListener('load', () => {
         const knownColorVars = [
             '--color-background-light',
             '--color-background-dark',
-            '--color-accent-opaque-light-primary',
-            '--color-accent-opaque-light-secondary',
-            '--color-accent-opaque-dark-primary',
-            '--color-accent-opaque-dark-secondary',
             '--color-static-light',
             '--color-static-dark',
             '--color-static-dark-1',
@@ -274,9 +275,9 @@ window.addEventListener('load', () => {
                 groupKey = 'color-accent-light';
             } else if (varName.includes('accent-dark') && !varName.includes('opaque')) {
                 groupKey = 'color-accent-dark';
-            } else if (varName.includes('accent-opaque-light-scale') || varName.includes('accent-opaque-light-primary') || varName.includes('accent-opaque-light-secondary')) {
+            } else if (varName.includes('accent-opaque-light')) {
                 groupKey = 'color-accent-opaque-light';
-            } else if (varName.includes('accent-opaque-dark-scale') || varName.includes('accent-opaque-dark-primary') || varName.includes('accent-opaque-dark-secondary')) {
+            } else if (varName.includes('accent-opaque-dark')) {
                 groupKey = 'color-accent-opaque-dark';
             } else if (varName.includes('static-light')) {
                 groupKey = 'color-static-light';
