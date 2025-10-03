@@ -130,18 +130,18 @@
         --max-width-medium: 40vw;
         --max-width-large: 60vw;
 
-        /* --color-background-light: #faf9f3;
-        --color-background-dark: #141b32;
+        /* --color-light-scale-: #faf9f3;
+        --color-dark-scale-6: #141b32;
 
-        --color-accent-light-primary: #cacdd6;
-        --color-accent-light-secondary: #ebe8de;
-        --color-accent-dark-primary: #868eaa;
-        --color-accent-dark-secondary: #414f89;
+        --color-light-scale-1: #cacdd6;
+        --color-light-scale-3: #ebe8de;
+        --color-dark-scale-1: #868eaa;
+        --color-dark-scale-3: #414f89;
 
-        --color-accent-opaque-light-primary: rgba(159, 54, 140, 0.2);
-        --color-accent-opaque-light-secondary: rgba(218, 175, 217, 0.2);
-        --color-accent-opaque-dark-primary: rgba(69, 15, 59, 0.5);
-        --color-accent-opaque-dark-secondary: rgba(40, 12, 35, 0.5);
+        --color-accent-opaque-light-scale-1: rgba(159, 54, 140, 0.2);
+        --color-accent-opaque-light-scale-3: rgba(218, 175, 217, 0.2);
+        --color-accent-opaque-dark-scale-1: rgba(69, 15, 59, 0.5);
+        --color-accent-opaque-dark-scale-3: rgba(40, 12, 35, 0.5);
 
         --color-static-light: white;
         --color-static-dark: black;
@@ -156,16 +156,20 @@
         --color-static-dark-8: rgba(0, 0, 0, 0.8);
         --color-static-light-8: rgba(255, 255, 255, 0.8); */
 
-        --color-background-light: #faf9f3;
-        --color-background-dark: #141b32;
-        --color-accent-light-primary: #cacdd6;
-        --color-accent-light-secondary: #ebe8de;
-        --color-accent-dark-primary: #868eaa;
-        --color-accent-dark-secondary: #414f89;
-        --color-accent-opaque-light-primary: rgba(159, 54, 140, 0.2);
-        --color-accent-opaque-light-secondary: rgba(218, 175, 217, 0.2);
-        --color-accent-opaque-dark-primary: rgba(69, 15, 59, 0.5);
-        --color-accent-opaque-dark-secondary: rgba(40, 12, 35, 0.5);
+       
+   
+
+        
+        
+
+     
+    
+
+    
+       
+        
+     
+
         --color-static-light: white;
         --color-static-dark: black;
         --color-static-dark-1: rgba(0, 0, 0, 0.1);
@@ -178,18 +182,46 @@
         --color-static-light-6: rgba(255, 255, 255, 0.6);
         --color-static-dark-8: rgba(0, 0, 0, 0.8);
         --color-static-light-8: rgba(255, 255, 255, 0.8);
-        --color-light-scale-1: #cacdd6;
-        --color-light-scale-2: #d5d8e2;
-        --color-light-scale-3: #e0e2eb;
-        --color-light-scale-4: #e8eaf1;
-        --color-light-scale-5: #f0f1f4;
-        --color-light-scale-6: #f8f7f7;
-        --color-dark-scale-1: #868eaa;
-        --color-dark-scale-2: #6f5b8e;
-        --color-dark-scale-3: #584c74;
-        --color-dark-scale-4: #433e5a;
-        --color-dark-scale-5: #2c2b3e;
+
+
+
+
+
+
+
+        --color-light-scale-1: #164ae3;
+        --color-light-scale-2: #984ecd;
+        --color-light-scale-3: #c762bb;
+        --color-light-scale-4: #de81b1;
+        --color-light-scale-5: #e7a4b4;
+        --color-light-scale-6: #e4c8c8;
+
+        --color-dark-scale-1: #492c03;
+        --color-dark-scale-2: #46200d;
+        --color-dark-scale-3: #3d1815;
+        --color-dark-scale-4: #311218;
+        --color-dark-scale-5: #220e18;
         --color-dark-scale-6: #140612;
+
+        --color-accent-opaque-light-scale-1: rgba(22,74,227,0.2);
+        --color-accent-opaque-light-scale-2: rgba(152,78,205,0.2);
+        --color-accent-opaque-light-scale-3: rgba(199,98,187,0.2);
+        --color-accent-opaque-light-scale-4: rgba(222,129,177,0.2);
+        --color-accent-opaque-light-scale-5: rgba(231,164,180,0.2);
+        --color-accent-opaque-light-scale-6: rgba(228,200,200,0.2);
+
+        --color-accent-opaque-dark-scale-1: rgba(73,44,3,0.5);
+        --color-accent-opaque-dark-scale-2: rgba(70,32,13,0.5);
+        --color-accent-opaque-dark-scale-3: rgba(61,24,21,0.5);
+        --color-accent-opaque-dark-scale-4: rgba(49,18,24,0.5);
+        --color-accent-opaque-dark-scale-5: rgba(34,14,24,0.5);
+        --color-accent-opaque-dark-scale-6: rgba(20,6,18,0.5);
+
+        
+
+        
+
+
 
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
@@ -261,22 +293,22 @@
 
 
 
-        color: light-dark(var(--color-background-dark), var(--color-accent-light-secondary));
+        color: light-dark(var(--color-dark-scale-6), var(--color-light-scale-3));
 
         .color-invert {
-            color: light-dark(var(--color-accent-light-secondary), var(--color-background-dark));
+            color: light-dark(var(--color-light-scale-3), var(--color-dark-scale-6));
         }
 
         .background-color-1 {
-            background-color: light-dark(var(--color-background-dark), var(--color-background-light));
+            background-color: light-dark(var(--color-dark-scale-6), var(--color-light-scale-));
         }
 
         .background-color-2 {
-            background-color: light-dark(var(--color-accent-dark-secondary), var(--color-accent-light-secondary));
+            background-color: light-dark(var(--color-dark-scale-3), var(--color-light-scale-3));
         }
 
         .background-color-3 {
-            background-color: light-dark(var(--color-accent-opaque-dark-primary), var(--color-accent-opaque-light-primary));
+            background-color: light-dark(var(--color-accent-opaque-dark-scale-1), var(--color-accent-opaque-light-scale-1));
         }
 
         .background-overlay-1 {
@@ -294,7 +326,7 @@
 
         .background-gradient-1 {
 
-            background-image: linear-gradient(180deg, transparent 0%, var(--color-background-dark) 100%);
+            background-image: linear-gradient(180deg, transparent 0%, var(--color-dark-scale-6) 100%);
 
         }
 
@@ -313,13 +345,13 @@
         }
 
         .shadow-light {
-            /* box-shadow: 0 2px 4px light-dark(var(--color-background-dark), var(--color-accent-light-secondary)); */
+            /* box-shadow: 0 2px 4px light-dark(var(--color-dark-scale-6), var(--color-light-scale-3)); */
             box-shadow:
                 0.5px 1px 1px rgba(65, 79, 137, 0.7);
         }
 
         .shadow-medium {
-            /* box-shadow: 0 4px 8px light-dark(var(--color-background-dark), var(--color-accent-light-secondary)); */
+            /* box-shadow: 0 4px 8px light-dark(var(--color-dark-scale-6), var(--color-light-scale-3)); */
             box-shadow:
                 1px 2px 2px rgba(65, 79, 137, 0.33),
                 2px 4px 4px rgba(65, 79, 137, 0.33),
@@ -327,7 +359,7 @@
         }
 
         .shadow-heavy {
-            /* box-shadow: 0 8px 16px light-dark(var(--color-background-dark), var(--color-accent-light-secondary)); */
+            /* box-shadow: 0 8px 16px light-dark(var(--color-dark-scale-6), var(--color-light-scale-3)); */
             box-shadow:
                 1px 2px 2px rgba(65, 79, 137, 0.2),
                 2px 4px 4px rgba(65, 79, 137, 0.2),
@@ -354,21 +386,21 @@
         /* font-weight: var(--font-2-weight-light); */
         /* font-style: normal; */
 
-        /* --background-pattern-1: repeating-linear-gradient(to right, var(--color-accent-opaque-light-primary), var(--color-accent-opaque-light-primary) 10px, transparent 10px, transparent); */
+        /* --background-pattern-1: repeating-linear-gradient(to right, var(--color-accent-opaque-light-scale-1), var(--color-accent-opaque-light-scale-1) 10px, transparent 10px, transparent); */
         /* --background-pattern-1-size: 32px 32px; PLACEHOLDER */
 
 
 
         .border-small {
-            border: solid var(--border-size-small) light-dark(var(--color-background-dark), var(--color-accent-light-secondary));
+            border: solid var(--border-size-small) light-dark(var(--color-dark-scale-6), var(--color-light-scale-3));
         }
 
         .border-medium {
-            border: solid var(--border-size-medium) light-dark(var(--color-background-dark), var(--color-accent-light-secondary));
+            border: solid var(--border-size-medium) light-dark(var(--color-dark-scale-6), var(--color-light-scale-3));
         }
 
         .border-large {
-            border: solid var(--border-size-large) light-dark(var(--color-background-dark), var(--color-accent-light-secondary));
+            border: solid var(--border-size-large) light-dark(var(--color-dark-scale-6), var(--color-light-scale-3));
         }
 
         .border-radius-small {
@@ -458,15 +490,15 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-secondary));
+            background: light-dark(var(--color-dark-scale-1), var(--color-light-scale-3));
         }
 
         ::-webkit-scrollbar-thumb {
-            background: light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-primary));
+            background: light-dark(var(--color-light-scale-3), var(--color-dark-scale-1));
         }
 
         @supports selector(scrollbar-color) {
-            scrollbar-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-secondary)) light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-primary));
+            scrollbar-color: light-dark(var(--color-dark-scale-1), var(--color-light-scale-3)) light-dark(var(--color-light-scale-3), var(--color-dark-scale-1));
         }
 
         ::-webkit-scrollbar {
@@ -700,7 +732,7 @@
 
         a:any-link {
 
-            color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-secondary));
+            color: light-dark(var(--color-dark-scale-1), var(--color-light-scale-3));
             /* text-decoration: none; */
             /* text-underline-offset: -0.4rem; */
 
@@ -720,10 +752,10 @@
         input,
         select,
         textarea {
-            background-color: light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-secondary));
+            background-color: light-dark(var(--color-light-scale-3), var(--color-dark-scale-3));
             padding: var(--space-tiny);
             border: solid 1px;
-            border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+            border-color: light-dark(var(--color-dark-scale-1), var(--color-light-scale-1));
             /* border-radius: var(--border-radius-small); PLACEHOLDER */
             background-size: 32px 32px;
         }
@@ -739,7 +771,7 @@
             padding: calc(var(--space-tiny)/2) var(--space-tiny);
 
             &:hover {
-                background-color: light-dark(var(--color-accent-light-primary), var(--color-accent-light-secondary));
+                background-color: light-dark(var(--color-light-scale-1), var(--color-light-scale-3));
                 transition: all 0.4s;
                 color: light-dark(var(--color-static-light-8), var(--color-static-dark-8));
             }
@@ -827,7 +859,7 @@
         blockquote {
 
             font-size: var(--font-2-size-large);
-            background-color: light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-secondary));
+            background-color: light-dark(var(--color-light-scale-3), var(--color-dark-scale-3));
             padding: var(--space-medium);
 
             >p {
@@ -839,7 +871,7 @@
         i:has(+blockquote) {
             font-size: 3rem;
             position: absolute;
-            color: light-dark(var(--color-accent-opaque-dark-primary), var(--color-accent-opaque-light-secondary));
+            color: light-dark(var(--color-accent-opaque-dark-scale-1), var(--color-accent-opaque-light-scale-3));
         }
 
         img,
@@ -860,7 +892,7 @@
         /* body {
 
             display: grid;
-            background-color: light-dark(var(--color-background-light), var(--color-background-dark));
+            background-color: light-dark(var(--color-light-scale-), var(--color-dark-scale-6));
 
             @media (min-width: 550px) and (max-width: 980px) and (orientation: landscape) {
 
@@ -927,7 +959,7 @@
         body {
 
             display: grid;
-            background-color: light-dark(var(--color-background-light), var(--color-background-dark));
+            background-color: light-dark(var(--color-light-scale-), var(--color-dark-scale-6));
 
             @media (min-width: 550px) and (max-width: 980px) and (orientation: landscape) {
 
@@ -1052,7 +1084,7 @@
             backdrop-filter: var(--blur-medium);
 
             &:hover {
-                background-color: light-dark(var(--color-accent-dark-secondary), var(--color-accent-light-secondary));
+                background-color: light-dark(var(--color-dark-scale-3), var(--color-light-scale-3));
                 transition: background-color 0.4s;
             }
         }
@@ -1061,9 +1093,9 @@
 
     a.button {
 
-        background-color: light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-secondary));
+        background-color: light-dark(var(--color-light-scale-3), var(--color-dark-scale-3));
         border: solid 1px;
-        border-color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+        border-color: light-dark(var(--color-dark-scale-1), var(--color-light-scale-1));
         width: max-content;
         background-image: var(--background-noise);
         padding: calc(var(--space-tiny) / 2) var(--space-tiny);
@@ -1071,7 +1103,7 @@
         backdrop-filter: var(--blur-medium);
 
         &:hover {
-            background-color: light-dark(var(--color-accent-light-primary), var(--color-accent-light-secondary));
+            background-color: light-dark(var(--color-light-scale-1), var(--color-light-scale-3));
             transition: all 0.4s;
             color: light-dark(var(--color-static-light-8), var(--color-static-dark-8));
         }
@@ -1080,7 +1112,7 @@
             background-color: transparent;
 
             &:hover {
-                color: light-dark(var(--color-accent-opaque-light-primary), var(--color-accent-opaque-dark-primary));
+                color: light-dark(var(--color-accent-opaque-light-scale-1), var(--color-accent-opaque-dark-scale-1));
             }
         }
     }
@@ -1268,7 +1300,7 @@
             margin: var(--space-small);
 
             &:hover {
-                color: var(--color-accent-light-primary);
+                color: var(--color-light-scale-1);
                 transition: color 0.3s;
             }
         }
@@ -1328,7 +1360,7 @@
         }
 
         & .modal-content {
-            background: light-dark(var(--color-background-light), var(--color-background-dark));
+            background: light-dark(var(--color-light-scale-), var(--color-dark-scale-6));
             padding: var(--space-medium);
             max-width: var(--max-width-medium);
             border-radius: var(--border-radius-medium);
@@ -1349,7 +1381,7 @@
             color: light-dark(var(--color-static-dark), var(--color-static-light));
 
             &:hover {
-                color: var(--color-accent-light-primary);
+                color: var(--color-light-scale-1);
                 transition: color 0.3s;
             }
         }
@@ -1361,7 +1393,7 @@
         gap: var(--space-tiny);
 
         & .accordion-item {
-            border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+            border: solid 1px light-dark(var(--color-dark-scale-1), var(--color-light-scale-1));
 
             &.active .accordion-content {
                 display: block;
@@ -1370,7 +1402,7 @@
         }
 
         & .accordion-trigger {
-            background: light-dark(var(--color-accent-light-secondary), var(--color-accent-dark-secondary));
+            background: light-dark(var(--color-light-scale-3), var(--color-dark-scale-3));
             padding: var(--space-tiny);
             border: none;
             width: 100%;
@@ -1388,7 +1420,7 @@
         & .accordion-content {
             display: none;
             padding: var(--space-tiny);
-            background: light-dark(var(--color-background-light), var(--color-background-dark));
+            background: light-dark(var(--color-light-scale-), var(--color-dark-scale-6));
         }
     }
 
@@ -1401,7 +1433,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: light-dark(var(--color-background-light), var(--color-background-dark));
+        background: light-dark(var(--color-light-scale-), var(--color-dark-scale-6));
 
         &.success {
             border-color: light-dark(#00cc00, #66ff66);
@@ -1421,7 +1453,7 @@
             color: light-dark(var(--color-static-dark), var(--color-static-light));
 
             &:hover {
-                color: var(--color-accent-light-primary);
+                color: var(--color-light-scale-1);
                 transition: color 0.3s;
             }
         }
@@ -1447,7 +1479,7 @@
             width: 100%;
             background-image: var(--background-pattern-1);
             padding: var(--space-tiny);
-            border: solid 1px light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+            border: solid 1px light-dark(var(--color-dark-scale-1), var(--color-light-scale-1));
             border-radius: var(--border-radius-small);
 
             &:user-invalid {
@@ -1474,7 +1506,7 @@
 
         & a {
             text-decoration: none;
-            color: light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+            color: light-dark(var(--color-dark-scale-1), var(--color-light-scale-1));
 
             &::after {
                 content: " > ";
@@ -1551,7 +1583,7 @@
                 appearance: none;
                 width: var(--space-tiny, 20px);
                 height: var(--space-medium, 50px);
-                border: 1px solid light-dark(var(--color-accent-light-secondary, #ccc), var(--color-background-dark, #333));
+                border: 1px solid light-dark(var(--color-light-scale-3, #ccc), var(--color-dark-scale-6, #333));
                 cursor: ew-resize;
                 backdrop-filter: var(--blur-small, blur(4px));
             }
@@ -1559,7 +1591,7 @@
             &::-moz-range-thumb {
                 width: var(--space-tiny, 20px);
                 height: var(--space-medium, 50px);
-                border: 1px solid light-dark(var(--color-accent-light-secondary, #ccc), var(--color-background-dark, #333));
+                border: 1px solid light-dark(var(--color-light-scale-3, #ccc), var(--color-dark-scale-6, #333));
                 cursor: ew-resize;
                 background: light-dark(rgba(255, 255, 255, 0.8), rgba(51, 51, 51, 0.8));
                 /* Fallback */
@@ -1569,7 +1601,7 @@
                 appearance: none;
                 width: var(--space-tiny, 20px);
                 height: var(--space-medium, 50px);
-                border: 1px solid light-dark(var(--color-accent-light-secondary, #ccc), var(--color-background-dark, #333));
+                border: 1px solid light-dark(var(--color-light-scale-3, #ccc), var(--color-dark-scale-6, #333));
                 cursor: ew-resize;
                 background: light-dark(rgba(255, 255, 255, 0.8), rgba(51, 51, 51, 0.8));
                 /* Fallback */
@@ -1848,7 +1880,7 @@ div#products {
     grid-template-rows: auto auto 1fr auto;
     padding: 16px;
     background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
-    border: var(--border-size-small) solid light-dark(var(--color-accent-dark-primary), var(--color-accent-light-primary));
+    border: var(--border-size-small) solid light-dark(var(--color-dark-scale-1), var(--color-light-scale-1));
     border-radius: 8px;
     text-align: center;
     transition: transform 0.2s;
