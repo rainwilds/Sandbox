@@ -33,15 +33,7 @@ function setupColorPalette() {
                 height: 50px;
             }
             .color-inputs button {
-                padding: 10px 20px;
                 font-size: 16px;
-                cursor: pointer;
-                background-color: #f0f0f0;
-                border: 1px solid #ccc;
-                border-radius: 4px;
-            }
-            .color-inputs button:hover {
-                background-color: #e0e0e0;
             }
             .color-swatch span {
                 white-space: nowrap;
