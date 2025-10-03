@@ -258,6 +258,27 @@ window.addEventListener('load', () => {
         updateColorScales(styles);
     }
 
+    // Set up color input listeners
+    const colorInputs = {
+        'light-scale-1': document.getElementById('light-scale-1'),
+        'light-scale-6': document.getElementById('light-scale-6'),
+        'dark-scale-1': document.getElementById('dark-scale-1'),
+        'dark-scale-6': document.getElementById('dark-scale-6')
+    };
+
+    Object.entries(colorInputs).forEach(([key, input]) => {
+        if (input) {
+            input.addEventListener('input', () => {
+                const varName = `--color-${key}`;
+                root.style.setProperty(varName, input.value);
+                console.log(`Updated ${varName} to ${input.value}`);
+                updateColorScales(getComputedStyle(root), varName);
+            });
+        } else {
+            console.warn(`Color input for ${key} not found`);
+        }
+    });
+
     // Wait for styles.css before initializing
     waitForStylesheet('styles.css', initializeColorPalette);
 });
