@@ -3,7 +3,7 @@ window.addEventListener('load', () => {
 
     const root = document.documentElement;
 
-    // Add styles for color inputs (not in styles.css)
+    // Add styles for color inputs and swatches
     const style = document.createElement('style');
     style.textContent = `
         .color-inputs {
@@ -21,6 +21,11 @@ window.addEventListener('load', () => {
         .color-inputs input[type="color"] {
             padding: 0;
             height: 50px;
+        }
+        .color-swatch span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     `;
     document.head.appendChild(style);
