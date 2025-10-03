@@ -1948,6 +1948,100 @@ div#products {
 }
 
 
+
+
+/* Light theme animated gradients */
+.light-gradient-1 {
+    background: linear-gradient(135deg, var(--color-light-scale-1) 0%, var(--color-light-scale-2) 30%, var(--color-light-scale-3) 60%, var(--color-light-scale-4) 100%);
+    background-size: 200% 100%;
+    animation: slideGradient 8s ease infinite;
+}
+.light-gradient-2 {
+    background: linear-gradient(to bottom, var(--color-light-scale-3) 0%, var(--color-light-scale-4) 40%, var(--color-light-scale-5) 70%, var(--color-light-scale-6) 100%);
+    background-size: 100% 200%;
+    animation: slideGradientVertical 8s ease infinite;
+}
+.light-gradient-3 {
+    background: linear-gradient(45deg, var(--color-light-scale-5) 0%, var(--color-light-scale-6) 50%, var(--color-light-scale-1) 100%);
+    background-size: 200% 100%;
+    animation: slideGradient 8s ease infinite;
+}
+.light-gradient-opaque-1 {
+    background: linear-gradient(135deg, var(--color-accent-opaque-light-scale-1) 0%, var(--color-accent-opaque-light-scale-2) 25%, var(--color-accent-opaque-light-scale-3) 75%, var(--color-accent-opaque-light-scale-4) 100%);
+    background-size: 200% 100%;
+    animation: slideGradient 8s ease infinite;
+}
+.light-gradient-opaque-2 {
+    background: linear-gradient(to bottom, var(--color-accent-opaque-light-scale-3) 0%, var(--color-accent-opaque-light-scale-4) 33%, var(--color-accent-opaque-light-scale-5) 66%, var(--color-accent-opaque-light-scale-6) 100%);
+    background-size: 100% 200%;
+    animation: slideGradientVertical 8s ease infinite;
+}
+.light-gradient-opaque-3 {
+    background: linear-gradient(45deg, var(--color-accent-opaque-light-scale-5) 0%, var(--color-accent-opaque-light-scale-6) 50%, var(--color-accent-opaque-light-scale-1) 100%);
+    background-size: 200% 100%;
+    animation: slideGradient 8s ease infinite;
+}
+
+/* Dark theme animated gradients */
+.dark-gradient-1 {
+    background: linear-gradient(135deg, var(--color-dark-scale-1) 0%, var(--color-dark-scale-2) 30%, var(--color-dark-scale-3) 60%, var(--color-dark-scale-4) 100%);
+    background-size: 200% 100%;
+    animation: slideGradient 8s ease infinite;
+}
+.dark-gradient-2 {
+    background: linear-gradient(to bottom, var(--color-dark-scale-3) 0%, var(--color-dark-scale-4) 40%, var(--color-dark-scale-5) 70%, var(--color-dark-scale-6) 100%);
+    background-size: 100% 200%;
+    animation: slideGradientVertical 8s ease infinite;
+}
+.dark-gradient-3 {
+    background: linear-gradient(45deg, var(--color-dark-scale-5) 0%, var(--color-dark-scale-6) 50%, var(--color-dark-scale-1) 100%);
+    background-size: 200% 100%;
+    animation: slideGradient 8s ease infinite;
+}
+.dark-gradient-opaque-1 {
+    background: linear-gradient(135deg, var(--color-accent-opaque-dark-scale-1) 0%, var(--color-accent-opaque-dark-scale-2) 25%, var(--color-accent-opaque-dark-scale-3) 75%, var(--color-accent-opaque-dark-scale-4) 100%);
+    background-size: 200% 100%;
+    animation: slideGradient 8s ease infinite;
+}
+.dark-gradient-opaque-2 {
+    background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-3) 0%, var(--color-accent-opaque-dark-scale-4) 33%, var(--color-accent-opaque-dark-scale-5) 66%, var(--color-accent-opaque-dark-scale-6) 100%);
+    background-size: 100% 200%;
+    animation: slideGradientVertical 8s ease infinite;
+}
+.dark-gradient-opaque-3 {
+    background: linear-gradient(45deg, var(--color-accent-opaque-dark-scale-5) 0%, var(--color-accent-opaque-dark-scale-6) 50%, var(--color-accent-opaque-dark-scale-1) 100%);
+    background-size: 200% 100%;
+    animation: slideGradient 8s ease infinite;
+}
+
+/* Keyframes for horizontal sliding effect */
+@keyframes slideGradient {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Keyframes for vertical sliding effect */
+@keyframes slideGradientVertical {
+    0% {
+        background-position: 50% 0%;
+    }
+    50% {
+        background-position: 50% 100%;
+    }
+    100% {
+        background-position: 50% 0%;
+    }
+}
+
+
+
 @media (min-width: 1px) {
 
     @keyframes image-reveal {
