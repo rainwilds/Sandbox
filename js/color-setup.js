@@ -167,7 +167,7 @@ window.addEventListener('load', () => {
             '--color-light-scale-6',
             '--color-dark-scale-1',
             '--color-dark-scale-2',
-            '--color-dark-scale-3',
+            '--color-light-scale-3',
             '--color-dark-scale-4',
             '--color-dark-scale-5',
             '--color-dark-scale-6'
@@ -191,6 +191,17 @@ window.addEventListener('load', () => {
         });
 
         console.log('Detected color variables:', colorVars);
+
+        // Set initial input values to match CSS variables
+        const lightScale1 = styles.getPropertyValue('--color-light-scale-1').trim() || '#cacdd6';
+        const lightScale6 = styles.getPropertyValue('--color-light-scale-6').trim() || '#f8f7f7';
+        const darkScale1 = styles.getPropertyValue('--color-dark-scale-1').trim() || '#868eaa';
+        const darkScale6 = styles.getPropertyValue('--color-dark-scale-6').trim() || '#140612';
+
+        document.getElementById('light-scale-1').value = lightScale1;
+        document.getElementById('light-scale-6').value = lightScale6;
+        document.getElementById('dark-scale-1').value = darkScale1;
+        document.getElementById('dark-scale-6').value = darkScale6;
 
         const groups = {
             'color-background': document.getElementById('color-background'),
