@@ -65,6 +65,28 @@ window.addEventListener('load', () => {
         }
     }
 
+    function generateOpaqueScales(styles) {
+        // Generate opaque light scales with alpha 0.2
+        for (let i = 1; i <= 6; i++) {
+            let solidColor = styles.getPropertyValue(`--color-light-scale-${i}`).trim();
+            if (!solidColor) solidColor = root.style.getPropertyValue(`--color-light-scale-${i}`).trim();
+            if (solidColor && chroma.valid(solidColor)) {
+                const opaqueColor = chroma(solidColor).alpha(0.2).css();
+                root.style.setProperty(`--color-accent-opaque-light-scale-${i}`, opaqueColor);
+            }
+        }
+
+        // Generate opaque dark scales with alpha 0.5
+        for (let i = 1; i <= 6; i++) {
+            let solidColor = styles.getPropertyValue(`--color-dark-scale-${i}`).trim();
+            if (!solidColor) solidColor = root.style.getPropertyValue(`--color-dark-scale-${i}`).trim();
+            if (solidColor && chroma.valid(solidColor)) {
+                const opaqueColor = chroma(solidColor).alpha(0.5).css();
+                root.style.setProperty(`--color-accent-opaque-dark-scale-${i}`, opaqueColor);
+            }
+        }
+    }
+
     function updateColorScales(styles, changedVar = null) {
         const lightPrimary = styles.getPropertyValue('--color-light-scale-1').trim() || '#cacdd6';
         const lightSecondary = styles.getPropertyValue('--color-light-scale-6').trim() || '#f8f7f7';
@@ -98,6 +120,9 @@ window.addEventListener('load', () => {
             }
             console.log('Updated dark scale (6 changed):', darkScale);
         }
+
+        // Regenerate opaque scales after solid updates
+        generateOpaqueScales(styles);
 
         document.querySelectorAll('.color-swatch').forEach(swatch => {
             const varName = swatch.dataset.varName;
@@ -170,7 +195,19 @@ window.addEventListener('load', () => {
             '--color-dark-scale-3',
             '--color-dark-scale-4',
             '--color-dark-scale-5',
-            '--color-dark-scale-6'
+            '--color-dark-scale-6',
+            '--color-accent-opaque-light-scale-1',
+            '--color-accent-opaque-light-scale-2',
+            '--color-accent-opaque-light-scale-3',
+            '--color-accent-opaque-light-scale-4',
+            '--color-accent-opaque-light-scale-5',
+            '--color-accent-opaque-light-scale-6',
+            '--color-accent-opaque-dark-scale-1',
+            '--color-accent-opaque-dark-scale-2',
+            '--color-accent-opaque-dark-scale-3',
+            '--color-accent-opaque-dark-scale-4',
+            '--color-accent-opaque-dark-scale-5',
+            '--color-accent-opaque-dark-scale-6'
         ];
 
         const colorVars = [];
@@ -187,6 +224,22 @@ window.addEventListener('load', () => {
                 if (prop === '--color-dark-scale-6') root.style.setProperty(prop, '#140612');
                 if (prop === '--color-background-light') root.style.setProperty(prop, '#faf9f3');
                 if (prop === '--color-background-dark') root.style.setProperty(prop, '#141b32');
+            }
+        });
+
+        // Generate initial opaque scales
+        generateOpaqueScales(styles);
+
+        // Re-fetch styles after generating opaques
+        const updatedStyles = getComputedStyle(root);
+
+        // Add generated opaque vars to colorVars if they have values
+        knownColorVars.forEach(prop => {
+            if (prop.includes('accent-opaque') && !colorVars.includes(prop)) {
+                const value = updatedStyles.getPropertyValue(prop).trim();
+                if (value) {
+                    colorVars.push(prop);
+                }
             }
         });
 
@@ -221,9 +274,9 @@ window.addEventListener('load', () => {
                 groupKey = 'color-accent-light';
             } else if (varName.includes('accent-dark') && !varName.includes('opaque')) {
                 groupKey = 'color-accent-dark';
-            } else if (varName.includes('accent-opaque-light')) {
+            } else if (varName.includes('accent-opaque-light-scale') || varName.includes('accent-opaque-light-primary') || varName.includes('accent-opaque-light-secondary')) {
                 groupKey = 'color-accent-opaque-light';
-            } else if (varName.includes('accent-opaque-dark')) {
+            } else if (varName.includes('accent-opaque-dark-scale') || varName.includes('accent-opaque-dark-primary') || varName.includes('accent-opaque-dark-secondary')) {
                 groupKey = 'color-accent-opaque-dark';
             } else if (varName.includes('static-light')) {
                 groupKey = 'color-static-light';
@@ -241,7 +294,7 @@ window.addEventListener('load', () => {
                 return;
             }
 
-            const value = styles.getPropertyValue(varName).trim() || root.style.getPropertyValue(varName).trim();
+            const value = updatedStyles.getPropertyValue(varName).trim() || root.style.getPropertyValue(varName).trim();
             if (!value) {
                 console.warn(`Skipping ${varName}, empty value`);
                 return;
@@ -266,7 +319,7 @@ window.addEventListener('load', () => {
         });
 
         // Initial scale update
-        updateColorScales(styles);
+        updateColorScales(updatedStyles);
     }
 
     // Set up color input listeners
