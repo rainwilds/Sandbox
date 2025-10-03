@@ -3,7 +3,7 @@ window.addEventListener('load', () => {
 
     const root = document.documentElement;
 
-    // Add styles for color inputs and swatches
+    // Add styles for color inputs, swatches, and copy button
     const style = document.createElement('style');
     style.textContent = `
         .color-inputs {
@@ -21,6 +21,17 @@ window.addEventListener('load', () => {
         .color-inputs input[type="color"] {
             padding: 0;
             height: 50px;
+        }
+        .color-inputs button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        .color-inputs button:hover {
+            background-color: #e0e0e0;
         }
         .color-swatch span {
             white-space: nowrap;
@@ -321,6 +332,56 @@ window.addEventListener('load', () => {
 
         // Initial scale update
         updateColorScales(updatedStyles);
+
+        // Set up copy button listener
+        const copyButton = document.getElementById('copy-css-vars');
+        if (copyButton) {
+            copyButton.addEventListener('click', () => {
+                const styles = getComputedStyle(root);
+                const varsToCopy = [
+                    '--color-light-scale-1',
+                    '--color-light-scale-2',
+                    '--color-light-scale-3',
+                    '--color-light-scale-4',
+                    '--color-light-scale-5',
+                    '--color-light-scale-6',
+                    '--color-dark-scale-1',
+                    '--color-dark-scale-2',
+                    '--color-dark-scale-3',
+                    '--color-dark-scale-4',
+                    '--color-dark-scale-5',
+                    '--color-dark-scale-6',
+                    '--color-accent-opaque-light-scale-1',
+                    '--color-accent-opaque-light-scale-2',
+                    '--color-accent-opaque-light-scale-3',
+                    '--color-accent-opaque-light-scale-4',
+                    '--color-accent-opaque-light-scale-5',
+                    '--color-accent-opaque-light-scale-6',
+                    '--color-accent-opaque-dark-scale-1',
+                    '--color-accent-opaque-dark-scale-2',
+                    '--color-accent-opaque-dark-scale-3',
+                    '--color-accent-opaque-dark-scale-4',
+                    '--color-accent-opaque-dark-scale-5',
+                    '--color-accent-opaque-dark-scale-6',
+                    '--color-static-light',
+                    '--color-static-dark'
+                ];
+
+                const cssOutput = varsToCopy.map(varName => {
+                    const value = styles.getPropertyValue(varName).trim();
+                    return value ? `${varName}: ${value};` : null;
+                }).filter(line => line).join('\n');
+
+                navigator.clipboard.writeText(cssOutput).then(() => {
+                    alert('CSS variables copied to clipboard!');
+                }).catch(err => {
+                    console.error('Failed to copy CSS variables:', err);
+                    alert('Failed to copy CSS variables. Check the console for details.');
+                });
+            });
+        } else {
+            console.warn('Copy CSS variables button not found');
+        }
     }
 
     // Set up color input listeners
