@@ -209,8 +209,6 @@ function setupColorPalette() {
     function initializeColorPalette() {
         const styles = getComputedStyle(root);
         const baseColorVars = [
-            '--color-background-light',
-            '--color-background-dark',
             '--color-static-light',
             '--color-static-dark',
             '--color-static-dark-1',
@@ -255,8 +253,6 @@ function setupColorPalette() {
                 if (prop === '--color-light-scale-6') root.style.setProperty(prop, '#f8f7f7');
                 if (prop === '--color-dark-scale-1') root.style.setProperty(prop, '#868eaa');
                 if (prop === '--color-dark-scale-6') root.style.setProperty(prop, '#140612');
-                if (prop === '--color-background-light') root.style.setProperty(prop, '#faf9f3');
-                if (prop === '--color-background-dark') root.style.setProperty(prop, '#141b32');
             }
         });
 
@@ -290,7 +286,6 @@ function setupColorPalette() {
         document.getElementById('dark-scale-6').value = darkScale6;
 
         const groups = {
-            'color-background': document.getElementById('color-background'),
             'color-accent-light': document.getElementById('color-accent-light'),
             'color-accent-dark': document.getElementById('color-accent-dark'),
             'color-accent-opaque-light': document.getElementById('color-accent-opaque-light'),
@@ -314,24 +309,18 @@ function setupColorPalette() {
 
         colorVars.forEach(varName => {
             let groupKey = '';
-            if (varName.includes('background')) {
-                groupKey = 'color-background';
-            } else if (varName.includes('accent-light') && !varName.includes('opaque') && !varName.includes('-')) {
-                groupKey = 'color-accent-light';
-            } else if (varName.includes('accent-dark') && !varName.includes('opaque') && !varName.includes('-')) {
-                groupKey = 'color-accent-dark';
-            } else if (varName.includes('accent-opaque-light') && !varName.includes('-')) {
-                groupKey = 'color-accent-opaque-light';
-            } else if (varName.includes('accent-opaque-dark') && !varName.includes('-')) {
-                groupKey = 'color-accent-opaque-dark';
-            } else if (varName.includes('static-light')) {
+            if (varName.includes('static-light')) {
                 groupKey = 'color-static-light';
             } else if (varName.includes('static-dark')) {
                 groupKey = 'color-static-dark';
-            } else if (varName.includes('light-scale') && !varName.includes('-')) {
+            } else if (varName.includes('light-scale') && !varName.match(/light-scale-\w+-\d+$/)) {
                 groupKey = 'color-accent-light';
-            } else if (varName.includes('dark-scale') && !varName.includes('-')) {
+            } else if (varName.includes('dark-scale') && !varName.match(/dark-scale-\w+-\d+$/)) {
                 groupKey = 'color-accent-dark';
+            } else if (varName.includes('accent-opaque-light-scale') && !varName.match(/accent-opaque-light-scale-\w+-\d+$/)) {
+                groupKey = 'color-accent-opaque-light';
+            } else if (varName.includes('accent-opaque-dark-scale') && !varName.match(/accent-opaque-dark-scale-\w+-\d+$/)) {
+                groupKey = 'color-accent-opaque-dark';
             } else if (varName.match(/light-scale-(\w+)-(\d+)$/)) {
                 const modeMatch = varName.match(/light-scale-(\w+)-(\d+)$/);
                 const mode = modeMatch[1];
@@ -439,7 +428,8 @@ function setupColorPalette() {
                     }).filter(line => line).join('\n');
 
                     navigator.clipboard.writeText(cssOutput).then(() => {
-                        alert(`${btnId.replace('copy-css-vars-', '').toUpperCase()} CSS variables copied to clipboard!`);
+                        const modeName = btnId === 'copy-css-vars' ? '' : btnId.replace('copy-css-vars-', '').toUpperCase();
+                        alert(`${modeName} CSS variables copied to clipboard!`);
                     }).catch(err => {
                         console.error(`Failed to copy ${btnId} variables:`, err);
                         alert('Failed to copy CSS variables. Check the console for details.');
