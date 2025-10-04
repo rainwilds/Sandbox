@@ -85,7 +85,9 @@ function setupColorPalette() {
     }
 
     function generateOpaqueScales(styles) {
-        // Generate opaque light scales with alpha 0.2
+        const modes = ['hsl', 'lab', 'hcl', 'rgb', 'hsv', 'hsi'];
+
+        // Generate opaque light scales with alpha 0.2 for LCH (no mode suffix)
         for (let i = 1; i <= 6; i++) {
             let solidColor = styles.getPropertyValue(`--color-light-scale-${i}`).trim();
             if (!solidColor) solidColor = root.style.getPropertyValue(`--color-light-scale-${i}`).trim();
@@ -95,7 +97,7 @@ function setupColorPalette() {
             }
         }
 
-        // Generate opaque dark scales with alpha 0.5
+        // Generate opaque dark scales with alpha 0.5 for LCH (no mode suffix)
         for (let i = 1; i <= 6; i++) {
             let solidColor = styles.getPropertyValue(`--color-dark-scale-${i}`).trim();
             if (!solidColor) solidColor = root.style.getPropertyValue(`--color-dark-scale-${i}`).trim();
@@ -104,41 +106,64 @@ function setupColorPalette() {
                 root.style.setProperty(`--color-accent-opaque-dark-scale-${i}`, opaqueColor);
             }
         }
+
+        // Generate for other modes
+        modes.forEach(mode => {
+            // Light
+            for (let i = 1; i <= 6; i++) {
+                let solidColor = styles.getPropertyValue(`--color-light-scale-${mode}-${i}`).trim();
+                if (!solidColor) solidColor = root.style.getPropertyValue(`--color-light-scale-${mode}-${i}`).trim();
+                if (solidColor && chroma.valid(solidColor)) {
+                    const opaqueColor = chroma(solidColor).alpha(0.2).css();
+                    root.style.setProperty(`--color-accent-opaque-light-scale-${mode}-${i}`, opaqueColor);
+                }
+            }
+            // Dark
+            for (let i = 1; i <= 6; i++) {
+                let solidColor = styles.getPropertyValue(`--color-dark-scale-${mode}-${i}`).trim();
+                if (!solidColor) solidColor = root.style.getPropertyValue(`--color-dark-scale-${mode}-${i}`).trim();
+                if (solidColor && chroma.valid(solidColor)) {
+                    const opaqueColor = chroma(solidColor).alpha(0.5).css();
+                    root.style.setProperty(`--color-accent-opaque-dark-scale-${mode}-${i}`, opaqueColor);
+                }
+            }
+        });
     }
 
-    function updateColorScales(styles, changedVar = null) {
+    function updateColorScales(styles) {
         const lightPrimary = styles.getPropertyValue('--color-light-scale-1').trim() || '#cacdd6';
         const lightSecondary = styles.getPropertyValue('--color-light-scale-6').trim() || '#f8f7f7';
         const darkPrimary = styles.getPropertyValue('--color-dark-scale-1').trim() || '#868eaa';
         const darkSecondary = styles.getPropertyValue('--color-dark-scale-6').trim() || '#140612';
 
-        if (changedVar === '--color-light-scale-1' && lightPrimary && lightSecondary) {
-            const lightScale = chroma.scale([lightPrimary, lightSecondary]).mode('lch').colors(6);
-            for (let i = 2; i <= 5; i++) {
-                root.style.setProperty(`--color-light-scale-${i}`, lightScale[i - 1]);
-            }
-            console.log('Updated light scale (1 changed):', lightScale);
-        } else if (changedVar === '--color-light-scale-6' && lightPrimary && lightSecondary) {
-            const lightScale = chroma.scale([lightPrimary, lightSecondary]).mode('lch').colors(6);
-            for (let i = 2; i <= 5; i++) {
-                root.style.setProperty(`--color-light-scale-${i}`, lightScale[i - 1]);
-            }
-            console.log('Updated light scale (6 changed):', lightScale);
+        // Generate LCH scales (no mode suffix)
+        const lightScaleLch = chroma.scale([lightPrimary, lightSecondary]).mode('lch').colors(6);
+        for (let i = 1; i <= 6; i++) {
+            root.style.setProperty(`--color-light-scale-${i}`, lightScaleLch[i - 1]);
         }
+        console.log('Updated light scale LCH:', lightScaleLch);
 
-        if (changedVar === '--color-dark-scale-1' && darkPrimary && darkSecondary) {
-            const darkScale = chroma.scale([darkPrimary, darkSecondary]).mode('lch').colors(6);
-            for (let i = 2; i <= 5; i++) {
-                root.style.setProperty(`--color-dark-scale-${i}`, darkScale[i - 1]);
-            }
-            console.log('Updated dark scale (1 changed):', darkScale);
-        } else if (changedVar === '--color-dark-scale-6' && darkPrimary && darkSecondary) {
-            const darkScale = chroma.scale([darkPrimary, darkSecondary]).mode('lch').colors(6);
-            for (let i = 2; i <= 5; i++) {
-                root.style.setProperty(`--color-dark-scale-${i}`, darkScale[i - 1]);
-            }
-            console.log('Updated dark scale (6 changed):', darkScale);
+        const darkScaleLch = chroma.scale([darkPrimary, darkSecondary]).mode('lch').colors(6);
+        for (let i = 1; i <= 6; i++) {
+            root.style.setProperty(`--color-dark-scale-${i}`, darkScaleLch[i - 1]);
         }
+        console.log('Updated dark scale LCH:', darkScaleLch);
+
+        // Generate other modes
+        const modes = ['hsl', 'lab', 'hcl', 'rgb', 'hsv', 'hsi'];
+        modes.forEach(mode => {
+            const lightScale = chroma.scale([lightPrimary, lightSecondary]).mode(mode).colors(6);
+            for (let i = 1; i <= 6; i++) {
+                root.style.setProperty(`--color-light-scale-${mode}-${i}`, lightScale[i - 1]);
+            }
+            console.log(`Updated light scale ${mode.toUpperCase()}:`, lightScale);
+
+            const darkScale = chroma.scale([darkPrimary, darkSecondary]).mode(mode).colors(6);
+            for (let i = 1; i <= 6; i++) {
+                root.style.setProperty(`--color-dark-scale-${mode}-${i}`, darkScale[i - 1]);
+            }
+            console.log(`Updated dark scale ${mode.toUpperCase()}:`, darkScale);
+        });
 
         // Regenerate opaque scales after solid updates
         generateOpaqueScales(styles);
@@ -184,7 +209,7 @@ function setupColorPalette() {
 
     function initializeColorPalette() {
         const styles = getComputedStyle(root);
-        const knownColorVars = [
+        const baseColorVars = [
             '--color-background-light',
             '--color-background-dark',
             '--color-static-light',
@@ -198,41 +223,36 @@ function setupColorPalette() {
             '--color-static-dark-6',
             '--color-static-light-6',
             '--color-static-dark-8',
-            '--color-static-light-8',
-            '--color-light-scale-1',
-            '--color-light-scale-2',
-            '--color-light-scale-3',
-            '--color-light-scale-4',
-            '--color-light-scale-5',
-            '--color-light-scale-6',
-            '--color-dark-scale-1',
-            '--color-dark-scale-2',
-            '--color-dark-scale-3',
-            '--color-dark-scale-4',
-            '--color-dark-scale-5',
-            '--color-dark-scale-6',
-            '--color-accent-opaque-light-scale-1',
-            '--color-accent-opaque-light-scale-2',
-            '--color-accent-opaque-light-scale-3',
-            '--color-accent-opaque-light-scale-4',
-            '--color-accent-opaque-light-scale-5',
-            '--color-accent-opaque-light-scale-6',
-            '--color-accent-opaque-dark-scale-1',
-            '--color-accent-opaque-dark-scale-2',
-            '--color-accent-opaque-dark-scale-3',
-            '--color-accent-opaque-dark-scale-4',
-            '--color-accent-opaque-dark-scale-5',
-            '--color-accent-opaque-dark-scale-6'
+            '--color-static-light-8'
         ];
+        const modes = ['hsl', 'lab', 'hcl', 'rgb', 'hsv', 'hsi'];
+
+        // Add LCH scales and opaques (no suffix)
+        for (let i = 1; i <= 6; i++) {
+            baseColorVars.push(`--color-light-scale-${i}`);
+            baseColorVars.push(`--color-dark-scale-${i}`);
+            baseColorVars.push(`--color-accent-opaque-light-scale-${i}`);
+            baseColorVars.push(`--color-accent-opaque-dark-scale-${i}`);
+        }
+
+        // Add other modes' scales and opaques
+        modes.forEach(mode => {
+            for (let i = 1; i <= 6; i++) {
+                baseColorVars.push(`--color-light-scale-${mode}-${i}`);
+                baseColorVars.push(`--color-dark-scale-${mode}-${i}`);
+                baseColorVars.push(`--color-accent-opaque-light-scale-${mode}-${i}`);
+                baseColorVars.push(`--color-accent-opaque-dark-scale-${mode}-${i}`);
+            }
+        });
 
         const colorVars = [];
-        knownColorVars.forEach(prop => {
+        baseColorVars.forEach(prop => {
             const value = styles.getPropertyValue(prop).trim();
             if (value) {
                 colorVars.push(prop);
             } else {
                 console.warn(`No value found for ${prop}`);
-                // Set fallback values for critical variables
+                // Set fallback values for critical LCH variables only
                 if (prop === '--color-light-scale-1') root.style.setProperty(prop, '#cacdd6');
                 if (prop === '--color-light-scale-6') root.style.setProperty(prop, '#f8f7f7');
                 if (prop === '--color-dark-scale-1') root.style.setProperty(prop, '#868eaa');
@@ -248,9 +268,9 @@ function setupColorPalette() {
         // Re-fetch styles after generating opaques
         const updatedStyles = getComputedStyle(root);
 
-        // Add generated opaque vars to colorVars if they have values
-        knownColorVars.forEach(prop => {
-            if (prop.includes('accent-opaque') && !colorVars.includes(prop)) {
+        // Add generated vars if they have values (for opaques)
+        baseColorVars.forEach(prop => {
+            if (!colorVars.includes(prop)) {
                 const value = updatedStyles.getPropertyValue(prop).trim();
                 if (value) {
                     colorVars.push(prop);
@@ -281,6 +301,15 @@ function setupColorPalette() {
             'color-static-dark': document.getElementById('color-static-dark')
         };
 
+        // Add groups for other modes
+        const modes = ['hsl', 'lab', 'hcl', 'rgb', 'hsv', 'hsi'];
+        modes.forEach(mode => {
+            groups[`color-accent-light-${mode}`] = document.getElementById(`color-accent-light-${mode}`);
+            groups[`color-accent-dark-${mode}`] = document.getElementById(`color-accent-dark-${mode}`);
+            groups[`color-accent-opaque-light-${mode}`] = document.getElementById(`color-accent-opaque-light-${mode}`);
+            groups[`color-accent-opaque-dark-${mode}`] = document.getElementById(`color-accent-opaque-dark-${mode}`);
+        });
+
         // Clear existing swatches to prevent duplicates
         Object.values(groups).forEach(palette => {
             if (palette) palette.innerHTML = '';
@@ -290,22 +319,38 @@ function setupColorPalette() {
             let groupKey = '';
             if (varName.includes('background')) {
                 groupKey = 'color-background';
-            } else if (varName.includes('accent-light') && !varName.includes('opaque')) {
+            } else if (varName.includes('accent-light') && !varName.includes('opaque') && !varName.includes('-')) {
                 groupKey = 'color-accent-light';
-            } else if (varName.includes('accent-dark') && !varName.includes('opaque')) {
+            } else if (varName.includes('accent-dark') && !varName.includes('opaque') && !varName.includes('-')) {
                 groupKey = 'color-accent-dark';
-            } else if (varName.includes('accent-opaque-light')) {
+            } else if (varName.includes('accent-opaque-light') && !varName.includes('-')) {
                 groupKey = 'color-accent-opaque-light';
-            } else if (varName.includes('accent-opaque-dark')) {
+            } else if (varName.includes('accent-opaque-dark') && !varName.includes('-')) {
                 groupKey = 'color-accent-opaque-dark';
             } else if (varName.includes('static-light')) {
                 groupKey = 'color-static-light';
             } else if (varName.includes('static-dark')) {
                 groupKey = 'color-static-dark';
-            } else if (varName.includes('light-scale')) {
+            } else if (varName.includes('light-scale') && !varName.includes('-')) {
                 groupKey = 'color-accent-light';
-            } else if (varName.includes('dark-scale')) {
+            } else if (varName.includes('dark-scale') && !varName.includes('-')) {
                 groupKey = 'color-accent-dark';
+            } else if (varName.match(/light-scale-(\w+)-(\d+)$/)) {
+                const modeMatch = varName.match(/light-scale-(\w+)-(\d+)$/);
+                const mode = modeMatch[1];
+                groupKey = `color-accent-light-${mode}`;
+            } else if (varName.match(/dark-scale-(\w+)-(\d+)$/)) {
+                const modeMatch = varName.match(/dark-scale-(\w+)-(\d+)$/);
+                const mode = modeMatch[1];
+                groupKey = `color-accent-dark-${mode}`;
+            } else if (varName.match(/accent-opaque-light-scale-(\w+)-(\d+)$/)) {
+                const modeMatch = varName.match(/accent-opaque-light-scale-(\w+)-(\d+)$/);
+                const mode = modeMatch[1];
+                groupKey = `color-accent-opaque-light-${mode}`;
+            } else if (varName.match(/accent-opaque-dark-scale-(\w+)-(\d+)$/)) {
+                const modeMatch = varName.match(/accent-opaque-dark-scale-(\w+)-(\d+)$/);
+                const mode = modeMatch[1];
+                groupKey = `color-accent-opaque-dark-${mode}`;
             }
 
             const palette = groups[groupKey];
@@ -341,55 +386,72 @@ function setupColorPalette() {
         // Initial scale update
         updateColorScales(updatedStyles);
 
-        // Set up copy button listener
-        const copyButton = document.getElementById('copy-css-vars');
-        if (copyButton) {
-            copyButton.addEventListener('click', () => {
-                const styles = getComputedStyle(root);
-                const varsToCopy = [
-                    '--color-light-scale-1',
-                    '--color-light-scale-2',
-                    '--color-light-scale-3',
-                    '--color-light-scale-4',
-                    '--color-light-scale-5',
-                    '--color-light-scale-6',
-                    '--color-dark-scale-1',
-                    '--color-dark-scale-2',
-                    '--color-dark-scale-3',
-                    '--color-dark-scale-4',
-                    '--color-dark-scale-5',
-                    '--color-dark-scale-6',
-                    '--color-accent-opaque-light-scale-1',
-                    '--color-accent-opaque-light-scale-2',
-                    '--color-accent-opaque-light-scale-3',
-                    '--color-accent-opaque-light-scale-4',
-                    '--color-accent-opaque-light-scale-5',
-                    '--color-accent-opaque-light-scale-6',
-                    '--color-accent-opaque-dark-scale-1',
-                    '--color-accent-opaque-dark-scale-2',
-                    '--color-accent-opaque-dark-scale-3',
-                    '--color-accent-opaque-dark-scale-4',
-                    '--color-accent-opaque-dark-scale-5',
-                    '--color-accent-opaque-dark-scale-6',
-                    '--color-static-light',
-                    '--color-static-dark'
-                ];
+        // Set up copy button listeners
+        const copyButtons = ['copy-css-vars', ...modes.map(m => `copy-css-vars-${m}`)];
+        copyButtons.forEach(btnId => {
+            const copyButton = document.getElementById(btnId);
+            if (copyButton) {
+                copyButton.addEventListener('click', () => {
+                    const styles = getComputedStyle(root);
+                    let varsToCopy;
+                    if (btnId === 'copy-css-vars') {
+                        // Original LCH + statics
+                        varsToCopy = [
+                            '--color-light-scale-1',
+                            '--color-light-scale-2',
+                            '--color-light-scale-3',
+                            '--color-light-scale-4',
+                            '--color-light-scale-5',
+                            '--color-light-scale-6',
+                            '--color-dark-scale-1',
+                            '--color-dark-scale-2',
+                            '--color-dark-scale-3',
+                            '--color-dark-scale-4',
+                            '--color-dark-scale-5',
+                            '--color-dark-scale-6',
+                            '--color-accent-opaque-light-scale-1',
+                            '--color-accent-opaque-light-scale-2',
+                            '--color-accent-opaque-light-scale-3',
+                            '--color-accent-opaque-light-scale-4',
+                            '--color-accent-opaque-light-scale-5',
+                            '--color-accent-opaque-light-scale-6',
+                            '--color-accent-opaque-dark-scale-1',
+                            '--color-accent-opaque-dark-scale-2',
+                            '--color-accent-opaque-dark-scale-3',
+                            '--color-accent-opaque-dark-scale-4',
+                            '--color-accent-opaque-dark-scale-5',
+                            '--color-accent-opaque-dark-scale-6',
+                            '--color-static-light',
+                            '--color-static-dark'
+                        ];
+                    } else {
+                        // Mode-specific
+                        const mode = btnId.replace('copy-css-vars-', '');
+                        varsToCopy = [];
+                        for (let i = 1; i <= 6; i++) {
+                            varsToCopy.push(`--color-light-scale-${mode}-${i}`);
+                            varsToCopy.push(`--color-dark-scale-${mode}-${i}`);
+                            varsToCopy.push(`--color-accent-opaque-light-scale-${mode}-${i}`);
+                            varsToCopy.push(`--color-accent-opaque-dark-scale-${mode}-${i}`);
+                        }
+                    }
 
-                const cssOutput = varsToCopy.map(varName => {
-                    const value = styles.getPropertyValue(varName).trim();
-                    return value ? `${varName}: ${value};` : null;
-                }).filter(line => line).join('\n');
+                    const cssOutput = varsToCopy.map(varName => {
+                        const value = styles.getPropertyValue(varName).trim();
+                        return value ? `${varName}: ${value};` : null;
+                    }).filter(line => line).join('\n');
 
-                navigator.clipboard.writeText(cssOutput).then(() => {
-                    alert('CSS variables copied to clipboard!');
-                }).catch(err => {
-                    console.error('Failed to copy CSS variables:', err);
-                    alert('Failed to copy CSS variables. Check the console for details.');
+                    navigator.clipboard.writeText(cssOutput).then(() => {
+                        alert(`${btnId.replace('copy-css-vars-', '').toUpperCase()} CSS variables copied to clipboard!`);
+                    }).catch(err => {
+                        console.error(`Failed to copy ${btnId} variables:`, err);
+                        alert('Failed to copy CSS variables. Check the console for details.');
+                    });
                 });
-            });
-        } else {
-            console.warn('Copy CSS variables button not found');
-        }
+            } else {
+                console.warn(`${btnId} button not found`);
+            }
+        });
     }
 
     // Set up color input listeners
@@ -406,7 +468,7 @@ function setupColorPalette() {
                 const varName = `--color-${key}`;
                 root.style.setProperty(varName, input.value);
                 console.log(`Updated ${varName} to ${input.value}`);
-                updateColorScales(getComputedStyle(root), varName);
+                updateColorScales(getComputedStyle(root));
             });
         } else {
             console.warn(`Color input for ${key} not found`);
