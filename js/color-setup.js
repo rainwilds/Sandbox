@@ -167,6 +167,7 @@ function setupColorPalette() {
         // Regenerate opaque scales after solid updates
         generateOpaqueScales(styles);
 
+        // Update existing swatches
         document.querySelectorAll('.color-swatch').forEach(swatch => {
             const varName = swatch.dataset.varName;
             const value = styles.getPropertyValue(varName).trim();
@@ -241,34 +242,25 @@ function setupColorPalette() {
             }
         });
 
+        // Set fallback values for critical LCH variables
+        root.style.setProperty('--color-light-scale-1', styles.getPropertyValue('--color-light-scale-1').trim() || '#cacdd6');
+        root.style.setProperty('--color-light-scale-6', styles.getPropertyValue('--color-light-scale-6').trim() || '#f8f7f7');
+        root.style.setProperty('--color-dark-scale-1', styles.getPropertyValue('--color-dark-scale-1').trim() || '#868eaa');
+        root.style.setProperty('--color-dark-scale-6', styles.getPropertyValue('--color-dark-scale-6').trim() || '#140612');
+
+        // Initial scale update to generate all variables
+        updateColorScales(getComputedStyle(root));
+
+        // Re-fetch styles after generating all
+        const updatedStyles = getComputedStyle(root);
+
         const colorVars = [];
         baseColorVars.forEach(prop => {
-            const value = styles.getPropertyValue(prop).trim();
+            const value = updatedStyles.getPropertyValue(prop).trim();
             if (value) {
                 colorVars.push(prop);
             } else {
                 console.warn(`No value found for ${prop}`);
-                // Set fallback values for critical LCH variables only
-                if (prop === '--color-light-scale-1') root.style.setProperty(prop, '#cacdd6');
-                if (prop === '--color-light-scale-6') root.style.setProperty(prop, '#f8f7f7');
-                if (prop === '--color-dark-scale-1') root.style.setProperty(prop, '#868eaa');
-                if (prop === '--color-dark-scale-6') root.style.setProperty(prop, '#140612');
-            }
-        });
-
-        // Generate initial opaque scales
-        generateOpaqueScales(styles);
-
-        // Re-fetch styles after generating opaques
-        const updatedStyles = getComputedStyle(root);
-
-        // Add generated vars if they have values (for opaques)
-        baseColorVars.forEach(prop => {
-            if (!colorVars.includes(prop)) {
-                const value = updatedStyles.getPropertyValue(prop).trim();
-                if (value) {
-                    colorVars.push(prop);
-                }
             }
         });
 
@@ -369,9 +361,6 @@ function setupColorPalette() {
             palette.appendChild(div);
         });
 
-        // Initial scale update
-        updateColorScales(updatedStyles);
-
         // Set up copy button listeners
         const copyButtons = ['copy-css-vars', ...modes.map(m => `copy-css-vars-${m}`)];
         copyButtons.forEach(btnId => {
@@ -428,7 +417,7 @@ function setupColorPalette() {
                     }).filter(line => line).join('\n');
 
                     navigator.clipboard.writeText(cssOutput).then(() => {
-                        const modeName = btnId === 'copy-css-vars' ? '' : btnId.replace('copy-css-vars-', '').toUpperCase();
+                        const modeName = btnId === 'copy-css-vars' ? 'LCH' : btnId.replace('copy-css-vars-', '').toUpperCase();
                         alert(`${modeName} CSS variables copied to clipboard!`);
                     }).catch(err => {
                         console.error(`Failed to copy ${btnId} variables:`, err);
