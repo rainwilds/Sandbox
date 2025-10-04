@@ -11,6 +11,8 @@ function setupColorPalette() {
 
     const root = document.documentElement;
 
+    const modes = ['hsl', 'lab', 'hcl', 'rgb', 'hsv', 'hsi'];
+
     // Add styles for color inputs, swatches, and copy button only if not already present
     if (!document.querySelector('style[data-color-setup]')) {
         const style = document.createElement('style');
@@ -85,8 +87,6 @@ function setupColorPalette() {
     }
 
     function generateOpaqueScales(styles) {
-        const modes = ['hsl', 'lab', 'hcl', 'rgb', 'hsv', 'hsi'];
-
         // Generate opaque light scales with alpha 0.2 for LCH (no mode suffix)
         for (let i = 1; i <= 6; i++) {
             let solidColor = styles.getPropertyValue(`--color-light-scale-${i}`).trim();
@@ -150,7 +150,6 @@ function setupColorPalette() {
         console.log('Updated dark scale LCH:', darkScaleLch);
 
         // Generate other modes
-        const modes = ['hsl', 'lab', 'hcl', 'rgb', 'hsv', 'hsi'];
         modes.forEach(mode => {
             const lightScale = chroma.scale([lightPrimary, lightSecondary]).mode(mode).colors(6);
             for (let i = 1; i <= 6; i++) {
@@ -225,7 +224,6 @@ function setupColorPalette() {
             '--color-static-dark-8',
             '--color-static-light-8'
         ];
-        const modes = ['hsl', 'lab', 'hcl', 'rgb', 'hsv', 'hsi'];
 
         // Add LCH scales and opaques (no suffix)
         for (let i = 1; i <= 6; i++) {
@@ -302,7 +300,6 @@ function setupColorPalette() {
         };
 
         // Add groups for other modes
-        const modes = ['hsl', 'lab', 'hcl', 'rgb', 'hsv', 'hsi'];
         modes.forEach(mode => {
             groups[`color-accent-light-${mode}`] = document.getElementById(`color-accent-light-${mode}`);
             groups[`color-accent-dark-${mode}`] = document.getElementById(`color-accent-dark-${mode}`);
