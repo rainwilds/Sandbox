@@ -13,7 +13,7 @@
     <script src="js/head-generator.js" type="module"></script>
 
     <data-custom-head
-        data-components="custom-block custom-header custom-logo custom-nav"
+        data-components="custom-block"
         data-title="Header 2"
         data-description="Custom header web component."
         data-canonical="https://rainwilds.github.io/Sandbox/header-1.html"
@@ -38,11 +38,26 @@
 
             img-background-src="img/primary/tourism-photography-light-1.jpg"
             img-background-alt="Nature landscape background"
->
+        
+        >
         </custom-block>
 
       </div>
-      <div class="swiper-slide">Slide 2</div>
+      <div class="swiper-slide">
+
+        <custom-block
+
+            video-background-src="video/video1.mp4"
+            video-background-poster="img/primary/tourism-photography-dark-1.jpg"
+            video-background-alt="Adventure video background"
+            video-background-autoplay
+            video-background-muted
+            video-background-loop
+        
+        >
+        </custom-block>
+
+      </div>
       <div class="swiper-slide">Slide 3</div>
       <div class="swiper-slide">Slide 4</div>
       <div class="swiper-slide">Slide 5</div>
@@ -55,62 +70,7 @@
   </div>            
         </div>
 
-        <!-- <div>
-            <custom-header
-                heading="Header 1"
-                heading-tag="H1"
-                inner-alignment="center"
-                text-alignment="center"
-                img-background-alt="Light image"
-                img-background-light-src="img/primary/tourism-photography-light-4.jpg"
-                img-background-dark-src="img/primary/tourism-photography-dark-6.jpg"
-                background-overlay="background-overlay-2"
-                logo-placement="independent"
-                >
-                    <custom-logo
-                        logo-full-light-src="img/logos/logo-full-light-1.svg"
-                        logo-full-dark-src="img/logos/logo-full-dark-1.svg"
-                        logo-full-light-alt="Full Light Logo"
-                        logo-full-dark-alt="Full Dark Logo"
-                        logo-full-position="left"
-
-                        logo-icon-light-src="img/logos/logo-icon-light-1.svg"
-                        logo-icon-dark-src="img/logos/logo-icon-dark-1.svg"
-                        logo-icon-light-alt="Icon Light Logo"
-                        logo-icon-dark-alt="Icon Dark Logo"
-
-                        logo-height="40px"
-                        logo-icon-position="center"
-                        logo-breakpoint="1024"                        
-                        >
-                    </custom-logo>
-                    <custom-nav
-                        nav='
-                            [{"text":
-                            "Home",
-                            "href":
-                            "/"},
-                            {"text":
-                            "About",
-                            "href":
-                            "/about"},
-                            {"text":
-                            "Services",
-                            "href":
-                            "/services"},
-                            {"text":
-                            "Contact",
-                            "href":
-                            "/contact"}]'
-                        nav-position="bottom-left"
-                        nav-style="display: flex; justify-content: center; align-items: center;"
-                        nav-toggle-icon='<i class="fa-solid fa-bars"></i>'
-                        nav-aria-label="Primary site navigation"
-                        nav-orientation="vertical"
-                        nav-container-style="height: min-content; height: min-content; display: flex; justify-content: space-between; padding: var(--space-small);">
-                    </custom-nav>
-            </custom-header>
-        </div> -->
+     
 
     </header>
 
