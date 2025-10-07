@@ -352,6 +352,31 @@ async function updateHead(attributes, setup) {
       logger.log('All <link> elements already in <head>');
     }
 
+    // Ensure all <script> elements are properly placed (move misplaced ones to end of <body> to avoid parse issues)
+    const scripts = document.querySelectorAll('script');
+    let movedScriptCount = 0;
+    let deferredScriptCount = 0;
+    scripts.forEach(script => {
+      const isExternal = script.src;
+      const targetParent = isExternal ? document.head : document.body;
+      const targetInsert = isExternal ? 'beforeend' : 'beforeend'; // External to head (async/defer implied), inline to body end
+      if (script.parentNode !== targetParent && script.parentNode !== null) {
+        logger.log(`Moving <script> from ${script.parentNode.tagName} to ${targetParent.tagName} (external: ${isExternal ? 'yes' : 'no'})`);
+        if (isExternal && !script.hasAttribute('defer') && !script.hasAttribute('async')) {
+          script.defer = true; // Prevent blocking for external scripts in head
+          logger.log('Added defer to external <script> for head placement');
+        }
+        targetParent.insertAdjacentElement(targetInsert, script);
+        movedScriptCount++;
+        if (isExternal) deferredScriptCount++;
+      }
+    });
+    if (movedScriptCount > 0) {
+      logger.log(`Moved ${movedScriptCount} <script> element(s): ${deferredScriptCount} external to <head> (deferred), ${movedScriptCount - deferredScriptCount} inline to <body>`);
+    } else {
+      logger.log('All <script> elements already in valid positions');
+    }
+
     logger.log('HeadGenerator completed successfully');
   } catch (err) {
     logger.error('Error in HeadGenerator', { error: err.message, stack: err.stack });
