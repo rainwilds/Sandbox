@@ -322,18 +322,34 @@ async function updateHead(attributes, setup) {
 
     // Ensure all <style> elements are in <head>
     const styles = document.querySelectorAll('style');
-    let movedCount = 0;
+    let movedStyleCount = 0;
     styles.forEach(style => {
       if (style.parentNode !== document.head && style.parentNode !== null) {
         logger.log(`Moving <style> from ${style.parentNode.tagName} to <head>`);
         document.head.appendChild(style);
-        movedCount++;
+        movedStyleCount++;
       }
     });
-    if (movedCount > 0) {
-      logger.log(`Moved ${movedCount} <style> element(s) to <head>`);
+    if (movedStyleCount > 0) {
+      logger.log(`Moved ${movedStyleCount} <style> element(s) to <head>`);
     } else {
       logger.log('All <style> elements already in <head>');
+    }
+
+    // Ensure all <link> elements are in <head>
+    const links = document.querySelectorAll('link');
+    let movedLinkCount = 0;
+    links.forEach(link => {
+      if (link.parentNode !== document.head && link.parentNode !== null) {
+        logger.log(`Moving <link> from ${link.parentNode.tagName} to <head> (rel="${link.rel}")`);
+        document.head.appendChild(link);
+        movedLinkCount++;
+      }
+    });
+    if (movedLinkCount > 0) {
+      logger.log(`Moved ${movedLinkCount} <link> element(s) to <head>`);
+    } else {
+      logger.log('All <link> elements already in <head>');
     }
 
     logger.log('HeadGenerator completed successfully');
