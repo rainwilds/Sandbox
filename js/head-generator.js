@@ -353,7 +353,7 @@ async function updateHead(attributes, setup) {
     }
 
     // Ensure all <script> elements are properly placed (move misplaced ones to end of <body> to avoid parse issues)
-    const scripts = document.queryScriptAll('script');
+    const scripts = document.querySelectorAll('script');
     logger.log('Found scripts before processing:', Array.from(scripts).map(s => ({
       tagName: s.tagName,
       src: s.src || 'inline',
