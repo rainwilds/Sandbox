@@ -353,20 +353,25 @@ async function updateHead(attributes, setup) {
     }
 
     // Ensure all <script> elements are properly placed (move misplaced ones to end of <body> to avoid parse issues)
-    const scripts = document.querySelectorAll('script');
+    const scripts = document.queryScriptAll('script');
+    logger.log('Found scripts before processing:', Array.from(scripts).map(s => ({
+      tagName: s.tagName,
+      src: s.src || 'inline',
+      parent: s.parentNode?.tagName || 'null',
+      outerHTML: (s.outerHTML || s.textContent || '').substring(0, 150) + '...'
+    })));
     let movedScriptCount = 0;
     let deferredScriptCount = 0;
     scripts.forEach(script => {
       const isExternal = script.src;
       const targetParent = isExternal ? document.head : document.body;
-      const targetInsert = isExternal ? 'beforeend' : 'beforeend'; // External to head (async/defer implied), inline to body end
       if (script.parentNode !== targetParent && script.parentNode !== null) {
         logger.log(`Moving <script> from ${script.parentNode.tagName} to ${targetParent.tagName} (external: ${isExternal ? 'yes' : 'no'})`);
         if (isExternal && !script.hasAttribute('defer') && !script.hasAttribute('async')) {
-          script.defer = true; // Prevent blocking for external scripts in head
+          script.defer = true;
           logger.log('Added defer to external <script> for head placement');
         }
-        targetParent.insertAdjacentElement(targetInsert, script);
+        targetParent.appendChild(script);
         movedScriptCount++;
         if (isExternal) deferredScriptCount++;
       }
@@ -376,6 +381,56 @@ async function updateHead(attributes, setup) {
     } else {
       logger.log('All <script> elements already in valid positions');
     }
+
+    // Rescue misparsed <script> content: Scan body text nodes for "<script>...</script>" patterns and convert to real elements
+    logger.log('Scanning body for text nodes resembling scripts...');
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+    let node;
+    let rescuedCount = 0;
+    const rescuedScripts = [];
+    while ((node = walker.nextNode())) {
+      const text = node.textContent || '';
+      const scriptMatch = text.match(/<script\b[^<]*(?:(?!<\/script>)[^<]*)*<\/script>/i);
+      if (scriptMatch) {
+        const scriptText = scriptMatch[0];
+        logger.log(`Found potential misparsed script in text node (parent: ${node.parentNode.tagName}):`, { snippet: scriptText.substring(0, 100) + '...' });
+        // Parse the script content safely (extract inner JS, ignore attributes for simplicity)
+        const innerMatch = scriptText.match(/<script\b[^>]*>([\s\S]*?)<\/script>/i);
+        if (innerMatch) {
+          const jsCode = innerMatch[1].trim();
+          if (jsCode) {
+            // Create and append real inline script to body end
+            const newScript = document.createElement('script');
+            newScript.textContent = jsCode;
+            document.body.appendChild(newScript);
+            // Remove the original text node (or replace if it has other content)
+            if (text === scriptText) {
+              node.parentNode.removeChild(node);
+            } else {
+              node.textContent = text.replace(scriptMatch[0], '').trim();
+            }
+            rescuedScripts.push({ codeSnippet: jsCode.substring(0, 100) + '...', parent: node.parentNode.tagName });
+            rescuedCount++;
+            logger.log(`Rescued and appended script:`, { codeSnippet: jsCode.substring(0, 100) + '...' });
+          }
+        }
+      }
+    }
+    if (rescuedCount > 0) {
+      logger.log(`Rescued ${rescuedCount} misparsed script(s) from text nodes`, { details: rescuedScripts });
+    } else {
+      logger.log('No misparsed scripts found in text nodes');
+    }
+
+    // Final validation log
+    const finalScripts = document.querySelectorAll('script');
+    logger.log('Final scripts after processing:', Array.from(finalScripts).map(s => ({
+      tagName: s.tagName,
+      src: s.src || 'inline',
+      parent: s.parentNode?.tagName || 'null',
+      outerHTML: (s.outerHTML || s.textContent || '').substring(0, 150) + '...'
+    })));
+    logger.log('Final body end snapshot:', Array.from(document.body.children).slice(-3).map(el => el.tagName + (el.src ? ` (src="${el.src}")` : '')).join(' -> '));
 
     logger.log('HeadGenerator completed successfully');
   } catch (err) {
