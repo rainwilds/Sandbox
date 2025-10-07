@@ -319,6 +319,23 @@ async function updateHead(attributes, setup) {
     await updateHead(attributes, setup);
     customHead.remove();
     logger.log('Removed data-custom-head element');
+
+    // Ensure all <style> elements are in <head>
+    const styles = document.querySelectorAll('style');
+    let movedCount = 0;
+    styles.forEach(style => {
+      if (style.parentNode !== document.head && style.parentNode !== null) {
+        logger.log(`Moving <style> from ${style.parentNode.tagName} to <head>`);
+        document.head.appendChild(style);
+        movedCount++;
+      }
+    });
+    if (movedCount > 0) {
+      logger.log(`Moved ${movedCount} <style> element(s) to <head>`);
+    } else {
+      logger.log('All <style> elements already in <head>');
+    }
+
     logger.log('HeadGenerator completed successfully');
   } catch (err) {
     logger.error('Error in HeadGenerator', { error: err.message, stack: err.stack });
