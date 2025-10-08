@@ -9,6 +9,7 @@ class CustomSlider extends HTMLElement {
     #criticalAttributesHash = null;
     #retryCount = 0;
     #renderedElement = null;
+    #originalChildren = null;  // NEW: Preserve children
 
     constructor() {
         super();
@@ -126,20 +127,49 @@ class CustomSlider extends HTMLElement {
             return;
         }
 
-        this.#log('Starting initialization', { elementId: this.id || 'no-id', outerHTML: this.outerHTML.substring(0, 200) + '...', isVisible: this.#isVisible, swiperDefined: typeof Swiper !== 'undefined' });
+        this.#log('Starting initialization', { elementId: this.id || 'no-id', outerHTML: this.outerHTML.substring(0, 200) + '...', isVisible: this.#isVisible, swiperDefined: typeof Swiper !== 'undefined', customBlockDefined: !!customElements.get('custom-block') });
 
         // NEW: Wait for custom-block to be defined
         if (!customElements.get('custom-block')) {
-            if (this.#retryCount < 5) {
+            if (this.#retryCount < 7) {
                 this.#retryCount++;
                 this.#warn('custom-block not defined yet; retrying in 100ms', { retry: this.#retryCount });
                 setTimeout(() => this.initialize(), 100);
                 return;
             } else {
-                this.#error('custom-block not defined after 5 retries; falling back', { customBlockDefined: !!customElements.get('custom-block') });
+                this.#error('custom-block not defined after 7 retries; falling back', { customBlockDefined: !!customElements.get('custom-block') });
                 this.#fallback();
                 return;
             }
+        }
+
+        // NEW: Wait for custom-block children to be fully upgraded
+        const blockElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block');
+        if (blockElements.length > 0) {
+            try {
+                await Promise.all(blockElements.map(block =>
+                    customElements.whenDefined('custom-block').then(() => {
+                        // Wait for connectedCallback to complete (basic check)
+                        return new Promise(resolve => {
+                            if (block.isConnected) {
+                                resolve();
+                            } else {
+                                block.addEventListener('connected', () => resolve(), { once: true });
+                            }
+                        });
+                    })
+                ));
+                this.#log('All custom-block children upgraded', { count: blockElements.length });
+            } catch (err) {
+                this.#warn('Error waiting for custom-block upgrades; proceeding', { error: err.message });
+            }
+        }
+
+        // NEW: Cache original children
+        if (!this.#originalChildren) {
+            this.#originalChildren = document.createDocumentFragment();
+            Array.from(this.children).forEach(child => this.#originalChildren.appendChild(child.cloneNode(true)));
+            this.#log('Original children cached', { count: this.#originalChildren.childNodes.length });
         }
 
         // Render ONCE if not cached
@@ -151,13 +181,13 @@ class CustomSlider extends HTMLElement {
 
         // Check if Swiper is loaded; retry if not
         if (typeof Swiper === 'undefined') {
-            if (this.#retryCount < 5) {
+            if (this.#retryCount < 7) {
                 this.#retryCount++;
-                this.#warn('Swiper JS not loaded yet; retrying in 500ms', { retry: this.#retryCount, globalSwiper: typeof window.Swiper });
-                setTimeout(() => this.initialize(), 500);
+                this.#warn('Swiper JS not loaded yet; retrying in 750ms', { retry: this.#retryCount, globalSwiper: typeof window.Swiper });
+                setTimeout(() => this.initialize(), 750);
                 return;
             } else {
-                this.#error('Swiper failed after 5 retries; falling back', { globalSwiper: typeof window.Swiper });
+                this.#error('Swiper failed after 7 retries; falling back', { globalSwiper: typeof window.Swiper });
                 this.#fallback();
                 return;
             }
@@ -197,9 +227,16 @@ class CustomSlider extends HTMLElement {
         fallbackElement.style.display = 'flex';
         fallbackElement.style.overflow = 'hidden';
         fallbackElement.style.gap = '0';
-        // Re-append original children
-        while (this.firstChild) {
-            fallbackElement.appendChild(this.firstChild);
+        // Restore original children
+        if (this.#originalChildren) {
+            while (this.#originalChildren.firstChild) {
+                fallbackElement.appendChild(this.#originalChildren.firstChild);
+            }
+            this.#log('Restored original children to fallback', { count: fallbackElement.children.length });
+        } else {
+            while (this.firstChild) {
+                fallbackElement.appendChild(this.firstChild);
+            }
         }
         this.replaceWith(fallbackElement);
         this.#isInitialized = true;
@@ -228,6 +265,7 @@ class CustomSlider extends HTMLElement {
             this.#renderedElement.remove();
             this.#renderedElement = null;
         }
+        // Keep #originalChildren for potential re-init
     }
 
     addCallback(callback) {
@@ -244,7 +282,7 @@ class CustomSlider extends HTMLElement {
         const wrapperElement = document.createElement('div');
         wrapperElement.className = 'swiper-wrapper';
 
-        // NEW: Only element nodes (skip whitespace/comments)
+        // Only element nodes (skip whitespace/comments)
         let slideCount = 0;
         const children = Array.from(this.childNodes).filter(node => node.nodeType === Node.ELEMENT_NODE);
         for (const child of children) {
@@ -256,7 +294,7 @@ class CustomSlider extends HTMLElement {
         }
         if (slideCount === 0) {
             this.#warn('No element children to render as slides', { elementId: this.id || 'no-id' });
-        } else if (slideCount !== 3) {  // Expect exactly 3 for your case
+        } else if (slideCount !== 3) {
             this.#warn(`Unexpected slide count: ${slideCount} (expected 3—check for extra elements)`, { elementId: this.id || 'no-id', childTags: children.map(c => c.tagName) });
         }
         this.#log(`Rendered ${slideCount} slides`, { elementId: this.id || 'no-id' });
