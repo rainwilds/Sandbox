@@ -10,10 +10,12 @@ class CustomSlider extends HTMLElement {
     #retryCount = 0;
     #renderedElement = null;
     #originalChildren = null;
+    #replaceRetries = 0;
 
     constructor() {
         super();
         this.#ignoredChangeCount = 0;
+        this.#replaceRetries = 0;
         CustomSlider.#observer.observe(this);
         CustomSlider.#observedInstances.add(this);
     }
@@ -127,7 +129,14 @@ class CustomSlider extends HTMLElement {
             return;
         }
 
-        this.#log('Starting initialization', { elementId: this.id || 'no-id', outerHTML: this.outerHTML.substring(0, 200) + '...', isVisible: this.#isVisible, swiperDefined: typeof Swiper !== 'undefined', customBlockDefined: !!customElements.get('custom-block') });
+        this.#log('Starting initialization', {
+            elementId: this.id || 'no-id',
+            outerHTML: this.outerHTML.substring(0, 200) + '...',
+            isVisible: this.#isVisible,
+            swiperDefined: typeof Swiper !== 'undefined',
+            customBlockDefined: !!customElements.get('custom-block'),
+            parentTag: this.parentNode?.tagName || 'none'
+        });
 
         // Mark as initialized early to prevent double initialization
         this.#isInitialized = true;
@@ -158,7 +167,8 @@ class CustomSlider extends HTMLElement {
         const blockElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block');
         if (blockElements.length > 0) {
             try {
-                await Promise.all(blockElements.map((block, index) =>
+                // Set up listeners early to catch events from already-rendered blocks
+                const renderPromises = blockElements.map((block, index) =>
                     new Promise((resolve, reject) => {
                         // Timeout after 2s to avoid hanging
                         const timeout = setTimeout(() => {
@@ -166,9 +176,9 @@ class CustomSlider extends HTMLElement {
                             reject(new Error(`custom-block render timeout for block ${index}`));
                         }, 2000);
 
-                        // Listen for render-complete on document, filter by rendered element
+                        // Listen for render-complete on document
                         const listener = (event) => {
-                            // Check if the event target is a rendered block (div.block) and a descendant of this slider
+                            // Check if the event target is a div.block and a descendant of this slider
                             if (event.target.tagName.toLowerCase() === 'div' && event.target.classList.contains('block') && this.contains(event.target)) {
                                 clearTimeout(timeout);
                                 document.removeEventListener('render-complete', listener);
@@ -178,22 +188,23 @@ class CustomSlider extends HTMLElement {
                         };
                         document.addEventListener('render-complete', listener);
 
-                        // Trigger if already rendered
-                        if (!document.body.contains(block)) {
-                            const renderedBlock = Array.from(this.querySelectorAll('div.block')).find(el => el.getAttribute('data-rendered') === 'true');
-                            if (renderedBlock) {
-                                clearTimeout(timeout);
-                                document.removeEventListener('render-complete', listener);
-                                this.#log(`Block ${index} already rendered`, { elementId: block.id || `block-${index}` });
-                                resolve();
-                            }
+                        // Check for already-rendered blocks
+                        const renderedBlocks = Array.from(this.querySelectorAll('div.block[data-rendered="true"]'));
+                        if (renderedBlocks.length > index && renderedBlocks[index]) {
+                            clearTimeout(timeout);
+                            document.removeEventListener('render-complete', listener);
+                            this.#log(`Block ${index} already rendered`, { elementId: block.id || `block-${index}` });
+                            resolve();
                         }
                     })
-                ));
+                );
+                await Promise.all(renderPromises);
                 this.#log('All custom-block children rendered', { count: blockElements.length });
             } catch (err) {
                 this.#warn('Error waiting for custom-block renders; proceeding', { error: err.message });
             }
+        } else {
+            this.#log('No custom-block children found', { elementId: this.id || 'no-id' });
         }
 
         // Check if Swiper is loaded; retry if not
@@ -242,21 +253,34 @@ class CustomSlider extends HTMLElement {
             return;
         }
 
-        // Ensure element is still in DOM before replacing
-        if (!document.body.contains(this)) {
-            this.#error('Element no longer in DOM; aborting replacement', { elementId: this.id || 'no-id' });
-            this.#fallback();
-            return;
-        }
+        // Attempt to replace with retry mechanism
+        const attemptReplace = () => {
+            if (!document.body.contains(this)) {
+                if (this.#replaceRetries < 3) {
+                    this.#replaceRetries++;
+                    this.#warn(`Element not in DOM; retrying replacement (${this.#replaceRetries}/3)`, { elementId: this.id || 'no-id', parentTag: this.parentNode?.tagName || 'none' });
+                    setTimeout(attemptReplace, 100);
+                    return;
+                } else {
+                    this.#error('Element not in DOM after 3 retries; falling back', { elementId: this.id || 'no-id' });
+                    this.#fallback();
+                    return;
+                }
+            }
 
-        // Slight delay to avoid race conditions with other DOM manipulations
-        setTimeout(() => {
-            this.replaceWith(this.#renderedElement);
-            this.#log('Element replaced with rendered slider', { elementId: this.id || 'no-id', html: this.#renderedElement.outerHTML.substring(0, 200) });
-            this.#renderedElement = null; // Clear after replacement
-            this.#callbacks.forEach(callback => callback());
-            this.#log('Initialization completed', { elementId: this.id || 'no-id' });
-        }, 0);
+            try {
+                this.replaceWith(this.#renderedElement);
+                this.#log('Element replaced with rendered slider', { elementId: this.id || 'no-id', slideCount: this.#renderedElement.querySelectorAll('.swiper-slide').length });
+                this.#renderedElement = null; // Clear after replacement
+                this.#callbacks.forEach(callback => callback());
+                this.#log('Initialization completed', { elementId: this.id || 'no-id' });
+            } catch (err) {
+                this.#error('Replacement failed; falling back', { error: err.message });
+                this.#fallback();
+            }
+        };
+
+        attemptReplace();
     }
 
     #fallback() {
@@ -278,8 +302,12 @@ class CustomSlider extends HTMLElement {
             }
         }
         if (document.body.contains(this)) {
-            this.replaceWith(fallbackElement);
-            this.#log('Fallback element replaced', { elementId: this.id || 'no-id' });
+            try {
+                this.replaceWith(fallbackElement);
+                this.#log('Fallback element replaced', { elementId: this.id || 'no-id' });
+            } catch (err) {
+                this.#error('Fallback replacement failed', { error: err.message });
+            }
         } else {
             this.#error('Element not in DOM; skipping fallback replacement', { elementId: this.id || 'no-id' });
         }
@@ -287,7 +315,11 @@ class CustomSlider extends HTMLElement {
     }
 
     connectedCallback() {
-        this.#log('Connected to DOM', { elementId: this.id || 'no-id', customBlockDefined: !!customElements.get('custom-block') });
+        this.#log('Connected to DOM', {
+            elementId: this.id || 'no-id',
+            customBlockDefined: !!customElements.get('custom-block'),
+            parentTag: this.parentNode?.tagName || 'none'
+        });
         if (!this.#isInitialized) {
             this.initialize().catch(err => {
                 this.#error('Init Promise rejected', { error: err.message });
@@ -297,7 +329,7 @@ class CustomSlider extends HTMLElement {
     }
 
     disconnectedCallback() {
-        this.#log('Disconnected from DOM', { elementId: this.id || 'no-id' });
+        this.#log('Disconnected from DOM', { elementId: this.id || 'no-id', parentTag: this.parentNode?.tagName || 'none' });
         if (CustomSlider.#observedInstances.has(this)) {
             CustomSlider.#observer.unobserve(this);
             CustomSlider.#observedInstances.delete(this);
@@ -306,6 +338,7 @@ class CustomSlider extends HTMLElement {
         this.#cachedAttributes = null;
         this.#criticalAttributesHash = null;
         this.#retryCount = 0;
+        this.#replaceRetries = 0;
         this.#isInitialized = false;
         if (this.#renderedElement) {
             this.#renderedElement.remove();
