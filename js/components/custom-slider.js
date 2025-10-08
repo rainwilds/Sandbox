@@ -7,12 +7,14 @@ class CustomSlider extends HTMLElement {
     #callbacks = [];
     #cachedAttributes = null;
     #criticalAttributesHash = null;
+
     constructor() {
         super();
         this.#ignoredChangeCount = 0;
         CustomSlider.#observer.observe(this);
         CustomSlider.#observedInstances.add(this);
     }
+
     static #observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -21,60 +23,79 @@ class CustomSlider extends HTMLElement {
                     instance.#isVisible = true;
                     CustomSlider.#observer.unobserve(instance);
                     CustomSlider.#observedInstances.delete(instance);
-                    instance.#initialize();
+                    instance.initialize();
                 }
             }
         });
     }, { rootMargin: '50px' });
+
     static #observedInstances = new WeakSet();
+
     static #criticalAttributes = [
-        'swiper-class', 'slides-per-view', 'space-between', 'free-mode', 'pagination-clickable'
+        'class', 'slides-per-view', 'space-between', 'free-mode', 'pagination-clickable'
     ];
+
     #log(message, data = null) {
         if (this.#debug) {
-            console.groupCollapsed(% c[CustomSlider] ${ message }, 'color: #2196F3; font-weight: bold;');
+            console.groupCollapsed(`%c[CustomSlider] ${message}`, 'color: #2196F3; font-weight: bold;');
             if (data) console.log('%cData:', 'color: #4CAF50;', data);
             console.trace();
             console.groupEnd();
         }
     }
+
     #warn(message, data = null) {
         if (this.#debug) {
-            console.groupCollapsed(% c[CustomSlider] ⚠️ ${ message }, 'color: #FF9800; font-weight: bold;');
+            console.groupCollapsed(`%c[CustomSlider] ⚠️ ${message}`, 'color: #FF9800; font-weight: bold;');
             if (data) console.log('%cData:', 'color: #4CAF50;', data);
             console.trace();
             console.groupEnd();
         }
     }
+
     #error(message, data = null) {
         if (this.#debug) {
-            console.groupCollapsed(% c[CustomSlider] ❌ ${ message }, 'color: #F44336; font-weight: bold;');
+            console.groupCollapsed(`%c[CustomSlider] ❌ ${message}`, 'color: #F44336; font-weight: bold;');
             if (data) console.log('%cData:', 'color: #4CAF50;', data);
             console.trace();
             console.groupEnd();
         }
     }
+
     getAttributes() {
         if (this.#cachedAttributes) {
             this.#log('Using cached attributes', { elementId: this.id || 'no-id' });
             return this.#cachedAttributes;
         }
+
         this.#log('Parsing new attributes', { elementId: this.id || 'no-id', outerHTML: this.outerHTML.substring(0, 200) + '...' });
-        const swiperClass = this.getAttribute('swiper-class') || 'mySwiper';
+
+        const swiperClass = this.getAttribute('class') || 'mySwiper';
         const slidesPerViewStr = this.getAttribute('slides-per-view') || '3';
         const spaceBetweenStr = this.getAttribute('space-between') || '30';
         const freeMode = this.getAttribute('free-mode') !== 'false';
         const paginationClickable = this.getAttribute('pagination-clickable') !== 'false';
+
         let slidesPerView = parseFloat(slidesPerViewStr);
         if (isNaN(slidesPerView)) {
             this.#warn('Invalid slides-per-view, defaulting to 3', { value: slidesPerViewStr });
             slidesPerView = 3;
         }
-        let spaceBetween = parseInt(spaceBetweenStr, 10);
-        if (isNaN(spaceBetween)) {
-            this.#warn('Invalid space-between, defaulting to 30', { value: spaceBetweenStr });
-            spaceBetween = 30;
+
+        let spaceBetween = spaceBetweenStr;
+        if (spaceBetweenStr.startsWith('var(')) {
+            // Treat as CSS variable string directly
+            this.#log('Space-between detected as CSS variable', { value: spaceBetweenStr });
+        } else {
+            const parsedSpace = parseInt(spaceBetweenStr, 10);
+            if (!isNaN(parsedSpace) && parsedSpace >= 0) {
+                spaceBetween = parsedSpace;
+            } else {
+                this.#warn('Invalid space-between, defaulting to 30', { value: spaceBetweenStr });
+                spaceBetween = 30;
+            }
         }
+
         this.#cachedAttributes = {
             swiperClass,
             slidesPerView,
@@ -82,19 +103,23 @@ class CustomSlider extends HTMLElement {
             freeMode,
             paginationClickable
         };
+
         const criticalAttrs = {};
         CustomSlider.#criticalAttributes.forEach(attr => {
             criticalAttrs[attr] = this.getAttribute(attr) || '';
         });
         this.#criticalAttributesHash = JSON.stringify(criticalAttrs);
+
         this.#log('Attributes parsed successfully', {
             elementId: this.id || 'no-id',
             criticalHashLength: this.#criticalAttributesHash.length,
             attrs: this.#cachedAttributes
         });
+
         return this.#cachedAttributes;
     }
-    async #initialize() {
+
+    async initialize() {
         if (this.#isInitialized || !this.#isVisible) {
             this.#log('Skipping initialization', {
                 isInitialized: this.#isInitialized,
@@ -103,13 +128,19 @@ class CustomSlider extends HTMLElement {
             });
             return;
         }
+
         this.#log('Starting initialization', { elementId: this.id || 'no-id', outerHTML: this.outerHTML });
+
         this.#isInitialized = true;
+
         try {
-            const attrs = this.getAttributes();
+            const attrs = await this.getAttributes();
             const sliderElement = this.#render(attrs);
+
             this.replaceWith(sliderElement);
+
             const paginationEl = sliderElement.querySelector('.swiper-pagination');
+
             const options = {
                 slidesPerView: attrs.slidesPerView,
                 spaceBetween: attrs.spaceBetween,
@@ -119,8 +150,11 @@ class CustomSlider extends HTMLElement {
                     clickable: attrs.paginationClickable,
                 },
             };
+
             const swiper = new Swiper(sliderElement, options);
+
             this.#log('Swiper initialized successfully', { options, elementId: this.id || 'no-id' });
+
             this.#callbacks.forEach(callback => callback());
         } catch (error) {
             this.#error('Initialization failed', {
@@ -138,12 +172,14 @@ class CustomSlider extends HTMLElement {
             this.replaceWith(fallbackElement);
         }
     }
+
     connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
         if (this.#isVisible) {
-            this.#initialize();
+            this.initialize();
         }
     }
+
     disconnectedCallback() {
         this.#log('Disconnected from DOM', { elementId: this.id || 'no-id' });
         if (CustomSlider.#observedInstances.has(this)) {
@@ -154,16 +190,21 @@ class CustomSlider extends HTMLElement {
         this.#cachedAttributes = null;
         this.#criticalAttributesHash = null;
     }
+
     addCallback(callback) {
         this.#log('Callback added', { callbackName: callback.name || 'anonymous', elementId: this.id || 'no-id' });
         this.#callbacks.push(callback);
     }
+
     #render(attrs) {
         this.#log('Starting render', { elementId: this.id || 'no-id' });
+
         const sliderElement = document.createElement('div');
-        sliderElement.className = swiper ${ attrs.swiperClass }.trim();
+        sliderElement.className = `swiper ${attrs.swiperClass}`.trim();
+
         const wrapperElement = document.createElement('div');
         wrapperElement.className = 'swiper-wrapper';
+
         // Move all children to slides
         while (this.firstChild) {
             const slideElement = document.createElement('div');
@@ -171,16 +212,22 @@ class CustomSlider extends HTMLElement {
             slideElement.appendChild(this.firstChild);
             wrapperElement.appendChild(slideElement);
         }
+
         sliderElement.appendChild(wrapperElement);
+
         const paginationElement = document.createElement('div');
         paginationElement.className = 'swiper-pagination';
         sliderElement.appendChild(paginationElement);
+
         this.#log('Render completed', { elementId: this.id || 'no-id', html: sliderElement.outerHTML.substring(0, 200) });
+
         return sliderElement;
     }
+
     static get observedAttributes() {
         return CustomSlider.#criticalAttributes;
     }
+
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.#isInitialized || !this.#isVisible) {
             this.#ignoredChangeCount++;
@@ -192,14 +239,17 @@ class CustomSlider extends HTMLElement {
         this.#log('Attribute changed', { name, oldValue, newValue });
         if (CustomSlider.#criticalAttributes.includes(name)) {
             this.#cachedAttributes = null;
-            this.#initialize();
+            this.initialize();
         }
     }
 }
+
 try {
     customElements.define('custom-slider', CustomSlider);
 } catch (error) {
     console.error('Error defining CustomSlider element:', error);
 }
+
 console.log('CustomSlider version: 2025-10-08');
+
 export { CustomSlider };
