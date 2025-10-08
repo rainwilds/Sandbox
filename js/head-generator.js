@@ -44,7 +44,8 @@ const DEPENDENCIES = {
   'custom-block': ['image-generator', 'video-generator', 'shared'],
   'custom-nav': ['shared'],
   'custom-logo': ['image-generator', 'shared'],
-  'custom-header': ['image-generator', 'shared']
+  'custom-header': ['image-generator', 'shared'],
+  'custom-slider': []  // No internal dependencies; Swiper is handled externally
 };
 
 const PATH_MAP = {
@@ -55,7 +56,8 @@ const PATH_MAP = {
   'custom-block': './components/custom-block.js',
   'custom-nav': './components/custom-nav.js',
   'custom-logo': './components/custom-logo.js',
-  'custom-header': './components/custom-header.js'
+  'custom-header': './components/custom-header.js',
+  'custom-slider': './components/custom-slider.js'
 };
 
 async function loadModule(moduleName) {
@@ -134,7 +136,7 @@ async function loadComponents(componentList) {
   return allResults;
 }
 
-async function updateHead(attributes, setup) {
+async function updateHead(attributes, setup, needsSwiper = false) {
   logger.log('updateHead called with attributes', attributes);
   const head = document.head;
   logger.log('Head before update:', Array.from(head.children).map(el => el.outerHTML));
@@ -161,6 +163,14 @@ async function updateHead(attributes, setup) {
   styleLink.href = './styles.css';
   criticalFrag.appendChild(styleLink);
   logger.log('Applied stylesheet: ./styles.css');
+  // Conditionally add Swiper CSS if custom-slider is requested
+  if (needsSwiper) {
+    const swiperCssLink = document.createElement('link');
+    swiperCssLink.rel = 'stylesheet';
+    swiperCssLink.href = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css';
+    criticalFrag.appendChild(swiperCssLink);
+    logger.log('Added Swiper CSS (for custom-slider)');
+  }
   const faKitUrl = setup.font_awesome?.kit_url ?? setup.font_awesome?.kitUrl;
   if (faKitUrl) {
     const script = document.createElement('script');
@@ -312,13 +322,27 @@ async function updateHead(attributes, setup) {
       if (trimmed) attributes[key] = trimmed;
     }
     logger.log('Merged attributes', attributes);
+    const components = attributes.components ? attributes.components.split(/\s+/).map(c => c.trim()).filter(Boolean) : [];
+    const needsSwiper = components.includes('custom-slider');
+    if (needsSwiper) {
+      logger.log('custom-slider detected in components; will add Swiper resources');
+    }
     if (attributes.components) {
       await loadComponents(attributes.components);
     }
     const setup = await setupPromise;
-    await updateHead(attributes, setup);
+    await updateHead(attributes, setup, needsSwiper);
     customHead.remove();
     logger.log('Removed data-custom-head element');
+
+    // Conditionally add Swiper JS script to end of body if needed
+    if (needsSwiper) {
+      const swiperScript = document.createElement('script');
+      swiperScript.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
+      swiperScript.defer = true;  // Non-blocking load
+      document.body.appendChild(swiperScript);
+      logger.log('Added Swiper JS script to end of body (for custom-slider)');
+    }
 
     // Ensure all <style> elements are in <head>
     const styles = document.querySelectorAll('style');
