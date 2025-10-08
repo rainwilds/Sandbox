@@ -9,7 +9,7 @@ class CustomSlider extends HTMLElement {
     #criticalAttributesHash = null;
     #retryCount = 0;
     #renderedElement = null;
-    #originalChildren = null;  // NEW: Preserve children
+    #originalChildren = null;
 
     constructor() {
         super();
@@ -129,7 +129,7 @@ class CustomSlider extends HTMLElement {
 
         this.#log('Starting initialization', { elementId: this.id || 'no-id', outerHTML: this.outerHTML.substring(0, 200) + '...', isVisible: this.#isVisible, swiperDefined: typeof Swiper !== 'undefined', customBlockDefined: !!customElements.get('custom-block') });
 
-        // NEW: Wait for custom-block to be defined
+        // Wait for custom-block to be defined
         if (!customElements.get('custom-block')) {
             if (this.#retryCount < 7) {
                 this.#retryCount++;
@@ -143,29 +143,32 @@ class CustomSlider extends HTMLElement {
             }
         }
 
-        // NEW: Wait for custom-block children to be fully upgraded
+        // Wait for custom-block children to complete rendering
         const blockElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block');
         if (blockElements.length > 0) {
             try {
                 await Promise.all(blockElements.map(block =>
-                    customElements.whenDefined('custom-block').then(() => {
-                        // Wait for connectedCallback to complete (basic check)
-                        return new Promise(resolve => {
-                            if (block.isConnected) {
-                                resolve();
-                            } else {
-                                block.addEventListener('connected', () => resolve(), { once: true });
-                            }
-                        });
+                    new Promise((resolve, reject) => {
+                        // Timeout after 2s to avoid hanging
+                        const timeout = setTimeout(() => reject(new Error('custom-block render timeout')), 2000);
+                        block.addEventListener('render-complete', () => {
+                            clearTimeout(timeout);
+                            resolve();
+                        }, { once: true });
+                        // Trigger if already rendered
+                        if (block.hasAttribute('data-rendered')) {
+                            clearTimeout(timeout);
+                            resolve();
+                        }
                     })
                 ));
-                this.#log('All custom-block children upgraded', { count: blockElements.length });
+                this.#log('All custom-block children rendered', { count: blockElements.length });
             } catch (err) {
-                this.#warn('Error waiting for custom-block upgrades; proceeding', { error: err.message });
+                this.#warn('Error waiting for custom-block renders; proceeding', { error: err.message });
             }
         }
 
-        // NEW: Cache original children
+        // Cache original children
         if (!this.#originalChildren) {
             this.#originalChildren = document.createDocumentFragment();
             Array.from(this.children).forEach(child => this.#originalChildren.appendChild(child.cloneNode(true)));
