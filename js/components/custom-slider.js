@@ -7,6 +7,7 @@ class CustomSlider extends HTMLElement {
     #callbacks = [];
     #cachedAttributes = null;
     #criticalAttributesHash = null;
+    #retryCount = 0;  // NEW: For retry limit
 
     constructor() {
         super();
@@ -62,7 +63,7 @@ class CustomSlider extends HTMLElement {
         }
     }
 
-    getAttributes() {
+    async getAttributes() {
         if (this.#cachedAttributes) {
             this.#log('Using cached attributes', { elementId: this.id || 'no-id' });
             return this.#cachedAttributes;
@@ -141,12 +142,19 @@ class CustomSlider extends HTMLElement {
 
             const paginationEl = sliderElement.querySelector('.swiper-pagination');
 
-            // NEW: Check if Swiper is loaded; retry if not
+            // Check if Swiper is loaded; retry if not
             if (typeof Swiper === 'undefined') {
-                this.#warn('Swiper JS not loaded yet; retrying in 100ms');
-                setTimeout(() => this.initialize(), 100);  // Recursive retry (max 3x if needed)
-                return;
+                if (this.#retryCount < 3) {
+                    this.#retryCount++;
+                    this.#warn('Swiper JS not loaded yet; retrying in 100ms', { retry: this.#retryCount });
+                    setTimeout(() => this.initialize(), 100);
+                    return;
+                } else {
+                    this.#error('Swiper failed after 3 retries; falling back');
+                    throw new Error('Swiper unavailable');
+                }
             }
+            this.#retryCount = 0;  // Reset on success
 
             const options = {
                 slidesPerView: attrs.slidesPerView,
@@ -164,93 +172,92 @@ class CustomSlider extends HTMLElement {
 
             this.#callbacks.forEach(callback => callback());
         } catch (error) {
-            // ... existing fallback
+            this.#error('Initialization failed', {
+                error: error.message,
+                stack: error.stack,
+                elementId: this.id || 'no-id',
+                outerHTML: this.outerHTML.substring(0, 200)
+            });
+            // Fallback: replace with a simple div containing children
+            const fallbackElement = document.createElement('div');
+            fallbackElement.className = 'slider-fallback';
+            while (this.firstChild) {
+                fallbackElement.appendChild(this.firstChild);
+            }
+            this.replaceWith(fallbackElement);
         }
-        this.#error('Initialization failed', {
-            error: error.message,
-            stack: error.stack,
-            elementId: this.id || 'no-id',
-            outerHTML: this.outerHTML.substring(0, 200)
-        });
-        // Fallback: replace with a simple div containing children
-        const fallbackElement = document.createElement('div');
-        fallbackElement.className = 'slider-fallback';
+    }
+
+    connectedCallback() {
+        this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
+        if (this.#isVisible) {
+            this.initialize();
+        }
+    }
+
+    disconnectedCallback() {
+        this.#log('Disconnected from DOM', { elementId: this.id || 'no-id' });
+        if (CustomSlider.#observedInstances.has(this)) {
+            CustomSlider.#observer.unobserve(this);
+            CustomSlider.#observedInstances.delete(this);
+        }
+        this.#callbacks = [];
+        this.#cachedAttributes = null;
+        this.#criticalAttributesHash = null;
+        this.#retryCount = 0;
+    }
+
+    addCallback(callback) {
+        this.#log('Callback added', { callbackName: callback.name || 'anonymous', elementId: this.id || 'no-id' });
+        this.#callbacks.push(callback);
+    }
+
+    #render(attrs) {
+        this.#log('Starting render', { elementId: this.id || 'no-id' });
+
+        const sliderElement = document.createElement('div');
+        sliderElement.className = `swiper ${attrs.swiperClass}`.trim();
+
+        const wrapperElement = document.createElement('div');
+        wrapperElement.className = 'swiper-wrapper';
+
+        // Move all children to slides
         while (this.firstChild) {
-            fallbackElement.appendChild(this.firstChild);
+            const slideElement = document.createElement('div');
+            slideElement.className = 'swiper-slide';
+            slideElement.appendChild(this.firstChild);
+            wrapperElement.appendChild(slideElement);
         }
-        this.replaceWith(fallbackElement);
+
+        sliderElement.appendChild(wrapperElement);
+
+        const paginationElement = document.createElement('div');
+        paginationElement.className = 'swiper-pagination';
+        sliderElement.appendChild(paginationElement);
+
+        this.#log('Render completed', { elementId: this.id || 'no-id', html: sliderElement.outerHTML.substring(0, 200) });
+
+        return sliderElement;
     }
-}
-
-connectedCallback() {
-    this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
-    if (this.#isVisible) {
-        this.initialize();
-    }
-}
-
-disconnectedCallback() {
-    this.#log('Disconnected from DOM', { elementId: this.id || 'no-id' });
-    if (CustomSlider.#observedInstances.has(this)) {
-        CustomSlider.#observer.unobserve(this);
-        CustomSlider.#observedInstances.delete(this);
-    }
-    this.#callbacks = [];
-    this.#cachedAttributes = null;
-    this.#criticalAttributesHash = null;
-}
-
-addCallback(callback) {
-    this.#log('Callback added', { callbackName: callback.name || 'anonymous', elementId: this.id || 'no-id' });
-    this.#callbacks.push(callback);
-}
-
-#render(attrs) {
-    this.#log('Starting render', { elementId: this.id || 'no-id' });
-
-    const sliderElement = document.createElement('div');
-    sliderElement.className = `swiper ${attrs.swiperClass}`.trim();
-
-    const wrapperElement = document.createElement('div');
-    wrapperElement.className = 'swiper-wrapper';
-
-    // Move all children to slides
-    while (this.firstChild) {
-        const slideElement = document.createElement('div');
-        slideElement.className = 'swiper-slide';
-        slideElement.appendChild(this.firstChild);
-        wrapperElement.appendChild(slideElement);
-    }
-
-    sliderElement.appendChild(wrapperElement);
-
-    const paginationElement = document.createElement('div');
-    paginationElement.className = 'swiper-pagination';
-    sliderElement.appendChild(paginationElement);
-
-    this.#log('Render completed', { elementId: this.id || 'no-id', html: sliderElement.outerHTML.substring(0, 200) });
-
-    return sliderElement;
-}
 
     static get observedAttributes() {
-    return CustomSlider.#criticalAttributes;
-}
+        return CustomSlider.#criticalAttributes;
+    }
 
-attributeChangedCallback(name, oldValue, newValue) {
-    if (!this.#isInitialized || !this.#isVisible) {
-        this.#ignoredChangeCount++;
-        if (this.#debug && this.#ignoredChangeCount % 10 === 0) {
-            this.#log('Attribute changes ignored (not ready - batched)', { count: this.#ignoredChangeCount, name, oldValue, newValue });
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (!this.#isInitialized || !this.#isVisible) {
+            this.#ignoredChangeCount++;
+            if (this.#debug && this.#ignoredChangeCount % 10 === 0) {
+                this.#log('Attribute changes ignored (not ready - batched)', { count: this.#ignoredChangeCount, name, oldValue, newValue });
+            }
+            return;
         }
-        return;
+        this.#log('Attribute changed', { name, oldValue, newValue });
+        if (CustomSlider.#criticalAttributes.includes(name)) {
+            this.#cachedAttributes = null;
+            this.initialize();
+        }
     }
-    this.#log('Attribute changed', { name, oldValue, newValue });
-    if (CustomSlider.#criticalAttributes.includes(name)) {
-        this.#cachedAttributes = null;
-        this.initialize();
-    }
-}
 }
 
 try {
