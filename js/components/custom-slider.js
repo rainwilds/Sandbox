@@ -129,10 +129,14 @@ class CustomSlider extends HTMLElement {
 
         this.#log('Starting initialization', { elementId: this.id || 'no-id', outerHTML: this.outerHTML.substring(0, 200) + '...', isVisible: this.#isVisible, swiperDefined: typeof Swiper !== 'undefined', customBlockDefined: !!customElements.get('custom-block') });
 
+        // Mark as initialized early to prevent double initialization
+        this.#isInitialized = true;
+
         // Wait for custom-block to be defined
         if (!customElements.get('custom-block')) {
             if (this.#retryCount < 5) {
                 this.#retryCount++;
+                this.#isInitialized = false; // Allow retry
                 this.#warn('custom-block not defined yet; retrying in 100ms', { retry: this.#retryCount });
                 setTimeout(() => this.initialize(), 100);
                 return;
@@ -175,8 +179,7 @@ class CustomSlider extends HTMLElement {
                         document.addEventListener('render-complete', listener);
 
                         // Trigger if already rendered
-                        if (block.hasAttribute('data-rendered') || !document.body.contains(block)) {
-                            // Find the rendered block (div.block) that replaced this custom-block
+                        if (!document.body.contains(block)) {
                             const renderedBlock = Array.from(this.querySelectorAll('div.block')).find(el => el.getAttribute('data-rendered') === 'true');
                             if (renderedBlock) {
                                 clearTimeout(timeout);
@@ -197,6 +200,7 @@ class CustomSlider extends HTMLElement {
         if (typeof Swiper === 'undefined') {
             if (this.#retryCount < 5) {
                 this.#retryCount++;
+                this.#isInitialized = false; // Allow retry
                 this.#warn('Swiper JS not loaded yet; retrying in 750ms', { retry: this.#retryCount, globalSwiper: typeof window.Swiper });
                 setTimeout(() => this.initialize(), 750);
                 return;
@@ -238,13 +242,21 @@ class CustomSlider extends HTMLElement {
             return;
         }
 
-        // Replace with rendered element
-        this.replaceWith(this.#renderedElement);
-        this.#isInitialized = true;
-        this.#renderedElement = null; // Clear after replacement
+        // Ensure element is still in DOM before replacing
+        if (!document.body.contains(this)) {
+            this.#error('Element no longer in DOM; aborting replacement', { elementId: this.id || 'no-id' });
+            this.#fallback();
+            return;
+        }
 
-        this.#callbacks.forEach(callback => callback());
-        this.#log('Initialization completed', { elementId: this.id || 'no-id' });
+        // Slight delay to avoid race conditions with other DOM manipulations
+        setTimeout(() => {
+            this.replaceWith(this.#renderedElement);
+            this.#log('Element replaced with rendered slider', { elementId: this.id || 'no-id', html: this.#renderedElement.outerHTML.substring(0, 200) });
+            this.#renderedElement = null; // Clear after replacement
+            this.#callbacks.forEach(callback => callback());
+            this.#log('Initialization completed', { elementId: this.id || 'no-id' });
+        }, 0);
     }
 
     #fallback() {
@@ -265,16 +277,23 @@ class CustomSlider extends HTMLElement {
                 fallbackElement.appendChild(this.firstChild);
             }
         }
-        this.replaceWith(fallbackElement);
+        if (document.body.contains(this)) {
+            this.replaceWith(fallbackElement);
+            this.#log('Fallback element replaced', { elementId: this.id || 'no-id' });
+        } else {
+            this.#error('Element not in DOM; skipping fallback replacement', { elementId: this.id || 'no-id' });
+        }
         this.#isInitialized = true;
     }
 
     connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.id || 'no-id', customBlockDefined: !!customElements.get('custom-block') });
-        this.initialize().catch(err => {
-            this.#error('Init Promise rejected', { error: err.message });
-            this.#fallback();
-        });
+        if (!this.#isInitialized) {
+            this.initialize().catch(err => {
+                this.#error('Init Promise rejected', { error: err.message });
+                this.#fallback();
+            });
+        }
     }
 
     disconnectedCallback() {
