@@ -161,7 +161,8 @@ class CustomSlider extends HTMLElement {
             isVisible: this.#isVisible,
             swiperDefined: typeof Swiper !== 'undefined',
             customBlockDefined: !!customElements.get('custom-block'),
-            parentTag: this.parentNode?.tagName || 'none'
+            parentTag: this.parentNode?.tagName || 'none',
+            parentChildren: this.parentNode ? Array.from(this.parentNode.children).map(c => c.tagName) : []
         });
 
         // Mark as initialized early
@@ -267,17 +268,19 @@ class CustomSlider extends HTMLElement {
 
         // Attempt to replace with retry mechanism
         const attemptReplace = () => {
-            if (!document.body.contains(this)) {
-                if (this.#replaceRetries < 3) {
+            // Check if element and parent are still valid
+            if (!document.body.contains(this) || !this.parentNode) {
+                if (this.#replaceRetries < 5) {
                     this.#replaceRetries++;
-                    this.#warn(`Element not in DOM; retrying replacement (${this.#replaceRetries}/3)`, {
+                    this.#warn(`Element or parent not in DOM; retrying replacement (${this.#replaceRetries}/5)`, {
                         elementId: this.id || 'no-id',
-                        parentTag: this.parentNode?.tagName || 'none'
+                        parentTag: this.parentNode?.tagName || 'none',
+                        parentChildren: this.parentNode ? Array.from(this.parentNode.children).map(c => c.tagName) : []
                     });
-                    setTimeout(attemptReplace, 100);
+                    setTimeout(attemptReplace, 50); // Shorter interval for faster retries
                     return;
                 } else {
-                    this.#error('Element not in DOM after 3 retries; attempting parent append', { elementId: this.id || 'no-id' });
+                    this.#error('Element or parent not in DOM after 5 retries; attempting parent append', { elementId: this.id || 'no-id' });
                     // Try appending to parent (<header>) as a last resort
                     const parent = document.querySelector('header');
                     if (parent && this.#renderedElement) {
@@ -306,8 +309,15 @@ class CustomSlider extends HTMLElement {
                 this.#callbacks.forEach(callback => callback());
                 this.#log('Initialization completed', { elementId: this.id || 'no-id' });
             } catch (err) {
-                this.#error('Replacement failed; falling back', { error: err.message });
-                this.#fallback();
+                this.#error('Replacement failed; retrying', { error: err.message });
+                if (this.#replaceRetries < 5) {
+                    this.#replaceRetries++;
+                    this.#warn(`Replacement retry (${this.#replaceRetries}/5)`, { elementId: this.id || 'no-id' });
+                    setTimeout(attemptReplace, 50);
+                } else {
+                    this.#error('Replacement failed after 5 retries; falling back', { error: err.message });
+                    this.#fallback();
+                }
             }
         };
 
@@ -332,7 +342,7 @@ class CustomSlider extends HTMLElement {
                 fallbackElement.appendChild(this.firstChild);
             }
         }
-        if (document.body.contains(this)) {
+        if (document.body.contains(this) && this.parentNode) {
             try {
                 this.replaceWith(fallbackElement);
                 this.#log('Fallback element replaced', { elementId: this.id || 'no-id' });
@@ -363,10 +373,9 @@ class CustomSlider extends HTMLElement {
         this.#log('Connected to DOM', {
             elementId: this.id || 'no-id',
             customBlockDefined: !!customElements.get('custom-block'),
-            parentTag: this.parentNode?.tagName || 'none'
+            parentTag: this.parentNode?.tagName || 'none',
+            parentChildren: this.parentNode ? Array.from(this.parentNode.children).map(c => c.tagName) : []
         });
-        // Set up render-complete listeners early
-        this.#setupRenderCompleteListeners();
         if (!this.#isInitialized) {
             this.initialize().catch(err => {
                 this.#error('Init Promise rejected', { error: err.message });
@@ -376,7 +385,11 @@ class CustomSlider extends HTMLElement {
     }
 
     disconnectedCallback() {
-        this.#log('Disconnected from DOM', { elementId: this.id || 'no-id', parentTag: this.parentNode?.tagName || 'none' });
+        this.#log('Disconnected from DOM', {
+            elementId: this.id || 'no-id',
+            parentTag: this.parentNode?.tagName || 'none',
+            parentChildren: this.parentNode ? Array.from(this.parentNode.children).map(c => c.tagName) : []
+        });
         if (CustomSlider.#observedInstances.has(this)) {
             CustomSlider.#observer.unobserve(this);
             CustomSlider.#observedInstances.delete(this);
