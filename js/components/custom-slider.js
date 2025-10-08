@@ -1,4 +1,4 @@
-/* global HTMLElement, IntersectionObserver, document, window, JSON, console */
+/* global HTMLElement, IntersectionObserver, document, window, JSON, console, customElements */
 class CustomSlider extends HTMLElement {
     #ignoredChangeCount;
     #debug = new URLSearchParams(window.location.search).get('debug') === 'true';
@@ -8,7 +8,7 @@ class CustomSlider extends HTMLElement {
     #cachedAttributes = null;
     #criticalAttributesHash = null;
     #retryCount = 0;
-    #renderedElement = null;  // Cached rendered element
+    #renderedElement = null;
 
     constructor() {
         super();
@@ -24,7 +24,7 @@ class CustomSlider extends HTMLElement {
                 if (instance instanceof CustomSlider) {
                     instance.#isVisible = true;
                     CustomSlider.#observer.unobserve(instance);
-                    CustomSlider.#observedInstances.delete(this);
+                    CustomSlider.#observedInstances.delete(instance);
                     instance.initialize();
                 }
             }
@@ -128,34 +128,37 @@ class CustomSlider extends HTMLElement {
 
         this.#log('Starting initialization', { elementId: this.id || 'no-id', outerHTML: this.outerHTML.substring(0, 200) + '...', isVisible: this.#isVisible, swiperDefined: typeof Swiper !== 'undefined' });
 
-        // Render ONCE at start (if not already)
-        if (!this.#renderedElement) {
-            const attrs = await this.getAttributes();
-            this.#renderedElement = this.#render(attrs);
-            this.#log('Rendered element cached (first time)', { elementId: this.id || 'no-id' });
-        }
-
-        // Check if Swiper is loaded; retry if not (no re-render)
-        if (typeof Swiper === 'undefined') {
-            if (this.#retryCount < 3) {
+        // NEW: Wait for custom-block to be defined
+        if (!customElements.get('custom-block')) {
+            if (this.#retryCount < 5) {
                 this.#retryCount++;
-                this.#warn('Swiper JS not loaded yet; retrying in 100ms', { retry: this.#retryCount, globalSwiper: typeof window.Swiper });
+                this.#warn('custom-block not defined yet; retrying in 100ms', { retry: this.#retryCount });
                 setTimeout(() => this.initialize(), 100);
                 return;
             } else {
-                this.#error('Swiper failed after 3 retries; falling back', { globalSwiper: typeof window.Swiper });
-                // Fallback without throw (no uncaught)
-                const fallbackElement = document.createElement('div');
-                fallbackElement.className = 'slider-fallback';
-                fallbackElement.style.display = 'flex';
-                fallbackElement.style.overflow = 'hidden';
-                fallbackElement.style.gap = '0';  // Mimic space-between=0
-                // Re-append original children (since render consumed them)
-                while (this.firstChild) {
-                    fallbackElement.appendChild(this.firstChild);
-                }
-                this.replaceWith(fallbackElement);
-                this.#isInitialized = true;
+                this.#error('custom-block not defined after 5 retries; falling back', { customBlockDefined: !!customElements.get('custom-block') });
+                this.#fallback();
+                return;
+            }
+        }
+
+        // Render ONCE if not cached
+        if (!this.#renderedElement) {
+            const attrs = await this.getAttributes();
+            this.#renderedElement = this.#render(attrs);
+            this.#log('Rendered element cached (first time)', { elementId: this.id || 'no-id', slideCount: this.#renderedElement.querySelectorAll('.swiper-slide').length });
+        }
+
+        // Check if Swiper is loaded; retry if not
+        if (typeof Swiper === 'undefined') {
+            if (this.#retryCount < 5) {
+                this.#retryCount++;
+                this.#warn('Swiper JS not loaded yet; retrying in 500ms', { retry: this.#retryCount, globalSwiper: typeof window.Swiper });
+                setTimeout(() => this.initialize(), 500);
+                return;
+            } else {
+                this.#error('Swiper failed after 5 retries; falling back', { globalSwiper: typeof window.Swiper });
+                this.#fallback();
                 return;
             }
         }
@@ -176,9 +179,9 @@ class CustomSlider extends HTMLElement {
 
         const swiper = new Swiper(this.#renderedElement, options);
 
-        this.#log('Swiper initialized successfully', { options, swiperId: swiper.id, elementId: this.id || 'no-id' });
+        this.#log('Swiper initialized successfully', { options, swiperId: swiper.id || 'unknown', elementId: this.id || 'no-id' });
 
-        // Replace only on success
+        // Replace on success
         this.replaceWith(this.#renderedElement);
         this.#renderedElement = null;
 
@@ -187,10 +190,26 @@ class CustomSlider extends HTMLElement {
         this.#callbacks.forEach(callback => callback());
     }
 
+    #fallback() {
+        this.#log('Creating fallback element', { elementId: this.id || 'no-id' });
+        const fallbackElement = document.createElement('div');
+        fallbackElement.className = 'slider-fallback';
+        fallbackElement.style.display = 'flex';
+        fallbackElement.style.overflow = 'hidden';
+        fallbackElement.style.gap = '0';
+        // Re-append original children
+        while (this.firstChild) {
+            fallbackElement.appendChild(this.firstChild);
+        }
+        this.replaceWith(fallbackElement);
+        this.#isInitialized = true;
+    }
+
     connectedCallback() {
-        this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
-        this.initialize().catch(err => {  // NEW: Catch uncaught Promise rejections
+        this.#log('Connected to DOM', { elementId: this.id || 'no-id', customBlockDefined: !!customElements.get('custom-block') });
+        this.initialize().catch(err => {
             this.#error('Init Promise rejected', { error: err.message });
+            this.#fallback();
         });
     }
 
@@ -204,7 +223,7 @@ class CustomSlider extends HTMLElement {
         this.#cachedAttributes = null;
         this.#criticalAttributesHash = null;
         this.#retryCount = 0;
-        this.#isInitialized = false;  // Reset for potential re-init
+        this.#isInitialized = false;
         if (this.#renderedElement) {
             this.#renderedElement.remove();
             this.#renderedElement = null;
@@ -225,19 +244,20 @@ class CustomSlider extends HTMLElement {
         const wrapperElement = document.createElement('div');
         wrapperElement.className = 'swiper-wrapper';
 
-        // Move all children to slides (happens once)
+        // NEW: Only element nodes (skip whitespace/comments)
         let slideCount = 0;
-        while (this.firstChild) {
+        const children = Array.from(this.childNodes).filter(node => node.nodeType === Node.ELEMENT_NODE);
+        for (const child of children) {
             const slideElement = document.createElement('div');
             slideElement.className = 'swiper-slide';
-            slideElement.appendChild(this.firstChild);
+            slideElement.appendChild(child);
             wrapperElement.appendChild(slideElement);
             slideCount++;
         }
         if (slideCount === 0) {
-            this.#warn('No children to render as slides', { elementId: this.id || 'no-id' });
-        } else if (slideCount > 3) {
-            this.#warn(`Unexpected slide count: ${slideCount} (expected ~3—check for extra <div>s/whitespace)`, { elementId: this.id || 'no-id' });
+            this.#warn('No element children to render as slides', { elementId: this.id || 'no-id' });
+        } else if (slideCount !== 3) {  // Expect exactly 3 for your case
+            this.#warn(`Unexpected slide count: ${slideCount} (expected 3—check for extra elements)`, { elementId: this.id || 'no-id', childTags: children.map(c => c.tagName) });
         }
         this.#log(`Rendered ${slideCount} slides`, { elementId: this.id || 'no-id' });
 
@@ -261,10 +281,11 @@ class CustomSlider extends HTMLElement {
             this.#log('Attribute changed (re-initializing)', { name, oldValue, newValue });
             if (CustomSlider.#criticalAttributes.includes(name)) {
                 this.#cachedAttributes = null;
-                this.#isInitialized = false;  // Reset to allow re-init
-                this.#renderedElement = null;  // Re-render on change
+                this.#isInitialized = false;
+                this.#renderedElement = null;
                 this.initialize().catch(err => {
                     this.#error('Re-init Promise rejected', { error: err.message });
+                    this.#fallback();
                 });
             }
         } else {

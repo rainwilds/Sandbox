@@ -117,23 +117,34 @@ async function loadComponents(componentList) {
   }
   logger.log('Loading requested components', { components: componentList });
   const components = componentList.split(/\s+/).map(c => c.trim()).filter(c => c);
-  const loadPromises = components.map(component =>
-    loadComponentWithDependencies(component).catch(err => {
+  
+  // NEW: Prioritize custom-block before custom-slider
+  const orderedComponents = components.sort((a, b) => {
+    if (a === 'custom-block' && b === 'custom-slider') return -1;  // block first
+    if (a === 'custom-slider' && b === 'custom-block') return 1;   // slider after
+    return 0;  // preserve order for others
+  });
+
+  const results = [];
+  // Load sequentially to ensure order
+  for (const component of orderedComponents) {
+    const result = await loadComponentWithDependencies(component).catch(err => {
       logger.error(`Failed to load component ${component}`, { error: err.message, stack: err.stack });
       return [];
-    })
-  );
-  const allResults = (await Promise.all(loadPromises)).flat();
-  const successfulComponents = allResults.filter(r => components.includes(r.name) && r.module).length;
-  const totalComponents = components.length;
-  const successfulModules = allResults.filter(r => r.module).length;
-  const totalModules = allResults.length;
+    });
+    results.push(...result);
+  }
+
+  const successfulComponents = results.filter(r => orderedComponents.includes(r.name) && r.module).length;
+  const totalComponents = orderedComponents.length;
+  const successfulModules = results.filter(r => r.module).length;
+  const totalModules = results.length;
   logger.log(`Component loading summary: ${successfulComponents}/${totalComponents} components, ${successfulModules}/${totalModules} modules`, {
-    components,
-    successful: allResults.filter(r => r.module && components.includes(r.name)).map(r => r.name),
-    failed: allResults.filter(r => r.error && components.includes(r.name)).map(r => r.name)
+    components: orderedComponents,
+    successful: results.filter(r => r.module && orderedComponents.includes(r.name)).map(r => r.name),
+    failed: results.filter(r => r.error && orderedComponents.includes(r.name)).map(r => r.name)
   });
-  return allResults;
+  return results;
 }
 
 async function updateHead(attributes, setup, needsSwiper = false) {
