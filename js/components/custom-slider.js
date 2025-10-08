@@ -7,7 +7,7 @@ class CustomSlider extends HTMLElement {
     #callbacks = [];
     #cachedAttributes = null;
     #criticalAttributesHash = null;
-    #retryCount = 0;  // NEW: For retry limit
+    #retryCount = 0;
 
     constructor() {
         super();
@@ -85,7 +85,6 @@ class CustomSlider extends HTMLElement {
 
         let spaceBetween = spaceBetweenStr;
         if (spaceBetweenStr.startsWith('var(')) {
-            // Treat as CSS variable string directly
             this.#log('Space-between detected as CSS variable', { value: spaceBetweenStr });
         } else {
             const parsedSpace = parseInt(spaceBetweenStr, 10);
@@ -121,16 +120,12 @@ class CustomSlider extends HTMLElement {
     }
 
     async initialize() {
-        if (this.#isInitialized || !this.#isVisible) {
-            this.#log('Skipping initialization', {
-                isInitialized: this.#isInitialized,
-                isVisible: this.#isVisible,
-                elementId: this.id || 'no-id'
-            });
+        if (this.#isInitialized) {
+            this.#log('Skipping initialization (already done)', { elementId: this.id || 'no-id' });
             return;
         }
 
-        this.#log('Starting initialization', { elementId: this.id || 'no-id', outerHTML: this.outerHTML });
+        this.#log('Starting initialization', { elementId: this.id || 'no-id', outerHTML: this.outerHTML.substring(0, 200) + '...', isVisible: this.#isVisible });
 
         this.#isInitialized = true;
 
@@ -146,15 +141,16 @@ class CustomSlider extends HTMLElement {
             if (typeof Swiper === 'undefined') {
                 if (this.#retryCount < 3) {
                     this.#retryCount++;
-                    this.#warn('Swiper JS not loaded yet; retrying in 100ms', { retry: this.#retryCount });
+                    this.#warn('Swiper JS not loaded yet; retrying in 100ms', { retry: this.#retryCount, globalSwiper: typeof window.Swiper });
                     setTimeout(() => this.initialize(), 100);
                     return;
                 } else {
-                    this.#error('Swiper failed after 3 retries; falling back');
-                    throw new Error('Swiper unavailable');
+                    this.#error('Swiper failed after 3 retries; falling back', { globalSwiper: typeof window.Swiper });
+                    throw new Error('Swiper unavailable after retries');
                 }
             }
             this.#retryCount = 0;  // Reset on success
+            this.#log('Swiper available, creating instance', { version: Swiper.version || 'unknown' });
 
             const options = {
                 slidesPerView: attrs.slidesPerView,
@@ -168,19 +164,22 @@ class CustomSlider extends HTMLElement {
 
             const swiper = new Swiper(sliderElement, options);
 
-            this.#log('Swiper initialized successfully', { options, elementId: this.id || 'no-id' });
+            this.#log('Swiper initialized successfully', { options, swiperId: swiper.id, elementId: this.id || 'no-id' });
 
             this.#callbacks.forEach(callback => callback());
         } catch (error) {
             this.#error('Initialization failed', {
                 error: error.message,
                 stack: error.stack,
+                swiperDefined: typeof Swiper !== 'undefined',
                 elementId: this.id || 'no-id',
                 outerHTML: this.outerHTML.substring(0, 200)
             });
             // Fallback: replace with a simple div containing children
             const fallbackElement = document.createElement('div');
             fallbackElement.className = 'slider-fallback';
+            fallbackElement.style.display = 'flex';
+            fallbackElement.style.overflow = 'hidden';  // Basic slider-like
             while (this.firstChild) {
                 fallbackElement.appendChild(this.firstChild);
             }
@@ -190,9 +189,8 @@ class CustomSlider extends HTMLElement {
 
     connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
-        if (this.#isVisible) {
-            this.initialize();
-        }
+        // NEW: Always init on connect (for above-fold elements like headers)
+        this.initialize();
     }
 
     disconnectedCallback() {
@@ -222,12 +220,15 @@ class CustomSlider extends HTMLElement {
         wrapperElement.className = 'swiper-wrapper';
 
         // Move all children to slides
+        let slideCount = 0;
         while (this.firstChild) {
             const slideElement = document.createElement('div');
             slideElement.className = 'swiper-slide';
             slideElement.appendChild(this.firstChild);
             wrapperElement.appendChild(slideElement);
+            slideCount++;
         }
+        this.#log(`Rendered ${slideCount} slides`, { elementId: this.id || 'no-id' });
 
         sliderElement.appendChild(wrapperElement);
 

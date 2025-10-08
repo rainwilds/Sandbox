@@ -335,13 +335,13 @@ async function updateHead(attributes, setup, needsSwiper = false) {
     customHead.remove();
     logger.log('Removed data-custom-head element');
 
-    // Conditionally add Swiper JS script to end of body if needed
+// Conditionally add Swiper JS script to end of body if needed
 if (needsSwiper) {
   const swiperScript = document.createElement('script');
   swiperScript.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
-  // REMOVE: swiperScript.defer = true;  // Sync load for early availability
+  swiperScript.async = true;  // NEW: Async load (non-blocking, skips defer in relocation)
   document.body.appendChild(swiperScript);
-  logger.log('Added Swiper JS script to end of body (for custom-slider)');
+  logger.log('Added Swiper JS script to end of body (for custom-slider, async)');
 }
 
     // Ensure all <style> elements are in <head>
