@@ -335,14 +335,15 @@ async function updateHead(attributes, setup, needsSwiper = false) {
     customHead.remove();
     logger.log('Removed data-custom-head element');
 
-// Conditionally add Swiper JS script to end of body if needed
-if (needsSwiper) {
-  const swiperScript = document.createElement('script');
-  swiperScript.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
-  swiperScript.async = true;  // NEW: Async load (non-blocking, skips defer in relocation)
-  document.body.appendChild(swiperScript);
-  logger.log('Added Swiper JS script to end of body (for custom-slider, async)');
-}
+    // Conditionally add Swiper JS script to end of body if needed
+    if (needsSwiper) {
+      const swiperScript = document.createElement('script');
+      swiperScript.id = 'swiper-js';  // NEW: ID for skipping relocation
+      swiperScript.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
+      swiperScript.async = true;
+      document.body.appendChild(swiperScript);
+      logger.log('Added Swiper JS script to end of body (for custom-slider, async, id=swiper-js)');
+    }
 
     // Ensure all <style> elements are in <head>
     const styles = document.querySelectorAll('style');
@@ -388,6 +389,11 @@ if (needsSwiper) {
     let deferredScriptCount = 0;
     scripts.forEach(script => {
       const isExternal = script.src;
+      // NEW: Skip relocation/defer for Swiper script
+      if (script.id === 'swiper-js') {
+        logger.log('Skipping relocation for Swiper script (keeps async in body)');
+        return;
+      }
       const targetParent = isExternal ? document.head : document.body;
       if (script.parentNode !== targetParent && script.parentNode !== null) {
         logger.log(`Moving <script> from ${script.parentNode.tagName} to ${targetParent.tagName} (external: ${isExternal ? 'yes' : 'no'})`);
