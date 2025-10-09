@@ -268,7 +268,7 @@ class CustomSlider extends HTMLElement {
         };
 
         // Delay the first attempt
-        setTimeout(attemptInsert, 500);
+        setTimeout(attemptInsert, 1000);  // Increased to 1000ms
     }
 
     #attachSliderLogic(container) {
@@ -403,10 +403,12 @@ class CustomSlider extends HTMLElement {
             parentChildren: this.parentNode ? Array.from(this.parentNode.children).map(c => c.tagName) : []
         });
         if (!this.#isInitialized && !this.#initInProgress) {
-            this.initialize().catch(err => {
-                this.#error('Init Promise rejected', { error: err.message });
-                this.#fallback(this.parentNode, this.nextSibling);
-            });
+            document.addEventListener('DOMContentLoaded', () => {
+                this.initialize().catch(err => {
+                    this.#error('Init Promise rejected', { error: err.message });
+                    this.#fallback(this.parentNode, this.nextSibling);
+                });
+            }, { once: true });
         }
     }
 
