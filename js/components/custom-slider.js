@@ -8,7 +8,6 @@ class CustomSlider extends HTMLElement {
     #callbacks = [];
     #cachedAttributes = null;
     #criticalAttributesHash = null;
-    #replaceRetries = 0;
     #renderedElement = null;
     #originalChildren = null;
     #renderCompleteListeners = [];
@@ -17,7 +16,6 @@ class CustomSlider extends HTMLElement {
     constructor() {
         super();
         this.#ignoredChangeCount = 0;
-        this.#replaceRetries = 0;
         this.#initInProgress = false;
         this.#renderCompleteListeners = [];
         CustomSlider.#observer.observe(this);
@@ -193,7 +191,7 @@ class CustomSlider extends HTMLElement {
             this.#log('Rendered element cached', { elementId: this.id || 'no-id', slideCount: this.#renderedElement.querySelectorAll('.slider-slide').length });
         }
 
-        // Attempt to insert with retry mechanism
+        // Wait for DOM stability before insertion
         const attemptInsert = () => {
             try {
                 if (parent && this.parentNode === parent && this.#renderedElement) {
@@ -216,20 +214,19 @@ class CustomSlider extends HTMLElement {
                 this.#isInitialized = true;
                 this.#initInProgress = false;
             } catch (err) {
-                this.#error('Insertion failed; retrying', { error: err.message });
-                if (this.#replaceRetries < 10) {
-                    this.#replaceRetries++;
-                    this.#warn(`Insertion retry (${this.#replaceRetries}/10)`, { elementId: this.id || 'no-id' });
-                    setTimeout(attemptInsert, 200);
-                } else {
-                    this.#error('Insertion failed after 10 retries; falling back', { error: err.message });
-                    this.#fallback(parent, nextSibling);
-                }
+                this.#error('Insertion failed', { error: err.message });
+                this.#fallback(parent, nextSibling);
             }
         };
 
-        // Delay the first attempt
-        setTimeout(attemptInsert, 1000);
+        // Use MutationObserver to ensure DOM is ready
+        const observer = new MutationObserver(() => {
+            if (document.body.contains(this) && parent) {
+                attemptInsert();
+                observer.disconnect();
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
     }
 
     #attachSliderLogic(container) {
@@ -318,18 +315,21 @@ class CustomSlider extends HTMLElement {
         fallbackElement.className = 'slider-fallback';
         fallbackElement.style.display = 'flex';
         fallbackElement.style.overflow = 'hidden';
-        // Dynamically set gap for consistency
-        let gapValue = '0';
-        if (this.#cachedAttributes && this.#cachedAttributes.gap) {
-            gapValue = this.#cachedAttributes.gap;
+
+        // Ensure attributes are loaded
+        let attrs = this.#cachedAttributes;
+        if (!attrs) {
+            attrs = await this.getAttributes();
         }
-        fallbackElement.style.gap = gapValue;
+        const slidesPerView = attrs.slidesPerView || 1;
+        fallbackElement.style.gap = attrs.gap || '0';
+
         // Restore original children
         if (this.#originalChildren) {
             while (this.#originalChildren.firstChild) {
                 const slideElement = document.createElement('div');
                 slideElement.className = 'slider-slide';
-                slideElement.style.width = `${100 / this.#cachedAttributes.slidesPerView}%`;
+                slideElement.style.width = `${100 / slidesPerView}%`;
                 slideElement.appendChild(this.#originalChildren.firstChild);
                 fallbackElement.appendChild(slideElement);
             }
@@ -338,7 +338,7 @@ class CustomSlider extends HTMLElement {
             while (this.firstChild) {
                 const slideElement = document.createElement('div');
                 slideElement.className = 'slider-slide';
-                slideElement.style.width = `${100 / this.#cachedAttributes.slidesPerView}%`;
+                slideElement.style.width = `${100 / slidesPerView}%`;
                 slideElement.appendChild(this.firstChild);
                 fallbackElement.appendChild(slideElement);
             }
@@ -394,7 +394,6 @@ class CustomSlider extends HTMLElement {
         this.#callbacks = [];
         this.#cachedAttributes = null;
         this.#criticalAttributesHash = null;
-        this.#replaceRetries = 0;
         this.#isInitialized = false;
         this.#initInProgress = false;
         if (this.#renderedElement) {
@@ -420,8 +419,7 @@ class CustomSlider extends HTMLElement {
 
         const wrapperElement = document.createElement('div');
         wrapperElement.className = 'slider-wrapper';
-        wrapperElement.style.display = 'flex';
-        wrapperElement.style.gap = attrs.gap;
+        sliderElement.appendChild(wrapperElement);
 
         let slideCount = 0;
         const children = Array.from(this.children).filter(node => node.nodeType === Node.ELEMENT_NODE);
@@ -437,7 +435,6 @@ class CustomSlider extends HTMLElement {
         } else {
             this.#log(`Rendered ${slideCount} slides`, { elementId: this.id || 'no-id' });
         }
-        sliderElement.appendChild(wrapperElement);
 
         // Add pagination if attribute is present
         if (this.hasAttribute('pagination-clickable')) {
@@ -482,6 +479,6 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-10');
+console.log('CustomSlider version: 2025-10-10-2');
 
 export { CustomSlider };
