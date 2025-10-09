@@ -1955,6 +1955,8 @@ div#products {
     --space-tiny: 8px; /* Define your gap variable */
 }
 
+
+
 .slider {
     position: relative;
     width: 100%;
@@ -2007,6 +2009,12 @@ div#products {
 .slider-fallback .slider-slide {
     flex-shrink: 0;
     width: calc(100% / 2); /* For slides-per-view="2" */
+    height: auto;
+}
+
+.slider-fallback .slider-slide .block {
+    width: 100%;
+    height: 100%;
 }
 
 custom-slider {
@@ -2016,14 +2024,9 @@ custom-slider {
     overflow-x: auto;
 }
 
-custom-slider > custom-block {
+custom-slider > * {
     flex: 0 0 calc(100% / 2); /* For slides-per-view="2" */
     width: 100%;
-}
-
-custom-block {
-    display: block;
-    width: 100%; /* Ensure blocks fill their container */
 }
 
 

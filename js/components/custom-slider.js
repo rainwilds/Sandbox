@@ -195,6 +195,12 @@ class CustomSlider extends HTMLElement {
 
         const attemptInsert = () => {
             try {
+                this.log('Attempting insertion', {
+                    elementId: this.id || 'no-id',
+                    parentExists: !!parent,
+                    isParentConnected: parent ? document.body.contains(parent) : false,
+                    renderedElementExists: !!state.renderedElement
+                });
                 if (parent && this.parentNode === parent && state.renderedElement) {
                     parent.replaceChild(state.renderedElement, this);
                     this.log('Element replaced with rendered slider', { elementId: this.id || 'no-id' });
@@ -225,7 +231,14 @@ class CustomSlider extends HTMLElement {
             }
         };
 
-        setTimeout(attemptInsert, 1000);
+        const observer = new MutationObserver(() => {
+            if (document.body.contains(this) && parent) {
+                this.log('DOM stable, attempting insertion', { elementId: this.id || 'no-id' });
+                setTimeout(attemptInsert, 1500);
+                observer.disconnect();
+            }
+        });
+        observer.observe(document.body, { childList: true, subtree: true });
     }
 
     attachSliderLogic(container) {
@@ -236,6 +249,7 @@ class CustomSlider extends HTMLElement {
         const pagination = container.querySelector('.slider-pagination');
         const slideCount = slides.length;
 
+        this.log('Attaching slider logic', { slideCount, elementId: this.id || 'no-id' });
         if (slideCount === 0) return;
 
         const recalc = () => {
@@ -310,6 +324,7 @@ class CustomSlider extends HTMLElement {
         fallbackElement.className = 'slider-fallback';
         fallbackElement.style.display = 'flex';
         fallbackElement.style.overflow = 'hidden';
+        fallbackElement.style.flexWrap = 'nowrap';
 
         let attrs = state.cachedAttributes;
         if (!attrs) {
@@ -323,6 +338,7 @@ class CustomSlider extends HTMLElement {
                 const slideElement = document.createElement('div');
                 slideElement.className = 'slider-slide';
                 slideElement.style.width = `${100 / slidesPerView}%`;
+                slideElement.style.flexShrink = '0';
                 slideElement.appendChild(state.originalChildren.firstChild);
                 fallbackElement.appendChild(slideElement);
             }
@@ -332,10 +348,14 @@ class CustomSlider extends HTMLElement {
                 const slideElement = document.createElement('div');
                 slideElement.className = 'slider-slide';
                 slideElement.style.width = `${100 / slidesPerView}%`;
+                slideElement.style.flexShrink = '0';
                 slideElement.appendChild(this.firstChild);
                 fallbackElement.appendChild(slideElement);
             }
         }
+
+        this.log('Fallback DOM structure', { html: fallbackElement.outerHTML.substring(0, 200) });
+
         try {
             if (parent && this.parentNode === parent) {
                 parent.replaceChild(fallbackElement, this);
@@ -413,6 +433,7 @@ class CustomSlider extends HTMLElement {
         const wrapperElement = document.createElement('div');
         wrapperElement.className = 'slider-wrapper';
         wrapperElement.style.display = 'flex';
+        wrapperElement.style.flexWrap = 'nowrap';
         wrapperElement.style.gap = attrs.gap;
 
         let slideCount = 0;
@@ -420,6 +441,8 @@ class CustomSlider extends HTMLElement {
         for (const child of children) {
             const slideElement = document.createElement('div');
             slideElement.className = 'slider-slide';
+            slideElement.style.width = `${100 / attrs.slidesPerView}%`;
+            slideElement.style.flexShrink = '0';
             slideElement.appendChild(child);
             wrapperElement.appendChild(slideElement);
             slideCount++;
@@ -474,6 +497,6 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-10-4');
+console.log('CustomSlider version: 2025-10-10-5');
 
 export { CustomSlider };
