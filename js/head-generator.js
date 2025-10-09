@@ -45,7 +45,7 @@ const DEPENDENCIES = {
   'custom-nav': ['shared'],
   'custom-logo': ['image-generator', 'shared'],
   'custom-header': ['image-generator', 'shared'],
-  'custom-slider': []  // No internal dependencies
+  'custom-slider': []
 };
 
 const PATH_MAP = {
@@ -53,11 +53,11 @@ const PATH_MAP = {
   'image-generator': './image-generator.js',
   'video-generator': './video-generator.js',
   'shared': './shared.js',
-  'custom-block': './components/custom-block.js',
-  'custom-nav': './components/custom-nav.js',
-  'custom-logo': './components/custom-logo.js',
-  'custom-header': './components/custom-header.js',
-  'custom-slider': './components/custom-slider.js'
+  'custom-block': './js/components/custom-block.js',
+  'custom-nav': './js/components/custom-nav.js',
+  'custom-logo': './js/components/custom-logo.js',
+  'custom-header': './js/components/custom-header.js',
+  'custom-slider': './js/components/custom-slider.js'
 };
 
 async function loadModule(moduleName) {
@@ -126,7 +126,6 @@ async function loadComponents(componentList) {
   });
 
   const results = [];
-  // Load sequentially to ensure order
   for (const component of orderedComponents) {
     const result = await loadComponentWithDependencies(component).catch(err => {
       logger.error(`Failed to load component ${component}`, { error: err.message, stack: err.stack });
@@ -354,7 +353,7 @@ async function updateHead(attributes, setup) {
     const links = document.querySelectorAll('link');
     let movedLinkCount = 0;
     links.forEach(link => {
-      if (link.parentNode !== document.head && link.parentNode !== null) {
+      if (link.parentNode !== document.head && style.parentNode !== null) {
         logger.log(`Moving <link> from ${link.parentNode.tagName} to <head> (rel="${link.rel}")`);
         document.head.appendChild(link);
         movedLinkCount++;
