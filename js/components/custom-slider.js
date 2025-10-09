@@ -265,7 +265,7 @@ class CustomSlider extends HTMLElement {
                 if (this.#replaceRetries < 10) {
                     this.#replaceRetries++;
                     this.#warn(`Insertion retry (${this.#replaceRetries}/10)`, { elementId: this.id || 'no-id' });
-                    setTimeout(attemptInsert, 100);
+                    setTimeout(attemptInsert, 200);  // Increased from 100ms for better stability
                 } else {
                     this.#error('Insertion failed after 10 retries; falling back', { error: err.message });
                     this.#fallback(parent, nextSibling);
@@ -273,7 +273,7 @@ class CustomSlider extends HTMLElement {
             }
         };
 
-        attemptInsert();
+        setTimeout(attemptInsert, 500);
     }
 
     #attachSliderLogic(container) {
