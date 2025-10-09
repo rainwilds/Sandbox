@@ -8,7 +8,6 @@ class CustomSlider extends HTMLElement {
     #callbacks = [];
     #cachedAttributes = null;
     #criticalAttributesHash = null;
-    #retryCount = 0;
     #replaceRetries = 0;
     #renderedElement = null;
     #originalChildren = null;
@@ -169,23 +168,17 @@ class CustomSlider extends HTMLElement {
             parentChildren: this.parentNode ? Array.from(this.parentNode.children).map(c => c.tagName) : []
         });
 
-        // Mark as initialized early
-        this.#isInitialized = true;
-
-        // Wait for custom-block to be defined
+        // Wait for custom-block to be defined with loop
+        let customBlockAttempts = 0;
+        while (!customElements.get('custom-block') && customBlockAttempts < 5) {
+            customBlockAttempts++;
+            this.#warn('custom-block not defined yet; awaiting 100ms', { attempt: customBlockAttempts });
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
         if (!customElements.get('custom-block')) {
-            if (this.#retryCount < 5) {
-                this.#retryCount++;
-                this.#isInitialized = false;
-                this.#initInProgress = false;
-                this.#warn('custom-block not defined yet; retrying in 100ms', { retry: this.#retryCount });
-                setTimeout(() => this.initialize(), 100);
-                return;
-            } else {
-                this.#error('custom-block not defined after 5 retries; falling back', { customBlockDefined: !!customElements.get('custom-block') });
-                this.#fallback();
-                return;
-            }
+            this.#error('custom-block not defined after 5 attempts; falling back');
+            this.#fallback();
+            return;
         }
 
         // Cache original children
@@ -224,23 +217,19 @@ class CustomSlider extends HTMLElement {
             this.#renderCompleteListeners = [];
         }
 
-        // Check if Swiper is loaded
+        // Wait for Swiper to be loaded with loop
+        let swiperAttempts = 0;
+        while (typeof Swiper === 'undefined' && swiperAttempts < 5) {
+            swiperAttempts++;
+            this.#warn('Swiper JS not loaded yet; awaiting 750ms', { attempt: swiperAttempts, globalSwiper: typeof window.Swiper });
+            await new Promise(resolve => setTimeout(resolve, 750));
+        }
         if (typeof Swiper === 'undefined') {
-            if (this.#retryCount < 5) {
-                this.#retryCount++;
-                this.#isInitialized = false;
-                this.#initInProgress = false;
-                this.#warn('Swiper JS not loaded yet; retrying in 750ms', { retry: this.#retryCount, globalSwiper: typeof window.Swiper });
-                setTimeout(() => this.initialize(), 750);
-                return;
-            } else {
-                this.#error('Swiper failed after 5 retries; falling back', { globalSwiper: typeof window.Swiper });
-                this.#fallback();
-                return;
-            }
+            this.#error('Swiper failed after 5 attempts; falling back');
+            this.#fallback();
+            return;
         }
 
-        this.#retryCount = 0;
         this.#log('Swiper available, proceeding with render', { version: Swiper.version || 'unknown' });
 
         // Render if not cached
@@ -254,14 +243,14 @@ class CustomSlider extends HTMLElement {
         const attemptReplace = () => {
             // Check if element and parent are still valid
             if (!document.body.contains(this) || !this.parentNode) {
-                if (this.#replaceRetries < 10) {  // Increased to 10
+                if (this.#replaceRetries < 10) {
                     this.#replaceRetries++;
                     this.#warn(`Element or parent not in DOM; retrying replacement (${this.#replaceRetries}/10)`, {
                         elementId: this.id || 'no-id',
                         parentTag: this.parentNode?.tagName || 'none',
                         parentChildren: this.parentNode ? Array.from(this.parentNode.children).map(c => c.tagName) : []
                     });
-                    setTimeout(attemptReplace, 100);  // Increased delay
+                    setTimeout(attemptReplace, 100);
                     return;
                 } else {
                     this.#error('Element or parent not in DOM after 10 retries; attempting parent append', { elementId: this.id || 'no-id' });
@@ -288,6 +277,7 @@ class CustomSlider extends HTMLElement {
                             this.#renderedElement = null;
                             this.#callbacks.forEach(callback => callback());
                             this.#log('Initialization completed', { elementId: this.id || 'no-id' });
+                            this.#isInitialized = true;
                             this.#initInProgress = false;
                         } catch (err) {
                             this.#error('Parent append failed; falling back', { error: err.message });
@@ -322,6 +312,7 @@ class CustomSlider extends HTMLElement {
                 this.#renderedElement = null;
                 this.#callbacks.forEach(callback => callback());
                 this.#log('Initialization completed', { elementId: this.id || 'no-id' });
+                this.#isInitialized = true;
                 this.#initInProgress = false;
             } catch (err) {
                 this.#error('Replacement failed; retrying', { error: err.message });
@@ -399,7 +390,7 @@ class CustomSlider extends HTMLElement {
             parentTag: this.parentNode?.tagName || 'none',
             parentChildren: this.parentNode ? Array.from(this.parentNode.children).map(c => c.tagName) : []
         });
-        if (!this.#isInitialized) {
+        if (!this.#isInitialized && !this.#initInProgress) {
             this.initialize().catch(err => {
                 this.#error('Init Promise rejected', { error: err.message });
                 this.#fallback();
@@ -420,7 +411,6 @@ class CustomSlider extends HTMLElement {
         this.#callbacks = [];
         this.#cachedAttributes = null;
         this.#criticalAttributesHash = null;
-        this.#retryCount = 0;
         this.#replaceRetries = 0;
         this.#isInitialized = false;
         this.#initInProgress = false;
@@ -460,11 +450,9 @@ class CustomSlider extends HTMLElement {
         }
         if (slideCount === 0) {
             this.#warn('No element children to render as slides', { elementId: this.id || 'no-id' });
-        } else if (slideCount !== 3) {
-            this.#warn(`Unexpected slide count: ${slideCount} (expected 3—check for extra elements)`, { elementId: this.id || 'no-id', childTags: children.map(c => c.tagName) });
+        } else {
+            this.#log(`Rendered ${slideCount} slides`, { elementId: this.id || 'no-id' });
         }
-        this.#log(`Rendered ${slideCount} slides`, { elementId: this.id || 'no-id' });
-
         sliderElement.appendChild(wrapperElement);
 
         const paginationElement = document.createElement('div');
