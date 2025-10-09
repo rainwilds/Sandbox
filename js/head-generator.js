@@ -49,15 +49,15 @@ const DEPENDENCIES = {
 };
 
 const PATH_MAP = {
-  'config': './config.js',
-  'image-generator': './image-generator.js',
-  'video-generator': './video-generator.js',
-  'shared': './shared.js',
-  'custom-block': './js/components/custom-block.js',
-  'custom-nav': './js/components/custom-nav.js',
-  'custom-logo': './js/components/custom-logo.js',
-  'custom-header': './js/components/custom-header.js',
-  'custom-slider': './js/components/custom-slider.js'
+  'config': '/Sandbox/config.js',
+  'image-generator': '/Sandbox/image-generator.js',
+  'video-generator': '/Sandbox/video-generator.js',
+  'shared': '/Sandbox/shared.js',
+  'custom-block': '/Sandbox/js/components/custom-block.js',
+  'custom-nav': '/Sandbox/js/components/custom-nav.js',
+  'custom-logo': '/Sandbox/js/components/custom-logo.js',
+  'custom-header': '/Sandbox/js/components/custom-header.js',
+  'custom-slider': '/Sandbox/js/components/custom-slider.js'
 };
 
 async function loadModule(moduleName) {
@@ -68,8 +68,9 @@ async function loadModule(moduleName) {
     throw err;
   }
   try {
-    logger.log(`Loading module: ${modulePath}`);
-    const module = await import(modulePath);
+    const resolvedUrl = new URL(modulePath, window.location.origin).href;
+    logger.log(`Loading module: ${modulePath} (resolved: ${resolvedUrl})`);
+    const module = await import(resolvedUrl);
     logger.log(`Successfully loaded: ${moduleName}`);
     return { name: moduleName, module, path: modulePath };
   } catch (err) {

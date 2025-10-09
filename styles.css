@@ -1947,24 +1947,32 @@ div#products {
     margin: 0.25rem 0;
 }
 
+
+
+
+
+:root {
+    --space-tiny: 8px; /* Define your gap variable */
+}
+
 .slider {
     position: relative;
     width: 100%;
     overflow-x: auto;
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
-    /* For smooth iOS scrolling */
 }
 
 .slider-wrapper {
     display: flex;
     flex-wrap: nowrap;
+    gap: var(--space-tiny);
 }
 
 .slider-slide {
     flex-shrink: 0;
-    height: 100%;
-    /* Or fixed height like 400px */
+    width: calc(100% / 2); /* For slides-per-view="2" */
+    height: auto; /* Adjust as needed, e.g., 400px */
 }
 
 .slider-pagination {
@@ -1989,14 +1997,35 @@ div#products {
     background-color: black;
 }
 
-/* Hero-specific styles */
-.hero-slider .slider-slide {
-    width: 100vw;
-    /* Full-width for slides-per-view=1 */
+.slider-fallback {
     display: flex;
-    align-items: center;
-    justify-content: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: var(--space-tiny);
 }
+
+.slider-fallback .slider-slide {
+    flex-shrink: 0;
+    width: calc(100% / 2); /* For slides-per-view="2" */
+}
+
+custom-slider {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--space-tiny);
+    overflow-x: auto;
+}
+
+custom-slider > custom-block {
+    flex: 0 0 calc(100% / 2); /* For slides-per-view="2" */
+    width: 100%;
+}
+
+custom-block {
+    display: block;
+    width: 100%; /* Ensure blocks fill their container */
+}
+
 
 
 
