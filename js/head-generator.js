@@ -353,7 +353,7 @@ async function updateHead(attributes, setup) {
     const links = document.querySelectorAll('link');
     let movedLinkCount = 0;
     links.forEach(link => {
-      if (link.parentNode !== document.head && style.parentNode !== null) {
+      if (link.parentNode !== document.head && link.parentNode !== null) {
         logger.log(`Moving <link> from ${link.parentNode.tagName} to <head> (rel="${link.rel}")`);
         document.head.appendChild(link);
         movedLinkCount++;
@@ -365,7 +365,7 @@ async function updateHead(attributes, setup) {
       logger.log('All <link> elements already in <head>');
     }
 
-    // Ensure all <script> elements are properly placed (move misplaced ones to end of <body> to avoid parse issues)
+    // Ensure all <script> elements are properly placed
     const scripts = document.querySelectorAll('script');
     logger.log('Found scripts before processing:', Array.from(scripts).map(s => ({
       tagName: s.tagName,
@@ -395,7 +395,7 @@ async function updateHead(attributes, setup) {
       logger.log('All <script> elements already in valid positions');
     }
 
-    // Rescue misparsed <script> content: Scan body text nodes for "<script>...</script>" patterns and convert to real elements
+    // Rescue misparsed <script> content
     logger.log('Scanning body for text nodes resembling scripts...');
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
     let node;
@@ -407,16 +407,13 @@ async function updateHead(attributes, setup) {
       if (scriptMatch) {
         const scriptText = scriptMatch[0];
         logger.log(`Found potential misparsed script in text node (parent: ${node.parentNode.tagName}):`, { snippet: scriptText.substring(0, 100) + '...' });
-        // Parse the script content safely (extract inner JS, ignore attributes for simplicity)
         const innerMatch = scriptText.match(/<script\b[^>]*>([\s\S]*?)<\/script>/i);
         if (innerMatch) {
           const jsCode = innerMatch[1].trim();
           if (jsCode) {
-            // Create and append real inline script to body end
             const newScript = document.createElement('script');
             newScript.textContent = jsCode;
             document.body.appendChild(newScript);
-            // Remove the original text node (or replace if it has other content)
             if (text === scriptText) {
               node.parentNode.removeChild(node);
             } else {
