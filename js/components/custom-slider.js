@@ -39,7 +39,7 @@ class CustomSlider extends HTMLElement {
     static #observedInstances = new WeakSet();
 
     static #criticalAttributes = [
-        'class', 'slides-per-view', 'space-between', 'free-mode', 'pagination-clickable'
+        'class', 'slides-per-view', 'gap', 'free-mode', 'pagination-clickable'
     ];
 
     #log(message, data = null) {
@@ -79,7 +79,7 @@ class CustomSlider extends HTMLElement {
 
         const swiperClass = this.getAttribute('class') || 'mySwiper';
         const slidesPerViewStr = this.getAttribute('slides-per-view') || '3';
-        const spaceBetweenStr = this.getAttribute('space-between') || '30';
+        const gapStr = this.getAttribute('gap') || '30';
         const freeMode = this.getAttribute('free-mode') !== 'false';
         const paginationClickable = this.getAttribute('pagination-clickable') !== 'false';
 
@@ -89,15 +89,15 @@ class CustomSlider extends HTMLElement {
             slidesPerView = 3;
         }
 
-        let spaceBetween = spaceBetweenStr;
-        if (spaceBetweenStr.startsWith('var(')) {
-            this.#log('Space-between detected as CSS variable', { value: spaceBetweenStr });
+        let spaceBetween = gapStr;
+        if (gapStr.startsWith('var(')) {
+            this.#log('Gap detected as CSS variable', { value: gapStr });
         } else {
-            const parsedSpace = parseInt(spaceBetweenStr, 10);
-            if (!isNaN(parsedSpace) && parsedSpace >= 0) {
-                spaceBetween = parsedSpace;
+            const parsedGap = parseInt(gapStr, 10);
+            if (!isNaN(parsedGap) && parsedGap >= 0) {
+                spaceBetween = parsedGap;
             } else {
-                this.#warn('Invalid space-between, defaulting to 30', { value: spaceBetweenStr });
+                this.#warn('Invalid gap, defaulting to 30', { value: gapStr });
                 spaceBetween = 30;
             }
         }
