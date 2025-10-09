@@ -12,6 +12,7 @@ class CustomSlider extends HTMLElement {
     #renderedElement = null;
     #originalChildren = null;
     #renderCompleteListeners = [];
+    #debounceTimer = null;
 
     constructor() {
         super();
@@ -78,35 +79,33 @@ class CustomSlider extends HTMLElement {
 
         this.#log('Parsing new attributes', { elementId: this.id || 'no-id', outerHTML: this.outerHTML.substring(0, 200) + '...' });
 
-        const swiperClass = this.getAttribute('class') || 'mySwiper';
-        const slidesPerViewStr = this.getAttribute('slides-per-view') || '3';
-        const gapStr = this.getAttribute('gap') || '30';
+        const sliderClass = this.getAttribute('class') || '';
+        const slidesPerViewStr = this.getAttribute('slides-per-view') || '1';
+        const gapStr = this.getAttribute('gap') || '0';
         const freeMode = this.getAttribute('free-mode') !== 'false';
         const paginationClickable = this.getAttribute('pagination-clickable') !== 'false';
 
         let slidesPerView = parseFloat(slidesPerViewStr);
-        if (isNaN(slidesPerView)) {
-            this.#warn('Invalid slides-per-view, defaulting to 3', { value: slidesPerViewStr });
-            slidesPerView = 3;
+        if (isNaN(slidesPerView) || slidesPerView <= 0) {
+            this.#warn('Invalid slides-per-view, defaulting to 1', { value: slidesPerViewStr });
+            slidesPerView = 1;
         }
 
-        let spaceBetween = gapStr;
-        if (gapStr.startsWith('var(')) {
-            this.#log('Gap detected as CSS variable', { value: gapStr });
-        } else {
+        let gap = gapStr;
+        if (!gapStr.startsWith('var(')) {
             const parsedGap = parseInt(gapStr, 10);
             if (!isNaN(parsedGap) && parsedGap >= 0) {
-                spaceBetween = parsedGap;
+                gap = parsedGap + 'px';
             } else {
-                this.#warn('Invalid gap, defaulting to 30', { value: gapStr });
-                spaceBetween = 30;
+                this.#warn('Invalid gap, defaulting to 0', { value: gapStr });
+                gap = '0px';
             }
         }
 
         this.#cachedAttributes = {
-            swiperClass,
+            sliderClass,
             slidesPerView,
-            spaceBetween,
+            gap,
             freeMode,
             paginationClickable
         };
@@ -158,18 +157,17 @@ class CustomSlider extends HTMLElement {
 
         this.#initInProgress = true;
 
+        const parent = this.parentNode;
+        const nextSibling = this.nextSibling;
+
         this.#log('Starting initialization', {
             elementId: this.id || 'no-id',
             outerHTML: this.outerHTML.substring(0, 200) + '...',
             isVisible: this.#isVisible,
-            swiperDefined: typeof Swiper !== 'undefined',
             customBlockDefined: !!customElements.get('custom-block'),
-            parentTag: this.parentNode?.tagName || 'none',
-            parentChildren: this.parentNode ? Array.from(this.parentNode.children).map(c => c.tagName) : []
+            parentTag: parent?.tagName || 'none',
+            parentChildren: parent ? Array.from(parent.children).map(c => c.tagName) : []
         });
-
-        const parent = this.parentNode;
-        const nextSibling = this.nextSibling;
 
         // Wait for custom-block to be defined with loop
         let customBlockAttempts = 0;
@@ -196,10 +194,10 @@ class CustomSlider extends HTMLElement {
         if (renderPromises.length > 0) {
             try {
                 await Promise.all(renderPromises.map(({ index }) =>
-                    new Promise((resolve, reject) => {
+                    new Promise((resolve) => {
                         const timeout = setTimeout(() => {
                             this.#warn(`custom-block render timeout for block ${index}`, { elementId: `block-${index}` });
-                            reject(new Error(`custom-block render timeout for block ${index}`));
+                            resolve(); // Proceed anyway
                         }, 2000);
 
                         // Check for already-rendered blocks
@@ -209,6 +207,16 @@ class CustomSlider extends HTMLElement {
                             this.#log(`Block ${index} already rendered`, { elementId: `block-${index}` });
                             resolve();
                         }
+
+                        // Listener for event
+                        const listener = (event) => {
+                            if (event.target === renderedBlocks[index]) {
+                                clearTimeout(timeout);
+                                resolve();
+                                document.removeEventListener('render-complete', listener);
+                            }
+                        };
+                        document.addEventListener('render-complete', listener);
                     })
                 ));
                 this.#log('All custom-block children rendered', { count: renderPromises.length });
@@ -220,55 +228,32 @@ class CustomSlider extends HTMLElement {
             this.#renderCompleteListeners = [];
         }
 
-        // Wait for Swiper to be loaded with loop
-        let swiperAttempts = 0;
-        while (typeof Swiper === 'undefined' && swiperAttempts < 5) {
-            swiperAttempts++;
-            this.#warn('Swiper JS not loaded yet; awaiting 750ms', { attempt: swiperAttempts, globalSwiper: typeof window.Swiper });
-            await new Promise(resolve => setTimeout(resolve, 750));
-        }
-        if (typeof Swiper === 'undefined') {
-            this.#error('Swiper failed after 5 attempts; falling back');
-            this.#fallback(parent, nextSibling);
-            return;
-        }
-
-        this.#log('Swiper available, proceeding with render', { version: Swiper.version || 'unknown' });
+        // Proceed with render
+        this.#log('Proceeding with render');
 
         // Render if not cached
         if (!this.#renderedElement) {
             const attrs = await this.getAttributes();
             this.#renderedElement = this.#render(attrs);
-            this.#log('Rendered element cached', { elementId: this.id || 'no-id', slideCount: this.#renderedElement.querySelectorAll('.swiper-slide').length });
+            this.#log('Rendered element cached', { elementId: this.id || 'no-id', slideCount: this.#renderedElement.querySelectorAll('.slider-slide').length });
         }
 
-        // Attempt to replace with retry mechanism
-        const attemptReplace = () => {
+        // Attempt to insert with retry mechanism
+        const attemptInsert = () => {
             try {
                 if (parent && this.parentNode === parent && this.#renderedElement) {
                     parent.replaceChild(this.#renderedElement, this);
-                    this.#log('Element replaced with rendered slider', { elementId: this.id || 'no-id', slideCount: this.#renderedElement.querySelectorAll('.swiper-slide').length });
+                    this.#log('Element replaced with rendered slider', { elementId: this.id || 'no-id' });
                 } else if (parent && this.#renderedElement) {
                     parent.insertBefore(this.#renderedElement, nextSibling);
                     if (document.body.contains(this)) this.remove();
-                    this.#log('Rendered element inserted at original position', { elementId: this.id || 'no-id', slideCount: this.#renderedElement.querySelectorAll('.swiper-slide').length });
+                    this.#log('Rendered element inserted at original position', { elementId: this.id || 'no-id' });
                 } else {
                     throw new Error('No parent or rendered element available');
                 }
 
-                // Initialize Swiper after insertion
-                const paginationEl = this.#renderedElement.querySelector('.swiper-pagination');
-                const options = {
-                    slidesPerView: this.#cachedAttributes.slidesPerView,
-                    spaceBetween: this.#cachedAttributes.spaceBetween,
-                    freeMode: this.#cachedAttributes.freeMode,
-                    pagination: {
-                        el: paginationEl,
-                        clickable: this.#cachedAttributes.paginationClickable,
-                    },
-                };
-                let swiper = new Swiper(this.#renderedElement, options);
-                this.#log('Swiper initialized successfully', { options, swiperId: swiper.id || 'unknown', elementId: this.id || 'no-id' });
+                // Attach slider logic
+                this.#attachSliderLogic(this.#renderedElement);
 
                 this.#renderedElement = null;
                 this.#callbacks.forEach(callback => callback());
@@ -280,7 +265,7 @@ class CustomSlider extends HTMLElement {
                 if (this.#replaceRetries < 10) {
                     this.#replaceRetries++;
                     this.#warn(`Insertion retry (${this.#replaceRetries}/10)`, { elementId: this.id || 'no-id' });
-                    setTimeout(attemptReplace, 100);
+                    setTimeout(attemptInsert, 100);
                 } else {
                     this.#error('Insertion failed after 10 retries; falling back', { error: err.message });
                     this.#fallback(parent, nextSibling);
@@ -288,7 +273,83 @@ class CustomSlider extends HTMLElement {
             }
         };
 
-        attemptReplace();
+        attemptInsert();
+    }
+
+    #attachSliderLogic(container) {
+        const attrs = this.#cachedAttributes;
+        const wrapper = container.querySelector('.slider-wrapper');
+        const slides = container.querySelectorAll('.slider-slide');
+        const pagination = container.querySelector('.slider-pagination');
+        const slideCount = slides.length;
+
+        if (slideCount === 0) return;
+
+        // Calculate and set slide widths
+        const recalc = () => {
+            const slideWidth = (container.clientWidth - parseFloat(attrs.gap) * (attrs.slidesPerView - 1)) / attrs.slidesPerView;
+            slides.forEach(slide => {
+                slide.style.width = `${slideWidth}px`;
+            });
+            return slideWidth;
+        };
+
+        let slideWidth = recalc();
+
+        // Set scroll snap
+        container.style.overflowX = 'auto';
+        container.style.scrollSnapType = attrs.freeMode ? 'none' : 'x mandatory';
+        slides.forEach(slide => {
+            slide.style.scrollSnapAlign = 'start';
+        });
+
+        // Pagination setup
+        if (pagination) {
+            const dots = [];
+            for (let i = 0; i < slideCount; i++) {
+                const dot = document.createElement('span');
+                dot.className = 'slider-dot';
+                dot.dataset.index = i;
+                pagination.appendChild(dot);
+                dots.push(dot);
+            }
+
+            const updateActiveDot = () => {
+                const index = Math.min(Math.round(container.scrollLeft / (slideWidth + parseFloat(attrs.gap))), slideCount - 1);
+                dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
+            };
+
+            if (attrs.paginationClickable) {
+                pagination.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('slider-dot')) {
+                        const index = parseInt(e.target.dataset.index);
+                        container.scrollTo({
+                            left: index * (slideWidth + parseFloat(attrs.gap)),
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            }
+
+            // Initial active
+            updateActiveDot();
+
+            // On scroll update active
+            container.addEventListener('scroll', this.#debounce(updateActiveDot, 100));
+        }
+
+        // On resize recalc
+        window.addEventListener('resize', this.#debounce(() => {
+            slideWidth = recalc();
+            if (pagination) updateActiveDot();
+        }, 200));
+    }
+
+    #debounce(func, delay) {
+        return (...args) => {
+            clearTimeout(this.#debounceTimer);
+            this.#debounceTimer = setTimeout(() => func(...args), delay);
+        };
     }
 
     #fallback(parent, nextSibling) {
@@ -299,10 +360,8 @@ class CustomSlider extends HTMLElement {
         fallbackElement.style.overflow = 'hidden';
         // Dynamically set gap for consistency
         let gapValue = '0';
-        if (this.#cachedAttributes && this.#cachedAttributes.spaceBetween) {
-            gapValue = typeof this.#cachedAttributes.spaceBetween === 'number' 
-                ? `${this.#cachedAttributes.spaceBetween}px` 
-                : this.#cachedAttributes.spaceBetween;
+        if (this.#cachedAttributes && this.#cachedAttributes.gap) {
+            gapValue = this.#cachedAttributes.gap;
         }
         fallbackElement.style.gap = gapValue;
         // Restore original children
@@ -387,17 +446,18 @@ class CustomSlider extends HTMLElement {
         this.#log('Starting render', { elementId: this.id || 'no-id' });
 
         const sliderElement = document.createElement('div');
-        sliderElement.className = `swiper ${attrs.swiperClass}`.trim();
+        sliderElement.className = `slider ${attrs.sliderClass}`.trim();
 
         const wrapperElement = document.createElement('div');
-        wrapperElement.className = 'swiper-wrapper';
+        wrapperElement.className = 'slider-wrapper';
+        wrapperElement.style.display = 'flex';
+        wrapperElement.style.gap = attrs.gap;
 
-        // Use existing DOM children (already rendered div.block elements)
         let slideCount = 0;
         const children = Array.from(this.childNodes).filter(node => node.nodeType === Node.ELEMENT_NODE);
         for (const child of children) {
             const slideElement = document.createElement('div');
-            slideElement.className = 'swiper-slide';
+            slideElement.className = 'slider-slide';
             slideElement.appendChild(child.cloneNode(true));
             wrapperElement.appendChild(slideElement);
             slideCount++;
@@ -409,9 +469,12 @@ class CustomSlider extends HTMLElement {
         }
         sliderElement.appendChild(wrapperElement);
 
-        const paginationElement = document.createElement('div');
-        paginationElement.className = 'swiper-pagination';
-        sliderElement.appendChild(paginationElement);
+        // Add pagination if attribute is present
+        if (this.hasAttribute('pagination-clickable')) {
+            const paginationElement = document.createElement('div');
+            paginationElement.className = 'slider-pagination';
+            sliderElement.appendChild(paginationElement);
+        }
 
         this.#log('Render completed (element cached, not replaced yet)', { elementId: this.id || 'no-id', html: sliderElement.outerHTML.substring(0, 200) });
 

@@ -1947,10 +1947,53 @@ div#products {
     margin: 0.25rem 0;
 }
 
-.swiper {
-    height: 100%;
+.slider {
+    position: relative;
+    width: 100%;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch; /* For smooth iOS scrolling */
 }
 
+.slider-wrapper {
+    display: flex;
+    flex-wrap: nowrap;
+}
+
+.slider-slide {
+    flex-shrink: 0;
+    height: 100%; /* Or fixed height like 400px */
+}
+
+.slider-pagination {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+}
+
+.slider-dot {
+    width: 10px;
+    height: 10px;
+    background-color: gray;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.slider-dot.active {
+    background-color: black;
+}
+
+/* Hero-specific styles */
+.hero-slider .slider-slide {
+    width: 100vw; /* Full-width for slides-per-view=1 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
 
 
