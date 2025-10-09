@@ -132,7 +132,7 @@ class CustomSlider extends HTMLElement {
 
         return blockElements.map((block, index) => {
             const listener = (event) => {
-                if (event.target.tagName.toLowerCase() === 'div' && event.target.classList.contains('block') && this.contains(event.target)) {
+                if (event.target.tagName.toLowerCase() === 'div' && event.target.classList.contains('block') && block.contains(event.target)) {
                     this.#log(`Received render-complete for block ${index}`, { elementId: block.id || `block-${index}` });
                     return { index, resolved: true };
                 }
@@ -163,7 +163,7 @@ class CustomSlider extends HTMLElement {
             parentChildren: parent ? Array.from(parent.children).map(c => c.tagName) : []
         });
 
-        // Wait for custom-block to be defined with loop
+        // Wait for custom-block to be defined
         let customBlockAttempts = 0;
         while (!customElements.get('custom-block') && customBlockAttempts < 5) {
             customBlockAttempts++;
@@ -181,45 +181,6 @@ class CustomSlider extends HTMLElement {
             this.#originalChildren = document.createDocumentFragment();
             Array.from(this.children).forEach(child => this.#originalChildren.appendChild(child.cloneNode(true)));
             this.#log('Original children cached', { count: this.#originalChildren.childNodes.length });
-        }
-
-        // Wait for custom-block children to render
-        const renderPromises = this.#setupRenderCompleteListeners();
-        if (renderPromises.length > 0) {
-            try {
-                await Promise.all(renderPromises.map(({ index }) =>
-                    new Promise((resolve) => {
-                        const timeout = setTimeout(() => {
-                            this.#warn(`custom-block render timeout for block ${index}`, { elementId: `block-${index}` });
-                            resolve(); // Proceed anyway
-                        }, 2000);
-
-                        // Check for already-rendered blocks
-                        const renderedBlocks = Array.from(this.querySelectorAll('div.block[data-rendered="true"]'));
-                        if (renderedBlocks.length > index && renderedBlocks[index]) {
-                            clearTimeout(timeout);
-                            this.#log(`Block ${index} already rendered`, { elementId: `block-${index}` });
-                            resolve();
-                        }
-
-                        // Listener for event
-                        const listener = (event) => {
-                            if (event.target === renderedBlocks[index]) {
-                                clearTimeout(timeout);
-                                resolve();
-                                document.removeEventListener('render-complete', listener);
-                            }
-                        };
-                        document.addEventListener('render-complete', listener);
-                    })
-                ));
-                this.#log('All custom-block children rendered', { count: renderPromises.length });
-            } catch (err) {
-                this.#warn('Error waiting for custom-block renders; proceeding', { error: err.message });
-            }
-            // Clean up listeners after resolution
-            this.#renderCompleteListeners.forEach(({ listener }) => document.removeEventListener('render-complete', listener));
-            this.#renderCompleteListeners = [];
         }
 
         // Proceed with render
@@ -268,7 +229,7 @@ class CustomSlider extends HTMLElement {
         };
 
         // Delay the first attempt
-        setTimeout(attemptInsert, 1000);  // Increased to 1000ms
+        setTimeout(attemptInsert, 1000);
     }
 
     #attachSliderLogic(container) {
@@ -366,12 +327,20 @@ class CustomSlider extends HTMLElement {
         // Restore original children
         if (this.#originalChildren) {
             while (this.#originalChildren.firstChild) {
-                fallbackElement.appendChild(this.#originalChildren.firstChild);
+                const slideElement = document.createElement('div');
+                slideElement.className = 'slider-slide';
+                slideElement.style.width = `${100 / this.#cachedAttributes.slidesPerView}%`;
+                slideElement.appendChild(this.#originalChildren.firstChild);
+                fallbackElement.appendChild(slideElement);
             }
             this.#log('Restored original children to fallback', { count: fallbackElement.children.length });
         } else {
             while (this.firstChild) {
-                fallbackElement.appendChild(this.firstChild);
+                const slideElement = document.createElement('div');
+                slideElement.className = 'slider-slide';
+                slideElement.style.width = `${100 / this.#cachedAttributes.slidesPerView}%`;
+                slideElement.appendChild(this.firstChild);
+                fallbackElement.appendChild(slideElement);
             }
         }
         try {
@@ -455,11 +424,11 @@ class CustomSlider extends HTMLElement {
         wrapperElement.style.gap = attrs.gap;
 
         let slideCount = 0;
-        const children = Array.from(this.childNodes).filter(node => node.nodeType === Node.ELEMENT_NODE);
+        const children = Array.from(this.children).filter(node => node.nodeType === Node.ELEMENT_NODE);
         for (const child of children) {
             const slideElement = document.createElement('div');
             slideElement.className = 'slider-slide';
-            slideElement.appendChild(child.cloneNode(true));
+            slideElement.appendChild(child); // Move original child
             wrapperElement.appendChild(slideElement);
             slideCount++;
         }
@@ -513,6 +482,6 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-09');
+console.log('CustomSlider version: 2025-10-10');
 
 export { CustomSlider };
