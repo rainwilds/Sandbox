@@ -168,6 +168,9 @@ class CustomSlider extends HTMLElement {
             parentChildren: this.parentNode ? Array.from(this.parentNode.children).map(c => c.tagName) : []
         });
 
+        const parent = this.parentNode;
+        const nextSibling = this.nextSibling;
+
         // Wait for custom-block to be defined with loop
         let customBlockAttempts = 0;
         while (!customElements.get('custom-block') && customBlockAttempts < 5) {
@@ -177,7 +180,7 @@ class CustomSlider extends HTMLElement {
         }
         if (!customElements.get('custom-block')) {
             this.#error('custom-block not defined after 5 attempts; falling back');
-            this.#fallback();
+            this.#fallback(parent, nextSibling);
             return;
         }
 
@@ -226,7 +229,7 @@ class CustomSlider extends HTMLElement {
         }
         if (typeof Swiper === 'undefined') {
             this.#error('Swiper failed after 5 attempts; falling back');
-            this.#fallback();
+            this.#fallback(parent, nextSibling);
             return;
         }
 
@@ -241,61 +244,19 @@ class CustomSlider extends HTMLElement {
 
         // Attempt to replace with retry mechanism
         const attemptReplace = () => {
-            // Check if element and parent are still valid
-            if (!document.body.contains(this) || !this.parentNode) {
-                if (this.#replaceRetries < 10) {
-                    this.#replaceRetries++;
-                    this.#warn(`Element or parent not in DOM; retrying replacement (${this.#replaceRetries}/10)`, {
-                        elementId: this.id || 'no-id',
-                        parentTag: this.parentNode?.tagName || 'none',
-                        parentChildren: this.parentNode ? Array.from(this.parentNode.children).map(c => c.tagName) : []
-                    });
-                    setTimeout(attemptReplace, 100);
-                    return;
-                } else {
-                    this.#error('Element or parent not in DOM after 10 retries; attempting parent append', { elementId: this.id || 'no-id' });
-                    const parent = document.querySelector('header');
-                    if (parent && this.#renderedElement) {
-                        try {
-                            parent.appendChild(this.#renderedElement);
-                            this.#log('Rendered element appended to parent', { elementId: this.id || 'no-id', slideCount: this.#renderedElement.querySelectorAll('.swiper-slide').length });
-                            
-                            // Initialize Swiper after append
-                            const paginationEl = this.#renderedElement.querySelector('.swiper-pagination');
-                            const options = {
-                                slidesPerView: this.#cachedAttributes.slidesPerView,
-                                spaceBetween: this.#cachedAttributes.spaceBetween,
-                                freeMode: this.#cachedAttributes.freeMode,
-                                pagination: {
-                                    el: paginationEl,
-                                    clickable: this.#cachedAttributes.paginationClickable,
-                                },
-                            };
-                            let swiper = new Swiper(this.#renderedElement, options);
-                            this.#log('Swiper initialized successfully', { options, swiperId: swiper.id || 'unknown', elementId: this.id || 'no-id' });
-
-                            this.#renderedElement = null;
-                            this.#callbacks.forEach(callback => callback());
-                            this.#log('Initialization completed', { elementId: this.id || 'no-id' });
-                            this.#isInitialized = true;
-                            this.#initInProgress = false;
-                        } catch (err) {
-                            this.#error('Parent append failed; falling back', { error: err.message });
-                            this.#fallback();
-                        }
-                    } else {
-                        this.#error('No parent header found or rendered element invalid; falling back', { elementId: this.id || 'no-id' });
-                        this.#fallback();
-                    }
-                    return;
-                }
-            }
-
             try {
-                this.replaceWith(this.#renderedElement);
-                this.#log('Element replaced with rendered slider', { elementId: this.id || 'no-id', slideCount: this.#renderedElement.querySelectorAll('.swiper-slide').length });
-                
-                // Initialize Swiper after replace
+                if (parent && this.parentNode === parent && this.#renderedElement) {
+                    parent.replaceChild(this.#renderedElement, this);
+                    this.#log('Element replaced with rendered slider', { elementId: this.id || 'no-id', slideCount: this.#renderedElement.querySelectorAll('.swiper-slide').length });
+                } else if (parent && this.#renderedElement) {
+                    parent.insertBefore(this.#renderedElement, nextSibling);
+                    if (document.body.contains(this)) this.remove();
+                    this.#log('Rendered element inserted at original position', { elementId: this.id || 'no-id', slideCount: this.#renderedElement.querySelectorAll('.swiper-slide').length });
+                } else {
+                    throw new Error('No parent or rendered element available');
+                }
+
+                // Initialize Swiper after insertion
                 const paginationEl = this.#renderedElement.querySelector('.swiper-pagination');
                 const options = {
                     slidesPerView: this.#cachedAttributes.slidesPerView,
@@ -315,14 +276,14 @@ class CustomSlider extends HTMLElement {
                 this.#isInitialized = true;
                 this.#initInProgress = false;
             } catch (err) {
-                this.#error('Replacement failed; retrying', { error: err.message });
+                this.#error('Insertion failed; retrying', { error: err.message });
                 if (this.#replaceRetries < 10) {
                     this.#replaceRetries++;
-                    this.#warn(`Replacement retry (${this.#replaceRetries}/10)`, { elementId: this.id || 'no-id' });
+                    this.#warn(`Insertion retry (${this.#replaceRetries}/10)`, { elementId: this.id || 'no-id' });
                     setTimeout(attemptReplace, 100);
                 } else {
-                    this.#error('Replacement failed after 10 retries; falling back', { error: err.message });
-                    this.#fallback();
+                    this.#error('Insertion failed after 10 retries; falling back', { error: err.message });
+                    this.#fallback(parent, nextSibling);
                 }
             }
         };
@@ -330,7 +291,7 @@ class CustomSlider extends HTMLElement {
         attemptReplace();
     }
 
-    #fallback() {
+    #fallback(parent, nextSibling) {
         this.#log('Creating fallback element', { elementId: this.id || 'no-id' });
         const fallbackElement = document.createElement('div');
         fallbackElement.className = 'slider-fallback';
@@ -355,26 +316,19 @@ class CustomSlider extends HTMLElement {
                 fallbackElement.appendChild(this.firstChild);
             }
         }
-        if (document.body.contains(this) && this.parentNode) {
-            try {
-                this.replaceWith(fallbackElement);
+        try {
+            if (parent && this.parentNode === parent) {
+                parent.replaceChild(fallbackElement, this);
                 this.#log('Fallback element replaced', { elementId: this.id || 'no-id' });
-            } catch (err) {
-                this.#error('Fallback replacement failed', { error: err.message });
-            }
-        } else {
-            // Try appending to parent (<header>) as a last resort
-            const parent = document.querySelector('header');
-            if (parent) {
-                try {
-                    parent.appendChild(fallbackElement);
-                    this.#log('Fallback element appended to parent', { elementId: this.id || 'no-id' });
-                } catch (err) {
-                    this.#error('Fallback parent append failed', { error: err.message });
-                }
+            } else if (parent) {
+                parent.insertBefore(fallbackElement, nextSibling);
+                if (document.body.contains(this)) this.remove();
+                this.#log('Fallback element inserted at original position', { elementId: this.id || 'no-id' });
             } else {
-                this.#error('No parent header found; skipping fallback replacement', { elementId: this.id || 'no-id' });
+                this.#error('No parent found; skipping fallback insertion', { elementId: this.id || 'no-id' });
             }
+        } catch (err) {
+            this.#error('Fallback insertion failed', { error: err.message });
         }
         this.#isInitialized = true;
         this.#initInProgress = false;
@@ -393,7 +347,7 @@ class CustomSlider extends HTMLElement {
         if (!this.#isInitialized && !this.#initInProgress) {
             this.initialize().catch(err => {
                 this.#error('Init Promise rejected', { error: err.message });
-                this.#fallback();
+                this.#fallback(this.parentNode, this.nextSibling);
             });
         }
     }
@@ -477,7 +431,7 @@ class CustomSlider extends HTMLElement {
                 this.#renderedElement = null;
                 this.initialize().catch(err => {
                     this.#error('Re-init Promise rejected', { error: err.message });
-                    this.#fallback();
+                    this.#fallback(this.parentNode, this.nextSibling);
                 });
             }
         } else {
