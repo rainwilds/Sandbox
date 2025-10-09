@@ -48,19 +48,24 @@ const DEPENDENCIES = {
   'custom-slider': []
 };
 
-const PATH_MAP = {
-  'config': '/Sandbox/config.js',
-  'image-generator': '/Sandbox/image-generator.js',
-  'video-generator': '/Sandbox/video-generator.js',
-  'shared': '/Sandbox/shared.js',
-  'custom-block': '/Sandbox/js/components/custom-block.js',
-  'custom-nav': '/Sandbox/js/components/custom-nav.js',
-  'custom-logo': '/Sandbox/js/components/custom-logo.js',
-  'custom-header': '/Sandbox/js/components/custom-header.js',
-  'custom-slider': '/Sandbox/js/components/custom-slider.js'
-};
+async function getPathMap() {
+  const config = await getConfig();
+  const basePath = config.general?.basePath || '/Sandbox/';
+  return {
+    'config': `${basePath}config.js`,
+    'image-generator': `${basePath}js/image-generator.js`,
+    'video-generator': `${basePath}js/video-generator.js`,
+    'shared': `${basePath}js/shared.js`,
+    'custom-block': `${basePath}js/components/custom-block.js`,
+    'custom-nav': `${basePath}js/components/custom-nav.js`,
+    'custom-logo': `${basePath}js/components/custom-logo.js`,
+    'custom-header': `${basePath}js/components/custom-header.js`,
+    'custom-slider': `${basePath}js/components/custom-slider.js`
+  };
+}
 
 async function loadModule(moduleName) {
+  const PATH_MAP = await getPathMap();
   const modulePath = PATH_MAP[moduleName];
   if (!modulePath) {
     const err = new Error(`Unknown module: ${moduleName}`);

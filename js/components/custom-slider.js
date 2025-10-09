@@ -124,7 +124,6 @@ class CustomSlider extends HTMLElement {
 
     setupRenderCompleteListeners() {
         const state = privateData.get(this);
-        // Clean up existing listeners
         state.renderCompleteListeners.forEach(({ listener }) => document.removeEventListener('render-complete', listener));
         state.renderCompleteListeners = [];
 
@@ -168,37 +167,32 @@ class CustomSlider extends HTMLElement {
             parentChildren: parent ? Array.from(parent.children).map(c => c.tagName) : []
         });
 
-        // Wait for custom-block to be defined
-        let customBlockAttempts = 0;
-        while (!customElements.get('custom-block') && customBlockAttempts < 5) {
-            customBlockAttempts++;
-            this.warn('custom-block not defined yet; awaiting 100ms', { attempt: customBlockAttempts });
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
         if (!customElements.get('custom-block')) {
-            this.error('custom-block not defined after 5 attempts; falling back');
-            this.fallback(parent, nextSibling);
-            return;
+            this.log('custom-block not defined, waiting for definition');
+            try {
+                await customElements.whenDefined('custom-block');
+                this.log('custom-block defined');
+            } catch (err) {
+                this.error('custom-block not defined after waiting; falling back', { error: err.message });
+                this.fallback(parent, nextSibling);
+                return;
+            }
         }
 
-        // Cache original children
         if (!state.originalChildren) {
             state.originalChildren = document.createDocumentFragment();
             Array.from(this.children).forEach(child => state.originalChildren.appendChild(child.cloneNode(true)));
             this.log('Original children cached', { count: state.originalChildren.childNodes.length });
         }
 
-        // Proceed with render
         this.log('Proceeding with render');
 
-        // Render if not cached
         if (!state.renderedElement) {
             const attrs = await this.getAttributes();
             state.renderedElement = this.render(attrs);
             this.log('Rendered element cached', { elementId: this.id || 'no-id', slideCount: state.renderedElement.querySelectorAll('.slider-slide').length });
         }
 
-        // Wait for DOM stability before insertion
         const attemptInsert = () => {
             try {
                 if (parent && this.parentNode === parent && state.renderedElement) {
@@ -212,7 +206,6 @@ class CustomSlider extends HTMLElement {
                     throw new Error('No parent or rendered element available');
                 }
 
-                // Attach slider logic
                 this.attachSliderLogic(state.renderedElement);
 
                 state.renderedElement = null;
@@ -221,19 +214,18 @@ class CustomSlider extends HTMLElement {
                 state.isInitialized = true;
                 state.initInProgress = false;
             } catch (err) {
-                this.error('Insertion failed', { error: err.message });
-                this.fallback(parent, nextSibling);
+                state.replaceRetries++;
+                if (state.replaceRetries < 10) {
+                    this.warn(`Insertion retry (${state.replaceRetries}/10)`, { error: err.message, elementId: this.id || 'no-id' });
+                    setTimeout(attemptInsert, 200);
+                } else {
+                    this.error('Insertion failed after 10 retries; falling back', { error: err.message });
+                    this.fallback(parent, nextSibling);
+                }
             }
         };
 
-        // Use MutationObserver to ensure DOM is ready
-        const observer = new MutationObserver(() => {
-            if (document.body.contains(this) && parent) {
-                attemptInsert();
-                observer.disconnect();
-            }
-        });
-        observer.observe(document.body, { childList: true, subtree: true });
+        setTimeout(attemptInsert, 1000);
     }
 
     attachSliderLogic(container) {
@@ -246,7 +238,6 @@ class CustomSlider extends HTMLElement {
 
         if (slideCount === 0) return;
 
-        // Calculate and set slide widths
         const recalc = () => {
             const computedStyle = getComputedStyle(wrapper);
             const gapPx = parseFloat(computedStyle.gap) || 0;
@@ -259,14 +250,12 @@ class CustomSlider extends HTMLElement {
 
         let { slideWidth, gapPx } = recalc();
 
-        // Set scroll snap
         container.style.overflowX = 'auto';
         container.style.scrollSnapType = attrs.freeMode ? 'none' : 'x mandatory';
         slides.forEach(slide => {
             slide.style.scrollSnapAlign = 'start';
         });
 
-        // Pagination setup
         if (pagination) {
             const dots = [];
             for (let i = 0; i < slideCount; i++) {
@@ -296,14 +285,10 @@ class CustomSlider extends HTMLElement {
                 });
             }
 
-            // Initial active
             updateActiveDot();
-
-            // On scroll update active
             container.addEventListener('scroll', this.debounce(updateActiveDot, 100));
         }
 
-        // On resize recalc
         window.addEventListener('resize', this.debounce(() => {
             ({ slideWidth, gapPx } = recalc());
             if (pagination) updateActiveDot();
@@ -326,7 +311,6 @@ class CustomSlider extends HTMLElement {
         fallbackElement.style.display = 'flex';
         fallbackElement.style.overflow = 'hidden';
 
-        // Ensure attributes are loaded
         let attrs = state.cachedAttributes;
         if (!attrs) {
             attrs = this.getAttributes();
@@ -334,7 +318,6 @@ class CustomSlider extends HTMLElement {
         const slidesPerView = attrs.slidesPerView || 1;
         fallbackElement.style.gap = attrs.gap || '0';
 
-        // Restore original children
         if (state.originalChildren) {
             while (state.originalChildren.firstChild) {
                 const slideElement = document.createElement('div');
@@ -369,7 +352,6 @@ class CustomSlider extends HTMLElement {
         }
         state.isInitialized = true;
         state.initInProgress = false;
-        // Clean up listeners
         state.renderCompleteListeners.forEach(({ listener }) => document.removeEventListener('render-complete', listener));
         state.renderCompleteListeners = [];
     }
@@ -412,10 +394,8 @@ class CustomSlider extends HTMLElement {
             state.renderedElement.remove();
             state.renderedElement = null;
         }
-        // Clean up listeners
         state.renderCompleteListeners.forEach(({ listener }) => document.removeEventListener('render-complete', listener));
         state.renderCompleteListeners = [];
-        // Keep originalChildren for potential re-init
     }
 
     addCallback(callback) {
@@ -440,7 +420,7 @@ class CustomSlider extends HTMLElement {
         for (const child of children) {
             const slideElement = document.createElement('div');
             slideElement.className = 'slider-slide';
-            slideElement.appendChild(child); // Move original child
+            slideElement.appendChild(child);
             wrapperElement.appendChild(slideElement);
             slideCount++;
         }
@@ -451,7 +431,6 @@ class CustomSlider extends HTMLElement {
         }
         sliderElement.appendChild(wrapperElement);
 
-        // Add pagination if attribute is present
         if (this.hasAttribute('pagination-clickable')) {
             const paginationElement = document.createElement('div');
             paginationElement.className = 'slider-pagination';
@@ -495,6 +474,6 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-10-3');
+console.log('CustomSlider version: 2025-10-10-4');
 
 export { CustomSlider };
