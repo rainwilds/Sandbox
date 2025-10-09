@@ -45,7 +45,7 @@ const DEPENDENCIES = {
   'custom-nav': ['shared'],
   'custom-logo': ['image-generator', 'shared'],
   'custom-header': ['image-generator', 'shared'],
-  'custom-slider': []  // No internal dependencies; Swiper is handled externally
+  'custom-slider': []  // No internal dependencies
 };
 
 const PATH_MAP = {
@@ -118,7 +118,7 @@ async function loadComponents(componentList) {
   logger.log('Loading requested components', { components: componentList });
   const components = componentList.split(/\s+/).map(c => c.trim()).filter(c => c);
   
-  // NEW: Prioritize custom-block before custom-slider
+  // Prioritize custom-block before custom-slider
   const orderedComponents = components.sort((a, b) => {
     if (a === 'custom-block' && b === 'custom-slider') return -1;  // block first
     if (a === 'custom-slider' && b === 'custom-block') return 1;   // slider after
@@ -147,7 +147,7 @@ async function loadComponents(componentList) {
   return results;
 }
 
-async function updateHead(attributes, setup, needsSwiper = false) {
+async function updateHead(attributes, setup) {
   logger.log('updateHead called with attributes', attributes);
   const head = document.head;
   logger.log('Head before update:', Array.from(head.children).map(el => el.outerHTML));
@@ -174,14 +174,6 @@ async function updateHead(attributes, setup, needsSwiper = false) {
   styleLink.href = './styles.css';
   criticalFrag.appendChild(styleLink);
   logger.log('Applied stylesheet: ./styles.css');
-  // Conditionally add Swiper CSS if custom-slider is requested
-  if (needsSwiper) {
-    const swiperCssLink = document.createElement('link');
-    swiperCssLink.rel = 'stylesheet';
-    swiperCssLink.href = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css';
-    criticalFrag.appendChild(swiperCssLink);
-    logger.log('Added Swiper CSS (for custom-slider)');
-  }
   const faKitUrl = setup.font_awesome?.kit_url ?? setup.font_awesome?.kitUrl;
   if (faKitUrl) {
     const script = document.createElement('script');
@@ -334,27 +326,13 @@ async function updateHead(attributes, setup, needsSwiper = false) {
     }
     logger.log('Merged attributes', attributes);
     const components = attributes.components ? attributes.components.split(/\s+/).map(c => c.trim()).filter(Boolean) : [];
-    const needsSwiper = components.includes('custom-slider');
-    if (needsSwiper) {
-      logger.log('custom-slider detected in components; will add Swiper resources');
-    }
     if (attributes.components) {
       await loadComponents(attributes.components);
     }
     const setup = await setupPromise;
-    await updateHead(attributes, setup, needsSwiper);
+    await updateHead(attributes, setup);
     customHead.remove();
     logger.log('Removed data-custom-head element');
-
-    // Conditionally add Swiper JS script to end of body if needed
-    if (needsSwiper) {
-      const swiperScript = document.createElement('script');
-      swiperScript.id = 'swiper-js';  // NEW: ID for skipping relocation
-      swiperScript.src = 'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js';
-      swiperScript.async = true;
-      document.body.appendChild(swiperScript);
-      logger.log('Added Swiper JS script to end of body (for custom-slider, async, id=swiper-js)');
-    }
 
     // Ensure all <style> elements are in <head>
     const styles = document.querySelectorAll('style');
@@ -400,11 +378,6 @@ async function updateHead(attributes, setup, needsSwiper = false) {
     let deferredScriptCount = 0;
     scripts.forEach(script => {
       const isExternal = script.src;
-      // NEW: Skip relocation/defer for Swiper script
-      if (script.id === 'swiper-js') {
-        logger.log('Skipping relocation for Swiper script (keeps async in body)');
-        return;
-      }
       const targetParent = isExternal ? document.head : document.body;
       if (script.parentNode !== targetParent && script.parentNode !== null) {
         logger.log(`Moving <script> from ${script.parentNode.tagName} to ${targetParent.tagName} (external: ${isExternal ? 'yes' : 'no'})`);
