@@ -156,19 +156,19 @@
         --color-static-dark-8: rgba(0, 0, 0, 0.8);
         --color-static-light-8: rgba(255, 255, 255, 0.8); */
 
-       
-   
 
-        
-        
 
-     
-    
 
-    
-       
-        
-     
+
+
+
+
+
+
+
+
+
+
 
         --color-static-light: white;
         --color-static-dark: black;
@@ -203,23 +203,23 @@
         --color-dark-scale-5: #220e18;
         --color-dark-scale-6: #140612;
 
-        --color-accent-opaque-light-scale-1: rgba(22,74,227,0.2);
-        --color-accent-opaque-light-scale-2: rgba(152,78,205,0.2);
-        --color-accent-opaque-light-scale-3: rgba(199,98,187,0.2);
-        --color-accent-opaque-light-scale-4: rgba(222,129,177,0.2);
-        --color-accent-opaque-light-scale-5: rgba(231,164,180,0.2);
-        --color-accent-opaque-light-scale-6: rgba(228,200,200,0.2);
+        --color-accent-opaque-light-scale-1: rgba(22, 74, 227, 0.2);
+        --color-accent-opaque-light-scale-2: rgba(152, 78, 205, 0.2);
+        --color-accent-opaque-light-scale-3: rgba(199, 98, 187, 0.2);
+        --color-accent-opaque-light-scale-4: rgba(222, 129, 177, 0.2);
+        --color-accent-opaque-light-scale-5: rgba(231, 164, 180, 0.2);
+        --color-accent-opaque-light-scale-6: rgba(228, 200, 200, 0.2);
 
-        --color-accent-opaque-dark-scale-1: rgba(73,44,3,0.5);
-        --color-accent-opaque-dark-scale-2: rgba(70,32,13,0.5);
-        --color-accent-opaque-dark-scale-3: rgba(61,24,21,0.5);
-        --color-accent-opaque-dark-scale-4: rgba(49,18,24,0.5);
-        --color-accent-opaque-dark-scale-5: rgba(34,14,24,0.5);
-        --color-accent-opaque-dark-scale-6: rgba(20,6,18,0.5);
+        --color-accent-opaque-dark-scale-1: rgba(73, 44, 3, 0.5);
+        --color-accent-opaque-dark-scale-2: rgba(70, 32, 13, 0.5);
+        --color-accent-opaque-dark-scale-3: rgba(61, 24, 21, 0.5);
+        --color-accent-opaque-dark-scale-4: rgba(49, 18, 24, 0.5);
+        --color-accent-opaque-dark-scale-5: rgba(34, 14, 24, 0.5);
+        --color-accent-opaque-dark-scale-6: rgba(20, 6, 18, 0.5);
 
-        
 
-        
+
+
 
 
 
@@ -1952,7 +1952,8 @@ div#products {
     width: 100%;
     overflow-x: auto;
     scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch; /* For smooth iOS scrolling */
+    -webkit-overflow-scrolling: touch;
+    /* For smooth iOS scrolling */
 }
 
 .slider-wrapper {
@@ -1962,7 +1963,8 @@ div#products {
 
 .slider-slide {
     flex-shrink: 0;
-    height: 100%; /* Or fixed height like 400px */
+    height: 100%;
+    /* Or fixed height like 400px */
 }
 
 .slider-pagination {
@@ -1989,7 +1991,8 @@ div#products {
 
 /* Hero-specific styles */
 .hero-slider .slider-slide {
-    width: 100vw; /* Full-width for slides-per-view=1 */
+    width: 100vw;
+    /* Full-width for slides-per-view=1 */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2003,30 +2006,41 @@ div#products {
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
 }
+
 .light-gradient-2 {
     background: linear-gradient(to bottom, var(--color-light-scale-3) 0%, var(--color-light-scale-4) 40%, var(--color-light-scale-5) 70%, var(--color-light-scale-6) 100%);
     background-size: 100% 200%;
     animation: slideGradientVertical 8s ease infinite;
 }
+
 .light-gradient-3 {
     background: linear-gradient(45deg, var(--color-light-scale-5) 0%, var(--color-light-scale-6) 50%, var(--color-light-scale-1) 100%);
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
 }
+
 .light-gradient-opaque-1 {
     background: linear-gradient(135deg, var(--color-accent-opaque-light-scale-1) 0%, var(--color-accent-opaque-light-scale-2) 25%, var(--color-accent-opaque-light-scale-3) 75%, var(--color-accent-opaque-light-scale-4) 100%);
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
 }
+
 .light-gradient-opaque-2 {
     background: linear-gradient(to bottom, var(--color-accent-opaque-light-scale-3) 0%, var(--color-accent-opaque-light-scale-4) 33%, var(--color-accent-opaque-light-scale-5) 66%, var(--color-accent-opaque-light-scale-6) 100%);
     background-size: 100% 200%;
     animation: slideGradientVertical 8s ease infinite;
 }
+
 .light-gradient-opaque-3 {
     background: linear-gradient(45deg, var(--color-accent-opaque-light-scale-5) 0%, var(--color-accent-opaque-light-scale-6) 50%, var(--color-accent-opaque-light-scale-1) 100%);
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
+}
+
+.light-gradient-blend {
+    background: linear-gradient(to bottom, var(--color-accent-opaque-light-scale-1), var(--color-accent-opaque-light-scale-2));
+    mix-blend-mode: multiply;
+    animation: gradientBlendAnimLight 28s linear infinite;
 }
 
 /* Dark theme animated gradients */
@@ -2035,30 +2049,41 @@ div#products {
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
 }
+
 .dark-gradient-2 {
     background: linear-gradient(to bottom, var(--color-dark-scale-3) 0%, var(--color-dark-scale-4) 40%, var(--color-dark-scale-5) 70%, var(--color-dark-scale-6) 100%);
     background-size: 100% 200%;
     animation: slideGradientVertical 8s ease infinite;
 }
+
 .dark-gradient-3 {
     background: linear-gradient(45deg, var(--color-dark-scale-5) 0%, var(--color-dark-scale-6) 50%, var(--color-dark-scale-1) 100%);
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
 }
+
 .dark-gradient-opaque-1 {
     background: linear-gradient(135deg, var(--color-accent-opaque-dark-scale-1) 0%, var(--color-accent-opaque-dark-scale-2) 25%, var(--color-accent-opaque-dark-scale-3) 75%, var(--color-accent-opaque-dark-scale-4) 100%);
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
 }
+
 .dark-gradient-opaque-2 {
     background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-3) 0%, var(--color-accent-opaque-dark-scale-4) 33%, var(--color-accent-opaque-dark-scale-5) 66%, var(--color-accent-opaque-dark-scale-6) 100%);
     background-size: 100% 200%;
     animation: slideGradientVertical 8s ease infinite;
 }
+
 .dark-gradient-opaque-3 {
     background: linear-gradient(45deg, var(--color-accent-opaque-dark-scale-5) 0%, var(--color-accent-opaque-dark-scale-6) 50%, var(--color-accent-opaque-dark-scale-1) 100%);
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
+}
+
+.dark-gradient-blend {
+    background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-1), var(--color-accent-opaque-dark-scale-2));
+    mix-blend-mode: multiply;
+    animation: gradientBlendAnimDark 28s linear infinite;
 }
 
 /* Keyframes for horizontal sliding effect */
@@ -2066,9 +2091,11 @@ div#products {
     0% {
         background-position: 0% 50%;
     }
+
     50% {
         background-position: 100% 50%;
     }
+
     100% {
         background-position: 0% 50%;
     }
@@ -2079,11 +2106,59 @@ div#products {
     0% {
         background-position: 50% 0%;
     }
+
     50% {
         background-position: 50% 100%;
     }
+
     100% {
         background-position: 50% 0%;
+    }
+}
+
+/* Keyframes for light gradient color blending animation */
+@keyframes gradientBlendAnimLight {
+    0% {
+        background: linear-gradient(to bottom, var(--color-accent-opaque-light-scale-1), var(--color-accent-opaque-light-scale-2));
+    }
+
+    25% {
+        background: linear-gradient(to bottom, var(--color-accent-opaque-light-scale-3), var(--color-accent-opaque-light-scale-4));
+    }
+
+    50% {
+        background: linear-gradient(to bottom, var(--color-accent-opaque-light-scale-5), var(--color-accent-opaque-light-scale-6));
+    }
+
+    75% {
+        background: linear-gradient(to bottom, var(--color-accent-opaque-light-scale-4), var(--color-accent-opaque-light-scale-3));
+    }
+
+    100% {
+        background: linear-gradient(to bottom, var(--color-accent-opaque-light-scale-1), var(--color-accent-opaque-light-scale-2));
+    }
+}
+
+/* Keyframes for dark gradient color blending animation */
+@keyframes gradientBlendAnimDark {
+    0% {
+        background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-1), var(--color-accent-opaque-dark-scale-2));
+    }
+
+    25% {
+        background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-3), var(--color-accent-opaque-dark-scale-4));
+    }
+
+    50% {
+        background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-5), var(--color-accent-opaque-dark-scale-6));
+    }
+
+    75% {
+        background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-4), var(--color-accent-opaque-dark-scale-3));
+    }
+
+    100% {
+        background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-1), var(--color-accent-opaque-dark-scale-2));
     }
 }
 
