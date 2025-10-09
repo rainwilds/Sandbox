@@ -92,14 +92,8 @@ class CustomSlider extends HTMLElement {
         }
 
         let gap = gapStr;
-        if (!gapStr.startsWith('var(')) {
-            const parsedGap = parseInt(gapStr, 10);
-            if (!isNaN(parsedGap) && parsedGap >= 0) {
-                gap = parsedGap + 'px';
-            } else {
-                this.#warn('Invalid gap, defaulting to 0', { value: gapStr });
-                gap = '0px';
-            }
+        if (!gapStr.startsWith('var(') && !isNaN(parseInt(gapStr, 10))) {
+            gap = parseInt(gapStr, 10) + 'px';
         }
 
         this.#cachedAttributes = {
@@ -265,7 +259,7 @@ class CustomSlider extends HTMLElement {
                 if (this.#replaceRetries < 10) {
                     this.#replaceRetries++;
                     this.#warn(`Insertion retry (${this.#replaceRetries}/10)`, { elementId: this.id || 'no-id' });
-                    setTimeout(attemptInsert, 200);  // Increased from 100ms for better stability
+                    setTimeout(attemptInsert, 200);
                 } else {
                     this.#error('Insertion failed after 10 retries; falling back', { error: err.message });
                     this.#fallback(parent, nextSibling);
@@ -273,6 +267,7 @@ class CustomSlider extends HTMLElement {
             }
         };
 
+        // Delay the first attempt
         setTimeout(attemptInsert, 500);
     }
 
@@ -287,14 +282,16 @@ class CustomSlider extends HTMLElement {
 
         // Calculate and set slide widths
         const recalc = () => {
-            const slideWidth = (container.clientWidth - parseFloat(attrs.gap) * (attrs.slidesPerView - 1)) / attrs.slidesPerView;
+            const computedStyle = getComputedStyle(wrapper);
+            const gapPx = parseFloat(computedStyle.gap) || 0;
+            const slideWidth = (container.clientWidth - gapPx * (attrs.slidesPerView - 1)) / attrs.slidesPerView;
             slides.forEach(slide => {
                 slide.style.width = `${slideWidth}px`;
             });
-            return slideWidth;
+            return { slideWidth, gapPx };
         };
 
-        let slideWidth = recalc();
+        let { slideWidth, gapPx } = recalc();
 
         // Set scroll snap
         container.style.overflowX = 'auto';
@@ -315,7 +312,8 @@ class CustomSlider extends HTMLElement {
             }
 
             const updateActiveDot = () => {
-                const index = Math.min(Math.round(container.scrollLeft / (slideWidth + parseFloat(attrs.gap))), slideCount - 1);
+                const step = slideWidth + gapPx;
+                const index = Math.min(Math.round(container.scrollLeft / step), slideCount - 1);
                 dots.forEach((dot, i) => dot.classList.toggle('active', i === index));
             };
 
@@ -323,8 +321,9 @@ class CustomSlider extends HTMLElement {
                 pagination.addEventListener('click', (e) => {
                     if (e.target.classList.contains('slider-dot')) {
                         const index = parseInt(e.target.dataset.index);
+                        const step = slideWidth + gapPx;
                         container.scrollTo({
-                            left: index * (slideWidth + parseFloat(attrs.gap)),
+                            left: index * step,
                             behavior: 'smooth'
                         });
                     }
@@ -340,7 +339,7 @@ class CustomSlider extends HTMLElement {
 
         // On resize recalc
         window.addEventListener('resize', this.#debounce(() => {
-            slideWidth = recalc();
+            ({ slideWidth, gapPx } = recalc());
             if (pagination) updateActiveDot();
         }, 200));
     }
