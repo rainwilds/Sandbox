@@ -456,12 +456,16 @@ async function updateHead(attributes, setup) {
       logger.log('No misparsed styles found in text nodes');
     }
 
-    // Force execution of scripts that may have been inserted via innerHTML (which prevents running)
+    // Force execution of scripts that may have been inserted via innerHTML
     logger.log('Scanning for scripts inserted via innerHTML to force execution...');
     const allScripts = document.querySelectorAll('script');
     let reCreatedCount = 0;
     allScripts.forEach(oldScript => {
       if (oldScript.parentNode) {
+        const isSwiperScript = oldScript.textContent.includes('new Swiper(".mySwiper"');
+        if (isSwiperScript) {
+          logger.log('Detected Swiper initialization script', { content: oldScript.textContent.substring(0, 100) + '...' });
+        }
         const newScript = document.createElement('script');
         if (oldScript.src) {
           newScript.src = oldScript.src;
@@ -471,10 +475,11 @@ async function updateHead(attributes, setup) {
           newScript.textContent = oldScript.textContent;
         }
         if (oldScript.type) newScript.type = oldScript.type;
-        oldScript.parentNode.insertBefore(newScript, oldScript.nextSibling);
+        const targetParent = oldScript.src ? document.head : document.body;
+        targetParent.appendChild(newScript);
         oldScript.parentNode.removeChild(oldScript);
         reCreatedCount++;
-        logger.log(`Re-created script to ensure execution: ${oldScript.src || 'inline'}`);
+        logger.log(`Re-created script to ensure execution: ${oldScript.src || 'inline'}`, { isSwiperScript });
       }
     });
     if (reCreatedCount > 0) {
@@ -492,6 +497,10 @@ async function updateHead(attributes, setup) {
               const addedScripts = node.tagName === 'SCRIPT' ? [node] : node.querySelectorAll('script');
               addedScripts.forEach(oldScript => {
                 if (oldScript.parentNode) {
+                  const isSwiperScript = oldScript.textContent.includes('new Swiper(".mySwiper"');
+                  if (isSwiperScript) {
+                    logger.log('Detected dynamically added Swiper initialization script', { content: oldScript.textContent.substring(0, 100) + '...' });
+                  }
                   const newScript = document.createElement('script');
                   if (oldScript.src) {
                     newScript.src = oldScript.src;
@@ -501,9 +510,10 @@ async function updateHead(attributes, setup) {
                     newScript.textContent = oldScript.textContent;
                   }
                   if (oldScript.type) newScript.type = oldScript.type;
-                  oldScript.parentNode.insertBefore(newScript, oldScript.nextSibling);
+                  const targetParent = oldScript.src ? document.head : document.body;
+                  targetParent.appendChild(newScript);
                   oldScript.parentNode.removeChild(oldScript);
-                  logger.log(`Dynamically re-created script to ensure execution: ${oldScript.src || 'inline'}`);
+                  logger.log(`Dynamically re-created script to ensure execution: ${oldScript.src || 'inline'}`, { isSwiperScript });
                 }
               });
             }
