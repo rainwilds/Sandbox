@@ -91,13 +91,11 @@ async function loadComponentWithDependencies(componentName) {
   collectDependencies(componentName);
   const loadOrder = [...allDependencies, componentName];
   logger.log(`Load order for ${componentName}:`, loadOrder);
-  const results = [];
-  for (const moduleName of loadOrder) {
-    const result = await loadModule(moduleName);
-    results.push(result);
-    if (result.error && moduleName === componentName) {
-      throw result.error;
-    }
+  const loadPromises = loadOrder.map(moduleName => loadModule(moduleName));
+  const results = await Promise.all(loadPromises);
+  const componentResult = results.find(r => r.name === componentName);
+  if (componentResult.error) {
+    throw componentResult.error;
   }
   const directDeps = DEPENDENCIES[componentName] || [];
   const missingDeps = directDeps.filter(dep => results.find(r => r.name === dep)?.module === null);
@@ -455,84 +453,6 @@ async function updateHead(attributes, setup) {
     } else {
       logger.log('No misparsed styles found in text nodes');
     }
-
-    // Force execution of scripts that may have been inserted via innerHTML
-    logger.log('Scanning for scripts inserted via innerHTML to force execution...');
-    const allScripts = document.querySelectorAll('script');
-    let reCreatedCount = 0;
-    allScripts.forEach(oldScript => {
-      if (oldScript.parentNode) {
-        const isSwiperScript = oldScript.textContent.includes('new Swiper(".mySwiper"');
-        if (isSwiperScript) {
-          logger.log('Detected Swiper initialization script', { content: oldScript.textContent.substring(0, 100) + '...', parent: oldScript.parentNode.tagName });
-        }
-        const newScript = document.createElement('script');
-        if (oldScript.src) {
-          newScript.src = oldScript.src;
-          if (oldScript.async) newScript.async = true;
-          if (oldScript.defer) newScript.defer = true;
-        } else {
-          newScript.textContent = oldScript.textContent;
-        }
-        if (oldScript.type) newScript.type = oldScript.type;
-        const targetParent = oldScript.src ? document.head : document.body;
-        targetParent.appendChild(newScript);
-        oldScript.parentNode.removeChild(oldScript); // Explicitly remove the original
-        reCreatedCount++;
-        logger.log(`Re-created script to ensure execution: ${oldScript.src || 'inline'}`, { isSwiperScript, oldParent: oldScript.parentNode.tagName });
-      }
-    });
-    if (reCreatedCount > 0) {
-      logger.log(`Re-created ${reCreatedCount} script(s) to force execution`);
-    } else {
-      logger.log('No scripts needed re-creation');
-    }
-
-    // Set up MutationObserver to handle dynamically added scripts
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (mutation.type === 'childList') {
-          mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === Node.ELEMENT_NODE) {
-              const addedScripts = node.tagName === 'SCRIPT' ? [node] : node.querySelectorAll('script');
-              addedScripts.forEach(oldScript => {
-                if (oldScript.parentNode) {
-                  const isSwiperScript = oldScript.textContent.includes('new Swiper(".mySwiper"');
-                  if (isSwiperScript) {
-                    logger.log('Detected dynamically added Swiper initialization script', { content: oldScript.textContent.substring(0, 100) + '...', parent: oldScript.parentNode.tagName });
-                  }
-                  const newScript = document.createElement('script');
-                  if (oldScript.src) {
-                    newScript.src = oldScript.src;
-                    if (oldScript.async) newScript.async = true;
-                    if (oldScript.defer) newScript.defer = true;
-                  } else {
-                    newScript.textContent = oldScript.textContent;
-                  }
-                  if (oldScript.type) newScript.type = oldScript.type;
-                  const targetParent = oldScript.src ? document.head : document.body;
-                  targetParent.appendChild(newScript);
-                  oldScript.parentNode.removeChild(oldScript); // Explicitly remove the original
-                  logger.log(`Dynamically re-created script to ensure execution: ${oldScript.src || 'inline'}`, { isSwiperScript, oldParent: oldScript.parentNode.tagName });
-                }
-              });
-            }
-          });
-        }
-      });
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
-    logger.log('MutationObserver set up to monitor for added scripts');
-
-    // Final validation log
-    const finalScripts = document.querySelectorAll('script');
-    logger.log('Final scripts after processing:', Array.from(finalScripts).map(s => ({
-      tagName: s.tagName,
-      src: s.src || 'inline',
-      parent: s.parentNode?.tagName || 'null',
-      outerHTML: (s.outerHTML || s.textContent || '').substring(0, 150) + '...'
-    })));
-    logger.log('Final body end snapshot:', Array.from(document.body.children).slice(-3).map(el => el.tagName + (el.src ? ` (src="${el.src}")` : '')).join(' -> '));
 
     logger.log('HeadGenerator completed successfully');
   } catch (err) {
