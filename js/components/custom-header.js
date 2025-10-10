@@ -14,6 +14,32 @@
         ]);
 
         class CustomHeader extends CustomBlock {
+            // Duplicate logging methods to make them private to this class
+            #log(message, data = null) {
+                if (this.debug) {
+                    console.groupCollapsed(`%c[CustomHeader] ${message}`, 'color: #2196F3; font-weight: bold;');
+                    if (data) console.log('%cData:', 'color: #4CAF50;', data);
+                    console.trace();
+                    console.groupEnd();
+                }
+            }
+            #warn(message, data = null) {
+                if (this.debug) {
+                    console.groupCollapsed(`%c[CustomHeader] ⚠️ ${message}`, 'color: #FF9800; font-weight: bold;');
+                    if (data) console.log('%cData:', 'color: #4CAF50;', data);
+                    console.trace();
+                    console.groupEnd();
+                }
+            }
+            #error(message, data = null) {
+                if (this.debug) {
+                    console.groupCollapsed(`%c[CustomHeader] ❌ ${message}`, 'color: #F44336; font-weight: bold;');
+                    if (data) console.log('%cData:', 'color: #4CAF50;', data);
+                    console.trace();
+                    console.groupEnd();
+                }
+            }
+
             static #criticalAttributes = [
                 ...CustomBlock.#criticalAttributes,
                 'sticky',
