@@ -483,6 +483,37 @@ async function updateHead(attributes, setup) {
       logger.log('No scripts needed re-creation');
     }
 
+    // Set up MutationObserver to handle dynamically added scripts
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach((node) => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const addedScripts = node.tagName === 'SCRIPT' ? [node] : node.querySelectorAll('script');
+              addedScripts.forEach(oldScript => {
+                if (oldScript.parentNode) {
+                  const newScript = document.createElement('script');
+                  if (oldScript.src) {
+                    newScript.src = oldScript.src;
+                    if (oldScript.async) newScript.async = true;
+                    if (oldScript.defer) newScript.defer = true;
+                  } else {
+                    newScript.textContent = oldScript.textContent;
+                  }
+                  if (oldScript.type) newScript.type = oldScript.type;
+                  oldScript.parentNode.insertBefore(newScript, oldScript.nextSibling);
+                  oldScript.parentNode.removeChild(oldScript);
+                  logger.log(`Dynamically re-created script to ensure execution: ${oldScript.src || 'inline'}`);
+                }
+              });
+            }
+          });
+        }
+      });
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+    logger.log('MutationObserver set up to monitor for added scripts');
+
     // Final validation log
     const finalScripts = document.querySelectorAll('script');
     logger.log('Final scripts after processing:', Array.from(finalScripts).map(s => ({
