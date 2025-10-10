@@ -456,6 +456,33 @@ async function updateHead(attributes, setup) {
       logger.log('No misparsed styles found in text nodes');
     }
 
+    // Force execution of scripts that may have been inserted via innerHTML (which prevents running)
+    logger.log('Scanning for scripts inserted via innerHTML to force execution...');
+    const allScripts = document.querySelectorAll('script');
+    let reCreatedCount = 0;
+    allScripts.forEach(oldScript => {
+      if (oldScript.parentNode) {
+        const newScript = document.createElement('script');
+        if (oldScript.src) {
+          newScript.src = oldScript.src;
+          if (oldScript.async) newScript.async = true;
+          if (oldScript.defer) newScript.defer = true;
+        } else {
+          newScript.textContent = oldScript.textContent;
+        }
+        if (oldScript.type) newScript.type = oldScript.type;
+        oldScript.parentNode.insertBefore(newScript, oldScript.nextSibling);
+        oldScript.parentNode.removeChild(oldScript);
+        reCreatedCount++;
+        logger.log(`Re-created script to ensure execution: ${oldScript.src || 'inline'}`);
+      }
+    });
+    if (reCreatedCount > 0) {
+      logger.log(`Re-created ${reCreatedCount} script(s) to force execution`);
+    } else {
+      logger.log('No scripts needed re-creation');
+    }
+
     // Final validation log
     const finalScripts = document.querySelectorAll('script');
     logger.log('Final scripts after processing:', Array.from(finalScripts).map(s => ({
