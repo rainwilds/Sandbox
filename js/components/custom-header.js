@@ -1,73 +1,29 @@
 (async () => {
     // Browser-compatible dev detection
-    // This checks if the current URL contains '/dev/' or has '?debug=true' in the query string.
-    // Enables debug mode for logging without impacting production environments.
     const isDev = window.location.href.includes('/dev/') ||
       new URLSearchParams(window.location.search).get('debug') === 'true';
 
-    // Debug logging methods
-    // Define a logging function that only outputs in debug mode.
-    // Uses console.groupCollapsed for organized, collapsible output with color styling.
-    // Includes a timestamp, message, optional data, and a stack trace for easy debugging.
-    const log = (message, data = null) => {
-        if (isDev) {
-            console.groupCollapsed(`%c[CustomHeader] ${new Date().toLocaleTimeString()} ${message}`, 'color: #2196F3; font-weight: bold;');
-            if (data) {
-                console.log('%cData:', 'color: #4CAF50;', data);
-            }
-            console.trace();
-            console.groupEnd();
-        }
-    };
-
-    // Define a warning logging function similar to log, but with yellow styling and a warning emoji.
-    // Used for non-critical issues like invalid attributes.
-    const warn = (message, data = null) => {
-        if (isDev) {
-            console.groupCollapsed(`%c[CustomHeader] ⚠️ ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
-            if (data) {
-                console.log('%cData:', 'color: #4CAF50;', data);
-            }
-            console.trace();
-            console.groupEnd();
-        }
-    };
-
-    // Define an error logging function with red styling and an error emoji.
-    // Used for critical failures like rendering errors or import failures.
-    const error = (message, data = null) => {
-        if (isDev) {
-            console.groupCollapsed(`%c[CustomHeader] ❌ ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
-            if (data) {
-                console.log('%cData:', 'color: #4CAF50;', data);
-            }
-            console.trace();
-            console.groupEnd();
-        }
-    };
-
     try {
-        // Asynchronously import required dependencies.
-        // CustomBlock from custom-block.js as the base class for extension.
-        // VALID_ALIGNMENTS, VALID_ALIGN_MAP, and BACKDROP_FILTER_MAP from shared.js for validating and mapping attributes.
         const { CustomBlock } = await import('./custom-block.js');
         const { VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } = await import('../shared.js');
-        log('Successfully imported CustomBlock, VALID_ALIGN_MAP, and BACKDROP_FILTER_MAP');
 
-        // Wait for dependent custom elements to be defined.
-        // Ensures custom-logo and custom-nav are ready before proceeding, as they are rendered within the header.
+        // Wait for dependent custom elements
         await Promise.all([
             customElements.whenDefined('custom-logo'),
             customElements.whenDefined('custom-nav')
         ]);
-        log('CustomLogo and CustomNav defined');
 
-        // Define the CustomHeader web component class.
-        // Extends CustomBlock to inherit base functionality like rendering and attribute handling.
-        // Customizes for header-specific features like sticky positioning and logo/nav integration.
         class CustomHeader extends CustomBlock {
-            // Specify additional attributes to observe beyond those in the base CustomBlock class.
-            // When any of these change, attributeChangedCallback is triggered to re-render.
+            static #criticalAttributes = [
+                ...CustomBlock.#criticalAttributes,
+                'sticky',
+                'logo-placement',
+                'nav-logo-container-style',
+                'nav-logo-container-class',
+                'nav-alignment',
+                'backdrop-filter'
+            ];
+
             static get observedAttributes() {
                 return [
                     ...super.observedAttributes,
@@ -80,99 +36,131 @@
                 ];
             }
 
-            // Extend base getAttributes to include header-specific attributes.
-            // Validates and defaults values like sticky, logo placement, and navigation alignment.
-            getAttributes() {
-                const attrs = super.getAttributes();
+            async getAttributes() {
+                if (this.cachedAttributes) {
+                    this.#log('Using cached attributes');
+                    return this.cachedAttributes;
+                }
+
+                const attrs = await super.getAttributes();
                 attrs.sticky = this.hasAttribute('sticky');
                 attrs.logoPlacement = this.getAttribute('logo-placement') || 'independent';
                 attrs.navLogoContainerStyle = this.getAttribute('nav-logo-container-style') || '';
                 attrs.navLogoContainerClass = this.getAttribute('nav-logo-container-class') || '';
                 attrs.navAlignment = this.getAttribute('nav-alignment') || 'center';
                 attrs.backdropFilter = this.getAttribute('backdrop-filter') || '';
+
                 const validLogoPlacements = ['independent', 'nav'];
                 if (!VALID_ALIGNMENTS.includes(attrs.navAlignment)) {
-                    warn(`Invalid nav-alignment "${attrs.navAlignment}". Must be one of ${VALID_ALIGNMENTS.join(', ')}. Defaulting to 'center'.`);
+                    this.#warn(`Invalid nav-alignment "${attrs.navAlignment}". Defaulting to 'center'.`);
                     attrs.navAlignment = 'center';
                 }
                 if (!validLogoPlacements.includes(attrs.logoPlacement)) {
-                    warn(`Invalid logo-placement "${attrs.logoPlacement}". Defaulting to 'independent'.`);
+                    this.#warn(`Invalid logo-placement "${attrs.logoPlacement}". Defaulting to 'independent'.`);
                     attrs.logoPlacement = 'independent';
                 }
                 if (attrs.backdropFilter && !Object.keys(BACKDROP_FILTER_MAP).includes(`backdrop-filter-${attrs.backdropFilter}`)) {
-                    warn(`Invalid backdrop-filter "${attrs.backdropFilter}". Clearing it.`);
+                    this.#warn(`Invalid backdrop-filter "${attrs.backdropFilter}". Clearing it.`);
                     attrs.backdropFilter = '';
                 }
-                log('CustomHeader attributes', attrs);
+
+                const criticalAttrs = {};
+                CustomHeader.#criticalAttributes.forEach(attr => {
+                    criticalAttrs[attr] = this.getAttribute(attr) || '';
+                });
+                this.criticalAttributesHash = JSON.stringify(criticalAttrs);
+
+                this.cachedAttributes = attrs;
+                this.#log('Header attributes parsed', { attrs });
                 return attrs;
             }
 
-            // Render the header by first calling the base render, then customizing.
-            // Handles fallback rendering, applies classes/roles, renders child components (logo/nav),
-            // and composes layout based on logo placement (independent or within nav).
             async render(isFallback = false) {
-                log(`Starting render ${isFallback ? '(fallback)' : ''}`);
-                const attrs = this.getAttributes();
+                this.#log(`Starting render ${isFallback ? '(fallback)' : ''}`);
+                let newCriticalAttrsHash;
+                if (!isFallback) {
+                    const criticalAttrs = {};
+                    CustomHeader.#criticalAttributes.forEach(attr => {
+                        criticalAttrs[attr] = this.getAttribute(attr) || '';
+                    });
+                    newCriticalAttrsHash = JSON.stringify(criticalAttrs);
+                    if (CustomBlock.#renderCacheMap.has(this) && this.criticalAttributesHash === newCriticalAttrsHash) {
+                        this.#log('Using cached render');
+                        return CustomBlock.#renderCacheMap.get(this).cloneNode(true);
+                    }
+                }
+
+                const attrs = isFallback ? {} : await this.getAttributes(); // Fallback attrs can be minimal
                 let blockElement;
                 try {
                     blockElement = await super.render(isFallback);
                     if (!blockElement || !(blockElement instanceof HTMLElement)) {
-                        warn('Super render failed; creating fallback block element.');
+                        this.#warn('Super render failed; creating fallback block element.');
                         blockElement = document.createElement('header');
                     }
                 } catch (err) {
-                    error('Error in super.render', { error: err.message });
+                    this.#error('Error in super.render', { error: err.message });
                     blockElement = document.createElement('header');
                 }
 
                 blockElement.setAttribute('role', 'banner');
 
-                // Safely add classes only if they are non-empty strings
-                if (attrs.backgroundColorClass) blockElement.classList.add(attrs.backgroundColorClass);
-                if (attrs.borderClass) blockElement.classList.add(attrs.borderClass);
-                if (attrs.borderRadiusClass) blockElement.classList.add(attrs.borderRadiusClass);
-                if (attrs.shadowClass) blockElement.classList.add(attrs.shadowClass);
-                if (attrs.sticky) blockElement.classList.add('sticky');
-                log('Applied header classes', { classes: blockElement.className });
+                // Batch class additions
+                const classesToAdd = [];
+                if (attrs.backgroundColorClass) classesToAdd.push(attrs.backgroundColorClass);
+                if (attrs.borderClass) classesToAdd.push(attrs.borderClass);
+                if (attrs.borderRadiusClass) classesToAdd.push(attrs.borderRadiusClass);
+                if (attrs.shadowClass) classesToAdd.push(attrs.shadowClass);
+                if (attrs.sticky) classesToAdd.push('sticky');
+                if (classesToAdd.length) {
+                    blockElement.classList.add(...classesToAdd);
+                    this.#log('Applied header classes', { classes: classesToAdd });
+                }
 
-                // Apply backdrop filter if specified
                 if (attrs.backdropFilter) {
                     const filterClass = `backdrop-filter-${attrs.backdropFilter}`;
                     blockElement.style.backdropFilter = BACKDROP_FILTER_MAP[filterClass] || '';
-                    log('Applied backdrop filter', { filter: blockElement.style.backdropFilter });
+                    this.#log('Applied backdrop filter', { filter: blockElement.style.backdropFilter });
+                }
+
+                if (attrs.sticky) {
+                    blockElement.style.position = 'sticky';
+                    blockElement.style.top = '0';
+                    blockElement.style.zIndex = '1000';
+                    this.#log('Applied sticky positioning');
                 }
 
                 let logoHTML = '';
                 let navHTML = '';
-                let customLogo = null;
-                let customNav = null;
                 if (!isFallback) {
-                    customLogo = this.querySelector('custom-logo');
-                    customNav = this.querySelector('custom-nav');
+                    const customLogo = this.querySelector('custom-logo');
+                    const customNav = this.querySelector('custom-nav');
+
                     if (customLogo) {
-                        log('Triggering custom-logo render');
+                        this.#log('Triggering custom-logo render');
                         customElements.upgrade(customLogo);
                         if (customLogo.render) {
                             try {
                                 await customLogo.render();
                                 logoHTML = customLogo.innerHTML;
-                                log('CustomLogo rendered successfully', { htmlLength: logoHTML.length });
-                            } catch (error) {
-                                error('Error rendering custom-logo', { error: error.message });
+                                this.#log('CustomLogo rendered', { htmlLength: logoHTML.length });
+                            } catch (err) {
+                                this.#error('Error rendering custom-logo', { error: err.message });
                                 logoHTML = '<div>Error rendering logo</div>';
                             }
                         }
                     }
+
                     if (customNav) {
-                        log('Triggering custom-nav render');
+                        this.#log('Triggering custom-nav render');
                         customElements.upgrade(customNav);
                         if (customNav.render) {
                             try {
                                 await customNav.render();
                                 navHTML = customNav.innerHTML;
-                                log('CustomNav rendered successfully', { htmlLength: navHTML.length });
-                            } catch (error) {
-                                error('Error rendering custom-nav', { error: error.message });
+                                this.#log('CustomNav rendered', { htmlLength: navHTML.length });
+                            } catch (err) {
+                                this.#error('Error rendering custom-nav', { error: err.message });
                                 navHTML = '<div>Error rendering nav</div>';
                             }
                         }
@@ -192,9 +180,9 @@
                         </style>
                     `;
                     const navAlignClass = attrs.navAlignment ? VALID_ALIGN_MAP[attrs.navAlignment] : '';
-                    const navContainerClasses = customNav?.getAttribute('nav-container-class') || '';
-                    const navContainerStyle = customNav?.getAttribute('nav-container-style') || '';
-                    const combinedNavClasses = navAlignClass || navContainerClasses ? `${navAlignClass} ${navContainerClasses}`.trim() : '';
+                    const navContainerClasses = this.querySelector('custom-nav')?.getAttribute('nav-container-class') || '';
+                    const navContainerStyle = this.querySelector('custom-nav')?.getAttribute('nav-container-style') || '';
+                    const combinedNavClasses = `${navAlignClass} ${navContainerClasses}`.trim();
                     const combinedStyles = attrs.navLogoContainerStyle ? `${attrs.navLogoContainerStyle}; z-index: 2` : 'z-index: 2';
 
                     innerHTML = `
@@ -207,23 +195,22 @@
                         </div>
                         ${innerHTML}
                     `;
-                    log('Composed nav-with-logo', { htmlPreview: innerHTML.substring(0, 200) + '...' });
+                    this.#log('Composed nav-with-logo', { htmlPreview: innerHTML.substring(0, 200) + '...' });
                 } else {
                     innerHTML = `${logoHTML}${navHTML}${innerHTML}`;
-                    log('Composed independent', { htmlPreview: innerHTML.substring(0, 200) + '...' });
+                    this.#log('Composed independent', { htmlPreview: innerHTML.substring(0, 200) + '...' });
                 }
 
                 blockElement.innerHTML = innerHTML;
 
-                // Adjust for heading alignment
+                // Batch style adjustments
                 const ariaLiveDiv = blockElement.querySelector('div[aria-live="polite"]');
                 if (ariaLiveDiv) {
                     ariaLiveDiv.style.display = 'grid';
                     ariaLiveDiv.style.placeContent = '';
-                    log('Set aria-live div to display: grid and removed place-content');
+                    this.#log('Adjusted aria-live div styles');
                 }
 
-                // Replace text-align-* with place-self-* and add width: fit-content
                 const groupDiv = blockElement.querySelector('div[role="group"]');
                 if (groupDiv) {
                     const textAlignClass = Array.from(groupDiv.classList).find(cls => cls.startsWith('text-align-'));
@@ -233,54 +220,44 @@
                         if (VALID_ALIGNMENTS.includes(alignment)) {
                             groupDiv.classList.add(VALID_ALIGN_MAP[alignment]);
                             groupDiv.style.width = 'fit-content';
-                            log('Replaced text-align class with place-self equivalent', { alignment });
+                            this.#log('Replaced text-align with place-self', { alignment });
                         }
                     }
                 }
 
-                if (attrs.sticky) {
-                    blockElement.style.position = 'sticky';
-                    blockElement.style.top = '0';
-                    blockElement.style.zIndex = '1000';
-                    log('Applied sticky positioning');
+                if (!isFallback) {
+                    CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
+                    this.criticalAttributesHash = newCriticalAttrsHash;
                 }
 
-                log('CustomHeader render complete', { outerHTMLPreview: blockElement.outerHTML.substring(0, 300) + '...' });
+                this.#log('Render complete', { outerHTMLPreview: blockElement.outerHTML.substring(0, 300) + '...' });
                 return blockElement;
             }
 
-            // Extend base connectedCallback.
-            // Calls super to handle base connection logic.
             async connectedCallback() {
-                log('Connected to DOM');
+                this.#log('Connected to DOM');
                 await super.connectedCallback();
             }
 
-            // Handle changes to observed attributes.
-            // Clears cache and re-renders if the element is initialized and visible.
-            // Falls back to safe render on errors.
             async attributeChangedCallback(name, oldValue, newValue) {
                 if (!this.isInitialized || !this.isVisible) return;
-                log('Attribute changed', { name, oldValue, newValue });
-                if (super.observedAttributes.includes(name) || this.constructor.observedAttributes.includes(name)) {
+                this.#log('Attribute changed', { name, oldValue, newValue });
+                if (CustomHeader.observedAttributes.includes(name)) {
                     this.cachedAttributes = null;
                     try {
                         const cardElement = await this.render();
                         this.replaceWith(cardElement);
-                        log('CustomHeader re-rendered due to attribute change', { name });
-                    } catch (error) {
-                        error('Error re-rendering CustomHeader', { error: error.message });
+                        this.#log('Re-rendered due to attribute change', { name });
+                    } catch (err) {
+                        this.#error('Error re-rendering', { error: err.message });
                         this.replaceWith(await this.render(true));
                     }
                 }
             }
         }
 
-        // Define the custom element.
-        // Logs success for confirmation.
         customElements.define('custom-header', CustomHeader);
-        log('CustomHeader defined successfully');
     } catch (err) {
-        error('Failed to import CustomBlock or define CustomHeader', { error: err.message });
+        console.error('Failed to define CustomHeader', { error: err.message });
     }
 })();
