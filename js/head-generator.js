@@ -464,7 +464,7 @@ async function updateHead(attributes, setup) {
       if (oldScript.parentNode) {
         const isSwiperScript = oldScript.textContent.includes('new Swiper(".mySwiper"');
         if (isSwiperScript) {
-          logger.log('Detected Swiper initialization script', { content: oldScript.textContent.substring(0, 100) + '...' });
+          logger.log('Detected Swiper initialization script', { content: oldScript.textContent.substring(0, 100) + '...', parent: oldScript.parentNode.tagName });
         }
         const newScript = document.createElement('script');
         if (oldScript.src) {
@@ -477,9 +477,9 @@ async function updateHead(attributes, setup) {
         if (oldScript.type) newScript.type = oldScript.type;
         const targetParent = oldScript.src ? document.head : document.body;
         targetParent.appendChild(newScript);
-        oldScript.parentNode.removeChild(oldScript);
+        oldScript.parentNode.removeChild(oldScript); // Explicitly remove the original
         reCreatedCount++;
-        logger.log(`Re-created script to ensure execution: ${oldScript.src || 'inline'}`, { isSwiperScript });
+        logger.log(`Re-created script to ensure execution: ${oldScript.src || 'inline'}`, { isSwiperScript, oldParent: oldScript.parentNode.tagName });
       }
     });
     if (reCreatedCount > 0) {
@@ -499,7 +499,7 @@ async function updateHead(attributes, setup) {
                 if (oldScript.parentNode) {
                   const isSwiperScript = oldScript.textContent.includes('new Swiper(".mySwiper"');
                   if (isSwiperScript) {
-                    logger.log('Detected dynamically added Swiper initialization script', { content: oldScript.textContent.substring(0, 100) + '...' });
+                    logger.log('Detected dynamically added Swiper initialization script', { content: oldScript.textContent.substring(0, 100) + '...', parent: oldScript.parentNode.tagName });
                   }
                   const newScript = document.createElement('script');
                   if (oldScript.src) {
@@ -512,8 +512,8 @@ async function updateHead(attributes, setup) {
                   if (oldScript.type) newScript.type = oldScript.type;
                   const targetParent = oldScript.src ? document.head : document.body;
                   targetParent.appendChild(newScript);
-                  oldScript.parentNode.removeChild(oldScript);
-                  logger.log(`Dynamically re-created script to ensure execution: ${oldScript.src || 'inline'}`, { isSwiperScript });
+                  oldScript.parentNode.removeChild(oldScript); // Explicitly remove the original
+                  logger.log(`Dynamically re-created script to ensure execution: ${oldScript.src || 'inline'}`, { isSwiperScript, oldParent: oldScript.parentNode.tagName });
                 }
               });
             }
