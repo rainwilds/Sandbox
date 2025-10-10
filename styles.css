@@ -112,6 +112,10 @@
         vertical-align: middle;
     }
 
+    script {
+        display: none;
+    }
+
 }
 
 @layer variables {
