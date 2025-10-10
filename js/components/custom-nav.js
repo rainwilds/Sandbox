@@ -2,7 +2,6 @@
 import { BACKDROP_FILTER_MAP, VALID_ALIGNMENTS, VALID_ALIGN_MAP } from '../shared.js';
 
 class CustomNav extends HTMLElement {
-    #ignoredChangeCount;
     #renderCache = null;
     #lastCriticalHash = null;
     #cachedAttributes = null;
