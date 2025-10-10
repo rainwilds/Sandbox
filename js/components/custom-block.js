@@ -3,6 +3,7 @@ import { generatePictureMarkup } from '../image-generator.js';
 import { generateVideoMarkup } from '../video-generator.js';
 import { VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } from '../shared.js';
 import { getConfig } from '../config.js';
+
 class CustomBlock extends HTMLElement {
     #ignoredChangeCount;
     #basePath = null;
@@ -451,7 +452,11 @@ class CustomBlock extends HTMLElement {
         if (buttonIconSize) {
             const remMatch = buttonIconSize.match(/^(\d*\.?\d+)rem$/);
             if (remMatch) sanitizedButtonIconSize = buttonIconSize;
-            else this.#warn('Invalid button icon size', { value: buttonIconSize, element: this.id || 'no-id', expected: 'Nrem format' });
+            else this.#warn('Invalid button icon size', {
+                value: buttonIconSize,
+                element: this.id || 'no-id',
+                expected: 'Nrem format'
+            });
         }
         const effects = this.getAttribute('effects') || '';
         let sanitizedEffects = '';
@@ -602,10 +607,6 @@ class CustomBlock extends HTMLElement {
                     elementId: this.id || 'no-id',
                     childCount: cardElement.childElementCount
                 });
-                // NEW: Dispatch render-complete event
-                cardElement.setAttribute('data-rendered', 'true');
-                cardElement.dispatchEvent(new CustomEvent('render-complete', { bubbles: true }));
-                this.#log('Dispatched render-complete event', { elementId: this.id || 'no-id' });
             } else {
                 this.#error('Render returned null, using fallback', { elementId: this.id || 'no-id' });
                 const fallbackElement = await this.render(true);

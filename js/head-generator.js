@@ -44,28 +44,21 @@ const DEPENDENCIES = {
   'custom-block': ['image-generator', 'video-generator', 'shared'],
   'custom-nav': ['shared'],
   'custom-logo': ['image-generator', 'shared'],
-  'custom-header': ['image-generator', 'shared'],
-  'custom-slider': []
+  'custom-header': ['image-generator', 'shared']
 };
 
-async function getPathMap() {
-  const config = await getConfig();
-  const basePath = config.general?.basePath || '/Sandbox/';
-  return {
-    'config': `${basePath}config.js`,
-    'image-generator': `${basePath}js/image-generator.js`,
-    'video-generator': `${basePath}js/video-generator.js`,
-    'shared': `${basePath}js/shared.js`,
-    'custom-block': `${basePath}js/components/custom-block.js`,
-    'custom-nav': `${basePath}js/components/custom-nav.js`,
-    'custom-logo': `${basePath}js/components/custom-logo.js`,
-    'custom-header': `${basePath}js/components/custom-header.js`,
-    'custom-slider': `${basePath}js/components/custom-slider.js`
-  };
-}
+const PATH_MAP = {
+  'config': './config.js',
+  'image-generator': './image-generator.js',
+  'video-generator': './video-generator.js',
+  'shared': './shared.js',
+  'custom-block': './components/custom-block.js',
+  'custom-nav': './components/custom-nav.js',
+  'custom-logo': './components/custom-logo.js',
+  'custom-header': './components/custom-header.js'
+};
 
 async function loadModule(moduleName) {
-  const PATH_MAP = await getPathMap();
   const modulePath = PATH_MAP[moduleName];
   if (!modulePath) {
     const err = new Error(`Unknown module: ${moduleName}`);
@@ -73,9 +66,8 @@ async function loadModule(moduleName) {
     throw err;
   }
   try {
-    const resolvedUrl = new URL(modulePath, window.location.origin).href;
-    logger.log(`Loading module: ${modulePath} (resolved: ${resolvedUrl})`);
-    const module = await import(resolvedUrl);
+    logger.log(`Loading module: ${modulePath}`);
+    const module = await import(modulePath);
     logger.log(`Successfully loaded: ${moduleName}`);
     return { name: moduleName, module, path: modulePath };
   } catch (err) {
@@ -123,33 +115,23 @@ async function loadComponents(componentList) {
   }
   logger.log('Loading requested components', { components: componentList });
   const components = componentList.split(/\s+/).map(c => c.trim()).filter(c => c);
-  
-  // Prioritize custom-block before custom-slider
-  const orderedComponents = components.sort((a, b) => {
-    if (a === 'custom-block' && b === 'custom-slider') return -1;  // block first
-    if (a === 'custom-slider' && b === 'custom-block') return 1;   // slider after
-    return 0;  // preserve order for others
-  });
-
-  const results = [];
-  for (const component of orderedComponents) {
-    const result = await loadComponentWithDependencies(component).catch(err => {
+  const loadPromises = components.map(component =>
+    loadComponentWithDependencies(component).catch(err => {
       logger.error(`Failed to load component ${component}`, { error: err.message, stack: err.stack });
       return [];
-    });
-    results.push(...result);
-  }
-
-  const successfulComponents = results.filter(r => orderedComponents.includes(r.name) && r.module).length;
-  const totalComponents = orderedComponents.length;
-  const successfulModules = results.filter(r => r.module).length;
-  const totalModules = results.length;
+    })
+  );
+  const allResults = (await Promise.all(loadPromises)).flat();
+  const successfulComponents = allResults.filter(r => components.includes(r.name) && r.module).length;
+  const totalComponents = components.length;
+  const successfulModules = allResults.filter(r => r.module).length;
+  const totalModules = allResults.length;
   logger.log(`Component loading summary: ${successfulComponents}/${totalComponents} components, ${successfulModules}/${totalModules} modules`, {
-    components: orderedComponents,
-    successful: results.filter(r => r.module && orderedComponents.includes(r.name)).map(r => r.name),
-    failed: results.filter(r => r.error && orderedComponents.includes(r.name)).map(r => r.name)
+    components,
+    successful: allResults.filter(r => r.module && components.includes(r.name)).map(r => r.name),
+    failed: allResults.filter(r => r.error && components.includes(r.name)).map(r => r.name)
   });
-  return results;
+  return allResults;
 }
 
 async function updateHead(attributes, setup) {
@@ -330,7 +312,6 @@ async function updateHead(attributes, setup) {
       if (trimmed) attributes[key] = trimmed;
     }
     logger.log('Merged attributes', attributes);
-    const components = attributes.components ? attributes.components.split(/\s+/).map(c => c.trim()).filter(Boolean) : [];
     if (attributes.components) {
       await loadComponents(attributes.components);
     }
@@ -338,116 +319,21 @@ async function updateHead(attributes, setup) {
     await updateHead(attributes, setup);
     customHead.remove();
     logger.log('Removed data-custom-head element');
-
     // Ensure all <style> elements are in <head>
     const styles = document.querySelectorAll('style');
-    let movedStyleCount = 0;
+    let movedCount = 0;
     styles.forEach(style => {
       if (style.parentNode !== document.head && style.parentNode !== null) {
         logger.log(`Moving <style> from ${style.parentNode.tagName} to <head>`);
         document.head.appendChild(style);
-        movedStyleCount++;
+        movedCount++;
       }
     });
-    if (movedStyleCount > 0) {
-      logger.log(`Moved ${movedStyleCount} <style> element(s) to <head>`);
+    if (movedCount > 0) {
+      logger.log(`Moved ${movedCount} <style> element(s) to <head>`);
     } else {
       logger.log('All <style> elements already in <head>');
     }
-
-    // Ensure all <link> elements are in <head>
-    const links = document.querySelectorAll('link');
-    let movedLinkCount = 0;
-    links.forEach(link => {
-      if (link.parentNode !== document.head && link.parentNode !== null) {
-        logger.log(`Moving <link> from ${link.parentNode.tagName} to <head> (rel="${link.rel}")`);
-        document.head.appendChild(link);
-        movedLinkCount++;
-      }
-    });
-    if (movedLinkCount > 0) {
-      logger.log(`Moved ${movedLinkCount} <link> element(s) to <head>`);
-    } else {
-      logger.log('All <link> elements already in <head>');
-    }
-
-    // Ensure all <script> elements are properly placed
-    const scripts = document.querySelectorAll('script');
-    logger.log('Found scripts before processing:', Array.from(scripts).map(s => ({
-      tagName: s.tagName,
-      src: s.src || 'inline',
-      parent: s.parentNode?.tagName || 'null',
-      outerHTML: (s.outerHTML || s.textContent || '').substring(0, 150) + '...'
-    })));
-    let movedScriptCount = 0;
-    let deferredScriptCount = 0;
-    scripts.forEach(script => {
-      const isExternal = script.src;
-      const targetParent = isExternal ? document.head : document.body;
-      if (script.parentNode !== targetParent && script.parentNode !== null) {
-        logger.log(`Moving <script> from ${script.parentNode.tagName} to ${targetParent.tagName} (external: ${isExternal ? 'yes' : 'no'})`);
-        if (isExternal && !script.hasAttribute('defer') && !script.hasAttribute('async')) {
-          script.defer = true;
-          logger.log('Added defer to external <script> for head placement');
-        }
-        targetParent.appendChild(script);
-        movedScriptCount++;
-        if (isExternal) deferredScriptCount++;
-      }
-    });
-    if (movedScriptCount > 0) {
-      logger.log(`Moved ${movedScriptCount} <script> element(s): ${deferredScriptCount} external to <head> (deferred), ${movedScriptCount - deferredScriptCount} inline to <body>`);
-    } else {
-      logger.log('All <script> elements already in valid positions');
-    }
-
-    // Rescue misparsed <script> content
-    logger.log('Scanning body for text nodes resembling scripts...');
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-    let node;
-    let rescuedCount = 0;
-    const rescuedScripts = [];
-    while ((node = walker.nextNode())) {
-      const text = node.textContent || '';
-      const scriptMatch = text.match(/<script\b[^<]*(?:(?!<\/script>)[^<]*)*<\/script>/i);
-      if (scriptMatch) {
-        const scriptText = scriptMatch[0];
-        logger.log(`Found potential misparsed script in text node (parent: ${node.parentNode.tagName}):`, { snippet: scriptText.substring(0, 100) + '...' });
-        const innerMatch = scriptText.match(/<script\b[^>]*>([\s\S]*?)<\/script>/i);
-        if (innerMatch) {
-          const jsCode = innerMatch[1].trim();
-          if (jsCode) {
-            const newScript = document.createElement('script');
-            newScript.textContent = jsCode;
-            document.body.appendChild(newScript);
-            if (text === scriptText) {
-              node.parentNode.removeChild(node);
-            } else {
-              node.textContent = text.replace(scriptMatch[0], '').trim();
-            }
-            rescuedScripts.push({ codeSnippet: jsCode.substring(0, 100) + '...', parent: node.parentNode.tagName });
-            rescuedCount++;
-            logger.log(`Rescued and appended script:`, { codeSnippet: jsCode.substring(0, 100) + '...' });
-          }
-        }
-      }
-    }
-    if (rescuedCount > 0) {
-      logger.log(`Rescued ${rescuedCount} misparsed script(s) from text nodes`, { details: rescuedScripts });
-    } else {
-      logger.log('No misparsed scripts found in text nodes');
-    }
-
-    // Final validation log
-    const finalScripts = document.querySelectorAll('script');
-    logger.log('Final scripts after processing:', Array.from(finalScripts).map(s => ({
-      tagName: s.tagName,
-      src: s.src || 'inline',
-      parent: s.parentNode?.tagName || 'null',
-      outerHTML: (s.outerHTML || s.textContent || '').substring(0, 150) + '...'
-    })));
-    logger.log('Final body end snapshot:', Array.from(document.body.children).slice(-3).map(el => el.tagName + (el.src ? ` (src="${el.src}")` : '')).join(' -> '));
-
     logger.log('HeadGenerator completed successfully');
   } catch (err) {
     logger.error('Error in HeadGenerator', { error: err.message, stack: err.stack });
