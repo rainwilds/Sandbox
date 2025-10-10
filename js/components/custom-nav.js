@@ -2,7 +2,7 @@
 import { BACKDROP_FILTER_MAP, VALID_ALIGNMENTS, VALID_ALIGN_MAP } from '../shared.js';
 
 class CustomNav extends HTMLElement {
-    #renderCache = null;
+    #renderCacheHTML = null;
     #lastCriticalHash = null;
     #cachedAttributes = null;
     #criticalAttributesHash = null;
@@ -197,21 +197,12 @@ class CustomNav extends HTMLElement {
         this.#log('Starting initialization', { elementId: this.id || 'no-id', outerHTML: this.outerHTML });
         this.isInitialized = true;
         try {
-            const navElement = await this.render();
-            if (navElement) {
-                this.#log('Render successful, replacing element', { elementId: this.id || 'no-id', navElement: navElement.outerHTML.substring(0, 200) });
-                this.replaceWith(navElement);
-                this.callbacks.forEach(callback => callback());
-                this.#log('Initialization completed successfully', { elementId: this.id || 'no-id', childCount: navElement.childElementCount });
-            } else {
-                this.#error('Render returned null, using fallback', { elementId: this.id || 'no-id' });
-                const fallbackElement = await this.render(true);
-                this.replaceWith(fallbackElement);
-            }
+            await this.render();
+            this.callbacks.forEach(callback => callback());
+            this.#log('Initialization completed successfully', { elementId: this.id || 'no-id', childCount: this.childElementCount });
         } catch (error) {
             this.#error('Initialization failed', { error: error.message, stack: error.stack, elementId: this.id || 'no-id', outerHTML: this.outerHTML.substring(0, 200) });
-            const fallbackElement = await this.render(true);
-            this.replaceWith(fallbackElement);
+            await this.render(true);
         }
     }
 
@@ -229,7 +220,7 @@ class CustomNav extends HTMLElement {
             CustomNav.#observedInstances.delete(this);
         }
         this.callbacks = [];
-        this.#renderCache = null;
+        this.#renderCacheHTML = null;
         this.#cachedAttributes = null;
         this.#criticalAttributesHash = null;
         CustomNav.#renderCacheMap.delete(this);
@@ -250,8 +241,10 @@ class CustomNav extends HTMLElement {
             });
             newCriticalHash = JSON.stringify(criticalAttrs);
             if (CustomNav.#renderCacheMap.has(this) && this.#criticalAttributesHash === newCriticalHash) {
-                this.#log('Using cached render', { elementId: this.id || 'no-id' });
-                return CustomNav.#renderCacheMap.get(this).cloneNode(true);
+                this.#log('Using cached render HTML', { elementId: this.id || 'no-id' });
+                this.innerHTML = CustomNav.#renderCacheMap.get(this);
+                this.#attachToggleListener(); // Re-attach event listener after setting HTML
+                return this;
             }
         }
 
@@ -276,13 +269,11 @@ class CustomNav extends HTMLElement {
         this.#log('Render attributes prepared', { elementId: this.id || 'no-id', isFallback, navCount: attrs.nav.length });
 
         const uniqueId = `nav-menu-${Math.random().toString(36).slice(2, 11)}`;
-        const container = document.createElement('div');
+        const containerHTML = [];
         const alignClass = attrs.navPosition ? VALID_ALIGN_MAP[attrs.navPosition] : '';
-        container.className = [alignClass, attrs.navContainerClass].filter(cls => cls).join(' ').trim();
-        if (attrs.navContainerStyle) container.style.cssText = attrs.navContainerStyle;
-
-        const nav = document.createElement('nav');
-        nav.setAttribute('aria-label', attrs.navAriaLabel);
+        const containerClasses = [alignClass, attrs.navContainerClass].filter(cls => cls).join(' ').trim();
+        const containerStyleAttr = attrs.navContainerStyle ? ` style="${attrs.navContainerStyle}"` : '';
+        containerHTML.push(`<div class="${containerClasses}"${containerStyleAttr}>`);
 
         const navClasses = [
             attrs.navClass,
@@ -292,7 +283,7 @@ class CustomNav extends HTMLElement {
             attrs.navBorderRadius,
             ...attrs.navBackdropFilterClasses.filter(cls => !cls.startsWith('backdrop-filter'))
         ].filter(cls => cls).join(' ').trim();
-        if (navClasses) nav.className = navClasses;
+        const navClassAttr = navClasses ? ` class="${navClasses}"` : '';
 
         const backdropFilterValues = attrs.navBackdropFilterClasses
             .filter(cls => cls.startsWith('backdrop-filter'))
@@ -305,57 +296,54 @@ class CustomNav extends HTMLElement {
             backdropFilterValues ? `backdrop-filter: ${backdropFilterValues}` : '',
             attrs.navBackgroundColor ? `background-color: ${attrs.navBackgroundColor}` : ''
         ].filter(s => s).join('; ').trim();
-        if (navStyles) nav.style.cssText = navStyles;
+        const navStyleAttr = navStyles ? ` style="${navStyles}"` : '';
 
-        const toggleButton = document.createElement('button');
-        if (attrs.navToggleClass) toggleButton.className = attrs.navToggleClass;
-        toggleButton.setAttribute('aria-expanded', 'false');
-        toggleButton.setAttribute('aria-controls', uniqueId);
-        toggleButton.setAttribute('aria-label', 'Toggle navigation');
-        const iconSpan = document.createElement('span');
-        iconSpan.className = 'hamburger-icon';
-        iconSpan.innerHTML = attrs.navToggleIcon;
-        toggleButton.appendChild(iconSpan);
+        containerHTML.push(`<nav aria-label="${attrs.navAriaLabel}"${navClassAttr}${navStyleAttr}>`);
 
-        const ul = document.createElement('ul');
-        ul.className = 'nav-links';
-        ul.id = uniqueId;
+        const toggleClassAttr = attrs.navToggleClass ? ` class="${attrs.navToggleClass}"` : '';
+        containerHTML.push(`<button${toggleClassAttr} aria-expanded="false" aria-controls="${uniqueId}" aria-label="Toggle navigation">`);
+        containerHTML.push('<span class="hamburger-icon">');
+        containerHTML.push(attrs.navToggleIcon);
+        containerHTML.push('</span></button>');
 
+        containerHTML.push(`<ul class="nav-links" id="${uniqueId}">`);
         if (attrs.nav.length === 0 && !isFallback) {
             this.#warn('No navigation links, adding placeholder');
-            const li = document.createElement('li');
-            li.textContent = 'No navigation links provided';
-            ul.appendChild(li);
+            containerHTML.push('<li>No navigation links provided</li>');
         } else {
             attrs.nav.forEach(link => {
-                const li = document.createElement('li');
-                const a = document.createElement('a');
-                a.href = link.href;
-                a.textContent = link.text;
-                if (link.href === '#') a.setAttribute('aria-disabled', 'true');
-                li.appendChild(a);
-                ul.appendChild(li);
+                const disabledAttr = link.href === '#' ? ' aria-disabled="true"' : '';
+                containerHTML.push(`<li><a href="${link.href}"${disabledAttr}>${link.text}</a></li>`);
             });
         }
+        containerHTML.push('</ul></nav></div>');
 
-        nav.appendChild(toggleButton);
-        nav.appendChild(ul);
-        container.appendChild(nav);
-
-        toggleButton.addEventListener('click', () => {
-            const isExpanded = toggleButton.getAttribute('aria-expanded') === 'true';
-            toggleButton.setAttribute('aria-expanded', !isExpanded);
-            ul.style.display = isExpanded ? 'none' : 'block';
-            this.#log('Navigation toggled', { isExpanded: !isExpanded, elementId: this.id || 'no-id' });
-        });
+        const fullHTML = containerHTML.join('');
+        this.innerHTML = fullHTML;
+        this.#attachToggleListener();
 
         if (!isFallback) {
-            CustomNav.#renderCacheMap.set(this, container.cloneNode(true));
+            CustomNav.#renderCacheMap.set(this, fullHTML);
             this.#lastCriticalHash = newCriticalHash;
         }
 
-        this.#log('Render completed', { elementId: this.id || 'no-id', html: container.outerHTML.substring(0, 200) });
-        return container;
+        this.#log('Render completed', { elementId: this.id || 'no-id', html: this.innerHTML.substring(0, 200) });
+        return this;
+    }
+
+    #attachToggleListener() {
+        const toggleButton = this.querySelector('button[aria-controls]');
+        const ul = this.querySelector('ul.nav-links');
+        if (toggleButton && ul) {
+            toggleButton.addEventListener('click', () => {
+                const isExpanded = toggleButton.getAttribute('aria-expanded') === 'true';
+                toggleButton.setAttribute('aria-expanded', !isExpanded);
+                ul.style.display = isExpanded ? 'none' : 'block';
+                this.#log('Navigation toggled', { isExpanded: !isExpanded, elementId: this.id || 'no-id' });
+            });
+        } else {
+            this.#warn('Toggle button or menu not found after rendering');
+        }
     }
 
     static get observedAttributes() {
