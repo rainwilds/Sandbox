@@ -390,7 +390,7 @@ async function updateHead(attributes, setup) {
     const rescuedScripts = [];
     while ((node = walker.nextNode())) {
       const text = node.textContent || '';
-      const scriptMatch = text.match(/<script\b[^<]*(?:(?!<\/script>)[^<]*)*<\/script>/i);
+      const scriptMatch = text.match(/<script\b[^>]*>[\s\S]*?<\/script>/i);
       if (scriptMatch) {
         const scriptText = scriptMatch[0];
         logger.log(`Found potential misparsed script in text node (parent: ${node.parentNode.tagName}):`, { snippet: scriptText.substring(0, 100) + '...' });
@@ -427,7 +427,7 @@ async function updateHead(attributes, setup) {
     const rescuedStyles = [];
     while ((nodeStyle = walkerStyle.nextNode())) {
       const text = nodeStyle.textContent || '';
-      const styleMatch = text.match(/<style\b[^<]*(?:(?!<\/style>)[^<]*)*<\/style>/i);
+      const styleMatch = text.match(/<style\b[^>]*>[\s\S]*?<\/style>/i);
       if (styleMatch) {
         const styleText = styleMatch[0];
         logger.log(`Found potential misparsed style in text node (parent: ${nodeStyle.parentNode.tagName}):`, { snippet: styleText.substring(0, 100) + '...' });

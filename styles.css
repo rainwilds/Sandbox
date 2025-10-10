@@ -1951,82 +1951,10 @@ div#products {
 
 
 
-:root {
-    --space-tiny: 8px; /* Define your gap variable */
-}
 
 
-
-.slider {
-    position: relative;
-    width: 100%;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    -webkit-overflow-scrolling: touch;
-}
-
-.slider-wrapper {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: var(--space-tiny);
-}
-
-.slider-slide {
-    flex-shrink: 0;
-    width: calc(100% / 2); /* For slides-per-view="2" */
-    height: auto; /* Adjust as needed, e.g., 400px */
-}
-
-.slider-pagination {
-    position: absolute;
-    bottom: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    gap: 8px;
-}
-
-.slider-dot {
-    width: 10px;
-    height: 10px;
-    background-color: gray;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.slider-dot.active {
-    background-color: black;
-}
-
-.slider-fallback {
-    display: flex;
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    gap: var(--space-tiny);
-}
-
-.slider-fallback .slider-slide {
-    flex-shrink: 0;
-    width: calc(100% / 2); /* For slides-per-view="2" */
-    height: auto;
-}
-
-.slider-fallback .slider-slide .block {
-    width: 100%;
+.swiper {
     height: 100%;
-}
-
-custom-slider {
-    display: flex;
-    flex-wrap: nowrap;
-    gap: var(--space-tiny);
-    overflow-x: auto;
-}
-
-custom-slider > * {
-    flex: 0 0 calc(100% / 2); /* For slides-per-view="2" */
-    width: 100%;
 }
 
 
