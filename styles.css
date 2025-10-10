@@ -112,10 +112,6 @@
         vertical-align: middle;
     }
 
-    script {
-        display: none;
-    }
-
 }
 
 @layer variables {
@@ -1690,7 +1686,7 @@ div.scroll {
 }
 
 
-body>* {
+body>*:not(script) {
 
     display: grid;
     grid-template-columns: subgrid;
