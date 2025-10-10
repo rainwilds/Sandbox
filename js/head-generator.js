@@ -319,21 +319,153 @@ async function updateHead(attributes, setup) {
     await updateHead(attributes, setup);
     customHead.remove();
     logger.log('Removed data-custom-head element');
+
     // Ensure all <style> elements are in <head>
     const styles = document.querySelectorAll('style');
-    let movedCount = 0;
+    let movedStyleCount = 0;
     styles.forEach(style => {
       if (style.parentNode !== document.head && style.parentNode !== null) {
         logger.log(`Moving <style> from ${style.parentNode.tagName} to <head>`);
         document.head.appendChild(style);
-        movedCount++;
+        movedStyleCount++;
       }
     });
-    if (movedCount > 0) {
-      logger.log(`Moved ${movedCount} <style> element(s) to <head>`);
+    if (movedStyleCount > 0) {
+      logger.log(`Moved ${movedStyleCount} <style> element(s) to <head>`);
     } else {
       logger.log('All <style> elements already in <head>');
     }
+
+    // Ensure all <link> elements are in <head>
+    const links = document.querySelectorAll('link');
+    let movedLinkCount = 0;
+    links.forEach(link => {
+      if (link.parentNode !== document.head && link.parentNode !== null) {
+        logger.log(`Moving <link> from ${link.parentNode.tagName} to <head> (rel="${link.rel}")`);
+        document.head.appendChild(link);
+        movedLinkCount++;
+      }
+    });
+    if (movedLinkCount > 0) {
+      logger.log(`Moved ${movedLinkCount} <link> element(s) to <head>`);
+    } else {
+      logger.log('All <link> elements already in <head>');
+    }
+
+    // Ensure all <script> elements are properly placed
+    const scripts = document.querySelectorAll('script');
+    logger.log('Found scripts before processing:', Array.from(scripts).map(s => ({
+      tagName: s.tagName,
+      src: s.src || 'inline',
+      parent: s.parentNode?.tagName || 'null',
+      outerHTML: (s.outerHTML || s.textContent || '').substring(0, 150) + '...'
+    })));
+    let movedScriptCount = 0;
+    let deferredScriptCount = 0;
+    scripts.forEach(script => {
+      const isExternal = script.src;
+      const targetParent = isExternal ? document.head : document.body;
+      if (script.parentNode !== targetParent && script.parentNode !== null) {
+        logger.log(`Moving <script> from ${script.parentNode.tagName} to ${targetParent.tagName} (external: ${isExternal ? 'yes' : 'no'})`);
+        if (isExternal && !script.hasAttribute('defer') && !script.hasAttribute('async')) {
+          script.defer = true;
+          logger.log('Added defer to external <script> for head placement');
+        }
+        targetParent.appendChild(script);
+        movedScriptCount++;
+        if (isExternal) deferredScriptCount++;
+      }
+    });
+    if (movedScriptCount > 0) {
+      logger.log(`Moved ${movedScriptCount} <script> element(s): ${deferredScriptCount} external to <head> (deferred), ${movedScriptCount - deferredScriptCount} inline to <body>`);
+    } else {
+      logger.log('All <script> elements already in valid positions');
+    }
+
+    // Rescue misparsed <script> content
+    logger.log('Scanning body for text nodes resembling scripts...');
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+    let node;
+    let rescuedScriptCount = 0;
+    const rescuedScripts = [];
+    while ((node = walker.nextNode())) {
+      const text = node.textContent || '';
+      const scriptMatch = text.match(/<script\b[^<]*(?:(?!<\/script>)[^<]*)*<\/script>/i);
+      if (scriptMatch) {
+        const scriptText = scriptMatch[0];
+        logger.log(`Found potential misparsed script in text node (parent: ${node.parentNode.tagName}):`, { snippet: scriptText.substring(0, 100) + '...' });
+        const innerMatch = scriptText.match(/<script\b[^>]*>([\s\S]*?)<\/script>/i);
+        if (innerMatch) {
+          const jsCode = innerMatch[1].trim();
+          if (jsCode) {
+            const newScript = document.createElement('script');
+            newScript.textContent = jsCode;
+            document.body.appendChild(newScript);
+            if (text === scriptText) {
+              node.parentNode.removeChild(node);
+            } else {
+              node.textContent = text.replace(scriptMatch[0], '').trim();
+            }
+            rescuedScripts.push({ codeSnippet: jsCode.substring(0, 100) + '...', parent: node.parentNode.tagName });
+            rescuedScriptCount++;
+            logger.log(`Rescued and appended script:`, { codeSnippet: jsCode.substring(0, 100) + '...' });
+          }
+        }
+      }
+    }
+    if (rescuedScriptCount > 0) {
+      logger.log(`Rescued ${rescuedScriptCount} misparsed script(s) from text nodes`, { details: rescuedScripts });
+    } else {
+      logger.log('No misparsed scripts found in text nodes');
+    }
+
+    // Rescue misparsed <style> content
+    logger.log('Scanning body for text nodes resembling styles...');
+    const walkerStyle = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+    let nodeStyle;
+    let rescuedStyleCount = 0;
+    const rescuedStyles = [];
+    while ((nodeStyle = walkerStyle.nextNode())) {
+      const text = nodeStyle.textContent || '';
+      const styleMatch = text.match(/<style\b[^<]*(?:(?!<\/style>)[^<]*)*<\/style>/i);
+      if (styleMatch) {
+        const styleText = styleMatch[0];
+        logger.log(`Found potential misparsed style in text node (parent: ${nodeStyle.parentNode.tagName}):`, { snippet: styleText.substring(0, 100) + '...' });
+        const innerMatch = styleText.match(/<style\b[^>]*>([\s\S]*?)<\/style>/i);
+        if (innerMatch) {
+          const cssCode = innerMatch[1].trim();
+          if (cssCode) {
+            const newStyle = document.createElement('style');
+            newStyle.textContent = cssCode;
+            document.head.appendChild(newStyle);
+            if (text === styleText) {
+              nodeStyle.parentNode.removeChild(nodeStyle);
+            } else {
+              nodeStyle.textContent = text.replace(styleMatch[0], '').trim();
+            }
+            rescuedStyles.push({ codeSnippet: cssCode.substring(0, 100) + '...', parent: nodeStyle.parentNode.tagName });
+            rescuedStyleCount++;
+            logger.log(`Rescued and appended style:`, { codeSnippet: cssCode.substring(0, 100) + '...' });
+          }
+        }
+      }
+    }
+    if (rescuedStyleCount > 0) {
+      logger.log(`Rescued ${rescuedStyleCount} misparsed style(s) from text nodes`, { details: rescuedStyles });
+    } else {
+      logger.log('No misparsed styles found in text nodes');
+    }
+
+    // Final validation log
+    const finalScripts = document.querySelectorAll('script');
+    logger.log('Final scripts after processing:', Array.from(finalScripts).map(s => ({
+      tagName: s.tagName,
+      src: s.src || 'inline',
+      parent: s.parentNode?.tagName || 'null',
+      outerHTML: (s.outerHTML || s.textContent || '').substring(0, 150) + '...'
+    })));
+    logger.log('Final body end snapshot:', Array.from(document.body.children).slice(-3).map(el => el.tagName + (el.src ? ` (src="${el.src}")` : '')).join(' -> '));
+
     logger.log('HeadGenerator completed successfully');
   } catch (err) {
     logger.error('Error in HeadGenerator', { error: err.message, stack: err.stack });
