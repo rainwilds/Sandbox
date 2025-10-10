@@ -40,6 +40,8 @@
                 }
             }
 
+            static #renderCacheMap = new WeakMap();
+
             static #criticalAttributes = [
                 ...CustomBlock.#criticalAttributes,
                 'sticky',
@@ -110,9 +112,9 @@
                         criticalAttrs[attr] = this.getAttribute(attr) || '';
                     });
                     newCriticalAttrsHash = JSON.stringify(criticalAttrs);
-                    if (CustomBlock.#renderCacheMap.has(this) && this.criticalAttributesHash === newCriticalAttrsHash) {
+                    if (CustomHeader.#renderCacheMap.has(this) && this.criticalAttributesHash === newCriticalAttrsHash) {
                         this.#log('Using cached render');
-                        return CustomBlock.#renderCacheMap.get(this).cloneNode(true);
+                        return CustomHeader.#renderCacheMap.get(this).cloneNode(true);
                     }
                 }
 
@@ -252,7 +254,7 @@
                 }
 
                 if (!isFallback) {
-                    CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
+                    CustomHeader.#renderCacheMap.set(this, blockElement.cloneNode(true));
                     this.criticalAttributesHash = newCriticalAttrsHash;
                 }
 
@@ -263,6 +265,11 @@
             async connectedCallback() {
                 this.#log('Connected to DOM');
                 await super.connectedCallback();
+            }
+
+            disconnectedCallback() {
+                super.disconnectedCallback();
+                CustomHeader.#renderCacheMap.delete(this);
             }
 
             async attributeChangedCallback(name, oldValue, newValue) {
