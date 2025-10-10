@@ -1,382 +1,380 @@
-(async () => {
-    // Browser-compatible dev detection
-    // Checks if the current URL contains '/dev/' or has '?debug=true' in the query string.
-    // Enables debug mode for logging without impacting production.
-    const isDev = window.location.href.includes('/dev/') ||
-      new URLSearchParams(window.location.search).get('debug') === 'true';
+/* global HTMLElement, IntersectionObserver, document, window, JSON, console */
+import { generatePictureMarkup } from '../image-generator.js';
+import { VALID_ALIGNMENTS, VALID_ALIGN_MAP } from '../shared.js';
+import { getConfig } from '../config.js';
 
-    // Debug logging utility
-    // Define a logging function that only outputs in debug mode.
-    // Uses console.groupCollapsed for organized, collapsible output with color styling.
-    // Includes a timestamp, message, optional data, and a stack trace.
-    const log = (message, data = null) => {
-        if (isDev) {
-            console.groupCollapsed(`%c[CustomLogo] ${new Date().toLocaleTimeString()} ${message}`, 'color: #2196F3; font-weight: bold;');
-            if (data) {
-                console.log('%cData:', 'color: #4CAF50;', data);
+class CustomLogo extends HTMLElement {
+    #ignoredChangeCount;
+    #basePath = null;
+    constructor() {
+        super();
+        this.isVisible = false;
+        this.isInitialized = false;
+        this.callbacks = [];
+        this.renderCache = null;
+        this.lastAttributes = null;
+        this.cachedAttributes = null;
+        this.criticalAttributesHash = null;
+        this.debug = window.location.href.includes('/dev/') || new URLSearchParams(window.location.search).get('debug') === 'true';
+        this.#ignoredChangeCount = 0;
+        CustomLogo.#observer.observe(this);
+        CustomLogo.#observedInstances.add(this);
+    }
+    static #observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const instance = entry.target;
+                if (instance instanceof CustomLogo) {
+                    instance.isVisible = true;
+                    CustomLogo.#observer.unobserve(instance);
+                    CustomLogo.#observedInstances.delete(instance);
+                    instance.initialize();
+                }
             }
+        });
+    }, { rootMargin: '50px' });
+    static #observedInstances = new WeakSet();
+    static #renderCacheMap = new WeakMap();
+    static #criticalAttributes = [
+        'logo-full-primary-src', 'logo-full-light-src', 'logo-full-dark-src',
+        'logo-full-primary-alt', 'logo-full-light-alt', 'logo-full-dark-alt',
+        'logo-full-position', 'logo-icon-primary-src', 'logo-icon-light-src',
+        'logo-icon-dark-src', 'logo-icon-primary-alt', 'logo-icon-light-alt',
+        'logo-icon-dark-alt', 'logo-icon-position', 'logo-breakpoint', 'logo-height'
+    ];
+    #log(message, data = null) {
+        if (this.debug) {
+            console.groupCollapsed(`%c[CustomLogo] ${message}`, 'color: #2196F3; font-weight: bold;');
+            if (data) console.log('%cData:', 'color: #4CAF50;', data);
             console.trace();
             console.groupEnd();
         }
-    };
-
-    // Warning logging utility
-    // Similar to log, but with yellow styling and a warning emoji for non-critical issues.
-    const warn = (message, data = null) => {
-        if (isDev) {
-            console.groupCollapsed(`%c[CustomLogo] ⚠️ ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
-            if (data) {
-                console.log('%cData:', 'color: #4CAF50;', data);
-            }
+    }
+    #warn(message, data = null) {
+        if (this.debug) {
+            console.groupCollapsed(`%c[CustomLogo] ⚠️ ${message}`, 'color: #FF9800; font-weight: bold;');
+            if (data) console.log('%cData:', 'color: #4CAF50;', data);
             console.trace();
             console.groupEnd();
         }
-    };
-
-    // Error logging utility
-    // Similar to log, but with red styling and an error emoji for critical failures.
-    const error = (message, data = null) => {
-        if (isDev) {
-            console.groupCollapsed(`%c[CustomLogo] ❌ ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
-            if (data) {
-                console.log('%cData:', 'color: #4CAF50;', data);
-            }
+    }
+    #error(message, data = null) {
+        if (this.debug) {
+            console.groupCollapsed(`%c[CustomLogo] ❌ ${message}`, 'color: #F44336; font-weight: bold;');
+            if (data) console.log('%cData:', 'color: #4CAF50;', data);
             console.trace();
             console.groupEnd();
         }
-    };
-
-    try {
-        // Asynchronously import required dependencies using dynamic imports for better tree-shaking and loading.
-        const { generatePictureMarkup } = await import('../image-generator.js');
-        const { VALID_ALIGNMENTS, VALID_ALIGN_MAP } = await import('../shared.js');
-        log('Successfully imported generatePictureMarkup and VALID_ALIGN_MAP');
-
-        // Define the CustomLogo web component class.
-        // Extends HTMLElement for custom element creation.
-        class CustomLogo extends HTMLElement {
-            // Observed attributes for reactivity.
-            // Triggers attributeChangedCallback on changes.
-            static get observedAttributes() {
-                return [
-                    'logo-full-primary-src',
-                    'logo-full-light-src',
-                    'logo-full-dark-src',
-                    'logo-full-primary-alt',
-                    'logo-full-light-alt',
-                    'logo-full-dark-alt',
-                    'logo-full-position',
-                    'logo-icon-primary-src',
-                    'logo-icon-light-src',
-                    'logo-icon-dark-src',
-                    'logo-icon-primary-alt',
-                    'logo-icon-light-alt',
-                    'logo-icon-dark-alt',
-                    'logo-icon-position',
-                    'logo-breakpoint',
-                    'logo-height'
-                ];
+    }
+    async #getBasePath() {
+        if (!this.#basePath) {
+            const config = await getConfig();
+            this.#basePath = config.general?.basePath || '/';
+            this.#log('Base path fetched', { basePath: this.#basePath });
+        }
+        return this.#basePath;
+    }
+    async validateSrc(url) {
+        if (!url || this.debug) {
+            this.#log('Skipping validation', { url, reason: this.debug ? 'Debug mode' : 'Empty URL' });
+            return true;
+        }
+        try {
+            const basePath = await this.#getBasePath();
+            const fullSrc = url.startsWith('http') ? url : new URL(url.startsWith('/') ? url.slice(1) : url, window.location.origin + basePath).href;
+            this.#log(`Validating source URL: ${fullSrc}`, { originalUrl: url, elementId: this.id || 'no-id' });
+            const res = await fetch(fullSrc, { method: 'HEAD', mode: 'cors' });
+            if (!res.ok) throw new Error(`Failed to validate ${url}: ${res.status} ${res.statusText}`);
+            this.#log(`Source validation successful: ${fullSrc}`, { status: res.status });
+            return true;
+        } catch (error) {
+            this.#warn(`Source validation failed: ${error.message}`, { url, elementId: this.id || 'no-id' });
+            return false;
+        }
+    }
+    async getAttributes() {
+        if (this.cachedAttributes) {
+            this.#log('Using cached attributes', { elementId: this.id || 'no-id' });
+            return this.cachedAttributes;
+        }
+        this.#log('Parsing new attributes', { elementId: this.id || 'no-id', outerHTML: this.outerHTML.substring(0, 200) + '...' });
+        const resolvePath = async (path) => {
+            if (!path) return '';
+            const base = await this.#getBasePath();
+            return path.startsWith('http') ? path : new URL(path.startsWith('/') ? path.slice(1) : path, window.location.origin + base).href;
+        };
+        const attrs = {
+            fullPrimarySrc: await resolvePath(this.getAttribute('logo-full-primary-src') || ''),
+            fullLightSrc: await resolvePath(this.getAttribute('logo-full-light-src') || ''),
+            fullDarkSrc: await resolvePath(this.getAttribute('logo-full-dark-src') || ''),
+            fullPrimaryAlt: this.getAttribute('logo-full-primary-alt') || '',
+            fullLightAlt: this.getAttribute('logo-full-light-alt') || '',
+            fullDarkAlt: this.getAttribute('logo-full-dark-alt') || '',
+            fullPosition: this.getAttribute('logo-full-position') || '',
+            iconPrimarySrc: await resolvePath(this.getAttribute('logo-icon-primary-src') || ''),
+            iconLightSrc: await resolvePath(this.getAttribute('logo-icon-light-src') || ''),
+            iconDarkSrc: await resolvePath(this.getAttribute('logo-icon-dark-src') || ''),
+            iconPrimaryAlt: this.getAttribute('logo-icon-primary-alt') || '',
+            iconLightAlt: this.getAttribute('logo-icon-light-alt') || '',
+            iconDarkAlt: this.getAttribute('logo-icon-dark-alt') || '',
+            iconPosition: this.getAttribute('logo-icon-position') || '',
+            breakpoint: this.getAttribute('logo-breakpoint') || '',
+            height: this.getAttribute('logo-height') || ''
+        };
+        const hasFullSource = attrs.fullPrimarySrc || (attrs.fullLightSrc && attrs.fullDarkSrc);
+        const hasIconSource = attrs.iconPrimarySrc || (attrs.iconLightSrc && attrs.iconDarkSrc);
+        if (!hasFullSource && !hasIconSource) {
+            this.#error('At least one valid logo source (full or icon) must be provided.');
+        }
+        const validatePair = (light, dark, label) => {
+            if ((light || dark) && !(light && dark)) {
+                this.#error(`Both ${label}-light-src and ${label}-dark-src must be provided if one is specified.`);
+                return false;
             }
-
-            // Constructor: Bind methods for event handlers.
-            constructor() {
-                super();
-                log('Constructor called');
-                this.handleThemeChange = this.handleThemeChange.bind(this);
-                this.handleResize = this.debouncedHandleResize.bind(this);
-                this.handleMutation = this.handleMutation.bind(this);
-                this._cachedAttrs = null;
+            return true;
+        };
+        validatePair(attrs.fullLightSrc, attrs.fullDarkSrc, 'logo-full');
+        validatePair(attrs.iconLightSrc, attrs.iconDarkSrc, 'logo-icon');
+        attrs.isDecorative = !attrs.fullPrimaryAlt && !attrs.fullLightAlt && !attrs.fullDarkAlt &&
+                             !attrs.iconPrimaryAlt && !attrs.iconLightAlt && !attrs.iconDarkAlt;
+        if (!attrs.isDecorative) {
+            if (attrs.fullPrimarySrc && !attrs.fullPrimaryAlt) this.#error('logo-full-primary-alt is required for accessibility when logo-full-primary-src is provided.');
+            if (attrs.iconPrimarySrc && !attrs.iconPrimaryAlt) this.#error('logo-icon-primary-alt is required for accessibility when logo-icon-primary-src is provided.');
+            if (attrs.fullLightSrc && attrs.fullDarkSrc && !(attrs.fullLightAlt && attrs.fullDarkAlt)) this.#error('Both logo-full-light-alt and logo-full-dark-alt are required for accessibility.');
+            if (attrs.iconLightSrc && attrs.iconDarkSrc && !(attrs.iconLightAlt && attrs.iconDarkAlt)) this.#error('Both logo-icon-light-alt and logo-icon-dark-alt are required for accessibility.');
+        }
+        if (attrs.height) {
+            const validLength = attrs.height.match(/^(\d*\.?\d+)(px|rem|em|vh|vw|%)$/);
+            if (!validLength) {
+                this.#warn(`Invalid logo-height "${attrs.height}". Ignoring.`);
+                attrs.height = '';
             }
-
-            // Utility to debounce resize events for performance (prevents excessive re-renders).
-            debouncedHandleResize() {
-                if (this._resizeTimeout) clearTimeout(this._resizeTimeout);
-                this._resizeTimeout = setTimeout(async () => {
-                    log('Debounced window resize detected');
-                    if (this.isConnected) {
-                        await this.render();
-                    }
-                }, 150); // 150ms debounce.
+        }
+        if (attrs.fullPosition && !VALID_ALIGNMENTS.includes(attrs.fullPosition)) {
+            this.#warn(`Invalid logo-full-position "${attrs.fullPosition}". Ignoring.`);
+            attrs.fullPosition = '';
+        }
+        if (attrs.iconPosition && !VALID_ALIGNMENTS.includes(attrs.iconPosition)) {
+            this.#warn(`Invalid logo-icon-position "${attrs.iconPosition}". Ignoring.`);
+            attrs.iconPosition = '';
+        }
+        const breakpointNum = parseInt(attrs.breakpoint, 10);
+        if (attrs.breakpoint && (isNaN(breakpointNum) || breakpointNum <= 0)) {
+            this.#warn(`Invalid logo-breakpoint "${attrs.breakpoint}". Must be a positive integer. Ignoring.`);
+            attrs.breakpoint = '';
+        }
+        const criticalAttrs = {};
+        CustomLogo.#criticalAttributes.forEach(attr => {
+            criticalAttrs[attr] = this.getAttribute(attr) || '';
+        });
+        this.criticalAttributesHash = JSON.stringify(criticalAttrs);
+        this.cachedAttributes = attrs;
+        this.#log('Attributes parsed successfully', { attrs });
+        return attrs;
+    }
+    async initialize() {
+        if (this.isInitialized || !this.isVisible) {
+            this.#log('Skipping initialization', { isInitialized: this.isInitialized, isVisible: this.isVisible });
+            return;
+        }
+        this.#log('Starting initialization');
+        this.isInitialized = true;
+        try {
+            await this.render();
+            this.callbacks.forEach(callback => callback());
+        } catch (err) {
+            this.#error('Initialization failed', { error: err.message });
+            this.innerHTML = `
+                <div class="logo-container place-self-center">
+                    <a href="/"><img src="https://placehold.co/300x40" alt="Error during initialization" loading="lazy"></a>
+                </div>
+            `;
+        }
+    }
+    async connectedCallback() {
+        this.#log('Connected to DOM');
+        if (this.isVisible) {
+            await this.initialize();
+        }
+        const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        prefersDarkQuery.addEventListener('change', () => this.#log('Theme change detected (handled by browser)'));
+        this._prefersDarkQuery = prefersDarkQuery;
+    }
+    disconnectedCallback() {
+        this.#log('Disconnected from DOM');
+        if (CustomLogo.#observedInstances.has(this)) {
+            CustomLogo.#observer.unobserve(this);
+            CustomLogo.#observedInstances.delete(this);
+        }
+        this.callbacks = [];
+        this.renderCache = null;
+        this.cachedAttributes = null;
+        this.criticalAttributesHash = null;
+        CustomLogo.#renderCacheMap.delete(this);
+        if (this._prefersDarkQuery) {
+            this._prefersDarkQuery.removeEventListener('change', () => {});
+            this._prefersDarkQuery = null;
+        }
+    }
+    addCallback(callback) {
+        this.#log('Callback added', { callbackName: callback.name || 'anonymous' });
+        this.callbacks.push(callback);
+    }
+    async render(isFallback = false) {
+        this.#log(`Starting render ${isFallback ? '(fallback)' : ''}`);
+        let newCriticalAttrsHash;
+        if (!isFallback) {
+            const criticalAttrs = {};
+            CustomLogo.#criticalAttributes.forEach(attr => {
+                criticalAttrs[attr] = this.getAttribute(attr) || '';
+            });
+            newCriticalAttrsHash = JSON.stringify(criticalAttrs);
+            if (this.renderCache && this.criticalAttributesHash === newCriticalAttrsHash) {
+                this.#log('Using cached render');
+                this.innerHTML = this.renderCache;
+                return;
             }
-
-            // Collect and validate attributes with caching for performance.
-            // Includes strict validation for sources, alts, positions, breakpoint, and height.
-            // Allows flexible breakpoints (any positive integer > 0).
-            getAttributes() {
-                if (this._cachedAttrs) {
-                    log('Using cached attributes');
-                    return this._cachedAttrs;
-                }
-                log('Parsing new attributes');
-                const attrs = {
-                    fullPrimarySrc: this.getAttribute('logo-full-primary-src') || '',
-                    fullLightSrc: this.getAttribute('logo-full-light-src') || '',
-                    fullDarkSrc: this.getAttribute('logo-full-dark-src') || '',
-                    fullPrimaryAlt: this.getAttribute('logo-full-primary-alt') || '',
-                    fullLightAlt: this.getAttribute('logo-full-light-alt') || '',
-                    fullDarkAlt: this.getAttribute('logo-full-dark-alt') || '',
-                    fullPosition: this.getAttribute('logo-full-position') || '',
-                    iconPrimarySrc: this.getAttribute('logo-icon-primary-src') || '',
-                    iconLightSrc: this.getAttribute('logo-icon-light-src') || '',
-                    iconDarkSrc: this.getAttribute('logo-icon-dark-src') || '',
-                    iconPrimaryAlt: this.getAttribute('logo-icon-primary-alt') || '',
-                    iconLightAlt: this.getAttribute('logo-icon-light-alt') || '',
-                    iconDarkAlt: this.getAttribute('logo-icon-dark-alt') || '',
-                    iconPosition: this.getAttribute('logo-icon-position') || '',
-                    breakpoint: this.getAttribute('logo-breakpoint') || '',
-                    height: this.getAttribute('logo-height') || ''
-                };
-
-                // Validate sources: Require at least one valid full or icon set.
-                const hasFullSource = attrs.fullPrimarySrc || (attrs.fullLightSrc && attrs.fullDarkSrc);
-                const hasIconSource = attrs.iconPrimarySrc || (attrs.iconLightSrc && attrs.iconDarkSrc);
-                if (!hasFullSource && !hasIconSource) {
-                    error('At least one valid logo source (full or icon) must be provided.');
-                    return attrs;
-                }
-
-                // Validate light/dark pairs.
-                const validatePair = (light, dark, label) => {
-                    if ((light || dark) && !(light && dark)) {
-                        error(`Both ${label}-light-src and ${label}-dark-src must be provided if one is specified.`);
-                        return false;
-                    }
-                    return true;
-                };
-                if (!validatePair(attrs.fullLightSrc, attrs.fullDarkSrc, 'logo-full') ||
-                    !validatePair(attrs.iconLightSrc, attrs.iconDarkSrc, 'logo-icon')) {
-                    return attrs;
-                }
-
-                // Validate alt texts for accessibility and SEO.
-                attrs.isDecorative = !attrs.fullPrimaryAlt && !attrs.fullLightAlt && !attrs.fullDarkAlt &&
-                                     !attrs.iconPrimaryAlt && !attrs.iconLightAlt && !attrs.iconDarkAlt;
-                if (!attrs.isDecorative) {
-                    if (attrs.fullPrimarySrc && !attrs.fullPrimaryAlt) {
-                        error('logo-full-primary-alt is required for accessibility when logo-full-primary-src is provided.');
-                    }
-                    if (attrs.iconPrimarySrc && !attrs.iconPrimaryAlt) {
-                        error('logo-icon-primary-alt is required for accessibility when logo-icon-primary-src is provided.');
-                    }
-                    if (attrs.fullLightSrc && attrs.fullDarkSrc && !(attrs.fullLightAlt && attrs.fullDarkAlt)) {
-                        error('Both logo-full-light-alt and logo-full-dark-alt are required for accessibility.');
-                    }
-                    if (attrs.iconLightSrc && attrs.iconDarkSrc && !(attrs.iconLightAlt && attrs.iconDarkAlt)) {
-                        error('Both logo-icon-light-alt and logo-icon-dark-alt are required for accessibility.');
-                    }
-                }
-
-                // Validate height: Support modern units, ignore invalid.
-                if (attrs.height) {
-                    const validLength = attrs.height.match(/^(\d*\.?\d+)(px|rem|em|vh|vw|%)$/);
-                    if (!validLength) {
-                        warn(`Invalid logo-height "${attrs.height}". Ignoring.`);
-                        attrs.height = '';
-                    }
-                }
-
-                // Validate positions using predefined map.
-                if (attrs.fullPosition && !VALID_ALIGNMENTS.includes(attrs.fullPosition)) {
-                    warn(`Invalid logo-full-position "${attrs.fullPosition}". Ignoring.`);
-                    attrs.fullPosition = '';
-                }
-                if (attrs.iconPosition && !VALID_ALIGNMENTS.includes(attrs.iconPosition)) {
-                    warn(`Invalid logo-icon-position "${attrs.iconPosition}". Ignoring.`);
-                    attrs.iconPosition = '';
-                }
-
-                // Validate breakpoint: Any positive integer for flexibility.
-                const breakpointNum = parseInt(attrs.breakpoint, 10);
-                if (attrs.breakpoint && (isNaN(breakpointNum) || breakpointNum <= 0)) {
-                    warn(`Invalid logo-breakpoint "${attrs.breakpoint}". Must be a positive integer. Ignoring.`);
-                    attrs.breakpoint = '';
-                }
-
-                this._cachedAttrs = { ...attrs };
-                log('Attributes parsed successfully', attrs);
-                return attrs;
+        }
+        const attrs = isFallback ? {
+            fullPrimarySrc: '',
+            fullLightSrc: '',
+            fullDarkSrc: '',
+            fullPrimaryAlt: '',
+            fullLightAlt: '',
+            fullDarkAlt: '',
+            fullPosition: '',
+            iconPrimarySrc: '',
+            iconLightSrc: '',
+            iconDarkSrc: '',
+            iconPrimaryAlt: '',
+            iconLightAlt: '',
+            iconDarkAlt: '',
+            iconPosition: '',
+            breakpoint: '',
+            height: ''
+        } : await this.getAttributes();
+        const sources = [
+            attrs.fullPrimarySrc, attrs.fullLightSrc, attrs.fullDarkSrc,
+            attrs.iconPrimarySrc, attrs.iconLightSrc, attrs.iconDarkSrc
+        ].filter(Boolean);
+        const hasValidSource = sources.length > 0;
+        if (!hasValidSource || isFallback) {
+            this.#warn('No valid logo sources provided or fallback, rendering placeholder.');
+            const markup = `
+                <div class="logo-container place-self-center">
+                    <a href="/"><img src="https://placehold.co/300x40" alt="No logo sources provided" loading="lazy"></a>
+                </div>
+            `;
+            this.innerHTML = markup;
+            if (!isFallback) {
+                this.renderCache = markup;
+                this.criticalAttributesHash = newCriticalAttrsHash;
             }
-
-            // Render method: Generate markup efficiently.
-            // Handles positions, breakpoints, heights; falls back to placeholder on error.
-            // Updates light DOM directly without Shadow DOM.
-            async render() {
-                log('Starting render');
-                const attrs = this.getAttributes();
-                this.innerHTML = ''; // Clear previous content efficiently.
-
-                const hasValidSource = attrs.fullPrimarySrc || attrs.fullLightSrc || attrs.fullDarkSrc ||
-                                       attrs.iconPrimarySrc || attrs.iconLightSrc || attrs.iconDarkSrc;
-                if (!hasValidSource) {
-                    warn('No valid logo sources provided, rendering placeholder.');
-                    this.innerHTML = `
-                        <div class="logo-container place-self-center">
-                            <a href="/"><img src="https://placehold.co/300x40" alt="No logo sources provided" loading="lazy"></a>
-                        </div>
-                    `;
-                    return;
-                }
-
-                let positionClass = attrs.fullPosition ? VALID_ALIGN_MAP[attrs.fullPosition] : 'place-self-center';
-                let styleTag = '';
-                const hasBreakpoint = attrs.breakpoint;
-                const hasIconSource = attrs.iconPrimarySrc || (attrs.iconLightSrc && attrs.iconDarkSrc);
-                const hasFullSource = attrs.fullPrimarySrc || (attrs.fullLightSrc && attrs.fullDarkSrc);
-
-                if (hasBreakpoint && hasIconSource && hasFullSource) {
-                    styleTag = `
-                        <style>
-                            @media (max-width: ${parseInt(attrs.breakpoint, 10) - 1}px) {
-                                .logo-container {
-                                    ${attrs.iconPosition ? `place-self: ${attrs.iconPosition.replace(/-/g, ' ')} !important;` : ''}
-                                }
-                            }
-                        </style>
-                    `;
-                }
-
-                const extraStyles = attrs.height ? `height: ${attrs.height};` : '';
-                try {
-                    const logoMarkup = await generatePictureMarkup({
-                        src: attrs.fullPrimarySrc,
-                        lightSrc: attrs.fullLightSrc,
-                        darkSrc: attrs.fullDarkSrc,
-                        alt: attrs.fullPrimaryAlt || attrs.fullLightAlt || attrs.fullDarkAlt,
-                        lightAlt: attrs.fullLightAlt,
-                        darkAlt: attrs.fullDarkAlt,
-                        iconSrc: attrs.iconPrimarySrc,
-                        iconLightSrc: attrs.iconLightSrc,
-                        iconDarkSrc: attrs.iconDarkSrc,
-                        iconAlt: attrs.iconPrimaryAlt || attrs.iconLightAlt || attrs.iconDarkAlt,
-                        iconLightAlt: attrs.iconLightAlt,
-                        iconDarkAlt: attrs.iconDarkAlt,
-                        isDecorative: attrs.isDecorative,
-                        customClasses: '',
-                        loading: 'lazy',
-                        fetchPriority: 'high', // Prioritize logo for LCP optimization.
-                        extraClasses: [],
-                        breakpoint: attrs.breakpoint,
-                        extraStyles,
-                        noResponsive: attrs.fullPrimarySrc.endsWith('.svg') || attrs.fullLightSrc.endsWith('.svg') || attrs.iconPrimarySrc.endsWith('.svg')
-                    });
-                    log('Logo markup generated', { markupPreview: logoMarkup.substring(0, 200) + '...' });
-
-                    this.innerHTML = `
-                        ${styleTag}
-                        <div class="logo-container ${positionClass}">
-                            <a href="/">${logoMarkup}</a>
-                        </div>
-                    `;
-                    log('CustomLogo rendered successfully');
-                } catch (err) {
-                    error('Error generating logo markup', { error: err.message, attrs });
-                    this.innerHTML = `
-                        ${styleTag}
-                        <div class="logo-container ${positionClass}">
-                            <a href="/"><img src="https://placehold.co/300x40" alt="Error loading logo" loading="lazy"></a>
-                        </div>
-                    `;
-                }
+            return;
+        }
+        const validations = await Promise.all(sources.map(src => this.validateSrc(src)));
+        if (!validations.every(v => v)) {
+            this.#warn('Some sources invalid, rendering placeholder.', { invalid: sources.filter((_, i) => !validations[i]) });
+            const markup = `
+                <div class="logo-container place-self-center">
+                    <a href="/"><img src="https://placehold.co/300x40" alt="Invalid logo sources" loading="lazy"></a>
+                </div>
+            `;
+            this.innerHTML = markup;
+            if (!isFallback) {
+                this.renderCache = markup;
+                this.criticalAttributesHash = newCriticalAttrsHash;
             }
-
-            // Handle theme changes: Re-render only if connected.
-            async handleThemeChange(event) {
-                log('Theme change detected', { matchesDark: event.matches });
-                if (this.isConnected) {
-                    await this.render();
-                }
-            }
-
-            // Mutation handler: Efficiently update src based on media queries.
-            // Queries light DOM directly.
-            handleMutation(mutations) {
-                log('Mutation observed', { mutationCount: mutations.length });
-                mutations.forEach(mutation => {
-                    if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
-                        const img = mutation.target;
-                        const picture = this.querySelector('picture');
-                        if (!picture) return;
-                        const sources = picture.querySelectorAll('source');
-                        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                        const attrs = this.getAttributes();
-                        const breakpoint = parseInt(attrs.breakpoint, 10);
-                        const isBelowBreakpoint = breakpoint && window.matchMedia(`(max-width: ${breakpoint - 1}px)`).matches;
-                        let selectedSrc = prefersDark ? (attrs.fullDarkSrc || attrs.iconDarkSrc) : (attrs.fullLightSrc || attrs.iconLightSrc);
-                        let matchedMedia = 'none';
-                        sources.forEach(source => {
-                            const media = source.getAttribute('media');
-                            if (media && window.matchMedia(media).matches) {
-                                selectedSrc = source.getAttribute('srcset');
-                                matchedMedia = media;
-                            }
-                        });
-                        if (img.src !== selectedSrc && selectedSrc) {
-                            log('Updating logo src', { selectedSrc, matchedMedia, prefersDark });
-                            img.src = selectedSrc;
+            return;
+        }
+        let positionClass = attrs.fullPosition ? VALID_ALIGN_MAP[attrs.fullPosition] : 'place-self-center';
+        let styleTag = '';
+        const hasBreakpoint = attrs.breakpoint;
+        if (hasBreakpoint && attrs.iconPosition) {
+            styleTag = `
+                <style>
+                    @media (max-width: ${parseInt(attrs.breakpoint, 10) - 1}px) {
+                        .logo-container {
+                            place-self: ${attrs.iconPosition.replace(/-/g, ' ')} !important;
                         }
                     }
-                });
+                </style>
+            `;
+        }
+        const extraStyles = attrs.height ? `height: ${attrs.height};` : '';
+        try {
+            const logoMarkup = await generatePictureMarkup({
+                src: attrs.fullPrimarySrc,
+                lightSrc: attrs.fullLightSrc,
+                darkSrc: attrs.fullDarkSrc,
+                alt: attrs.fullPrimaryAlt || attrs.fullLightAlt || attrs.fullDarkAlt,
+                lightAlt: attrs.fullLightAlt,
+                darkAlt: attrs.fullDarkAlt,
+                iconSrc: attrs.iconPrimarySrc,
+                iconLightSrc: attrs.iconLightSrc,
+                iconDarkSrc: attrs.iconDarkSrc,
+                iconAlt: attrs.iconPrimaryAlt || attrs.iconLightAlt || attrs.iconDarkAlt,
+                iconLightAlt: attrs.iconLightAlt,
+                iconDarkAlt: attrs.iconDarkAlt,
+                isDecorative: attrs.isDecorative,
+                customClasses: '',
+                loading: 'lazy',
+                fetchPriority: 'high',
+                extraClasses: [],
+                breakpoint: attrs.breakpoint,
+                extraStyles,
+                noResponsive: attrs.fullPrimarySrc.endsWith('.svg') || attrs.fullLightSrc.endsWith('.svg') || attrs.iconPrimarySrc.endsWith('.svg')
+            });
+            this.#log('Logo markup generated', { markupPreview: logoMarkup.substring(0, 200) + '...' });
+            const fullMarkup = `
+                ${styleTag}
+                <div class="logo-container ${positionClass}">
+                    <a href="/">${logoMarkup}</a>
+                </div>
+            `;
+            this.innerHTML = fullMarkup;
+            if (!isFallback) {
+                this.renderCache = fullMarkup;
+                this.criticalAttributesHash = newCriticalAttrsHash;
             }
-
-            // connectedCallback: Setup listeners and initial render.
-            // Uses ResizeObserver for efficiency.
-            async connectedCallback() {
-                log('Connected to DOM');
-                await this.render();
-                const prefersDarkQuery = window.matchMedia('(prefers-color-scheme: dark)');
-                prefersDarkQuery.addEventListener('change', this.handleThemeChange);
-                this._prefersDarkQuery = prefersDarkQuery; // Store for cleanup.
-
-                const resizeObserver = new ResizeObserver(this.handleResize);
-                resizeObserver.observe(document.body);
-                this.resizeObserver = resizeObserver;
-
-                const img = this.querySelector('img');
-                if (img) {
-                    const mutationObserver = new MutationObserver(this.handleMutation);
-                    mutationObserver.observe(img, { attributes: true, attributeFilter: ['src'] });
-                    this.mutationObserver = mutationObserver;
-                }
-            }
-
-            // disconnectedCallback: Clean up to prevent memory leaks.
-            disconnectedCallback() {
-                log('Disconnected from DOM');
-                if (this.resizeObserver) {
-                    this.resizeObserver.disconnect();
-                    this.resizeObserver = null;
-                }
-                if (this.mutationObserver) {
-                    this.mutationObserver.disconnect();
-                    this.mutationObserver = null;
-                }
-                if (this._prefersDarkQuery) {
-                    this._prefersDarkQuery.removeEventListener('change', this.handleThemeChange);
-                    this._prefersDarkQuery = null;
-                }
-            }
-
-            // attributeChangedCallback: Invalidate cache and re-render if connected.
-            async attributeChangedCallback() {
-                log('Attribute changed');
-                if (this.isConnected) {
-                    this._cachedAttrs = null;
-                    await this.render();
-                }
+            this.#log('CustomLogo rendered successfully');
+        } catch (err) {
+            this.#error('Error generating logo markup', { error: err.message });
+            const fallbackMarkup = `
+                ${styleTag}
+                <div class="logo-container ${positionClass}">
+                    <a href="/"><img src="https://placehold.co/300x40" alt="Error loading logo" loading="lazy"></a>
+                </div>
+            `;
+            this.innerHTML = fallbackMarkup;
+            if (!isFallback) {
+                this.renderCache = fallbackMarkup;
+                this.criticalAttributesHash = newCriticalAttrsHash;
             }
         }
-
-        // Define custom element if not already defined.
-        // Upgrade existing elements for compliance.
-        if (!customElements.get('custom-logo')) {
-            customElements.define('custom-logo', CustomLogo);
-            log('CustomLogo defined successfully');
-        }
-        document.querySelectorAll('custom-logo').forEach(element => {
-            customElements.upgrade(element);
-            log('Upgraded existing custom-logo element');
-        });
-    } catch (err) {
-        error('Failed to import dependencies or define CustomLogo', { error: err.message });
     }
-})();
+    static get observedAttributes() {
+        return CustomLogo.#criticalAttributes;
+    }
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (!this.isInitialized || !this.isVisible) {
+            this.#ignoredChangeCount++;
+            if (this.#ignoredChangeCount % 10 === 0) {
+                this.#log('Attribute changes ignored (not ready - batched)', { count: this.#ignoredChangeCount, name, oldValue, newValue });
+            }
+            return;
+        }
+        this.#log('Attribute changed', { name, oldValue, newValue });
+        if (CustomLogo.#criticalAttributes.includes(name)) {
+            this.cachedAttributes = null;
+            this.render();
+        }
+    }
+}
+try {
+    customElements.define('custom-logo', CustomLogo);
+} catch (error) {
+    console.error('Error defining CustomLogo element:', error);
+}
+console.log('CustomLogo version: 2025-10-10');
+export { CustomLogo };
