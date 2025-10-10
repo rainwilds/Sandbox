@@ -645,7 +645,6 @@ class CustomBlock extends HTMLElement {
         this.#log('Callback added', { callbackName: callback.name || 'anonymous', elementId: this.id || 'no-id' });
         this.callbacks.push(callback);
     }
-    // In custom-block.js, replace the render method with this version
     async render(isFallback = false) {
         this.#log(`Starting render ${isFallback ? '(fallback)' : ''}`, { elementId: this.id || 'no-id' });
         let newCriticalAttrsHash;
@@ -773,17 +772,13 @@ class CustomBlock extends HTMLElement {
         });
         if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
             this.#error('Missing background alt text', {
-                backgroundSrc: attrs.backgroundSrc || 'not provided',
-                backgroundLightSrc: attrs.backgroundLightSrc || 'not provided',
-                backgroundDarkSrc: attrs.backgroundDarkSrc || 'not provided',
+                backgroundSrc, backgroundLightSrc, backgroundDarkSrc,
                 element: this.id || 'no-id'
             });
         }
         if (!attrs.primaryAlt && !attrs.primaryIsDecorative && (attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc)) {
             this.#error('Missing primary alt text', {
-                primarySrc: attrs.primarySrc || 'not provided',
-                primaryLightSrc: attrs.primaryLightSrc || 'not provided',
-                primaryDarkSrc: attrs.primaryDarkSrc || 'not provided',
+                primarySrc, primaryLightSrc, primaryDarkSrc,
                 element: this.id || 'no-id'
             });
         }
