@@ -90,7 +90,7 @@
   },
   "media": {
     "responsive_images": {
-      "directory_path": "/Sandbox/img/responsive/"
+      "directory_path": "img/responsive/"
     }
   }
 }
