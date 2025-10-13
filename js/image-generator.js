@@ -17,24 +17,6 @@ const SIZES_BREAKPOINTS = [
 ];
 const DEFAULT_IMAGE_SIZE_VALUE = 3840;
 
-// Promise for loading paths (with fallback if await fails)
-const pathsPromise = (async () => {
-  try {
-    return {
-      responsive: await getImageResponsivePath(),
-      primary: await getImagePrimaryPath()
-    };
-  } catch (error) {
-    if (typeof window !== 'undefined' && window.console) {
-      console.warn('Failed to load image paths from config, using fallbacks:', error);
-    }
-    return {
-      responsive: '/img/responsive/',
-      primary: '/img/primary/'
-    };
-  }
-})();
-
 // Cache for generated markup to improve performance on repeated calls with same parameters.
 const markupCache = new Map();
 
@@ -69,8 +51,16 @@ export async function generatePictureMarkup({
   extraStyles = '',
   isBackground = false,
 } = {}) {
-  // Await paths here to ensure they are loaded before proceeding
-  const { responsive: IMAGE_RESPONSIVE_DIRECTORY_PATH, primary: IMAGE_PRIMARY_DIRECTORY_PATH } = await pathsPromise;
+  let IMAGE_RESPONSIVE_DIRECTORY_PATH = '/img/responsive/';
+  let IMAGE_PRIMARY_DIRECTORY_PATH = '/img/primary/';
+  try {
+    IMAGE_RESPONSIVE_DIRECTORY_PATH = await getImageResponsivePath();
+    IMAGE_PRIMARY_DIRECTORY_PATH = await getImagePrimaryPath();
+  } catch (error) {
+    if (typeof window !== 'undefined' && window.console) {
+      console.warn('Failed to load image paths from config, using fallbacks:', error);
+    }
+  }
 
   // Check if debug mode is enabled via URL for logging.
   const isDev = typeof window !== 'undefined' && (
