@@ -223,8 +223,12 @@ async function updateHead(attributes, setup) {
   canonicalLink.href = canonicalUrl;
   criticalFrag.appendChild(canonicalLink);
   logger.log('Added canonical link: ' + canonicalUrl);
-  const lightTheme = setup.general?.theme_colors?.light ?? '#000000';
-  const darkTheme = setup.general?.theme_colors?.dark ?? lightTheme;
+
+  // Updated: Query CSS vars first for theme colors, fallback to JSON/setup
+  const rootStyles = getComputedStyle(document.documentElement);
+  const lightTheme = rootStyles.getPropertyValue('--color-light-scale-1').trim() || setup.general?.theme_colors?.light || '#000000';
+  const darkTheme = rootStyles.getPropertyValue('--color-dark-scale-1').trim() || setup.general?.theme_colors?.dark || lightTheme;
+
   const themeMetaLight = document.createElement('meta');
   themeMetaLight.name = 'theme-color';
   themeMetaLight.content = lightTheme;
