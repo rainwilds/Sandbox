@@ -6,7 +6,7 @@ import { getImageResponsivePath, getImagePrimaryPath } from './config.js';
 // Internal constants for image validation and responsive generation (not exported).
 const VALID_IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
 const IMAGE_WIDTHS = [768, 1024, 1366, 1920, 2560];
-const IMAGE_FORMATS = ['jxl', 'avif', 'webp', 'jpeg'];
+const IMAGE_FORMATS = ['jxl', 'avif', 'webp', 'jpg'];
 const VALID_ASPECT_RATIOS = new Set(['16/9', '9/16', '3/2', '2/3', '1/1', '21/9']);
 const SIZES_BREAKPOINTS = [
   { maxWidth: 768, baseValue: '100vw' },
@@ -249,43 +249,43 @@ export async function generatePictureMarkup({
           // Add sources for small screens (icons)
           if (iconLightSrc) {
             const srcset = generateSrcset(iconLightSrc, format, IMAGE_WIDTHS);
-            addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, `image/${format}`, srcset, sizes, iconLightAlt);
+            addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, iconLightAlt);
           }
           if (iconDarkSrc) {
             const srcset = generateSrcset(iconDarkSrc, format, IMAGE_WIDTHS);
-            addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: dark)`, `image/${format}`, srcset, sizes, iconDarkAlt);
+            addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: dark)`, `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, iconDarkAlt);
           }
           if (iconSrc) {
             const srcset = generateSrcset(iconSrc, format, IMAGE_WIDTHS);
-            addSource(`(max-width: ${maxSmall}px)`, `image/${format}`, srcset, sizes, iconAlt);
+            addSource(`(max-width: ${maxSmall}px)`, `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, iconAlt);
           }
 
           // Add sources for large screens (full)
           if (lightSrc) {
             const srcset = generateSrcset(lightSrc, format, IMAGE_WIDTHS);
-            addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: light)`, `image/${format}`, srcset, sizes, lightAlt);
+            addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: light)`, `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, lightAlt);
           }
           if (darkSrc) {
             const srcset = generateSrcset(darkSrc, format, IMAGE_WIDTHS);
-            addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: dark)`, `image/${format}`, srcset, sizes, darkAlt);
+            addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: dark)`, `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, darkAlt);
           }
           if (src) {
             const srcset = generateSrcset(src, format, IMAGE_WIDTHS);
-            addSource(`(min-width: ${minLarge}px)`, `image/${format}`, srcset, sizes, alt);
+            addSource(`(min-width: ${minLarge}px)`, `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, alt);
           }
         } else {
           // No breakpoint or no icons: use full sources only
           if (lightSrc) {
             const srcset = generateSrcset(lightSrc, format, IMAGE_WIDTHS);
-            addSource('(prefers-color-scheme: light)', `image/${format}`, srcset, sizes, lightAlt);
+            addSource('(prefers-color-scheme: light)', `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, lightAlt);
           }
           if (darkSrc) {
             const srcset = generateSrcset(darkSrc, format, IMAGE_WIDTHS);
-            addSource('(prefers-color-scheme: dark)', `image/${format}`, srcset, sizes, darkAlt);
+            addSource('(prefers-color-scheme: dark)', `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, darkAlt);
           }
           if (!lightSrc && !darkSrc && src) {
             const srcset = generateSrcset(src, format, IMAGE_WIDTHS);
-            addSource('', `image/${format}`, srcset, sizes, alt);
+            addSource('', `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, alt);
           }
         }
       });
@@ -329,7 +329,9 @@ export async function generatePictureMarkup({
 function getImageType(src) {
   if (!src) return '';
   const ext = src.split('.').pop().toLowerCase();
-  return ext === 'svg' ? 'image/svg+xml' : `image/${ext}`;
+  if (ext === 'svg') return 'image/svg+xml';
+  if (ext === 'jpg' || ext === 'jpeg') return 'image/jpeg';
+  return `image/${ext}`;
 }
 
 // Helper function to generate srcset string for a given source and format.
