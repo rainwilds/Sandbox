@@ -75,7 +75,10 @@ const defaultSetup = {
   font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' },
   media: {
     responsive_images: {
-      directory_path: '/img/responsive/' // Relative to basePath
+      directory_path: 'img/responsive/' // Relative to basePath
+    },
+    primary_images: {
+      directory_path: 'img/primary/' // Relative to basePath
     }
   }
 };
@@ -130,6 +133,7 @@ export async function getConfig() {
       keys: Object.keys(cachedConfig),
       hasMedia: !!cachedConfig.media,
       responsivePath: cachedConfig.media?.responsive_images?.directory_path,
+      primaryPath: cachedConfig.media?.primary_images?.directory_path,
       basePath: cachedConfig.general?.basePath,
       businessName: cachedConfig.business?.name
     });
@@ -150,13 +154,23 @@ export async function getConfig() {
 }
 
 /**
- * Get the responsive image directory path
+ * Get the responsive image directory path (derived from basePath)
  * @returns {Promise<string>} The directory path
  */
 export async function getImageResponsivePath() {
   const config = await getConfig();
   const relativePath = config.media?.responsive_images?.directory_path || 'img/responsive/';
-  return config.general?.basePath + relativePath;  // Dynamically prefix
+  return config.general?.basePath + relativePath;
+}
+
+/**
+ * Get the primary images directory path (derived from basePath)
+ * @returns {Promise<string>} The directory path
+ */
+export async function getPrimaryImagesPath() {
+  const config = await getConfig();
+  const relativePath = config.media?.primary_images?.directory_path || 'img/primary/';
+  return config.general?.basePath + relativePath;
 }
 
 /**
@@ -189,5 +203,11 @@ export async function getGeneralConfig() {
 // Synchronous access for immediate use (with global fallback)
 export function getSyncImageResponsivePath() {
   const relativePath = window.__SETUP_CONFIG__?.media?.responsive_images?.directory_path || 'img/responsive/';
-  return window.__SETUP_CONFIG__?.general?.basePath + relativePath;  // Dynamically prefix
+  return window.__SETUP_CONFIG__?.general?.basePath + relativePath;
+}
+
+// Synchronous access for primary images
+export function getSyncPrimaryImagesPath() {
+  const relativePath = window.__SETUP_CONFIG__?.media?.primary_images?.directory_path || 'img/primary/';
+  return window.__SETUP_CONFIG__?.general?.basePath + relativePath;
 }

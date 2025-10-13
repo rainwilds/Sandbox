@@ -91,6 +91,9 @@
   "media": {
     "responsive_images": {
       "directory_path": "img/responsive/"
+    },
+    "primary_images": {
+      "directory_path": "img/primary/"
     }
   }
 }

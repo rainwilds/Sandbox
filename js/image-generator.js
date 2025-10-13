@@ -1,7 +1,7 @@
 /* global document, window */
 
 // Import config loader for responsive image path
-import { getImageResponsivePath } from './config.js';
+import { getImageResponsivePath, getImagePrimaryPath } from './config.js';
 
 // Internal constants for image validation and responsive generation (not exported).
 const VALID_IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
@@ -19,12 +19,14 @@ const DEFAULT_IMAGE_SIZE_VALUE = 3840;
 
 // Get responsive directory path from config (with fallback)
 let IMAGE_RESPONSIVE_DIRECTORY_PATH = '/img/responsive/'; // Fallback
+let IMAGE_PRIMARY_DIRECTORY_PATH = '/img/primary/'; // Fallback
 (async () => {
   try {
     IMAGE_RESPONSIVE_DIRECTORY_PATH = await getImageResponsivePath();
+    IMAGE_PRIMARY_DIRECTORY_PATH = await getImagePrimaryPath();
   } catch (error) {
     if (typeof window !== 'undefined' && window.console) {
-      console.warn('Failed to load responsive image path from config, using fallback:', error);
+      console.warn('Failed to load image paths from config, using fallbacks:', error);
     }
   }
 })();
@@ -162,8 +164,8 @@ export async function generatePictureMarkup({
     let primarySrc = '';
     let primaryAlt = '';
     if (hasBreakpoint && hasIcon && isBelowBreakpoint) {
-      primarySrc = prefersDark ? iconLightSrc : iconDarkSrc || iconSrc;
-      primaryAlt = isDecorative ? '' : (prefersDark ? iconLightAlt : iconDarkAlt || iconAlt);
+      primarySrc = prefersDark ? iconDarkSrc : iconLightSrc || iconSrc;
+      primaryAlt = isDecorative ? '' : (prefersDark ? iconDarkAlt : iconLightAlt || iconAlt);
     } else {
       primarySrc = prefersDark ? darkSrc : lightSrc || src;
       primaryAlt = isDecorative ? '' : (prefersDark ? darkAlt : lightAlt || alt);
@@ -223,19 +225,19 @@ export async function generatePictureMarkup({
       // For non-responsive or SVG images, generate simple <source> elements without width variants.
       if (hasBreakpoint && hasIcon) {
         // Add sources for small screens (icons)
-        if (iconLightSrc) addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: dark)`, getImageType(iconLightSrc), iconLightSrc, sizes, iconLightAlt);
-        if (iconDarkSrc) addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, getImageType(iconDarkSrc), iconDarkSrc, sizes, iconDarkAlt);
-        if (iconSrc) addSource(`(max-width: ${maxSmall}px)`, getImageType(iconSrc), iconSrc, sizes, iconAlt);
+        if (iconLightSrc) addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, getImageType(iconLightSrc), IMAGE_PRIMARY_DIRECTORY_PATH + iconLightSrc, sizes, iconLightAlt);
+        if (iconDarkSrc) addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: dark)`, getImageType(iconDarkSrc), IMAGE_PRIMARY_DIRECTORY_PATH + iconDarkSrc, sizes, iconDarkAlt);
+        if (iconSrc) addSource(`(max-width: ${maxSmall}px)`, getImageType(iconSrc), IMAGE_PRIMARY_DIRECTORY_PATH + iconSrc, sizes, iconAlt);
 
         // Add sources for large screens (full)
-        if (lightSrc) addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: light)`, getImageType(lightSrc), lightSrc, sizes, lightAlt);
-        if (darkSrc) addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: dark)`, getImageType(darkSrc), darkSrc, sizes, darkAlt);
-        if (src) addSource(`(min-width: ${minLarge}px)`, getImageType(src), src, sizes, alt);
+        if (lightSrc) addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: light)`, getImageType(lightSrc), IMAGE_PRIMARY_DIRECTORY_PATH + lightSrc, sizes, lightAlt);
+        if (darkSrc) addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: dark)`, getImageType(darkSrc), IMAGE_PRIMARY_DIRECTORY_PATH + darkSrc, sizes, darkAlt);
+        if (src) addSource(`(min-width: ${minLarge}px)`, getImageType(src), IMAGE_PRIMARY_DIRECTORY_PATH + src, sizes, alt);
       } else {
         // No breakpoint or no icons: use full sources only
-        if (lightSrc) addSource('(prefers-color-scheme: light)', getImageType(lightSrc), lightSrc, sizes, lightAlt);
-        if (darkSrc) addSource('(prefers-color-scheme: dark)', getImageType(darkSrc), darkSrc, sizes, darkAlt);
-        if (!lightSrc && !darkSrc && src) addSource('', getImageType(src), src, sizes, alt);
+        if (lightSrc) addSource('(prefers-color-scheme: light)', getImageType(lightSrc), IMAGE_PRIMARY_DIRECTORY_PATH + lightSrc, sizes, lightAlt);
+        if (darkSrc) addSource('(prefers-color-scheme: dark)', getImageType(darkSrc), IMAGE_PRIMARY_DIRECTORY_PATH + darkSrc, sizes, darkAlt);
+        if (!lightSrc && !darkSrc && src) addSource('', getImageType(src), IMAGE_PRIMARY_DIRECTORY_PATH + src, sizes, alt);
       }
     } else {
       // For responsive images, generate <source> elements for each format with width variants.
@@ -244,11 +246,11 @@ export async function generatePictureMarkup({
           // Add sources for small screens (icons)
           if (iconLightSrc) {
             const srcset = generateSrcset(iconLightSrc, format, IMAGE_WIDTHS);
-            addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: dark)`, `image/${format}`, srcset, sizes, iconLightAlt);
+            addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, `image/${format}`, srcset, sizes, iconLightAlt);
           }
           if (iconDarkSrc) {
             const srcset = generateSrcset(iconDarkSrc, format, IMAGE_WIDTHS);
-            addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, `image/${format}`, srcset, sizes, iconDarkAlt);
+            addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: dark)`, `image/${format}`, srcset, sizes, iconDarkAlt);
           }
           if (iconSrc) {
             const srcset = generateSrcset(iconSrc, format, IMAGE_WIDTHS);
@@ -287,7 +289,8 @@ export async function generatePictureMarkup({
     }
 
     // Generate fallback <img> element with JPEG source and error handling.
-    let fallbackSrc = isSvg ? primarySrc : primarySrc.replace(/\.[^/.]+$/, '.jpg');
+    const primaryFilename = primarySrc.split('/').pop().replace(/\.[^/.]+$/, "");
+    let fallbackSrc = isSvg ? IMAGE_PRIMARY_DIRECTORY_PATH + primarySrc.split('/').pop() : IMAGE_PRIMARY_DIRECTORY_PATH + primaryFilename + '.jpg';
 
     // Only apply extraStyles if it's not a background image
     const styleAttr = (!isBackground && extraStyles) ? ` style="${extraStyles}"` : '';
@@ -305,7 +308,7 @@ export async function generatePictureMarkup({
 
     // Optionally add JSON-LD schema for the image if requested.
     if (includeSchema && primarySrc && primaryAlt) {
-      markup += `<script type="application/ld+json">{"@context":"https://schema.org","@type":"ImageObject","url":"${primarySrc}","alternateName":"${primaryAlt}"}</script>`;
+      markup += `<script type="application/ld+json">{"@context":"https://schema.org","@type":"ImageObject","url":"${IMAGE_PRIMARY_DIRECTORY_PATH + primarySrc}","alternateName":"${primaryAlt}"}</script>`;
     }
 
     // Cache the generated markup for future use with the same parameters.
@@ -331,9 +334,10 @@ function generateSrcset(originalSrc, format, widths) {
   if (!originalSrc) return '';
 
   const responsiveDir = IMAGE_RESPONSIVE_DIRECTORY_PATH;
+  const primaryDir = IMAGE_PRIMARY_DIRECTORY_PATH;
   const filename = originalSrc.split('/').pop().replace(/\.[^/.]+$/, "");
   const variants = widths.map(w => `${responsiveDir}${filename}-${w}.${format} ${w}w`);
-  const fullSizePath = `${responsiveDir}${filename}.${format}`;
+  const fullSizePath = `${primaryDir}${filename}.${format}`;
   return `${fullSizePath} ${DEFAULT_IMAGE_SIZE_VALUE}w, ${variants.join(', ')}`;
 }
 
