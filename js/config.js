@@ -160,7 +160,7 @@ export async function getConfig() {
 export async function getImageResponsivePath() {
   const config = await getConfig();
   const relativePath = config.media?.responsive_images?.directory_path || 'img/responsive/';
-  return config.general?.basePath + relativePath;
+  return '/' + relativePath;
 }
 
 /**
@@ -170,7 +170,7 @@ export async function getImageResponsivePath() {
 export async function getImagePrimaryPath() {
   const config = await getConfig();
   const relativePath = config.media?.primary_images?.directory_path || 'img/primary/';
-  return config.general?.basePath + relativePath;
+  return '/' + relativePath;
 }
 
 /**
@@ -203,11 +203,11 @@ export async function getGeneralConfig() {
 // Synchronous access for immediate use (with global fallback)
 export function getSyncImageResponsivePath() {
   const relativePath = window.__SETUP_CONFIG__?.media?.responsive_images?.directory_path || 'img/responsive/';
-  return window.__SETUP_CONFIG__?.general?.basePath + relativePath;
+  return '/' + relativePath;
 }
 
 // Synchronous access for primary images
 export function getSyncImagePrimaryPath() {
   const relativePath = window.__SETUP_CONFIG__?.media?.primary_images?.directory_path || 'img/primary/';
-  return window.__SETUP_CONFIG__?.general?.basePath + relativePath;
+  return '/' + relativePath;
 }

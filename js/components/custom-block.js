@@ -121,7 +121,7 @@ class CustomBlock extends HTMLElement {
             if (!path) return '';
             if (path.startsWith('http')) return path;
             if (path.startsWith('/')) return path;
-            return basePath + primaryPath + path;
+            return primaryPath + path;
         };
         const backgroundFetchPriority = this.getAttribute('img-background-fetchpriority') || '';
         const primaryFetchPriority = this.getAttribute('img-primary-fetchpriority') || '';
@@ -210,7 +210,7 @@ class CustomBlock extends HTMLElement {
         } else if (innerShadow) {
             this.#warn('Invalid inner shadow class', { value: innerShadow, element: this.id || 'no-id', validValues: validShadowClasses });
         }
-        const resolvePath = (path) => path ? (path.startsWith('http') ? path : new URL(path.startsWith('/') ? path.slice(1) : path, window.location.origin + basePath).href) : '';
+        const resolvePath = (path) => path ? (path.startsWith('http') ? path : new URL(path.startsWith('/') ? path.slice(1) : path, window.location.origin).href) : '';
         const backgroundSrc = resolveImageSrc('img-background-src');
         const backgroundLightSrc = resolveImageSrc('img-background-light-src');
         const backgroundDarkSrc = resolveImageSrc('img-background-dark-src');
@@ -547,9 +547,9 @@ class CustomBlock extends HTMLElement {
             videoBackgroundSrc,
             videoBackgroundLightSrc,
             videoBackgroundDarkSrc,
-            videoBackgroundPoster: resolvePath(this.getAttribute('video-background-poster') || ''),
-            videoBackgroundLightPoster: resolvePath(this.getAttribute('video-background-light-poster') || ''),
-            videoBackgroundDarkPoster: resolvePath(this.getAttribute('video-background-dark-poster') || ''),
+            videoBackgroundPoster: resolveImageSrc('video-background-poster'),
+            videoBackgroundLightPoster: resolveImageSrc('video-background-light-poster'),
+            videoBackgroundDarkPoster: resolveImageSrc('video-background-dark-poster'),
             videoBackgroundAlt: this.getAttribute('video-background-alt') || 'Video content',
             videoBackgroundLoading: this.getAttribute('video-background-loading') || 'lazy',
             videoBackgroundAutoplay: this.hasAttribute('video-background-autoplay'),
@@ -560,9 +560,9 @@ class CustomBlock extends HTMLElement {
             videoPrimarySrc,
             videoPrimaryLightSrc,
             videoPrimaryDarkSrc,
-            videoPrimaryPoster: resolvePath(this.getAttribute('video-primary-poster') || ''),
-            videoPrimaryLightPoster: resolvePath(this.getAttribute('video-primary-light-poster') || ''),
-            videoPrimaryDarkPoster: resolvePath(this.getAttribute('video-primary-dark-poster') || ''),
+            videoPrimaryPoster: resolveImageSrc('video-primary-poster'),
+            videoPrimaryLightPoster: resolveImageSrc('video-primary-light-poster'),
+            videoPrimaryDarkPoster: resolveImageSrc('video-primary-dark-poster'),
             videoPrimaryAlt: this.getAttribute('video-primary-alt') || 'Video content',
             videoPrimaryLoading: this.getAttribute('video-primary-loading') || 'lazy',
             videoPrimaryAutoplay: this.hasAttribute('video-primary-autoplay'),
