@@ -17,6 +17,20 @@ const SIZES_BREAKPOINTS = [
 ];
 const DEFAULT_IMAGE_SIZE_VALUE = 3840;
 
+// Get responsive directory path from config (with fallback)
+let IMAGE_RESPONSIVE_DIRECTORY_PATH = '/img/responsive/'; // Fallback
+let IMAGE_PRIMARY_DIRECTORY_PATH = '/img/primary/'; // Fallback
+(async () => {
+  try {
+    IMAGE_RESPONSIVE_DIRECTORY_PATH = await getImageResponsivePath();
+    IMAGE_PRIMARY_DIRECTORY_PATH = await getImagePrimaryPath();
+  } catch (error) {
+    if (typeof window !== 'undefined' && window.console) {
+      console.warn('Failed to load image paths from config, using fallbacks:', error);
+    }
+  }
+})();
+
 // Cache for generated markup to improve performance on repeated calls with same parameters.
 const markupCache = new Map();
 
@@ -51,17 +65,6 @@ export async function generatePictureMarkup({
   extraStyles = '',
   isBackground = false,
 } = {}) {
-  let IMAGE_RESPONSIVE_DIRECTORY_PATH = '/img/responsive/';
-  let IMAGE_PRIMARY_DIRECTORY_PATH = '/img/primary/';
-  try {
-    IMAGE_RESPONSIVE_DIRECTORY_PATH = await getImageResponsivePath();
-    IMAGE_PRIMARY_DIRECTORY_PATH = await getImagePrimaryPath();
-  } catch (error) {
-    if (typeof window !== 'undefined' && window.console) {
-      console.warn('Failed to load image paths from config, using fallbacks:', error);
-    }
-  }
-
   // Check if debug mode is enabled via URL for logging.
   const isDev = typeof window !== 'undefined' && (
     window.location.href.includes('/dev/') ||
