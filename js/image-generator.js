@@ -343,7 +343,7 @@ function generateSrcset(originalSrc, format, widths) {
   const primaryDir = IMAGE_PRIMARY_DIRECTORY_PATH;
   const filename = originalSrc.split('/').pop().replace(/\.[^/.]+$/, "");
   const variants = widths.map(w => `${responsiveDir}${filename}-${w}.${format} ${w}w`);
-  const fullSizePath = `${primaryDir}${filename}.${format}`;
+  const fullSizePath = format === 'jpg' ? `${primaryDir}${filename}.${format}` : `${responsiveDir}${filename}.${format}`;
   return `${fullSizePath} ${DEFAULT_IMAGE_SIZE_VALUE}w, ${variants.join(', ')}`;
 }
 
