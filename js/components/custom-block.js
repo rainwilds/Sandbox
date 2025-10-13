@@ -120,8 +120,7 @@ class CustomBlock extends HTMLElement {
             const path = this.getAttribute(attrName) || '';
             if (!path) return '';
             if (path.startsWith('http')) return path;
-            if (path.startsWith('/')) return path;
-            return primaryPath + path;
+            return primaryPath + (path.startsWith('/') ? path.slice(1) : path);
         };
         const backgroundFetchPriority = this.getAttribute('img-background-fetchpriority') || '';
         const primaryFetchPriority = this.getAttribute('img-primary-fetchpriority') || '';
@@ -210,7 +209,7 @@ class CustomBlock extends HTMLElement {
         } else if (innerShadow) {
             this.#warn('Invalid inner shadow class', { value: innerShadow, element: this.id || 'no-id', validValues: validShadowClasses });
         }
-        const resolvePath = (path) => path ? (path.startsWith('http') ? path : new URL(path.startsWith('/') ? path.slice(1) : path, window.location.origin).href) : '';
+        const resolvePath = (path) => path ? (path.startsWith('http') ? path : basePath + (path.startsWith('/') ? path.slice(1) : path)) : '';
         const backgroundSrc = resolveImageSrc('img-background-src');
         const backgroundLightSrc = resolveImageSrc('img-background-light-src');
         const backgroundDarkSrc = resolveImageSrc('img-background-dark-src');
