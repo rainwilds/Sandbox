@@ -2,7 +2,7 @@
 import { generatePictureMarkup } from '../image-generator.js';
 import { generateVideoMarkup } from '../video-generator.js';
 import { VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } from '../shared.js';
-import { getConfig } from '../config.js';
+import { getConfig, getImagePrimaryPath } from '../config.js';
 
 class CustomBlock extends HTMLElement {
     #ignoredChangeCount;
@@ -97,7 +97,7 @@ class CustomBlock extends HTMLElement {
         }
         try {
             const basePath = await this.#getBasePath();
-            const fullSrc = url.startsWith('http') ? url : new URL(url.startsWith('/') ? url.slice(1) : url, window.location.origin + basePath).href;
+            const fullSrc = url.startsWith('http') ? url : new URL(url.startsWith('/') ? url : basePath + url, window.location.origin).href;
             this.#log(`Validating source URL: ${fullSrc}`, { originalUrl: url, elementId: this.id || 'no-id' });
             const res = await fetch(fullSrc, { method: 'HEAD', mode: 'cors' });
             if (!res.ok) throw new Error(`Failed to validate ${url}: ${res.status} ${res.statusText}`);
@@ -115,6 +115,14 @@ class CustomBlock extends HTMLElement {
         }
         this.#log('Parsing new attributes', { elementId: this.id || 'no-id', outerHTML: this.outerHTML.substring(0, 200) + '...' });
         const basePath = await this.#getBasePath();
+        const primaryPath = await getImagePrimaryPath();
+        const resolveImageSrc = (attrName) => {
+            const path = this.getAttribute(attrName) || '';
+            if (!path) return '';
+            if (path.startsWith('http')) return path;
+            if (path.startsWith('/')) return path;
+            return basePath + primaryPath + path;
+        };
         const backgroundFetchPriority = this.getAttribute('img-background-fetchpriority') || '';
         const primaryFetchPriority = this.getAttribute('img-primary-fetchpriority') || '';
         const validFetchPriorities = ['high', 'low', 'auto', ''];
@@ -203,9 +211,9 @@ class CustomBlock extends HTMLElement {
             this.#warn('Invalid inner shadow class', { value: innerShadow, element: this.id || 'no-id', validValues: validShadowClasses });
         }
         const resolvePath = (path) => path ? (path.startsWith('http') ? path : new URL(path.startsWith('/') ? path.slice(1) : path, window.location.origin + basePath).href) : '';
-        const backgroundSrc = resolvePath(this.getAttribute('img-background-src') || '');
-        const backgroundLightSrc = resolvePath(this.getAttribute('img-background-light-src') || '');
-        const backgroundDarkSrc = resolvePath(this.getAttribute('img-background-dark-src') || '');
+        const backgroundSrc = resolveImageSrc('img-background-src');
+        const backgroundLightSrc = resolveImageSrc('img-background-light-src');
+        const backgroundDarkSrc = resolveImageSrc('img-background-dark-src');
         const backgroundAlt = this.getAttribute('img-background-alt') || '';
         if ((backgroundLightSrc || backgroundDarkSrc) && !(backgroundLightSrc && backgroundDarkSrc) && !backgroundSrc) {
             this.#error('Invalid background source configuration', {
@@ -215,9 +223,9 @@ class CustomBlock extends HTMLElement {
             });
             throw new Error('Both img-background-light-src and img-background-dark-src must be present or use img-background-src alone.');
         }
-        const primarySrc = resolvePath(this.getAttribute('img-primary-src') || '');
-        const primaryLightSrc = resolvePath(this.getAttribute('img-primary-light-src') || '');
-        const primaryDarkSrc = resolvePath(this.getAttribute('img-primary-dark-src') || '');
+        const primarySrc = resolveImageSrc('img-primary-src');
+        const primaryLightSrc = resolveImageSrc('img-primary-light-src');
+        const primaryDarkSrc = resolveImageSrc('img-primary-dark-src');
         if ((primaryLightSrc || primaryDarkSrc) && !(primaryLightSrc && primaryDarkSrc) && !primarySrc) {
             this.#error('Invalid primary image source configuration', {
                 primarySrc, primaryLightSrc, primaryDarkSrc,

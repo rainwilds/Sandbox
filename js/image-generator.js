@@ -221,23 +221,26 @@ export async function generatePictureMarkup({
     const maxSmall = bpValue ? bpValue - 1 : 0;
     const minLarge = bpValue || 0;
 
+    // Helper to get filename with extension from any path/URL.
+    const getFilename = (path) => path ? path.split('/').pop() : '';
+
     if (effectiveNoResponsive) {
       // For non-responsive or SVG images, generate simple <source> elements without width variants.
       if (hasBreakpoint && hasIcon) {
         // Add sources for small screens (icons)
-        if (iconLightSrc) addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, getImageType(iconLightSrc), IMAGE_PRIMARY_DIRECTORY_PATH + iconLightSrc, sizes, iconLightAlt);
-        if (iconDarkSrc) addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: dark)`, getImageType(iconDarkSrc), IMAGE_PRIMARY_DIRECTORY_PATH + iconDarkSrc, sizes, iconDarkAlt);
-        if (iconSrc) addSource(`(max-width: ${maxSmall}px)`, getImageType(iconSrc), IMAGE_PRIMARY_DIRECTORY_PATH + iconSrc, sizes, iconAlt);
+        if (iconLightSrc) addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, getImageType(iconLightSrc), IMAGE_PRIMARY_DIRECTORY_PATH + getFilename(iconLightSrc), sizes, iconLightAlt);
+        if (iconDarkSrc) addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: dark)`, getImageType(iconDarkSrc), IMAGE_PRIMARY_DIRECTORY_PATH + getFilename(iconDarkSrc), sizes, iconDarkAlt);
+        if (iconSrc) addSource(`(max-width: ${maxSmall}px)`, getImageType(iconSrc), IMAGE_PRIMARY_DIRECTORY_PATH + getFilename(iconSrc), sizes, iconAlt);
 
         // Add sources for large screens (full)
-        if (lightSrc) addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: light)`, getImageType(lightSrc), IMAGE_PRIMARY_DIRECTORY_PATH + lightSrc, sizes, lightAlt);
-        if (darkSrc) addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: dark)`, getImageType(darkSrc), IMAGE_PRIMARY_DIRECTORY_PATH + darkSrc, sizes, darkAlt);
-        if (src) addSource(`(min-width: ${minLarge}px)`, getImageType(src), IMAGE_PRIMARY_DIRECTORY_PATH + src, sizes, alt);
+        if (lightSrc) addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: light)`, getImageType(lightSrc), IMAGE_PRIMARY_DIRECTORY_PATH + getFilename(lightSrc), sizes, lightAlt);
+        if (darkSrc) addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: dark)`, getImageType(darkSrc), IMAGE_PRIMARY_DIRECTORY_PATH + getFilename(darkSrc), sizes, darkAlt);
+        if (src) addSource(`(min-width: ${minLarge}px)`, getImageType(src), IMAGE_PRIMARY_DIRECTORY_PATH + getFilename(src), sizes, alt);
       } else {
         // No breakpoint or no icons: use full sources only
-        if (lightSrc) addSource('(prefers-color-scheme: light)', getImageType(lightSrc), IMAGE_PRIMARY_DIRECTORY_PATH + lightSrc, sizes, lightAlt);
-        if (darkSrc) addSource('(prefers-color-scheme: dark)', getImageType(darkSrc), IMAGE_PRIMARY_DIRECTORY_PATH + darkSrc, sizes, darkAlt);
-        if (!lightSrc && !darkSrc && src) addSource('', getImageType(src), IMAGE_PRIMARY_DIRECTORY_PATH + src, sizes, alt);
+        if (lightSrc) addSource('(prefers-color-scheme: light)', getImageType(lightSrc), IMAGE_PRIMARY_DIRECTORY_PATH + getFilename(lightSrc), sizes, lightAlt);
+        if (darkSrc) addSource('(prefers-color-scheme: dark)', getImageType(darkSrc), IMAGE_PRIMARY_DIRECTORY_PATH + getFilename(darkSrc), sizes, darkAlt);
+        if (!lightSrc && !darkSrc && src) addSource('', getImageType(src), IMAGE_PRIMARY_DIRECTORY_PATH + getFilename(src), sizes, alt);
       }
     } else {
       // For responsive images, generate <source> elements for each format with width variants.
@@ -289,8 +292,8 @@ export async function generatePictureMarkup({
     }
 
     // Generate fallback <img> element with JPEG source and error handling.
-    const primaryFilename = primarySrc.split('/').pop().replace(/\.[^/.]+$/, "");
-    let fallbackSrc = isSvg ? IMAGE_PRIMARY_DIRECTORY_PATH + primarySrc.split('/').pop() : IMAGE_PRIMARY_DIRECTORY_PATH + primaryFilename + '.jpg';
+    const primaryFilename = getFilename(primarySrc).replace(/\.[^/.]+$/, "");
+    let fallbackSrc = isSvg ? IMAGE_PRIMARY_DIRECTORY_PATH + getFilename(primarySrc) : IMAGE_PRIMARY_DIRECTORY_PATH + primaryFilename + '.jpg';
 
     // Only apply extraStyles if it's not a background image
     const styleAttr = (!isBackground && extraStyles) ? ` style="${extraStyles}"` : '';
@@ -308,7 +311,8 @@ export async function generatePictureMarkup({
 
     // Optionally add JSON-LD schema for the image if requested.
     if (includeSchema && primarySrc && primaryAlt) {
-      markup += `<script type="application/ld+json">{"@context":"https://schema.org","@type":"ImageObject","url":"${IMAGE_PRIMARY_DIRECTORY_PATH + primarySrc}","alternateName":"${primaryAlt}"}</script>`;
+      const schemaUrl = IMAGE_PRIMARY_DIRECTORY_PATH + getFilename(primarySrc);
+      markup += `<script type="application/ld+json">{"@context":"https://schema.org","@type":"ImageObject","url":"${schemaUrl}","alternateName":"${primaryAlt}"}</script>`;
     }
 
     // Cache the generated markup for future use with the same parameters.
