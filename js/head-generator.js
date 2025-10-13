@@ -227,22 +227,32 @@ async function updateHead(attributes, setup) {
   // Delayed: Query CSS vars for theme colors after a microtask (to ensure CSS is parsed)
   setTimeout(() => {
     const rootStyles = getComputedStyle(document.documentElement);
-    const lightTheme = rootStyles.getPropertyValue('--color-light-scale-1').trim() || setup.general?.theme_colors?.light || '#000000';
-    const darkTheme = rootStyles.getPropertyValue('--color-dark-scale-1').trim() || setup.general?.theme_colors?.dark || lightTheme;
+    const lightTheme = rootStyles.getPropertyValue('--color-light-scale-1').trim();
+    const darkTheme = rootStyles.getPropertyValue('--color-dark-scale-1').trim();
 
-    const themeMetaLight = document.createElement('meta');
-    themeMetaLight.name = 'theme-color';
-    themeMetaLight.content = lightTheme;
-    themeMetaLight.media = '(prefers-color-scheme: light)';
-    head.appendChild(themeMetaLight);
-    logger.log(`Updated theme-color (light): ${lightTheme}`);
-    if (darkTheme !== lightTheme) {
+    // Fallback: If CSS vars are empty, skip adding meta tags (browser defaults)
+    if (lightTheme) {
+      const themeMetaLight = document.createElement('meta');
+      themeMetaLight.name = 'theme-color';
+      themeMetaLight.content = lightTheme;
+      themeMetaLight.media = '(prefers-color-scheme: light)';
+      head.appendChild(themeMetaLight);
+      logger.log(`Updated theme-color (light): ${lightTheme}`);
+    } else {
+      logger.log('Light theme CSS var empty; skipping meta tag for browser defaults');
+    }
+
+    if (darkTheme && darkTheme !== lightTheme) {
       const themeMetaDark = document.createElement('meta');
       themeMetaDark.name = 'theme-color';
       themeMetaDark.content = darkTheme;
       themeMetaDark.media = '(prefers-color-scheme: dark)';
       head.appendChild(themeMetaDark);
       logger.log(`Updated theme-color (dark): ${darkTheme}`);
+    } else if (darkTheme) {
+      logger.log('Dark theme same as light; no additional meta tag needed');
+    } else {
+      logger.log('Dark theme CSS var empty; skipping meta tag for browser defaults');
     }
   }, 0);
 
