@@ -331,13 +331,13 @@ class CustomLogo extends HTMLElement {
             if (iconDarkSrc) addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, iconDarkSrc, iconDarkAlt);
             if (iconSrc) addSource(`(max-width: ${maxSmall}px)`, iconSrc, iconAlt);
             // Large screens (full)
-            if (fullLightSrc) addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: dark)`, fullLightSrc, fullLightAlt);
-            if (fullDarkSrc) addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: light)`, fullDarkSrc, fullDarkAlt);
+            if (fullLightSrc) addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: light)`, fullLightSrc, fullLightAlt);
+            if (fullDarkSrc) addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: dark)`, fullDarkSrc, fullDarkAlt);
             if (fullSrc) addSource(`(min-width: ${minLarge}px)`, fullSrc, fullAlt);
         } else {
             // No breakpoint or no icons: use full sources only
-            if (fullLightSrc) addSource('(prefers-color-scheme: dark)', fullLightSrc, fullLightAlt);
-            if (fullDarkSrc) addSource('(prefers-color-scheme: light)', fullDarkSrc, fullDarkAlt);
+            if (fullLightSrc) addSource('(prefers-color-scheme: light)', fullLightSrc, fullLightAlt);
+            if (fullDarkSrc) addSource('(prefers-color-scheme: dark)', fullDarkSrc, fullDarkAlt);
             if (!fullLightSrc && !fullDarkSrc && fullSrc) addSource('', fullSrc, fullAlt);
         }
         // Determine primary for fallback img
@@ -349,8 +349,8 @@ class CustomLogo extends HTMLElement {
             primarySrc = prefersDark ? iconLightSrc : iconDarkSrc || iconSrc;
             primaryAlt = attrs.isDecorative ? '' : (prefersDark ? iconLightAlt : iconDarkAlt || iconAlt);
         } else {
-            primarySrc = prefersDark ? fullLightSrc : fullDarkSrc || fullSrc;
-            primaryAlt = attrs.isDecorative ? '' : (prefersDark ? fullLightAlt : fullDarkAlt || fullAlt);
+            primarySrc = prefersDark ? fullDarkSrc : fullLightSrc || fullSrc;
+            primaryAlt = attrs.isDecorative ? '' : (prefersDark ? fullDarkAlt : fullLightAlt || fullAlt);
         }
         if (!primarySrc) {
             primarySrc = fullLightSrc || iconLightSrc || fullDarkSrc || iconDarkSrc || fullSrc || iconSrc;
