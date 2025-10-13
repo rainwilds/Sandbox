@@ -167,7 +167,7 @@ export async function getImageResponsivePath() {
  * Get the primary images directory path (derived from basePath)
  * @returns {Promise<string>} The directory path
  */
-export async function getPrimaryImagesPath() {
+export async function getImagePrimaryPath() {
   const config = await getConfig();
   const relativePath = config.media?.primary_images?.directory_path || 'img/primary/';
   return config.general?.basePath + relativePath;
@@ -207,7 +207,7 @@ export function getSyncImageResponsivePath() {
 }
 
 // Synchronous access for primary images
-export function getSyncPrimaryImagesPath() {
+export function getSyncImagePrimaryPath() {
   const relativePath = window.__SETUP_CONFIG__?.media?.primary_images?.directory_path || 'img/primary/';
   return window.__SETUP_CONFIG__?.general?.basePath + relativePath;
 }
