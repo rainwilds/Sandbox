@@ -25,7 +25,8 @@
     },
     "x": {
       "card": "summary_large_image",
-      "domain": "rainwilds.github.io"
+      "domain": "rainwilds.github.io",
+      "site": "@behive"
     },
     "theme_colors": {
       "light": "#faf9f3",

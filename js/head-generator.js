@@ -190,6 +190,7 @@ async function updateHead(attributes, setup) {
       { name: 'og:site_name', property: true, content: setup.general?.og?.site_name ?? setup.general?.siteName },
       { name: 'twitter:card', content: setup.general?.x?.card },
       { name: 'twitter:domain', content: setup.general?.x?.domain ?? window.location.hostname },
+      { name: 'twitter:site', content: setup.general?.x?.site },
       { name: 'twitter:url', content: attributes.canonical ?? setup.general?.canonical ?? window.location.href },
       { name: 'twitter:title', content: attributes.title ?? setup.general?.title },
       { name: 'twitter:description', content: attributes.description ?? setup.general?.description },
@@ -202,7 +203,10 @@ async function updateHead(attributes, setup) {
       { name: 'og:site_name', property: true, content: setup.general?.og?.site_name ?? setup.general?.siteName },
       { name: 'og:type', property: true, content: setup.general?.og?.type ?? setup.general?.ogType },
       { name: 'og:image', property: true, content: setup.general?.og?.image ?? setup.business?.image },
-      { name: 'og:url', property: true, content: setup.general?.canonical ?? window.location.href }
+      { name: 'og:url', property: true, content: setup.general?.canonical ?? window.location.href },
+      { name: 'twitter:card', content: setup.general?.x?.card },
+      { name: 'twitter:domain', content: setup.general?.x?.domain ?? window.location.hostname },
+      { name: 'twitter:site', content: setup.general?.x?.site }
     ].filter(tag => tag.content?.trim());
   }
   metaTags.forEach(({ name, property, content }) => {
