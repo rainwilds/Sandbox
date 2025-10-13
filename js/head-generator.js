@@ -170,25 +170,41 @@ async function updateHead(attributes, setup) {
   } else {
     logger.warn('No Font Awesome kit URL found; icons may not load');
   }
-  const metaTags = [
-    { name: 'robots', content: setup.general?.robots },
-    { name: 'title', content: attributes.title ?? setup.general?.title },
-    { name: 'author', content: setup.general?.author ?? setup.business?.author },
-    { name: 'description', content: attributes.description ?? setup.general?.description },
-    { name: 'og:locale', property: true, content: setup.general?.og?.locale ?? setup.general?.ogLocale },
-    { name: 'og:url', property: true, content: attributes.canonical ?? setup.general?.canonical ?? window.location.href },
-    { name: 'og:type', property: true, content: setup.general?.ogType },
-    { name: 'og:title', property: true, content: attributes.title ?? setup.general?.title },
-    { name: 'og:description', property: true, content: attributes.description ?? setup.general?.description },
-    { name: 'og:image', property: true, content: setup.business?.image },
-    { name: 'og:site_name', property: true, content: setup.general?.og?.site_name ?? setup.general?.siteName },
-    { name: 'twitter:card', content: setup.general?.x?.card },
-    { name: 'twitter:domain', content: setup.general?.x?.domain ?? window.location.hostname },
-    { name: 'twitter:url', content: attributes.canonical ?? setup.general?.canonical ?? window.location.href },
-    { name: 'twitter:title', content: attributes.title ?? setup.general?.title },
-    { name: 'twitter:description', content: attributes.description ?? setup.general?.description },
-    { name: 'twitter:image', content: setup.business?.image }
-  ].filter(tag => tag.content?.trim());
+  // Updated: Conditional OG meta tags based on presence of page attributes
+  let metaTags = [];
+  const hasPageAttributes = Object.keys(attributes).length > 0;
+
+  if (hasPageAttributes) {
+    // Full set with overrides and fallbacks
+    metaTags = [
+      { name: 'robots', content: setup.general?.robots },
+      { name: 'title', content: attributes.title ?? setup.general?.title },
+      { name: 'author', content: setup.general?.author ?? setup.business?.author },
+      { name: 'description', content: attributes.description ?? setup.general?.description },
+      { name: 'og:locale', property: true, content: setup.general?.og?.locale ?? setup.general?.ogLocale },
+      { name: 'og:url', property: true, content: attributes.canonical ?? setup.general?.canonical ?? window.location.href },
+      { name: 'og:type', property: true, content: setup.general?.og?.type ?? setup.general?.ogType },
+      { name: 'og:title', property: true, content: attributes.title ?? setup.general?.title },
+      { name: 'og:description', property: true, content: attributes.description ?? setup.general?.description },
+      { name: 'og:image', property: true, content: attributes.ogImage ?? setup.general?.og?.image ?? setup.business?.image },
+      { name: 'og:site_name', property: true, content: setup.general?.og?.site_name ?? setup.general?.siteName },
+      { name: 'twitter:card', content: setup.general?.x?.card },
+      { name: 'twitter:domain', content: setup.general?.x?.domain ?? window.location.hostname },
+      { name: 'twitter:url', content: attributes.canonical ?? setup.general?.canonical ?? window.location.href },
+      { name: 'twitter:title', content: attributes.title ?? setup.general?.title },
+      { name: 'twitter:description', content: attributes.description ?? setup.general?.description },
+      { name: 'twitter:image', content: setup.business?.image }
+    ].filter(tag => tag.content?.trim());
+  } else {
+    // Minimal set: Critical, non-page-specific OG properties from setup.json
+    metaTags = [
+      { name: 'og:locale', property: true, content: setup.general?.og?.locale ?? setup.general?.ogLocale },
+      { name: 'og:site_name', property: true, content: setup.general?.og?.site_name ?? setup.general?.siteName },
+      { name: 'og:type', property: true, content: setup.general?.og?.type ?? setup.general?.ogType },
+      { name: 'og:image', property: true, content: setup.general?.og?.image ?? setup.business?.image },
+      { name: 'og:url', property: true, content: setup.general?.canonical ?? window.location.href }
+    ].filter(tag => tag.content?.trim());
+  }
   metaTags.forEach(({ name, property, content }) => {
     const meta = document.createElement('meta');
     if (property) meta.setAttribute('property', name);

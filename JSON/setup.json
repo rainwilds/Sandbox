@@ -19,7 +19,9 @@
     "robots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
     "og": {
       "locale": "en_AU",
-      "site_name": "Behive"
+      "site_name": "Behive",
+      "type": "website",
+      "image": "https://rainwilds.github.io/img/logo.jpg"
     },
     "x": {
       "card": "summary_large_image",
