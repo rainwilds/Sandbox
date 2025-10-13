@@ -28,10 +28,6 @@
       "domain": "rainwilds.github.io",
       "site": "@behive"
     },
-    "theme_colors": {
-      "light": "#faf9f3",
-      "dark": "#141b32"
-    },
     "include_e_commerce": false,
     "favicons": [
       {
