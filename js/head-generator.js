@@ -224,25 +224,28 @@ async function updateHead(attributes, setup) {
   criticalFrag.appendChild(canonicalLink);
   logger.log('Added canonical link: ' + canonicalUrl);
 
-  // Updated: Query CSS vars first for theme colors, fallback to JSON/setup
-  const rootStyles = getComputedStyle(document.documentElement);
-  const lightTheme = rootStyles.getPropertyValue('--color-light-scale-1').trim() || setup.general?.theme_colors?.light || '#000000';
-  const darkTheme = rootStyles.getPropertyValue('--color-dark-scale-1').trim() || setup.general?.theme_colors?.dark || lightTheme;
+  // Delayed: Query CSS vars for theme colors after a microtask (to ensure CSS is parsed)
+  setTimeout(() => {
+    const rootStyles = getComputedStyle(document.documentElement);
+    const lightTheme = rootStyles.getPropertyValue('--color-light-scale-1').trim() || setup.general?.theme_colors?.light || '#000000';
+    const darkTheme = rootStyles.getPropertyValue('--color-dark-scale-1').trim() || setup.general?.theme_colors?.dark || lightTheme;
 
-  const themeMetaLight = document.createElement('meta');
-  themeMetaLight.name = 'theme-color';
-  themeMetaLight.content = lightTheme;
-  themeMetaLight.media = '(prefers-color-scheme: light)';
-  criticalFrag.appendChild(themeMetaLight);
-  logger.log(`Updated theme-color (light): ${lightTheme}`);
-  if (darkTheme !== lightTheme) {
-    const themeMetaDark = document.createElement('meta');
-    themeMetaDark.name = 'theme-color';
-    themeMetaDark.content = darkTheme;
-    themeMetaDark.media = '(prefers-color-scheme: dark)';
-    criticalFrag.appendChild(themeMetaDark);
-    logger.log(`Updated theme-color (dark): ${darkTheme}`);
-  }
+    const themeMetaLight = document.createElement('meta');
+    themeMetaLight.name = 'theme-color';
+    themeMetaLight.content = lightTheme;
+    themeMetaLight.media = '(prefers-color-scheme: light)';
+    head.appendChild(themeMetaLight);
+    logger.log(`Updated theme-color (light): ${lightTheme}`);
+    if (darkTheme !== lightTheme) {
+      const themeMetaDark = document.createElement('meta');
+      themeMetaDark.name = 'theme-color';
+      themeMetaDark.content = darkTheme;
+      themeMetaDark.media = '(prefers-color-scheme: dark)';
+      head.appendChild(themeMetaDark);
+      logger.log(`Updated theme-color (dark): ${darkTheme}`);
+    }
+  }, 0);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
