@@ -80,8 +80,7 @@ class CustomLogo extends HTMLElement {
             return true;
         }
         try {
-            const basePath = await this.#getBasePath();
-            const fullSrc = url.startsWith('http') ? url : new URL(url.startsWith('/') ? url.slice(1) : url, window.location.origin + basePath).href;
+            const fullSrc = window.location.origin + (url.startsWith('/') ? url : '/' + url);
             this.#log(`Validating source URL: ${fullSrc}`, { originalUrl: url, elementId: this.id || 'no-id' });
             const res = await fetch(fullSrc, { method: 'HEAD', mode: 'cors' });
             if (!res.ok) throw new Error(`Failed to validate ${url}: ${res.status} ${res.statusText}`);
@@ -100,8 +99,10 @@ class CustomLogo extends HTMLElement {
         this.#log('Parsing new attributes', { elementId: this.id || 'no-id', outerHTML: this.outerHTML.substring(0, 200) + '...' });
         const resolvePath = async (path) => {
             if (!path) return '';
+            if (path.startsWith('http')) return path;
             const base = await this.#getBasePath();
-            return path.startsWith('http') ? path : new URL(path.startsWith('/') ? path.slice(1) : path, window.location.origin + base).href;
+            const relative = path.startsWith('/') ? path.slice(1) : path;
+            return new URL(relative, window.location.origin + base).pathname;
         };
         const attrs = {
             fullPrimarySrc: await resolvePath(this.getAttribute('logo-full-primary-src') || ''),
@@ -289,69 +290,95 @@ class CustomLogo extends HTMLElement {
         }
         let positionClass = attrs.fullPosition ? VALID_ALIGN_MAP[attrs.fullPosition] : 'place-self-center';
         let styleTag = '';
-        const hasBreakpoint = attrs.breakpoint;
+        const hasBreakpoint = attrs.breakpoint && !isNaN(parseInt(attrs.breakpoint));
         if (hasBreakpoint && attrs.iconPosition) {
             styleTag = `
                 <style>
                     @media (max-width: ${parseInt(attrs.breakpoint, 10) - 1}px) {
                         .logo-container {
-                            place-self: ${attrs.iconPosition.replace(/-/g, ' ')} !important;
+                            place-self: ${VALID_ALIGN_MAP[attrs.iconPosition]} !important;
                         }
                     }
                 </style>
             `;
         }
-        const extraStyles = attrs.height ? `height: ${attrs.height};` : '';
-        try {
-            const logoMarkup = await generatePictureMarkup({
-                src: attrs.fullPrimarySrc,
-                lightSrc: attrs.fullLightSrc,
-                darkSrc: attrs.fullDarkSrc,
-                alt: attrs.fullPrimaryAlt || attrs.fullLightAlt || attrs.fullDarkAlt,
-                lightAlt: attrs.fullLightAlt,
-                darkAlt: attrs.fullDarkAlt,
-                iconSrc: attrs.iconPrimarySrc,
-                iconLightSrc: attrs.iconLightSrc,
-                iconDarkSrc: attrs.iconDarkSrc,
-                iconAlt: attrs.iconPrimaryAlt || attrs.iconLightAlt || attrs.iconDarkAlt,
-                iconLightAlt: attrs.iconLightAlt,
-                iconDarkAlt: attrs.iconDarkAlt,
-                isDecorative: attrs.isDecorative,
-                customClasses: '',
-                loading: 'lazy',
-                fetchPriority: 'high',
-                extraClasses: [],
-                breakpoint: attrs.breakpoint,
-                extraStyles,
-                noResponsive: attrs.fullPrimarySrc.endsWith('.svg') || attrs.fullLightSrc.endsWith('.svg') || attrs.iconPrimarySrc.endsWith('.svg')
-            });
-            this.#log('Logo markup generated', { markupPreview: logoMarkup.substring(0, 200) + '...' });
-            const fullMarkup = `
-                ${styleTag}
-                <div class="logo-container ${positionClass}">
-                    <a href="/">${logoMarkup}</a>
-                </div>
-            `;
-            this.innerHTML = fullMarkup;
-            if (!isFallback) {
-                this.renderCache = fullMarkup;
-                this.criticalAttributesHash = newCriticalAttrsHash;
-            }
-            this.#log('CustomLogo rendered successfully');
-        } catch (err) {
-            this.#error('Error generating logo markup', { error: err.message });
-            const fallbackMarkup = `
-                ${styleTag}
-                <div class="logo-container ${positionClass}">
-                    <a href="/"><img src="https://placehold.co/300x40" alt="Error loading logo" loading="lazy"></a>
-                </div>
-            `;
-            this.innerHTML = fallbackMarkup;
-            if (!isFallback) {
-                this.renderCache = fallbackMarkup;
-                this.criticalAttributesHash = newCriticalAttrsHash;
-            }
+        const hasFull = attrs.fullPrimarySrc || (attrs.fullLightSrc && attrs.fullDarkSrc);
+        const hasIcon = attrs.iconPrimarySrc || (attrs.iconLightSrc && attrs.iconDarkSrc);
+        let effectiveHasBreakpoint = hasBreakpoint && hasIcon;
+        let markup = `<picture>`;
+        const addSource = (media, srcset, dataAlt) => {
+            const type = 'image/svg+xml';
+            markup += `<source${media ? ` media="${media}"` : ''} type="${type}" srcset="${srcset}"${dataAlt ? ` data-alt="${dataAlt}"` : ''}>`;
+        };
+        let fullSrc = attrs.fullPrimarySrc;
+        let fullLightSrc = attrs.fullLightSrc;
+        let fullDarkSrc = attrs.fullDarkSrc;
+        let fullAlt = attrs.fullPrimaryAlt;
+        let fullLightAlt = attrs.fullLightAlt;
+        let fullDarkAlt = attrs.fullDarkAlt;
+        let iconSrc = attrs.iconPrimarySrc;
+        let iconLightSrc = attrs.iconLightSrc;
+        let iconDarkSrc = attrs.iconDarkSrc;
+        let iconAlt = attrs.iconPrimaryAlt;
+        let iconLightAlt = attrs.iconLightAlt;
+        let iconDarkAlt = attrs.iconDarkAlt;
+        if (effectiveHasBreakpoint) {
+            const bpValue = parseInt(attrs.breakpoint, 10);
+            const maxSmall = bpValue - 1;
+            const minLarge = bpValue;
+            // Small screens (icons)
+            if (iconLightSrc) addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, iconLightSrc, iconLightAlt);
+            if (iconDarkSrc) addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: dark)`, iconDarkSrc, iconDarkAlt);
+            if (iconSrc) addSource(`(max-width: ${maxSmall}px)`, iconSrc, iconAlt);
+            // Large screens (full)
+            if (fullLightSrc) addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: light)`, fullLightSrc, fullLightAlt);
+            if (fullDarkSrc) addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: dark)`, fullDarkSrc, fullDarkAlt);
+            if (fullSrc) addSource(`(min-width: ${minLarge}px)`, fullSrc, fullAlt);
+        } else {
+            // No breakpoint or no icons: use full sources only
+            if (fullLightSrc) addSource('(prefers-color-scheme: light)', fullLightSrc, fullLightAlt);
+            if (fullDarkSrc) addSource('(prefers-color-scheme: dark)', fullDarkSrc, fullDarkAlt);
+            if (!fullLightSrc && !fullDarkSrc && fullSrc) addSource('', fullSrc, fullAlt);
         }
+        // Determine primary for fallback img
+        let prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        let isBelowBreakpoint = effectiveHasBreakpoint ? window.matchMedia(`(max-width: ${parseInt(attrs.breakpoint) - 1}px)`).matches : false;
+        let primarySrc;
+        let primaryAlt;
+        if (effectiveHasBreakpoint && isBelowBreakpoint) {
+            primarySrc = prefersDark ? iconDarkSrc : iconLightSrc || iconSrc;
+            primaryAlt = attrs.isDecorative ? '' : (prefersDark ? iconDarkAlt : iconLightAlt || iconAlt);
+        } else {
+            primarySrc = prefersDark ? fullDarkSrc : fullLightSrc || fullSrc;
+            primaryAlt = attrs.isDecorative ? '' : (prefersDark ? fullDarkAlt : fullLightAlt || fullAlt);
+        }
+        if (!primarySrc) {
+            primarySrc = fullLightSrc || iconLightSrc || fullDarkSrc || iconDarkSrc || fullSrc || iconSrc;
+            primaryAlt = attrs.isDecorative ? '' : (fullLightAlt || iconLightAlt || fullDarkAlt || iconDarkAlt || fullAlt || iconAlt);
+        }
+        const styleAttr = attrs.height ? ` style="height: ${attrs.height};"` : '';
+        const imgAttrs = [
+            `src="${primarySrc}"`,
+            attrs.isDecorative ? 'alt="" role="presentation"' : `alt="${primaryAlt}"`,
+            styleAttr,
+            'loading="lazy"',
+            'fetchpriority="high"',
+            `onerror="this.src='https://placehold.co/300x40'; this.alt='${primaryAlt || 'Fallback logo'}'; this.onerror=null;"`
+        ].join(' ');
+        markup += `<img ${imgAttrs}></picture>`;
+        this.#log('Logo markup generated', { markupPreview: markup.substring(0, 200) + '...' });
+        const fullMarkup = `
+            ${styleTag}
+            <div class="logo-container ${positionClass}">
+                <a href="/">${markup}</a>
+            </div>
+        `;
+        this.innerHTML = fullMarkup;
+        if (!isFallback) {
+            this.renderCache = fullMarkup;
+            this.criticalAttributesHash = newCriticalAttrsHash;
+        }
+        this.#log('CustomLogo rendered successfully');
     }
     static get observedAttributes() {
         return CustomLogo.#criticalAttributes;
