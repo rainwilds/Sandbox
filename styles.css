@@ -219,32 +219,32 @@
 
 
 
-        --color-light-scale-1: #daccbf;
-        --color-light-scale-2: #d7bdb7;
-        --color-light-scale-3: #cfafb7;
-        --color-light-scale-4: #bca5ba;
-        --color-light-scale-5: #9f9ebc;
-        --color-light-scale-6: #7b99b5;
-        --color-dark-scale-1: #473328;
-        --color-dark-scale-2: #422928;
-        --color-dark-scale-3: #39222a;
-        --color-dark-scale-4: #2c1d2b;
-        --color-dark-scale-5: #1a192a;
-        --color-dark-scale-6: #051524;
-        --color-accent-opaque-light-scale-1: rgba(218, 204, 191, 0.2);
-        --color-accent-opaque-light-scale-2: rgba(215, 189, 183, 0.2);
-        --color-accent-opaque-light-scale-3: rgba(207, 175, 183, 0.2);
-        --color-accent-opaque-light-scale-4: rgba(188, 165, 186, 0.2);
-        --color-accent-opaque-light-scale-5: rgba(159, 158, 188, 0.2);
-        --color-accent-opaque-light-scale-6: rgba(123, 153, 181, 0.2);
-        --color-accent-opaque-dark-scale-1: rgba(71, 51, 40, 0.5);
-        --color-accent-opaque-dark-scale-2: rgba(66, 41, 40, 0.5);
-        --color-accent-opaque-dark-scale-3: rgba(57, 34, 42, 0.5);
-        --color-accent-opaque-dark-scale-4: rgba(44, 29, 43, 0.5);
-        --color-accent-opaque-dark-scale-5: rgba(26, 25, 42, 0.5);
-        --color-accent-opaque-dark-scale-6: rgba(5, 21, 36, 0.5);
-        --color-static-light: white;
-        --color-static-dark: black;
+--color-light-scale-1: #daccbf;
+--color-light-scale-2: #e0c9c5;
+--color-light-scale-3: #e0c8ce;
+--color-light-scale-4: #d8cad8;
+--color-light-scale-5: #cccddf;
+--color-light-scale-6: #bfd0df;
+--color-dark-scale-1: #34251d;
+--color-dark-scale-2: #331f1e;
+--color-dark-scale-3: #2e1a21;
+--color-dark-scale-4: #251825;
+--color-dark-scale-5: #181626;
+--color-dark-scale-6: #051524;
+--color-accent-opaque-light-scale-1: rgba(218,204,191,0.2);
+--color-accent-opaque-light-scale-2: rgba(224,201,197,0.2);
+--color-accent-opaque-light-scale-3: rgba(224,200,206,0.2);
+--color-accent-opaque-light-scale-4: rgba(216,202,216,0.2);
+--color-accent-opaque-light-scale-5: rgba(204,205,223,0.2);
+--color-accent-opaque-light-scale-6: rgba(191,208,223,0.2);
+--color-accent-opaque-dark-scale-1: rgba(52,37,29,0.5);
+--color-accent-opaque-dark-scale-2: rgba(51,31,30,0.5);
+--color-accent-opaque-dark-scale-3: rgba(46,26,33,0.5);
+--color-accent-opaque-dark-scale-4: rgba(37,24,37,0.5);
+--color-accent-opaque-dark-scale-5: rgba(24,22,38,0.5);
+--color-accent-opaque-dark-scale-6: rgba(5,21,36,0.5);
+--color-static-light: white;
+--color-static-dark: black;
 
 
 
