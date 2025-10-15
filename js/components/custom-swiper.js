@@ -1,4 +1,4 @@
-/* global HTMLElement, IntersectionObserver, document, window, console */
+/* global HTMLElement, IntersectionObserver, MutationObserver, document, window, console */
 import Swiper from 'https://cdn.jsdelivr.net/npm/swiper@12.0.2/+esm';
 
 class CustomSwiper extends HTMLElement {
@@ -77,13 +77,13 @@ class CustomSwiper extends HTMLElement {
             sanitizedSlidesPerView = 1;
         }
 
-        const spaceBetween = this.getAttribute('space-between') || '0';
+        const spaceBetween = this.getAttribute('space-between') || '10px';
         let sanitizedSpaceBetween = spaceBetween;
         const isValidUnit = spaceBetween.match(/^(\d*\.?\d+)(px|rem|vw|vh|%)?$/);
         const isValidVar = spaceBetween.match(/^var\(--[a-zA-Z0-9-]+\)$/);
         if (!isValidUnit && !isValidVar) {
-            this.#warn('Invalid space-between, defaulting to 0', { value: spaceBetween, element: this.id || 'no-id', expected: 'CSS unit (e.g., 10px, 1rem) or var(--variable)' });
-            sanitizedSpaceBetween = '0';
+            this.#warn('Invalid space-between, defaulting to 10px', { value: spaceBetween, element: this.id || 'no-id', expected: 'CSS unit (e.g., 10px, 1rem) or var(--variable)' });
+            sanitizedSpaceBetween = '10px';
         }
 
         const loop = this.getAttribute('loop') === 'true';
@@ -106,6 +106,67 @@ class CustomSwiper extends HTMLElement {
         });
 
         return this.cachedAttributes;
+    }
+
+    async waitForCustomBlockDefinition() {
+        if (customElements.get('custom-block')) {
+            this.#log('CustomBlock element already defined');
+            return true;
+        }
+        this.#log('Waiting for CustomBlock definition');
+        return new Promise(resolve => {
+            customElements.whenDefined('custom-block').then(() => {
+                this.#log('CustomBlock element defined');
+                resolve(true);
+            });
+        });
+    }
+
+    async waitForBlockRender(child, timeout = 1000) {
+        return new Promise((resolve, reject) => {
+            if (child.isInitialized && child.nextElementSibling && child.nextElementSibling.classList.contains('block')) {
+                this.#log('CustomBlock already rendered', { childId: child.id || 'no-id' });
+                resolve(child.nextElementSibling);
+                return;
+            }
+
+            const observer = new MutationObserver((mutations, obs) => {
+                for (const mutation of mutations) {
+                    if (mutation.type === 'childList') {
+                        const block = child.nextElementSibling && child.nextElementSibling.classList.contains('block')
+                            ? child.nextElementSibling
+                            : child.parentElement.querySelector('.block');
+                        if (block) {
+                            this.#log('CustomBlock rendered', { childId: child.id || 'no-id' });
+                            obs.disconnect();
+                            resolve(block);
+                            return;
+                        }
+                    }
+                }
+            });
+
+            observer.observe(child.parentElement || document.body, { childList: true, subtree: true });
+
+            if (typeof child.addCallback === 'function') {
+                child.addCallback(() => {
+                    this.#log('CustomBlock callback triggered', { childId: child.id || 'no-id' });
+                    const block = child.nextElementSibling && child.nextElementSibling.classList.contains('block')
+                        ? child.nextElementSibling
+                        : child.parentElement.querySelector('.block');
+                    if (block) {
+                        obs.disconnect();
+                        resolve(block);
+                    }
+                });
+            }
+
+            setTimeout(() => {
+                observer.disconnect();
+                this.#warn('Timeout waiting for CustomBlock render', { childId: child.id || 'no-id' });
+                resolve(null);
+            }, timeout);
+        });
     }
 
     async initialize() {
@@ -164,14 +225,14 @@ class CustomSwiper extends HTMLElement {
 
         const attrs = isFallback ? {
             slidesPerView: 1,
-            spaceBetween: '0',
+            spaceBetween: '10px',
             loop: false,
         } : await this.getAttributes();
 
         const fragment = document.createDocumentFragment();
         const swiperContainer = document.createElement('div');
         swiperContainer.className = 'custom-swiper';
-        swiperContainer.id = `custom-swiper-${Math.random().toString(36).substr(2, 9)}`; // Unique ID for specificity
+        swiperContainer.id = `custom-swiper-${Math.random().toString(36).substr(2, 9)}`;
         fragment.appendChild(swiperContainer);
 
         // Create Swiper structure
@@ -195,7 +256,7 @@ class CustomSwiper extends HTMLElement {
         nextButton.className = `swiper-button-next swiper-button-next-${swiperContainer.id}`;
         swiperWrapper.appendChild(nextButton);
 
-        // Add custom styles with data-no-move
+        // Add custom styles
         const style = document.createElement('style');
         style.setAttribute('data-no-move', 'true');
         style.textContent = `
@@ -204,11 +265,14 @@ class CustomSwiper extends HTMLElement {
                 width: 100%;
                 max-width: 100%;
                 overflow: hidden;
+                padding: 0;
+                margin: 0;
             }
             #${swiperContainer.id} .swiper {
                 width: 100%;
                 min-height: 400px;
                 height: auto;
+                position: relative;
             }
             #${swiperContainer.id} .swiper-slide {
                 display: flex;
@@ -217,6 +281,7 @@ class CustomSwiper extends HTMLElement {
                 width: 100%;
                 box-sizing: border-box;
                 opacity: 1 !important;
+                position: relative;
             }
             #${swiperContainer.id} .swiper-slide > .block {
                 width: 100%;
@@ -225,7 +290,7 @@ class CustomSwiper extends HTMLElement {
             }
             #${swiperContainer.id} .swiper-button-prev-${swiperContainer.id},
             #${swiperContainer.id} .swiper-button-next-${swiperContainer.id} {
-                color: var(--color-primary, #ffffff);
+                color: var(--color-primary, #ffffff) !important;
                 z-index: 10;
                 cursor: pointer;
                 width: 44px;
@@ -233,14 +298,19 @@ class CustomSwiper extends HTMLElement {
                 margin-top: -22px;
                 background: rgba(0, 0, 0, 0.5);
                 border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
             }
             #${swiperContainer.id} .swiper-button-prev-${swiperContainer.id}:after,
             #${swiperContainer.id} .swiper-button-next-${swiperContainer.id}:after {
                 font-size: 20px;
+                font-family: 'swiper-icons';
             }
             #${swiperContainer.id} .swiper-pagination-${swiperContainer.id} {
                 position: absolute;
                 bottom: 10px;
+                z-index: 10;
             }
             #${swiperContainer.id} .swiper-pagination-bullet {
                 background: var(--color-primary, #ffffff);
@@ -248,55 +318,40 @@ class CustomSwiper extends HTMLElement {
                 width: 8px;
                 height: 8px;
                 margin: 0 4px;
+                cursor: pointer;
             }
             #${swiperContainer.id} .swiper-pagination-bullet-active {
                 opacity: 1;
+                background: var(--color-primary, #ffffff);
             }
         `;
         swiperContainer.appendChild(style);
+
+        // Wait for CustomBlock definition
+        await this.waitForCustomBlockDefinition();
 
         // Move child elements to swiper-wrapper
         const children = Array.from(this.children);
         this.#log('Processing children as slides', { childCount: children.length, elementId: this.id || 'no-id' });
 
         for (const child of children) {
+            this.#log('Checking child', { tagName: child.tagName, hasAddCallback: typeof child.addCallback === 'function', isCustomElement: customElements.get(child.tagName.toLowerCase()) });
             if (child.tagName.toLowerCase() === 'custom-block' && typeof child.addCallback === 'function') {
-                // Wait for custom-block to render and replace itself
-                await new Promise(resolve => {
-                    if (child.isInitialized) {
-                        resolve();
-                    } else {
-                        child.addCallback(() => {
-                            this.#log('CustomBlock callback triggered', { childId: child.id || 'no-id', isInitialized: child.isInitialized });
-                            resolve();
-                        });
-                    }
-                });
-                // Wait additional time for replaceWith to complete
-                await new Promise(resolve => setTimeout(resolve, 100));
-                // Find the rendered block
-                let renderedBlock = null;
-                // Check siblings and parent for div.block
-                if (child.nextElementSibling && child.nextElementSibling.classList.contains('block')) {
-                    renderedBlock = child.nextElementSibling;
-                } else if (child.parentElement) {
-                    renderedBlock = child.parentElement.querySelector('.block');
-                }
+                const renderedBlock = await this.waitForBlockRender(child);
                 if (renderedBlock) {
-                    this.#log('Found rendered custom-block content', { childId: child.id || 'no-id' });
                     const slide = document.createElement('div');
                     slide.className = 'swiper-slide';
                     slide.appendChild(renderedBlock.cloneNode(true));
                     swiperSlideWrapper.appendChild(slide);
                 } else {
-                    this.#warn('Failed to find rendered custom-block content', { childId: child.id || 'no-id' });
+                    this.#warn('Failed to find rendered custom-block content, using fallback', { childId: child.id || 'no-id' });
                     const slide = document.createElement('div');
                     slide.className = 'swiper-slide';
                     slide.appendChild(child.cloneNode(true));
                     swiperSlideWrapper.appendChild(slide);
                 }
             } else {
-                this.#log('Processing non-custom-block child', { tagName: child.tagName, elementId: this.id || 'no-id' });
+                this.#warn('Non-custom-block child or missing addCallback', { tagName: child.tagName, hasAddCallback: typeof child.addCallback === 'function' });
                 const slide = document.createElement('div');
                 slide.className = 'swiper-slide';
                 slide.appendChild(child.cloneNode(true));
@@ -314,7 +369,7 @@ class CustomSwiper extends HTMLElement {
 
         if (!isFallback) {
             // Initialize Swiper after DOM is settled
-            await new Promise(resolve => setTimeout(resolve, 300));
+            await new Promise(resolve => setTimeout(resolve, 500));
             const slideCount = swiperSlideWrapper.children.length;
             const swiperConfig = {
                 slidesPerView: attrs.slidesPerView,
@@ -362,7 +417,7 @@ class CustomSwiper extends HTMLElement {
             this.swiperInstance = new Swiper(swiperWrapper, swiperConfig);
             // Multiple updates to ensure slide detection
             this.swiperInstance.update();
-            await new Promise(resolve => setTimeout(resolve, 200));
+            await new Promise(resolve => setTimeout(resolve, 300));
             this.swiperInstance.update();
         }
 
