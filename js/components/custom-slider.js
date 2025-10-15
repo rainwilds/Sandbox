@@ -128,6 +128,7 @@ class CustomSlider extends HTMLElement {
     const hasNavigation = this.hasAttribute('navigation');
     const navigationIconLeft = hasNavigation ? this.getAttribute('navigation-icon-left') || '' : '';
     const navigationIconRight = hasNavigation ? this.getAttribute('navigation-icon-right') || '' : '';
+    const slidesPerView = this.hasAttribute('slides-per-view') ? parseFloat(this.getAttribute('slides-per-view')) || 1 : 1;
 
     // Warn if navigation-icon-left or navigation-icon-right are used without navigation
     if (!hasNavigation && this.hasAttribute('navigation-icon-left')) {
@@ -212,6 +213,7 @@ class CustomSlider extends HTMLElement {
     // Prepare Swiper options
     const options = {
       loop: true,
+      slidesPerView: slidesPerView,  // New: Support for slides-per-view attribute
     };
 
     if (hasPagination) {
@@ -264,7 +266,7 @@ class CustomSlider extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['pagination', 'navigation', 'navigation-icon-left', 'navigation-icon-right'];
+    return ['pagination', 'navigation', 'navigation-icon-left', 'navigation-icon-right', 'slides-per-view'];
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
