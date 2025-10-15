@@ -27,102 +27,96 @@
     <header>
 
     <div>
-        <custom-slider
-            pagination
-            navigation
-            slides-per-view="3"
-            space-between="var(--space-tiny)"
-            navigation-icon-left='<i class="fa-chisel fa-regular fa-angle-left"></i>'
-            navigation-icon-right='<i class="fa-chisel fa-regular fa-angle-right"></i>'
-            >
-            <div>
 
-        <custom-block
-            heading="Explore Nature"
-            heading-tag="h2"
-            text="Discover breathtaking landscapes."
-            button-text="Learn More"
-            button-href="#nature"
-            button-icon='<i class="fa-chisel fa-regular fa-leaf"></i>'
-            button-icon-position="left"
-            button-icon-offset="var(--space-tiny)"
-            background-overlay="background-overlay-1"
-            img-background-src="tourism-photography-light-1.jpg"
-            img-background-alt="Nature landscape background"
-            img-background-position="center"
-            img-background-mobile-width="100vw"
-            img-background-tablet-width="80vw"
-            img-background-desktop-width="1200px"
-            text-alignment="center"
-            inner-alignment="center"
-            inner-class="padding-medium">
-        </custom-block>                
+<custom-slider
+                pagination
+                navigation
+                slides-per-view="3"
+                space-between="var(--space-tiny)"  <!-- 1rem ≈ 16px -->
+                navigation-icon-left='<i class="fa-chisel fa-regular fa-angle-left"></i>'
+                navigation-icon-right='<i class="fa-chisel fa-regular fa-angle-right"></i>'>
+                <div class="swiper-slide">
+                    <custom-block
+                        heading="Explore Nature"
+                        heading-tag="h2"
+                        text="Discover breathtaking landscapes."
+                        button-text="Learn More"
+                        button-href="#nature"
+                        button-icon='<i class="fa-chisel fa-regular fa-leaf"></i>'
+                        button-icon-position="left"
+                        button-icon-offset="var(--space-tiny)"
+                        background-overlay="background-overlay-1"
+                        img-background-src="tourism-photography-light-1.jpg"
+                        img-background-alt="Nature landscape background"
+                        img-background-position="center"
+                        img-background-mobile-width="100vw"
+                        img-background-tablet-width="80vw"
+                        img-background-desktop-width="1200px"
+                        text-alignment="center"
+                        inner-alignment="center"
+                        inner-class="padding-medium">
+                    </custom-block>
+                </div>
+                <div class="swiper-slide">
+                    <custom-block
+                        heading="Adventure Awaits"
+                        heading-tag="h3"
+                        text="Thrilling adventures with video."
+                        button-text="Join Now"
+                        button-href="#adventure"
+                        button-icon='<i class="fa-chisel fa-regular fa-compass"></i>'
+                        button-icon-position="right"
+                        button-icon-offset="var(--space-tiny)"
+                        background-overlay="background-overlay-2"
+                        background-gradient="background-gradient-1"
+                        video-background-src="video/video1.mp4"
+                        video-background-poster="tourism-photography-dark-1.jpg"
+                        video-background-alt="Adventure video background"
+                        video-background-autoplay
+                        video-background-muted
+                        video-background-loop
+                        text-alignment="right"
+                        inner-alignment="right"
+                        inner-shadow="shadow-medium"
+                        inner-class="padding-small">
+                    </custom-block>
+                </div>
+                <div class="swiper-slide">
+                    <custom-block
+                        background-overlay="background-overlay-3"
+                        background-image-noise
+                        img-background-src="tourism-photography-dark-2.jpg"
+                        img-background-alt="Scenic background"
+                        img-background-position="bottom-center"
+                        img-background-mobile-width="100vw"
+                        img-background-tablet-width="80vw"
+                        img-background-desktop-width="1200px">
+                    </custom-block>
+                </div>
+                <div class="swiper-slide">
+                    <custom-block
+                        heading="Our Story"
+                        heading-tag="h1"
+                        sub-heading="A Journey of Passion"
+                        sub-heading-tag="h4"
+                        text="Inspiring through storytelling."
+                        icon='<i class="fa-chisel fa-regular fa-book"></i>'
+                        icon-size="2.5rem"
+                        icon-style="padding-bottom: var(--space-small)"
+                        inner-shadow="shadow-heavy"
+                        inner-background-color="background-color-2"
+                        text-alignment="left"
+                        inner-alignment="left"
+                        inner-class="padding-medium color-invert">
+                    </custom-block>
+                </div>
+                <div class="swiper-slide">Slide 5</div>
+                <div class="swiper-slide">Slide 6</div>
+                <div class="swiper-slide">Slide 7</div>
+                <div class="swiper-slide">Slide 8</div>
+                <div class="swiper-slide">Slide 9</div>
+            </custom-slider>
 
-            </div>
-            <div>
-
-        <custom-block
-            heading="Adventure Awaits"
-            heading-tag="h3"
-            text="Thrilling adventures with video."
-            button-text="Join Now"
-            button-href="#adventure"
-            button-icon='<i class="fa-chisel fa-regular fa-compass"></i>'
-            button-icon-position="right"
-            button-icon-offset="var(--space-tiny)"
-            background-overlay="background-overlay-2"
-            background-gradient="background-gradient-1"
-            video-background-src="video/video1.mp4"
-            video-background-poster="tourism-photography-dark-1.jpg"
-            video-background-alt="Adventure video background"
-            video-background-autoplay
-            video-background-muted
-            video-background-loop
-            text-alignment="right"
-            inner-alignment="right"
-            inner-shadow="shadow-medium"
-            inner-class="padding-small">
-        </custom-block>
-
-            </div>
-            <div>
-
-        <custom-block
-            background-overlay="background-overlay-3"
-            background-image-noise
-            img-background-src="tourism-photography-dark-2.jpg"
-            img-background-alt="Scenic background"
-            img-background-position="bottom-center"
-            img-background-mobile-width="100vw"
-            img-background-tablet-width="80vw"
-            img-background-desktop-width="1200px">
-        </custom-block>              
-            </div>
-            <div>
-
-        <custom-block
-            heading="Our Story"
-            heading-tag="h1"
-            sub-heading="A Journey of Passion"
-            sub-heading-tag="h4"
-            text="Inspiring through storytelling."
-            icon='<i class="fa-chisel fa-regular fa-book"></i>'
-            icon-size="2.5rem"
-            icon-style="padding-bottom: var(--space-small)"
-            inner-shadow="shadow-heavy"
-            inner-background-color="background-color-2"
-            text-alignment="left"
-            inner-alignment="left"
-            inner-class="padding-medium color-invert">
-        </custom-block>                
-
-            </div>
-            <div>Slide 5</div>
-            <div>Slide 6</div>
-            <div>Slide 7</div>
-            <div>Slide 8</div>
-            <div>Slide 9</div>
-        </custom-slider>
     </div>
 
 </header>

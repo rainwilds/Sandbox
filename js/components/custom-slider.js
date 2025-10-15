@@ -32,7 +32,7 @@ class CustomSlider extends HTMLElement {
     }
   }
 
-  async #checkFontAwesome(classes, maxAttempts = 5, delay = 300) {
+  async #checkFontAwesome(classes, maxAttempts = 5, delay = 500) {
     let attempts = 0;
     while (attempts < maxAttempts) {
       const testDiv = document.createElement('div');
@@ -184,6 +184,9 @@ class CustomSlider extends HTMLElement {
     const navigationIconRight = hasNavigation ? this.getAttribute('navigation-icon-right') || '' : '';
     const slidesPerView = this.hasAttribute('slides-per-view') ? parseFloat(this.getAttribute('slides-per-view')) || 1 : 1;
     const spaceBetween = this.hasAttribute('space-between') ? await this.#parseSpaceBetween(this.getAttribute('space-between')) : 0;
+
+    // Log spaceBetween value for debugging
+    this.#log('Applying spaceBetween to Swiper', { spaceBetween });
 
     // Warn if navigation-icon-left or navigation-icon-right are used without navigation
     if (!hasNavigation && this.hasAttribute('navigation-icon-left')) {
