@@ -32,6 +32,24 @@ class CustomSlider extends HTMLElement {
     }
   }
 
+  async #checkFontAwesome(classes, maxAttempts = 3, delay = 100) {
+    let attempts = 0;
+    while (attempts < maxAttempts) {
+      const testDiv = document.createElement('div');
+      testDiv.style.display = 'none';
+      testDiv.innerHTML = `<i class="${classes.join(' ')}"></i>`;
+      document.body.appendChild(testDiv);
+      const testIcon = testDiv.querySelector('i');
+      const isIconVisible = testIcon && window.getComputedStyle(testIcon).fontFamily.includes('Font Awesome');
+      document.body.removeChild(testDiv);
+      if (isIconVisible) return true;
+      this.#log(`Font Awesome check attempt ${attempts + 1}/${maxAttempts}`, { classes });
+      await new Promise(resolve => setTimeout(resolve, delay));
+      attempts++;
+    }
+    return false;
+  }
+
   #validateIcon(icon, attributeName) {
     if (!icon) return '';
     const cleanedIcon = icon
@@ -64,20 +82,16 @@ class CustomSlider extends HTMLElement {
       });
       return '';
     }
-    const testDiv = document.createElement('div');
-    testDiv.style.display = 'none';
-    testDiv.innerHTML = `<i class="${validClasses.join(' ')}"></i>`;
-    document.body.appendChild(testDiv);
-    const testIcon = testDiv.querySelector('i');
-    const isIconVisible = testIcon && window.getComputedStyle(testIcon).fontFamily.includes('Font Awesome');
-    document.body.removeChild(testDiv);
-    if (!isIconVisible) {
-      this.#warn(`Font Awesome kit may not have loaded or does not support classes for ${attributeName}`, {
-        classes: validClasses,
-        elementId: this.id || 'no-id',
-        kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js'
-      });
-    }
+    // Check if Font Awesome is loaded
+    this.#checkFontAwesome(validClasses).then(isIconVisible => {
+      if (!isIconVisible) {
+        this.#warn(`Font Awesome kit may not have loaded or does not support classes for ${attributeName}`, {
+          classes: validClasses,
+          elementId: this.id || 'no-id',
+          kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js'
+        });
+      }
+    });
     const iconHtml = `<i class="${validClasses.join(' ')}"></i>`;
     this.#log(`Validated icon for ${attributeName}`, { iconHtml });
     return iconHtml;
@@ -136,13 +150,16 @@ class CustomSlider extends HTMLElement {
     // Move children to swiper-wrapper
     const wrapper = document.createElement('div');
     wrapper.classList.add('swiper-wrapper');
+    const slideCount = this.children.length;
     Array.from(this.children).forEach(child => {
       if (!child.classList.contains('swiper-slide')) {
         child.classList.add('swiper-slide');
       }
       wrapper.appendChild(child);
+      this.#log('Added slide to wrapper', { childTag: child.tagName, hasCustomBlock: child.tagName.toLowerCase() === 'custom-block' });
     });
     container.appendChild(wrapper);
+    this.#log('Slides processed', { slideCount });
 
     // Add pagination if attribute is present
     if (hasPagination) {
