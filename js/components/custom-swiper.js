@@ -205,7 +205,8 @@ class CustomSwiper extends HTMLElement {
             }
             .swiper {
                 width: 100%;
-                height: 100%;
+                min-height: 300px; /* Ensure visibility */
+                height: auto;
             }
             .swiper-slide {
                 display: flex;
@@ -217,10 +218,12 @@ class CustomSwiper extends HTMLElement {
             .swiper-slide > .block {
                 width: 100%;
                 max-width: 1200px;
+                min-height: 200px; /* Ensure content visibility */
             }
             .swiper-button-prev,
             .swiper-button-next {
                 color: var(--color-primary, #ffffff);
+                z-index: 10;
             }
             .swiper-pagination-bullet {
                 background: var(--color-primary, #ffffff);
@@ -274,7 +277,7 @@ class CustomSwiper extends HTMLElement {
 
         if (!isFallback) {
             // Initialize Swiper after DOM is settled
-            await new Promise(resolve => setTimeout(resolve, 0)); // Ensure DOM updates are applied
+            await new Promise(resolve => setTimeout(resolve, 100)); // Increased delay for DOM stability
             const slideCount = swiperSlideWrapper.children.length;
             const swiperConfig = {
                 slidesPerView: attrs.slidesPerView,
@@ -285,8 +288,8 @@ class CustomSwiper extends HTMLElement {
                     clickable: true,
                 },
                 navigation: {
-                    nextEl: '.swiper-button-prev',
-                    prevEl: '.swiper-button-next',
+                    nextEl: '.swiper-button-next', // Corrected: nextEl points to next button
+                    prevEl: '.swiper-button-prev', // Corrected: prevEl points to prev button
                 },
                 autoplay: attrs.loop && slideCount >= 2 ? {
                     delay: 3000,
