@@ -32,12 +32,12 @@ class CustomSlider extends HTMLElement {
     }
   }
 
-  async #checkFontAwesome(classes, maxAttempts = 3, delay = 100) {
+  async #checkFontAwesome(classes, maxAttempts = 5, delay = 200) {
     let attempts = 0;
     while (attempts < maxAttempts) {
       const testDiv = document.createElement('div');
       testDiv.style.display = 'none';
-      testDiv.innerHTML = `<i class="${classes.join(' ')}"></i>`;
+      testDiv.innerHTML = `<i class="fa ${classes.join(' ')}"></i>`;
       document.body.appendChild(testDiv);
       const testIcon = testDiv.querySelector('i');
       const isIconVisible = testIcon && window.getComputedStyle(testIcon).fontFamily.includes('Font Awesome');
@@ -82,7 +82,7 @@ class CustomSlider extends HTMLElement {
       });
       return '';
     }
-    // Check if Font Awesome is loaded
+    // Async check for Font Awesome loading
     this.#checkFontAwesome(validClasses).then(isIconVisible => {
       if (!isIconVisible) {
         this.#warn(`Font Awesome kit may not have loaded or does not support classes for ${attributeName}`, {
@@ -151,6 +151,7 @@ class CustomSlider extends HTMLElement {
     const wrapper = document.createElement('div');
     wrapper.classList.add('swiper-wrapper');
     const slideCount = this.children.length;
+    const customBlockCount = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block').length;
     Array.from(this.children).forEach(child => {
       if (!child.classList.contains('swiper-slide')) {
         child.classList.add('swiper-slide');
@@ -159,7 +160,7 @@ class CustomSlider extends HTMLElement {
       this.#log('Added slide to wrapper', { childTag: child.tagName, hasCustomBlock: child.tagName.toLowerCase() === 'custom-block' });
     });
     container.appendChild(wrapper);
-    this.#log('Slides processed', { slideCount });
+    this.#log('Slides processed', { slideCount, customBlockCount });
 
     // Add pagination if attribute is present
     if (hasPagination) {
