@@ -355,8 +355,8 @@ async function updateHead(attributes, setup) {
     customHead.remove();
     logger.log('Removed data-custom-head element');
 
-    // Ensure all <style> elements are in <head>
-    const styles = document.querySelectorAll('style');
+    // Ensure all <style> elements are in <head>, respecting data-no-move
+    const styles = document.querySelectorAll('style:not([data-no-move])');
     let movedStyleCount = 0;
     styles.forEach(style => {
       if (style.parentNode !== document.head && style.parentNode !== null) {
@@ -368,11 +368,11 @@ async function updateHead(attributes, setup) {
     if (movedStyleCount > 0) {
       logger.log(`Moved ${movedStyleCount} <style> element(s) to <head>`);
     } else {
-      logger.log('All <style> elements already in <head>');
+      logger.log('All <style> elements already in <head> or marked data-no-move');
     }
 
     // Ensure all <link> elements are in <head>
-    const links = document.querySelectorAll('link');
+    const links = document.querySelectorAll('link:not([data-no-move])');
     let movedLinkCount = 0;
     links.forEach(link => {
       if (link.parentNode !== document.head && link.parentNode !== null) {
@@ -384,11 +384,11 @@ async function updateHead(attributes, setup) {
     if (movedLinkCount > 0) {
       logger.log(`Moved ${movedLinkCount} <link> element(s) to <head>`);
     } else {
-      logger.log('All <link> elements already in <head>');
+      logger.log('All <link> elements already in <head> or marked data-no-move');
     }
 
     // Ensure all <script> elements are properly placed
-    const scripts = document.querySelectorAll('script');
+    const scripts = document.querySelectorAll('script:not([data-no-move])');
     logger.log('Found scripts before processing:', Array.from(scripts).map(s => ({
       tagName: s.tagName,
       src: s.src || 'inline',

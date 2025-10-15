@@ -122,50 +122,34 @@ class CustomSwiper extends HTMLElement {
         });
     }
 
-    async waitForBlockRender(child, timeout = 1000) {
-        return new Promise((resolve, reject) => {
-            if (child.isInitialized && child.nextElementSibling && child.nextElementSibling.classList.contains('block')) {
-                this.#log('CustomBlock already rendered', { childId: child.id || 'no-id' });
-                resolve(child.nextElementSibling);
-                return;
-            }
-
-            const observer = new MutationObserver((mutations, obs) => {
-                for (const mutation of mutations) {
-                    if (mutation.type === 'childList') {
-                        const block = child.nextElementSibling && child.nextElementSibling.classList.contains('block')
-                            ? child.nextElementSibling
-                            : child.parentElement.querySelector('.block');
-                        if (block) {
-                            this.#log('CustomBlock rendered', { childId: child.id || 'no-id' });
-                            obs.disconnect();
-                            resolve(block);
-                            return;
-                        }
-                    }
+    async waitForBlockRender(child, timeout = 2000) {
+        return new Promise((resolve) => {
+            const startTime = Date.now();
+            const checkBlock = () => {
+                const block = child.nextElementSibling && child.nextElementSibling.classList.contains('block')
+                    ? child.nextElementSibling
+                    : child.parentElement.querySelector('.block');
+                if (block) {
+                    this.#log('CustomBlock rendered', { childId: child.id || 'no-id' });
+                    resolve(block);
+                    return;
                 }
-            });
-
-            observer.observe(child.parentElement || document.body, { childList: true, subtree: true });
+                if (Date.now() - startTime >= timeout) {
+                    this.#warn('Timeout waiting for CustomBlock render', { childId: child.id || 'no-id' });
+                    resolve(null);
+                    return;
+                }
+                setTimeout(checkBlock, 100);
+            };
 
             if (typeof child.addCallback === 'function') {
                 child.addCallback(() => {
                     this.#log('CustomBlock callback triggered', { childId: child.id || 'no-id' });
-                    const block = child.nextElementSibling && child.nextElementSibling.classList.contains('block')
-                        ? child.nextElementSibling
-                        : child.parentElement.querySelector('.block');
-                    if (block) {
-                        obs.disconnect();
-                        resolve(block);
-                    }
+                    checkBlock();
                 });
+            } else {
+                checkBlock();
             }
-
-            setTimeout(() => {
-                observer.disconnect();
-                this.#warn('Timeout waiting for CustomBlock render', { childId: child.id || 'no-id' });
-                resolve(null);
-            }, timeout);
         });
     }
 
@@ -330,12 +314,23 @@ class CustomSwiper extends HTMLElement {
         // Wait for CustomBlock definition
         await this.waitForCustomBlockDefinition();
 
-        // Move child elements to swiper-wrapper
+        // Store original children to prevent DOM mutation issues
         const children = Array.from(this.children);
         this.#log('Processing children as slides', { childCount: children.length, elementId: this.id || 'no-id' });
 
+        // Create a temporary container to hold original children
+        const tempContainer = document.createElement('div');
+        tempContainer.style.display = 'none';
+        document.body.appendChild(tempContainer);
+        children.forEach(child => tempContainer.appendChild(child.cloneNode(true)));
+
         for (const child of children) {
-            this.#log('Checking child', { tagName: child.tagName, hasAddCallback: typeof child.addCallback === 'function', isCustomElement: customElements.get(child.tagName.toLowerCase()) });
+            this.#log('Checking child', {
+                tagName: child.tagName,
+                hasAddCallback: typeof child.addCallback === 'function',
+                isCustomElement: !!customElements.get(child.tagName.toLowerCase()),
+                isInitialized: child.isInitialized || false
+            });
             if (child.tagName.toLowerCase() === 'custom-block' && typeof child.addCallback === 'function') {
                 const renderedBlock = await this.waitForBlockRender(child);
                 if (renderedBlock) {
@@ -351,13 +346,19 @@ class CustomSwiper extends HTMLElement {
                     swiperSlideWrapper.appendChild(slide);
                 }
             } else {
-                this.#warn('Non-custom-block child or missing addCallback', { tagName: child.tagName, hasAddCallback: typeof child.addCallback === 'function' });
+                this.#warn('Non-custom-block child or missing addCallback, cloning directly', {
+                    tagName: child.tagName,
+                    hasAddCallback: typeof child.addCallback === 'function'
+                });
                 const slide = document.createElement('div');
                 slide.className = 'swiper-slide';
                 slide.appendChild(child.cloneNode(true));
                 swiperSlideWrapper.appendChild(slide);
             }
         }
+
+        // Clean up temporary container
+        tempContainer.remove();
 
         if (swiperSlideWrapper.children.length === 0) {
             this.#error('No valid slides found, rendering fallback', { elementId: this.id || 'no-id' });
@@ -369,7 +370,7 @@ class CustomSwiper extends HTMLElement {
 
         if (!isFallback) {
             // Initialize Swiper after DOM is settled
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 1000));
             const slideCount = swiperSlideWrapper.children.length;
             const swiperConfig = {
                 slidesPerView: attrs.slidesPerView,
@@ -417,8 +418,17 @@ class CustomSwiper extends HTMLElement {
             this.swiperInstance = new Swiper(swiperWrapper, swiperConfig);
             // Multiple updates to ensure slide detection
             this.swiperInstance.update();
-            await new Promise(resolve => setTimeout(resolve, 300));
+            await new Promise(resolve => setTimeout(resolve, 500));
             this.swiperInstance.update();
+
+            // Observe DOM changes to reinitialize Swiper if needed
+            const observer = new MutationObserver(() => {
+                if (this.swiperInstance) {
+                    this.#log('DOM changed, updating Swiper', { elementId: this.id || 'no-id' });
+                    this.swiperInstance.update();
+                }
+            });
+            observer.observe(swiperContainer, { childList: true, subtree: true });
         }
 
         if (!isFallback) {
