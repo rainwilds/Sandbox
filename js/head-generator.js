@@ -42,6 +42,7 @@ const DEPENDENCIES = {
   'image-generator': ['shared'],
   'video-generator': ['shared'],
   'custom-block': ['image-generator', 'video-generator', 'shared'],
+  'custom-swiper': ['custom-block', 'shared'],
   'custom-nav': ['shared'],
   'custom-logo': ['image-generator', 'shared'],
   'custom-header': ['image-generator', 'shared']
