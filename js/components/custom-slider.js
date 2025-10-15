@@ -32,7 +32,7 @@ class CustomSlider extends HTMLElement {
     }
   }
 
-  async #checkFontAwesome(classes, maxAttempts = 5, delay = 200) {
+  async #checkFontAwesome(classes, maxAttempts = 5, delay = 300) {
     let attempts = 0;
     while (attempts < maxAttempts) {
       const testDiv = document.createElement('div');
@@ -96,31 +96,39 @@ class CustomSlider extends HTMLElement {
     return iconHtml;
   }
 
-  #parseCssValue(value) {
+  async #parseSpaceBetween(value, maxAttempts = 3, delay = 100) {
     if (!value) return 0;
     const trimmedValue = value.trim();
     
-    // Handle CSS variable (e.g., var(--tiny-space))
+    // Handle CSS variable (e.g., var(--space-tiny))
     if (trimmedValue.startsWith('var(')) {
-      try {
-        const varName = trimmedValue.match(/var\((--[^)]+)\)/)?.[1];
-        if (!varName) {
-          this.#warn('Invalid CSS variable format in space-between', { value: trimmedValue, elementId: this.id || 'no-id' });
-          return 0;
+      let attempts = 0;
+      while (attempts < maxAttempts) {
+        try {
+          const varName = trimmedValue.match(/var\((--[^)]+)\)/)?.[1];
+          if (!varName) {
+            this.#warn('Invalid CSS variable format in space-between', { value: trimmedValue, elementId: this.id || 'no-id' });
+            return 0;
+          }
+          const computedStyle = getComputedStyle(document.documentElement);
+          const pixelValue = computedStyle.getPropertyValue(varName).trim();
+          const parsedValue = parseFloat(pixelValue);
+          if (isNaN(parsedValue)) {
+            this.#log(`CSS variable resolution attempt ${attempts + 1}/${maxAttempts}`, { variable: varName, resolved: pixelValue });
+            await new Promise(resolve => setTimeout(resolve, delay));
+            attempts++;
+            continue;
+          }
+          this.#log('Parsed CSS variable for space-between', { variable: varName, pixelValue: parsedValue });
+          return parsedValue;
+        } catch (error) {
+          this.#log(`CSS variable resolution attempt ${attempts + 1}/${maxAttempts} failed`, { value: trimmedValue, error: error.message });
+          await new Promise(resolve => setTimeout(resolve, delay));
+          attempts++;
         }
-        const computedStyle = getComputedStyle(document.documentElement);
-        const pixelValue = computedStyle.getPropertyValue(varName).trim();
-        const parsedValue = parseFloat(pixelValue);
-        if (isNaN(parsedValue)) {
-          this.#warn('CSS variable resolved to invalid pixel value', { value: trimmedValue, resolved: pixelValue, elementId: this.id || 'no-id' });
-          return 0;
-        }
-        this.#log('Parsed CSS variable for space-between', { variable: varName, pixelValue: parsedValue });
-        return parsedValue;
-      } catch (error) {
-        this.#warn('Failed to resolve CSS variable for space-between', { value: trimmedValue, error: error.message });
-        return 0;
       }
+      this.#warn('CSS variable resolved to invalid pixel value after retries', { value: trimmedValue, elementId: this.id || 'no-id' });
+      return 0;
     }
 
     // Handle CSS units (px, em, rem, %, vw, vh)
@@ -175,7 +183,7 @@ class CustomSlider extends HTMLElement {
     const navigationIconLeft = hasNavigation ? this.getAttribute('navigation-icon-left') || '' : '';
     const navigationIconRight = hasNavigation ? this.getAttribute('navigation-icon-right') || '' : '';
     const slidesPerView = this.hasAttribute('slides-per-view') ? parseFloat(this.getAttribute('slides-per-view')) || 1 : 1;
-    const spaceBetween = this.hasAttribute('space-between') ? this.#parseCssValue(this.getAttribute('space-between')) : 0;
+    const spaceBetween = this.hasAttribute('space-between') ? await this.#parseSpaceBetween(this.getAttribute('space-between')) : 0;
 
     // Warn if navigation-icon-left or navigation-icon-right are used without navigation
     if (!hasNavigation && this.hasAttribute('navigation-icon-left')) {
@@ -202,9 +210,13 @@ class CustomSlider extends HTMLElement {
     const customBlockCount = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block').length;
     Array.from(this.children).forEach(child => {
       if (!child.classList.contains('swiper-slide')) {
-        child.classList.add('swiper-slide');
+        const slide = document.createElement('div');
+        slide.classList.add('swiper-slide');
+        slide.appendChild(child);
+        wrapper.appendChild(slide);
+      } else {
+        wrapper.appendChild(child);
       }
-      wrapper.appendChild(child);
       this.#log('Added slide to wrapper', { childTag: child.tagName, hasCustomBlock: child.tagName.toLowerCase() === 'custom-block' });
     });
     container.appendChild(wrapper);
