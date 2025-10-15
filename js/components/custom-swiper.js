@@ -171,6 +171,7 @@ class CustomSwiper extends HTMLElement {
         const fragment = document.createDocumentFragment();
         const swiperContainer = document.createElement('div');
         swiperContainer.className = 'custom-swiper';
+        swiperContainer.id = `custom-swiper-${Math.random().toString(36).substr(2, 9)}`; // Unique ID for specificity
         fragment.appendChild(swiperContainer);
 
         // Create Swiper structure
@@ -183,56 +184,72 @@ class CustomSwiper extends HTMLElement {
         swiperWrapper.appendChild(swiperSlideWrapper);
 
         const pagination = document.createElement('div');
-        pagination.className = 'swiper-pagination';
+        pagination.className = `swiper-pagination swiper-pagination-${swiperContainer.id}`;
         swiperWrapper.appendChild(pagination);
 
         const prevButton = document.createElement('div');
-        prevButton.className = 'swiper-button-prev';
+        prevButton.className = `swiper-button-prev swiper-button-prev-${swiperContainer.id}`;
         swiperWrapper.appendChild(prevButton);
 
         const nextButton = document.createElement('div');
-        nextButton.className = 'swiper-button-next';
+        nextButton.className = `swiper-button-next swiper-button-next-${swiperContainer.id}`;
         swiperWrapper.appendChild(nextButton);
 
-        // Add custom styles with data-no-move to prevent head-generator.js from relocating
+        // Add custom styles with data-no-move
         const style = document.createElement('style');
         style.setAttribute('data-no-move', 'true');
         style.textContent = `
-            .custom-swiper {
+            #${swiperContainer.id}.custom-swiper {
                 position: relative;
                 width: 100%;
                 max-width: 100%;
                 overflow: hidden;
             }
-            .swiper {
+            #${swiperContainer.id} .swiper {
                 width: 100%;
-                min-height: 300px;
+                min-height: 400px;
                 height: auto;
             }
-            .swiper-slide {
+            #${swiperContainer.id} .swiper-slide {
                 display: flex;
                 justify-content: center;
                 align-items: center;
                 width: 100%;
                 box-sizing: border-box;
-                opacity: 1 !important; /* Ensure slides are visible */
+                opacity: 1 !important;
             }
-            .swiper-slide > .block {
+            #${swiperContainer.id} .swiper-slide > .block {
                 width: 100%;
                 max-width: 1200px;
-                min-height: 200px;
+                min-height: 300px;
             }
-            .swiper-button-prev,
-            .swiper-button-next {
+            #${swiperContainer.id} .swiper-button-prev-${swiperContainer.id},
+            #${swiperContainer.id} .swiper-button-next-${swiperContainer.id} {
                 color: var(--color-primary, #ffffff);
                 z-index: 10;
                 cursor: pointer;
+                width: 44px;
+                height: 44px;
+                margin-top: -22px;
+                background: rgba(0, 0, 0, 0.5);
+                border-radius: 50%;
             }
-            .swiper-pagination-bullet {
+            #${swiperContainer.id} .swiper-button-prev-${swiperContainer.id}:after,
+            #${swiperContainer.id} .swiper-button-next-${swiperContainer.id}:after {
+                font-size: 20px;
+            }
+            #${swiperContainer.id} .swiper-pagination-${swiperContainer.id} {
+                position: absolute;
+                bottom: 10px;
+            }
+            #${swiperContainer.id} .swiper-pagination-bullet {
                 background: var(--color-primary, #ffffff);
                 opacity: 0.7;
+                width: 8px;
+                height: 8px;
+                margin: 0 4px;
             }
-            .swiper-pagination-bullet-active {
+            #${swiperContainer.id} .swiper-pagination-bullet-active {
                 opacity: 1;
             }
         `;
@@ -244,29 +261,42 @@ class CustomSwiper extends HTMLElement {
 
         for (const child of children) {
             if (child.tagName.toLowerCase() === 'custom-block' && typeof child.addCallback === 'function') {
-                // Wait for custom-block to render
+                // Wait for custom-block to render and replace itself
                 await new Promise(resolve => {
                     if (child.isInitialized) {
                         resolve();
                     } else {
-                        child.addCallback(resolve);
+                        child.addCallback(() => {
+                            this.#log('CustomBlock callback triggered', { childId: child.id || 'no-id', isInitialized: child.isInitialized });
+                            resolve();
+                        });
                     }
                 });
-                // Find the rendered block (div.block) in the DOM
-                let renderedBlock = child.parentElement ? child.parentElement.querySelector('.block') : null;
-                if (!renderedBlock && child.nextElementSibling && child.nextElementSibling.classList.contains('block')) {
+                // Wait additional time for replaceWith to complete
+                await new Promise(resolve => setTimeout(resolve, 100));
+                // Find the rendered block
+                let renderedBlock = null;
+                // Check siblings and parent for div.block
+                if (child.nextElementSibling && child.nextElementSibling.classList.contains('block')) {
                     renderedBlock = child.nextElementSibling;
+                } else if (child.parentElement) {
+                    renderedBlock = child.parentElement.querySelector('.block');
                 }
                 if (renderedBlock) {
+                    this.#log('Found rendered custom-block content', { childId: child.id || 'no-id' });
                     const slide = document.createElement('div');
                     slide.className = 'swiper-slide';
                     slide.appendChild(renderedBlock.cloneNode(true));
                     swiperSlideWrapper.appendChild(slide);
                 } else {
                     this.#warn('Failed to find rendered custom-block content', { childId: child.id || 'no-id' });
+                    const slide = document.createElement('div');
+                    slide.className = 'swiper-slide';
+                    slide.appendChild(child.cloneNode(true));
+                    swiperSlideWrapper.appendChild(slide);
                 }
             } else {
-                // Handle non-custom-block children
+                this.#log('Processing non-custom-block child', { tagName: child.tagName, elementId: this.id || 'no-id' });
                 const slide = document.createElement('div');
                 slide.className = 'swiper-slide';
                 slide.appendChild(child.cloneNode(true));
@@ -284,19 +314,19 @@ class CustomSwiper extends HTMLElement {
 
         if (!isFallback) {
             // Initialize Swiper after DOM is settled
-            await new Promise(resolve => setTimeout(resolve, 200)); // Increased delay
+            await new Promise(resolve => setTimeout(resolve, 300));
             const slideCount = swiperSlideWrapper.children.length;
             const swiperConfig = {
                 slidesPerView: attrs.slidesPerView,
                 spaceBetween: attrs.spaceBetween.match(/^\d+\.?\d*$/) ? parseFloat(attrs.spaceBetween) : attrs.spaceBetween,
                 loop: attrs.loop && slideCount >= 2,
                 pagination: {
-                    el: '.swiper-pagination',
+                    el: `.swiper-pagination-${swiperContainer.id}`,
                     clickable: true,
                 },
                 navigation: {
-                    nextEl: '.swiper-button-next',
-                    prevEl: '.swiper-button-prev',
+                    nextEl: `.swiper-button-next-${swiperContainer.id}`,
+                    prevEl: `.swiper-button-prev-${swiperContainer.id}`,
                 },
                 autoplay: attrs.loop && slideCount >= 2 ? {
                     delay: 3000,
@@ -319,6 +349,8 @@ class CustomSwiper extends HTMLElement {
                 on: {
                     init: () => {
                         this.#log('Swiper initialized', { slideCount, elementId: this.id || 'no-id' });
+                        const navButtons = swiperContainer.querySelectorAll(`.swiper-button-prev-${swiperContainer.id}, .swiper-button-next-${swiperContainer.id}`);
+                        this.#log('Navigation buttons status', { count: navButtons.length, visible: Array.from(navButtons).every(btn => btn.offsetParent !== null) });
                     },
                     slideChange: () => {
                         this.#log('Slide changed', { activeIndex: this.swiperInstance ? this.swiperInstance.activeIndex : -1, elementId: this.id || 'no-id' });
@@ -330,7 +362,7 @@ class CustomSwiper extends HTMLElement {
             this.swiperInstance = new Swiper(swiperWrapper, swiperConfig);
             // Multiple updates to ensure slide detection
             this.swiperInstance.update();
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 200));
             this.swiperInstance.update();
         }
 
