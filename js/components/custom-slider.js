@@ -37,21 +37,30 @@ class CustomSlider extends HTMLElement {
     const parser = new DOMParser();
     const doc = parser.parseFromString(cleanedIcon, 'text/html');
     const iElement = doc.body.querySelector('i');
-    if (!iElement || !iElement.className.includes('fa-')) {
-      this.#warn(`Invalid ${attributeName} format`, {
+    if (!iElement) {
+      this.#warn(`Invalid ${attributeName} format: No <i> tag found`, {
         value: icon,
         elementId: this.id || 'no-id',
         expected: 'Font Awesome <i> tag with fa- classes'
       });
       return '';
     }
-    const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
-    if (validClasses.length === 0) {
-      this.#warn(`No valid Font Awesome classes in ${attributeName}`, {
+    const classes = iElement.className.split(' ').filter(cls => cls);
+    const validClasses = classes.filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel' || cls === 'fa-regular' || cls === 'fa-solid');
+    if (validClasses.length === 0 || !classes.some(cls => cls.startsWith('fa-') && cls !== 'fa-regular' && cls !== 'fa-solid')) {
+      this.#warn(`No valid Font Awesome icon classes in ${attributeName}`, {
         classes: iElement.className,
-        elementId: this.id || 'no-id'
+        elementId: this.id || 'no-id',
+        expected: 'At least one fa- icon class (e.g., fa-compass, fa-arrow-right)'
       });
       return '';
+    }
+    // Check if Font Awesome is loaded
+    if (!window.FontAwesome) {
+      this.#warn(`Font Awesome kit not loaded for ${attributeName}`, {
+        elementId: this.id || 'no-id',
+        kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js'
+      });
     }
     return `<i class="${validClasses.join(' ')}"></i>`;
   }
@@ -116,20 +125,31 @@ class CustomSlider extends HTMLElement {
       const next = document.createElement('div');
       next.classList.add('swiper-button-next');
 
-      // Apply Font Awesome icons if valid
+      // Apply Font Awesome icons if valid, with fallback
       if (navigationIconLeft) {
         const validatedIconLeft = this.#validateIcon(navigationIconLeft, 'navigation-icon-left');
+        prev.innerHTML = validatedIconLeft || '<i class="fa-solid fa-arrow-left"></i>';
         if (validatedIconLeft) {
-          prev.innerHTML = validatedIconLeft;
           this.#log('Left navigation button icon applied', { icon: validatedIconLeft, elementId: this.id || 'no-id' });
+        } else {
+          this.#log('Using fallback icon for navigation-icon-left', { icon: '<i class="fa-solid fa-arrow-left"></i>', elementId: this.id || 'no-id' });
         }
+      } else {
+        prev.innerHTML = '<i class="fa-solid fa-arrow-left"></i>';
+        this.#log('No navigation-icon-left provided, using fallback', { icon: '<i class="fa-solid fa-arrow-left"></i>', elementId: this.id || 'no-id' });
       }
+
       if (navigationIconRight) {
         const validatedIconRight = this.#validateIcon(navigationIconRight, 'navigation-icon-right');
+        next.innerHTML = validatedIconRight || '<i class="fa-solid fa-arrow-right"></i>';
         if (validatedIconRight) {
-          next.innerHTML = validatedIconRight;
           this.#log('Right navigation button icon applied', { icon: validatedIconRight, elementId: this.id || 'no-id' });
+        } else {
+          this.#log('Using fallback icon for navigation-icon-right', { icon: '<i class="fa-solid fa-arrow-right"></i>', elementId: this.id || 'no-id' });
         }
+      } else {
+        next.innerHTML = '<i class="fa-solid fa-arrow-right"></i>';
+        this.#log('No navigation-icon-right provided, using fallback', { icon: '<i class="fa-solid fa-arrow-right"></i>', elementId: this.id || 'no-id' });
       }
 
       this.appendChild(prev);

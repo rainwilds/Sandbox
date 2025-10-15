@@ -1980,7 +1980,9 @@ div#products {
 
 
 
-
+.swiper {
+    height: 100%;
+}
 
 .swiper-button-prev:after,
 .swiper-button-next:after {
