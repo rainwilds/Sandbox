@@ -83,6 +83,20 @@ class CustomSlider extends HTMLElement {
     return iconHtml;
   }
 
+  async #waitForSwiper(maxAttempts = 10, delay = 100) {
+    let attempts = 0;
+    while (!window.Swiper && attempts < maxAttempts) {
+      this.#log(`Waiting for Swiper library, attempt ${attempts + 1}/${maxAttempts}`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      attempts++;
+    }
+    if (!window.Swiper) {
+      this.#error('Swiper library failed to load after maximum attempts', { maxAttempts, elementId: this.id || 'no-id' });
+      return false;
+    }
+    return true;
+  }
+
   async initialize() {
     if (this.#isInitialized) {
       this.#log('Skipping initialization, already initialized', { elementId: this.id || 'no-id' });
@@ -90,8 +104,9 @@ class CustomSlider extends HTMLElement {
     }
     this.#log('Starting initialization', { elementId: this.id || 'no-id' });
 
-    if (!window.Swiper) {
-      this.#error('Swiper library not loaded', { elementId: this.id || 'no-id' });
+    // Wait for Swiper to load
+    const swiperLoaded = await this.#waitForSwiper();
+    if (!swiperLoaded) {
       return;
     }
 
@@ -217,10 +232,7 @@ class CustomSlider extends HTMLElement {
 
   connectedCallback() {
     this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
-    // Delay to ensure Font Awesome kit loads
-    setTimeout(() => {
-      this.initialize();
-    }, 0);
+    this.initialize();
   }
 
   disconnectedCallback() {
