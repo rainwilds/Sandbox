@@ -40,6 +40,7 @@ class CustomSlider extends HTMLElement {
     }
 
     const hasPagination = this.hasAttribute('pagination');
+    const hasNavigation = this.hasAttribute('navigation');
 
     // Transform this element into the swiper container
     this.classList.add('swiper');
@@ -67,6 +68,17 @@ class CustomSlider extends HTMLElement {
       this.#log('Pagination element added', { elementId: this.id || 'no-id' });
     }
 
+    // Add navigation buttons if attribute is present
+    if (hasNavigation) {
+      const prev = document.createElement('div');
+      prev.classList.add('swiper-button-prev');
+      const next = document.createElement('div');
+      next.classList.add('swiper-button-next');
+      this.appendChild(prev);
+      this.appendChild(next);
+      this.#log('Navigation buttons added', { elementId: this.id || 'no-id' });
+    }
+
     // Prepare Swiper options
     const options = {
       loop: true, // Default; can be made configurable later
@@ -79,10 +91,17 @@ class CustomSlider extends HTMLElement {
       };
     }
 
+    if (hasNavigation) {
+      options.navigation = {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      };
+    }
+
     // Initialize Swiper
     try {
       this.#swiperInstance = new Swiper(this, options);
-      this.#log('Swiper initialized successfully', { options, hasPagination });
+      this.#log('Swiper initialized successfully', { options, hasPagination, hasNavigation });
     } catch (error) {
       this.#error('Failed to initialize Swiper', { error: error.message, stack: error.stack });
     }
@@ -98,7 +117,7 @@ class CustomSlider extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['pagination'];
+    return ['pagination', 'navigation'];
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
