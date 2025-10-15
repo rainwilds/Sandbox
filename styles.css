@@ -1991,6 +1991,7 @@ div#products {
 .swiper-button-prev i,
 .swiper-button-next i {
   font-size: 1.5rem; /* Adjust icon size */
+  display: inline-block; /* Ensure icons are visible */
 }
 
 
