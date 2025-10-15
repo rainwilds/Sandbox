@@ -39,7 +39,6 @@ class CustomSlider extends HTMLElement {
       return;
     }
 
-    const hasNavigation = this.hasAttribute('navigation');
     const hasPagination = this.hasAttribute('pagination');
 
     // Transform this element into the swiper container
@@ -60,51 +59,32 @@ class CustomSlider extends HTMLElement {
     }
     this.appendChild(wrapper);
 
-    // Conditionally add pagination
+    // Add pagination if attribute is present
     if (hasPagination) {
       const pagination = document.createElement('div');
       pagination.classList.add('swiper-pagination');
       this.appendChild(pagination);
+      this.#log('Pagination element added', { elementId: this.id || 'no-id' });
     }
 
-    // Conditionally add navigation buttons
-    if (hasNavigation) {
-      const prev = document.createElement('div');
-      prev.classList.add('swiper-button-prev');
-      const next = document.createElement('div');
-      next.classList.add('swiper-button-next');
-      this.appendChild(prev);
-      this.appendChild(next);
-    }
-
-    // Prepare Swiper options and modules
-    const modules = [];
+    // Prepare Swiper options
     const options = {
-      loop: true,
+      loop: true, // Default; can be made configurable later
     };
 
     if (hasPagination) {
-      modules.push(window.Swiper.Pagination);
-      options.pagination = { el: '.swiper-pagination', clickable: true };
-    }
-
-    if (hasNavigation) {
-      modules.push(window.Swiper.Navigation);
-      options.navigation = {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev',
+      options.pagination = {
+        el: '.swiper-pagination',
+        clickable: true,
       };
     }
 
     // Initialize Swiper
     try {
-      this.#swiperInstance = new Swiper(this, {
-        modules,
-        ...options,
-      });
-      this.#log('Swiper initialized successfully', { options });
+      this.#swiperInstance = new Swiper(this, options);
+      this.#log('Swiper initialized successfully', { options, hasPagination });
     } catch (error) {
-      this.#error('Failed to initialize Swiper', { error: error.message });
+      this.#error('Failed to initialize Swiper', { error: error.message, stack: error.stack });
     }
   }
 
@@ -118,7 +98,7 @@ class CustomSlider extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['navigation', 'pagination'];
+    return ['pagination'];
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
