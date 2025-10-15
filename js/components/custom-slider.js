@@ -3,6 +3,7 @@
 class CustomSlider extends HTMLElement {
   #swiperInstance = null;
   #debug = new URLSearchParams(window.location.search).get('debug') === 'true';
+  #isInitialized = false;
 
   #log(message, data = null) {
     if (this.#debug) {
@@ -33,7 +34,6 @@ class CustomSlider extends HTMLElement {
 
   #validateIcon(icon, attributeName) {
     if (!icon) return '';
-    // Decode HTML entities and clean up
     const cleanedIcon = icon
       .replace(/&lt;/g, '<')
       .replace(/&gt;/g, '>')
@@ -55,7 +55,6 @@ class CustomSlider extends HTMLElement {
     const classes = iElement.className.split(' ').filter(cls => cls);
     this.#log(`Parsed classes for ${attributeName}`, { classes });
     
-    // Allow any fa- prefixed class, fa-regular, fa-solid, or fa-chisel
     const validClasses = classes.filter(cls => cls.startsWith('fa-') || cls === 'fa-regular' || cls === 'fa-solid' || cls === 'fa-chisel');
     if (validClasses.length === 0) {
       this.#warn(`No valid Font Awesome classes in ${attributeName}`, {
@@ -65,7 +64,6 @@ class CustomSlider extends HTMLElement {
       });
       return '';
     }
-    // Test if Font Awesome is loaded
     const testDiv = document.createElement('div');
     testDiv.style.display = 'none';
     testDiv.innerHTML = `<i class="${validClasses.join(' ')}"></i>`;
@@ -85,133 +83,144 @@ class CustomSlider extends HTMLElement {
     return iconHtml;
   }
 
-  connectedCallback() {
-    this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
+  async initialize() {
+    if (this.#isInitialized) {
+      this.#log('Skipping initialization, already initialized', { elementId: this.id || 'no-id' });
+      return;
+    }
+    this.#log('Starting initialization', { elementId: this.id || 'no-id' });
 
     if (!window.Swiper) {
       this.#error('Swiper library not loaded', { elementId: this.id || 'no-id' });
       return;
     }
 
-    // Delay initialization to ensure Font Awesome kit is loaded
-    setTimeout(() => {
-      const hasPagination = this.hasAttribute('pagination');
-      const hasNavigation = this.hasAttribute('navigation');
-      const navigationIconLeft = hasNavigation ? this.getAttribute('navigation-icon-left') || '' : '';
-      const navigationIconRight = hasNavigation ? this.getAttribute('navigation-icon-right') || '' : '';
+    const hasPagination = this.hasAttribute('pagination');
+    const hasNavigation = this.hasAttribute('navigation');
+    const navigationIconLeft = hasNavigation ? this.getAttribute('navigation-icon-left') || '' : '';
+    const navigationIconRight = hasNavigation ? this.getAttribute('navigation-icon-right') || '' : '';
 
-      // Warn if navigation-icon-left or navigation-icon-right are used without navigation
-      if (!hasNavigation && this.hasAttribute('navigation-icon-left')) {
-        this.#warn('navigation-icon-left attribute ignored without navigation attribute', {
-          elementId: this.id || 'no-id',
-          navigationIconLeft
-        });
-      }
-      if (!hasNavigation && this.hasAttribute('navigation-icon-right')) {
-        this.#warn('navigation-icon-right attribute ignored without navigation attribute', {
-          elementId: this.id || 'no-id',
-          navigationIconRight
-        });
-      }
-
-      // Transform this element into the swiper container
-      this.classList.add('swiper');
-
-      // Ensure children have swiper-slide class
-      Array.from(this.children).forEach(child => {
-        if (!child.classList.contains('swiper-slide')) {
-          child.classList.add('swiper-slide');
-        }
+    // Warn if navigation-icon-left or navigation-icon-right are used without navigation
+    if (!hasNavigation && this.hasAttribute('navigation-icon-left')) {
+      this.#warn('navigation-icon-left attribute ignored without navigation attribute', {
+        elementId: this.id || 'no-id',
+        navigationIconLeft
       });
+    }
+    if (!hasNavigation && this.hasAttribute('navigation-icon-right')) {
+      this.#warn('navigation-icon-right attribute ignored without navigation attribute', {
+        elementId: this.id || 'no-id',
+        navigationIconRight
+      });
+    }
 
-      // Wrap existing children in swiper-wrapper
-      const wrapper = document.createElement('div');
-      wrapper.classList.add('swiper-wrapper');
-      while (this.firstChild) {
-        wrapper.appendChild(this.firstChild);
+    // Create container for Swiper structure
+    const container = document.createElement('div');
+    container.classList.add('swiper');
+
+    // Move children to swiper-wrapper
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('swiper-wrapper');
+    Array.from(this.children).forEach(child => {
+      if (!child.classList.contains('swiper-slide')) {
+        child.classList.add('swiper-slide');
       }
-      this.appendChild(wrapper);
+      wrapper.appendChild(child);
+    });
+    container.appendChild(wrapper);
 
-      // Add pagination if attribute is present
-      if (hasPagination) {
-        const pagination = document.createElement('div');
-        pagination.classList.add('swiper-pagination');
-        this.appendChild(pagination);
-        this.#log('Pagination element added', { elementId: this.id || 'no-id' });
-      }
+    // Add pagination if attribute is present
+    if (hasPagination) {
+      const pagination = document.createElement('div');
+      pagination.classList.add('swiper-pagination');
+      container.appendChild(pagination);
+      this.#log('Pagination element added', { elementId: this.id || 'no-id' });
+    }
 
-      // Add navigation buttons if attribute is present
-      if (hasNavigation) {
-        const prev = document.createElement('div');
-        prev.classList.add('swiper-button-prev');
-        const next = document.createElement('div');
-        next.classList.add('swiper-button-next');
+    // Add navigation buttons if attribute is present
+    if (hasNavigation) {
+      const prev = document.createElement('div');
+      prev.classList.add('swiper-button-prev');
+      const next = document.createElement('div');
+      next.classList.add('swiper-button-next');
 
-        // Apply Font Awesome icons if valid, with fallback
-        if (navigationIconLeft) {
-          const validatedIconLeft = this.#validateIcon(navigationIconLeft, 'navigation-icon-left');
-          prev.innerHTML = validatedIconLeft || '<i class="fa-solid fa-angle-left"></i>';
-          if (validatedIconLeft) {
-            this.#log('Left navigation button icon applied', { icon: validatedIconLeft, elementId: this.id || 'no-id' });
-          } else {
-            this.#log('Using fallback icon for navigation-icon-left', { icon: '<i class="fa-solid fa-angle-left"></i>', elementId: this.id || 'no-id' });
-          }
+      // Apply Font Awesome icons if valid, with fallback
+      if (navigationIconLeft) {
+        const validatedIconLeft = this.#validateIcon(navigationIconLeft, 'navigation-icon-left');
+        prev.innerHTML = validatedIconLeft || '<i class="fa-solid fa-angle-left"></i>';
+        if (validatedIconLeft) {
+          this.#log('Left navigation button icon applied', { icon: validatedIconLeft, elementId: this.id || 'no-id' });
         } else {
-          prev.innerHTML = '<i class="fa-solid fa-angle-left"></i>';
-          this.#log('No navigation-icon-left provided, using fallback', { icon: '<i class="fa-solid fa-angle-left"></i>', elementId: this.id || 'no-id' });
+          this.#log('Using fallback icon for navigation-icon-left', { icon: '<i class="fa-solid fa-angle-left"></i>', elementId: this.id || 'no-id' });
         }
-
-        if (navigationIconRight) {
-          const validatedIconRight = this.#validateIcon(navigationIconRight, 'navigation-icon-right');
-          next.innerHTML = validatedIconRight || '<i class="fa-solid fa-angle-right"></i>';
-          if (validatedIconRight) {
-            this.#log('Right navigation button icon applied', { icon: validatedIconRight, elementId: this.id || 'no-id' });
-          } else {
-            this.#log('Using fallback icon for navigation-icon-right', { icon: '<i class="fa-solid fa-angle-right"></i>', elementId: this.id || 'no-id' });
-          }
-        } else {
-          next.innerHTML = '<i class="fa-solid fa-angle-right"></i>';
-          this.#log('No navigation-icon-right provided, using fallback', { icon: '<i class="fa-solid fa-angle-right"></i>', elementId: this.id || 'no-id' });
-        }
-
-        this.appendChild(prev);
-        this.appendChild(next);
-        this.#log('Navigation buttons added', { elementId: this.id || 'no-id' });
+      } else {
+        prev.innerHTML = '<i class="fa-solid fa-angle-left"></i>';
+        this.#log('No navigation-icon-left provided, using fallback', { icon: '<i class="fa-solid fa-angle-left"></i>', elementId: this.id || 'no-id' });
       }
 
-      // Prepare Swiper options
-      const options = {
-        loop: true,
+      if (navigationIconRight) {
+        const validatedIconRight = this.#validateIcon(navigationIconRight, 'navigation-icon-right');
+        next.innerHTML = validatedIconRight || '<i class="fa-solid fa-angle-right"></i>';
+        if (validatedIconRight) {
+          this.#log('Right navigation button icon applied', { icon: validatedIconRight, elementId: this.id || 'no-id' });
+        } else {
+          this.#log('Using fallback icon for navigation-icon-right', { icon: '<i class="fa-solid fa-angle-right"></i>', elementId: this.id || 'no-id' });
+        }
+      } else {
+        next.innerHTML = '<i class="fa-solid fa-angle-right"></i>';
+        this.#log('No navigation-icon-right provided, using fallback', { icon: '<i class="fa-solid fa-angle-right"></i>', elementId: this.id || 'no-id' });
+      }
+
+      container.appendChild(prev);
+      container.appendChild(next);
+      this.#log('Navigation buttons added', { elementId: this.id || 'no-id' });
+    }
+
+    // Prepare Swiper options
+    const options = {
+      loop: true,
+    };
+
+    if (hasPagination) {
+      options.pagination = {
+        el: '.swiper-pagination',
+        clickable: true,
       };
+    }
 
-      if (hasPagination) {
-        options.pagination = {
-          el: '.swiper-pagination',
-          clickable: true,
-        };
-      }
+    if (hasNavigation) {
+      options.navigation = {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      };
+    }
 
-      if (hasNavigation) {
-        options.navigation = {
-          nextEl: '.swiper-button-next',
-          prevEl: '.swiper-button-prev',
-        };
-      }
+    // Replace <custom-slider> with the container
+    try {
+      this.replaceWith(container);
+      this.#log('Replaced custom-slider with rendered container', { elementId: this.id || 'no-id', containerHtml: container.outerHTML.substring(0, 200) });
 
-      // Initialize Swiper
-      try {
-        this.#swiperInstance = new Swiper(this, options);
-        this.#log('Swiper initialized successfully', { 
-          options, 
-          hasPagination, 
-          hasNavigation, 
-          hasNavigationIconLeft: !!navigationIconLeft,
-          hasNavigationIconRight: !!navigationIconRight 
-        });
-      } catch (error) {
-        this.#error('Failed to initialize Swiper', { error: error.message, stack: error.stack });
-      }
-    }, 0); // Delay to ensure Font Awesome kit loads
+      // Initialize Swiper on the new container
+      this.#swiperInstance = new Swiper(container, options);
+      this.#log('Swiper initialized successfully', { 
+        options, 
+        hasPagination, 
+        hasNavigation, 
+        hasNavigationIconLeft: !!navigationIconLeft,
+        hasNavigationIconRight: !!navigationIconRight 
+      });
+      this.#isInitialized = true;
+    } catch (error) {
+      this.#error('Failed to initialize Swiper or replace element', { error: error.message, stack: error.stack });
+    }
+  }
+
+  connectedCallback() {
+    this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
+    // Delay to ensure Font Awesome kit loads
+    setTimeout(() => {
+      this.initialize();
+    }, 0);
   }
 
   disconnectedCallback() {
@@ -221,6 +230,7 @@ class CustomSlider extends HTMLElement {
       this.#swiperInstance = null;
       this.#log('Swiper instance destroyed');
     }
+    this.#isInitialized = false;
   }
 
   static get observedAttributes() {
@@ -228,10 +238,11 @@ class CustomSlider extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    if (oldValue !== newValue && this.#swiperInstance) {
+    if (oldValue !== newValue && this.#isInitialized) {
       this.#log('Attribute changed, reinitializing', { name, oldValue, newValue });
       this.#swiperInstance.destroy(true, true);
-      this.connectedCallback();
+      this.#isInitialized = false;
+      this.initialize();
     }
   }
 }
