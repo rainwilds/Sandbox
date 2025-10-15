@@ -79,7 +79,6 @@ class CustomSwiper extends HTMLElement {
 
         const spaceBetween = this.getAttribute('space-between') || '0';
         let sanitizedSpaceBetween = spaceBetween;
-        // Validate space-between: CSS units (px, rem, vw, etc.) or CSS variable
         const isValidUnit = spaceBetween.match(/^(\d*\.?\d+)(px|rem|vw|vh|%)?$/);
         const isValidVar = spaceBetween.match(/^var\(--[a-zA-Z0-9-]+\)$/);
         if (!isValidUnit && !isValidVar) {
@@ -195,22 +194,14 @@ class CustomSwiper extends HTMLElement {
         nextButton.className = 'swiper-button-next';
         swiperWrapper.appendChild(nextButton);
 
-        // Add Swiper CSS
-        const styleLink = document.createElement('link');
-        styleLink.rel = 'stylesheet';
-        styleLink.href = 'https://cdn.jsdelivr.net/npm/swiper@12.0.2/swiper-bundle.min.css';
-        swiperContainer.appendChild(styleLink);
-
         // Add custom styles
         const style = document.createElement('style');
         style.textContent = `
-            :host {
-                display: block;
-                width: 100%;
-            }
             .custom-swiper {
                 position: relative;
                 width: 100%;
+                max-width: 100%;
+                overflow: hidden;
             }
             .swiper {
                 width: 100%;
@@ -220,7 +211,12 @@ class CustomSwiper extends HTMLElement {
                 display: flex;
                 justify-content: center;
                 align-items: center;
-                width: auto;
+                width: 100%;
+                box-sizing: border-box;
+            }
+            .swiper-slide > .block {
+                width: 100%;
+                max-width: 1200px;
             }
             .swiper-button-prev,
             .swiper-button-next {
@@ -237,8 +233,8 @@ class CustomSwiper extends HTMLElement {
         this.#log('Processing children as slides', { childCount: children.length, elementId: this.id || 'no-id' });
 
         for (const child of children) {
-            // Wait for custom-block to initialize if present
             if (child.tagName.toLowerCase() === 'custom-block' && typeof child.addCallback === 'function') {
+                // Wait for custom-block to render
                 await new Promise(resolve => {
                     if (child.isInitialized) {
                         resolve();
@@ -246,8 +242,11 @@ class CustomSwiper extends HTMLElement {
                         child.addCallback(resolve);
                     }
                 });
-                // Clone the rendered block (div.block)
-                const renderedBlock = child.parentElement.querySelector('.block') || child;
+                // Find the rendered block (div.block) in the DOM
+                let renderedBlock = child.parentElement ? child.parentElement.querySelector('.block') : null;
+                if (!renderedBlock && child.nextElementSibling && child.nextElementSibling.classList.contains('block')) {
+                    renderedBlock = child.nextElementSibling;
+                }
                 if (renderedBlock) {
                     const slide = document.createElement('div');
                     slide.className = 'swiper-slide';
@@ -257,7 +256,7 @@ class CustomSwiper extends HTMLElement {
                     this.#warn('Failed to find rendered custom-block content', { childId: child.id || 'no-id' });
                 }
             } else {
-                // For non-custom-block children
+                // Handle non-custom-block children
                 const slide = document.createElement('div');
                 slide.className = 'swiper-slide';
                 slide.appendChild(child.cloneNode(true));
@@ -274,24 +273,25 @@ class CustomSwiper extends HTMLElement {
         }
 
         if (!isFallback) {
-            // Initialize Swiper
+            // Initialize Swiper after DOM is settled
+            await new Promise(resolve => setTimeout(resolve, 0)); // Ensure DOM updates are applied
+            const slideCount = swiperSlideWrapper.children.length;
             const swiperConfig = {
                 slidesPerView: attrs.slidesPerView,
                 spaceBetween: attrs.spaceBetween.match(/^\d+\.?\d*$/) ? parseFloat(attrs.spaceBetween) : attrs.spaceBetween,
-                loop: attrs.loop,
+                loop: attrs.loop && slideCount >= 2, // Disable loop if fewer than 2 slides
                 pagination: {
                     el: '.swiper-pagination',
                     clickable: true,
                 },
                 navigation: {
-                    nextEl: '.swiper-button-next',
-                    prevEl: '.swiper-button-prev',
+                    nextEl: '.swiper-button-prev',
+                    prevEl: '.swiper-button-next',
                 },
-                autoplay: attrs.loop ? {
+                autoplay: attrs.loop && slideCount >= 2 ? {
                     delay: 3000,
                     disableOnInteraction: true,
                 } : false,
-                // Add breakpoints for responsiveness
                 breakpoints: {
                     640: {
                         slidesPerView: attrs.slidesPerView,
@@ -308,8 +308,10 @@ class CustomSwiper extends HTMLElement {
                 },
             };
 
-            this.#log('Initializing Swiper', { config: swiperConfig, elementId: this.id || 'no-id' });
+            this.#log('Initializing Swiper', { config: swiperConfig, slideCount, elementId: this.id || 'no-id' });
             this.swiperInstance = new Swiper(swiperWrapper, swiperConfig);
+            // Update Swiper to ensure slides are detected
+            this.swiperInstance.update();
         }
 
         if (!isFallback) {
