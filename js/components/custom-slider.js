@@ -31,14 +31,14 @@ class CustomSlider extends HTMLElement {
     }
   }
 
-  #validateIcon(icon) {
+  #validateIcon(icon, attributeName) {
     if (!icon) return '';
     const cleanedIcon = icon.replace(/['"]/g, '&quot;').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
     const parser = new DOMParser();
     const doc = parser.parseFromString(cleanedIcon, 'text/html');
     const iElement = doc.body.querySelector('i');
     if (!iElement || !iElement.className.includes('fa-')) {
-      this.#warn('Invalid button-icon format', {
+      this.#warn(`Invalid ${attributeName} format`, {
         value: icon,
         elementId: this.id || 'no-id',
         expected: 'Font Awesome <i> tag with fa- classes'
@@ -47,7 +47,7 @@ class CustomSlider extends HTMLElement {
     }
     const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
     if (validClasses.length === 0) {
-      this.#warn('No valid Font Awesome classes in button-icon', {
+      this.#warn(`No valid Font Awesome classes in ${attributeName}`, {
         classes: iElement.className,
         elementId: this.id || 'no-id'
       });
@@ -66,13 +66,20 @@ class CustomSlider extends HTMLElement {
 
     const hasPagination = this.hasAttribute('pagination');
     const hasNavigation = this.hasAttribute('navigation');
-    const buttonIcon = this.hasAttribute('navigation') ? this.getAttribute('button-icon') || '' : '';
+    const navigationIconLeft = hasNavigation ? this.getAttribute('navigation-icon-left') || '' : '';
+    const navigationIconRight = hasNavigation ? this.getAttribute('navigation-icon-right') || '' : '';
 
-    // Warn if button-icon is used without navigation
-    if (this.hasAttribute('button-icon') && !hasNavigation) {
-      this.#warn('button-icon attribute ignored without navigation attribute', {
+    // Warn if navigation-icon-left or navigation-icon-right are used without navigation
+    if (!hasNavigation && this.hasAttribute('navigation-icon-left')) {
+      this.#warn('navigation-icon-left attribute ignored without navigation attribute', {
         elementId: this.id || 'no-id',
-        buttonIcon
+        navigationIconLeft
+      });
+    }
+    if (!hasNavigation && this.hasAttribute('navigation-icon-right')) {
+      this.#warn('navigation-icon-right attribute ignored without navigation attribute', {
+        elementId: this.id || 'no-id',
+        navigationIconRight
       });
     }
 
@@ -108,14 +115,20 @@ class CustomSlider extends HTMLElement {
       prev.classList.add('swiper-button-prev');
       const next = document.createElement('div');
       next.classList.add('swiper-button-next');
-      
-      // Apply Font Awesome icon if valid
-      if (buttonIcon) {
-        const validatedIcon = this.#validateIcon(buttonIcon);
-        if (validatedIcon) {
-          prev.innerHTML = validatedIcon;
-          next.innerHTML = validatedIcon;
-          this.#log('Navigation button icons applied', { icon: validatedIcon, elementId: this.id || 'no-id' });
+
+      // Apply Font Awesome icons if valid
+      if (navigationIconLeft) {
+        const validatedIconLeft = this.#validateIcon(navigationIconLeft, 'navigation-icon-left');
+        if (validatedIconLeft) {
+          prev.innerHTML = validatedIconLeft;
+          this.#log('Left navigation button icon applied', { icon: validatedIconLeft, elementId: this.id || 'no-id' });
+        }
+      }
+      if (navigationIconRight) {
+        const validatedIconRight = this.#validateIcon(navigationIconRight, 'navigation-icon-right');
+        if (validatedIconRight) {
+          next.innerHTML = validatedIconRight;
+          this.#log('Right navigation button icon applied', { icon: validatedIconRight, elementId: this.id || 'no-id' });
         }
       }
 
@@ -146,7 +159,13 @@ class CustomSlider extends HTMLElement {
     // Initialize Swiper
     try {
       this.#swiperInstance = new Swiper(this, options);
-      this.#log('Swiper initialized successfully', { options, hasPagination, hasNavigation, hasButtonIcon: !!buttonIcon });
+      this.#log('Swiper initialized successfully', { 
+        options, 
+        hasPagination, 
+        hasNavigation, 
+        hasNavigationIconLeft: !!navigationIconLeft,
+        hasNavigationIconRight: !!navigationIconRight 
+      });
     } catch (error) {
       this.#error('Failed to initialize Swiper', { error: error.message, stack: error.stack });
     }
@@ -162,7 +181,7 @@ class CustomSlider extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['pagination', 'navigation', 'button-icon'];
+    return ['pagination', 'navigation', 'navigation-icon-left', 'navigation-icon-right'];
   }
 
   attributeChangedCallback(name, oldValue, newValue) {

@@ -1982,10 +1982,14 @@ div#products {
 
 
 
-.swiper {
-    height: 100%;
+.swiper-button-prev:after,
+.swiper-button-next:after {
+  content: none !important; /* Disable Swiper's default icons */
 }
-
+.swiper-button-prev i,
+.swiper-button-next i {
+  font-size: 1.5rem; /* Adjust icon size */
+}
 
 
 
