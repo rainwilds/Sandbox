@@ -42,10 +42,10 @@ const DEPENDENCIES = {
   'image-generator': ['shared'],
   'video-generator': ['shared'],
   'custom-block': ['image-generator', 'video-generator', 'shared'],
-  'custom-swiper': ['custom-block', 'shared'],
   'custom-nav': ['shared'],
   'custom-logo': ['image-generator', 'shared'],
-  'custom-header': ['image-generator', 'shared']
+  'custom-header': ['image-generator', 'shared'],
+  'custom-slider': ['custom-block']  // New: Depends on custom-block
 };
 
 const PATH_MAP = {
@@ -56,7 +56,8 @@ const PATH_MAP = {
   'custom-block': './components/custom-block.js',
   'custom-nav': './components/custom-nav.js',
   'custom-logo': './components/custom-logo.js',
-  'custom-header': './components/custom-header.js'
+  'custom-header': './components/custom-header.js',
+  'custom-slider': './components/custom-slider.js'  // New
 };
 
 async function loadModule(moduleName) {
@@ -92,6 +93,29 @@ async function loadComponentWithDependencies(componentName) {
   collectDependencies(componentName);
   const loadOrder = [...allDependencies, componentName];
   logger.log(`Load order for ${componentName}:`, loadOrder);
+  
+  // New: Load SwiperJS CDN scripts/styles before custom-slider
+  if (componentName === 'custom-slider') {
+    const head = document.head;
+    const criticalFrag = document.createDocumentFragment();
+    
+    // Core Swiper CSS
+    const swiperCss = document.createElement('link');
+    swiperCss.rel = 'stylesheet';
+    swiperCss.href = 'https://unpkg.com/swiper@10/swiper-bundle.min.css';
+    criticalFrag.appendChild(swiperCss);
+    logger.log('Added Swiper CSS', { href: swiperCss.href });
+
+    // Core Swiper JS
+    const swiperJs = document.createElement('script');
+    swiperJs.src = 'https://unpkg.com/swiper@10/swiper-bundle.min.js';
+    swiperJs.defer = true;
+    criticalFrag.appendChild(swiperJs);
+    logger.log('Added Swiper JS', { src: swiperJs.src });
+
+    head.appendChild(criticalFrag);
+  }
+
   const loadPromises = loadOrder.map(moduleName => loadModule(moduleName));
   const results = await Promise.all(loadPromises);
   const componentResult = results.find(r => r.name === componentName);
@@ -356,8 +380,8 @@ async function updateHead(attributes, setup) {
     customHead.remove();
     logger.log('Removed data-custom-head element');
 
-    // Ensure all <style> elements are in <head>, respecting data-no-move
-    const styles = document.querySelectorAll('style:not([data-no-move])');
+    // Ensure all <style> elements are in <head>
+    const styles = document.querySelectorAll('style');
     let movedStyleCount = 0;
     styles.forEach(style => {
       if (style.parentNode !== document.head && style.parentNode !== null) {
@@ -369,11 +393,11 @@ async function updateHead(attributes, setup) {
     if (movedStyleCount > 0) {
       logger.log(`Moved ${movedStyleCount} <style> element(s) to <head>`);
     } else {
-      logger.log('All <style> elements already in <head> or marked data-no-move');
+      logger.log('All <style> elements already in <head>');
     }
 
     // Ensure all <link> elements are in <head>
-    const links = document.querySelectorAll('link:not([data-no-move])');
+    const links = document.querySelectorAll('link');
     let movedLinkCount = 0;
     links.forEach(link => {
       if (link.parentNode !== document.head && link.parentNode !== null) {
@@ -385,11 +409,11 @@ async function updateHead(attributes, setup) {
     if (movedLinkCount > 0) {
       logger.log(`Moved ${movedLinkCount} <link> element(s) to <head>`);
     } else {
-      logger.log('All <link> elements already in <head> or marked data-no-move');
+      logger.log('All <link> elements already in <head>');
     }
 
     // Ensure all <script> elements are properly placed
-    const scripts = document.querySelectorAll('script:not([data-no-move])');
+    const scripts = document.querySelectorAll('script');
     logger.log('Found scripts before processing:', Array.from(scripts).map(s => ({
       tagName: s.tagName,
       src: s.src || 'inline',
