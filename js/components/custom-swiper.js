@@ -194,8 +194,9 @@ class CustomSwiper extends HTMLElement {
         nextButton.className = 'swiper-button-next';
         swiperWrapper.appendChild(nextButton);
 
-        // Add custom styles
+        // Add custom styles with data-no-move to prevent head-generator.js from relocating
         const style = document.createElement('style');
+        style.setAttribute('data-no-move', 'true');
         style.textContent = `
             .custom-swiper {
                 position: relative;
@@ -205,7 +206,7 @@ class CustomSwiper extends HTMLElement {
             }
             .swiper {
                 width: 100%;
-                min-height: 300px; /* Ensure visibility */
+                min-height: 300px;
                 height: auto;
             }
             .swiper-slide {
@@ -214,19 +215,25 @@ class CustomSwiper extends HTMLElement {
                 align-items: center;
                 width: 100%;
                 box-sizing: border-box;
+                opacity: 1 !important; /* Ensure slides are visible */
             }
             .swiper-slide > .block {
                 width: 100%;
                 max-width: 1200px;
-                min-height: 200px; /* Ensure content visibility */
+                min-height: 200px;
             }
             .swiper-button-prev,
             .swiper-button-next {
                 color: var(--color-primary, #ffffff);
                 z-index: 10;
+                cursor: pointer;
             }
             .swiper-pagination-bullet {
                 background: var(--color-primary, #ffffff);
+                opacity: 0.7;
+            }
+            .swiper-pagination-bullet-active {
+                opacity: 1;
             }
         `;
         swiperContainer.appendChild(style);
@@ -277,19 +284,19 @@ class CustomSwiper extends HTMLElement {
 
         if (!isFallback) {
             // Initialize Swiper after DOM is settled
-            await new Promise(resolve => setTimeout(resolve, 100)); // Increased delay for DOM stability
+            await new Promise(resolve => setTimeout(resolve, 200)); // Increased delay
             const slideCount = swiperSlideWrapper.children.length;
             const swiperConfig = {
                 slidesPerView: attrs.slidesPerView,
                 spaceBetween: attrs.spaceBetween.match(/^\d+\.?\d*$/) ? parseFloat(attrs.spaceBetween) : attrs.spaceBetween,
-                loop: attrs.loop && slideCount >= 2, // Disable loop if fewer than 2 slides
+                loop: attrs.loop && slideCount >= 2,
                 pagination: {
                     el: '.swiper-pagination',
                     clickable: true,
                 },
                 navigation: {
-                    nextEl: '.swiper-button-next', // Corrected: nextEl points to next button
-                    prevEl: '.swiper-button-prev', // Corrected: prevEl points to prev button
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
                 },
                 autoplay: attrs.loop && slideCount >= 2 ? {
                     delay: 3000,
@@ -309,11 +316,21 @@ class CustomSwiper extends HTMLElement {
                         spaceBetween: attrs.spaceBetween.match(/^\d+\.?\d*$/) ? parseFloat(attrs.spaceBetween) + 20 : attrs.spaceBetween,
                     },
                 },
+                on: {
+                    init: () => {
+                        this.#log('Swiper initialized', { slideCount, elementId: this.id || 'no-id' });
+                    },
+                    slideChange: () => {
+                        this.#log('Slide changed', { activeIndex: this.swiperInstance ? this.swiperInstance.activeIndex : -1, elementId: this.id || 'no-id' });
+                    },
+                },
             };
 
             this.#log('Initializing Swiper', { config: swiperConfig, slideCount, elementId: this.id || 'no-id' });
             this.swiperInstance = new Swiper(swiperWrapper, swiperConfig);
-            // Update Swiper to ensure slides are detected
+            // Multiple updates to ensure slide detection
+            this.swiperInstance.update();
+            await new Promise(resolve => setTimeout(resolve, 100));
             this.swiperInstance.update();
         }
 
