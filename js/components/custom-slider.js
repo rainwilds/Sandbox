@@ -32,7 +32,7 @@ class CustomSlider extends HTMLElement {
     }
   }
 
-  async #checkFontAwesome(classes, maxAttempts = 5, delay = 500) {
+  async #checkFontAwesome(classes, maxAttempts = 5, delay = 200) {
     let attempts = 0;
     while (attempts < maxAttempts) {
       const testDiv = document.createElement('div');
@@ -82,6 +82,7 @@ class CustomSlider extends HTMLElement {
       });
       return '';
     }
+    // Async check for Font Awesome loading
     this.#checkFontAwesome(validClasses).then(isIconVisible => {
       if (!isIconVisible) {
         this.#warn(`Font Awesome kit may not have loaded or does not support classes for ${attributeName}`, {
@@ -94,61 +95,6 @@ class CustomSlider extends HTMLElement {
     const iconHtml = `<i class="${validClasses.join(' ')}"></i>`;
     this.#log(`Validated icon for ${attributeName}`, { iconHtml });
     return iconHtml;
-  }
-
-  async #parseSpaceBetween(value, maxAttempts = 3, delay = 100) {
-    if (!value) return 0;
-    const trimmedValue = value.trim();
-    
-    // Handle CSS variable (e.g., var(--space-tiny))
-    if (trimmedValue.startsWith('var(')) {
-      let attempts = 0;
-      while (attempts < maxAttempts) {
-        try {
-          const varName = trimmedValue.match(/var\((--[^)]+)\)/)?.[1];
-          if (!varName) {
-            this.#warn('Invalid CSS variable format in space-between', { value: trimmedValue, elementId: this.id || 'no-id' });
-            return 0;
-          }
-          const computedStyle = getComputedStyle(document.documentElement);
-          const pixelValue = computedStyle.getPropertyValue(varName).trim();
-          const parsedValue = parseFloat(pixelValue);
-          if (isNaN(parsedValue)) {
-            this.#log(`CSS variable resolution attempt ${attempts + 1}/${maxAttempts}`, { variable: varName, resolved: pixelValue });
-            await new Promise(resolve => setTimeout(resolve, delay));
-            attempts++;
-            continue;
-          }
-          this.#log('Parsed CSS variable for space-between', { variable: varName, pixelValue: parsedValue });
-          return parsedValue;
-        } catch (error) {
-          this.#log(`CSS variable resolution attempt ${attempts + 1}/${maxAttempts} failed`, { value: trimmedValue, error: error.message });
-          await new Promise(resolve => setTimeout(resolve, delay));
-          attempts++;
-        }
-      }
-      this.#warn('CSS variable resolved to invalid pixel value after retries', { value: trimmedValue, elementId: this.id || 'no-id' });
-      return 0;
-    }
-
-    // Handle CSS units (px, em, rem, %, vw, vh)
-    try {
-      const testDiv = document.createElement('div');
-      testDiv.style.display = 'none';
-      testDiv.style.width = trimmedValue;
-      document.body.appendChild(testDiv);
-      const pixelValue = parseFloat(window.getComputedStyle(testDiv).width);
-      document.body.removeChild(testDiv);
-      if (isNaN(pixelValue)) {
-        this.#warn('Invalid CSS unit value in space-between', { value: trimmedValue, elementId: this.id || 'no-id' });
-        return 0;
-      }
-      this.#log('Parsed CSS unit for space-between', { value: trimmedValue, pixelValue });
-      return pixelValue;
-    } catch (error) {
-      this.#warn('Failed to parse CSS unit for space-between', { value: trimmedValue, error: error.message });
-      return 0;
-    }
   }
 
   async #waitForSwiper(maxAttempts = 10, delay = 100) {
@@ -183,10 +129,6 @@ class CustomSlider extends HTMLElement {
     const navigationIconLeft = hasNavigation ? this.getAttribute('navigation-icon-left') || '' : '';
     const navigationIconRight = hasNavigation ? this.getAttribute('navigation-icon-right') || '' : '';
     const slidesPerView = this.hasAttribute('slides-per-view') ? parseFloat(this.getAttribute('slides-per-view')) || 1 : 1;
-    const spaceBetween = this.hasAttribute('space-between') ? await this.#parseSpaceBetween(this.getAttribute('space-between')) : 0;
-
-    // Log spaceBetween value for debugging
-    this.#log('Applying spaceBetween to Swiper', { spaceBetween });
 
     // Warn if navigation-icon-left or navigation-icon-right are used without navigation
     if (!hasNavigation && this.hasAttribute('navigation-icon-left')) {
@@ -213,13 +155,9 @@ class CustomSlider extends HTMLElement {
     const customBlockCount = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block').length;
     Array.from(this.children).forEach(child => {
       if (!child.classList.contains('swiper-slide')) {
-        const slide = document.createElement('div');
-        slide.classList.add('swiper-slide');
-        slide.appendChild(child);
-        wrapper.appendChild(slide);
-      } else {
-        wrapper.appendChild(child);
+        child.classList.add('swiper-slide');
       }
+      wrapper.appendChild(child);
       this.#log('Added slide to wrapper', { childTag: child.tagName, hasCustomBlock: child.tagName.toLowerCase() === 'custom-block' });
     });
     container.appendChild(wrapper);
@@ -275,8 +213,7 @@ class CustomSlider extends HTMLElement {
     // Prepare Swiper options
     const options = {
       loop: true,
-      slidesPerView: slidesPerView,
-      spaceBetween: spaceBetween
+      slidesPerView: slidesPerView
     };
 
     if (hasPagination) {
@@ -329,7 +266,7 @@ class CustomSlider extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return ['pagination', 'navigation', 'navigation-icon-left', 'navigation-icon-right', 'slides-per-view', 'space-between'];
+    return ['pagination', 'navigation', 'navigation-icon-left', 'navigation-icon-right', 'slides-per-view'];
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
