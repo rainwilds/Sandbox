@@ -96,8 +96,11 @@ class CustomSlider extends HTMLElement {
     return iconHtml;
   }
 
-  async #parseSpaceBetween(value, maxAttempts = 20, delay = 500) {
-    if (!value) return 0;
+  async #parseSpaceBetween(value, maxAttempts = 30, delay = 500) {
+    if (!value) {
+      this.#log('No space-between value provided, using 0', { value });
+      return 0;
+    }
     const trimmedValue = value.trim();
 
     // Wait for DOMContentLoaded to ensure styles are loaded
@@ -127,7 +130,7 @@ class CustomSlider extends HTMLElement {
           const pixelValue = computedStyle.getPropertyValue(varName).trim();
           this.#log('Raw CSS variable value', { variable: varName, pixelValue });
 
-          // Check if pixelValue contains a unit (e.g., rem, px)
+          // Parse rem or px units
           if (pixelValue.includes('rem')) {
             const remValue = parseFloat(pixelValue);
             if (!isNaN(remValue)) {
@@ -143,7 +146,7 @@ class CustomSlider extends HTMLElement {
             }
           }
 
-          // If pixelValue is invalid or doesn't contain a unit, retry
+          // If pixelValue is invalid, retry
           this.#log(`CSS variable resolution attempt ${attempts + 1}/${maxAttempts}`, { variable: varName, pixelValue });
           await new Promise(resolve => setTimeout(resolve, delay));
           attempts++;
@@ -153,8 +156,8 @@ class CustomSlider extends HTMLElement {
           attempts++;
         }
       }
-      this.#warn('CSS variable resolved to invalid value after retries, using fallback', { value: trimmedValue, elementId: this.id || 'no-id', fallback: 16 });
-      return 16; // Fallback to 16px (matches --space-tiny)
+      this.#warn('Failed to resolve CSS variable after retries', { value: trimmedValue, elementId: this.id || 'no-id' });
+      return 0; // No fallback, as requested
     }
 
     // Handle CSS units (px, em, rem, %, vw, vh)
@@ -209,7 +212,7 @@ class CustomSlider extends HTMLElement {
     const navigationIconLeft = hasNavigation ? this.getAttribute('navigation-icon-left') || '' : '';
     const navigationIconRight = hasNavigation ? this.getAttribute('navigation-icon-right') || '' : '';
     const slidesPerView = this.hasAttribute('slides-per-view') ? parseFloat(this.getAttribute('slides-per-view')) || 1 : 1;
-    const spaceBetween = this.hasAttribute('space-between') ? await this.#parseSpaceBetween(this.getAttribute('space-between')) : 0;
+    const spaceBetween = await this.#parseSpaceBetween(this.getAttribute('space-between') || '0');
 
     // Log spaceBetween value for debugging
     this.#log('Applying spaceBetween to Swiper', { spaceBetween });
@@ -319,6 +322,9 @@ class CustomSlider extends HTMLElement {
       };
     }
 
+    // Log final Swiper options for debugging
+    this.#log('Final Swiper options', { options });
+
     // Replace <custom-slider> with the container
     try {
       this.replaceWith(container);
@@ -374,5 +380,5 @@ try {
   console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-15');
+console.log('CustomSlider version: 2025-10-16');
 export { CustomSlider };

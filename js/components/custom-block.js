@@ -845,6 +845,11 @@ class CustomBlock extends HTMLElement {
         });
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
         const borderClasses = ['border-small', 'border-medium', 'border-large', 'border-radius-small', 'border-radius-medium', 'border-radius-large'];
+        const borderRadiusClasses = attrs.customClasses
+            .split(' ')
+            .filter(cls => cls && borderClasses.includes(cls) && cls.startsWith('border-radius'))
+            .join(' ')
+            .trim();
         const mediaClasses = attrs.customClasses
             .split(' ')
             .filter(cls => cls && !paddingClasses.includes(cls) && !borderClasses.includes(cls))
@@ -981,7 +986,7 @@ class CustomBlock extends HTMLElement {
                         darkAlt: attrs.backgroundDarkAlt,
                         isDecorative: attrs.backgroundIsDecorative,
                         customClasses: mediaClasses,
-                        extraClasses: [],
+                        extraClasses: borderRadiusClasses ? [borderRadiusClasses] : [],
                         loading: attrs.backgroundLoading,
                         fetchPriority: attrs.backgroundFetchPriority,
                         mobileWidth: attrs.backgroundMobileWidth,
@@ -1009,6 +1014,7 @@ class CustomBlock extends HTMLElement {
                         const fallbackImg = document.createElement('img');
                         fallbackImg.src = 'https://placehold.co/300x200';
                         fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                        if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
                         fallbackImg.style.width = '100%';
                         blockElement.appendChild(fallbackImg);
                         this.#log('Fallback background image appended', { src: fallbackImg.src });
@@ -1018,6 +1024,7 @@ class CustomBlock extends HTMLElement {
                     const fallbackImg = document.createElement('img');
                     fallbackImg.src = 'https://placehold.co/300x200';
                     fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                    if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
                     fallbackImg.style.width = '100%';
                     blockElement.appendChild(fallbackImg);
                     this.#log('Fallback background image appended', { src: fallbackImg.src });
@@ -1027,6 +1034,7 @@ class CustomBlock extends HTMLElement {
                 const fallbackImg = document.createElement('img');
                 fallbackImg.src = 'https://placehold.co/300x200';
                 fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
                 fallbackImg.style.width = '100%';
                 blockElement.appendChild(fallbackImg);
                 this.#log('Fallback background image appended', { src: fallbackImg.src });
@@ -1036,6 +1044,7 @@ class CustomBlock extends HTMLElement {
             const overlayClasses = [attrs.backgroundOverlayClass];
             if (attrs.backgroundImageNoise) overlayClasses.push('background-image-noise');
             if (attrs.backgroundGradientClass) overlayClasses.push(attrs.backgroundGradientClass);
+            if (borderRadiusClasses) overlayClasses.push(borderRadiusClasses);
             const backdropFilterValues = attrs.backdropFilterClasses
                 .filter(cls => cls.startsWith('backdrop-filter'))
                 .map(cls => BACKDROP_FILTER_MAP[cls] || '')
@@ -1247,7 +1256,7 @@ class CustomBlock extends HTMLElement {
                             darkAlt: attrs.primaryDarkAlt,
                             isDecorative: attrs.primaryIsDecorative,
                             customClasses: mediaClasses,
-                            extraClasses: [],
+                            extraClasses: borderRadiusClasses ? [borderRadiusClasses] : [],
                             loading: attrs.primaryLoading,
                             fetchPriority: attrs.primaryFetchPriority,
                             mobileWidth: attrs.primaryMobileWidth,
@@ -1275,6 +1284,7 @@ class CustomBlock extends HTMLElement {
                             const fallbackImg = document.createElement('img');
                             fallbackImg.src = 'https://placehold.co/300x200';
                             fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                            if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
                             fallbackImg.style.width = '100%';
                             blockElement.appendChild(fallbackImg);
                             this.#log('Fallback primary image appended', { src: fallbackImg.src });
@@ -1323,6 +1333,7 @@ class CustomBlock extends HTMLElement {
                     const fallbackImg = document.createElement('img');
                     fallbackImg.src = 'https://placehold.co/300x200';
                     fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                    if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
                     fallbackImg.style.width = '100%';
                     blockElement.appendChild(fallbackImg);
                     this.#log('Fallback primary image appended', { src: fallbackImg.src });
@@ -1333,6 +1344,7 @@ class CustomBlock extends HTMLElement {
                 const fallbackImg = document.createElement('img');
                 fallbackImg.src = 'https://placehold.co/300x200';
                 fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
                 fallbackImg.style.width = '100%';
                 blockElement.appendChild(fallbackImg);
                 this.#log('Fallback primary image appended', { src: fallbackImg.src });
