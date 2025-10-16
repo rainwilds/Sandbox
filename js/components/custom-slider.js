@@ -110,7 +110,7 @@ class CustomSlider extends HTMLElement {
     });
 
     // Log root font size for debugging
-    const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
     this.#log('Root font size', { rootFontSize });
 
     // Handle CSS variable (e.g., var(--space-tiny))
@@ -126,31 +126,34 @@ class CustomSlider extends HTMLElement {
           const computedStyle = getComputedStyle(document.documentElement);
           const pixelValue = computedStyle.getPropertyValue(varName).trim();
           this.#log('Raw CSS variable value', { variable: varName, pixelValue });
-          const parsedValue = parseFloat(pixelValue);
-          if (isNaN(parsedValue) || parsedValue < 1) {
-            // Fallback: Manually parse rem units
-            if (pixelValue.includes('rem')) {
-              const remValue = parseFloat(pixelValue);
-              if (!isNaN(remValue)) {
-                const fallbackValue = remValue * rootFontSize;
-                this.#log('Manually parsed rem value', { variable: varName, remValue, fallbackValue });
-                return fallbackValue;
-              }
+
+          // Check if pixelValue contains a unit (e.g., rem, px)
+          if (pixelValue.includes('rem')) {
+            const remValue = parseFloat(pixelValue);
+            if (!isNaN(remValue)) {
+              const parsedValue = remValue * rootFontSize;
+              this.#log('Parsed rem value for space-between', { variable: varName, remValue, parsedValue });
+              return parsedValue;
             }
-            this.#log(`CSS variable resolution attempt ${attempts + 1}/${maxAttempts}`, { variable: varName, pixelValue });
-            await new Promise(resolve => setTimeout(resolve, delay));
-            attempts++;
-            continue;
+          } else if (pixelValue.includes('px')) {
+            const parsedValue = parseFloat(pixelValue);
+            if (!isNaN(parsedValue)) {
+              this.#log('Parsed px value for space-between', { variable: varName, pixelValue: parsedValue });
+              return parsedValue;
+            }
           }
-          this.#log('Parsed CSS variable for space-between', { variable: varName, pixelValue: parsedValue });
-          return parsedValue;
+
+          // If pixelValue is invalid or doesn't contain a unit, retry
+          this.#log(`CSS variable resolution attempt ${attempts + 1}/${maxAttempts}`, { variable: varName, pixelValue });
+          await new Promise(resolve => setTimeout(resolve, delay));
+          attempts++;
         } catch (error) {
           this.#log(`CSS variable resolution attempt ${attempts + 1}/${maxAttempts} failed`, { value: trimmedValue, error: error.message });
           await new Promise(resolve => setTimeout(resolve, delay));
           attempts++;
         }
       }
-      this.#warn('CSS variable resolved to invalid pixel value after retries, using fallback', { value: trimmedValue, elementId: this.id || 'no-id', fallback: 16 });
+      this.#warn('CSS variable resolved to invalid value after retries, using fallback', { value: trimmedValue, elementId: this.id || 'no-id', fallback: 16 });
       return 16; // Fallback to 16px (matches --space-tiny)
     }
 
@@ -311,8 +314,8 @@ class CustomSlider extends HTMLElement {
 
     if (hasNavigation) {
       options.navigation = {
-        nextEl: '.swiper-button-prev',
-        prevEl: '.swiper-button-next',
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
       };
     }
 
