@@ -32,7 +32,7 @@ class CustomSlider extends HTMLElement {
     }
   }
 
-  async #checkFontAwesome(classes, maxAttempts = 5, delay = 1500) {
+  async #checkFontAwesome(classes, maxAttempts = 5, delay = 2000) {
     let attempts = 0;
     while (attempts < maxAttempts) {
       const testDiv = document.createElement('div');
@@ -96,7 +96,7 @@ class CustomSlider extends HTMLElement {
     return iconHtml;
   }
 
-  async #parseSpaceBetween(value, maxAttempts = 10, delay = 300) {
+  async #parseSpaceBetween(value, maxAttempts = 20, delay = 500) {
     if (!value) return 0;
     const trimmedValue = value.trim();
 
@@ -127,7 +127,16 @@ class CustomSlider extends HTMLElement {
           const pixelValue = computedStyle.getPropertyValue(varName).trim();
           this.#log('Raw CSS variable value', { variable: varName, pixelValue });
           const parsedValue = parseFloat(pixelValue);
-          if (isNaN(parsedValue)) {
+          if (isNaN(parsedValue) || parsedValue < 1) {
+            // Fallback: Manually parse rem units
+            if (pixelValue.includes('rem')) {
+              const remValue = parseFloat(pixelValue);
+              if (!isNaN(remValue)) {
+                const fallbackValue = remValue * rootFontSize;
+                this.#log('Manually parsed rem value', { variable: varName, remValue, fallbackValue });
+                return fallbackValue;
+              }
+            }
             this.#log(`CSS variable resolution attempt ${attempts + 1}/${maxAttempts}`, { variable: varName, pixelValue });
             await new Promise(resolve => setTimeout(resolve, delay));
             attempts++;
@@ -141,8 +150,8 @@ class CustomSlider extends HTMLElement {
           attempts++;
         }
       }
-      this.#warn('CSS variable resolved to invalid pixel value after retries, using fallback', { value: trimmedValue, elementId: this.id || 'no-id', fallback: 10 });
-      return 10; // Fallback to 10px
+      this.#warn('CSS variable resolved to invalid pixel value after retries, using fallback', { value: trimmedValue, elementId: this.id || 'no-id', fallback: 16 });
+      return 16; // Fallback to 16px (matches --space-tiny)
     }
 
     // Handle CSS units (px, em, rem, %, vw, vh)
@@ -302,8 +311,8 @@ class CustomSlider extends HTMLElement {
 
     if (hasNavigation) {
       options.navigation = {
-        nextEl: '.swiper-button-next',
-        prevEl: '.swiper-button-prev',
+        nextEl: '.swiper-button-prev',
+        prevEl: '.swiper-button-next',
       };
     }
 

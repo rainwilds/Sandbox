@@ -1,4 +1,4 @@
-/* global document, window, console, Promise, requestIdleCallback, fetch */
+/* global document, window, console, Promise, requestIdleCallback */
 
 'use strict';
 
@@ -45,7 +45,7 @@ const DEPENDENCIES = {
   'custom-nav': ['shared'],
   'custom-logo': ['image-generator', 'shared'],
   'custom-header': ['image-generator', 'shared'],
-  'custom-slider': ['custom-block']
+  'custom-slider': ['custom-block']  // New: Depends on custom-block
 };
 
 const PATH_MAP = {
@@ -57,7 +57,7 @@ const PATH_MAP = {
   'custom-nav': './components/custom-nav.js',
   'custom-logo': './components/custom-logo.js',
   'custom-header': './components/custom-header.js',
-  'custom-slider': './components/custom-slider.js'
+  'custom-slider': './components/custom-slider.js'  // New
 };
 
 async function loadModule(moduleName) {
@@ -94,7 +94,7 @@ async function loadComponentWithDependencies(componentName) {
   const loadOrder = [...allDependencies, componentName];
   logger.log(`Load order for ${componentName}:`, loadOrder);
   
-  // Load SwiperJS CDN scripts/styles for custom-slider
+  // New: Load SwiperJS CDN scripts/styles before custom-slider
   if (componentName === 'custom-slider') {
     const head = document.head;
     const criticalFrag = document.createDocumentFragment();
@@ -179,36 +179,22 @@ async function updateHead(attributes, setup) {
   } else {
     logger.warn('No valid fonts in setup.json; relying on CSS @font-face');
   }
-
-  // Inline styles.css to ensure immediate application
-  try {
-    const response = await fetch('./styles.css');
-    const cssText = await response.text();
-    const styleElement = document.createElement('style');
-    styleElement.textContent = cssText;
-    criticalFrag.appendChild(styleElement);
-    logger.log('Inlined styles.css content', { length: cssText.length });
-  } catch (err) {
-    logger.error('Failed to inline styles.css, falling back to link', { error: err.message });
-    const styleLink = document.createElement('link');
-    styleLink.rel = 'stylesheet';
-    styleLink.href = './styles.css';
-    criticalFrag.appendChild(styleLink);
-    logger.log('Applied stylesheet: ./styles.css');
-  }
-
+  const styleLink = document.createElement('link');
+  styleLink.rel = 'stylesheet';
+  styleLink.href = './styles.css';
+  criticalFrag.appendChild(styleLink);
+  logger.log('Applied stylesheet: ./styles.css');
   const faKitUrl = setup.font_awesome?.kit_url ?? setup.font_awesome?.kitUrl;
   if (faKitUrl) {
     const script = document.createElement('script');
     script.src = faKitUrl;
     script.crossOrigin = 'anonymous';
-    // Removed async to load synchronously
+    script.async = true;
     criticalFrag.appendChild(script);
     logger.log(`Added Font Awesome Kit script: ${faKitUrl}`);
   } else {
     logger.warn('No Font Awesome kit URL found; icons may not load');
   }
-
   // Updated: Conditional OG meta tags based on presence of page attributes
   let metaTags = [];
   const hasPageAttributes = Object.keys(attributes).length > 0;
@@ -263,12 +249,13 @@ async function updateHead(attributes, setup) {
   criticalFrag.appendChild(canonicalLink);
   logger.log('Added canonical link: ' + canonicalUrl);
 
-  // Delayed: Query CSS vars for theme colors after a microtask
+  // Delayed: Query CSS vars for theme colors after a microtask (to ensure CSS is parsed)
   setTimeout(() => {
     const rootStyles = getComputedStyle(document.documentElement);
     const lightTheme = rootStyles.getPropertyValue('--color-light-scale-1').trim();
     const darkTheme = rootStyles.getPropertyValue('--color-dark-scale-1').trim();
 
+    // Fallback: If CSS vars are empty, skip adding meta tags (browser defaults)
     if (lightTheme) {
       const themeMetaLight = document.createElement('meta');
       themeMetaLight.name = 'theme-color';

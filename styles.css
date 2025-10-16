@@ -329,7 +329,7 @@
         }
 
         .background-color-1 {
-            background-color: light-dark(var(--color-dark-scale-6), var(--color-light-scale-));
+            background-color: light-dark(var(--color-dark-scale-1), var(--color-light-scale-1));
         }
 
         .background-color-2 {
