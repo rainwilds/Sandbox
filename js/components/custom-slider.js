@@ -32,7 +32,7 @@ class CustomSlider extends HTMLElement {
     }
   }
 
-  async #checkFontAwesome(classes, maxAttempts = 5, delay = 1000) {
+  async #checkFontAwesome(classes, maxAttempts = 5, delay = 1500) {
     let attempts = 0;
     while (attempts < maxAttempts) {
       const testDiv = document.createElement('div');
@@ -96,7 +96,7 @@ class CustomSlider extends HTMLElement {
     return iconHtml;
   }
 
-  async #parseSpaceBetween(value, maxAttempts = 5, delay = 200) {
+  async #parseSpaceBetween(value, maxAttempts = 10, delay = 300) {
     if (!value) return 0;
     const trimmedValue = value.trim();
 
@@ -108,6 +108,10 @@ class CustomSlider extends HTMLElement {
         document.addEventListener('DOMContentLoaded', resolve, { once: true });
       }
     });
+
+    // Log root font size for debugging
+    const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    this.#log('Root font size', { rootFontSize });
 
     // Handle CSS variable (e.g., var(--space-tiny))
     if (trimmedValue.startsWith('var(')) {
@@ -121,9 +125,10 @@ class CustomSlider extends HTMLElement {
           }
           const computedStyle = getComputedStyle(document.documentElement);
           const pixelValue = computedStyle.getPropertyValue(varName).trim();
+          this.#log('Raw CSS variable value', { variable: varName, pixelValue });
           const parsedValue = parseFloat(pixelValue);
           if (isNaN(parsedValue)) {
-            this.#log(`CSS variable resolution attempt ${attempts + 1}/${maxAttempts}`, { variable: varName, resolved: pixelValue });
+            this.#log(`CSS variable resolution attempt ${attempts + 1}/${maxAttempts}`, { variable: varName, pixelValue });
             await new Promise(resolve => setTimeout(resolve, delay));
             attempts++;
             continue;
@@ -136,8 +141,8 @@ class CustomSlider extends HTMLElement {
           attempts++;
         }
       }
-      this.#warn('CSS variable resolved to invalid pixel value after retries', { value: trimmedValue, elementId: this.id || 'no-id' });
-      return 0;
+      this.#warn('CSS variable resolved to invalid pixel value after retries, using fallback', { value: trimmedValue, elementId: this.id || 'no-id', fallback: 10 });
+      return 10; // Fallback to 10px
     }
 
     // Handle CSS units (px, em, rem, %, vw, vh)

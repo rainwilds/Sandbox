@@ -1989,6 +1989,9 @@ div#products {
 .swiper {
     height: 100%;
 }
+.swiper-slide {
+    margin-right: unset !important;
+}
 
 .swiper-button-prev,
 .swiper-button-next {
