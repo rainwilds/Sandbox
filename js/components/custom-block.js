@@ -469,11 +469,7 @@ class CustomBlock extends HTMLElement {
         if (buttonIconSize) {
             const remMatch = buttonIconSize.match(/^(\d*\.?\d+)rem$/);
             if (remMatch) sanitizedButtonIconSize = buttonIconSize;
-            else this.#warn('Invalid button icon size', {
-                value: buttonIconSize,
-                element: this.id || 'no-id',
-                expected: 'Nrem format'
-            });
+            else this.#warn('Invalid button icon size', { value: buttonIconSize, element: this.id || 'no-id', expected: 'Nrem format' });
         }
         const effects = this.getAttribute('effects') || '';
         let sanitizedEffects = '';
@@ -924,7 +920,7 @@ class CustomBlock extends HTMLElement {
                         darkPoster: videoAttrs.videoBackgroundDarkPoster,
                         alt: videoAttrs.videoBackgroundAlt,
                         customClasses: mediaClasses,
-                        extraClasses: [],
+                        extraClasses: borderRadiusClasses ? [borderRadiusClasses] : [],
                         loading: videoAttrs.videoBackgroundLoading,
                         autoplay: videoAttrs.videoBackgroundAutoplay,
                         muted: videoAttrs.videoBackgroundMuted,
@@ -1299,7 +1295,7 @@ class CustomBlock extends HTMLElement {
                             darkPoster: attrs.videoPrimaryDarkPoster,
                             alt: attrs.videoPrimaryAlt,
                             customClasses: mediaClasses,
-                            extraClasses: [],
+                            extraClasses: borderRadiusClasses ? [borderRadiusClasses] : [],
                             loading: attrs.videoPrimaryLoading,
                             autoplay: attrs.videoPrimaryAutoplay,
                             muted: attrs.videoPrimaryMuted,
@@ -1446,3 +1442,4 @@ try {
 
 console.log('CustomBlock version: 2025-09-27');
 export { CustomBlock };
+</x
