@@ -1157,6 +1157,7 @@
 
         display: grid;
         height: 100%;
+        align-content: stretch; /* ensure content spans all vertical space of parent */
         /* max-height: 100vh; */
 
 
