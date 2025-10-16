@@ -32,7 +32,7 @@ class CustomSlider extends HTMLElement {
     }
   }
 
-  async #checkFontAwesome(classes, maxAttempts = 5, delay = 500) {
+  async #checkFontAwesome(classes, maxAttempts = 5, delay = 1000) {
     let attempts = 0;
     while (attempts < maxAttempts) {
       const testDiv = document.createElement('div');
@@ -96,10 +96,19 @@ class CustomSlider extends HTMLElement {
     return iconHtml;
   }
 
-  async #parseSpaceBetween(value, maxAttempts = 3, delay = 100) {
+  async #parseSpaceBetween(value, maxAttempts = 5, delay = 200) {
     if (!value) return 0;
     const trimmedValue = value.trim();
-    
+
+    // Wait for DOMContentLoaded to ensure styles are loaded
+    await new Promise(resolve => {
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        resolve();
+      } else {
+        document.addEventListener('DOMContentLoaded', resolve, { once: true });
+      }
+    });
+
     // Handle CSS variable (e.g., var(--space-tiny))
     if (trimmedValue.startsWith('var(')) {
       let attempts = 0;
