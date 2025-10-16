@@ -7,6 +7,7 @@ import { getConfig, getImagePrimaryPath } from '../config.js';
 class CustomBlock extends HTMLElement {
     #ignoredChangeCount;
     #basePath = null;
+
     constructor() {
         super();
         this.isVisible = false;
@@ -21,6 +22,7 @@ class CustomBlock extends HTMLElement {
         CustomBlock.#observer.observe(this);
         CustomBlock.#observedInstances.add(this);
     }
+
     static #observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -34,8 +36,10 @@ class CustomBlock extends HTMLElement {
             }
         });
     }, { rootMargin: '50px' });
+
     static #observedInstances = new WeakSet();
     static #renderCacheMap = new WeakMap();
+
     static #criticalAttributes = [
         'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
         'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
@@ -58,6 +62,7 @@ class CustomBlock extends HTMLElement {
         'video-primary-loading', 'video-primary-loop', 'video-primary-muted',
         'video-primary-playsinline', 'video-primary-poster', 'video-primary-src'
     ];
+
     #log(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ${message}`, 'color: #2196F3; font-weight: bold;');
@@ -66,6 +71,7 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
+
     #warn(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ⚠️ ${message}`, 'color: #FF9800; font-weight: bold;');
@@ -74,6 +80,7 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
+
     #error(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ❌ ${message}`, 'color: #F44336; font-weight: bold;');
@@ -82,6 +89,7 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
+
     async #getBasePath() {
         if (!this.#basePath) {
             const config = await getConfig();
@@ -90,6 +98,7 @@ class CustomBlock extends HTMLElement {
         }
         return this.#basePath;
     }
+
     async validateSrc(url) {
         if (!url || this.debug) {
             this.#log('Skipping validation', { url, reason: this.debug ? 'Debug mode' : 'Empty URL' });
@@ -108,6 +117,7 @@ class CustomBlock extends HTMLElement {
             return false;
         }
     }
+
     async getAttributes() {
         if (this.cachedAttributes) {
             this.#log('Using cached attributes', { elementId: this.id || 'no-id' });
@@ -593,6 +603,7 @@ class CustomBlock extends HTMLElement {
         });
         return this.cachedAttributes;
     }
+
     async initialize() {
         if (this.isInitialized || !this.isVisible) {
             this.#log('Skipping initialization', {
@@ -630,12 +641,14 @@ class CustomBlock extends HTMLElement {
             this.replaceWith(fallbackElement);
         }
     }
+
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
         if (this.isVisible) {
             await this.initialize();
         }
     }
+
     disconnectedCallback() {
         this.#log('Disconnected from DOM', { elementId: this.id || 'no-id' });
         if (CustomBlock.#observedInstances.has(this)) {
@@ -648,11 +661,12 @@ class CustomBlock extends HTMLElement {
         this.criticalAttributesHash = null;
         CustomBlock.#renderCacheMap.delete(this);
     }
+
     addCallback(callback) {
         this.#log('Callback added', { callbackName: callback.name || 'anonymous', elementId: this.id || 'no-id' });
         this.callbacks.push(callback);
     }
-    // In custom-block.js, replace the render method with this version
+
     async render(isFallback = false) {
         this.#log(`Starting render ${isFallback ? '(fallback)' : ''}`, { elementId: this.id || 'no-id' });
         let newCriticalAttrsHash;
@@ -830,14 +844,19 @@ class CustomBlock extends HTMLElement {
             hasContent: !!(attrs.heading || attrs.subHeading || attrs.text || attrs.buttonText || attrs.icon)
         });
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
-        const mediaClasses = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls)).join(' ').trim();
+        const borderClasses = ['border-small', 'border-medium', 'border-large', 'border-radius-small', 'border-radius-medium', 'border-radius-large'];
+        const mediaClasses = attrs.customClasses
+            .split(' ')
+            .filter(cls => cls && !paddingClasses.includes(cls) && !borderClasses.includes(cls))
+            .join(' ')
+            .trim();
         const fragment = document.createDocumentFragment();
         const blockElement = document.createElement('div');
         fragment.appendChild(blockElement);
         const mainDivClassList = ['block'];
         if (hasBackgroundImage) mainDivClassList.push('background-image');
         else if (hasVideoBackground || hasVideoPrimary) mainDivClassList.push('background-video');
-        const customClassList = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls));
+        const customClassList = attrs.customClasses.split(' ').filter(cls => cls);
         mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass);
         if (attrs.effects) mainDivClassList.push(attrs.effects);
         blockElement.className = mainDivClassList.filter(cls => cls).join(' ').trim();
@@ -1100,7 +1119,6 @@ class CustomBlock extends HTMLElement {
             }
             return blockElement;
         }
-        // Render heading, text, and button even if not media-only or button-only
         this.#log('Rendering content block', { elementId: this.id || 'no-id', hasContent: !!(attrs.heading || attrs.text || attrs.buttonText) });
         const innerPaddingClasses = attrs.customClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
         const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-'))];
@@ -1360,6 +1378,7 @@ class CustomBlock extends HTMLElement {
         this.#log('Render completed', { elementId: this.id || 'no-id', html: blockElement.outerHTML.substring(0, 200) });
         return blockElement;
     }
+
     static get observedAttributes() {
         return [
             'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
@@ -1390,6 +1409,7 @@ class CustomBlock extends HTMLElement {
             'video-primary-src'
         ];
     }
+
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) {
             this.#ignoredChangeCount++;
@@ -1405,10 +1425,12 @@ class CustomBlock extends HTMLElement {
         }
     }
 }
+
 try {
     customElements.define('custom-block', CustomBlock);
 } catch (error) {
     console.error('Error defining CustomBlock element:', error);
 }
+
 console.log('CustomBlock version: 2025-09-27');
 export { CustomBlock };
