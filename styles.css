@@ -562,56 +562,56 @@
 
 
 
-        .place-self-center {
-            place-self: center;
+        .place-content-center {
+            place-content: center;
         }
 
-        .place-self-top {
-            place-self: start;
+        .place-content-top {
+            place-content: start;
         }
 
-        .place-self-bottom {
-            place-self: end;
+        .place-content-bottom {
+            place-content: end;
         }
 
-        .place-self-left {
-            place-self: start;
+        .place-content-left {
+            place-content: start;
         }
 
-        .place-self-right {
-            place-self: end;
+        .place-content-right {
+            place-content: end;
         }
 
-        .place-self-top-left {
-            place-self: start start;
+        .place-content-top-left {
+            place-content: start start;
         }
 
-        .place-self-top-center {
-            place-self: start center;
+        .place-content-top-center {
+            place-content: start center;
         }
 
-        .place-self-top-right {
-            place-self: start end;
+        .place-content-top-right {
+            place-content: start end;
         }
 
-        .place-self-bottom-left {
-            place-self: end start;
+        .place-content-bottom-left {
+            place-content: end start;
         }
 
-        .place-self-bottom-center {
-            place-self: end center;
+        .place-content-bottom-center {
+            place-content: end center;
         }
 
-        .place-self-bottom-right {
-            place-self: end end;
+        .place-content-bottom-right {
+            place-content: end end;
         }
 
-        .place-self-center-left {
-            place-self: center start;
+        .place-content-center-left {
+            place-content: center start;
         }
 
-        .place-self-center-right {
-            place-self: center end;
+        .place-content-center-right {
+            place-content: center end;
         }
 
         .flex-column-left {

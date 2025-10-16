@@ -9,22 +9,22 @@ export const VALID_ALIGNMENTS = [
 ];
 
 // Object mapping alignment strings to CSS class names.
-// Translates semantic alignments to place-self utilities for CSS Grid.
+// Translates semantic alignments to place-content utilities for CSS Grid.
 // Enables easy application of positioning in components like logos or navs.
 export const VALID_ALIGN_MAP = {
-    'center': 'place-self-center',
-    'top': 'place-self-top',
-    'bottom': 'place-self-bottom',
-    'left': 'place-self-left',
-    'right': 'place-self-right',
-    'top-left': 'place-self-top-left',
-    'top-center': 'place-self-top-center',
-    'top-right': 'place-self-top-right',
-    'bottom-left': 'place-self-bottom-left',
-    'bottom-center': 'place-self-bottom-center',
-    'bottom-right': 'place-self-bottom-right',
-    'center-left': 'place-self-center-left',
-    'center-right': 'place-self-center-right'
+    'center': 'place-content-center',
+    'top': 'place-content-top',
+    'bottom': 'place-content-bottom',
+    'left': 'place-content-left',
+    'right': 'place-content-right',
+    'top-left': 'place-content-top-left',
+    'top-center': 'place-content-top-center',
+    'top-right': 'place-content-top-right',
+    'bottom-left': 'place-content-bottom-left',
+    'bottom-center': 'place-content-bottom-center',
+    'bottom-right': 'place-content-bottom-right',
+    'center-left': 'place-content-center-left',
+    'center-right': 'place-content-center-right'
 };
 
 // Object mapping backdrop filter class names to their CSS values.
