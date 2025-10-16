@@ -176,20 +176,19 @@ export async function generatePictureMarkup({
       primaryAlt = isDecorative ? '' : (lightAlt || iconLightAlt || darkAlt || iconDarkAlt || alt || iconAlt);
     }
 
-    // Build combined classes array, removing duplicates.
-    const allClasses = [...new Set([
+    // Build classes for picture element (excluding extraClasses).
+    const pictureClasses = [...new Set([
       ...customClasses.split(/\s+/),
-      ...(Array.isArray(extraClasses) ? extraClasses : []).flatMap(c => c.split(/\s+/))
+      ...(aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio) ? [`aspect-ratio-${aspectRatio.replace('/', '-')}`] : []),
+      'animate', 'animate-fade-in'
     ].filter(Boolean))];
+    const pictureClassAttr = pictureClasses.length ? ` class="${pictureClasses.join(' ')}"` : '';
 
-    // Add aspect ratio class if valid.
-    if (aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio)) {
-      allClasses.push(`aspect-ratio-${aspectRatio.replace('/', '-')}`);
-    }
-    // Add default animation classes.
-    allClasses.push('animate', 'animate-fade-in');
-
-    const classAttr = allClasses.length ? ` class="${allClasses.join(' ')}"` : '';
+    // Build classes for img element (including extraClasses).
+    const imgClasses = [...new Set([
+      ...(Array.isArray(extraClasses) ? extraClasses : extraClasses.split(/\s+/)).filter(Boolean)
+    ])];
+    const imgClassAttr = imgClasses.length ? ` class="${imgClasses.join(' ')}"` : '';
 
     // Generate sizes attribute string based on breakpoints and widths.
     function parseWidth(widthStr) {
@@ -210,7 +209,7 @@ export async function generatePictureMarkup({
     }).join(', ') + `, ${DEFAULT_IMAGE_SIZE_VALUE * parsedWidths.desktop}px`;
 
     // Start building the <picture> markup.
-    let markup = `<picture${classAttr}>`;
+    let markup = `<picture${pictureClassAttr}>`;
 
     // Helper to add a source element.
     const addSource = (media, type, srcset, sizes, dataAlt) => {
@@ -301,6 +300,7 @@ export async function generatePictureMarkup({
     const imgAttrs = [
       `src="${fallbackSrc}"`,
       isDecorative ? 'alt="" role="presentation"' : `alt="${primaryAlt}"`,
+      imgClassAttr,
       styleAttr,
       `loading="${loading}"`,
       fetchPriority ? `fetchpriority="${fetchPriority}"` : '',
