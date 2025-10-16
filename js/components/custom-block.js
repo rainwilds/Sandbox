@@ -1442,4 +1442,3 @@ try {
 
 console.log('CustomBlock version: 2025-09-27');
 export { CustomBlock };
-</x
