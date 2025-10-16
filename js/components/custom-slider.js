@@ -32,24 +32,6 @@ class CustomSlider extends HTMLElement {
     }
   }
 
-  async #checkFontAwesome(classes, maxAttempts = 5, delay = 2000) {
-    let attempts = 0;
-    while (attempts < maxAttempts) {
-      const testDiv = document.createElement('div');
-      testDiv.style.display = 'none';
-      testDiv.innerHTML = `<i class="fa ${classes.join(' ')}"></i>`;
-      document.body.appendChild(testDiv);
-      const testIcon = testDiv.querySelector('i');
-      const isIconVisible = testIcon && window.getComputedStyle(testIcon).fontFamily.includes('Font Awesome');
-      document.body.removeChild(testDiv);
-      if (isIconVisible) return true;
-      this.#log(`Font Awesome check attempt ${attempts + 1}/${maxAttempts}`, { classes });
-      await new Promise(resolve => setTimeout(resolve, delay));
-      attempts++;
-    }
-    return false;
-  }
-
   #validateIcon(icon, attributeName) {
     if (!icon) return '';
     const cleanedIcon = icon
@@ -82,15 +64,6 @@ class CustomSlider extends HTMLElement {
       });
       return '';
     }
-    this.#checkFontAwesome(validClasses).then(isIconVisible => {
-      if (!isIconVisible) {
-        this.#warn(`Font Awesome kit may not have loaded or does not support classes for ${attributeName}`, {
-          classes: validClasses,
-          elementId: this.id || 'no-id',
-          kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js'
-        });
-      }
-    });
     const iconHtml = `<i class="${validClasses.join(' ')}"></i>`;
     this.#log(`Validated icon for ${attributeName}`, { iconHtml });
     return iconHtml;
@@ -99,7 +72,7 @@ class CustomSlider extends HTMLElement {
   async #parseSpaceBetween(value, maxAttempts = 30, delay = 500) {
     if (!value) {
       this.#log('No space-between value provided, using 0', { value });
-      return 0;
+      return { value: 0, cssVariable: null };
     }
     const trimmedValue = value.trim();
 
@@ -124,7 +97,7 @@ class CustomSlider extends HTMLElement {
           const varName = trimmedValue.match(/var\((--[^)]+)\)/)?.[1];
           if (!varName) {
             this.#warn('Invalid CSS variable format in space-between', { value: trimmedValue, elementId: this.id || 'no-id' });
-            return 0;
+            return { value: 0, cssVariable: trimmedValue };
           }
           const computedStyle = getComputedStyle(document.documentElement);
           const pixelValue = computedStyle.getPropertyValue(varName).trim();
@@ -136,13 +109,13 @@ class CustomSlider extends HTMLElement {
             if (!isNaN(remValue)) {
               const parsedValue = remValue * rootFontSize;
               this.#log('Parsed rem value for space-between', { variable: varName, remValue, parsedValue });
-              return parsedValue;
+              return { value: parsedValue, cssVariable: trimmedValue };
             }
           } else if (pixelValue.includes('px')) {
             const parsedValue = parseFloat(pixelValue);
             if (!isNaN(parsedValue)) {
               this.#log('Parsed px value for space-between', { variable: varName, pixelValue: parsedValue });
-              return parsedValue;
+              return { value: parsedValue, cssVariable: trimmedValue };
             }
           }
 
@@ -157,7 +130,7 @@ class CustomSlider extends HTMLElement {
         }
       }
       this.#warn('Failed to resolve CSS variable after retries', { value: trimmedValue, elementId: this.id || 'no-id' });
-      return 0; // No fallback, as requested
+      return { value: 0, cssVariable: trimmedValue };
     }
 
     // Handle CSS units (px, em, rem, %, vw, vh)
@@ -170,13 +143,13 @@ class CustomSlider extends HTMLElement {
       document.body.removeChild(testDiv);
       if (isNaN(pixelValue)) {
         this.#warn('Invalid CSS unit value in space-between', { value: trimmedValue, elementId: this.id || 'no-id' });
-        return 0;
+        return { value: 0, cssVariable: null };
       }
       this.#log('Parsed CSS unit for space-between', { value: trimmedValue, pixelValue });
-      return pixelValue;
+      return { value: pixelValue, cssVariable: null };
     } catch (error) {
       this.#warn('Failed to parse CSS unit for space-between', { value: trimmedValue, error: error.message });
-      return 0;
+      return { value: 0, cssVariable: null };
     }
   }
 
@@ -212,10 +185,12 @@ class CustomSlider extends HTMLElement {
     const navigationIconLeft = hasNavigation ? this.getAttribute('navigation-icon-left') || '' : '';
     const navigationIconRight = hasNavigation ? this.getAttribute('navigation-icon-right') || '' : '';
     const slidesPerView = this.hasAttribute('slides-per-view') ? parseFloat(this.getAttribute('slides-per-view')) || 1 : 1;
-    const spaceBetween = await this.#parseSpaceBetween(this.getAttribute('space-between') || '0');
+    const spaceBetweenResult = await this.#parseSpaceBetween(this.getAttribute('space-between') || '0');
+    const spaceBetween = spaceBetweenResult.value;
+    const cssVariable = spaceBetweenResult.cssVariable;
 
     // Log spaceBetween value for debugging
-    this.#log('Applying spaceBetween to Swiper', { spaceBetween });
+    this.#log('Applying spaceBetween to Swiper', { spaceBetween, cssVariable });
 
     // Warn if navigation-icon-left or navigation-icon-right are used without navigation
     if (!hasNavigation && this.hasAttribute('navigation-icon-left')) {
@@ -339,6 +314,19 @@ class CustomSlider extends HTMLElement {
         hasNavigationIconLeft: !!navigationIconLeft,
         hasNavigationIconRight: !!navigationIconRight 
       });
+
+      // Override margin-right with original CSS variable if provided
+      if (cssVariable) {
+        const styleElement = document.createElement('style');
+        styleElement.textContent = `
+          .swiper-slide {
+            margin-right: ${cssVariable} !important;
+          }
+        `;
+        document.head.appendChild(styleElement);
+        this.#log('Injected CSS variable for space-between', { cssVariable, style: styleElement.textContent });
+      }
+
       this.#isInitialized = true;
     } catch (error) {
       this.#error('Failed to initialize Swiper or replace element', { error: error.message, stack: error.stack });
