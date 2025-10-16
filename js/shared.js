@@ -2,8 +2,7 @@
 // Includes basic directions and combinations for flexible grid placements.
 // Used in validation to prevent invalid layout configurations.
 export const VALID_ALIGNMENTS = [
-    'center', 'top', 'bottom', 'left', 'right',
-    'top-left', 'top-center', 'top-right',
+    'center', 'top', 'bottom', 'top-left', 'top-center', 'top-right',
     'bottom-left', 'bottom-center', 'bottom-right',
     'center-left', 'center-right'
 ];
@@ -15,8 +14,6 @@ export const VALID_ALIGN_MAP = {
     'center': 'place-content-center',
     'top': 'place-content-top',
     'bottom': 'place-content-bottom',
-    'left': 'place-content-left',
-    'right': 'place-content-right',
     'top-left': 'place-content-top-left',
     'top-center': 'place-content-top-center',
     'top-right': 'place-content-top-right',

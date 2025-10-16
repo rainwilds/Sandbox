@@ -574,13 +574,13 @@
             place-content: end;
         }
 
-        .place-content-left {
+        /* .place-content-left {
             place-content: start;
         }
 
         .place-content-right {
             place-content: end;
-        }
+        } */
 
         .place-content-top-left {
             place-content: start start;
@@ -613,6 +613,9 @@
         .place-content-center-right {
             place-content: center end;
         }
+
+
+
 
         .flex-column-left {
             display: flex;
