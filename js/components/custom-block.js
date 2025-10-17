@@ -678,7 +678,104 @@ class CustomBlock extends HTMLElement {
             }
         }
         const attrs = isFallback ? {
-            // ... (unchanged fallback attributes, omitted for brevity)
+            effects: '',
+            sectionTitle: false,
+            heading: '',
+            headingTag: 'h2',
+            subHeading: '',
+            subHeadingTag: 'h3',
+            icon: '',
+            iconStyle: '',
+            iconClass: '',
+            iconSize: '',
+            text: '',
+            buttonHref: '#',
+            buttonText: '',
+            buttonClass: '',
+            buttonStyle: '',
+            buttonTarget: '',
+            buttonRel: '',
+            buttonAriaLabel: '',
+            buttonType: 'button',
+            buttonIcon: '',
+            buttonIconPosition: '',
+            buttonIconOffset: '',
+            buttonIconSize: '',
+            hasBackgroundOverlay: false,
+            backgroundOverlayClass: '',
+            innerBackgroundOverlayClass: '',
+            backgroundGradientClass: '',
+            innerBackgroundGradientClass: '',
+            backgroundImageNoise: false,
+            backdropFilterClasses: [],
+            backgroundColorClass: '',
+            borderClass: '',
+            borderRadiusClass: '',
+            customClasses: '',
+            innerCustomClasses: '',
+            styleAttribute: '',
+            backgroundSrc: '',
+            backgroundLightSrc: '',
+            backgroundDarkSrc: '',
+            backgroundAlt: '',
+            backgroundIsDecorative: false,
+            backgroundMobileWidth: '100vw',
+            backgroundTabletWidth: '100vw',
+            backgroundDesktopWidth: '100vw',
+            backgroundAspectRatio: '',
+            backgroundIncludeSchema: false,
+            backgroundFetchPriority: '',
+            backgroundLoading: 'lazy',
+            primarySrc: '',
+            primaryLightSrc: '',
+            primaryDarkSrc: '',
+            primaryAlt: '',
+            primaryIsDecorative: false,
+            primaryMobileWidth: '100vw',
+            primaryTabletWidth: '100vw',
+            primaryDesktopWidth: '100vw',
+            primaryAspectRatio: '',
+            primaryIncludeSchema: false,
+            primaryFetchPriority: '',
+            primaryLoading: 'lazy',
+            primaryPosition: 'top',
+            videoBackgroundSrc: '',
+            videoBackgroundLightSrc: '',
+            videoBackgroundDarkSrc: '',
+            videoBackgroundPoster: '',
+            videoBackgroundLightPoster: '',
+            videoBackgroundDarkPoster: '',
+            videoBackgroundAlt: 'Video content',
+            videoBackgroundLoading: 'lazy',
+            videoBackgroundAutoplay: false,
+            videoBackgroundMuted: false,
+            videoBackgroundLoop: false,
+            videoBackgroundPlaysinline: false,
+            videoBackgroundDisablePip: false,
+            videoPrimarySrc: '',
+            videoPrimaryLightSrc: '',
+            videoPrimaryDarkSrc: '',
+            videoPrimaryPoster: '',
+            videoPrimaryLightPoster: '',
+            videoPrimaryDarkPoster: '',
+            videoPrimaryAlt: 'Video content',
+            videoPrimaryLoading: 'lazy',
+            videoPrimaryAutoplay: false,
+            videoPrimaryMuted: false,
+            videoPrimaryLoop: false,
+            videoPrimaryPlaysinline: false,
+            videoPrimaryDisablePip: false,
+            backgroundPosition: '',
+            innerBackgroundColorClass: '',
+            innerBackgroundImageNoise: false,
+            innerBackdropFilterClasses: [],
+            innerBorderClass: '',
+            innerBorderRadiusClass: '',
+            innerStyle: '',
+            innerAlignment: '',
+            textAlignment: '',
+            shadowClass: '',
+            innerShadowClass: ''
         } : await this.getAttributes();
         this.#log('Render attributes prepared', {
             elementId: this.id || 'no-id',
@@ -1288,6 +1385,21 @@ class CustomBlock extends HTMLElement {
         }
         this.#log('Render completed', { elementId: this.id || 'no-id', html: blockElement.outerHTML.substring(0, 200) });
         return blockElement;
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        this.#log('Attribute changed', { name, oldValue, newValue, elementId: this.id || 'no-id' });
+        if (oldValue === newValue) return;
+        if (CustomBlock.#criticalAttributes.includes(name)) {
+            this.cachedAttributes = null;
+            this.criticalAttributesHash = null;
+            if (this.isInitialized && this.isVisible) {
+                this.#ignoredChangeCount++;
+                this.initialize().then(() => {
+                    this.#ignoredChangeCount--;
+                });
+            }
+        }
     }
 
     static get observedAttributes() {
