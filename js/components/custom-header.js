@@ -137,7 +137,7 @@
                     }
                 }
 
-                const attrs = isFallback ? {} : await this.getAttributes(); // Fallback attrs can be minimal
+                const attrs = isFallback ? {} : await this.getAttributes();
                 let blockElement;
                 try {
                     blockElement = await super.render(isFallback);
@@ -214,10 +214,12 @@
                     }
                 }
 
-                let innerHTML = blockElement.innerHTML || '';
-                let styleHTML = '';
+                let innerHTML = '';
+                // Check for content attributes to decide whether to include super.render() content
+                const hasContent = attrs.heading || attrs.subHeading || attrs.text || attrs.buttonText || attrs.icon;
+
                 if (attrs.logoPlacement === 'nav' && logoHTML && navHTML) {
-                    styleHTML = `
+                    const styleHTML = `
                         <style>
                             @media (max-width: 1023px) {
                                 .logo-container {
@@ -240,34 +242,43 @@
                                 ${navHTML}
                             </div>
                         </div>
-                        ${innerHTML}
                     `;
+                    // Only append super.render() content if there are content attributes
+                    if (hasContent) {
+                        innerHTML += blockElement.innerHTML;
+                    }
                     this.#log('Composed nav-with-logo', { htmlPreview: innerHTML.substring(0, 200) + '...' });
                 } else {
-                    innerHTML = `${logoHTML}${navHTML}${innerHTML}`;
+                    innerHTML = `${logoHTML}${navHTML}`;
+                    // Only append super.render() content if there are content attributes
+                    if (hasContent) {
+                        innerHTML += blockElement.innerHTML;
+                    }
                     this.#log('Composed independent', { htmlPreview: innerHTML.substring(0, 200) + '...' });
                 }
 
                 blockElement.innerHTML = innerHTML;
 
-                // Batch style adjustments
-                const ariaLiveDiv = blockElement.querySelector('div[aria-live="polite"]');
-                if (ariaLiveDiv) {
-                    ariaLiveDiv.style.display = 'grid';
-                    ariaLiveDiv.style.placeContent = '';
-                    this.#log('Adjusted aria-live div styles');
-                }
+                // Only adjust aria-live div if content exists
+                if (hasContent) {
+                    const ariaLiveDiv = blockElement.querySelector('div[aria-live="polite"]');
+                    if (ariaLiveDiv) {
+                        ariaLiveDiv.style.display = 'grid';
+                        ariaLiveDiv.style.placeContent = '';
+                        this.#log('Adjusted aria-live div styles');
+                    }
 
-                const groupDiv = blockElement.querySelector('div[role="group"]');
-                if (groupDiv) {
-                    const textAlignClass = Array.from(groupDiv.classList).find(cls => cls.startsWith('text-align-'));
-                    if (textAlignClass) {
-                        groupDiv.classList.remove(textAlignClass);
-                        const alignment = textAlignClass.replace('text-align-', '');
-                        if (VALID_ALIGNMENTS.includes(alignment)) {
-                            groupDiv.classList.add(VALID_ALIGN_MAP[alignment]);
-                            groupDiv.style.width = 'fit-content';
-                            this.#log('Replaced text-align with place-self', { alignment });
+                    const groupDiv = blockElement.querySelector('div[role="group"]');
+                    if (groupDiv) {
+                        const textAlignClass = Array.from(groupDiv.classList).find(cls => cls.startsWith('text-align-'));
+                        if (textAlignClass) {
+                            groupDiv.classList.remove(textAlignClass);
+                            const alignment = textAlignClass.replace('text-align-', '');
+                            if (VALID_ALIGNMENTS.includes(alignment)) {
+                                groupDiv.classList.add(VALID_ALIGN_MAP[alignment]);
+                                groupDiv.style.width = 'fit-content';
+                                this.#log('Replaced text-align with place-self', { alignment });
+                            }
                         }
                     }
                 }
