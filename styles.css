@@ -322,17 +322,17 @@
 
 
         .position-absolute {
-            display: absolute;
+            position: absolute;
             width: 100%;
         }
 
         .position-sticky {
-            display: sticky;
+            position: sticky;
             width: 100%;
         }
 
         .position-fixed {
-            display: fixed;
+            position: fixed;
             width: 100%;
         }
 
