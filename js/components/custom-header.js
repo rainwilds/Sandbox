@@ -14,7 +14,7 @@
         ]);
 
         class CustomHeader extends CustomBlock {
-            // Duplicate logging methods to make them private to this class
+            // Private logging helpers
             #log(message, data = null) {
                 if (this.debug) {
                     console.groupCollapsed(`%c[CustomHeader] ${message}`, 'color: #2196F3; font-weight: bold;');
@@ -25,7 +25,7 @@
             }
             #warn(message, data = null) {
                 if (this.debug) {
-                    console.groupCollapsed(`%c[CustomHeader] ⚠️ ${message}`, 'color: #FF9800; font-weight: bold;');
+                    console.groupCollapsed(`%c[CustomHeader] Warning: ${message}`, 'color: #FF9800; font-weight: bold;');
                     if (data) console.log('%cData:', 'color: #4CAF50;', data);
                     console.trace();
                     console.groupEnd();
@@ -33,7 +33,7 @@
             }
             #error(message, data = null) {
                 if (this.debug) {
-                    console.groupCollapsed(`%c[CustomHeader] ❌ ${message}`, 'color: #F44336; font-weight: bold;');
+                    console.groupCollapsed(`%c[CustomHeader] Error: ${message}`, 'color: #F44336; font-weight: bold;');
                     if (data) console.log('%cData:', 'color: #4CAF50;', data);
                     console.trace();
                     console.groupEnd();
@@ -42,6 +42,7 @@
 
             static #renderCacheMap = new WeakMap();
 
+            // All attributes that affect rendering (used for cache-busting)
             static #criticalAttributes = [
                 'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
                 'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
@@ -63,7 +64,7 @@
                 'video-primary-disable-pip', 'video-primary-light-poster', 'video-primary-light-src',
                 'video-primary-loading', 'video-primary-loop', 'video-primary-muted',
                 'video-primary-playsinline', 'video-primary-poster', 'video-primary-src',
-                'sticky',
+                'position',
                 'logo-placement',
                 'nav-logo-container-style',
                 'nav-logo-container-class',
@@ -74,7 +75,7 @@
             static get observedAttributes() {
                 return [
                     ...super.observedAttributes,
-                    'sticky',
+                    'position',
                     'logo-placement',
                     'nav-logo-container-style',
                     'nav-logo-container-class',
@@ -90,7 +91,17 @@
                 }
 
                 const attrs = await super.getAttributes();
-                attrs.sticky = this.hasAttribute('sticky');
+
+                // POSITION handling
+                const rawPos = this.getAttribute('position')?.trim().toLowerCase() || '';
+                const validPositions = ['sticky', 'absolute', 'fixed'];
+                if (rawPos && !validPositions.includes(rawPos)) {
+                    this.#warn(`Invalid position value "${rawPos}". Falling back to normal flow.`);
+                    attrs.position = null;
+                } else {
+                    attrs.position = rawPos || null;
+                }
+
                 attrs.logoPlacement = this.getAttribute('logo-placement') || 'independent';
                 attrs.navLogoContainerStyle = this.getAttribute('nav-logo-container-style') || '';
                 attrs.navLogoContainerClass = this.getAttribute('nav-logo-container-class') || '';
@@ -111,6 +122,7 @@
                     attrs.backdropFilter = '';
                 }
 
+                // Build hash for cache-busting
                 const criticalAttrs = {};
                 CustomHeader.#criticalAttributes.forEach(attr => {
                     criticalAttrs[attr] = this.getAttribute(attr) || '';
@@ -152,29 +164,28 @@
 
                 blockElement.setAttribute('role', 'banner');
 
-                // Batch class additions
+                // Batch class additions (excluding position-related classes)
                 const classesToAdd = [];
                 if (attrs.backgroundColorClass) classesToAdd.push(attrs.backgroundColorClass);
                 if (attrs.borderClass) classesToAdd.push(attrs.borderClass);
                 if (attrs.borderRadiusClass) classesToAdd.push(attrs.borderRadiusClass);
                 if (attrs.shadowClass) classesToAdd.push(attrs.shadowClass);
-                if (attrs.sticky) classesToAdd.push('sticky');
                 if (classesToAdd.length) {
                     blockElement.classList.add(...classesToAdd);
                     this.#log('Applied header classes', { classes: classesToAdd });
                 }
 
+                // Apply backdrop filter
                 if (attrs.backdropFilter) {
                     const filterClass = `backdrop-filter-${attrs.backdropFilter}`;
                     blockElement.style.backdropFilter = BACKDROP_FILTER_MAP[filterClass] || '';
                     this.#log('Applied backdrop filter', { filter: blockElement.style.backdropFilter });
                 }
 
-                if (attrs.sticky) {
-                    blockElement.style.position = 'sticky';
-                    blockElement.style.top = '0';
-                    blockElement.style.zIndex = '1000';
-                    this.#log('Applied sticky positioning');
+                // Apply position CSS (only the position property)
+                if (attrs.position) {
+                    blockElement.style.position = attrs.position;
+                    this.#log(`Applied ${attrs.position} positioning`);
                 }
 
                 let logoHTML = '';
@@ -214,10 +225,10 @@
                     }
                 }
 
-                let innerHTML = '';
                 // Check for content attributes to decide whether to include super.render() content
                 const hasContent = attrs.heading || attrs.subHeading || attrs.text || attrs.buttonText || attrs.icon;
 
+                let innerHTML = '';
                 if (attrs.logoPlacement === 'nav' && logoHTML && navHTML) {
                     const styleHTML = `
                         <style>
@@ -243,17 +254,11 @@
                             </div>
                         </div>
                     `;
-                    // Only append super.render() content if there are content attributes
-                    if (hasContent) {
-                        innerHTML += blockElement.innerHTML;
-                    }
+                    if (hasContent) innerHTML += blockElement.innerHTML;
                     this.#log('Composed nav-with-logo', { htmlPreview: innerHTML.substring(0, 200) + '...' });
                 } else {
                     innerHTML = `${logoHTML}${navHTML}`;
-                    // Only append super.render() content if there are content attributes
-                    if (hasContent) {
-                        innerHTML += blockElement.innerHTML;
-                    }
+                    if (hasContent) innerHTML += blockElement.innerHTML;
                     this.#log('Composed independent', { htmlPreview: innerHTML.substring(0, 200) + '...' });
                 }
 
