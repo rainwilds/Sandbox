@@ -164,12 +164,13 @@
 
                 blockElement.setAttribute('role', 'banner');
 
-                // Batch class additions (excluding position-related classes)
+                // Batch class additions
                 const classesToAdd = [];
                 if (attrs.backgroundColorClass) classesToAdd.push(attrs.backgroundColorClass);
                 if (attrs.borderClass) classesToAdd.push(attrs.borderClass);
                 if (attrs.borderRadiusClass) classesToAdd.push(attrs.borderRadiusClass);
                 if (attrs.shadowClass) classesToAdd.push(attrs.shadowClass);
+                if (attrs.position) classesToAdd.push(`position-${attrs.position}`); // Add position-sticky, position-absolute, or position-fixed
                 if (classesToAdd.length) {
                     blockElement.classList.add(...classesToAdd);
                     this.#log('Applied header classes', { classes: classesToAdd });
@@ -180,12 +181,6 @@
                     const filterClass = `backdrop-filter-${attrs.backdropFilter}`;
                     blockElement.style.backdropFilter = BACKDROP_FILTER_MAP[filterClass] || '';
                     this.#log('Applied backdrop filter', { filter: blockElement.style.backdropFilter });
-                }
-
-                // Apply position CSS (only the position property)
-                if (attrs.position) {
-                    blockElement.style.position = attrs.position;
-                    this.#log(`Applied ${attrs.position} positioning`);
                 }
 
                 let logoHTML = '';

@@ -219,32 +219,32 @@
 
 
 
---color-light-scale-1: #daccbf;
---color-light-scale-2: #e0c9c5;
---color-light-scale-3: #e0c8ce;
---color-light-scale-4: #d8cad8;
---color-light-scale-5: #cccddf;
---color-light-scale-6: #bfd0df;
---color-dark-scale-1: #34251d;
---color-dark-scale-2: #331f1e;
---color-dark-scale-3: #2e1a21;
---color-dark-scale-4: #251825;
---color-dark-scale-5: #181626;
---color-dark-scale-6: #051524;
---color-accent-opaque-light-scale-1: rgba(218,204,191,0.2);
---color-accent-opaque-light-scale-2: rgba(224,201,197,0.2);
---color-accent-opaque-light-scale-3: rgba(224,200,206,0.2);
---color-accent-opaque-light-scale-4: rgba(216,202,216,0.2);
---color-accent-opaque-light-scale-5: rgba(204,205,223,0.2);
---color-accent-opaque-light-scale-6: rgba(191,208,223,0.2);
---color-accent-opaque-dark-scale-1: rgba(52,37,29,0.5);
---color-accent-opaque-dark-scale-2: rgba(51,31,30,0.5);
---color-accent-opaque-dark-scale-3: rgba(46,26,33,0.5);
---color-accent-opaque-dark-scale-4: rgba(37,24,37,0.5);
---color-accent-opaque-dark-scale-5: rgba(24,22,38,0.5);
---color-accent-opaque-dark-scale-6: rgba(5,21,36,0.5);
---color-static-light: white;
---color-static-dark: black;
+        --color-light-scale-1: #daccbf;
+        --color-light-scale-2: #e0c9c5;
+        --color-light-scale-3: #e0c8ce;
+        --color-light-scale-4: #d8cad8;
+        --color-light-scale-5: #cccddf;
+        --color-light-scale-6: #bfd0df;
+        --color-dark-scale-1: #34251d;
+        --color-dark-scale-2: #331f1e;
+        --color-dark-scale-3: #2e1a21;
+        --color-dark-scale-4: #251825;
+        --color-dark-scale-5: #181626;
+        --color-dark-scale-6: #051524;
+        --color-accent-opaque-light-scale-1: rgba(218, 204, 191, 0.2);
+        --color-accent-opaque-light-scale-2: rgba(224, 201, 197, 0.2);
+        --color-accent-opaque-light-scale-3: rgba(224, 200, 206, 0.2);
+        --color-accent-opaque-light-scale-4: rgba(216, 202, 216, 0.2);
+        --color-accent-opaque-light-scale-5: rgba(204, 205, 223, 0.2);
+        --color-accent-opaque-light-scale-6: rgba(191, 208, 223, 0.2);
+        --color-accent-opaque-dark-scale-1: rgba(52, 37, 29, 0.5);
+        --color-accent-opaque-dark-scale-2: rgba(51, 31, 30, 0.5);
+        --color-accent-opaque-dark-scale-3: rgba(46, 26, 33, 0.5);
+        --color-accent-opaque-dark-scale-4: rgba(37, 24, 37, 0.5);
+        --color-accent-opaque-dark-scale-5: rgba(24, 22, 38, 0.5);
+        --color-accent-opaque-dark-scale-6: rgba(5, 21, 36, 0.5);
+        --color-static-light: white;
+        --color-static-dark: black;
 
 
 
@@ -321,6 +321,21 @@
         }
 
 
+        .position-absolute {
+            display: absolute;
+            width: 100%;
+        }
+
+        .position-sticky {
+            display: sticky;
+            width: 100%;
+        }
+
+        .position-fixed {
+            display: fixed;
+            width: 100%;
+        }
+
 
         color: light-dark(var(--color-dark-scale-6), var(--color-light-scale-6));
 
@@ -356,7 +371,8 @@
         .background-gradient-1 {
 
             background-image: linear-gradient(180deg, transparent 0%, var(--color-dark-scale-6) 100%);
-            transform: scale(1.003); /* fixes edge blending */
+            transform: scale(1.003);
+            /* fixes edge blending */
 
         }
 
@@ -364,12 +380,14 @@
 
         .background-gradient-2 {
             background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--ff-primary-background-color-dark) 100%);
-            transform: scale(1.003); /* fixes edge blending */
+            transform: scale(1.003);
+            /* fixes edge blending */
         }
 
         .background-gradient-3 {
             background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--ff-primary-background-color-dark) 100%);
-            transform: scale(1.003); /* fixes edge blending */
+            transform: scale(1.003);
+            /* fixes edge blending */
         }
 
         .background-image-noise {
@@ -1157,7 +1175,8 @@
 
         display: grid;
         height: 100%;
-        align-content: stretch; /* ensure content spans all vertical space of parent */
+        align-content: stretch;
+        /* ensure content spans all vertical space of parent */
         /* max-height: 100vh; */
 
 
@@ -1727,7 +1746,7 @@ body>*:not(script) {
     display: grid;
     grid-template-columns: subgrid;
     grid-column: gutter-left / gutter-right;
-    /* grid-auto-rows: max-content 1fr; */
+    grid-auto-rows: max-content 1fr;
     transition: all ease-in-out 0.25s;
 
     >section {
@@ -1991,27 +2010,30 @@ div#products {
 .swiper {
     height: 100%;
 }
+
 /* .swiper-slide {
     margin-right: unset !important;
 } */
 
 .swiper-button-prev,
 .swiper-button-next {
-  color: #333;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
+    color: #333;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
 }
+
 .swiper-button-prev:after,
 .swiper-button-next:after {
-  content: none !important;
+    content: none !important;
 }
+
 .swiper-button-prev i,
 .swiper-button-next i {
-  font-size: 1.5rem;
-  display: inline-block;
+    font-size: 1.5rem;
+    display: inline-block;
 }
 
 
