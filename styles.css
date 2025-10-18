@@ -326,12 +326,19 @@
             width: 100%;
         }
 
-        .position-sticky {
+        .position-sticky-top {
             position: sticky;
             width: 100%;
             top: 0;
             z-index: 2;
         }
+
+        .position-sticky-bottom {
+            position: sticky;
+            width: 100%;
+            bottom: 0;
+            z-index: 2;
+        }        
 
         .position-fixed {
             position: fixed;

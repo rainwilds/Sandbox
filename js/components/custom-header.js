@@ -94,7 +94,7 @@
 
                 // POSITION handling
                 const rawPos = this.getAttribute('position')?.trim().toLowerCase() || '';
-                const validPositions = ['sticky', 'absolute', 'fixed'];
+                const validPositions = ['sticky-top', 'sticky-bottom', 'absolute', 'fixed'];
                 if (rawPos && !validPositions.includes(rawPos)) {
                     this.#warn(`Invalid position value "${rawPos}". Falling back to normal flow.`);
                     attrs.position = null;
@@ -170,7 +170,7 @@
                 if (attrs.borderClass) classesToAdd.push(attrs.borderClass);
                 if (attrs.borderRadiusClass) classesToAdd.push(attrs.borderRadiusClass);
                 if (attrs.shadowClass) classesToAdd.push(attrs.shadowClass);
-                if (attrs.position) classesToAdd.push(`position-${attrs.position}`); // Add position-sticky, position-absolute, or position-fixed
+                if (attrs.position) classesToAdd.push(`position-${attrs.position}`); // Add position-sticky-top, position-sticky-bottom, position-absolute, or position-fixed
                 if (classesToAdd.length) {
                     blockElement.classList.add(...classesToAdd);
                     this.#log('Applied header classes', { classes: classesToAdd });
