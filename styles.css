@@ -1062,7 +1062,7 @@
             @media (min-width: 1201px) and (max-width: 1919px) {
 
                 & {
-                    grid-template: 100vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
+                    grid-template: auto / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
                     grid-template-areas:
                         "gutter-left header header header header header header header header header header header header gutter-right"
                         "gutter-left main main main main main main main main main main main main gutter-right"
