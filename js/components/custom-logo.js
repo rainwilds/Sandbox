@@ -1,5 +1,5 @@
 /* global HTMLElement, IntersectionObserver, document, window, JSON, console */
-import { generatePictureMarkup } from '../image-generator.js';
+import { generatePictureMarkup } from '../generators/image-generator.js';
 import { VALID_ALIGNMENTS, VALID_ALIGN_MAP } from '../shared.js';
 import { getConfig } from '../config.js';
 

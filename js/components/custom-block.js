@@ -1,6 +1,6 @@
 /* global HTMLElement, IntersectionObserver, document, window, JSON, console */
-import { generatePictureMarkup } from '../image-generator.js';
-import { generateVideoMarkup } from '../video-generator.js';
+import { generatePictureMarkup } from '../generators/image-generator.js';
+import { generateVideoMarkup } from '../generators/video-generator.js';
 import { VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } from '../shared.js';
 import { getConfig, getImagePrimaryPath } from '../config.js';
 
