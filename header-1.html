@@ -63,6 +63,124 @@
             </custom-header>
         </div>
 
+        <div>
+
+            <custom-slider pagination navigation slides-per-view="2" 
+                navigation-icon-left='<i class="fa-chisel fa-regular fa-angle-left"></i>'
+                navigation-icon-right='<i class="fa-chisel fa-regular fa-angle-right"></i>'>
+
+                <div class="swiper-slide">
+                    <!-- Block 1: Background Video with Left-Aligned Content -->
+                    <custom-block heading="Ocean Adventures" heading-tag="h2" text="Dive into underwater wonders."
+                        button-text="Discover More" button-href="#ocean"
+                        button-icon='<i class="fa-chisel fa-regular fa-fish"></i>' button-icon-position="right"
+                        button-icon-offset="var(--space-tiny)" background-overlay="background-overlay-3"
+                        video-background-src="video/video1.mp4"
+                        video-background-poster="img/primary/tourism-photography-dark-1.jpg"
+                        video-background-alt="Ocean adventure video" video-background-autoplay video-background-muted
+                        video-background-loop text-alignment="left" inner-alignment="center-left"
+                        inner-class="padding-large">
+                    </custom-block>
+                </div>
+                <div class="swiper-slide">
+                    <!-- Block 2: Primary Image on Left with Subheading -->
+                    <custom-block heading="Desert Safari" sub-heading="Epic Journeys" sub-heading-tag="h4"
+                        text="Experience the golden dunes." button-text="Book Safari" button-href="#desert"
+                        button-icon='<i class="fa-chisel fa-regular fa-dice-d20"></i>' button-icon-position="left"
+                        button-icon-offset="var(--space-tiny)" class="border-medium space-between"
+                        img-primary-src="img/primary/tourism-photography-dark-4.jpg" img-primary-alt="Desert landscape"
+                        img-primary-position="left" img-primary-mobile-width="100vw" img-primary-tablet-width="60vw"
+                        img-primary-desktop-width="700px" inner-alignment="center-right"
+                        inner-background-color="background-color-2" inner-class="padding-medium">
+                    </custom-block>
+                </div>
+                <div class="swiper-slide">
+                    <!-- Block 3: Gradient Background with Centered Content -->
+                    <custom-block heading="Winter Wonderland" heading-tag="h1"
+                        text="Snow-capped peaks and cozy retreats."
+                        icon='<i class="fa-chisel fa-regular fa-snowflake"></i>' icon-size="3rem"
+                        icon-style="padding-bottom: var(--space-medium)" button-text="Plan Winter Trip"
+                        button-href="#winter" button-icon='<i class="fa-chisel fa-regular fa-skiing"></i>'
+                        button-icon-position="right" background-gradient="background-gradient-2"
+                        background-overlay="background-overlay-1" inner-background-color="background-color-1"
+                        text-alignment="center" inner-alignment="center" inner-class="padding-large color-invert">
+                    </custom-block>
+                </div>
+                <div class="swiper-slide">
+                    <!-- Block 4: Media-Only with Video Background -->
+                    <custom-block background-overlay="background-overlay-2" background-image-noise
+                        video-background-src="video/video2.mp4"
+                        video-background-poster="img/primary/tourism-photography-dark-5.jpg"
+                        video-background-alt="Mountain scenery video" video-background-autoplay video-background-muted
+                        video-background-loop class="border-radius-large">
+                    </custom-block>
+                </div>
+                <div class="swiper-slide">
+                    <!-- Block 5: Right-Aligned Text with Primary Video -->
+                    <custom-block heading="Cultural Immersion" text="Experience authentic traditions."
+                        button-text="Join Experience" button-href="#culture"
+                        button-icon='<i class="fa-chisel fa-regular fa-mask"></i>' button-icon-position="left"
+                        button-icon-offset="var(--space-tiny)" class="shadow-medium"
+                        video-primary-src="video/video1.mp4"
+                        video-primary-poster="img/primary/tourism-photography-light-1.jpg"
+                        video-primary-alt="Cultural festival video" video-primary-position="right"
+                        video-primary-autoplay video-primary-muted text-alignment="right" inner-alignment="center-right"
+                        inner-class="padding-medium" inner-backdrop-filter="backdrop-filter-blur-5">
+                    </custom-block>
+                </div>
+                <div class="swiper-slide">
+                    <!-- Block 6: Full Background Image Block -->
+                    <custom-block heading="Tropical Paradise" heading-tag="h2" text="Relax in paradise."
+                        button-text="Escape Now" button-href="#tropical"
+                        button-icon='<i class="fa-chisel fa-regular fa-palm-tree"></i>' button-icon-position="left"
+                        button-icon-offset="var(--space-tiny)" background-overlay="background-overlay-1"
+                        img-background-src="img/primary/tourism-photography-dark-6.jpg"
+                        img-background-alt="Tropical beach paradise" img-background-position="center"
+                        img-background-mobile-width="100vw" img-background-tablet-width="90vw"
+                        img-background-desktop-width="1400px" text-alignment="center" inner-alignment="center"
+                        inner-class="padding-large color-invert">
+                    </custom-block>
+                </div>
+                <div class="swiper-slide">
+                    <!-- Block 7: Text-Only with Effects -->
+                    <custom-block heading="Luxury Travel" sub-heading="Unparalleled Service"
+                        text="Elevate your journey with exclusive experiences."
+                        icon='<i class="fa-chisel fa-regular fa-crown"></i>' icon-size="2.5rem"
+                        icon-style="padding-bottom: var(--space-small)" button-text="Discover Luxury"
+                        button-href="#luxury" button-icon='<i class="fa-chisel fa-regular fa-diamond"></i>'
+                        button-icon-position="right" class="effects-glow border-small"
+                        inner-background-gradient="background-gradient-3" inner-background-color="background-color-1"
+                        text-alignment="left" inner-alignment="center-left" inner-class="padding-medium color-invert">
+                    </custom-block>
+                </div>
+                <div class="swiper-slide">
+                    <!-- Block 8: Top Primary Image with Overlay -->
+                    <custom-block heading="Road Trip Adventures" text="Freedom on the open road."
+                        button-text="Start Driving" button-href="#roadtrip"
+                        button-icon='<i class="fa-chisel fa-regular fa-route"></i>' button-icon-position="left"
+                        img-primary-src="img/primary/tourism-photography-light-3.jpg" img-primary-alt="Scenic road trip"
+                        img-primary-position="top" img-primary-mobile-width="100vw" img-primary-tablet-width="80vw"
+                        img-primary-desktop-width="800px" background-overlay="background-overlay-2"
+                        class="border-medium" inner-alignment="center" inner-class="padding-small">
+                    </custom-block>
+                </div>
+                <div class="swiper-slide">
+                    <!-- Block 9: Dark Theme Background Block -->
+                    <custom-block heading="Northern Lights" heading-tag="h1"
+                        text="Witness nature's greatest light show." button-text="Chase Aurora" button-href="#aurora"
+                        button-icon='<i class="fa-chisel fa-regular fa-meteor"></i>' button-icon-position="right"
+                        button-icon-offset="var(--space-tiny)" background-overlay="background-overlay-3"
+                        img-background-src="img/gallery/gallery-item-1.jpg" img-background-alt="Northern lights display"
+                        img-background-position="top-center" img-background-mobile-width="100vw"
+                        img-background-tablet-width="100vw" img-background-desktop-width="1600px" background-image-noise
+                        text-alignment="center" inner-alignment="center" inner-class="padding-large color-invert"
+                        inner-backdrop-filter="backdrop-filter-blur-10">
+                    </custom-block>
+                </div>
+            </custom-slider>
+
+        </div>        
+
     </header>
 
     <main>
