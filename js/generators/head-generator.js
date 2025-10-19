@@ -2,7 +2,7 @@
 
 'use strict';
 
-import { getConfig } from './config.js';
+import { getConfig } from '../config.js';
 
 const isDev = window.location.pathname.includes('/dev/') || new URLSearchParams(window.location.search).get('debug') === 'true';
 
