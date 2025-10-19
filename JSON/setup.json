@@ -109,6 +109,10 @@
       "href": "/services"
     },
     {
+      "text": "Blog",
+      "href": "/blog"
+    },    
+    {
       "text": "Contact",
       "href": "/contact"
     }
