@@ -53,11 +53,11 @@ const PATH_MAP = {
   'image-generator': './generators/image-generator.js',
   'video-generator': './generators/video-generator.js',
   'shared': './shared.js',
-  'custom-block': './components/custom-block.js',
-  'custom-nav': './components/custom-nav.js',
-  'custom-logo': './components/custom-logo.js',
-  'custom-header': './components/custom-header.js',
-  'custom-slider': './components/custom-slider.js'  // New
+  'custom-block': '../components/custom-block.js',
+  'custom-nav': '../components/custom-nav.js',
+  'custom-logo': '../components/custom-logo.js',
+  'custom-header': '../components/custom-header.js',
+  'custom-slider': '../components/custom-slider.js'  // New
 };
 
 async function loadModule(moduleName) {
