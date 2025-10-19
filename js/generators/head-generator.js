@@ -51,7 +51,7 @@ const DEPENDENCIES = {
 const PATH_MAP = {
   'config': '../config.js',
   'image-generator': './image-generator.js',
-  'video-generator': './/video-generator.js',
+  'video-generator': './video-generator.js',
   'shared': '../shared.js',
   'custom-block': '../components/custom-block.js',
   'custom-nav': '../components/custom-nav.js',

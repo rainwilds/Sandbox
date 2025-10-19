@@ -1,7 +1,7 @@
 /* global document, window */
 
 // Import config loader for responsive image path
-import { getImageResponsivePath, getImagePrimaryPath } from './config.js';
+import { getImageResponsivePath, getImagePrimaryPath } from '../config.js';
 
 // Internal constants for image validation and responsive generation (not exported).
 const VALID_IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
