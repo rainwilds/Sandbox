@@ -1,5 +1,6 @@
 /* global HTMLElement, IntersectionObserver, document, window, JSON, console */
 import { BACKDROP_FILTER_MAP, VALID_ALIGNMENTS, VALID_ALIGN_MAP } from '../shared.js';
+import { getConfig } from '../config.js';
 
 class CustomNav extends HTMLElement {
     #renderCacheHTML = null;
@@ -8,6 +9,8 @@ class CustomNav extends HTMLElement {
     #criticalAttributesHash = null;
     #debug = new URLSearchParams(window.location.search).get('debug') === 'true';
     #ignoredChangeCount = 0;
+    #useGlobalNav = false;
+    #navType = null;
 
     constructor() {
         super();
@@ -16,6 +19,18 @@ class CustomNav extends HTMLElement {
         this.callbacks = [];
         CustomNav.#observer.observe(this);
         CustomNav.#observedInstances.add(this);
+        this.#useGlobalNav = !this.hasAttribute('nav');
+        this.#navType = this.getAttribute('nav-type')?.toLowerCase() || 'header';
+        if (this.#useGlobalNav) {
+            const eventName = `${this.#navType}-navigation-updated`;
+            document.addEventListener(eventName, () => {
+                this.#cachedAttributes = null;
+                this.#criticalAttributesHash = null;
+                if (this.isInitialized && this.isVisible) {
+                    this.render();
+                }
+            });
+        }
     }
 
     static #observer = new IntersectionObserver((entries) => {
@@ -36,7 +51,8 @@ class CustomNav extends HTMLElement {
     static #renderCacheMap = new WeakMap();
 
     static #criticalAttributes = [
-        'nav', 'nav-position', 'nav-class', 'nav-style', 'nav-aria-label',
+        'nav', 'nav-type',
+        'nav-position', 'nav-class', 'nav-style', 'nav-aria-label',
         'nav-toggle-class', 'nav-toggle-icon', 'nav-orientation',
         'nav-container-class', 'nav-container-style', 'nav-background-color',
         'nav-background-image-noise', 'nav-border', 'nav-border-radius',
@@ -124,7 +140,22 @@ class CustomNav extends HTMLElement {
 
         const attrs = {};
         const navAttr = this.getAttribute('nav') || '';
-        if (navAttr) {
+
+        if (this.#useGlobalNav) {
+            try {
+                const config = await getConfig();
+                const navKey = this.#navType === 'footer' ? 'footerNavigation' : 'headerNavigation';
+                attrs.nav = config[navKey] || [];
+                attrs.nav = attrs.nav.map(link => ({
+                    href: this.#sanitizeHref(link.href),
+                    text: this.#escapeHtml(link.text || 'Link')
+                }));
+                this.#log(`Nav loaded from global config (${navKey})`, { count: attrs.nav.length });
+            } catch (e) {
+                this.#warn('Failed to load global nav from config', { error: e.message });
+                attrs.nav = [];
+            }
+        } else if (navAttr) {
             try {
                 const normalized = navAttr.replace(/\s+/g, ' ').trim();
                 attrs.nav = JSON.parse(normalized);
@@ -139,7 +170,7 @@ class CustomNav extends HTMLElement {
                 attrs.nav = [];
             }
         } else {
-            this.#warn('No nav attribute provided');
+            this.#warn('No nav attribute or global config provided');
             attrs.nav = [];
         }
 
@@ -183,6 +214,12 @@ class CustomNav extends HTMLElement {
             criticalAttrs[attr] = this.getAttribute(attr) || '';
         });
         this.#criticalAttributesHash = JSON.stringify(criticalAttrs);
+
+        const validTypes = ['header', 'footer'];
+        if (this.#navType && !validTypes.includes(this.#navType)) {
+            this.#warn('Invalid nav-type', { value: this.#navType, valid: validTypes });
+            this.#navType = 'header';
+        }
 
         this.#cachedAttributes = attrs;
         this.#log('Attributes parsed successfully', { elementId: this.id || 'no-id', criticalHashLength: this.#criticalAttributesHash.length });
@@ -243,7 +280,7 @@ class CustomNav extends HTMLElement {
             if (CustomNav.#renderCacheMap.has(this) && this.#criticalAttributesHash === newCriticalHash) {
                 this.#log('Using cached render HTML', { elementId: this.id || 'no-id' });
                 this.innerHTML = CustomNav.#renderCacheMap.get(this);
-                this.#attachToggleListener(); // Re-attach event listener after setting HTML
+                this.#attachToggleListener();
                 return this;
             }
         }
@@ -361,6 +398,10 @@ class CustomNav extends HTMLElement {
         this.#log('Attribute changed', { name, oldValue, newValue, elementId: this.id || 'no-id' });
         if (CustomNav.#criticalAttributes.includes(name)) {
             this.#cachedAttributes = null;
+            if (name === 'nav-type') {
+                this.#navType = newValue?.toLowerCase() || 'header';
+                this.#useGlobalNav = !this.hasAttribute('nav');
+            }
             this.initialize();
         }
     }

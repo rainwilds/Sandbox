@@ -94,5 +94,37 @@
     "primary_images": {
       "directory_path": "img/primary/"
     }
-  }
+  },
+  "headerNavigation": [
+    {
+      "text": "Home",
+      "href": "/"
+    },
+    {
+      "text": "About",
+      "href": "/about"
+    },
+    {
+      "text": "Services",
+      "href": "/services"
+    },
+    {
+      "text": "Contact",
+      "href": "/contact"
+    }
+  ],
+  "footerNavigation": [
+    {
+      "text": "Privacy Policy",
+      "href": "/privacy"
+    },
+    {
+      "text": "Terms of Service",
+      "href": "/terms"
+    },
+    {
+      "text": "Contact Us",
+      "href": "/contact"
+    }
+  ]
 }
