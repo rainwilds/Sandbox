@@ -2014,6 +2014,27 @@ div#products {
 
 
 
+.slideshow-container {
+    width: 100vw; /* Full width */
+    overflow: hidden; /* Hide overflow for sliding */
+}
+
+.slideshow {
+    display: grid;
+    grid-template-columns: repeat(3, 100vw); /* One column per slide, full width */
+    animation: slide 15s infinite ease-in-out; /* Auto-slide every 15s total (5s per slide) */
+}
+
+.slide {
+    height: 50vh; /* Adjust height as needed */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 2em;
+    font-family: sans-serif;
+}
+
 
 
 .swiper {
@@ -2160,6 +2181,29 @@ div#products {
 
     100% {
         background-position: 50% 0%;
+    }
+}
+
+
+/* Keyframes for sliding animation */
+@keyframes slide {
+    0% {
+        transform: translateX(0);
+    }
+    33% {
+        transform: translateX(0);
+    }
+    33.1% {
+        transform: translateX(-100%);
+    }
+    66% {
+        transform: translateX(-100%);
+    }
+    66.1% {
+        transform: translateX(-200%);
+    }
+    100% {
+        transform: translateX(-200%);
     }
 }
 
