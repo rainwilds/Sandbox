@@ -20,6 +20,7 @@ class CustomSlider extends HTMLElement {
         this.#uniqueId = `${CustomSlider.#instanceCount}`;
         CustomSlider.#observer.observe(this);
         CustomSlider.#observedInstances.add(this);
+        this.#log('Instance created', { instanceCount: CustomSlider.#instanceCount });
     }
 
     static #observer = new IntersectionObserver((entries) => {
@@ -34,7 +35,7 @@ class CustomSlider extends HTMLElement {
                 }
             }
         });
-    }, { rootMargin: '50px' });
+    }, { rootMargin: '200px' }); // Increased to detect sliders further down
 
     static #observedInstances = new WeakSet();
     static #renderCacheMap = new WeakMap();
@@ -185,56 +186,66 @@ class CustomSlider extends HTMLElement {
         // Inject CSS for slide count
         const styleId = `slider-count-${this.#uniqueId}`;
         if (!document.getElementById(styleId)) {
-            const style = document.createElement('style');
-            style.id = styleId;
-            style.textContent = `.slider[data-slider-id="${this.#uniqueId}"] { --slide-count: ${slideCount}; }`;
-            document.head.appendChild(style);
-            this.#log('Slide count style injected', { styleId, slideCount });
+            try {
+                const style = document.createElement('style');
+                style.id = styleId;
+                style.textContent = `.slider[data-slider-id="${this.#uniqueId}"] { --slide-count: ${slideCount}; }`;
+                document.head.appendChild(style);
+                this.#log('Slide count style injected', { styleId, slideCount });
+            } catch (error) {
+                this.#error('Failed to inject slide count style', { styleId, error: error.message });
+                throw error; // Rethrow to trigger fallback
+            }
         }
 
         // Wait for all <custom-block> elements to render
         const renderedSlides = await Promise.all(
             slides.map(async (slide, index) => {
-                if (!(slide instanceof HTMLElement)) {
-                    this.#warn('Slide is not an HTMLElement', { index, slide });
-                    return null;
-                }
-
-                if (slide.tagName.toLowerCase() === 'custom-block' && !slide.isInitialized) {
-                    this.#log('Waiting for custom-block to initialize', { index, slideId: slide.id || 'no-id' });
-                    // Ensure the slide is observed
-                    if (!slide.isVisible && !slide.isInitialized) {
-                        slide.__observer = slide.__observer || new IntersectionObserver(([entry]) => {
-                            if (entry.isIntersecting) {
-                                slide.isVisible = true;
-                                slide.__observer.unobserve(slide);
-                                slide.initialize();
-                            }
-                        }, { rootMargin: '50px' });
-                        slide.__observer.observe(slide);
+                try {
+                    if (!(slide instanceof HTMLElement)) {
+                        this.#warn('Slide is not an HTMLElement', { index, slide });
+                        return null;
                     }
-                    // Wait for initialization by polling or listening for replacement
-                    return new Promise(resolve => {
-                        const checkRendered = () => {
-                            if (slide.isConnected && slide.classList.contains('block')) {
-                                resolve(slide);
-                            } else if (!slide.isConnected) {
-                                // If the slide was replaced, find the new element
-                                const newSlide = document.querySelector(`.block[data-slide-index="${index}"]`) || slide;
-                                if (newSlide.classList.contains('block')) {
-                                    resolve(newSlide);
+
+                    if (slide.tagName.toLowerCase() === 'custom-block' && !slide.isInitialized) {
+                        this.#log('Waiting for custom-block to initialize', { index, slideId: slide.id || 'no-id' });
+                        // Ensure the slide is observed
+                        if (!slide.isVisible && !slide.isInitialized) {
+                            slide.__observer = slide.__observer || new IntersectionObserver(([entry]) => {
+                                if (entry.isIntersecting) {
+                                    slide.isVisible = true;
+                                    slide.__observer.unobserve(slide);
+                                    slide.initialize();
+                                }
+                            }, { rootMargin: '200px' });
+                            slide.__observer.observe(slide);
+                        }
+                        // Wait for initialization by polling or listening for replacement
+                        return new Promise(resolve => {
+                            const checkRendered = () => {
+                                if (slide.isConnected && slide.classList.contains('block')) {
+                                    resolve(slide);
+                                } else if (!slide.isConnected) {
+                                    // If the slide was replaced, find the new element
+                                    const newSlide = document.querySelector(`.block[data-slide-index="${index}"]`) || slide;
+                                    if (newSlide.classList.contains('block')) {
+                                        resolve(newSlide);
+                                    } else {
+                                        setTimeout(checkRendered, 100);
+                                    }
                                 } else {
                                     setTimeout(checkRendered, 100);
                                 }
-                            } else {
-                                setTimeout(checkRendered, 100);
-                            }
-                        };
-                        slide.setAttribute('data-slide-index', index); // Temporary marker
-                        checkRendered();
-                    });
+                            };
+                            slide.setAttribute('data-slide-index', index); // Temporary marker
+                            checkRendered();
+                        });
+                    }
+                    return slide;
+                } catch (error) {
+                    this.#error('Failed to render slide', { index, slideId: slide.id || 'no-id', error: error.message });
+                    return null;
                 }
-                return slide;
             })
         );
 
@@ -288,5 +299,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-31');
+console.log('CustomSlider version: 2025-11-01');
 export { CustomSlider };
