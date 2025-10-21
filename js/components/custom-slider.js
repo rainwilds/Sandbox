@@ -130,14 +130,11 @@ class CustomSlider extends HTMLElement {
 
     connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
-
-        // Re-observe if not initialized and not visible (handles moved elements)
         if (!this.isInitialized && !this.isVisible) {
             CustomSlider.#observer.observe(this);
             CustomSlider.#observedInstances.add(this);
             this.#log('Re-observing element after reconnect', { elementId: this.id || 'no-id' });
         }
-
         if (this.isVisible) {
             this.initialize();
         }
@@ -161,7 +158,7 @@ class CustomSlider extends HTMLElement {
         this.callbacks.push(callback);
     }
 
-    render(isFallback = false) {
+    async render(isFallback = false) {
         this.#log(`Starting render ${isFallback ? '(fallback)' : ''}`, { elementId: this.id || 'no-id' });
 
         let newCriticalAttrsHash;
@@ -178,7 +175,8 @@ class CustomSlider extends HTMLElement {
         }
 
         const attrs = isFallback ? { autoplay: false, duration: '5s' } : this.getAttributes();
-        const slideCount = this.children.length;
+        const slides = Array.from(this.children);
+        const slideCount = slides.length;
 
         if (slideCount === 0) {
             this.#warn('No slides found', { elementId: this.id || 'no-id' });
@@ -224,29 +222,72 @@ class CustomSlider extends HTMLElement {
             slider.style.animation = `${kfName} ${totalDuration} infinite ease-in-out`;
         }
 
-        // Move each child (rendered <custom-block>) directly into the grid
-        Array.from(this.children).forEach((slide, index) => {
-            // Ensure the slide is a rendered <div class="block">, not the <custom-block> tag
-            if (slide instanceof HTMLElement && slide.classList.contains('block')) {
-                slider.appendChild(slide);
-            } else {
-                // If it's still a <custom-block>, wait for it to render and re-append
-                const observer = new MutationObserver(() => {
-                    if (slide.isConnected && slide.classList.contains('block')) {
-                        slider.appendChild(slide);
-                        observer.disconnect();
+        // Wait for all <custom-block> elements to render
+        const renderedSlides = await Promise.all(
+            slides.map(async (slide, index) => {
+                if (!(slide instanceof HTMLElement)) {
+                    this.#warn('Slide is not an HTMLElement', { index, slide });
+                    return null;
+                }
+
+                if (slide.tagName.toLowerCase() === 'custom-block' && !slide.isInitialized) {
+                    this.#log('Waiting for custom-block to initialize', { index, slideId: slide.id || 'no-id' });
+                    // Ensure the slide is observed
+                    if (!slide.isVisible && !slide.isInitialized) {
+                        slide.__observer = slide.__observer || new IntersectionObserver(([entry]) => {
+                            if (entry.isIntersecting) {
+                                slide.isVisible = true;
+                                slide.__observer.unobserve(slide);
+                                slide.initialize();
+                            }
+                        }, { rootMargin: '50px' });
+                        slide.__observer.observe(slide);
                     }
-                });
-                observer.observe(document.body, { childList: true, subtree: true });
+                    // Wait for initialization by polling or listening for replacement
+                    return new Promise(resolve => {
+                        const checkRendered = () => {
+                            if (slide.isConnected && slide.classList.contains('block')) {
+                                resolve(slide);
+                            } else if (!slide.isConnected) {
+                                // If the slide was replaced, find the new element
+                                const newSlide = document.querySelector(`.block[data-slide-index="${index}"]`) || slide;
+                                if (newSlide.classList.contains('block')) {
+                                    resolve(newSlide);
+                                } else {
+                                    setTimeout(checkRendered, 100);
+                                }
+                            } else {
+                                setTimeout(checkRendered, 100);
+                            }
+                        };
+                        slide.setAttribute('data-slide-index', index); // Temporary marker
+                        checkRendered();
+                    });
+                }
+                return slide;
+            })
+        );
+
+        // Append rendered slides
+        renderedSlides.forEach((slide, index) => {
+            if (slide) {
+                slider.appendChild(slide);
+                this.#log('Appended slide', { index, slideId: slide.id || 'no-id' });
+            } else {
+                this.#warn('Slide not appended (null)', { index });
             }
         });
+
+        if (slider.childElementCount === 0) {
+            this.#error('No slides appended to slider', { elementId: this.id || 'no-id' });
+        }
 
         if (!isFallback) {
             CustomSlider.#renderCacheMap.set(this, slider.cloneNode(true));
             this.lastAttributes = newCriticalAttrsHash;
         }
 
-        this.#log('Render completed', { elementId: this.id || 'no-id', slideCount });
+        this.#log('Render completed', { elementId: this.id || 'no-id', slideCount: slider.childElementCount });
         return slider;
     }
 
@@ -277,5 +318,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-22');
+console.log('CustomSlider version: 2025-10-23');
 export { CustomSlider };
