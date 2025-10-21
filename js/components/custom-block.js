@@ -640,6 +640,11 @@ class CustomBlock extends HTMLElement {
 
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
+        if (!this.isInitialized && !this.isVisible) {
+            CustomBlock.#observer.observe(this);
+            CustomBlock.#observedInstances.add(this);
+            this.#log('Re-observing element after reconnect', { elementId: this.id || 'no-id' });
+        }
         if (this.isVisible) {
             await this.initialize();
         }
