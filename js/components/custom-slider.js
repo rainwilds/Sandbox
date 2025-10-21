@@ -188,9 +188,7 @@ class CustomSlider extends HTMLElement {
         // Create the main slider container
         const slider = document.createElement('div');
         slider.className = 'slider';
-        slider.style.display = 'grid';
-        slider.style.gridTemplateColumns = `repeat(${slideCount}, 100vw)`;
-        slider.style.overflow = 'hidden';
+        slider.style.setProperty('--slide-count', slideCount); // Set custom property for CSS
 
         // Generate and inject keyframes if autoplay is enabled
         if (!isFallback && attrs.autoplay) {
@@ -219,7 +217,7 @@ class CustomSlider extends HTMLElement {
                 this.#log('Keyframes injected', { kfName, totalDuration });
             }
 
-            slider.style.animation = `${kfName} ${totalDuration} infinite ease-in-out`;
+            slider.style.setProperty('--animation', `${kfName} ${totalDuration} infinite ease-in-out`);
         }
 
         // Wait for all <custom-block> elements to render
@@ -318,5 +316,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-23');
+console.log('CustomSlider version: 2025-10-24');
 export { CustomSlider };
