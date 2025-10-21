@@ -2016,12 +2016,10 @@ div#products {
 
 div.slider {
 
-        display: grid;
-        grid-template-columns: repeat(3, 100vw);
-        overflow: hidden;
-        /* One column per slide, full width */
-        animation: slide 15s infinite ease-in-out;
-        /* Auto-slide every 15s total (5s per slide) */
+    width: 100vw;
+    display: grid;
+    grid-template-columns: repeat(var(--slide-count, 1), 100vw);
+    overflow: hidden;
     
 }
 

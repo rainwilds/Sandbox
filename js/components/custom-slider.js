@@ -1,7 +1,10 @@
 /* global HTMLElement, IntersectionObserver, document, window, JSON, console */
 class CustomSlider extends HTMLElement {
+    static #instanceCount = 0; // Track number of slider instances
     #ignoredChangeCount;
     #debug = new URLSearchParams(window.location.search).get('debug') === 'true';
+    #uniqueId;
+
     constructor() {
         super();
         this.isVisible = false;
@@ -12,6 +15,9 @@ class CustomSlider extends HTMLElement {
         this.cachedAttributes = null;
         this.criticalAttributesHash = null;
         this.#ignoredChangeCount = 0;
+        // Generate numeric unique ID based on instance count
+        CustomSlider.#instanceCount += 1;
+        this.#uniqueId = `${CustomSlider.#instanceCount}`;
         CustomSlider.#observer.observe(this);
         CustomSlider.#observedInstances.add(this);
     }
@@ -32,7 +38,7 @@ class CustomSlider extends HTMLElement {
 
     static #observedInstances = new WeakSet();
     static #renderCacheMap = new WeakMap();
-    static #criticalAttributes = ['autoplay', 'duration'];
+    static #criticalAttributes = [];
 
     #log(message, data = null) {
         if (this.#debug) {
@@ -63,32 +69,15 @@ class CustomSlider extends HTMLElement {
 
     getAttributes() {
         if (this.cachedAttributes) {
-            this.#log('Using cached attributes', { elementId: this.id || 'no-id' });
+            this.#log('Using cached attributes', { elementId: this.#uniqueId });
             return this.cachedAttributes;
         }
 
-        this.#log('Parsing new attributes', { elementId: this.id || 'no-id' });
-        // Explicitly check for attribute presence, regardless of value
-        const autoplay = this.hasAttribute('autoplay');
-        let duration = this.getAttribute('duration') || '5s';
-        const durationNum = parseFloat(duration);
-        if (isNaN(durationNum) || durationNum <= 0) {
-            this.#warn('Invalid duration, using default', { value: duration, default: '5s' });
-            duration = '5s';
-        }
+        this.#log('Parsing new attributes', { elementId: this.#uniqueId });
+        this.cachedAttributes = {};
+        this.criticalAttributesHash = '{}';
 
-        this.cachedAttributes = { autoplay, duration };
-        const criticalAttrs = {};
-        CustomSlider.#criticalAttributes.forEach(attr => {
-            criticalAttrs[attr] = this.getAttribute(attr) || '';
-        });
-        this.criticalAttributesHash = JSON.stringify(criticalAttrs);
-
-        this.#log('Attributes parsed successfully', {
-            elementId: this.id || 'no-id',
-            autoplay,
-            duration
-        });
+        this.#log('Attributes parsed successfully', { elementId: this.#uniqueId });
         return this.cachedAttributes;
     }
 
@@ -97,44 +86,44 @@ class CustomSlider extends HTMLElement {
             this.#log('Skipping initialization', {
                 isInitialized: this.isInitialized,
                 isVisible: this.isVisible,
-                elementId: this.id || 'no-id'
+                elementId: this.#uniqueId
             });
             return;
         }
 
-        this.#log('Starting initialization', { elementId: this.id || 'no-id' });
+        this.#log('Starting initialization', { elementId: this.#uniqueId });
         this.isInitialized = true;
 
         try {
             const sliderElement = await this.render();
             if (sliderElement) {
-                this.#log('Render successful, replacing element', { elementId: this.id || 'no-id' });
+                this.#log('Render successful, replacing element', { elementId: this.#uniqueId });
                 this.replaceWith(sliderElement);
                 this.callbacks.forEach(callback => callback());
                 this.#log('Initialization completed successfully', {
-                    elementId: this.id || 'no-id',
+                    elementId: this.#uniqueId,
                     childCount: sliderElement.childElementCount
                 });
             } else {
-                this.#error('Render returned null, using fallback', { elementId: this.id || 'no-id' });
+                this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
                 this.replaceWith(this.render(true));
             }
         } catch (error) {
             this.#error('Initialization failed', {
                 error: error.message,
                 stack: error.stack,
-                elementId: this.id || 'no-id'
+                elementId: this.#uniqueId
             });
             this.replaceWith(this.render(true));
         }
     }
 
     connectedCallback() {
-        this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
+        this.#log('Connected to DOM', { elementId: this.#uniqueId });
         if (!this.isInitialized && !this.isVisible) {
             CustomSlider.#observer.observe(this);
             CustomSlider.#observedInstances.add(this);
-            this.#log('Re-observing element after reconnect', { elementId: this.id || 'no-id' });
+            this.#log('Re-observing element after reconnect', { elementId: this.#uniqueId });
         }
         if (this.isVisible) {
             this.initialize();
@@ -142,10 +131,17 @@ class CustomSlider extends HTMLElement {
     }
 
     disconnectedCallback() {
-        this.#log('Disconnected from DOM', { elementId: this.id || 'no-id' });
+        this.#log('Disconnected from DOM', { elementId: this.#uniqueId });
         if (CustomSlider.#observedInstances.has(this)) {
             CustomSlider.#observer.unobserve(this);
             CustomSlider.#observedInstances.delete(this);
+        }
+        // Clean up injected styles
+        const styleId = `slider-count-${this.#uniqueId}`;
+        const styleElement = document.getElementById(styleId);
+        if (styleElement) {
+            styleElement.remove();
+            this.#log('Removed injected style', { styleId });
         }
         this.callbacks = [];
         this.renderCache = null;
@@ -155,32 +151,27 @@ class CustomSlider extends HTMLElement {
     }
 
     addCallback(callback) {
-        this.#log('Callback added', { callbackName: callback.name || 'anonymous', elementId: this.id || 'no-id' });
+        this.#log('Callback added', { callbackName: callback.name || 'anonymous', elementId: this.#uniqueId });
         this.callbacks.push(callback);
     }
 
     async render(isFallback = false) {
-        this.#log(`Starting render ${isFallback ? '(fallback)' : ''}`, { elementId: this.id || 'no-id' });
+        this.#log(`Starting render ${isFallback ? '(fallback)' : ''}`, { elementId: this.#uniqueId });
 
         let newCriticalAttrsHash;
         if (!isFallback) {
-            const criticalAttrs = {};
-            CustomSlider.#criticalAttributes.forEach(attr => {
-                criticalAttrs[attr] = this.getAttribute(attr) || '';
-            });
-            newCriticalAttrsHash = JSON.stringify(criticalAttrs);
+            newCriticalAttrsHash = '{}';
             if (CustomSlider.#renderCacheMap.has(this) && this.criticalAttributesHash === newCriticalAttrsHash) {
-                this.#log('Using cached render', { elementId: this.id || 'no-id' });
+                this.#log('Using cached render', { elementId: this.#uniqueId });
                 return CustomSlider.#renderCacheMap.get(this).cloneNode(true);
             }
         }
 
-        const attrs = isFallback ? { autoplay: false, duration: '5s' } : this.getAttributes();
         const slides = Array.from(this.children);
         const slideCount = slides.length;
 
         if (slideCount === 0) {
-            this.#warn('No slides found', { elementId: this.id || 'no-id' });
+            this.#warn('No slides found', { elementId: this.#uniqueId });
             const slider = document.createElement('div');
             slider.className = 'slider';
             return slider;
@@ -189,36 +180,16 @@ class CustomSlider extends HTMLElement {
         // Create the main slider container
         const slider = document.createElement('div');
         slider.className = 'slider';
-        slider.style.setProperty('--slide-count', slideCount);
+        slider.dataset.sliderId = this.#uniqueId;
 
-        // Generate and inject keyframes if autoplay is enabled
-        if (!isFallback && attrs.autoplay) {
-            const perSlide = parseFloat(attrs.duration);
-            const totalDuration = `${perSlide * slideCount}s`;
-            const kfName = `slide-${slideCount}`;
-            const styleId = `kf-${kfName}`;
-
-            if (!document.getElementById(styleId)) {
-                const step = 100 / slideCount;
-                let kf = `@keyframes ${kfName} {\n`;
-                for (let i = 0; i < slideCount; i++) {
-                    const holdStart = (i * step).toFixed(2);
-                    const holdEnd = ((i + 1) * step).toFixed(2);
-                    const trans = `transform: translateX(-${i * 100}%);`;
-                    kf += `  ${holdStart}% { ${trans} }\n`;
-                    if (i < slideCount - 1) {
-                        kf += `  ${holdEnd}% { ${trans} }\n`;
-                    }
-                }
-                kf += `  100% { transform: translateX(-${(slideCount - 1) * 100}%); }\n}`;
-                const style = document.createElement('style');
-                style.id = styleId;
-                style.textContent = kf;
-                document.head.appendChild(style);
-                this.#log('Keyframes injected', { kfName, totalDuration });
-            }
-
-            slider.style.setProperty('--animation', `${kfName} ${totalDuration} infinite ease-in-out`);
+        // Inject CSS for slide count
+        const styleId = `slider-count-${this.#uniqueId}`;
+        if (!document.getElementById(styleId)) {
+            const style = document.createElement('style');
+            style.id = styleId;
+            style.textContent = `.slider[data-slider-id="${this.#uniqueId}"] { --slide-count: ${slideCount}; }`;
+            document.head.appendChild(style);
+            this.#log('Slide count style injected', { styleId, slideCount });
         }
 
         // Wait for all <custom-block> elements to render
@@ -278,7 +249,7 @@ class CustomSlider extends HTMLElement {
         });
 
         if (slider.childElementCount === 0) {
-            this.#error('No slides appended to slider', { elementId: this.id || 'no-id' });
+            this.#error('No slides appended to slider', { elementId: this.#uniqueId });
         }
 
         if (!isFallback) {
@@ -286,7 +257,7 @@ class CustomSlider extends HTMLElement {
             this.lastAttributes = newCriticalAttrsHash;
         }
 
-        this.#log('Render completed', { elementId: this.id || 'no-id', slideCount: slider.childElementCount });
+        this.#log('Render completed', { elementId: this.#uniqueId, slideCount: slider.childElementCount });
         return slider;
     }
 
@@ -307,7 +278,7 @@ class CustomSlider extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['autoplay', 'duration'];
+        return [];
     }
 }
 
@@ -317,5 +288,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-25');
+console.log('CustomSlider version: 2025-10-31');
 export { CustomSlider };
