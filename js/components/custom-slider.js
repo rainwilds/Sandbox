@@ -83,12 +83,8 @@ class CustomSlider extends HTMLElement {
     }
 
     async initialize() {
-        if (this.isInitialized || !this.isVisible) {
-            this.#log('Skipping initialization', {
-                isInitialized: this.isInitialized,
-                isVisible: this.isVisible,
-                elementId: this.#uniqueId
-            });
+        if (this.isInitialized) {
+            this.#log('Skipping initialization: already initialized', { elementId: this.#uniqueId });
             return;
         }
 
@@ -207,6 +203,7 @@ class CustomSlider extends HTMLElement {
                         return null;
                     }
 
+                    // Check if the slide is a <custom-block> element
                     if (slide.tagName.toLowerCase() === 'custom-block' && !slide.isInitialized) {
                         this.#log('Waiting for custom-block to initialize', { index, slideId: slide.id || 'no-id' });
                         // Ensure the slide is observed
@@ -215,7 +212,13 @@ class CustomSlider extends HTMLElement {
                                 if (entry.isIntersecting) {
                                     slide.isVisible = true;
                                     slide.__observer.unobserve(slide);
-                                    slide.initialize();
+                                    // Check if initialize method exists
+                                    if (typeof slide.initialize === 'function') {
+                                        slide.initialize();
+                                    } else {
+                                        this.#error('Slide has no initialize method', { index, slideId: slide.id || 'no-id' });
+                                        resolve(slide); // Append as-is
+                                    }
                                 }
                             }, { rootMargin: '200px' });
                             slide.__observer.observe(slide);
@@ -240,8 +243,11 @@ class CustomSlider extends HTMLElement {
                             slide.setAttribute('data-slide-index', index); // Temporary marker
                             checkRendered();
                         });
+                    } else {
+                        // Non-<custom-block> elements (e.g., <div>) are appended as-is
+                        this.#log('Appending non-custom-block slide', { index, tagName: slide.tagName });
+                        return slide;
                     }
-                    return slide;
                 } catch (error) {
                     this.#error('Failed to render slide', { index, slideId: slide.id || 'no-id', error: error.message });
                     return null;
@@ -299,5 +305,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-11-01');
+console.log('CustomSlider version: 2025-11-02');
 export { CustomSlider };
