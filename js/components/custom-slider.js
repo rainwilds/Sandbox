@@ -68,10 +68,11 @@ class CustomSlider extends HTMLElement {
         }
 
         this.#log('Parsing new attributes', { elementId: this.id || 'no-id' });
+        // Explicitly check for attribute presence, regardless of value
         const autoplay = this.hasAttribute('autoplay');
         let duration = this.getAttribute('duration') || '5s';
         const durationNum = parseFloat(duration);
-        if (isNaN(durationNum)) {
+        if (isNaN(durationNum) || durationNum <= 0) {
             this.#warn('Invalid duration, using default', { value: duration, default: '5s' });
             duration = '5s';
         }
@@ -188,7 +189,7 @@ class CustomSlider extends HTMLElement {
         // Create the main slider container
         const slider = document.createElement('div');
         slider.className = 'slider';
-        slider.style.setProperty('--slide-count', slideCount); // Set custom property for CSS
+        slider.style.setProperty('--slide-count', slideCount);
 
         // Generate and inject keyframes if autoplay is enabled
         if (!isFallback && attrs.autoplay) {
@@ -316,5 +317,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-24');
+console.log('CustomSlider version: 2025-10-25');
 export { CustomSlider };
