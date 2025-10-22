@@ -168,10 +168,11 @@ class CustomSlider extends HTMLElement {
             return slider;
         }
 
-        // Create the main slider container
+        // Create and append the slider to the DOM early
         const slider = document.createElement('div');
         slider.className = 'slider';
         slider.dataset.sliderId = this.#uniqueId;
+        this.appendChild(slider); // Attach slider to the custom element's DOM
 
         // Track initialization of slides
         this.#slidesInitialized = 0;
@@ -184,19 +185,18 @@ class CustomSlider extends HTMLElement {
                 }
             };
 
-            // Process each slide
             slides.forEach((slide, index) => {
                 if (slide.tagName.toLowerCase() === 'custom-block') {
                     this.#log('Waiting for custom-block to initialize', { index, slideId: slide.id || 'no-id' });
                     if (typeof slide.addCallback === 'function') {
-                        slide.addCallback(() => {
-                            this.#appendSlide(slide, index);
+                        slide.addCallback((renderedElement) => {
+                            this.#appendSlide(renderedElement, index); // Use renderedElement
                             this.#slidesInitialized++;
                             checkInitialization();
                         });
                     } else {
                         this.#warn('addCallback not available on custom-block, appending immediately', { index, slideId: slide.id || 'no-id' });
-                        this.#appendSlide(slide, index);
+                        this.#appendSlide(slide, index); // Fallback to original slide
                         this.#slidesInitialized++;
                         checkInitialization();
                     }
@@ -237,7 +237,7 @@ class CustomSlider extends HTMLElement {
 
     #appendSlide(slide, index) {
         this.#log('Appended slide', { index, slideId: slide.id || 'no-id' });
-        const slider = this.querySelector('.slider');
+        const slider = this.querySelector('.slider'); // Now should find the slider
         if (slider) {
             const clonedSlide = slide.cloneNode(true);
             clonedSlide.setAttribute('data-slide-index', index);
