@@ -176,47 +176,55 @@ class CustomSlider extends HTMLElement {
         // Track initialization of slides
         this.#slidesInitialized = 0;
 
-        // Process each slide
-        await Promise.all(slides.map(async (slide, index) => {
-            if (slide.tagName.toLowerCase() === 'custom-block') {
-                this.#log('Waiting for custom-block to initialize', { index, slideId: slide.id || 'no-id' });
-                if (typeof slide.addCallback === 'function') {
-                    slide.addCallback(() => {
+        // Wait for all slides to initialize
+        await new Promise(resolve => {
+            const checkInitialization = () => {
+                if (this.#slidesInitialized === slideCount) {
+                    resolve();
+                }
+            };
+
+            // Process each slide
+            slides.forEach((slide, index) => {
+                if (slide.tagName.toLowerCase() === 'custom-block') {
+                    this.#log('Waiting for custom-block to initialize', { index, slideId: slide.id || 'no-id' });
+                    if (typeof slide.addCallback === 'function') {
+                        slide.addCallback(() => {
+                            this.#appendSlide(slide, index);
+                            this.#slidesInitialized++;
+                            checkInitialization();
+                        });
+                    } else {
+                        this.#warn('addCallback not available on custom-block, appending immediately', { index, slideId: slide.id || 'no-id' });
                         this.#appendSlide(slide, index);
                         this.#slidesInitialized++;
-                        if (this.#slidesInitialized === slideCount) {
-                            this.#injectSlideCountStyle(slideCount);
-                        }
-                    });
-                } else {
-                    this.#warn('addCallback not available on custom-block, appending immediately', { index, slideId: slide.id || 'no-id' });
-                    this.#appendSlide(slide, index);
-                    this.#slidesInitialized++;
-                    if (this.#slidesInitialized === slideCount) {
-                        this.#injectSlideCountStyle(slideCount);
+                        checkInitialization();
                     }
-                }
-                if (!slide.isInitialized && !slide.isVisible) {
-                    const observer = new IntersectionObserver(([entry]) => {
-                        if (entry.isIntersecting) {
-                            slide.isVisible = true;
-                            observer.unobserve(slide);
+                    if (typeof slide.initialize === 'function' && !slide.isInitialized) {
+                        if (!slide.isVisible) {
+                            const observer = new IntersectionObserver(([entry]) => {
+                                if (entry.isIntersecting) {
+                                    slide.isVisible = true;
+                                    observer.unobserve(slide);
+                                    slide.initialize();
+                                }
+                            }, { rootMargin: '200px' });
+                            observer.observe(slide);
+                        } else {
                             slide.initialize();
                         }
-                    }, { rootMargin: '200px' });
-                    observer.observe(slide);
-                } else if (slide.isVisible) {
-                    slide.initialize();
+                    }
+                } else {
+                    this.#warn('Slide is not a custom-block', { index, tagName: slide.tagName });
+                    this.#appendSlide(slide, index);
+                    this.#slidesInitialized++;
+                    checkInitialization();
                 }
-            } else {
-                this.#warn('Slide is not a custom-block', { index, tagName: slide.tagName });
-                this.#appendSlide(slide, index);
-                this.#slidesInitialized++;
-                if (this.#slidesInitialized === slideCount) {
-                    this.#injectSlideCountStyle(slideCount);
-                }
-            }
-        }));
+            });
+        });
+
+        // Inject style after all slides are appended
+        this.#injectSlideCountStyle(slideCount);
 
         if (!isFallback) {
             CustomSlider.#renderCacheMap.set(this, slider.cloneNode(true));
@@ -234,6 +242,9 @@ class CustomSlider extends HTMLElement {
             const clonedSlide = slide.cloneNode(true);
             clonedSlide.setAttribute('data-slide-index', index);
             slider.appendChild(clonedSlide);
+            console.log('Slide appended to DOM', { index, html: clonedSlide.outerHTML.substring(0, 200) }); // Debug log
+        } else {
+            this.#warn('Slider element not found for appending', { index, slideId: slide.id || 'no-id' });
         }
     }
 
@@ -248,8 +259,6 @@ class CustomSlider extends HTMLElement {
         }
         style.textContent = `.slider[data-slider-id="${this.#uniqueId}"] { --slider-count: ${slideCount}; }`;
     }
-
-
 
     static get observedAttributes() {
         return [];
