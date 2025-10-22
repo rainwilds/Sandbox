@@ -97,14 +97,29 @@ class CustomSlider extends HTMLElement {
         try {
             const sliderElement = await this.render();
             if (sliderElement) {
-                this.#log('Render successful, replacing element', { elementId: this.#uniqueId, outerHTML: sliderElement.outerHTML.substring(0, 200) });
-                // Ensure replacement by clearing children and appending to parent
+                this.#log('Render successful, preparing to replace element', {
+                    elementId: this.#uniqueId,
+                    outerHTML: sliderElement.outerHTML.substring(0, 200)
+                });
+                // Clear existing children to prevent duplicates
+                while (this.firstChild) {
+                    this.removeChild(this.firstChild);
+                }
+                // Replace the custom-slider element
                 const parent = this.parentNode;
                 if (parent) {
                     parent.replaceChild(sliderElement, this);
+                    this.#log('Element replaced with slider', {
+                        elementId: this.#uniqueId,
+                        parentTag: parent.tagName
+                    });
                 } else {
-                    this.#error('Parent node not found for replacement', { elementId: this.#uniqueId });
+                    this.#error('Parent node not found, using fallback replacement', { elementId: this.#uniqueId });
                     this.replaceWith(sliderElement);
+                }
+                // Verify replacement
+                if (document.querySelector(`custom-slider[data-slider-id="${this.#uniqueId}"]`)) {
+                    this.#warn('custom-slider still in DOM after replacement attempt', { elementId: this.#uniqueId });
                 }
                 this.#setupAutoSlide(sliderElement);
                 this.callbacks.forEach(callback => callback());
@@ -264,11 +279,15 @@ class CustomSlider extends HTMLElement {
         this.#log('Appended slide', { index, slideId: slide.id || 'no-id' });
         slide.setAttribute('data-slide-index', index);
         sliderWrapper.appendChild(slide);
-        console.log('Slide appended to DOM', { index, html: slide.outerHTML.substring(0, 200) });
+        this.#log('Slide appended to DOM', { index, html: slide.outerHTML.substring(0, 200) });
     }
 
     #setupAutoSlide(sliderElement) {
         const wrapper = sliderElement.querySelector('.slider-wrapper');
+        if (!wrapper) {
+            this.#error('Slider wrapper not found, auto-slide cannot be set up', { elementId: this.#uniqueId });
+            return;
+        }
         const slideCount = wrapper.children.length;
 
         if (slideCount <= 1) {
@@ -284,6 +303,7 @@ class CustomSlider extends HTMLElement {
 
         // Start auto-sliding every 5 seconds
         this.#autoSlideInterval = setInterval(updateSlider, 5000);
+        this.#log('Auto-slide interval started', { elementId: this.#uniqueId });
     }
 
     static get observedAttributes() {
