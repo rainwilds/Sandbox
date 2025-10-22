@@ -1,4 +1,4 @@
-/* global HTMLElement, IntersectionObserver, document, window, console */
+/* global HTMLElement, IntersectionObserver, document, window, console, MutationObserver */
 class CustomSlider extends HTMLElement {
     static #instanceCount = 0;
     #ignoredChangeCount;
@@ -7,6 +7,7 @@ class CustomSlider extends HTMLElement {
     #slidesInitialized = 0;
     #currentSlide = 0;
     #autoSlideInterval = null;
+    #mutationObserver = null;
 
     constructor() {
         super();
@@ -101,27 +102,27 @@ class CustomSlider extends HTMLElement {
                     elementId: this.#uniqueId,
                     outerHTML: sliderElement.outerHTML.substring(0, 200)
                 });
-                // Clear existing children to prevent duplicates
+                // Clear existing children
                 while (this.firstChild) {
                     this.removeChild(this.firstChild);
                 }
-                // Replace the custom-slider element
-                const parent = this.parentNode;
-                if (parent) {
-                    parent.replaceChild(sliderElement, this);
-                    this.#log('Element replaced with slider', {
-                        elementId: this.#uniqueId,
-                        parentTag: parent.tagName
-                    });
-                } else {
-                    this.#error('Parent node not found, using fallback replacement', { elementId: this.#uniqueId });
-                    this.replaceWith(sliderElement);
-                }
-                // Verify replacement
-                if (document.querySelector(`custom-slider[data-slider-id="${this.#uniqueId}"]`)) {
-                    this.#warn('custom-slider still in DOM after replacement attempt', { elementId: this.#uniqueId });
-                }
-                this.#setupAutoSlide(sliderElement);
+                // Queue replacement in next event loop
+                setTimeout(() => {
+                    const parent = this.parentNode;
+                    if (parent) {
+                        parent.replaceChild(sliderElement, this);
+                        this.#log('Element replaced with slider', {
+                            elementId: this.#uniqueId,
+                            parentTag: parent.tagName
+                        });
+                    } else {
+                        this.#error('Parent node not found, using fallback replacement', { elementId: this.#uniqueId });
+                        this.replaceWith(sliderElement);
+                    }
+                    // Start MutationObserver to detect re-insertion
+                    this.#startMutationObserver(sliderElement);
+                    this.#setupAutoSlide(sliderElement);
+                }, 0);
                 this.callbacks.forEach(callback => callback());
                 this.#log('Initialization completed successfully', {
                     elementId: this.#uniqueId,
@@ -143,6 +144,27 @@ class CustomSlider extends HTMLElement {
         }
     }
 
+    #startMutationObserver(sliderElement) {
+        if (this.#mutationObserver) return;
+        this.#mutationObserver = new MutationObserver((mutations) => {
+            mutations.forEach(mutation => {
+                if (mutation.addedNodes.length) {
+                    mutation.addedNodes.forEach(node => {
+                        if (node.tagName && node.tagName.toLowerCase() === 'custom-slider' && node.getAttribute('data-slider-id') === this.#uniqueId) {
+                            this.#warn('custom-slider re-inserted into DOM, re-replacing', { elementId: this.#uniqueId });
+                            const parent = node.parentNode;
+                            if (parent) {
+                                parent.replaceChild(sliderElement.cloneNode(true), node);
+                            }
+                        }
+                    });
+                }
+            });
+        });
+        this.#mutationObserver.observe(document.body, { childList: true, subtree: true });
+        this.#log('MutationObserver started', { elementId: this.#uniqueId });
+    }
+
     connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.#uniqueId });
         if (!this.isInitialized && !this.isVisible) {
@@ -160,6 +182,10 @@ class CustomSlider extends HTMLElement {
         if (this.#autoSlideInterval) {
             clearInterval(this.#autoSlideInterval);
             this.#autoSlideInterval = null;
+        }
+        if (this.#mutationObserver) {
+            this.#mutationObserver.disconnect();
+            this.#mutationObserver = null;
         }
         if (CustomSlider.#observedInstances.has(this)) {
             CustomSlider.#observer.unobserve(this);
@@ -331,6 +357,75 @@ try {
 } catch (error) {
     console.error('Error defining CustomSlider element:', error);
 }
+
+// Fallback: Transform custom-slider elements if custom element fails
+document.addEventListener('DOMContentLoaded', () => {
+    const sliders = document.querySelectorAll('custom-slider');
+    sliders.forEach(slider => {
+        const uniqueId = slider.getAttribute('data-slider-id') || `fallback-${Math.random().toString(36).slice(2)}`;
+        const debug = new URLSearchParams(window.location.search).get('debug') === 'true';
+        const log = (message, data) => {
+            if (debug) {
+                console.groupCollapsed(`%c[CustomSliderFallback] ${message}`, 'color: #2196F3; font-weight: bold;');
+                if (data) console.log('%cData:', 'color: #4CAF50;', data);
+                console.trace();
+                console.groupEnd();
+            }
+        };
+        const error = (message, data) => {
+            if (debug) {
+                console.groupCollapsed(`%c[CustomSliderFallback] Error: ${message}`, 'color: #F44336; font-weight: bold;');
+                if (data) console.log('%cData:', 'color: #4CAF50;', data);
+                console.trace();
+                console.groupEnd();
+            }
+        };
+
+        log('Applying fallback transformation', { sliderId: uniqueId });
+
+        // Create slider structure
+        const sliderDiv = document.createElement('div');
+        sliderDiv.className = 'slider';
+        sliderDiv.dataset.sliderId = uniqueId;
+        const wrapper = document.createElement('div');
+        wrapper.className = 'slider-wrapper';
+        sliderDiv.appendChild(wrapper);
+
+        // Move slides
+        Array.from(slider.children).forEach((slide, index) => {
+            slide.setAttribute('data-slide-index', index);
+            wrapper.appendChild(slide);
+        });
+
+        // Replace custom-slider
+        const parent = slider.parentNode;
+        if (parent) {
+            parent.replaceChild(sliderDiv, slider);
+            log('Fallback slider replaced', { sliderId: uniqueId });
+        } else {
+            error('Parent node not found for fallback', { sliderId: uniqueId });
+            slider.replaceWith(sliderDiv);
+        }
+
+        // Setup auto-slide
+        const slideCount = wrapper.children.length;
+        if (slideCount > 1) {
+            let currentSlide = 0;
+            const updateSlider = () => {
+                currentSlide = (currentSlide + 1) % slideCount;
+                wrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
+                log('Fallback auto-slid to next slide', { currentSlide });
+            };
+            const interval = setInterval(updateSlider, 5000);
+            log('Fallback auto-slide started', { sliderId: uniqueId });
+
+            // Clean up interval on page unload
+            window.addEventListener('unload', () => clearInterval(interval));
+        } else {
+            log('Fallback auto-slide skipped: insufficient slides', { slideCount });
+        }
+    });
+});
 
 console.log('CustomSlider version: 2025-11-02');
 export { CustomSlider };
