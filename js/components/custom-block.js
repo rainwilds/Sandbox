@@ -3,11 +3,9 @@ import { generatePictureMarkup } from '../generators/image-generator.js';
 import { generateVideoMarkup } from '../generators/video-generator.js';
 import { VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } from '../shared.js';
 import { getConfig, getImagePrimaryPath } from '../config.js';
-
 class CustomBlock extends HTMLElement {
     #ignoredChangeCount;
     #basePath = null;
-
     constructor() {
         super();
         this.isVisible = false;
@@ -22,7 +20,6 @@ class CustomBlock extends HTMLElement {
         CustomBlock.#observer.observe(this);
         CustomBlock.#observedInstances.add(this);
     }
-
     static #observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -36,10 +33,8 @@ class CustomBlock extends HTMLElement {
             }
         });
     }, { rootMargin: '50px' });
-
     static #observedInstances = new WeakSet();
     static #renderCacheMap = new WeakMap();
-
     static #criticalAttributes = [
         'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
         'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
@@ -62,7 +57,6 @@ class CustomBlock extends HTMLElement {
         'video-primary-loading', 'video-primary-loop', 'video-primary-muted',
         'video-primary-playsinline', 'video-primary-poster', 'video-primary-src'
     ];
-
     #log(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ${message}`, 'color: #2196F3; font-weight: bold;');
@@ -71,7 +65,6 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
-
     #warn(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ⚠️ ${message}`, 'color: #FF9800; font-weight: bold;');
@@ -80,7 +73,6 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
-
     #error(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ❌ ${message}`, 'color: #F44336; font-weight: bold;');
@@ -89,7 +81,6 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
-
     async #getBasePath() {
         if (!this.#basePath) {
             const config = await getConfig();
@@ -98,7 +89,6 @@ class CustomBlock extends HTMLElement {
         }
         return this.#basePath;
     }
-
     async validateSrc(url) {
         if (!url || this.debug) {
             this.#log('Skipping validation', { url, reason: this.debug ? 'Debug mode' : 'Empty URL' });
@@ -117,7 +107,6 @@ class CustomBlock extends HTMLElement {
             return false;
         }
     }
-
     async getAttributes() {
         if (this.cachedAttributes) {
             this.#log('Using cached attributes', { elementId: this.id || 'no-id' });
@@ -505,7 +494,7 @@ class CustomBlock extends HTMLElement {
             buttonType: sanitizedButtonType,
             buttonIcon,
             buttonIconPosition: sanitizedButtonIconPosition,
-            buttonIconOffset: sanitizedButtonIconOffset,
+            buttonIconOffset: sanitizedButtonOffset,
             buttonIconSize: sanitizedButtonIconSize,
             hasBackgroundOverlay: !!backgroundOverlay,
             backgroundOverlayClass,
@@ -599,7 +588,6 @@ class CustomBlock extends HTMLElement {
         });
         return this.cachedAttributes;
     }
-
     async initialize() {
         if (this.isInitialized || !this.isVisible) {
             this.#log('Skipping initialization', {
@@ -637,7 +625,6 @@ class CustomBlock extends HTMLElement {
             this.replaceWith(fallbackElement);
         }
     }
-
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
         if (!this.isInitialized && !this.isVisible) {
@@ -649,7 +636,6 @@ class CustomBlock extends HTMLElement {
             await this.initialize();
         }
     }
-
     disconnectedCallback() {
         this.#log('Disconnected from DOM', { elementId: this.id || 'no-id' });
         if (CustomBlock.#observedInstances.has(this)) {
@@ -662,12 +648,10 @@ class CustomBlock extends HTMLElement {
         this.criticalAttributesHash = null;
         CustomBlock.#renderCacheMap.delete(this);
     }
-
     addCallback(callback) {
         this.#log('Callback added', { callbackName: callback.name || 'anonymous', elementId: this.id || 'no-id' });
         this.callbacks.push(callback);
     }
-
     async render(isFallback = false) {
         this.#log(`Starting render ${isFallback ? '(fallback)' : ''}`, { elementId: this.id || 'no-id' });
         let newCriticalAttrsHash;
@@ -812,6 +796,7 @@ class CustomBlock extends HTMLElement {
         const hasVideoBackground = !isFallback && !!(attrs.videoBackgroundSrc || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc);
         const hasBackgroundImage = !isFallback && !!(attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc) && !hasVideoBackground;
         const hasPrimaryImage = !isFallback && !!(attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc);
+        const hasVideoPrimary = !isFallback && !!(attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.primaryDarkSrc);
         const hasVideoPrimary = !isFallback && !!(attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc);
         this.#log('Media detection complete', {
             elementId: this.id || 'no-id',
@@ -1212,6 +1197,7 @@ class CustomBlock extends HTMLElement {
             let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
             if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
                 const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
+                buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonOffset}`;
                 buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
             }
             if (attrs.buttonIcon && attrs.buttonIconPosition === 'left') {
@@ -1391,53 +1377,6 @@ class CustomBlock extends HTMLElement {
         this.#log('Render completed', { elementId: this.id || 'no-id', html: blockElement.outerHTML.substring(0, 200) });
         return blockElement;
     }
-
-    attributeChangedCallback(name, oldValue, newValue) {
-        this.#log('Attribute changed', { name, oldValue, newValue, elementId: this.id || 'no-id' });
-        if (oldValue === newValue) return;
-        if (CustomBlock.#criticalAttributes.includes(name)) {
-            this.cachedAttributes = null;
-            this.criticalAttributesHash = null;
-            if (this.isInitialized && this.isVisible) {
-                this.#ignoredChangeCount++;
-                this.initialize().then(() => {
-                    this.#ignoredChangeCount--;
-                });
-            }
-        }
-    }
-
-    static get observedAttributes() {
-        return [
-            'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
-            'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
-            'button-href', 'button-icon', 'button-icon-offset', 'button-icon-position', 'button-icon-size',
-            'button-rel', 'button-style', 'button-target', 'button-text', 'button-type', 'class', 'effects',
-            'heading', 'heading-tag', 'icon', 'icon-class', 'icon-size', 'icon-style',
-            'img-background-alt', 'img-background-aspect-ratio', 'img-background-dark-src',
-            'img-background-decorative', 'img-background-desktop-width', 'img-background-fetchpriority',
-            'img-background-light-src', 'img-background-loading', 'img-background-mobile-width',
-            'img-background-position', 'img-background-src', 'img-background-tablet-width',
-            'img-primary-alt', 'img-primary-aspect-ratio', 'img-primary-dark-src', 'img-primary-decorative',
-            'img-primary-desktop-width', 'img-primary-fetchpriority', 'img-primary-light-src',
-            'img-primary-loading', 'img-primary-mobile-width', 'img-primary-position', 'img-primary-src',
-            'img-primary-tablet-width', 'inner-alignment', 'inner-backdrop-filter',
-            'inner-background-color', 'inner-background-gradient', 'inner-background-image-noise',
-            'inner-background-overlay', 'inner-border', 'inner-border-radius', 'inner-class',
-            'inner-shadow', 'inner-style', 'section-title', 'shadow', 'style', 'sub-heading',
-            'sub-heading-tag', 'text', 'text-alignment', 'video-background-alt',
-            'video-background-autoplay', 'video-background-dark-poster', 'video-background-dark-src',
-            'video-background-disable-pip', 'video-background-light-poster', 'video-background-light-src',
-            'video-background-loading', 'video-background-loop', 'video-background-muted',
-            'video-background-playsinline', 'video-background-poster', 'video-background-src',
-            'video-primary-alt', 'video-primary-autoplay', 'video-primary-dark-poster',
-            'video-primary-dark-src', 'video-primary-disable-pip', 'video-primary-light-poster',
-            'video-primary-light-src', 'video-primary-loading', 'video-primary-loop',
-            'video-primary-muted', 'video-primary-playsinline', 'video-primary-poster',
-            'video-primary-src'
-        ];
-    }
-
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) {
             this.#ignoredChangeCount++;
@@ -1453,12 +1392,10 @@ class CustomBlock extends HTMLElement {
         }
     }
 }
-
 try {
     customElements.define('custom-block', CustomBlock);
 } catch (error) {
     console.error('Error defining CustomBlock element:', error);
 }
-
-console.log('CustomBlock version: 2025-09-27');
+console.log('CustomBlock version: 2025-11-02');
 export { CustomBlock };

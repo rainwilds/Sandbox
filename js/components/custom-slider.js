@@ -83,8 +83,12 @@ class CustomSlider extends HTMLElement {
     }
 
     async initialize() {
-        if (this.isInitialized) {
-            this.#log('Skipping initialization: already initialized', { elementId: this.#uniqueId });
+        if (this.isInitialized || !this.isVisible) {
+            this.#log('Skipping initialization', {
+                isInitialized: this.isInitialized,
+                isVisible: this.isVisible,
+                elementId: this.#uniqueId
+            });
             return;
         }
 
@@ -203,7 +207,6 @@ class CustomSlider extends HTMLElement {
                         return null;
                     }
 
-                    // Check if the slide is a <custom-block> element
                     if (slide.tagName.toLowerCase() === 'custom-block' && !slide.isInitialized) {
                         this.#log('Waiting for custom-block to initialize', { index, slideId: slide.id || 'no-id' });
                         // Ensure the slide is observed
@@ -212,20 +215,21 @@ class CustomSlider extends HTMLElement {
                                 if (entry.isIntersecting) {
                                     slide.isVisible = true;
                                     slide.__observer.unobserve(slide);
-                                    // Check if initialize method exists
-                                    if (typeof slide.initialize === 'function') {
-                                        slide.initialize();
-                                    } else {
-                                        this.#error('Slide has no initialize method', { index, slideId: slide.id || 'no-id' });
-                                        resolve(slide); // Append as-is
-                                    }
+                                    slide.initialize();
                                 }
                             }, { rootMargin: '200px' });
                             slide.__observer.observe(slide);
                         }
                         // Wait for initialization by polling or listening for replacement
                         return new Promise(resolve => {
+                            let retries = 0;
+                            const maxRetries = 100; // Prevent infinite loop
                             const checkRendered = () => {
+                                if (retries >= maxRetries) {
+                                    this.#error('Max retries reached waiting for custom-block to render', { index, slideId: slide.id || 'no-id' });
+                                    resolve(null);
+                                    return;
+                                }
                                 if (slide.isConnected && slide.classList.contains('block')) {
                                     resolve(slide);
                                 } else if (!slide.isConnected) {
@@ -234,9 +238,11 @@ class CustomSlider extends HTMLElement {
                                     if (newSlide.classList.contains('block')) {
                                         resolve(newSlide);
                                     } else {
+                                        retries++;
                                         setTimeout(checkRendered, 100);
                                     }
                                 } else {
+                                    retries++;
                                     setTimeout(checkRendered, 100);
                                 }
                             };
@@ -244,7 +250,6 @@ class CustomSlider extends HTMLElement {
                             checkRendered();
                         });
                     } else {
-                        // Non-<custom-block> elements (e.g., <div>) are appended as-is
                         this.#log('Appending non-custom-block slide', { index, tagName: slide.tagName });
                         return slide;
                     }
@@ -260,6 +265,8 @@ class CustomSlider extends HTMLElement {
             if (slide) {
                 slider.appendChild(slide);
                 this.#log('Appended slide', { index, slideId: slide.id || 'no-id' });
+                // Clean up data-slide-index after appending
+                slide.removeAttribute('data-slide-index');
             } else {
                 this.#warn('Slide not appended (null)', { index });
             }
