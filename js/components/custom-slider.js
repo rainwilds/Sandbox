@@ -97,8 +97,15 @@ class CustomSlider extends HTMLElement {
         try {
             const sliderElement = await this.render();
             if (sliderElement) {
-                this.#log('Render successful, replacing element', { elementId: this.#uniqueId });
-                this.replaceWith(sliderElement);
+                this.#log('Render successful, replacing element', { elementId: this.#uniqueId, outerHTML: sliderElement.outerHTML.substring(0, 200) });
+                // Ensure replacement by clearing children and appending to parent
+                const parent = this.parentNode;
+                if (parent) {
+                    parent.replaceChild(sliderElement, this);
+                } else {
+                    this.#error('Parent node not found for replacement', { elementId: this.#uniqueId });
+                    this.replaceWith(sliderElement);
+                }
                 this.#setupAutoSlide(sliderElement);
                 this.callbacks.forEach(callback => callback());
                 this.#log('Initialization completed successfully', {
@@ -107,7 +114,8 @@ class CustomSlider extends HTMLElement {
                 });
             } else {
                 this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
-                this.replaceWith(this.render(true));
+                const fallback = await this.render(true);
+                this.replaceWith(fallback);
             }
         } catch (error) {
             this.#error('Initialization failed', {
@@ -115,7 +123,8 @@ class CustomSlider extends HTMLElement {
                 stack: error.stack,
                 elementId: this.#uniqueId
             });
-            this.replaceWith(this.render(true));
+            const fallback = await this.render(true);
+            this.replaceWith(fallback);
         }
     }
 
@@ -247,7 +256,7 @@ class CustomSlider extends HTMLElement {
             this.lastAttributes = newCriticalAttrsHash;
         }
 
-        this.#log('Render completed', { elementId: this.#uniqueId, slideCount: sliderWrapper.childElementCount });
+        this.#log('Render completed', { elementId: this.#uniqueId, slideCount: sliderWrapper.childElementCount, outerHTML: slider.outerHTML.substring(0, 200) });
         return slider;
     }
 
