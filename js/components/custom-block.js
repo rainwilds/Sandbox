@@ -553,7 +553,6 @@ class CustomBlock extends HTMLElement {
             videoBackgroundDisablePip: this.hasAttribute('video-background-disable-pip'),
             videoPrimarySrc,
             videoPrimaryLightSrc,
-            primaryDarkSrc,
             videoPrimaryDarkSrc,
             videoPrimaryPoster: resolveImageSrc('video-primary-poster'),
             videoPrimaryLightPoster: resolveImageSrc('video-primary-light-poster'),
@@ -603,12 +602,11 @@ class CustomBlock extends HTMLElement {
         try {
             const cardElement = await this.render();
             if (cardElement) {
+                this.#log('Render successful, replacing element', { elementId: this.id || 'no-id', cardElement: cardElement.outerHTML.substring(0, 200) });
                 // Transfer data-slide-index if present
                 if (this.hasAttribute('data-slide-index')) {
                     cardElement.setAttribute('data-slide-index', this.getAttribute('data-slide-index'));
                 }
-
-                this.#log('Render successful, replacing element', { elementId: this.id || 'no-id', cardElement: cardElement.outerHTML.substring(0, 200) });
                 this.replaceWith(cardElement);
                 this.callbacks.forEach(callback => callback());
                 this.#log('Initialization completed successfully', {
