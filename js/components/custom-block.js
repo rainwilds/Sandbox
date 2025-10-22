@@ -494,7 +494,7 @@ class CustomBlock extends HTMLElement {
             buttonType: sanitizedButtonType,
             buttonIcon,
             buttonIconPosition: sanitizedButtonIconPosition,
-            buttonIconOffset: sanitizedButtonOffset,
+            buttonIconOffset: sanitizedButtonIconOffset,
             buttonIconSize: sanitizedButtonIconSize,
             hasBackgroundOverlay: !!backgroundOverlay,
             backgroundOverlayClass,
@@ -553,6 +553,7 @@ class CustomBlock extends HTMLElement {
             videoBackgroundDisablePip: this.hasAttribute('video-background-disable-pip'),
             videoPrimarySrc,
             videoPrimaryLightSrc,
+            primaryDarkSrc,
             videoPrimaryDarkSrc,
             videoPrimaryPoster: resolveImageSrc('video-primary-poster'),
             videoPrimaryLightPoster: resolveImageSrc('video-primary-light-poster'),
@@ -602,6 +603,11 @@ class CustomBlock extends HTMLElement {
         try {
             const cardElement = await this.render();
             if (cardElement) {
+                // Transfer data-slide-index if present
+                if (this.hasAttribute('data-slide-index')) {
+                    cardElement.setAttribute('data-slide-index', this.getAttribute('data-slide-index'));
+                }
+
                 this.#log('Render successful, replacing element', { elementId: this.id || 'no-id', cardElement: cardElement.outerHTML.substring(0, 200) });
                 this.replaceWith(cardElement);
                 this.callbacks.forEach(callback => callback());
@@ -796,7 +802,6 @@ class CustomBlock extends HTMLElement {
         const hasVideoBackground = !isFallback && !!(attrs.videoBackgroundSrc || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc);
         const hasBackgroundImage = !isFallback && !!(attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc) && !hasVideoBackground;
         const hasPrimaryImage = !isFallback && !!(attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc);
-        const hasVideoPrimary = !isFallback && !!(attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.primaryDarkSrc);
         const hasVideoPrimary = !isFallback && !!(attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc);
         this.#log('Media detection complete', {
             elementId: this.id || 'no-id',
@@ -1197,7 +1202,6 @@ class CustomBlock extends HTMLElement {
             let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
             if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
                 const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
-                buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonOffset}`;
                 buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
             }
             if (attrs.buttonIcon && attrs.buttonIconPosition === 'left') {
@@ -1376,6 +1380,50 @@ class CustomBlock extends HTMLElement {
         }
         this.#log('Render completed', { elementId: this.id || 'no-id', html: blockElement.outerHTML.substring(0, 200) });
         return blockElement;
+    }
+    attributeChangedCallback(name, oldValue, newValue) {
+        this.#log('Attribute changed', { name, oldValue, newValue, elementId: this.id || 'no-id' });
+        if (oldValue === newValue) return;
+        if (CustomBlock.#criticalAttributes.includes(name)) {
+            this.cachedAttributes = null;
+            this.criticalAttributesHash = null;
+            if (this.isInitialized && this.isVisible) {
+                this.#ignoredChangeCount++;
+                this.initialize().then(() => {
+                    this.#ignoredChangeCount--;
+                });
+            }
+        }
+    }
+    static get observedAttributes() {
+        return [
+            'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
+            'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
+            'button-href', 'button-icon', 'button-icon-offset', 'button-icon-position', 'button-icon-size',
+            'button-rel', 'button-style', 'button-target', 'button-text', 'button-type', 'class', 'effects',
+            'heading', 'heading-tag', 'icon', 'icon-class', 'icon-size', 'icon-style',
+            'img-background-alt', 'img-background-aspect-ratio', 'img-background-dark-src',
+            'img-background-decorative', 'img-background-desktop-width', 'img-background-fetchpriority',
+            'img-background-light-src', 'img-background-loading', 'img-background-mobile-width',
+            'img-background-position', 'img-background-src', 'img-background-tablet-width',
+            'img-primary-alt', 'img-primary-aspect-ratio', 'img-primary-dark-src', 'img-primary-decorative',
+            'img-primary-desktop-width', 'img-primary-fetchpriority', 'img-primary-light-src',
+            'img-primary-loading', 'img-primary-mobile-width', 'img-primary-position', 'img-primary-src',
+            'img-primary-tablet-width', 'inner-alignment', 'inner-backdrop-filter',
+            'inner-background-color', 'inner-background-gradient', 'inner-background-image-noise',
+            'inner-background-overlay', 'inner-border', 'inner-border-radius', 'inner-class',
+            'inner-shadow', 'inner-style', 'section-title', 'shadow', 'style', 'sub-heading',
+            'sub-heading-tag', 'text', 'text-alignment', 'video-background-alt',
+            'video-background-autoplay', 'video-background-dark-poster', 'video-background-dark-src',
+            'video-background-disable-pip', 'video-background-light-poster', 'video-background-light-src',
+            'video-background-loading', 'video-background-loop', 'video-background-muted',
+            'video-background-playsinline', 'video-background-poster', 'video-background-src',
+            'video-primary-alt', 'video-primary-autoplay', 'video-primary-dark-poster',
+            'video-primary-dark-src', 'video-primary-disable-pip', 'video-primary-light-poster',
+            'video-primary-light-src', 'video-primary-loading', 'video-primary-loop',
+            'video-primary-muted', 'video-primary-playsinline', 'video-primary-poster',
+            'video-primary-src'
+        ];
     }
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) {
