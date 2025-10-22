@@ -1379,20 +1379,7 @@ class CustomBlock extends HTMLElement {
         this.#log('Render completed', { elementId: this.id || 'no-id', html: blockElement.outerHTML.substring(0, 200) });
         return blockElement;
     }
-    attributeChangedCallback(name, oldValue, newValue) {
-        this.#log('Attribute changed', { name, oldValue, newValue, elementId: this.id || 'no-id' });
-        if (oldValue === newValue) return;
-        if (CustomBlock.#criticalAttributes.includes(name)) {
-            this.cachedAttributes = null;
-            this.criticalAttributesHash = null;
-            if (this.isInitialized && this.isVisible) {
-                this.#ignoredChangeCount++;
-                this.initialize().then(() => {
-                    this.#ignoredChangeCount--;
-                });
-            }
-        }
-    }
+
     static get observedAttributes() {
         return [
             'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
@@ -1423,6 +1410,7 @@ class CustomBlock extends HTMLElement {
             'video-primary-src'
         ];
     }
+
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) {
             this.#ignoredChangeCount++;
@@ -1431,12 +1419,15 @@ class CustomBlock extends HTMLElement {
             }
             return;
         }
-        this.#log('Attribute changed', { name, oldValue, newValue });
+        this.#log('Attribute changed', { name, oldValue, newValue, elementId: this.id || 'no-id' });
+        if (oldValue === newValue) return;
         if (CustomBlock.#criticalAttributes.includes(name)) {
             this.cachedAttributes = null;
+            this.criticalAttributesHash = null;
             this.initialize();
         }
     }
+
 }
 try {
     customElements.define('custom-block', CustomBlock);

@@ -180,13 +180,22 @@ class CustomSlider extends HTMLElement {
         await Promise.all(slides.map(async (slide, index) => {
             if (slide.tagName.toLowerCase() === 'custom-block') {
                 this.#log('Waiting for custom-block to initialize', { index, slideId: slide.id || 'no-id' });
-                slide.addCallback(() => {
+                if (typeof slide.addCallback === 'function') {
+                    slide.addCallback(() => {
+                        this.#appendSlide(slide, index);
+                        this.#slidesInitialized++;
+                        if (this.#slidesInitialized === slideCount) {
+                            this.#injectSlideCountStyle(slideCount);
+                        }
+                    });
+                } else {
+                    this.#warn('addCallback not available on custom-block, appending immediately', { index, slideId: slide.id || 'no-id' });
                     this.#appendSlide(slide, index);
                     this.#slidesInitialized++;
                     if (this.#slidesInitialized === slideCount) {
                         this.#injectSlideCountStyle(slideCount);
                     }
-                });
+                }
                 if (!slide.isInitialized && !slide.isVisible) {
                     const observer = new IntersectionObserver(([entry]) => {
                         if (entry.isIntersecting) {
@@ -239,6 +248,8 @@ class CustomSlider extends HTMLElement {
         }
         style.textContent = `.slider[data-slider-id="${this.#uniqueId}"] { --slider-count: ${slideCount}; }`;
     }
+
+
 
     static get observedAttributes() {
         return [];
