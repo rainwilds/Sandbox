@@ -1,10 +1,12 @@
 /* global HTMLElement, IntersectionObserver, document, window, console */
 class CustomSlider extends HTMLElement {
-    static #instanceCount = 0; // Track number of slider instances
+    static #instanceCount = 0;
     #ignoredChangeCount;
     #debug = new URLSearchParams(window.location.search).get('debug') === 'true';
     #uniqueId;
     #slidesInitialized = 0;
+    #currentSlide = 0;
+    #autoSlideInterval = null;
 
     constructor() {
         super();
@@ -97,6 +99,7 @@ class CustomSlider extends HTMLElement {
             if (sliderElement) {
                 this.#log('Render successful, replacing element', { elementId: this.#uniqueId });
                 this.replaceWith(sliderElement);
+                this.#setupAutoSlide(sliderElement);
                 this.callbacks.forEach(callback => callback());
                 this.#log('Initialization completed successfully', {
                     elementId: this.#uniqueId,
@@ -130,6 +133,10 @@ class CustomSlider extends HTMLElement {
 
     disconnectedCallback() {
         this.#log('Disconnected from DOM', { elementId: this.#uniqueId });
+        if (this.#autoSlideInterval) {
+            clearInterval(this.#autoSlideInterval);
+            this.#autoSlideInterval = null;
+        }
         if (CustomSlider.#observedInstances.has(this)) {
             CustomSlider.#observer.unobserve(this);
             CustomSlider.#observedInstances.delete(this);
@@ -158,6 +165,14 @@ class CustomSlider extends HTMLElement {
             }
         }
 
+        // Ensure custom-block is defined
+        if (!customElements.get('custom-block')) {
+            this.#warn('custom-block not defined, waiting for definition');
+            await new Promise(resolve => {
+                customElements.whenDefined('custom-block').then(resolve);
+            });
+        }
+
         const slides = Array.from(this.children);
         const slideCount = slides.length;
 
@@ -168,11 +183,15 @@ class CustomSlider extends HTMLElement {
             return slider;
         }
 
-        // Create and append the slider to the DOM early
+        // Create the slider container
         const slider = document.createElement('div');
         slider.className = 'slider';
         slider.dataset.sliderId = this.#uniqueId;
-        this.appendChild(slider); // Attach slider to the custom element's DOM
+
+        // Create wrapper for slides
+        const sliderWrapper = document.createElement('div');
+        sliderWrapper.className = 'slider-wrapper';
+        slider.appendChild(sliderWrapper);
 
         // Track initialization of slides
         this.#slidesInitialized = 0;
@@ -190,13 +209,13 @@ class CustomSlider extends HTMLElement {
                     this.#log('Waiting for custom-block to initialize', { index, slideId: slide.id || 'no-id' });
                     if (typeof slide.addCallback === 'function') {
                         slide.addCallback((renderedElement) => {
-                            this.#appendSlide(renderedElement, index); // Use renderedElement
+                            this.#appendSlide(renderedElement, index, sliderWrapper);
                             this.#slidesInitialized++;
                             checkInitialization();
                         });
                     } else {
                         this.#warn('addCallback not available on custom-block, appending immediately', { index, slideId: slide.id || 'no-id' });
-                        this.#appendSlide(slide, index); // Fallback to original slide
+                        this.#appendSlide(slide.cloneNode(true), index, sliderWrapper);
                         this.#slidesInitialized++;
                         checkInitialization();
                     }
@@ -216,48 +235,46 @@ class CustomSlider extends HTMLElement {
                     }
                 } else {
                     this.#warn('Slide is not a custom-block', { index, tagName: slide.tagName });
-                    this.#appendSlide(slide, index);
+                    this.#appendSlide(slide.cloneNode(true), index, sliderWrapper);
                     this.#slidesInitialized++;
                     checkInitialization();
                 }
             });
         });
 
-        // Inject style after all slides are appended
-        this.#injectSlideCountStyle(slideCount);
-
         if (!isFallback) {
             CustomSlider.#renderCacheMap.set(this, slider.cloneNode(true));
             this.lastAttributes = newCriticalAttrsHash;
         }
 
-        this.#log('Render completed', { elementId: this.#uniqueId, slideCount: slider.childElementCount });
+        this.#log('Render completed', { elementId: this.#uniqueId, slideCount: sliderWrapper.childElementCount });
         return slider;
     }
 
-    #appendSlide(slide, index) {
+    #appendSlide(slide, index, sliderWrapper) {
         this.#log('Appended slide', { index, slideId: slide.id || 'no-id' });
-        const slider = this.querySelector('.slider'); // Now should find the slider
-        if (slider) {
-            const clonedSlide = slide.cloneNode(true);
-            clonedSlide.setAttribute('data-slide-index', index);
-            slider.appendChild(clonedSlide);
-            console.log('Slide appended to DOM', { index, html: clonedSlide.outerHTML.substring(0, 200) }); // Debug log
-        } else {
-            this.#warn('Slider element not found for appending', { index, slideId: slide.id || 'no-id' });
-        }
+        slide.setAttribute('data-slide-index', index);
+        sliderWrapper.appendChild(slide);
+        console.log('Slide appended to DOM', { index, html: slide.outerHTML.substring(0, 200) });
     }
 
-    #injectSlideCountStyle(slideCount) {
-        this.#log('Slide count style injected', { slideCount, sliderId: this.#uniqueId });
-        const styleId = `slider-count-${this.#uniqueId}`;
-        let style = document.getElementById(styleId);
-        if (!style) {
-            style = document.createElement('style');
-            style.id = styleId;
-            document.head.appendChild(style);
+    #setupAutoSlide(sliderElement) {
+        const wrapper = sliderElement.querySelector('.slider-wrapper');
+        const slideCount = wrapper.children.length;
+
+        if (slideCount <= 1) {
+            this.#log('Auto-slide skipped: insufficient slides', { slideCount });
+            return;
         }
-        style.textContent = `.slider[data-slider-id="${this.#uniqueId}"] { --slider-count: ${slideCount}; }`;
+
+        const updateSlider = () => {
+            this.#currentSlide = (this.#currentSlide + 1) % slideCount;
+            wrapper.style.transform = `translateX(-${this.#currentSlide * 100}%)`;
+            this.#log('Auto-slid to next slide', { currentSlide: this.#currentSlide });
+        };
+
+        // Start auto-sliding every 5 seconds
+        this.#autoSlideInterval = setInterval(updateSlider, 5000);
     }
 
     static get observedAttributes() {

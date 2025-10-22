@@ -2015,12 +2015,21 @@ div#products {
 
 
 div.slider {
-
     width: 100vw;
-    display: grid;
-    grid-template-columns: repeat(var(--slide-count, 1), 100vw);
     overflow: hidden;
-    
+    position: relative;
+}
+
+.slider-wrapper {
+    display: flex;
+    height: 100%;
+    transition: transform 0.5s ease-in-out;
+}
+
+.slider-wrapper .block {
+    flex: 0 0 100vw;
+    width: 100vw;
+    min-height: 300px; /* Adjust as needed for your content */
 }
 
 
