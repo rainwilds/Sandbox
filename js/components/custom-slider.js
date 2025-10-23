@@ -1,4 +1,3 @@
-```javascript
 /* global HTMLElement, IntersectionObserver, document, window, console, requestAnimationFrame */
 
 'use strict';
@@ -417,4 +416,3 @@ try {
 
 console.log('CustomSlider version: 2025-10-23');
 export { CustomSlider };
-```
