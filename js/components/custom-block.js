@@ -3,9 +3,11 @@ import { generatePictureMarkup } from '../generators/image-generator.js';
 import { generateVideoMarkup } from '../generators/video-generator.js';
 import { VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } from '../shared.js';
 import { getConfig, getImagePrimaryPath } from '../config.js';
+
 class CustomBlock extends HTMLElement {
     #ignoredChangeCount;
     #basePath = null;
+
     constructor() {
         super();
         this.isVisible = false;
@@ -20,6 +22,7 @@ class CustomBlock extends HTMLElement {
         CustomBlock.#observer.observe(this);
         CustomBlock.#observedInstances.add(this);
     }
+
     static #observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
@@ -33,8 +36,10 @@ class CustomBlock extends HTMLElement {
             }
         });
     }, { rootMargin: '50px' });
+
     static #observedInstances = new WeakSet();
     static #renderCacheMap = new WeakMap();
+
     static #criticalAttributes = [
         'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
         'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
@@ -57,6 +62,7 @@ class CustomBlock extends HTMLElement {
         'video-primary-loading', 'video-primary-loop', 'video-primary-muted',
         'video-primary-playsinline', 'video-primary-poster', 'video-primary-src'
     ];
+
     #log(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ${message}`, 'color: #2196F3; font-weight: bold;');
@@ -65,6 +71,7 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
+
     #warn(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ⚠️ ${message}`, 'color: #FF9800; font-weight: bold;');
@@ -73,6 +80,7 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
+
     #error(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ❌ ${message}`, 'color: #F44336; font-weight: bold;');
@@ -81,6 +89,7 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
+
     async #getBasePath() {
         if (!this.#basePath) {
             const config = await getConfig();
@@ -89,6 +98,7 @@ class CustomBlock extends HTMLElement {
         }
         return this.#basePath;
     }
+
     async validateSrc(url) {
         if (!url || this.debug) {
             this.#log('Skipping validation', { url, reason: this.debug ? 'Debug mode' : 'Empty URL' });
@@ -107,6 +117,7 @@ class CustomBlock extends HTMLElement {
             return false;
         }
     }
+
     async getAttributes() {
         if (this.cachedAttributes) {
             this.#log('Using cached attributes', { elementId: this.id || 'no-id' });
@@ -588,6 +599,7 @@ class CustomBlock extends HTMLElement {
         });
         return this.cachedAttributes;
     }
+
     async initialize() {
         if (this.isInitialized || !this.isVisible) {
             this.#log('Skipping initialization', {
@@ -603,10 +615,6 @@ class CustomBlock extends HTMLElement {
             const cardElement = await this.render();
             if (cardElement) {
                 this.#log('Render successful, replacing element', { elementId: this.id || 'no-id', cardElement: cardElement.outerHTML.substring(0, 200) });
-                // Transfer data-slide-index if present
-                if (this.hasAttribute('data-slide-index')) {
-                    cardElement.setAttribute('data-slide-index', this.getAttribute('data-slide-index'));
-                }
                 this.replaceWith(cardElement);
                 this.callbacks.forEach(callback => callback());
                 this.#log('Initialization completed successfully', {
@@ -629,17 +637,14 @@ class CustomBlock extends HTMLElement {
             this.replaceWith(fallbackElement);
         }
     }
+
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
-        if (!this.isInitialized && !this.isVisible) {
-            CustomBlock.#observer.observe(this);
-            CustomBlock.#observedInstances.add(this);
-            this.#log('Re-observing element after reconnect', { elementId: this.id || 'no-id' });
-        }
         if (this.isVisible) {
             await this.initialize();
         }
     }
+
     disconnectedCallback() {
         this.#log('Disconnected from DOM', { elementId: this.id || 'no-id' });
         if (CustomBlock.#observedInstances.has(this)) {
@@ -652,10 +657,12 @@ class CustomBlock extends HTMLElement {
         this.criticalAttributesHash = null;
         CustomBlock.#renderCacheMap.delete(this);
     }
+
     addCallback(callback) {
         this.#log('Callback added', { callbackName: callback.name || 'anonymous', elementId: this.id || 'no-id' });
         this.callbacks.push(callback);
     }
+
     async render(isFallback = false) {
         this.#log(`Starting render ${isFallback ? '(fallback)' : ''}`, { elementId: this.id || 'no-id' });
         let newCriticalAttrsHash;
@@ -1380,6 +1387,21 @@ class CustomBlock extends HTMLElement {
         return blockElement;
     }
 
+    attributeChangedCallback(name, oldValue, newValue) {
+        this.#log('Attribute changed', { name, oldValue, newValue, elementId: this.id || 'no-id' });
+        if (oldValue === newValue) return;
+        if (CustomBlock.#criticalAttributes.includes(name)) {
+            this.cachedAttributes = null;
+            this.criticalAttributesHash = null;
+            if (this.isInitialized && this.isVisible) {
+                this.#ignoredChangeCount++;
+                this.initialize().then(() => {
+                    this.#ignoredChangeCount--;
+                });
+            }
+        }
+    }
+
     static get observedAttributes() {
         return [
             'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
@@ -1419,20 +1441,19 @@ class CustomBlock extends HTMLElement {
             }
             return;
         }
-        this.#log('Attribute changed', { name, oldValue, newValue, elementId: this.id || 'no-id' });
-        if (oldValue === newValue) return;
+        this.#log('Attribute changed', { name, oldValue, newValue });
         if (CustomBlock.#criticalAttributes.includes(name)) {
             this.cachedAttributes = null;
-            this.criticalAttributesHash = null;
             this.initialize();
         }
     }
-
 }
+
 try {
     customElements.define('custom-block', CustomBlock);
 } catch (error) {
     console.error('Error defining CustomBlock element:', error);
 }
-console.log('CustomBlock version: 2025-11-02');
+
+console.log('CustomBlock version: 2025-09-27');
 export { CustomBlock };

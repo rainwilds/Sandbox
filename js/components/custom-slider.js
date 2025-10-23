@@ -1,431 +1,372 @@
-/* global HTMLElement, IntersectionObserver, document, window, console, MutationObserver */
+/* global HTMLElement, document, window, console, Swiper, DOMParser */
+
 class CustomSlider extends HTMLElement {
-    static #instanceCount = 0;
-    #ignoredChangeCount;
-    #debug = new URLSearchParams(window.location.search).get('debug') === 'true';
-    #uniqueId;
-    #slidesInitialized = 0;
-    #currentSlide = 0;
-    #autoSlideInterval = null;
-    #mutationObserver = null;
+  #swiperInstance = null;
+  #debug = new URLSearchParams(window.location.search).get('debug') === 'true';
+  #isInitialized = false;
 
-    constructor() {
-        super();
-        this.isVisible = false;
-        this.isInitialized = false;
-        this.callbacks = [];
-        this.renderCache = null;
-        this.lastAttributes = null;
-        this.cachedAttributes = null;
-        this.criticalAttributesHash = null;
-        this.#ignoredChangeCount = 0;
-        CustomSlider.#instanceCount += 1;
-        this.#uniqueId = `${CustomSlider.#instanceCount}`;
-        this.setAttribute('data-slider-id', this.#uniqueId);
-        CustomSlider.#observer.observe(this);
-        CustomSlider.#observedInstances.add(this);
-        this.#log('Instance created', { instanceCount: CustomSlider.#instanceCount });
+  #log(message, data = null) {
+    if (this.#debug) {
+      console.groupCollapsed(`%c[CustomSlider] ${message}`, 'color: #2196F3; font-weight: bold;');
+      if (data) console.log('%cData:', 'color: #4CAF50;', data);
+      console.trace();
+      console.groupEnd();
     }
+  }
 
-    static #observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const instance = entry.target;
-                if (instance instanceof CustomSlider) {
-                    instance.isVisible = true;
-                    CustomSlider.#observer.unobserve(instance);
-                    CustomSlider.#observedInstances.delete(instance);
-                    instance.initialize();
-                }
-            }
-        });
-    }, { rootMargin: '200px' });
-
-    static #observedInstances = new WeakSet();
-    static #renderCacheMap = new WeakMap();
-    static #criticalAttributes = [];
-
-    #log(message, data = null) {
-        if (this.#debug) {
-            console.groupCollapsed(`%c[CustomSlider] ${message}`, 'color: #2196F3; font-weight: bold;');
-            if (data) console.log('%cData:', 'color: #4CAF50;', data);
-            console.trace();
-            console.groupEnd();
-        }
+  #warn(message, data = null) {
+    if (this.#debug) {
+      console.groupCollapsed(`%c[CustomSlider] ⚠️ ${message}`, 'color: #FF9800; font-weight: bold;');
+      if (data) console.log('%cData:', 'color: #4CAF50;', data);
+      console.trace();
+      console.groupEnd();
     }
+  }
 
-    #warn(message, data = null) {
-        if (this.#debug) {
-            console.groupCollapsed(`%c[CustomSlider] Warning: ${message}`, 'color: #FF9800; font-weight: bold;');
-            if (data) console.log('%cData:', 'color: #4CAF50;', data);
-            console.trace();
-            console.groupEnd();
-        }
+  #error(message, data = null) {
+    if (this.#debug) {
+      console.groupCollapsed(`%c[CustomSlider] ❌ ${message}`, 'color: #F44336; font-weight: bold;');
+      if (data) console.log('%cData:', 'color: #4CAF50;', data);
+      console.trace();
+      console.groupEnd();
     }
+  }
 
-    #error(message, data = null) {
-        if (this.#debug) {
-            console.groupCollapsed(`%c[CustomSlider] Error: ${message}`, 'color: #F44336; font-weight: bold;');
-            if (data) console.log('%cData:', 'color: #4CAF50;', data);
-            console.trace();
-            console.groupEnd();
-        }
+  #validateIcon(icon, attributeName) {
+    if (!icon) return '';
+    const cleanedIcon = icon
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&amp;/g, '&');
+    this.#log(`Validating ${attributeName}`, { rawIcon: icon, cleanedIcon });
+    
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(cleanedIcon, 'text/html');
+    const iElement = doc.body.querySelector('i');
+    if (!iElement) {
+      this.#warn(`Invalid ${attributeName} format: No <i> tag found`, {
+        value: cleanedIcon,
+        elementId: this.id || 'no-id',
+        expected: 'Font Awesome <i> tag with fa- classes'
+      });
+      return '';
     }
-
-    getAttributes() {
-        if (this.cachedAttributes) {
-            this.#log('Using cached attributes', { elementId: this.#uniqueId });
-            return this.cachedAttributes;
-        }
-        this.#log('Parsing new attributes', { elementId: this.#uniqueId });
-        this.cachedAttributes = {};
-        this.criticalAttributesHash = '{}';
-        this.#log('Attributes parsed successfully', { elementId: this.#uniqueId });
-        return this.cachedAttributes;
+    const classes = iElement.className.split(' ').filter(cls => cls);
+    this.#log(`Parsed classes for ${attributeName}`, { classes });
+    
+    const validClasses = classes.filter(cls => cls.startsWith('fa-') || cls === 'fa-regular' || cls === 'fa-solid' || cls === 'fa-chisel');
+    if (validClasses.length === 0) {
+      this.#warn(`No valid Font Awesome classes in ${attributeName}`, {
+        classes: iElement.className,
+        elementId: this.id || 'no-id',
+        expected: 'At least one fa- class, fa-regular, fa-solid, or fa-chisel'
+      });
+      return '';
     }
+    const iconHtml = `<i class="${validClasses.join(' ')}"></i>`;
+    this.#log(`Validated icon for ${attributeName}`, { iconHtml });
+    return iconHtml;
+  }
 
-    async initialize() {
-        if (this.isInitialized || !this.isVisible) {
-            this.#log('Skipping initialization', {
-                isInitialized: this.isInitialized,
-                isVisible: this.isVisible,
-                elementId: this.#uniqueId
-            });
-            return;
-        }
-        this.#log('Starting initialization', { elementId: this.#uniqueId });
-        this.isInitialized = true;
+  async #parseSpaceBetween(value, maxAttempts = 30, delay = 500) {
+    if (!value) {
+      this.#log('No space-between value provided, using 0', { value });
+      return { value: 0, cssVariable: null };
+    }
+    const trimmedValue = value.trim();
+
+    // Wait for DOMContentLoaded to ensure styles are loaded
+    await new Promise(resolve => {
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+        resolve();
+      } else {
+        document.addEventListener('DOMContentLoaded', resolve, { once: true });
+      }
+    });
+
+    // Log root font size for debugging
+    const rootFontSize = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+    this.#log('Root font size', { rootFontSize });
+
+    // Handle CSS variable (e.g., var(--space-tiny))
+    if (trimmedValue.startsWith('var(')) {
+      let attempts = 0;
+      while (attempts < maxAttempts) {
         try {
-            const sliderElement = await this.render();
-            if (sliderElement) {
-                this.#log('Render successful, preparing to replace element', {
-                    elementId: this.#uniqueId,
-                    outerHTML: sliderElement.outerHTML.substring(0, 200)
-                });
-                // Clear existing children
-                while (this.firstChild) {
-                    this.removeChild(this.firstChild);
-                }
-                // Queue replacement in next event loop
-                setTimeout(() => {
-                    const parent = this.parentNode;
-                    if (parent) {
-                        parent.replaceChild(sliderElement, this);
-                        this.#log('Element replaced with slider', {
-                            elementId: this.#uniqueId,
-                            parentTag: parent.tagName
-                        });
-                    } else {
-                        this.#error('Parent node not found, using fallback replacement', { elementId: this.#uniqueId });
-                        this.replaceWith(sliderElement);
-                    }
-                    // Start MutationObserver to detect re-insertion
-                    this.#startMutationObserver(sliderElement);
-                    this.#setupAutoSlide(sliderElement);
-                }, 0);
-                this.callbacks.forEach(callback => callback());
-                this.#log('Initialization completed successfully', {
-                    elementId: this.#uniqueId,
-                    childCount: sliderElement.childElementCount
-                });
-            } else {
-                this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
-                const fallback = await this.render(true);
-                this.replaceWith(fallback);
+          const varName = trimmedValue.match(/var\((--[^)]+)\)/)?.[1];
+          if (!varName) {
+            this.#warn('Invalid CSS variable format in space-between', { value: trimmedValue, elementId: this.id || 'no-id' });
+            return { value: 0, cssVariable: trimmedValue };
+          }
+          const computedStyle = getComputedStyle(document.documentElement);
+          const pixelValue = computedStyle.getPropertyValue(varName).trim();
+          this.#log('Raw CSS variable value', { variable: varName, pixelValue });
+
+          // Parse rem or px units
+          if (pixelValue.includes('rem')) {
+            const remValue = parseFloat(pixelValue);
+            if (!isNaN(remValue)) {
+              const parsedValue = remValue * rootFontSize;
+              this.#log('Parsed rem value for space-between', { variable: varName, remValue, parsedValue });
+              return { value: parsedValue, cssVariable: trimmedValue };
             }
+          } else if (pixelValue.includes('px')) {
+            const parsedValue = parseFloat(pixelValue);
+            if (!isNaN(parsedValue)) {
+              this.#log('Parsed px value for space-between', { variable: varName, pixelValue: parsedValue });
+              return { value: parsedValue, cssVariable: trimmedValue };
+            }
+          }
+
+          // If pixelValue is invalid, retry
+          this.#log(`CSS variable resolution attempt ${attempts + 1}/${maxAttempts}`, { variable: varName, pixelValue });
+          await new Promise(resolve => setTimeout(resolve, delay));
+          attempts++;
         } catch (error) {
-            this.#error('Initialization failed', {
-                error: error.message,
-                stack: error.stack,
-                elementId: this.#uniqueId
-            });
-            const fallback = await this.render(true);
-            this.replaceWith(fallback);
+          this.#log(`CSS variable resolution attempt ${attempts + 1}/${maxAttempts} failed`, { value: trimmedValue, error: error.message });
+          await new Promise(resolve => setTimeout(resolve, delay));
+          attempts++;
         }
+      }
+      this.#warn('Failed to resolve CSS variable after retries', { value: trimmedValue, elementId: this.id || 'no-id' });
+      return { value: 0, cssVariable: trimmedValue };
     }
 
-    #startMutationObserver(sliderElement) {
-        if (this.#mutationObserver) return;
-        this.#mutationObserver = new MutationObserver((mutations) => {
-            mutations.forEach(mutation => {
-                if (mutation.addedNodes.length) {
-                    mutation.addedNodes.forEach(node => {
-                        if (node.tagName && node.tagName.toLowerCase() === 'custom-slider' && node.getAttribute('data-slider-id') === this.#uniqueId) {
-                            this.#warn('custom-slider re-inserted into DOM, re-replacing', { elementId: this.#uniqueId });
-                            const parent = node.parentNode;
-                            if (parent) {
-                                parent.replaceChild(sliderElement.cloneNode(true), node);
-                            }
-                        }
-                    });
-                }
-            });
-        });
-        this.#mutationObserver.observe(document.body, { childList: true, subtree: true });
-        this.#log('MutationObserver started', { elementId: this.#uniqueId });
+    // Handle CSS units (px, em, rem, %, vw, vh)
+    try {
+      const testDiv = document.createElement('div');
+      testDiv.style.display = 'none';
+      testDiv.style.width = trimmedValue;
+      document.body.appendChild(testDiv);
+      const pixelValue = parseFloat(window.getComputedStyle(testDiv).width);
+      document.body.removeChild(testDiv);
+      if (isNaN(pixelValue)) {
+        this.#warn('Invalid CSS unit value in space-between', { value: trimmedValue, elementId: this.id || 'no-id' });
+        return { value: 0, cssVariable: null };
+      }
+      this.#log('Parsed CSS unit for space-between', { value: trimmedValue, pixelValue });
+      return { value: pixelValue, cssVariable: null };
+    } catch (error) {
+      this.#warn('Failed to parse CSS unit for space-between', { value: trimmedValue, error: error.message });
+      return { value: 0, cssVariable: null };
+    }
+  }
+
+  async #waitForSwiper(maxAttempts = 10, delay = 100) {
+    let attempts = 0;
+    while (!window.Swiper && attempts < maxAttempts) {
+      this.#log(`Waiting for Swiper library, attempt ${attempts + 1}/${maxAttempts}`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      attempts++;
+    }
+    if (!window.Swiper) {
+      this.#error('Swiper library failed to load after maximum attempts', { maxAttempts, elementId: this.id || 'no-id' });
+      return false;
+    }
+    return true;
+  }
+
+  async initialize() {
+    if (this.#isInitialized) {
+      this.#log('Skipping initialization, already initialized', { elementId: this.id || 'no-id' });
+      return;
+    }
+    this.#log('Starting initialization', { elementId: this.id || 'no-id' });
+
+    // Wait for Swiper to load
+    const swiperLoaded = await this.#waitForSwiper();
+    if (!swiperLoaded) {
+      return;
     }
 
-    connectedCallback() {
-        this.#log('Connected to DOM', { elementId: this.#uniqueId });
-        if (!this.isInitialized && !this.isVisible) {
-            CustomSlider.#observer.observe(this);
-            CustomSlider.#observedInstances.add(this);
-            this.#log('Re-observing element after reconnect', { elementId: this.#uniqueId });
-        }
-        if (this.isVisible) {
-            this.initialize();
-        }
+    const hasPagination = this.hasAttribute('pagination');
+    const hasNavigation = this.hasAttribute('navigation');
+    const navigationIconLeft = hasNavigation ? this.getAttribute('navigation-icon-left') || '' : '';
+    const navigationIconRight = hasNavigation ? this.getAttribute('navigation-icon-right') || '' : '';
+    const slidesPerView = this.hasAttribute('slides-per-view') ? parseFloat(this.getAttribute('slides-per-view')) || 1 : 1;
+    const spaceBetweenResult = await this.#parseSpaceBetween(this.getAttribute('space-between') || '0');
+    const spaceBetween = spaceBetweenResult.value;
+    const cssVariable = spaceBetweenResult.cssVariable;
+
+    // Log spaceBetween value for debugging
+    this.#log('Applying spaceBetween to Swiper', { spaceBetween, cssVariable });
+
+    // Warn if navigation-icon-left or navigation-icon-right are used without navigation
+    if (!hasNavigation && this.hasAttribute('navigation-icon-left')) {
+      this.#warn('navigation-icon-left attribute ignored without navigation attribute', {
+        elementId: this.id || 'no-id',
+        navigationIconLeft
+      });
+    }
+    if (!hasNavigation && this.hasAttribute('navigation-icon-right')) {
+      this.#warn('navigation-icon-right attribute ignored without navigation attribute', {
+        elementId: this.id || 'no-id',
+        navigationIconRight
+      });
     }
 
-    disconnectedCallback() {
-        this.#log('Disconnected from DOM', { elementId: this.#uniqueId });
-        if (this.#autoSlideInterval) {
-            clearInterval(this.#autoSlideInterval);
-            this.#autoSlideInterval = null;
-        }
-        if (this.#mutationObserver) {
-            this.#mutationObserver.disconnect();
-            this.#mutationObserver = null;
-        }
-        if (CustomSlider.#observedInstances.has(this)) {
-            CustomSlider.#observer.unobserve(this);
-            CustomSlider.#observedInstances.delete(this);
-        }
-        this.callbacks = [];
-        this.renderCache = null;
-        this.cachedAttributes = null;
-        this.criticalAttributesHash = null;
-        CustomSlider.#renderCacheMap.delete(this);
+    // Create container for Swiper structure
+    const container = document.createElement('div');
+    container.classList.add('swiper');
+
+    // Move children to swiper-wrapper
+    const wrapper = document.createElement('div');
+    wrapper.classList.add('swiper-wrapper');
+    const slideCount = this.children.length;
+    const customBlockCount = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block').length;
+    Array.from(this.children).forEach(child => {
+      if (!child.classList.contains('swiper-slide')) {
+        const slide = document.createElement('div');
+        slide.classList.add('swiper-slide');
+        slide.appendChild(child);
+        wrapper.appendChild(slide);
+      } else {
+        wrapper.appendChild(child);
+      }
+      this.#log('Added slide to wrapper', { childTag: child.tagName, hasCustomBlock: child.tagName.toLowerCase() === 'custom-block' });
+    });
+    container.appendChild(wrapper);
+    this.#log('Slides processed', { slideCount, customBlockCount });
+
+    // Add pagination if attribute is present
+    if (hasPagination) {
+      const pagination = document.createElement('div');
+      pagination.classList.add('swiper-pagination');
+      container.appendChild(pagination);
+      this.#log('Pagination element added', { elementId: this.id || 'no-id' });
     }
 
-    addCallback(callback) {
-        this.#log('Callback added', { callbackName: callback.name || 'anonymous', elementId: this.#uniqueId });
-        this.callbacks.push(callback);
+    // Add navigation buttons if attribute is present
+    if (hasNavigation) {
+      const prev = document.createElement('div');
+      prev.classList.add('swiper-button-prev');
+      const next = document.createElement('div');
+      next.classList.add('swiper-button-next');
+
+      // Apply Font Awesome icons if valid, with fallback
+      if (navigationIconLeft) {
+        const validatedIconLeft = this.#validateIcon(navigationIconLeft, 'navigation-icon-left');
+        prev.innerHTML = validatedIconLeft || '<i class="fa-solid fa-angle-left"></i>';
+        if (validatedIconLeft) {
+          this.#log('Left navigation button icon applied', { icon: validatedIconLeft, elementId: this.id || 'no-id' });
+        } else {
+          this.#log('Using fallback icon for navigation-icon-left', { icon: '<i class="fa-solid fa-angle-left"></i>', elementId: this.id || 'no-id' });
+        }
+      } else {
+        prev.innerHTML = '<i class="fa-solid fa-angle-left"></i>';
+        this.#log('No navigation-icon-left provided, using fallback', { icon: '<i class="fa-solid fa-angle-left"></i>', elementId: this.id || 'no-id' });
+      }
+
+      if (navigationIconRight) {
+        const validatedIconRight = this.#validateIcon(navigationIconRight, 'navigation-icon-right');
+        next.innerHTML = validatedIconRight || '<i class="fa-solid fa-angle-right"></i>';
+        if (validatedIconRight) {
+          this.#log('Right navigation button icon applied', { icon: validatedIconRight, elementId: this.id || 'no-id' });
+        } else {
+          this.#log('Using fallback icon for navigation-icon-right', { icon: '<i class="fa-solid fa-angle-right"></i>', elementId: this.id || 'no-id' });
+        }
+      } else {
+        next.innerHTML = '<i class="fa-solid fa-angle-right"></i>';
+        this.#log('No navigation-icon-right provided, using fallback', { icon: '<i class="fa-solid fa-angle-right"></i>', elementId: this.id || 'no-id' });
+      }
+
+      container.appendChild(prev);
+      container.appendChild(next);
+      this.#log('Navigation buttons added', { elementId: this.id || 'no-id' });
     }
 
-    async render(isFallback = false) {
-        this.#log(`Starting render ${isFallback ? '(fallback)' : ''}`, { elementId: this.#uniqueId });
+    // Prepare Swiper options
+    const options = {
+      loop: true,
+      slidesPerView: slidesPerView,
+      spaceBetween: spaceBetween
+    };
 
-        let newCriticalAttrsHash;
-        if (!isFallback) {
-            newCriticalAttrsHash = '{}';
-            if (CustomSlider.#renderCacheMap.has(this) && this.criticalAttributesHash === newCriticalAttrsHash) {
-                this.#log('Using cached render', { elementId: this.#uniqueId });
-                return CustomSlider.#renderCacheMap.get(this).cloneNode(true);
-            }
-        }
-
-        // Ensure custom-block is defined
-        if (!customElements.get('custom-block')) {
-            this.#warn('custom-block not defined, waiting for definition');
-            await new Promise(resolve => {
-                customElements.whenDefined('custom-block').then(resolve);
-            });
-        }
-
-        const slides = Array.from(this.children);
-        const slideCount = slides.length;
-
-        if (slideCount === 0) {
-            this.#warn('No slides found', { elementId: this.#uniqueId });
-            const slider = document.createElement('div');
-            slider.className = 'slider';
-            return slider;
-        }
-
-        // Create the slider container
-        const slider = document.createElement('div');
-        slider.className = 'slider';
-        slider.dataset.sliderId = this.#uniqueId;
-
-        // Create wrapper for slides
-        const sliderWrapper = document.createElement('div');
-        sliderWrapper.className = 'slider-wrapper';
-        slider.appendChild(sliderWrapper);
-
-        // Track initialization of slides
-        this.#slidesInitialized = 0;
-
-        // Wait for all slides to initialize
-        await new Promise(resolve => {
-            const checkInitialization = () => {
-                if (this.#slidesInitialized === slideCount) {
-                    resolve();
-                }
-            };
-
-            slides.forEach((slide, index) => {
-                if (slide.tagName.toLowerCase() === 'custom-block') {
-                    this.#log('Waiting for custom-block to initialize', { index, slideId: slide.id || 'no-id' });
-                    if (typeof slide.addCallback === 'function') {
-                        slide.addCallback((renderedElement) => {
-                            this.#appendSlide(renderedElement, index, sliderWrapper);
-                            this.#slidesInitialized++;
-                            checkInitialization();
-                        });
-                    } else {
-                        this.#warn('addCallback not available on custom-block, appending immediately', { index, slideId: slide.id || 'no-id' });
-                        this.#appendSlide(slide.cloneNode(true), index, sliderWrapper);
-                        this.#slidesInitialized++;
-                        checkInitialization();
-                    }
-                    if (typeof slide.initialize === 'function' && !slide.isInitialized) {
-                        if (!slide.isVisible) {
-                            const observer = new IntersectionObserver(([entry]) => {
-                                if (entry.isIntersecting) {
-                                    slide.isVisible = true;
-                                    observer.unobserve(slide);
-                                    slide.initialize();
-                                }
-                            }, { rootMargin: '200px' });
-                            observer.observe(slide);
-                        } else {
-                            slide.initialize();
-                        }
-                    }
-                } else {
-                    this.#warn('Slide is not a custom-block', { index, tagName: slide.tagName });
-                    this.#appendSlide(slide.cloneNode(true), index, sliderWrapper);
-                    this.#slidesInitialized++;
-                    checkInitialization();
-                }
-            });
-        });
-
-        if (!isFallback) {
-            CustomSlider.#renderCacheMap.set(this, slider.cloneNode(true));
-            this.lastAttributes = newCriticalAttrsHash;
-        }
-
-        this.#log('Render completed', { elementId: this.#uniqueId, slideCount: sliderWrapper.childElementCount, outerHTML: slider.outerHTML.substring(0, 200) });
-        return slider;
+    if (hasPagination) {
+      options.pagination = {
+        el: '.swiper-pagination',
+        clickable: true,
+      };
     }
 
-    #appendSlide(slide, index, sliderWrapper) {
-        this.#log('Appended slide', { index, slideId: slide.id || 'no-id' });
-        slide.setAttribute('data-slide-index', index);
-        sliderWrapper.appendChild(slide);
-        this.#log('Slide appended to DOM', { index, html: slide.outerHTML.substring(0, 200) });
+    if (hasNavigation) {
+      options.navigation = {
+        nextEl: '.swiper-button-next',
+        prevEl: '.swiper-button-prev',
+      };
     }
 
-    #setupAutoSlide(sliderElement) {
-        const wrapper = sliderElement.querySelector('.slider-wrapper');
-        if (!wrapper) {
-            this.#error('Slider wrapper not found, auto-slide cannot be set up', { elementId: this.#uniqueId });
-            return;
-        }
-        const slideCount = wrapper.children.length;
+    // Log final Swiper options for debugging
+    this.#log('Final Swiper options', { options });
 
-        if (slideCount <= 1) {
-            this.#log('Auto-slide skipped: insufficient slides', { slideCount });
-            return;
-        }
+    // Replace <custom-slider> with the container
+    try {
+      this.replaceWith(container);
+      this.#log('Replaced custom-slider with rendered container', { elementId: this.id || 'no-id', containerHtml: container.outerHTML.substring(0, 200) });
 
-        const updateSlider = () => {
-            this.#currentSlide = (this.#currentSlide + 1) % slideCount;
-            wrapper.style.transform = `translateX(-${this.#currentSlide * 100}%)`;
-            this.#log('Auto-slid to next slide', { currentSlide: this.#currentSlide });
-        };
+      // Initialize Swiper on the new container
+      this.#swiperInstance = new Swiper(container, options);
+      this.#log('Swiper initialized successfully', { 
+        options, 
+        hasPagination, 
+        hasNavigation, 
+        hasNavigationIconLeft: !!navigationIconLeft,
+        hasNavigationIconRight: !!navigationIconRight 
+      });
 
-        // Start auto-sliding every 5 seconds
-        this.#autoSlideInterval = setInterval(updateSlider, 5000);
-        this.#log('Auto-slide interval started', { elementId: this.#uniqueId });
+      // Override margin-right with original CSS variable if provided
+      if (cssVariable) {
+        const styleElement = document.createElement('style');
+        styleElement.textContent = `
+          .swiper-slide {
+            margin-right: ${cssVariable} !important;
+          }
+        `;
+        document.head.appendChild(styleElement);
+        this.#log('Injected CSS variable for space-between', { cssVariable, style: styleElement.textContent });
+      }
+
+      this.#isInitialized = true;
+    } catch (error) {
+      this.#error('Failed to initialize Swiper or replace element', { error: error.message, stack: error.stack });
     }
+  }
 
-    static get observedAttributes() {
-        return [];
-    }
+  connectedCallback() {
+    this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
+    this.initialize();
+  }
 
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (!this.isInitialized || !this.isVisible) {
-            this.#ignoredChangeCount++;
-            if (this.#debug && this.#ignoredChangeCount % 10 === 0) {
-                this.#log('Attribute changes ignored (not ready - batched)', { count: this.#ignoredChangeCount, name, oldValue, newValue });
-            }
-            return;
-        }
-        this.#log('Attribute changed', { name, oldValue, newValue });
-        if (CustomSlider.#criticalAttributes.includes(name)) {
-            this.cachedAttributes = null;
-            this.initialize();
-        }
+  disconnectedCallback() {
+    this.#log('Disconnected from DOM', { elementId: this.id || 'no-id' });
+    if (this.#swiperInstance) {
+      this.#swiperInstance.destroy(true, true);
+      this.#swiperInstance = null;
+      this.#log('Swiper instance destroyed');
     }
+    this.#isInitialized = false;
+  }
+
+  static get observedAttributes() {
+    return ['pagination', 'navigation', 'navigation-icon-left', 'navigation-icon-right', 'slides-per-view', 'space-between'];
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (oldValue !== newValue && this.#isInitialized) {
+      this.#log('Attribute changed, reinitializing', { name, oldValue, newValue });
+      this.#swiperInstance.destroy(true, true);
+      this.#isInitialized = false;
+      this.initialize();
+    }
+  }
 }
 
 try {
-    customElements.define('custom-slider', CustomSlider);
+  customElements.define('custom-slider', CustomSlider);
 } catch (error) {
-    console.error('Error defining CustomSlider element:', error);
+  console.error('Error defining CustomSlider element:', error);
 }
 
-// Fallback: Transform custom-slider elements if custom element fails
-document.addEventListener('DOMContentLoaded', () => {
-    const sliders = document.querySelectorAll('custom-slider');
-    sliders.forEach(slider => {
-        const uniqueId = slider.getAttribute('data-slider-id') || `fallback-${Math.random().toString(36).slice(2)}`;
-        const debug = new URLSearchParams(window.location.search).get('debug') === 'true';
-        const log = (message, data) => {
-            if (debug) {
-                console.groupCollapsed(`%c[CustomSliderFallback] ${message}`, 'color: #2196F3; font-weight: bold;');
-                if (data) console.log('%cData:', 'color: #4CAF50;', data);
-                console.trace();
-                console.groupEnd();
-            }
-        };
-        const error = (message, data) => {
-            if (debug) {
-                console.groupCollapsed(`%c[CustomSliderFallback] Error: ${message}`, 'color: #F44336; font-weight: bold;');
-                if (data) console.log('%cData:', 'color: #4CAF50;', data);
-                console.trace();
-                console.groupEnd();
-            }
-        };
-
-        log('Applying fallback transformation', { sliderId: uniqueId });
-
-        // Create slider structure
-        const sliderDiv = document.createElement('div');
-        sliderDiv.className = 'slider';
-        sliderDiv.dataset.sliderId = uniqueId;
-        const wrapper = document.createElement('div');
-        wrapper.className = 'slider-wrapper';
-        sliderDiv.appendChild(wrapper);
-
-        // Move slides
-        Array.from(slider.children).forEach((slide, index) => {
-            slide.setAttribute('data-slide-index', index);
-            wrapper.appendChild(slide);
-        });
-
-        // Replace custom-slider
-        const parent = slider.parentNode;
-        if (parent) {
-            parent.replaceChild(sliderDiv, slider);
-            log('Fallback slider replaced', { sliderId: uniqueId });
-        } else {
-            error('Parent node not found for fallback', { sliderId: uniqueId });
-            slider.replaceWith(sliderDiv);
-        }
-
-        // Setup auto-slide
-        const slideCount = wrapper.children.length;
-        if (slideCount > 1) {
-            let currentSlide = 0;
-            const updateSlider = () => {
-                currentSlide = (currentSlide + 1) % slideCount;
-                wrapper.style.transform = `translateX(-${currentSlide * 100}%)`;
-                log('Fallback auto-slid to next slide', { currentSlide });
-            };
-            const interval = setInterval(updateSlider, 5000);
-            log('Fallback auto-slide started', { sliderId: uniqueId });
-
-            // Clean up interval on page unload
-            window.addEventListener('unload', () => clearInterval(interval));
-        } else {
-            log('Fallback auto-slide skipped: insufficient slides', { slideCount });
-        }
-    });
-});
-
-console.log('CustomSlider version: 2025-11-02');
+console.log('CustomSlider version: 2025-10-16');
 export { CustomSlider };

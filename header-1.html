@@ -43,10 +43,15 @@
             </custom-nav>
         </custom-header>
 
+
         <div>
 
-            <custom-slider>
-            
+            <custom-slider slides-per-view="2" 
+                navigation-icon-left='<i class="fa-chisel fa-regular fa-angle-left"></i>'
+                navigation-icon-right='<i class="fa-chisel fa-regular fa-angle-right"></i>'>
+
+
+                <div class="swiper-slide">
                 <custom-block 
                     heading="Slide 1" 
                     heading-tag="h2"
@@ -58,7 +63,8 @@
                     inner-alignment="center"
                     inner-class="padding-medium"
                 ></custom-block>
-
+                </div>
+                <div class="swiper-slide">
                 <custom-block 
                     heading="Slide 2" 
                     heading-tag="h2"
@@ -70,23 +76,11 @@
                     inner-alignment="center"
                     inner-class="padding-medium"
                 ></custom-block>
-
-                <custom-block 
-                    heading="Slide 3" 
-                    heading-tag="h2"
-                    background-overlay="background-overlay-1"
-                    img-background-src="tourism-photography-light-3.jpg"
-                    img-background-alt="Nature landscape background"
-                    img-background-position="center"
-                    text-alignment="center"
-                    inner-alignment="center"
-                    inner-class="padding-medium"
-                ></custom-block>
-                
-                    
+                </div>
+    
             </custom-slider>
 
-        </div>
+        </div>          
 
 
         </div>
