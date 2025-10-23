@@ -268,9 +268,9 @@ class CustomSlider extends HTMLElement {
             // Continuous cycling in the same direction
             const maxVisibleIndex = totalSlides - slidesPerView;
             if (this.#currentIndex > maxVisibleIndex) {
-                this.#currentIndex -= totalSlides; // Cycle forward to next set
+                this.#currentIndex = this.#currentIndex - maxVisibleIndex - 1; // Cycle to next visible set
             } else if (this.#currentIndex < 0) {
-                this.#currentIndex += totalSlides; // Cycle backward to previous set
+                this.#currentIndex = maxVisibleIndex + this.#currentIndex + 1; // Cycle to previous visible set
             }
 
             translateX = -this.#currentIndex * slideWidth; // Recalculate based on adjusted index
