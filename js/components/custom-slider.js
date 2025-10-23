@@ -222,7 +222,7 @@ class CustomSlider extends HTMLElement {
         // Infinite loop with seamless cycling
         this.#currentIndex = (this.#currentIndex % totalSlides + totalSlides) % totalSlides;
         if (this.#currentIndex < 0) {
-            this.#currentIndex = totalSlides + this.#currentIndex; // Adjust for negative indices
+            this.#currentIndex += totalSlides; // Loop to end for previous
         }
 
         this.#updateSlider();
@@ -271,11 +271,11 @@ class CustomSlider extends HTMLElement {
             // Adjust for infinite loop within visible range
             const maxVisibleIndex = totalSlides - slidesPerView;
             if (this.#currentIndex > maxVisibleIndex) {
-                this.#currentIndex = this.#currentIndex - totalSlides; // Cycle to start
+                this.#currentIndex -= totalSlides; // Cycle to start
                 translateX = -this.#currentIndex * slideWidth;
             } else if (this.#currentIndex < 0) {
-                this.#currentIndex = totalSlides + this.#currentIndex; // Cycle to end
-                translateX = -this.#currentIndex * slideWidth;
+                this.#currentIndex += totalSlides; // Cycle to end
+                translateX = -this.#currentIndex * slideWidth + (maxVisibleIndex * slideWidth); // Adjust to last visible set
             }
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
