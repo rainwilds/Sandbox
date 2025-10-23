@@ -110,7 +110,7 @@ class CustomSlider extends HTMLElement {
         const gapAttr = this.getAttribute('gap') || '0'; // Default to 0 if no gap attribute
         this.#log('Parsed gap attribute', { gapAttr });
 
-        const paginationAttr = this.getAttribute('pagination') === 'true'; // Boolean, true if attribute is present and set to "true"
+        const paginationAttr = this.hasAttribute('pagination'); // Boolean, true if attribute is present
         this.#log('Parsed pagination attribute', { pagination: paginationAttr });
 
         let paginationIconActive = this.getAttribute('pagination-icon-active') || '<i class="fa-solid fa-circle"></i>';
@@ -316,6 +316,7 @@ class CustomSlider extends HTMLElement {
         sliderWrapper.id = this.#uniqueId;
         sliderWrapper.className = 'custom-slider';
         sliderWrapper.style.height = '100%';
+        sliderWrapper.style.position = 'relative'; // Ensure positioning context for pagination
         sliderWrapper.style.overflow = 'hidden';
 
         const innerWrapper = document.createElement('div');
@@ -379,13 +380,14 @@ class CustomSlider extends HTMLElement {
         if (attrs.pagination) {
             const pagination = document.createElement('div');
             pagination.className = 'slider-pagination';
-            pagination.style.textAlign = 'center';
-            pagination.style.marginTop = '10px';
             pagination.style.position = 'absolute';
-            pagination.style.bottom = '10px';
+            pagination.style.bottom = '0';
             pagination.style.left = '50%';
             pagination.style.transform = 'translateX(-50%)';
-            pagination.style.zIndex = '10';
+            pagination.style.zIndex = '15'; // Above slides and navigation
+            pagination.style.display = 'flex';
+            pagination.style.justifyContent = 'center';
+            pagination.style.padding = '5px';
 
             const totalSlides = this.#childElements.length;
             for (let i = 0; i < totalSlides; i++) {
