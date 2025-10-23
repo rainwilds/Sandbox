@@ -12,6 +12,7 @@ class CustomSlider extends HTMLElement {
     #uniqueId = null;
     #autoplayInterval = null;
     #slides = [];
+    #childElements = []; // Store children early
 
     constructor() {
         super();
@@ -20,6 +21,9 @@ class CustomSlider extends HTMLElement {
         this.debug = new URLSearchParams(window.location.search).get('debug') === 'true';
         this.#ignoredChangeCount = 0;
         this.#uniqueId = `slider-${Math.random().toString(36).substr(2, 9)}`;
+        // Capture children in constructor to preserve before custom-block renders
+        this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block');
+        this.#log('Captured children in constructor', { count: this.#childElements.length, elementId: this.#uniqueId });
         CustomSlider.#observer.observe(this);
         CustomSlider.#observedInstances.add(this);
     }
@@ -293,15 +297,14 @@ class CustomSlider extends HTMLElement {
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
         innerWrapper.style.display = 'grid';
-        innerWrapper.style.gridTemplateColumns = `repeat(${this.children.length}, 1fr)`;
+        innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, 1fr)`;
         innerWrapper.style.transition = 'transform 0.5s ease';
-        innerWrapper.style.width = `${100 * this.children.length / attrs.slidesPerView}%`;
+        innerWrapper.style.width = `${100 * this.#childElements.length / attrs.slidesPerView}%`;
 
-        // Collect direct children (slides)
-        const slides = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block');
-        this.#log('Found slides', { count: slides.length, elementId: this.#uniqueId });
+        // Use captured children from constructor
+        this.#log('Processing captured slides', { count: this.#childElements.length, elementId: this.#uniqueId });
 
-        if (slides.length === 0) {
+        if (this.#childElements.length === 0) {
             this.#warn('No valid slides found', { elementId: this.#uniqueId });
             const fallbackSlide = document.createElement('div');
             fallbackSlide.className = 'slider-slide';
@@ -309,11 +312,13 @@ class CustomSlider extends HTMLElement {
             fallbackSlide.innerHTML = '<p>No slides available</p>';
             innerWrapper.appendChild(fallbackSlide);
         } else {
-            slides.forEach((slide, index) => {
+            this.#childElements.forEach((slide, index) => {
                 const slideWrapper = document.createElement('div');
                 slideWrapper.className = 'slider-slide';
                 slideWrapper.style.gridColumn = 'span 1';
-                slideWrapper.appendChild(slide.cloneNode(true));
+                // Clone the original custom-block to allow its own rendering
+                const clonedSlide = slide.cloneNode(true);
+                slideWrapper.appendChild(clonedSlide);
                 innerWrapper.appendChild(slideWrapper);
                 this.#log(`Slide ${index + 1} processed`, { elementId: this.#uniqueId });
             });
@@ -372,6 +377,7 @@ class CustomSlider extends HTMLElement {
             CustomSlider.#observer.unobserve(this);
             CustomSlider.#observedInstances.delete(this);
         }
+        this.#childElements = [];
     }
 
     static get observedAttributes() {
@@ -397,6 +403,8 @@ class CustomSlider extends HTMLElement {
         if (oldValue !== newValue) {
             this.isInitialized = false; // Force re-initialization
             this.#stopAutoplay();
+            // Re-capture children in case they changed
+            this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block');
             this.initialize();
         }
     }
