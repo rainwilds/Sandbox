@@ -1,3 +1,4 @@
+```javascript
 /* global HTMLElement, IntersectionObserver, document, window, console, requestAnimationFrame */
 
 'use strict';
@@ -197,6 +198,14 @@ class CustomSlider extends HTMLElement {
             return;
         }
 
+        this.#slides.forEach((slide, i) => {
+            this.#log(`Slide ${i + 1} dimensions`, {
+                width: slide.style.width,
+                computedWidth: slide.offsetWidth,
+                elementId: this.#uniqueId
+            });
+        });
+
         if (attrs.navigation) {
             const prevButton = document.getElementById(`${this.#uniqueId}-prev`);
             const nextButton = document.getElementById(`${this.#uniqueId}-next`);
@@ -227,7 +236,7 @@ class CustomSlider extends HTMLElement {
         }
 
         this.#updateSlider();
-        this.#log('Navigated', { direction, currentIndex: this.#currentIndex, elementId: this.#uniqueId });
+        this.#log('Navigated', { direction, currentIndex: this.#currentIndex, slidesPerView, totalSlides, elementId: this.#uniqueId });
 
         if (this.#autoplayInterval) {
             this.#stopAutoplay();
@@ -283,7 +292,6 @@ class CustomSlider extends HTMLElement {
         sliderWrapper.className = 'custom-slider';
         sliderWrapper.style.display = 'grid';
         sliderWrapper.style.gridTemplateColumns = `repeat(${attrs.slidesPerView}, 1fr)`;
-        sliderWrapper.style.gap = '10px';
         sliderWrapper.style.overflow = 'hidden';
         sliderWrapper.style.position = 'relative';
         sliderWrapper.style.width = '100%';
@@ -300,6 +308,7 @@ class CustomSlider extends HTMLElement {
             fallbackSlide.className = 'slider-slide';
             fallbackSlide.style.width = `${100 / attrs.slidesPerView}%`;
             fallbackSlide.style.flex = '0 0 auto';
+            fallbackSlide.style.boxSizing = 'border-box';
             fallbackSlide.innerHTML = '<p>No slides available</p>';
             innerWrapper.appendChild(fallbackSlide);
         } else {
@@ -309,6 +318,7 @@ class CustomSlider extends HTMLElement {
                 slideWrapper.className = 'slider-slide';
                 slideWrapper.style.width = `${slideWidth}%`;
                 slideWrapper.style.flex = '0 0 auto';
+                slideWrapper.style.boxSizing = 'border-box';
                 slideWrapper.appendChild(slide.cloneNode(true));
                 innerWrapper.appendChild(slideWrapper);
                 this.#log(`Slide ${index + 1} processed`, { elementId: this.#uniqueId, slideWidth });
@@ -407,3 +417,4 @@ try {
 
 console.log('CustomSlider version: 2025-10-23');
 export { CustomSlider };
+```
