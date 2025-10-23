@@ -1,5 +1,3 @@
-/* global HTMLElement, IntersectionObserver, document, window, console, requestAnimationFrame */
-
 'use strict';
 
 import { getConfig } from '../config.js';
