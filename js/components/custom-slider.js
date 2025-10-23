@@ -83,23 +83,18 @@ class CustomSlider extends HTMLElement {
 
     async getAttributes() {
         this.#log('Parsing attributes', { elementId: this.#uniqueId });
-        const autoplayAttr = this.getAttribute('autoplay');
-        let autoplay = false;
-        let autoplayDelay = 3000;
+        const autoplayAttr = this.getAttribute('autoplay') || '3s'; // Default to 3 seconds if not specified
+        let autoplayDelay = 3000; // Default delay in milliseconds
 
-        if (autoplayAttr) {
-            const timeMatch = autoplayAttr.match(/^(\d+)(s|ms)$/);
-            if (timeMatch) {
-                const value = parseInt(timeMatch[1], 10);
-                const unit = timeMatch[2];
-                autoplay = true;
-                autoplayDelay = unit === 's' ? value * 1000 : value;
-            } else if (autoplayAttr === 'true') {
-                autoplay = true;
-            } else {
-                this.#warn('Invalid autoplay format', { value: autoplayAttr, expected: 'true, Ns, or Nms' });
-            }
+        const timeMatch = autoplayAttr.match(/^(\d+)(s|ms)$/);
+        if (timeMatch) {
+            const value = parseInt(timeMatch[1], 10);
+            const unit = timeMatch[2];
+            autoplayDelay = unit === 's' ? value * 1000 : value; // Convert seconds to milliseconds
+        } else {
+            this.#warn('Invalid autoplay format, using default 3s', { value: autoplayAttr, expected: 'Ns or Nms' });
         }
+        this.#log('Parsed autoplay attribute', { autoplayAttr, autoplayDelay });
 
         const slidesPerViewAttr = this.getAttribute('slides-per-view') || '1';
         let slidesPerView = parseInt(slidesPerViewAttr, 10);
@@ -142,7 +137,6 @@ class CustomSlider extends HTMLElement {
         navigationIconRight = validateIcon(navigationIconRight, 'right');
 
         return {
-            autoplay,
             autoplayDelay,
             slidesPerView,
             navigation,
@@ -175,7 +169,7 @@ class CustomSlider extends HTMLElement {
                 this.#log('Initialization completed successfully', { elementId: this.#uniqueId });
             } else {
                 this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
-                const fallbackElement = await this.render({ autoplay: false, slidesPerView: 1, navigation: false, gap: '0' });
+                const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0' });
                 this.replaceWith(fallbackElement);
             }
         } catch (error) {
@@ -184,7 +178,7 @@ class CustomSlider extends HTMLElement {
                 stack: error.stack,
                 elementId: this.#uniqueId
             });
-            const fallbackElement = await this.render({ autoplay: false, slidesPerView: 1, navigation: false, gap: '0' });
+            const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0' });
             this.replaceWith(fallbackElement);
         }
     }
@@ -212,7 +206,7 @@ class CustomSlider extends HTMLElement {
             }
         }
 
-        if (attrs.autoplay) {
+        if (attrs.autoplayDelay) {
             this.#startAutoplay(attrs.autoplayDelay);
         }
 
