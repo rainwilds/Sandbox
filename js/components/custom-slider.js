@@ -13,6 +13,7 @@ class CustomSlider extends HTMLElement {
     #autoplayInterval = null;
     #slides = [];
     #childElements = [];
+    #lastDirection = 0; // Track the last navigation direction
 
     constructor() {
         super();
@@ -217,22 +218,14 @@ class CustomSlider extends HTMLElement {
     #navigate(direction) {
         const totalSlides = this.#slides.length;
         const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
+        this.#lastDirection = direction; // Update last direction
         this.#currentIndex += direction;
 
-        // Infinite loop with continuous cycling in the same direction
+        // Infinite loop with continuous cycling
         this.#currentIndex = (this.#currentIndex % totalSlides + totalSlides) % totalSlides;
 
         this.#updateSlider();
-        this.#log('Navigated', { direction, currentIndex: this.#currentIndex, slidesPerView, totalSlides, elementId: this.#uniqueId });
-
-        if (this.#autoplayInterval) {
-            this.#stopAutoplay();
-            this.getAttributes().then(attr => {
-                if (attr.autoplay) {
-                    this.#startAutoplay(attr.autoplayDelay);
-                }
-            });
-        }
+        this.#log('Navigated', { direction, currentIndex: this.#currentIndex, lastDirection: this.#lastDirection, slidesPerView, totalSlides, elementId: this.#uniqueId });
     }
 
     #startAutoplay(delay) {
@@ -263,17 +256,29 @@ class CustomSlider extends HTMLElement {
             if (!sliderContainer) return;
 
             const slideWidth = 100 / slidesPerView; // Percentage width per visible slide (33.3333% for 3)
-            let translateX = -this.#currentIndex * slideWidth;
+            let initialTranslateX = -this.#currentIndex * slideWidth;
+            let initialIndex = this.#currentIndex;
+
+            this.#log('UpdateSlider started', { initialIndex, initialTranslateX, lastDirection: this.#lastDirection, slidesPerView, totalSlides, elementId: this.#uniqueId });
 
             // Continuous cycling in the same direction within visible range
             const maxVisibleIndex = totalSlides - slidesPerView;
+            let adjusted = false;
+
             if (this.#currentIndex > maxVisibleIndex) {
+                this.#log('Condition: currentIndex > maxVisibleIndex', { currentIndex: this.#currentIndex, maxVisibleIndex });
                 this.#currentIndex = this.#currentIndex - maxVisibleIndex - 1; // Cycle to next set (e.g., 5 → 1)
-            } else if (this.#currentIndex < 0) {
-                this.#currentIndex = maxVisibleIndex + this.#currentIndex + 1; // Cycle to previous set (e.g., -1 → 4)
+                adjusted = true;
+                this.#log('Adjusted for next cycle', { newIndex: this.#currentIndex });
+            } else if (this.#lastDirection === -1 && this.#currentIndex === 0) {
+                this.#log('Condition: lastDirection -1 and currentIndex 0', { currentIndex: this.#currentIndex, lastDirection: this.#lastDirection });
+                this.#currentIndex = maxVisibleIndex; // Cycle to previous set (e.g., 0 → 4)
+                adjusted = true;
+                this.#log('Adjusted for previous cycle', { newIndex: this.#currentIndex });
             }
 
-            translateX = -this.#currentIndex * slideWidth; // Recalculate based on adjusted index
+            let translateX = -this.#currentIndex * slideWidth;
+            this.#log('Final values', { adjustedIndex: this.#currentIndex, translateX, slidesPerView, totalSlides, elementId: this.#uniqueId });
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             wrapper.style.transition = 'transform 0.5s'; // Ensure transition is applied
