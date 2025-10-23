@@ -2028,7 +2028,13 @@ div#products {
 
 .slider-slide {
     flex: 0 0 auto;
-    display: block; /* Ensure slides respect their own layout */
+    display: block;
+    box-sizing: border-box;
+}
+
+.slider-slide > * {
+    width: 100%;
+    height: 100%;
 }
 
 .slider-nav-prev,
