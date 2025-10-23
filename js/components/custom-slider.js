@@ -219,13 +219,11 @@ class CustomSlider extends HTMLElement {
         const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
         this.#currentIndex += direction;
 
-        // Infinite loop with proper adjustment for visible range
-        const maxIndex = totalSlides - slidesPerView;
+        // Infinite loop with seamless cycling
+        const maxIndex = totalSlides - 1; // Last slide index
         this.#currentIndex = (this.#currentIndex % totalSlides + totalSlides) % totalSlides;
-        if (this.#currentIndex > maxIndex) {
-            this.#currentIndex = 0; // Loop to start
-        } else if (this.#currentIndex < 0) {
-            this.#currentIndex = maxIndex; // Loop to end
+        if (this.#currentIndex < 0) {
+            this.#currentIndex = maxIndex; // Loop to last slide for previous
         }
 
         this.#updateSlider();
@@ -269,7 +267,17 @@ class CustomSlider extends HTMLElement {
             if (!sliderContainer) return;
 
             const slideWidth = 100 / slidesPerView; // Percentage width per slide
-            let translateX = -this.#currentIndex * slideWidth;
+            let translateX = -this.#currentIndex * (100 / totalSlides) * slidesPerView;
+
+            // Adjust for visible range in infinite loop
+            const maxVisibleIndex = totalSlides - slidesPerView;
+            if (this.#currentIndex > maxVisibleIndex) {
+                translateX = -(this.#currentIndex - totalSlides) * (100 / totalSlides) * slidesPerView;
+                this.#currentIndex = this.#currentIndex - totalSlides; // Continue cycling
+            } else if (this.#currentIndex < 0) {
+                translateX = -(maxVisibleIndex + this.#currentIndex + 1) * (100 / totalSlides) * slidesPerView;
+                this.#currentIndex = maxVisibleIndex + this.#currentIndex + 1; // Loop to end
+            }
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             wrapper.style.transition = 'transform 0.5s'; // Ensure transition is applied
