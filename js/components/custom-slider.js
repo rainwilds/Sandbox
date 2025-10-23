@@ -197,14 +197,6 @@ class CustomSlider extends HTMLElement {
             return;
         }
 
-        this.#slides.forEach((slide, i) => {
-            this.#log(`Slide ${i + 1} dimensions`, {
-                width: slide.style.width,
-                computedWidth: slide.offsetWidth,
-                elementId: this.#uniqueId
-            });
-        });
-
         if (attrs.navigation) {
             const prevButton = document.getElementById(`${this.#uniqueId}-prev`);
             const nextButton = document.getElementById(`${this.#uniqueId}-next`);
@@ -225,14 +217,7 @@ class CustomSlider extends HTMLElement {
     #navigate(direction) {
         const totalSlides = this.#slides.length;
         const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
-        this.#currentIndex = (this.#currentIndex + direction + totalSlides) % totalSlides;
-
-        if (this.#currentIndex + slidesPerView > totalSlides) {
-            this.#currentIndex = totalSlides - slidesPerView;
-        }
-        if (this.#currentIndex < 0) {
-            this.#currentIndex = 0;
-        }
+        this.#currentIndex = Math.max(0, Math.min(this.#currentIndex + direction, totalSlides - slidesPerView));
 
         this.#updateSlider();
         this.#log('Navigated', { direction, currentIndex: this.#currentIndex, slidesPerView, totalSlides, elementId: this.#uniqueId });
@@ -273,7 +258,7 @@ class CustomSlider extends HTMLElement {
             const sliderContainer = document.getElementById(this.#uniqueId);
             if (!sliderContainer) return;
 
-            const slideWidth = 100 / slidesPerView;
+            const slideWidth = 100 / slidesPerView; // Percentage width per slide
             const translateX = -this.#currentIndex * slideWidth;
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
@@ -289,38 +274,31 @@ class CustomSlider extends HTMLElement {
         const sliderWrapper = document.createElement('div');
         sliderWrapper.id = this.#uniqueId;
         sliderWrapper.className = 'custom-slider';
-        sliderWrapper.style.display = 'grid';
-        sliderWrapper.style.gridTemplateColumns = `repeat(${attrs.slidesPerView}, 1fr)`;
-        sliderWrapper.style.overflow = 'hidden';
-        sliderWrapper.style.position = 'relative';
-        sliderWrapper.style.width = '100%';
+        sliderWrapper.style.height = '100%'; // As specified
+        sliderWrapper.style.overflow = 'hidden'; // As specified
 
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
-        innerWrapper.style.display = 'flex';
-        innerWrapper.style.transition = 'transform 0.5s ease';
-        innerWrapper.style.width = `${100 * this.#childElements.length / attrs.slidesPerView}%`;
+        innerWrapper.style.display = 'grid'; // As specified
+        innerWrapper.style.transition = 'transform 0.5s'; // As specified
+        innerWrapper.style.transform = 'translateX(0%)'; // As specified
+        innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`; // As specified
+        innerWrapper.style.gridAutoFlow = 'column'; // As specified
+        innerWrapper.style.height = '100%'; // As specified
 
         if (this.#childElements.length === 0) {
             this.#warn('No valid slides found', { elementId: this.#uniqueId });
             const fallbackSlide = document.createElement('div');
             fallbackSlide.className = 'slider-slide';
-            fallbackSlide.style.width = `${100 / attrs.slidesPerView}%`;
-            fallbackSlide.style.flex = '0 0 auto';
-            fallbackSlide.style.boxSizing = 'border-box';
             fallbackSlide.innerHTML = '<p>No slides available</p>';
             innerWrapper.appendChild(fallbackSlide);
         } else {
-            const slideWidth = 100 / attrs.slidesPerView;
             this.#childElements.forEach((slide, index) => {
                 const slideWrapper = document.createElement('div');
                 slideWrapper.className = 'slider-slide';
-                slideWrapper.style.width = `${slideWidth}%`;
-                slideWrapper.style.flex = '0 0 auto';
-                slideWrapper.style.boxSizing = 'border-box';
                 slideWrapper.appendChild(slide.cloneNode(true));
                 innerWrapper.appendChild(slideWrapper);
-                this.#log(`Slide ${index + 1} processed`, { elementId: this.#uniqueId, slideWidth });
+                this.#log(`Slide ${index + 1} processed`, { elementId: this.#uniqueId });
             });
         }
 
