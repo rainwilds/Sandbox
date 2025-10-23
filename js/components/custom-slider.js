@@ -217,7 +217,14 @@ class CustomSlider extends HTMLElement {
     #navigate(direction) {
         const totalSlides = this.#slides.length;
         const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
-        this.#currentIndex = Math.max(0, Math.min(this.#currentIndex + direction, totalSlides - slidesPerView));
+        this.#currentIndex += direction;
+
+        // Implement infinite looping
+        if (this.#currentIndex >= totalSlides) {
+            this.#currentIndex = 0; // Loop to start
+        } else if (this.#currentIndex < 0) {
+            this.#currentIndex = totalSlides - slidesPerView; // Loop to end
+        }
 
         this.#updateSlider();
         this.#log('Navigated', { direction, currentIndex: this.#currentIndex, slidesPerView, totalSlides, elementId: this.#uniqueId });
@@ -259,9 +266,10 @@ class CustomSlider extends HTMLElement {
             if (!sliderContainer) return;
 
             const slideWidth = 100 / slidesPerView; // Percentage width per slide
-            const translateX = -this.#currentIndex * slideWidth;
+            let translateX = -this.#currentIndex * slideWidth;
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
+            wrapper.style.transition = 'transform 0.5s'; // Ensure transition is applied
             wrapper.style.transform = `translateX(${translateX}%)`;
             this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slidesPerView, elementId: this.#uniqueId });
         });
@@ -274,17 +282,17 @@ class CustomSlider extends HTMLElement {
         const sliderWrapper = document.createElement('div');
         sliderWrapper.id = this.#uniqueId;
         sliderWrapper.className = 'custom-slider';
-        sliderWrapper.style.height = '100%'; // As specified
-        sliderWrapper.style.overflow = 'hidden'; // As specified
+        sliderWrapper.style.height = '100%';
+        sliderWrapper.style.overflow = 'hidden';
 
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
-        innerWrapper.style.display = 'grid'; // As specified
-        innerWrapper.style.transition = 'transform 0.5s'; // As specified
-        innerWrapper.style.transform = 'translateX(0%)'; // As specified
-        innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`; // As specified
-        innerWrapper.style.gridAutoFlow = 'column'; // As specified
-        innerWrapper.style.height = '100%'; // As specified
+        innerWrapper.style.display = 'grid';
+        innerWrapper.style.transition = 'transform 0.5s';
+        innerWrapper.style.transform = 'translateX(0%)';
+        innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`;
+        innerWrapper.style.gridAutoFlow = 'column';
+        innerWrapper.style.height = '100%';
 
         if (this.#childElements.length === 0) {
             this.#warn('No valid slides found', { elementId: this.#uniqueId });
