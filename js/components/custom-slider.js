@@ -12,7 +12,7 @@ class CustomSlider extends HTMLElement {
     #uniqueId = null;
     #autoplayInterval = null;
     #slides = [];
-    #childElements = []; // Store children early
+    #childElements = [];
 
     constructor() {
         super();
@@ -21,7 +21,6 @@ class CustomSlider extends HTMLElement {
         this.debug = new URLSearchParams(window.location.search).get('debug') === 'true';
         this.#ignoredChangeCount = 0;
         this.#uniqueId = `slider-${Math.random().toString(36).substr(2, 9)}`;
-        // Capture children in constructor to preserve before custom-block renders
         this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block');
         this.#log('Captured children in constructor', { count: this.#childElements.length, elementId: this.#uniqueId });
         CustomSlider.#observer.observe(this);
@@ -85,7 +84,7 @@ class CustomSlider extends HTMLElement {
         this.#log('Parsing attributes', { elementId: this.#uniqueId });
         const autoplayAttr = this.getAttribute('autoplay');
         let autoplay = false;
-        let autoplayDelay = 3000; // Default 3 seconds
+        let autoplayDelay = 3000;
 
         if (autoplayAttr) {
             const timeMatch = autoplayAttr.match(/^(\d+)(s|ms)$/);
@@ -112,7 +111,6 @@ class CustomSlider extends HTMLElement {
         let navigationIconLeft = this.getAttribute('navigation-icon-left') || '<i class="fa-chisel fa-regular fa-angle-left"></i>';
         let navigationIconRight = this.getAttribute('navigation-icon-right') || '<i class="fa-chisel fa-regular fa-angle-right"></i>';
 
-        // Validate Font Awesome icons
         const validateIcon = (icon, position) => {
             if (!icon) return '';
             const parser = new DOMParser();
@@ -199,7 +197,12 @@ class CustomSlider extends HTMLElement {
             return;
         }
 
-        // Set up navigation
+        // Set slide widths explicitly
+        const slideWidth = 100 / attrs.slidesPerView;
+        this.#slides.forEach(slide => {
+            slide.style.width = `${slideWidth}%`;
+        });
+
         if (attrs.navigation) {
             const prevButton = document.getElementById(`${this.#uniqueId}-prev`);
             const nextButton = document.getElementById(`${this.#uniqueId}-next`);
@@ -210,12 +213,10 @@ class CustomSlider extends HTMLElement {
             }
         }
 
-        // Set up autoplay
         if (attrs.autoplay) {
             this.#startAutoplay(attrs.autoplayDelay);
         }
 
-        // Initial slide positioning
         this.#updateSlider();
     }
 
@@ -224,7 +225,6 @@ class CustomSlider extends HTMLElement {
         const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
         this.#currentIndex = (this.#currentIndex + direction + totalSlides) % totalSlides;
 
-        // Ensure currentIndex aligns with slidesPerView
         if (this.#currentIndex + slidesPerView > totalSlides) {
             this.#currentIndex = totalSlides - slidesPerView;
         }
@@ -235,11 +235,9 @@ class CustomSlider extends HTMLElement {
         this.#updateSlider();
         this.#log('Navigated', { direction, currentIndex: this.#currentIndex, elementId: this.#uniqueId });
 
-        // Reset autoplay on interaction
         if (this.#autoplayInterval) {
             this.#stopAutoplay();
-            const attrs = this.getAttributes();
-            attrs.then(attr => {
+            this.getAttributes().then(attr => {
                 if (attr.autoplay) {
                     this.#startAutoplay(attr.autoplayDelay);
                 }
@@ -248,7 +246,7 @@ class CustomSlider extends HTMLElement {
     }
 
     #startAutoplay(delay) {
-        this.#stopAutoplay(); // Clear any existing interval
+        this.#stopAutoplay();
         this.#autoplayInterval = setInterval(() => {
             this.#navigate(1);
         }, delay);
@@ -276,7 +274,8 @@ class CustomSlider extends HTMLElement {
             const slideWidth = 100 / slidesPerView;
             const translateX = -this.#currentIndex * slideWidth;
 
-            sliderContainer.querySelector('.slider-wrapper').style.transform = `translateX(${translateX}%)`;
+            const wrapper = sliderContainer.querySelector('.slider-wrapper');
+            wrapper.style.transform = `translateX(${translateX}%)`;
             this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, elementId: this.#uniqueId });
         });
     }
@@ -293,32 +292,29 @@ class CustomSlider extends HTMLElement {
         sliderWrapper.style.gap = '10px';
         sliderWrapper.style.overflow = 'hidden';
         sliderWrapper.style.position = 'relative';
+        sliderWrapper.style.width = '100%';
 
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
-        innerWrapper.style.display = 'grid';
-        innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, 1fr)`;
+        innerWrapper.style.display = 'flex'; // Switch to flex for smooth sliding
         innerWrapper.style.transition = 'transform 0.5s ease';
-        innerWrapper.style.width = `${100 * this.#childElements.length / attrs.slidesPerView}%`;
-
-        // Use captured children from constructor
-        this.#log('Processing captured slides', { count: this.#childElements.length, elementId: this.#uniqueId });
+        innerWrapper.style.width = `${100 * this.#childElements.length}%`;
 
         if (this.#childElements.length === 0) {
             this.#warn('No valid slides found', { elementId: this.#uniqueId });
             const fallbackSlide = document.createElement('div');
             fallbackSlide.className = 'slider-slide';
-            fallbackSlide.style.gridColumn = 'span 1';
+            fallbackSlide.style.width = `${100 / attrs.slidesPerView}%`;
             fallbackSlide.innerHTML = '<p>No slides available</p>';
             innerWrapper.appendChild(fallbackSlide);
         } else {
+            const slideWidth = 100 / this.#childElements.length;
             this.#childElements.forEach((slide, index) => {
                 const slideWrapper = document.createElement('div');
                 slideWrapper.className = 'slider-slide';
-                slideWrapper.style.gridColumn = 'span 1';
-                // Clone the original custom-block to allow its own rendering
-                const clonedSlide = slide.cloneNode(true);
-                slideWrapper.appendChild(clonedSlide);
+                slideWrapper.style.width = `${slideWidth}%`;
+                slideWrapper.style.flex = '0 0 auto';
+                slideWrapper.appendChild(slide.cloneNode(true));
                 innerWrapper.appendChild(slideWrapper);
                 this.#log(`Slide ${index + 1} processed`, { elementId: this.#uniqueId });
             });
@@ -326,7 +322,6 @@ class CustomSlider extends HTMLElement {
 
         sliderWrapper.appendChild(innerWrapper);
 
-        // Add navigation if enabled
         if (attrs.navigation && attrs.navigationIconLeft && attrs.navigationIconRight) {
             const navPrev = document.createElement('div');
             navPrev.id = `${this.#uniqueId}-prev`;
@@ -401,9 +396,8 @@ class CustomSlider extends HTMLElement {
 
         this.#log('Attribute changed', { name, oldValue, newValue, elementId: this.#uniqueId });
         if (oldValue !== newValue) {
-            this.isInitialized = false; // Force re-initialization
+            this.isInitialized = false;
             this.#stopAutoplay();
-            // Re-capture children in case they changed
             this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block');
             this.initialize();
         }
