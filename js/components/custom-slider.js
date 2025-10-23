@@ -219,11 +219,8 @@ class CustomSlider extends HTMLElement {
         const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
         this.#currentIndex += direction;
 
-        // Infinite loop with seamless cycling
+        // Infinite loop with continuous cycling in the same direction
         this.#currentIndex = (this.#currentIndex % totalSlides + totalSlides) % totalSlides;
-        if (this.#currentIndex < 0) {
-            this.#currentIndex += totalSlides; // Loop to end for previous
-        }
 
         this.#updateSlider();
         this.#log('Navigated', { direction, currentIndex: this.#currentIndex, slidesPerView, totalSlides, elementId: this.#uniqueId });
@@ -268,14 +265,14 @@ class CustomSlider extends HTMLElement {
             const slideWidth = 100 / slidesPerView; // Percentage width per visible slide (33.3333% for 3)
             let translateX = -this.#currentIndex * slideWidth;
 
-            // Adjust for infinite loop within visible range
+            // Continuous cycling without resetting
             const maxVisibleIndex = totalSlides - slidesPerView;
             if (this.#currentIndex > maxVisibleIndex) {
-                this.#currentIndex -= totalSlides; // Cycle to start
+                this.#currentIndex -= totalSlides; // Move to next cycle
                 translateX = -this.#currentIndex * slideWidth;
             } else if (this.#currentIndex < 0) {
-                this.#currentIndex += totalSlides; // Cycle to end
-                translateX = -this.#currentIndex * slideWidth + (maxVisibleIndex * slideWidth); // Adjust to last visible set
+                this.#currentIndex += totalSlides; // Move to previous cycle
+                translateX = -(this.#currentIndex - maxVisibleIndex) * slideWidth; // Adjust to last visible set
             }
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
