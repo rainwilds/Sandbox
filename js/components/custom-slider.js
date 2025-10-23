@@ -265,12 +265,12 @@ class CustomSlider extends HTMLElement {
             const slideWidth = 100 / slidesPerView; // Percentage width per visible slide (33.3333% for 3)
             let translateX = -this.#currentIndex * slideWidth;
 
-            // Continuous cycling in the same direction
+            // Continuous cycling in the same direction within visible range
             const maxVisibleIndex = totalSlides - slidesPerView;
             if (this.#currentIndex > maxVisibleIndex) {
-                this.#currentIndex = this.#currentIndex - maxVisibleIndex - 1; // Cycle to next visible set
+                this.#currentIndex = this.#currentIndex - maxVisibleIndex - 1; // Cycle to next set (e.g., 5 → 1)
             } else if (this.#currentIndex < 0) {
-                this.#currentIndex = maxVisibleIndex + this.#currentIndex + 1; // Cycle to previous visible set
+                this.#currentIndex = maxVisibleIndex + this.#currentIndex + 1; // Cycle to previous set (e.g., -1 → 4)
             }
 
             translateX = -this.#currentIndex * slideWidth; // Recalculate based on adjusted index
