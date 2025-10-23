@@ -110,6 +110,13 @@ class CustomSlider extends HTMLElement {
         const gapAttr = this.getAttribute('gap') || '0'; // Default to 0 if no gap attribute
         this.#log('Parsed gap attribute', { gapAttr });
 
+        const paginationAttr = this.getAttribute('pagination') === 'true'; // Boolean, true if attribute is present and set to "true"
+        this.#log('Parsed pagination attribute', { pagination: paginationAttr });
+
+        let paginationIconActive = this.getAttribute('pagination-icon-active') || '<i class="fa-solid fa-circle"></i>';
+        let paginationIconInactive = this.getAttribute('pagination-icon-inactive') || '<i class="fa-regular fa-circle"></i>';
+        this.#log('Parsed pagination icons', { paginationIconActive, paginationIconInactive });
+
         const validateIcon = (icon, position) => {
             if (!icon) return '';
             const parser = new DOMParser();
@@ -117,24 +124,26 @@ class CustomSlider extends HTMLElement {
             const doc = parser.parseFromString(decodedIcon, 'text/html');
             const iElement = doc.body.querySelector('i');
             if (!iElement || !iElement.className.includes('fa-')) {
-                this.#warn(`Invalid ${position} navigation icon format`, {
+                this.#warn(`Invalid ${position} pagination icon format`, {
                     value: icon,
                     expected: 'Font Awesome <i> tag with fa- classes'
                 });
-                return '';
+                return '<i class="fa-solid fa-circle"></i>'; // Fallback icon
             }
             const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
             if (validClasses.length === 0) {
-                this.#warn(`No valid Font Awesome classes in ${position} navigation icon`, {
+                this.#warn(`No valid Font Awesome classes in ${position} pagination icon`, {
                     classes: iElement.className
                 });
-                return '';
+                return '<i class="fa-solid fa-circle"></i>'; // Fallback icon
             }
             return `<i class="${validClasses.join(' ')}"></i>`;
         };
 
         navigationIconLeft = validateIcon(navigationIconLeft, 'left');
         navigationIconRight = validateIcon(navigationIconRight, 'right');
+        paginationIconActive = validateIcon(paginationIconActive, 'active');
+        paginationIconInactive = validateIcon(paginationIconInactive, 'inactive');
 
         return {
             autoplayDelay,
@@ -142,7 +151,10 @@ class CustomSlider extends HTMLElement {
             navigation,
             navigationIconLeft,
             navigationIconRight,
-            gap: gapAttr
+            gap: gapAttr,
+            pagination: paginationAttr,
+            paginationIconActive,
+            paginationIconInactive
         };
     }
 
@@ -169,7 +181,7 @@ class CustomSlider extends HTMLElement {
                 this.#log('Initialization completed successfully', { elementId: this.#uniqueId });
             } else {
                 this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
-                const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0' });
+                const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>' });
                 this.replaceWith(fallbackElement);
             }
         } catch (error) {
@@ -178,7 +190,7 @@ class CustomSlider extends HTMLElement {
                 stack: error.stack,
                 elementId: this.#uniqueId
             });
-            const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0' });
+            const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>' });
             this.replaceWith(fallbackElement);
         }
     }
@@ -279,6 +291,19 @@ class CustomSlider extends HTMLElement {
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             wrapper.style.transition = 'transform 0.5s'; // Ensure transition is applied
             wrapper.style.transform = `translateX(${translateX}%)`;
+
+            // Update pagination if enabled
+            if (this.hasAttribute('pagination')) {
+                const pagination = sliderContainer.querySelector('.slider-pagination');
+                if (pagination) {
+                    const dots = pagination.querySelectorAll('.pagination-dot');
+                    dots.forEach((dot, index) => {
+                        dot.innerHTML = index === this.#currentIndex ? this.getAttribute('pagination-icon-active') : this.getAttribute('pagination-icon-inactive');
+                    });
+                    this.#log('Pagination updated', { currentIndex: this.#currentIndex, totalSlides, elementId: this.#uniqueId });
+                }
+            }
+
             this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slidesPerView, totalSlides, elementId: this.#uniqueId });
         });
     }
@@ -350,6 +375,36 @@ class CustomSlider extends HTMLElement {
             this.#log('Navigation buttons added', { elementId: this.#uniqueId });
         }
 
+        // Add pagination if enabled
+        if (attrs.pagination) {
+            const pagination = document.createElement('div');
+            pagination.className = 'slider-pagination';
+            pagination.style.textAlign = 'center';
+            pagination.style.marginTop = '10px';
+            pagination.style.position = 'absolute';
+            pagination.style.bottom = '10px';
+            pagination.style.left = '50%';
+            pagination.style.transform = 'translateX(-50%)';
+            pagination.style.zIndex = '10';
+
+            const totalSlides = this.#childElements.length;
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('span');
+                dot.className = 'pagination-dot';
+                dot.style.cursor = 'pointer';
+                dot.style.margin = '0 5px';
+                dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
+                dot.addEventListener('click', () => {
+                    this.#currentIndex = i;
+                    this.#updateSlider();
+                    this.#log('Pagination dot clicked', { newIndex: this.#currentIndex, elementId: this.#uniqueId });
+                });
+                pagination.appendChild(dot);
+            }
+            sliderWrapper.appendChild(pagination);
+            this.#log('Pagination added', { totalSlides, elementId: this.#uniqueId });
+        }
+
         fragment.appendChild(sliderWrapper);
         return sliderWrapper;
     }
@@ -376,7 +431,7 @@ class CustomSlider extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['autoplay', 'slides-per-view', 'navigation', 'navigation-icon-left', 'navigation-icon-right', 'gap'];
+        return ['autoplay', 'slides-per-view', 'navigation', 'navigation-icon-left', 'navigation-icon-right', 'gap', 'pagination', 'pagination-icon-active', 'pagination-icon-inactive'];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
