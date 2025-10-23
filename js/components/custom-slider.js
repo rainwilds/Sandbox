@@ -112,6 +112,9 @@ class CustomSlider extends HTMLElement {
         let navigationIconLeft = this.getAttribute('navigation-icon-left') || '<i class="fa-chisel fa-regular fa-angle-left"></i>';
         let navigationIconRight = this.getAttribute('navigation-icon-right') || '<i class="fa-chisel fa-regular fa-angle-right"></i>';
 
+        const gapAttr = this.getAttribute('gap') || '0'; // Default to 0 if no gap attribute
+        this.#log('Parsed gap attribute', { gapAttr });
+
         const validateIcon = (icon, position) => {
             if (!icon) return '';
             const parser = new DOMParser();
@@ -144,7 +147,8 @@ class CustomSlider extends HTMLElement {
             slidesPerView,
             navigation,
             navigationIconLeft,
-            navigationIconRight
+            navigationIconRight,
+            gap: gapAttr
         };
     }
 
@@ -171,7 +175,7 @@ class CustomSlider extends HTMLElement {
                 this.#log('Initialization completed successfully', { elementId: this.#uniqueId });
             } else {
                 this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
-                const fallbackElement = await this.render({ autoplay: false, slidesPerView: 1, navigation: false });
+                const fallbackElement = await this.render({ autoplay: false, slidesPerView: 1, navigation: false, gap: '0' });
                 this.replaceWith(fallbackElement);
             }
         } catch (error) {
@@ -180,7 +184,7 @@ class CustomSlider extends HTMLElement {
                 stack: error.stack,
                 elementId: this.#uniqueId
             });
-            const fallbackElement = await this.render({ autoplay: false, slidesPerView: 1, navigation: false });
+            const fallbackElement = await this.render({ autoplay: false, slidesPerView: 1, navigation: false, gap: '0' });
             this.replaceWith(fallbackElement);
         }
     }
@@ -294,6 +298,8 @@ class CustomSlider extends HTMLElement {
         innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`;
         innerWrapper.style.gridAutoFlow = 'column';
         innerWrapper.style.height = '100%';
+        innerWrapper.style.gridColumnGap = attrs.gap; // Apply gap attribute
+        this.#log('Applied gap to slider-wrapper', { gap: attrs.gap });
 
         if (this.#childElements.length === 0) {
             this.#warn('No valid slides found', { elementId: this.#uniqueId });
@@ -367,7 +373,7 @@ class CustomSlider extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['autoplay', 'slides-per-view', 'navigation', 'navigation-icon-left', 'navigation-icon-right'];
+        return ['autoplay', 'slides-per-view', 'navigation', 'navigation-icon-left', 'navigation-icon-right', 'gap'];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
