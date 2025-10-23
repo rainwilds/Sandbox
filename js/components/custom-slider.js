@@ -265,16 +265,16 @@ class CustomSlider extends HTMLElement {
             const maxVisibleIndex = totalSlides - slidesPerView;
             let adjusted = false;
 
-            if (this.#currentIndex > maxVisibleIndex) {
+            if (this.#lastDirection === -1 && this.#currentIndex === 0 && initialIndex !== 0) {
+                this.#log('Condition: lastDirection -1 and currentIndex 0 after initial adjust', { currentIndex: this.#currentIndex, lastDirection: this.#lastDirection, initialIndex });
+                this.#currentIndex = maxVisibleIndex; // Cycle to previous set (e.g., 0 → 4)
+                adjusted = true;
+                this.#log('Adjusted for previous cycle', { newIndex: this.#currentIndex });
+            } else if (this.#currentIndex > maxVisibleIndex) {
                 this.#log('Condition: currentIndex > maxVisibleIndex', { currentIndex: this.#currentIndex, maxVisibleIndex });
                 this.#currentIndex = this.#currentIndex - maxVisibleIndex - 1; // Cycle to next set (e.g., 5 → 1)
                 adjusted = true;
                 this.#log('Adjusted for next cycle', { newIndex: this.#currentIndex });
-            } else if (this.#lastDirection === -1 && this.#currentIndex === 0) {
-                this.#log('Condition: lastDirection -1 and currentIndex 0', { currentIndex: this.#currentIndex, lastDirection: this.#lastDirection });
-                this.#currentIndex = maxVisibleIndex; // Cycle to previous set (e.g., 0 → 4)
-                adjusted = true;
-                this.#log('Adjusted for previous cycle', { newIndex: this.#currentIndex });
             }
 
             let translateX = -this.#currentIndex * slideWidth;
