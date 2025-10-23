@@ -265,12 +265,21 @@ class CustomSlider extends HTMLElement {
             if (!sliderContainer) return;
 
             const slideWidth = 100 / slidesPerView; // Base width percentage per visible slide
-            let initialTranslateX = -this.#currentIndex * (slideWidth + this.#calculateGapPercentage(slidesPerView));
+            const computedStyle = window.getComputedStyle(sliderContainer.querySelector('.slider-wrapper'));
+            const gapValue = computedStyle.gridColumnGap; // Get the computed gap value
+            const containerWidth = sliderContainer.getBoundingClientRect().width;
+            const gapInPixels = parseFloat(gapValue) || 0; // Convert gap to pixels
+            const gapPercentage = (gapInPixels / containerWidth) * 100; // Convert to percentage
+            const effectiveSlideWidth = slideWidth + (gapPercentage / slidesPerView); // Adjust slide width with gap
+
+            this.#log('Gap calculation', { gapValue, gapInPixels, containerWidth, gapPercentage, effectiveSlideWidth });
+
+            let initialTranslateX = -this.#currentIndex * effectiveSlideWidth;
             let initialIndex = this.#currentIndex;
 
             this.#log('UpdateSlider started', { initialIndex, initialTranslateX, lastDirection: this.#lastDirection, slidesPerView, totalSlides, elementId: this.#uniqueId });
 
-            let translateX = -this.#currentIndex * (slideWidth + this.#calculateGapPercentage(slidesPerView));
+            let translateX = -this.#currentIndex * effectiveSlideWidth;
             this.#log('Final values', { adjustedIndex: this.#currentIndex, translateX, slidesPerView, totalSlides, elementId: this.#uniqueId });
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
@@ -278,16 +287,6 @@ class CustomSlider extends HTMLElement {
             wrapper.style.transform = `translateX(${translateX}%)`;
             this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slidesPerView, totalSlides, elementId: this.#uniqueId });
         });
-    }
-
-    #calculateGapPercentage(slidesPerView) {
-        const gap = this.getAttribute('gap') || '0';
-        // This is a simplified approximation; in a real scenario, you'd need the container's width in pixels
-        // to convert gap to a percentage accurately. For now, assume gap is a small fraction of the width.
-        const gapImpact = parseFloat(gap) || 0; // Convert to number if possible, default to 0
-        const gapPercentage = (gapImpact / 100) * (100 / slidesPerView); // Rough estimate
-        this.#log('Calculated gap percentage', { gap, gapImpact, gapPercentage });
-        return gapPercentage;
     }
 
     async render(attrs) {
