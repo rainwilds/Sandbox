@@ -1,3 +1,5 @@
+/* global HTMLElement, IntersectionObserver, document, window, console, requestAnimationFrame */
+
 'use strict';
 
 import { getConfig } from '../config.js';
@@ -217,14 +219,13 @@ class CustomSlider extends HTMLElement {
         const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
         this.#currentIndex += direction;
 
-        // Infinite loop logic
-        this.#currentIndex = ((this.#currentIndex % totalSlides) + totalSlides) % totalSlides;
-
-        // Adjust for visible slides to avoid empty space
-        if (this.#currentIndex + slidesPerView > totalSlides) {
-            this.#currentIndex = 0; // Reset to start if exceeding visible range
+        // Infinite loop with proper range adjustment
+        const maxIndex = totalSlides - slidesPerView;
+        this.#currentIndex = (this.#currentIndex % totalSlides + totalSlides) % totalSlides;
+        if (this.#currentIndex > maxIndex) {
+            this.#currentIndex = 0; // Loop to start if beyond last visible set
         } else if (this.#currentIndex < 0) {
-            this.#currentIndex = totalSlides - slidesPerView; // Loop to end
+            this.#currentIndex = maxIndex; // Loop to end if before first
         }
 
         this.#updateSlider();
@@ -270,13 +271,14 @@ class CustomSlider extends HTMLElement {
             const slideWidth = 100 / slidesPerView; // Percentage width per slide
             let translateX = -this.#currentIndex * slideWidth;
 
-            // Ensure translateX stays within the visible range
-            if (this.#currentIndex + slidesPerView > totalSlides) {
-                translateX = 0; // Reset to start position
-                this.#currentIndex = 0; // Sync index
+            // Ensure infinite loop without empty slides
+            const maxIndex = totalSlides - slidesPerView;
+            if (this.#currentIndex > maxIndex) {
+                translateX = 0;
+                this.#currentIndex = 0;
             } else if (this.#currentIndex < 0) {
-                translateX = -(totalSlides - slidesPerView) * slideWidth; // Reset to end
-                this.#currentIndex = totalSlides - slidesPerView; // Sync index
+                translateX = -maxIndex * slideWidth;
+                this.#currentIndex = maxIndex;
             }
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
