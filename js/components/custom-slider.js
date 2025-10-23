@@ -219,13 +219,13 @@ class CustomSlider extends HTMLElement {
         const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
         this.#currentIndex += direction;
 
-        // Infinite loop with proper range adjustment
+        // Infinite loop with proper adjustment for visible range
         const maxIndex = totalSlides - slidesPerView;
         this.#currentIndex = (this.#currentIndex % totalSlides + totalSlides) % totalSlides;
         if (this.#currentIndex > maxIndex) {
-            this.#currentIndex = 0; // Loop to start if beyond last visible set
+            this.#currentIndex = 0; // Loop to start
         } else if (this.#currentIndex < 0) {
-            this.#currentIndex = maxIndex; // Loop to end if before first
+            this.#currentIndex = maxIndex; // Loop to end
         }
 
         this.#updateSlider();
@@ -270,16 +270,6 @@ class CustomSlider extends HTMLElement {
 
             const slideWidth = 100 / slidesPerView; // Percentage width per slide
             let translateX = -this.#currentIndex * slideWidth;
-
-            // Ensure infinite loop without empty slides
-            const maxIndex = totalSlides - slidesPerView;
-            if (this.#currentIndex > maxIndex) {
-                translateX = 0;
-                this.#currentIndex = 0;
-            } else if (this.#currentIndex < 0) {
-                translateX = -maxIndex * slideWidth;
-                this.#currentIndex = maxIndex;
-            }
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             wrapper.style.transition = 'transform 0.5s'; // Ensure transition is applied
