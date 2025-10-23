@@ -216,12 +216,12 @@ class CustomSlider extends HTMLElement {
     }
 
     #navigate(direction) {
-        const totalSlides = this.#slides.length;
+        const totalSlides = this.#slides.length * 2; // Double the slides for infinite loop
         const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
         this.#lastDirection = direction; // Update last direction
         this.#currentIndex += direction;
 
-        // Infinite loop with continuous cycling
+        // Infinite loop with continuous cycling over duplicated slides
         this.#currentIndex = (this.#currentIndex % totalSlides + totalSlides) % totalSlides;
 
         this.#updateSlider();
@@ -251,7 +251,7 @@ class CustomSlider extends HTMLElement {
 
         this.#animationFrameId = requestAnimationFrame(() => {
             const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
-            const totalSlides = this.#slides.length;
+            const totalSlides = this.#slides.length * 2; // Total slides including duplicates
             const sliderContainer = document.getElementById(this.#uniqueId);
             if (!sliderContainer) return;
 
@@ -261,25 +261,18 @@ class CustomSlider extends HTMLElement {
 
             this.#log('UpdateSlider started', { initialIndex, initialTranslateX, lastDirection: this.#lastDirection, slidesPerView, totalSlides, elementId: this.#uniqueId });
 
-            // Continuous cycling in the same direction within visible range
+            // Adjust to visible range within duplicated set
             const maxVisibleIndex = totalSlides - slidesPerView;
             let adjusted = false;
 
-            if (this.#lastDirection === -1 && this.#currentIndex === 0 && initialIndex > 0) {
-                this.#log('Condition: lastDirection -1 and currentIndex 0 after forward', { currentIndex: this.#currentIndex, lastDirection: this.#lastDirection, initialIndex });
-                this.#currentIndex = maxVisibleIndex; // Cycle to previous set (e.g., 0 → 4)
-                adjusted = true;
-                this.#log('Adjusted for previous cycle', { newIndex: this.#currentIndex });
-            } else if (this.#currentIndex > maxVisibleIndex) {
+            if (this.#currentIndex > maxVisibleIndex) {
                 this.#log('Condition: currentIndex > maxVisibleIndex', { currentIndex: this.#currentIndex, maxVisibleIndex });
-                this.#currentIndex = (this.#currentIndex - maxVisibleIndex - 1) % maxVisibleIndex; // Cycle to next set (e.g., 5 → 1)
-                if (this.#currentIndex < 0) this.#currentIndex += maxVisibleIndex;
+                this.#currentIndex = this.#currentIndex - totalSlides + slidesPerView; // Cycle to next set (e.g., 10 → 1)
                 adjusted = true;
                 this.#log('Adjusted for next cycle', { newIndex: this.#currentIndex });
-            } else if (this.#currentIndex < 0) {
-                this.#log('Condition: currentIndex < 0', { currentIndex: this.#currentIndex });
-                this.#currentIndex = (maxVisibleIndex + this.#currentIndex + 1) % maxVisibleIndex; // Cycle to previous set (e.g., -1 → 4)
-                if (this.#currentIndex < 0) this.#currentIndex += maxVisibleIndex;
+            } else if (this.#currentIndex < slidesPerView) {
+                this.#log('Condition: currentIndex < slidesPerView', { currentIndex: this.#currentIndex, slidesPerView });
+                this.#currentIndex = this.#currentIndex + totalSlides - slidesPerView; // Cycle to previous set (e.g., -1 → 10)
                 adjusted = true;
                 this.#log('Adjusted for previous cycle', { newIndex: this.#currentIndex });
             }
@@ -309,7 +302,7 @@ class CustomSlider extends HTMLElement {
         innerWrapper.style.display = 'grid';
         innerWrapper.style.transition = 'transform 0.5s';
         innerWrapper.style.transform = 'translateX(0%)';
-        innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`;
+        innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length * 2}, calc(100% / ${attrs.slidesPerView}))`; // Double the columns
         innerWrapper.style.gridAutoFlow = 'column';
         innerWrapper.style.height = '100%';
 
@@ -320,12 +313,21 @@ class CustomSlider extends HTMLElement {
             fallbackSlide.innerHTML = '<p>No slides available</p>';
             innerWrapper.appendChild(fallbackSlide);
         } else {
+            // Append original slides
             this.#childElements.forEach((slide, index) => {
                 const slideWrapper = document.createElement('div');
                 slideWrapper.className = 'slider-slide';
                 slideWrapper.appendChild(slide.cloneNode(true));
                 innerWrapper.appendChild(slideWrapper);
-                this.#log(`Slide ${index + 1} processed`, { elementId: this.#uniqueId });
+                this.#log(`Slide ${index + 1} (original) processed`, { elementId: this.#uniqueId });
+            });
+            // Append duplicate slides
+            this.#childElements.forEach((slide, index) => {
+                const slideWrapper = document.createElement('div');
+                slideWrapper.className = 'slider-slide';
+                slideWrapper.appendChild(slide.cloneNode(true));
+                innerWrapper.appendChild(slideWrapper);
+                this.#log(`Slide ${index + 1} (duplicate) processed`, { elementId: this.#uniqueId });
             });
         }
 
