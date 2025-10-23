@@ -124,7 +124,7 @@ class CustomSlider extends HTMLElement {
             const doc = parser.parseFromString(decodedIcon, 'text/html');
             const iElement = doc.body.querySelector('i');
             if (!iElement || !iElement.className.includes('fa-')) {
-                this.#warn(`Invalid ${position} pagination icon format`, {
+                this.#warn(`Invalid ${position} pagination icon format, ensure Font Awesome is loaded`, {
                     value: icon,
                     expected: 'Font Awesome <i> tag with fa- classes'
                 });
@@ -132,7 +132,7 @@ class CustomSlider extends HTMLElement {
             }
             const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
             if (validClasses.length === 0) {
-                this.#warn(`No valid Font Awesome classes in ${position} pagination icon`, {
+                this.#warn(`No valid Font Awesome classes in ${position} pagination icon, ensure Font Awesome is loaded`, {
                     classes: iElement.className
                 });
                 return '<i class="fa-solid fa-circle"></i>'; // Fallback icon
