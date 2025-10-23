@@ -220,10 +220,9 @@ class CustomSlider extends HTMLElement {
         this.#currentIndex += direction;
 
         // Infinite loop with seamless cycling
-        const maxIndex = totalSlides - 1; // Last slide index
         this.#currentIndex = (this.#currentIndex % totalSlides + totalSlides) % totalSlides;
         if (this.#currentIndex < 0) {
-            this.#currentIndex = maxIndex; // Loop to last slide for previous
+            this.#currentIndex = totalSlides + this.#currentIndex; // Adjust for negative indices
         }
 
         this.#updateSlider();
@@ -266,17 +265,17 @@ class CustomSlider extends HTMLElement {
             const sliderContainer = document.getElementById(this.#uniqueId);
             if (!sliderContainer) return;
 
-            const slideWidth = 100 / slidesPerView; // Percentage width per slide
-            let translateX = -this.#currentIndex * (100 / totalSlides) * slidesPerView;
+            const slideWidth = 100 / slidesPerView; // Percentage width per visible slide (33.3333% for 3)
+            let translateX = -this.#currentIndex * slideWidth;
 
-            // Adjust for visible range in infinite loop
+            // Adjust for infinite loop within visible range
             const maxVisibleIndex = totalSlides - slidesPerView;
             if (this.#currentIndex > maxVisibleIndex) {
-                translateX = -(this.#currentIndex - totalSlides) * (100 / totalSlides) * slidesPerView;
-                this.#currentIndex = this.#currentIndex - totalSlides; // Continue cycling
+                this.#currentIndex = this.#currentIndex - totalSlides; // Cycle to start
+                translateX = -this.#currentIndex * slideWidth;
             } else if (this.#currentIndex < 0) {
-                translateX = -(maxVisibleIndex + this.#currentIndex + 1) * (100 / totalSlides) * slidesPerView;
-                this.#currentIndex = maxVisibleIndex + this.#currentIndex + 1; // Loop to end
+                this.#currentIndex = totalSlides + this.#currentIndex; // Cycle to end
+                translateX = -this.#currentIndex * slideWidth;
             }
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
