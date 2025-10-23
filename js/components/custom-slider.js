@@ -270,7 +270,7 @@ class CustomSlider extends HTMLElement {
             const containerWidth = sliderContainer.getBoundingClientRect().width;
             const gapInPixels = parseFloat(gapValue) || 0; // Convert gap to pixels
             const gapPercentage = (gapInPixels / containerWidth) * 100; // Convert to percentage
-            const effectiveSlideWidth = slideWidth + (gapPercentage / slidesPerView); // Adjust slide width with gap
+            const effectiveSlideWidth = slideWidth + gapPercentage; // Total width per slide including gap
 
             this.#log('Gap calculation', { gapValue, gapInPixels, containerWidth, gapPercentage, effectiveSlideWidth });
 
