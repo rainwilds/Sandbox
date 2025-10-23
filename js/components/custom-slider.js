@@ -219,9 +219,12 @@ class CustomSlider extends HTMLElement {
         const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
         this.#currentIndex += direction;
 
-        // Implement infinite looping
-        if (this.#currentIndex >= totalSlides) {
-            this.#currentIndex = 0; // Loop to start
+        // Infinite loop logic
+        this.#currentIndex = ((this.#currentIndex % totalSlides) + totalSlides) % totalSlides;
+
+        // Adjust for visible slides to avoid empty space
+        if (this.#currentIndex + slidesPerView > totalSlides) {
+            this.#currentIndex = 0; // Reset to start if exceeding visible range
         } else if (this.#currentIndex < 0) {
             this.#currentIndex = totalSlides - slidesPerView; // Loop to end
         }
@@ -262,16 +265,26 @@ class CustomSlider extends HTMLElement {
 
         this.#animationFrameId = requestAnimationFrame(() => {
             const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
+            const totalSlides = this.#slides.length;
             const sliderContainer = document.getElementById(this.#uniqueId);
             if (!sliderContainer) return;
 
             const slideWidth = 100 / slidesPerView; // Percentage width per slide
             let translateX = -this.#currentIndex * slideWidth;
 
+            // Ensure translateX stays within the visible range
+            if (this.#currentIndex + slidesPerView > totalSlides) {
+                translateX = 0; // Reset to start position
+                this.#currentIndex = 0; // Sync index
+            } else if (this.#currentIndex < 0) {
+                translateX = -(totalSlides - slidesPerView) * slideWidth; // Reset to end
+                this.#currentIndex = totalSlides - slidesPerView; // Sync index
+            }
+
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             wrapper.style.transition = 'transform 0.5s'; // Ensure transition is applied
             wrapper.style.transform = `translateX(${translateX}%)`;
-            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slidesPerView, elementId: this.#uniqueId });
+            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slidesPerView, totalSlides, elementId: this.#uniqueId });
         });
     }
 
