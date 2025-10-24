@@ -284,8 +284,8 @@ class CustomSlider extends HTMLElement {
             const gapInPixels = parseFloat(gapValue) || 0; // Convert gap to pixels
             const gapPercentage = (gapInPixels / containerWidth) * 100; // Convert gap to percentage of container width
 
-            // Adjust gap contribution for multiple slides per view (one gap per slide transition)
-            const effectiveGap = slidesPerView > 1 ? gapPercentage / (slidesPerView - 1) : gapPercentage;
+            // Adjust gap contribution: total gap for visible slides is (slidesPerView - 1) * gap
+            const effectiveGap = slidesPerView > 1 ? gapPercentage * (slidesPerView - 1) / slidesPerView : gapPercentage;
             let translateX = -this.#currentIndex * (slideWidth + effectiveGap);
             this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gapPercentage, effectiveGap, slidesPerView, totalSlides, elementId: this.#uniqueId });
 
@@ -321,7 +321,7 @@ class CustomSlider extends HTMLElement {
         innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`;
         if (attrs.gap && attrs.gap !== '0') {
             innerWrapper.style.columnGap = attrs.gap;
-            innerWrapper.style.width = 'calc(100% - var(--space-small))';
+            innerWrapper.style.width = `calc(100% - ${attrs.gap})`;
         } else {
             innerWrapper.style.width = '100%';
         }
