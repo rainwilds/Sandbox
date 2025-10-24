@@ -189,37 +189,36 @@
 
 
 
-        /* --color-light-scale-1: #164ae3;
-        --color-light-scale-2: #984ecd;
-        --color-light-scale-3: #c762bb;
-        --color-light-scale-4: #de81b1;
-        --color-light-scale-5: #e7a4b4;
-        --color-light-scale-6: #e4c8c8;
-
-        --color-dark-scale-1: #492c03;
-        --color-dark-scale-2: #46200d;
-        --color-dark-scale-3: #3d1815;
-        --color-dark-scale-4: #311218;
-        --color-dark-scale-5: #220e18;
-        --color-dark-scale-6: #140612;
-
-        --color-accent-opaque-light-scale-1: rgba(22, 74, 227, 0.2);
-        --color-accent-opaque-light-scale-2: rgba(152, 78, 205, 0.2);
-        --color-accent-opaque-light-scale-3: rgba(199, 98, 187, 0.2);
-        --color-accent-opaque-light-scale-4: rgba(222, 129, 177, 0.2);
-        --color-accent-opaque-light-scale-5: rgba(231, 164, 180, 0.2);
-        --color-accent-opaque-light-scale-6: rgba(228, 200, 200, 0.2);
-
-        --color-accent-opaque-dark-scale-1: rgba(73, 44, 3, 0.5);
-        --color-accent-opaque-dark-scale-2: rgba(70, 32, 13, 0.5);
-        --color-accent-opaque-dark-scale-3: rgba(61, 24, 21, 0.5);
-        --color-accent-opaque-dark-scale-4: rgba(49, 18, 24, 0.5);
-        --color-accent-opaque-dark-scale-5: rgba(34, 14, 24, 0.5);
-        --color-accent-opaque-dark-scale-6: rgba(20, 6, 18, 0.5); */
-
+--color-light-scale-1: #b839f7;
+--color-light-scale-2: #9471ff;
+--color-light-scale-3: #7c92ff;
+--color-light-scale-4: #7dacff;
+--color-light-scale-5: #97c0f1;
+--color-light-scale-6: #bfd0df;
+--color-dark-scale-1: #34251d;
+--color-dark-scale-2: #331f1e;
+--color-dark-scale-3: #2e1a21;
+--color-dark-scale-4: #251825;
+--color-dark-scale-5: #181626;
+--color-dark-scale-6: #051524;
+--color-accent-opaque-light-scale-1: rgba(184,57,247,0.2);
+--color-accent-opaque-light-scale-2: rgba(148,113,255,0.2);
+--color-accent-opaque-light-scale-3: rgba(124,146,255,0.2);
+--color-accent-opaque-light-scale-4: rgba(125,172,255,0.2);
+--color-accent-opaque-light-scale-5: rgba(151,192,241,0.2);
+--color-accent-opaque-light-scale-6: rgba(191,208,223,0.2);
+--color-accent-opaque-dark-scale-1: rgba(52,37,29,0.5);
+--color-accent-opaque-dark-scale-2: rgba(51,31,30,0.5);
+--color-accent-opaque-dark-scale-3: rgba(46,26,33,0.5);
+--color-accent-opaque-dark-scale-4: rgba(37,24,37,0.5);
+--color-accent-opaque-dark-scale-5: rgba(24,22,38,0.5);
+--color-accent-opaque-dark-scale-6: rgba(5,21,36,0.5);
+--color-static-light: white;
+--color-static-dark: black;
 
 
-        --color-light-scale-1: #daccbf;
+
+        /* --color-light-scale-1: #daccbf;
         --color-light-scale-2: #e0c9c5;
         --color-light-scale-3: #e0c8ce;
         --color-light-scale-4: #d8cad8;
@@ -244,7 +243,7 @@
         --color-accent-opaque-dark-scale-5: rgba(24, 22, 38, 0.5);
         --color-accent-opaque-dark-scale-6: rgba(5, 21, 36, 0.5);
         --color-static-light: white;
-        --color-static-dark: black;
+        --color-static-dark: black; */
 
 
 
@@ -2065,6 +2064,7 @@ div#products {
     padding-bottom: var(--space-small);
     display: flex;
     gap: var(--space-tiny);
+    font-size: 0.5rem;
 
     &>span.icon {
         cursor: pointer;
