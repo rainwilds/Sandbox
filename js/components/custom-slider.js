@@ -284,9 +284,10 @@ class CustomSlider extends HTMLElement {
             const gapInPixels = parseFloat(gapValue) || 0; // Convert gap to pixels
             const gapPercentage = (gapInPixels / containerWidth) * 100; // Convert gap to percentage of container width
 
-            // Calculate translation: slideWidth + gapPercentage per slide transition
-            let translateX = -this.#currentIndex * (slideWidth + gapPercentage);
-            this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gapPercentage, slidesPerView, totalSlides, elementId: this.#uniqueId });
+            // Adjust gap contribution for multiple slides per view (one gap per slide transition)
+            const effectiveGap = slidesPerView > 1 ? gapPercentage / (slidesPerView - 1) : gapPercentage;
+            let translateX = -this.#currentIndex * (slideWidth + effectiveGap);
+            this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gapPercentage, effectiveGap, slidesPerView, totalSlides, elementId: this.#uniqueId });
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             wrapper.style.transform = `translateX(${translateX}%)`;
@@ -303,7 +304,7 @@ class CustomSlider extends HTMLElement {
                 }
             }
 
-            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gapPercentage, slidesPerView, totalSlides, elementId: this.#uniqueId });
+            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gapPercentage, effectiveGap, slidesPerView, totalSlides, elementId: this.#uniqueId });
         });
     }
 
@@ -357,7 +358,7 @@ class CustomSlider extends HTMLElement {
             navPrev.style.transform = 'translateY(-50%)';
 
             const navNext = document.createElement('div');
-            navNext.id = `${this.#uniqueId}-next`;
+            navNext.id = `${this.#uniqueId}-next';
             navNext.className = 'slider-nav-next';
             navNext.innerHTML = attrs.navigationIconRight;
             navNext.style.position = 'absolute';
