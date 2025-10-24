@@ -358,7 +358,7 @@ class CustomSlider extends HTMLElement {
             navPrev.style.transform = 'translateY(-50%)';
 
             const navNext = document.createElement('div');
-            navNext.id = `${this.#uniqueId}-next';
+            navNext.id = `${this.#uniqueId}-next`;
             navNext.className = 'slider-nav-next';
             navNext.innerHTML = attrs.navigationIconRight;
             navNext.style.position = 'absolute';
