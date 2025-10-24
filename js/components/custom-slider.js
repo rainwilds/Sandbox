@@ -301,7 +301,7 @@ class CustomSlider extends HTMLElement {
             if (this.hasAttribute('pagination')) {
                 const pagination = sliderContainer.querySelector('.slider-pagination');
                 if (pagination) {
-                    const dots = pagination.querySelectorAll('.pagination-dot');
+                    const dots = pagination.querySelectorAll('.icon');
                     dots.forEach((dot, index) => {
                         dot.innerHTML = index === this.#currentIndex ? this.getAttribute('pagination-icon-active') : this.getAttribute('pagination-icon-inactive');
                     });
@@ -382,21 +382,11 @@ class CustomSlider extends HTMLElement {
         if (attrs.pagination) {
             const pagination = document.createElement('div');
             pagination.className = 'slider-pagination';
-            pagination.style.position = 'absolute';
-            pagination.style.bottom = '0';
-            pagination.style.left = '50%';
-            pagination.style.transform = 'translateX(-50%)';
-            pagination.style.zIndex = '15'; // Above slides and navigation
-            pagination.style.display = 'flex';
-            pagination.style.justifyContent = 'center';
-            pagination.style.padding = '5px';
 
             const totalSlides = this.#childElements.length;
             for (let i = 0; i < totalSlides; i++) {
                 const dot = document.createElement('span');
-                dot.className = 'pagination-dot';
-                dot.style.cursor = 'pointer';
-                dot.style.margin = '0 5px';
+                dot.className = 'icon';
                 dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
                 dot.addEventListener('click', () => {
                     this.#currentIndex = i;
