@@ -234,7 +234,7 @@ class CustomSlider extends HTMLElement {
     #navigate(direction) {
         const totalSlides = this.#slides.length;
         const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
-        this.#lastDirection = direction; // Update last direction
+        this.#lastDirection = direction; // Update the last navigation direction
         this.#currentIndex += direction;
 
         // Boundary check with reset
@@ -281,12 +281,12 @@ class CustomSlider extends HTMLElement {
             const computedStyle = window.getComputedStyle(sliderContainer.querySelector('.slider-wrapper'));
             const gapValue = computedStyle.getPropertyValue('column-gap'); // Get the computed gap value
             const containerWidth = sliderContainer.getBoundingClientRect().width;
-            const gapInPixels = parseFloat(gapValue) || 0; // Convert gap to pixels
+            const gapSize = parseFloat(gapValue) || 0; // Convert gap to pixels (computed value)
 
             // Calculate translation: slide width in % plus gap offset in pixels
-            const gapOffset = this.#currentIndex * (slidesPerView - 1) * gapInPixels + (0.5 * gapInPixels);
+            const gapOffset = this.#currentIndex * (slidesPerView - 1) * gapSize + (0.5 * gapSize);
             let translateX = `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset}px)`;
-            this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gapInPixels, gapOffset, slidesPerView, totalSlides, containerWidth, elementId: this.#uniqueId });
+            this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gapSize, gapOffset, slidesPerView, totalSlides, containerWidth, elementId: this.#uniqueId });
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             wrapper.style.transform = `translateX(${translateX})`;
@@ -303,7 +303,7 @@ class CustomSlider extends HTMLElement {
                 }
             }
 
-            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gapInPixels, gapOffset, slidesPerView, totalSlides, containerWidth, elementId: this.#uniqueId });
+            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gapSize, gapOffset, slidesPerView, totalSlides, containerWidth, elementId: this.#uniqueId });
         });
     }
 
