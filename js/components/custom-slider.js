@@ -148,7 +148,6 @@ class CustomSlider extends HTMLElement {
 
         navigationIconLeft = validateIcon(navigationIconLeft, 'left');
         navigationIconRight = validateIcon(navigationIconRight, 'right');
-        navigationIconRight = validateIcon(navigationIconRight, 'right');
         paginationIconActive = validateIcon(paginationIconActive, 'active');
         paginationIconInactive = validateIcon(paginationIconInactive, 'inactive');
 
@@ -229,7 +228,7 @@ class CustomSlider extends HTMLElement {
             this.#startAutoplay(attrs.autoplayDelay);
         }
 
-        this.#updateSlider(attrs); // Pass attrs to access gap
+        this.#updateSlider(attrs);
     }
 
     #navigate(direction) {
@@ -281,10 +280,10 @@ class CustomSlider extends HTMLElement {
 
             // Calculate slide width in percentage
             const slideWidth = 100 / slidesPerView; // Each slide takes 100% / slidesPerView
-            const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0'; // Use raw gap value (e.g., '5em', '40px')
+            const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0'; // Use raw gap value (e.g., '40px', '5em')
 
             // Calculate translation: slide width in % plus gap offset in original units
-            const gapOffset = gap === '0' ? '0' : `(${this.#currentIndex} * ${slidesPerView - 1} * ${gap} + 0.5 * ${gap})`;
+            const gapOffset = gap === '0' ? '0' : `(${this.#currentIndex} * ${gap} + 0.5 * ${gap})`;
             let translateX = gap === '0' ? `-${this.#currentIndex * slideWidth}%` : `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset})`;
             this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, gapOffset, slidesPerView, totalSlides, elementId: this.#uniqueId });
 
