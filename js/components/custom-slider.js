@@ -284,7 +284,7 @@ class CustomSlider extends HTMLElement {
             const gapInPixels = parseFloat(gapValue) || 0; // Convert gap to pixels
 
             // Calculate translation: slide width in % plus gap offset in pixels
-            const gapOffset = this.#currentIndex * (slidesPerView - 0.5) * gapInPixels;
+            const gapOffset = this.#currentIndex * (slidesPerView - 1) * gapInPixels + (0.5 * gapInPixels);
             let translateX = `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset}px)`;
             this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gapInPixels, gapOffset, slidesPerView, totalSlides, containerWidth, elementId: this.#uniqueId });
 
@@ -320,11 +320,8 @@ class CustomSlider extends HTMLElement {
         innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`;
         if (attrs.gap && attrs.gap !== '0') {
             innerWrapper.style.columnGap = attrs.gap;
-            innerWrapper.style.width = `calc(100% - (${attrs.slidesPerView - 1} * ${attrs.gap}))`;
-        } else {
-            innerWrapper.style.width = '100%';
         }
-        this.#log('Applied styles to slider-wrapper', { gap: attrs.gap, width: innerWrapper.style.width, gridTemplateColumns: innerWrapper.style.gridTemplateColumns });
+        this.#log('Applied styles to slider-wrapper', { gap: attrs.gap, gridTemplateColumns: innerWrapper.style.gridTemplateColumns });
 
         if (this.#childElements.length === 0) {
             this.#warn('No valid slides found', { elementId: this.#uniqueId });
