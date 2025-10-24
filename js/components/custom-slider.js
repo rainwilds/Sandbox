@@ -148,6 +148,7 @@ class CustomSlider extends HTMLElement {
 
         navigationIconLeft = validateIcon(navigationIconLeft, 'left');
         navigationIconRight = validateIcon(navigationIconRight, 'right');
+        navigationIconRight = validateIcon(navigationIconRight, 'right');
         paginationIconActive = validateIcon(paginationIconActive, 'active');
         paginationIconInactive = validateIcon(paginationIconInactive, 'inactive');
 
@@ -228,7 +229,7 @@ class CustomSlider extends HTMLElement {
             this.#startAutoplay(attrs.autoplayDelay);
         }
 
-        this.#updateSlider();
+        this.#updateSlider(attrs); // Pass attrs to access gap
     }
 
     #navigate(direction) {
@@ -245,8 +246,10 @@ class CustomSlider extends HTMLElement {
             this.#currentIndex = maxVisibleIndex; // Reset to end on "previous" overflow
         }
 
-        this.#updateSlider();
-        this.#log('Navigated', { direction, currentIndex: this.#currentIndex, lastDirection: this.#lastDirection, slidesPerView, totalSlides, elementId: this.#uniqueId });
+        this.getAttributes().then(attrs => {
+            this.#updateSlider(attrs);
+            this.#log('Navigated', { direction, currentIndex: this.#currentIndex, lastDirection: this.#lastDirection, slidesPerView, totalSlides, elementId: this.#uniqueId });
+        });
     }
 
     #startAutoplay(delay) {
@@ -265,7 +268,7 @@ class CustomSlider extends HTMLElement {
         }
     }
 
-    #updateSlider() {
+    #updateSlider(attrs) {
         if (this.#animationFrameId) {
             cancelAnimationFrame(this.#animationFrameId);
         }
@@ -278,15 +281,12 @@ class CustomSlider extends HTMLElement {
 
             // Calculate slide width in percentage
             const slideWidth = 100 / slidesPerView; // Each slide takes 100% / slidesPerView
-            const computedStyle = window.getComputedStyle(sliderContainer.querySelector('.slider-wrapper'));
-            const gapValue = computedStyle.getPropertyValue('column-gap'); // Get the computed gap value
-            const containerWidth = sliderContainer.getBoundingClientRect().width;
-            const gapSize = parseFloat(gapValue) || 0; // Convert gap to pixels (computed value)
+            const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0'; // Use raw gap value (e.g., '5em', '40px')
 
-            // Calculate translation: slide width in % plus gap offset in pixels
-            const gapOffset = this.#currentIndex * (slidesPerView - 1) * gapSize + (0.5 * gapSize);
-            let translateX = `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset}px)`;
-            this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gapSize, gapOffset, slidesPerView, totalSlides, containerWidth, elementId: this.#uniqueId });
+            // Calculate translation: slide width in % plus gap offset in original units
+            const gapOffset = gap === '0' ? '0' : `(${this.#currentIndex} * ${slidesPerView - 1} * ${gap} + 0.5 * ${gap})`;
+            let translateX = gap === '0' ? `-${this.#currentIndex * slideWidth}%` : `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset})`;
+            this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, gapOffset, slidesPerView, totalSlides, elementId: this.#uniqueId });
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             wrapper.style.transform = `translateX(${translateX})`;
@@ -303,7 +303,7 @@ class CustomSlider extends HTMLElement {
                 }
             }
 
-            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gapSize, gapOffset, slidesPerView, totalSlides, containerWidth, elementId: this.#uniqueId });
+            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, gapOffset, slidesPerView, totalSlides, elementId: this.#uniqueId });
         });
     }
 
@@ -381,8 +381,10 @@ class CustomSlider extends HTMLElement {
                 dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
                 dot.addEventListener('click', () => {
                     this.#currentIndex = i;
-                    this.#updateSlider();
-                    this.#log('Pagination dot clicked', { newIndex: this.#currentIndex, elementId: this.#uniqueId });
+                    this.getAttributes().then(attrs => {
+                        this.#updateSlider(attrs);
+                        this.#log('Pagination dot clicked', { newIndex: this.#currentIndex, elementId: this.#uniqueId });
+                    });
                 });
                 pagination.appendChild(dot);
             }
