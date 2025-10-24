@@ -186,7 +186,7 @@ class CustomSlider extends HTMLElement {
                 this.#setupSlider(attrs);
                 this.#log('Initialization completed successfully', { elementId: this.#uniqueId });
             } else {
-                this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
+                this.#error('Render returned null, using fallback', { elementId: vader});
                 const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>' });
                 this.replaceWith(fallbackElement);
             }
@@ -276,20 +276,19 @@ class CustomSlider extends HTMLElement {
             const sliderContainer = document.getElementById(this.#uniqueId);
             if (!sliderContainer) return;
 
-            // Calculate slide width based on slidesPerView
-            const slideWidth = 100 / slidesPerView; // Each slide takes 100% / slidesPerView
+            // Calculate slide width in pixels
+            const containerWidth = sliderContainer.getBoundingClientRect().width;
+            const slideWidthPixels = containerWidth / slidesPerView; // Each slide's width in pixels
             const computedStyle = window.getComputedStyle(sliderContainer.querySelector('.slider-wrapper'));
             const gapValue = computedStyle.getPropertyValue('column-gap'); // Get the computed gap value
-            const containerWidth = sliderContainer.getBoundingClientRect().width;
             const gapInPixels = parseFloat(gapValue) || 0; // Convert gap to pixels
-            const gapPercentage = (gapInPixels / containerWidth) * 100; // Convert gap to percentage of container width
 
-            // Calculate translation: slide width plus one gap per slide transition
-            let translateX = -this.#currentIndex * (slideWidth + gapPercentage);
-            this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gapPercentage, slidesPerView, totalSlides, elementId: this.#uniqueId });
+            // Calculate translation in pixels: slide width plus one gap per slide transition
+            let translateX = -this.#currentIndex * (slideWidthPixels + gapInPixels);
+            this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidthPixels, gapInPixels, slidesPerView, totalSlides, containerWidth, elementId: this.#uniqueId });
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
-            wrapper.style.transform = `translateX(${translateX}%)`;
+            wrapper.style.transform = `translateX(${translateX}px)`;
 
             // Update pagination if enabled
             if (this.hasAttribute('pagination')) {
@@ -303,7 +302,7 @@ class CustomSlider extends HTMLElement {
                 }
             }
 
-            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gapPercentage, slidesPerView, totalSlides, elementId: this.#uniqueId });
+            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidthPixels, gapInPixels, slidesPerView, totalSlides, containerWidth, elementId: this.#uniqueId });
         });
     }
 
