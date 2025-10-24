@@ -276,23 +276,17 @@ class CustomSlider extends HTMLElement {
             const sliderContainer = document.getElementById(this.#uniqueId);
             if (!sliderContainer) return;
 
-            const slideWidth = 100 / slidesPerView; // Base width percentage per visible slide
+            // Calculate slide width based on slidesPerView
+            const slideWidth = 100 / slidesPerView; // Each slide takes 100% / slidesPerView
             const computedStyle = window.getComputedStyle(sliderContainer.querySelector('.slider-wrapper'));
             const gapValue = computedStyle.getPropertyValue('column-gap'); // Get the computed gap value
             const containerWidth = sliderContainer.getBoundingClientRect().width;
             const gapInPixels = parseFloat(gapValue) || 0; // Convert gap to pixels
-            const gapPercentage = (gapInPixels / containerWidth) * 100; // Convert to percentage
-            const effectiveSlideWidth = slideWidth + gapPercentage; // Total width per slide including gap
+            const gapPercentage = (gapInPixels / containerWidth) * 100; // Convert gap to percentage of container width
 
-            this.#log('Gap calculation', { gapValue, gapInPixels, containerWidth, gapPercentage, effectiveSlideWidth });
-
-            let initialTranslateX = -this.#currentIndex * effectiveSlideWidth;
-            let initialIndex = this.#currentIndex;
-
-            this.#log('UpdateSlider started', { initialIndex, initialTranslateX, lastDirection: this.#lastDirection, slidesPerView, totalSlides, elementId: this.#uniqueId });
-
-            let translateX = -this.#currentIndex * effectiveSlideWidth;
-            this.#log('Final values', { adjustedIndex: this.#currentIndex, translateX, slidesPerView, totalSlides, elementId: this.#uniqueId });
+            // Calculate translation: slideWidth + gapPercentage per slide transition
+            let translateX = -this.#currentIndex * (slideWidth + gapPercentage);
+            this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gapPercentage, slidesPerView, totalSlides, elementId: this.#uniqueId });
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             wrapper.style.transform = `translateX(${translateX}%)`;
@@ -309,7 +303,7 @@ class CustomSlider extends HTMLElement {
                 }
             }
 
-            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slidesPerView, totalSlides, elementId: this.#uniqueId });
+            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gapPercentage, slidesPerView, totalSlides, elementId: this.#uniqueId });
         });
     }
 
@@ -323,14 +317,14 @@ class CustomSlider extends HTMLElement {
 
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
-        innerWrapper.style.gridTemplateColumns = 'repeat(7, calc(50%))';
+        innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`;
         if (attrs.gap && attrs.gap !== '0') {
             innerWrapper.style.columnGap = attrs.gap;
             innerWrapper.style.width = 'calc(100% - var(--space-small))';
         } else {
             innerWrapper.style.width = '100%';
         }
-        this.#log('Applied styles to slider-wrapper', { gap: attrs.gap, width: innerWrapper.style.width });
+        this.#log('Applied styles to slider-wrapper', { gap: attrs.gap, width: innerWrapper.style.width, gridTemplateColumns: innerWrapper.style.gridTemplateColumns });
 
         if (this.#childElements.length === 0) {
             this.#warn('No valid slides found', { elementId: this.#uniqueId });
