@@ -278,7 +278,7 @@ class CustomSlider extends HTMLElement {
 
             const slideWidth = 100 / slidesPerView; // Base width percentage per visible slide
             const computedStyle = window.getComputedStyle(sliderContainer.querySelector('.slider-wrapper'));
-            const gapValue = computedStyle.gridColumnGap; // Get the computed gap value
+            const gapValue = computedStyle.getPropertyValue('column-gap'); // Get the computed gap value
             const containerWidth = sliderContainer.getBoundingClientRect().width;
             const gapInPixels = parseFloat(gapValue) || 0; // Convert gap to pixels
             const gapPercentage = (gapInPixels / containerWidth) * 100; // Convert to percentage
@@ -295,7 +295,6 @@ class CustomSlider extends HTMLElement {
             this.#log('Final values', { adjustedIndex: this.#currentIndex, translateX, slidesPerView, totalSlides, elementId: this.#uniqueId });
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
-            wrapper.style.transition = 'transform 0.5s'; // Ensure transition is applied
             wrapper.style.transform = `translateX(${translateX}%)`;
 
             // Update pagination if enabled
@@ -321,24 +320,17 @@ class CustomSlider extends HTMLElement {
         const sliderWrapper = document.createElement('div');
         sliderWrapper.id = this.#uniqueId;
         sliderWrapper.className = 'custom-slider';
-        sliderWrapper.style.height = '100%';
-        sliderWrapper.style.position = 'relative'; // Ensure positioning context for pagination
-        sliderWrapper.style.overflow = 'hidden';
 
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
-        innerWrapper.style.display = 'grid';
-        innerWrapper.style.transition = 'transform 0.5s';
-        innerWrapper.style.transform = 'translateX(0%)';
-        innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`;
-        innerWrapper.style.gridAutoFlow = 'column';
-        innerWrapper.style.height = '100%';
-        innerWrapper.style.gridColumnGap = attrs.gap; // Apply gap attribute
-        // Apply width adjustment if gap is present
+        innerWrapper.style.gridTemplateColumns = 'repeat(7, calc(50%))';
         if (attrs.gap && attrs.gap !== '0') {
+            innerWrapper.style.columnGap = attrs.gap;
             innerWrapper.style.width = 'calc(100% - var(--space-small))';
+        } else {
+            innerWrapper.style.width = '100%';
         }
-        this.#log('Applied gap to slider-wrapper', { gap: attrs.gap });
+        this.#log('Applied styles to slider-wrapper', { gap: attrs.gap, width: innerWrapper.style.width });
 
         if (this.#childElements.length === 0) {
             this.#warn('No valid slides found', { elementId: this.#uniqueId });

@@ -569,7 +569,7 @@
         }
 
         @supports selector(scrollbar-gutter) {
-            scrollbar-gutter: stable both-edges;
+            scrollbar-gutter: stable;
         }
 
         .animate {
@@ -2016,14 +2016,13 @@ div#products {
 
 .custom-slider {
     height: 100%;
-    overflow: hidden;
+    overflow-x: hidden;
 }
 
 .slider-wrapper {
     display: grid;
     transition: transform 0.5s;
     transform: translateX(0%);
-    grid-template-columns: repeat(7, calc(100% / 3));
     grid-auto-flow: column;
     height: 100%;
 }
