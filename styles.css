@@ -569,7 +569,7 @@
         }
 
         @supports selector(scrollbar-gutter) {
-            scrollbar-gutter: stable;
+            scrollbar-gutter: stable both-edges;
         }
 
         .animate {
