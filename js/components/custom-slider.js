@@ -334,6 +334,10 @@ class CustomSlider extends HTMLElement {
         innerWrapper.style.gridAutoFlow = 'column';
         innerWrapper.style.height = '100%';
         innerWrapper.style.gridColumnGap = attrs.gap; // Apply gap attribute
+        // Apply width adjustment if gap is present
+        if (attrs.gap && attrs.gap !== '0') {
+            innerWrapper.style.width = 'calc(100% - var(--space-small))';
+        }
         this.#log('Applied gap to slider-wrapper', { gap: attrs.gap });
 
         if (this.#childElements.length === 0) {
