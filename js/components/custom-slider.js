@@ -83,16 +83,22 @@ class CustomSlider extends HTMLElement {
 
     async getAttributes() {
         this.#log('Parsing attributes', { elementId: this.#uniqueId });
-        const autoplayAttr = this.getAttribute('autoplay') || '3s'; // Default to 3 seconds if not specified
-        let autoplayDelay = 3000; // Default delay in milliseconds
-
-        const timeMatch = autoplayAttr.match(/^(\d+)(s|ms)$/);
-        if (timeMatch) {
-            const value = parseInt(timeMatch[1], 10);
-            const unit = timeMatch[2];
-            autoplayDelay = unit === 's' ? value * 1000 : value; // Convert seconds to milliseconds
-        } else {
-            this.#warn('Invalid autoplay format, using default 3s', { value: autoplayAttr, expected: 'Ns or Nms' });
+        const autoplayAttr = this.getAttribute('autoplay');
+        let autoplayDelay = 0; // Default to disabled if attribute is absent
+        if (this.hasAttribute('autoplay')) {
+            if (autoplayAttr === '' || autoplayAttr === null) {
+                autoplayDelay = 3000; // Default if present but empty/no value
+            } else {
+                const timeMatch = autoplayAttr.match(/^(\d+)(s|ms)$/);
+                if (timeMatch) {
+                    const value = parseInt(timeMatch[1], 10);
+                    const unit = timeMatch[2];
+                    autoplayDelay = unit === 's' ? value * 1000 : value; // Convert seconds to milliseconds
+                } else {
+                    this.#warn('Invalid autoplay format, using default 3s', { value: autoplayAttr, expected: 'Ns or Nms' });
+                    autoplayDelay = 3000;
+                }
+            }
         }
         this.#log('Parsed autoplay attribute', { autoplayAttr, autoplayDelay });
 
