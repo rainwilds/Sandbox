@@ -184,6 +184,14 @@ async function updateHead(attributes, setup) {
   styleLink.href = './styles.css';
   criticalFrag.appendChild(styleLink);
   logger.log('Applied stylesheet: ./styles.css');
+
+  // Add custom.css after styles.css
+  const customStyleLink = document.createElement('link');
+  customStyleLink.rel = 'stylesheet';
+  customStyleLink.href = './custom.css';
+  criticalFrag.appendChild(customStyleLink);
+  logger.log('Applied custom stylesheet: ./custom.css');
+
   const faKitUrl = setup.font_awesome?.kit_url ?? setup.font_awesome?.kitUrl;
   if (faKitUrl) {
     const script = document.createElement('script');

@@ -14,7 +14,7 @@
     font-display: swap;
 }
 
-@layer reset, variables, defaults, components;
+@layer reset, variables, defaults, components, custom;
 
 @layer reset {
 
