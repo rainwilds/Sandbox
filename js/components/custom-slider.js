@@ -114,7 +114,12 @@ class CustomSlider extends HTMLElement {
         let navigationIconRight = this.getAttribute('navigation-icon-right') || '<i class="fa-chisel fa-regular fa-angle-right"></i>';
 
         const gapAttr = this.getAttribute('gap') || '0'; // Default to 0 if no gap attribute
-        this.#log('Parsed gap attribute', { gapAttr });
+        let gap = gapAttr;
+        if (slidesPerView === 1 && this.hasAttribute('gap')) {
+            this.#warn('Gap attribute ignored for slides-per-view=1', { gap: gapAttr });
+            gap = '0';
+        }
+        this.#log('Parsed gap attribute', { gapAttr, effectiveGap: gap });
 
         const paginationAttr = this.hasAttribute('pagination'); // Boolean, true if attribute is present
         this.#log('Parsed pagination attribute', { pagination: paginationAttr });
@@ -157,7 +162,7 @@ class CustomSlider extends HTMLElement {
             navigation,
             navigationIconLeft,
             navigationIconRight,
-            gap: gapAttr,
+            gap,
             pagination: paginationAttr,
             paginationIconActive,
             paginationIconInactive
