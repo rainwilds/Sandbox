@@ -282,10 +282,16 @@ class CustomSlider extends HTMLElement {
             const slideWidth = 100 / slidesPerView; // Each slide takes 100% / slidesPerView
             const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0'; // Use raw gap value (e.g., '40px', 'var(--space-tiny)')
 
-            // Calculate translation: slide width in % plus gap offset
-            const gapOffset = gap === '0' || slidesPerView === 1 ? '0' : `(${slidesPerView - 1}) * ${gap}`;
-            let translateX = gap === '0' || slidesPerView === 1 ? `-${this.#currentIndex * slideWidth}%` : `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset})`;
-            this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, gapOffset, slidesPerView, totalSlides, elementId: this.#uniqueId });
+            // Calculate translation: slide width in % plus gap offset plus centering offset
+            let translateX;
+            if (gap === '0' || slidesPerView === 1) {
+                translateX = `-${this.#currentIndex * slideWidth}%`;
+            } else {
+                const gapOffset = `${this.#currentIndex} * (${slidesPerView - 1}) * ${gap}`;
+                const centeringOffset = `(${slidesPerView - 1}) * ${gap} / 2`;
+                translateX = `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset} - ${centeringOffset})`;
+            }
+            this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, slidesPerView, totalSlides, elementId: this.#uniqueId });
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             wrapper.style.transform = `translateX(${translateX})`;
@@ -302,7 +308,7 @@ class CustomSlider extends HTMLElement {
                 }
             }
 
-            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, gapOffset, slidesPerView, totalSlides, elementId: this.#uniqueId });
+            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, slidesPerView, totalSlides, elementId: this.#uniqueId });
         });
     }
 
