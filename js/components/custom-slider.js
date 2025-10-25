@@ -283,7 +283,8 @@ class CustomSlider extends HTMLElement {
             const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0'; // Use raw gap value (e.g., '40px', '5em')
 
             // Calculate translation: slide width in % plus gap offset in original units
-            const gapOffset = gap === '0' ? '0' : `(${this.#currentIndex} + ${slidesPerView === 2 ? '0.5' : '1'}) * ${gap}`;
+            const addition = (slidesPerView - 1) / 2;
+            const gapOffset = gap === '0' ? '0' : `(${this.#currentIndex} + ${addition}) * ${gap}`;
             let translateX = gap === '0' ? `-${this.#currentIndex * slideWidth}%` : `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset})`;
             this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, gapOffset, slidesPerView, totalSlides, elementId: this.#uniqueId });
 
