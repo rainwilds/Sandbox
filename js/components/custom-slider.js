@@ -109,7 +109,7 @@ class CustomSlider extends HTMLElement {
             slidesPerView = 1;
         }
 
-        const navigation = this.hasAttribute('navigation');
+        let navigation = this.hasAttribute('navigation');
         let navigationIconLeft = this.getAttribute('navigation-icon-left') || '<i class="fa-chisel fa-regular fa-angle-left"></i>';
         let navigationIconRight = this.getAttribute('navigation-icon-right') || '<i class="fa-chisel fa-regular fa-angle-right"></i>';
 
@@ -121,8 +121,8 @@ class CustomSlider extends HTMLElement {
         }
         this.#log('Parsed gap attribute', { gapAttr, effectiveGap: gap });
 
-        const paginationAttr = this.hasAttribute('pagination'); // Boolean, true if attribute is present
-        this.#log('Parsed pagination attribute', { pagination: paginationAttr });
+        let pagination = this.hasAttribute('pagination'); // Boolean, true if attribute is present
+        this.#log('Parsed pagination attribute', { pagination });
 
         let paginationIconActive = this.getAttribute('pagination-icon-active') || '<i class="fa-solid fa-circle"></i>';
         let paginationIconInactive = this.getAttribute('pagination-icon-inactive') || '<i class="fa-regular fa-circle"></i>';
@@ -156,6 +156,18 @@ class CustomSlider extends HTMLElement {
         paginationIconActive = validateIcon(paginationIconActive, 'active');
         paginationIconInactive = validateIcon(paginationIconInactive, 'inactive');
 
+        // Check for required attributes for navigation
+        if (navigation && (!this.hasAttribute('navigation-icon-left') || !this.hasAttribute('navigation-icon-right'))) {
+            this.#warn('Navigation requires explicit navigation-icon-left and navigation-icon-right attributes. Ignoring navigation.');
+            navigation = false;
+        }
+
+        // Check for required attributes for pagination
+        if (pagination && (!this.hasAttribute('pagination-icon-active') || !this.hasAttribute('pagination-icon-inactive'))) {
+            this.#warn('Pagination requires explicit pagination-icon-active and pagination-icon-inactive attributes. Ignoring pagination.');
+            pagination = false;
+        }
+
         return {
             autoplayDelay,
             slidesPerView,
@@ -163,7 +175,7 @@ class CustomSlider extends HTMLElement {
             navigationIconLeft,
             navigationIconRight,
             gap,
-            pagination: paginationAttr,
+            pagination,
             paginationIconActive,
             paginationIconInactive
         };
@@ -297,12 +309,12 @@ class CustomSlider extends HTMLElement {
             wrapper.style.transform = `translateX(${translateX})`;
 
             // Update pagination if enabled
-            if (this.hasAttribute('pagination')) {
+            if (attrs.pagination) {
                 const pagination = sliderContainer.querySelector('.slider-pagination');
                 if (pagination) {
                     const dots = pagination.querySelectorAll('.icon');
                     dots.forEach((dot, index) => {
-                        dot.innerHTML = index === this.#currentIndex ? this.getAttribute('pagination-icon-active') : this.getAttribute('pagination-icon-inactive');
+                        dot.innerHTML = index === this.#currentIndex ? attrs.paginationIconActive : attrs.paginationIconInactive;
                     });
                     this.#log('Pagination updated', { currentIndex: this.#currentIndex, totalSlides, elementId: this.#uniqueId });
                 }
