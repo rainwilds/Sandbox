@@ -276,45 +276,19 @@ class CustomSlider extends HTMLElement {
             const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
             const totalSlides = this.#slides.length;
             const sliderContainer = document.getElementById(this.#uniqueId);
-            if (!sliderContainer) {
-                this.#error('Slider container not found', { elementId: this.#uniqueId });
-                return;
-            }
+            if (!sliderContainer) return;
 
             // Calculate slide width in percentage
-            const slideWidth = 100 / slidesPerView;
-            const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0';
+            const slideWidth = 100 / slidesPerView; // Each slide takes 100% / slidesPerView
+            const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0'; // Use raw gap value (e.g., '40px', '5em')
 
-            // Calculate translation: slide width in % plus gap offset plus centering offset
-            let translateX;
-            let gapOffset = '0';
-            let centeringOffset = '0';
-            if (gap === '0' || slidesPerView === 1) {
-                translateX = `-${this.#currentIndex * slideWidth}%`;
-            } else {
-                gapOffset = `${this.#currentIndex} * (${slidesPerView - 1}) * ${gap}`;
-                centeringOffset = `(${slidesPerView - 1}) * ${gap} / 2`;
-                translateX = `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset} - ${centeringOffset})`;
-            }
-
-            // Enhanced debugging logs
-            this.#log('Slider state', {
-                currentIndex: this.#currentIndex,
-                slidesPerView,
-                totalSlides,
-                gap,
-                slideWidth: `${slideWidth}%`,
-                gapOffset,
-                centeringOffset,
-                translateX,
-                elementId: this.#uniqueId
-            });
+            // Calculate translation: slide width in % plus gap offset in original units
+            const gapOffset = gap === '0' ? '0' : `(${this.#currentIndex} + ${slidesPerView === 2 ? '0.5' : '1'}) * ${gap}`;
+            let translateX = gap === '0' ? `-${this.#currentIndex * slideWidth}%` : `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset})`;
+            this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, gapOffset, slidesPerView, totalSlides, elementId: this.#uniqueId });
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             wrapper.style.transform = `translateX(${translateX})`;
-
-            // Log computed styles and DOM info
-            this.#debugDOM(sliderContainer, wrapper);
 
             // Update pagination if enabled
             if (this.hasAttribute('pagination')) {
@@ -328,113 +302,7 @@ class CustomSlider extends HTMLElement {
                 }
             }
 
-            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, gapOffset, centeringOffset, slidesPerView, totalSlides, elementId: this.#uniqueId });
-        });
-    }
-
-    #debugDOM(sliderContainer, wrapper) {
-        if (!this.debug) return;
-
-        // Log bounding box info
-        const sliderRect = sliderContainer.getBoundingClientRect();
-        const wrapperRect = wrapper.getBoundingClientRect();
-        const firstSlide = wrapper.querySelector('.slider-slide');
-        const slideRect = firstSlide ? firstSlide.getBoundingClientRect() : null;
-
-        this.#log('DOM Bounding Boxes', {
-            sliderContainer: {
-                width: sliderRect.width,
-                left: sliderRect.left,
-                right: sliderRect.right
-            },
-            sliderWrapper: {
-                width: wrapperRect.width,
-                left: wrapperRect.left,
-                right: wrapperRect.right
-            },
-            firstSlide: slideRect ? {
-                width: slideRect.width,
-                left: slideRect.left,
-                right: slideRect.right
-            } : 'No slides found',
-            elementId: this.#uniqueId
-        });
-
-        // Log computed styles
-        const sliderStyles = window.getComputedStyle(sliderContainer);
-        const wrapperStyles = window.getComputedStyle(wrapper);
-        const firstSlideStyles = firstSlide ? window.getComputedStyle(firstSlide) : null;
-
-        this.#log('Computed Styles', {
-            sliderContainer: {
-                width: sliderStyles.width,
-                padding: sliderStyles.padding,
-                margin: sliderStyles.margin,
-                overflow: sliderStyles.overflow
-            },
-            sliderWrapper: {
-                gridTemplateColumns: wrapperStyles.gridTemplateColumns,
-                columnGap: wrapperStyles.columnGap,
-                transform: wrapperStyles.transform
-            },
-            firstSlide: firstSlideStyles ? {
-                width: firstSlideStyles.width,
-                margin: firstSlideStyles.margin
-            } : 'No slides found',
-            elementId: this.#uniqueId
-        });
-    }
-
-    #debugDOM(sliderContainer, wrapper) {
-        if (!this.debug) return;
-
-        // Log bounding box info
-        const sliderRect = sliderContainer.getBoundingClientRect();
-        const wrapperRect = wrapper.getBoundingClientRect();
-        const firstSlide = wrapper.querySelector('.slider-slide');
-        const slideRect = firstSlide ? firstSlide.getBoundingClientRect() : null;
-
-        this.#log('DOM Bounding Boxes', {
-            sliderContainer: {
-                width: sliderRect.width,
-                left: sliderRect.left,
-                right: sliderRect.right
-            },
-            sliderWrapper: {
-                width: wrapperRect.width,
-                left: wrapperRect.left,
-                right: wrapperRect.right
-            },
-            firstSlide: slideRect ? {
-                width: slideRect.width,
-                left: slideRect.left,
-                right: slideRect.right
-            } : 'No slides found',
-            elementId: this.#uniqueId
-        });
-
-        // Log computed styles
-        const sliderStyles = window.getComputedStyle(sliderContainer);
-        const wrapperStyles = window.getComputedStyle(wrapper);
-        const firstSlideStyles = firstSlide ? window.getComputedStyle(firstSlide) : null;
-
-        this.#log('Computed Styles', {
-            sliderContainer: {
-                width: sliderStyles.width,
-                padding: sliderStyles.padding,
-                margin: sliderStyles.margin,
-                overflow: sliderStyles.overflow
-            },
-            sliderWrapper: {
-                gridTemplateColumns: wrapperStyles.gridTemplateColumns,
-                columnGap: wrapperStyles.columnGap,
-                transform: wrapperStyles.transform
-            },
-            firstSlide: firstSlideStyles ? {
-                width: firstSlideStyles.width,
-                margin: firstSlideStyles.margin
-            } : 'No slides found',
-            elementId: this.#uniqueId
+            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, gapOffset, slidesPerView, totalSlides, elementId: this.#uniqueId });
         });
     }
 
@@ -445,23 +313,6 @@ class CustomSlider extends HTMLElement {
         const sliderWrapper = document.createElement('div');
         sliderWrapper.id = this.#uniqueId;
         sliderWrapper.className = 'custom-slider';
-
-        // Add debugging CSS if debug mode is enabled
-        if (this.debug) {
-            const styleElement = document.createElement('style');
-            styleElement.textContent = `
-            #${this.#uniqueId}.custom-slider {
-                outline: 2px solid red;
-            }
-            #${this.#uniqueId} .slider-wrapper {
-                outline: 2px solid blue;
-            }
-            #${this.#id} .slider-slide {
-                outline: 1px dashed green;
-            }
-        `;
-            fragment.appendChild(styleElement);
-        }
 
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
@@ -517,9 +368,11 @@ class CustomSlider extends HTMLElement {
             this.#log('Navigation buttons added', { elementId: this.#uniqueId });
         }
 
+        // Add pagination if enabled
         if (attrs.pagination) {
             const pagination = document.createElement('div');
             pagination.className = 'slider-pagination';
+
             const totalSlides = this.#childElements.length;
             for (let i = 0; i < totalSlides; i++) {
                 const dot = document.createElement('span');
