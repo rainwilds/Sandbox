@@ -282,8 +282,8 @@ class CustomSlider extends HTMLElement {
             }
 
             // Calculate slide width in percentage
-            const slideWidth = 100 / slidesPerView; // Each slide takes 100% / slidesPerView
-            const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0'; // Use raw gap value (e.g., '40px', 'var(--space-tiny)')
+            const slideWidth = 100 / slidesPerView;
+            const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0';
 
             // Calculate translation: slide width in % plus gap offset plus centering offset
             let translateX;
@@ -385,6 +385,59 @@ class CustomSlider extends HTMLElement {
         });
     }
 
+    #debugDOM(sliderContainer, wrapper) {
+        if (!this.debug) return;
+
+        // Log bounding box info
+        const sliderRect = sliderContainer.getBoundingClientRect();
+        const wrapperRect = wrapper.getBoundingClientRect();
+        const firstSlide = wrapper.querySelector('.slider-slide');
+        const slideRect = firstSlide ? firstSlide.getBoundingClientRect() : null;
+
+        this.#log('DOM Bounding Boxes', {
+            sliderContainer: {
+                width: sliderRect.width,
+                left: sliderRect.left,
+                right: sliderRect.right
+            },
+            sliderWrapper: {
+                width: wrapperRect.width,
+                left: wrapperRect.left,
+                right: wrapperRect.right
+            },
+            firstSlide: slideRect ? {
+                width: slideRect.width,
+                left: slideRect.left,
+                right: slideRect.right
+            } : 'No slides found',
+            elementId: this.#uniqueId
+        });
+
+        // Log computed styles
+        const sliderStyles = window.getComputedStyle(sliderContainer);
+        const wrapperStyles = window.getComputedStyle(wrapper);
+        const firstSlideStyles = firstSlide ? window.getComputedStyle(firstSlide) : null;
+
+        this.#log('Computed Styles', {
+            sliderContainer: {
+                width: sliderStyles.width,
+                padding: sliderStyles.padding,
+                margin: sliderStyles.margin,
+                overflow: sliderStyles.overflow
+            },
+            sliderWrapper: {
+                gridTemplateColumns: wrapperStyles.gridTemplateColumns,
+                columnGap: wrapperStyles.columnGap,
+                transform: wrapperStyles.transform
+            },
+            firstSlide: firstSlideStyles ? {
+                width: firstSlideStyles.width,
+                margin: firstSlideStyles.margin
+            } : 'No slides found',
+            elementId: this.#uniqueId
+        });
+    }
+
     async render(attrs) {
         this.#log('Starting render', { elementId: this.#uniqueId, attrs });
 
@@ -403,7 +456,7 @@ class CustomSlider extends HTMLElement {
             #${this.#uniqueId} .slider-wrapper {
                 outline: 2px solid blue;
             }
-            #${this.#uniqueId} .slider-slide {
+            #${this.#id} .slider-slide {
                 outline: 1px dashed green;
             }
         `;
@@ -464,7 +517,6 @@ class CustomSlider extends HTMLElement {
             this.#log('Navigation buttons added', { elementId: this.#uniqueId });
         }
 
-        // Add pagination if enabled
         if (attrs.pagination) {
             const pagination = document.createElement('div');
             pagination.className = 'slider-pagination';
