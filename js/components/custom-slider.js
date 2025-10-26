@@ -93,7 +93,7 @@ class CustomSlider extends HTMLElement {
             this.#log('Using cached attributes', { elementId: this.#uniqueId });
             return this.#cachedAttributes;
         }
-        this.#log('Parsing new attributes', { elementId: this.#uniqueId });
+        this.#log('Parsing new attributes', { elementId: this.#uniqueId, outerHTML: this.outerHTML.substring(0, 200) });
 
         const autoplayAttr = this.getAttribute('autoplay');
         let autoplayDelay = 0;
@@ -116,10 +116,15 @@ class CustomSlider extends HTMLElement {
 
         const slidesPerViewAttr = this.getAttribute('slides-per-view') || '1';
         let slidesPerView = parseInt(slidesPerViewAttr, 10);
-        if (isNaN(slidesPerView) || slidesPerView < 1) {
-            this.#warn('Invalid slides-per-view, defaulting to 1', { value: slidesPerViewAttr });
+        if (isNaN(slidesPerView) || slidesPerView < 1 || !Number.isInteger(Number(slidesPerViewAttr))) {
+            this.#warn('Invalid slides-per-view, defaulting to 1', { 
+                value: slidesPerViewAttr, 
+                expected: 'Positive integer (e.g., "3")',
+                elementId: this.#uniqueId
+            });
             slidesPerView = 1;
         }
+        this.#log('Parsed slides-per-view attribute', { slidesPerViewAttr, slidesPerView });
 
         let navigation = this.hasAttribute('navigation');
         let navigationIconLeft = this.getAttribute('navigation-icon-left') || '<i class="fa-chisel fa-regular fa-angle-left"></i>';
@@ -142,7 +147,8 @@ class CustomSlider extends HTMLElement {
             } else {
                 this.#warn('Invalid navigation-icon-size format, ignoring', {
                     value: navigationIconSize,
-                    expected: 'One or two CSS font-size values (e.g., "1.5rem" or "2rem 1.5rem")'
+                    expected: 'One or two CSS font-size values (e.g., "1.5rem" or "2rem 1.5rem")',
+                    elementId: this.#uniqueId
                 });
             }
         }
@@ -163,12 +169,14 @@ class CustomSlider extends HTMLElement {
                 this.#warn('Two pagination-icon-size values provided but pagination icons are not stacked, using first size', {
                     paginationIconSize,
                     paginationIconSizeActive,
-                    paginationIconSizeInactive
+                    paginationIconSizeInactive,
+                    elementId: this.#uniqueId
                 });
             } else {
                 this.#warn('Invalid pagination-icon-size format, ignoring', {
                     value: paginationIconSize,
-                    expected: 'One or two CSS font-size values (e.g., "1.5rem" or "1.5rem 1rem")'
+                    expected: 'One or two CSS font-size values (e.g., "1.5rem" or "1.5rem 1rem")',
+                    elementId: this.#uniqueId
                 });
             }
         }
@@ -177,10 +185,10 @@ class CustomSlider extends HTMLElement {
         const gapAttr = this.getAttribute('gap') || '0';
         let gap = gapAttr;
         if (slidesPerView === 1 && this.hasAttribute('gap')) {
-            this.#warn('Gap attribute ignored for slides-per-view=1', { gap: gapAttr });
+            this.#warn('Gap attribute ignored for slides-per-view=1', { gap: gapAttr, elementId: this.#uniqueId });
             gap = '0';
         } else if (gapAttr && !gapAttr.match(/^(\d*\.?\d+(?:px|rem|em|%)|var\(--[a-zA-Z0-9-]+\))$/)) {
-            this.#warn('Invalid gap format, defaulting to 0', { value: gapAttr });
+            this.#warn('Invalid gap format, defaulting to 0', { value: gapAttr, expected: 'CSS length (e.g., "10px", "var(--space-small)")', elementId: this.#uniqueId });
             gap = '0';
         }
         this.#log('Parsed gap attribute', { gapAttr, effectiveGap: gap });
@@ -201,7 +209,8 @@ class CustomSlider extends HTMLElement {
                 if (!classes.some(cls => cls.startsWith('fa-'))) {
                     this.#warn(`Invalid ${position} ${isBackground ? 'background ' : ''}icon format`, {
                         value: icon,
-                        expected: 'Font Awesome classes (fa-*) or <i> tag with fa- classes'
+                        expected: 'Font Awesome classes (fa-*) or <i> tag with fa- classes',
+                        elementId: this.#uniqueId
                     });
                     return isBackground ? '' : '<i class="fa-solid fa-circle"></i>';
                 }
@@ -222,14 +231,15 @@ class CustomSlider extends HTMLElement {
             const foreground = validateIcon(icon, position);
             const background = validateIcon(backgroundIcon, position, true);
             if (!foreground) {
-                this.#warn(`No valid foreground icon for ${position}, navigation disabled`, { icon, backgroundIcon });
+                this.#warn(`No valid foreground icon for ${position}, navigation disabled`, { icon, backgroundIcon, elementId: this.#uniqueId });
                 return { valid: false, markup: '' };
             }
             if (iconSizeBackground && iconSizeForeground && iconSizeBackground !== iconSizeForeground && !background) {
                 this.#warn(`Two navigation-icon-size values provided but ${position} icons are not stacked, using first size`, {
                     navigationIconSize,
                     iconSizeBackground,
-                    iconSizeForeground
+                    iconSizeForeground,
+                    elementId: this.#uniqueId
                 });
             }
             if (!background) {
@@ -274,7 +284,8 @@ class CustomSlider extends HTMLElement {
                 leftIconValid: leftIconResult.valid,
                 rightIconValid: rightIconResult.valid,
                 hasLeftIcon: this.hasAttribute('navigation-icon-left'),
-                hasRightIcon: this.hasAttribute('navigation-icon-right')
+                hasRightIcon: this.hasAttribute('navigation-icon-right'),
+                elementId: this.#uniqueId
             });
         }
 
@@ -282,7 +293,7 @@ class CustomSlider extends HTMLElement {
         paginationIconInactive = validateIcon(paginationIconInactive, 'inactive');
 
         if (pagination && (!this.hasAttribute('pagination-icon-active') || !this.hasAttribute('pagination-icon-inactive'))) {
-            this.#warn('Pagination requires explicit pagination-icon-active and pagination-icon-inactive attributes. Ignoring pagination.');
+            this.#warn('Pagination requires explicit pagination-icon-active and pagination-icon-inactive attributes. Ignoring pagination.', { elementId: this.#uniqueId });
             pagination = false;
         }
 
@@ -309,7 +320,9 @@ class CustomSlider extends HTMLElement {
         this.#criticalAttributesHash = JSON.stringify(criticalAttrs);
         this.#log('Attributes parsed successfully', {
             elementId: this.#uniqueId,
-            criticalHashLength: this.#criticalAttributesHash.length
+            criticalHashLength: this.#criticalAttributesHash.length,
+            slidesPerView,
+            childCount: this.#childElements.length
         });
 
         return this.#cachedAttributes;
@@ -657,7 +670,7 @@ class CustomSlider extends HTMLElement {
             this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block').map(child => child.cloneNode(true));
             this.initialize();
         } else if (name === 'pagination-icon-size') {
-            this.#debounceUpdateSlider(); // Only update pagination styles
+            this.#debounceUpdateSlider();
         }
     }
 }
