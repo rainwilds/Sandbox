@@ -2065,39 +2065,77 @@ div#products {
 
 .custom-slider {
     position: relative;
-    overflow: hidden;
     width: 100%;
-    touch-action: pan-y; /* Allow vertical scroll, block horizontal interference like Swiper */
-    -webkit-overflow-scrolling: touch; /* Smooth iOS momentum */
+    overflow: hidden;
+    touch-action: pan-y; /* Allow vertical scrolling */
+    -webkit-overflow-scrolling: touch; /* Smooth iOS scrolling */
+}
+
+.custom-slider::before,
+.custom-slider::after {
+    position: absolute;
+    top: 0;
+    z-index: 1;
+    content: "";
+    display: block;
+    width: 20px; /* Matches example's $margin */
+    height: 100%;
+    pointer-events: none;
+}
+
+.custom-slider::before {
+    left: 0;
+    background: linear-gradient(90deg, #222, transparent); /* Gradient fade */
+}
+
+.custom-slider::after {
+    right: 0;
+    background: linear-gradient(-90deg, #222, transparent);
 }
 
 .slider-wrapper {
-    display: grid;
-    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Easing like Swiper for natural snap */
+    position: relative;
+    width: 100%;
+    overflow-x: auto; /* Enable horizontal scrolling */
+    overflow-y: hidden;
+    white-space: nowrap;
+    font-size: 0; /* Prevent inline-block spacing */
     cursor: grab;
-    will-change: transform; /* Optimize for animations */
+    scroll-behavior: smooth; /* Smooth snapping */
+    transition: scroll-left 0.3s ease-out; /* Smooth snap on release */
 }
 
 .slider-wrapper.dragging {
-    transition: none;
+    scroll-behavior: auto; /* No snapping during drag */
     cursor: grabbing;
 }
 
 .slider-wrapper.dragging .slider-slide {
-    opacity: 0.8; /* Subtle feedback during drag */
+    opacity: 0.8; /* Visual feedback during drag */
 }
 
 .slider-slide {
-    width: 100%;
+    display: inline-block;
+    margin-left: var(--gap, 0); /* Dynamic gap */
     user-select: none;
-    -webkit-user-drag: none; /* Prevent image drag on WebKit */
+    -webkit-user-drag: none;
+    font-size: 16px; /* Reset font-size for content */
+    vertical-align: top; /* Align slides */
 }
 
 .slider-slide img,
 .slider-slide a {
-    pointer-events: none; /* Block interactions during drag */
+    pointer-events: none;
     user-select: none;
     -webkit-user-drag: none;
+}
+
+.slider-slide:first-child {
+    margin-left: 20px; /* Matches example's margin-left */
+}
+
+.slider-slide:last-child {
+    margin-right: 20px; /* Matches example's margin-right */
 }
 
 .slider-nav-prev,
@@ -2106,7 +2144,8 @@ div#products {
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
-    pointer-events: auto; /* Ensure nav buttons always interactive */
+    pointer-events: auto;
+    z-index: 2; /* Above gradient fades */
 }
 
 .slider-nav-prev {

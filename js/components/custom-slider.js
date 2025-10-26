@@ -14,15 +14,8 @@ class CustomSlider extends HTMLElement {
     #lastDirection = 0;
     #isDragging = false;
     #startX = 0;
-    #currentX = 0;
-    #lastX = 0;
-    #lastTime = 0;
-    #velocity = 0;
-    #dragTranslateX = 0;
-    #dragStartIndex = 0;
-    #velocitySamples = []; // For windowed velocity calculation
+    #scrollLeft = 0;
     #dragThreshold = 10; // Minimum px to start drag
-    #momentumDuration = 600; // ms for momentum decay
 
     constructor() {
         super();
@@ -326,19 +319,19 @@ class CustomSlider extends HTMLElement {
                 this.#log('Initialization completed successfully', { elementId: this.#uniqueId });
             } else {
                 this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
-                const fallbackAttrs = { 
-                    autoplayDelay: 3000, 
-                    slidesPerView: 1, 
-                    navigation: false, 
-                    gap: '0', 
-                    pagination: false, 
-                    paginationIconActive: '<i class="fa-solid fa-circle"></i>', 
-                    paginationIconInactive: '<i class="fa-regular fa-circle"></i>', 
-                    iconSizeBackground: '', 
-                    iconSizeForeground: '', 
-                    paginationIconSizeActive: '', 
+                const fallbackAttrs = {
+                    autoplayDelay: 3000,
+                    slidesPerView: 1,
+                    navigation: false,
+                    gap: '0',
+                    pagination: false,
+                    paginationIconActive: '<i class="fa-solid fa-circle"></i>',
+                    paginationIconInactive: '<i class="fa-regular fa-circle"></i>',
+                    iconSizeBackground: '',
+                    iconSizeForeground: '',
+                    paginationIconSizeActive: '',
                     paginationIconSizeInactive: '',
-                    draggable: false 
+                    draggable: false
                 };
                 const fallbackElement = await this.render(fallbackAttrs);
                 this.replaceWith(fallbackElement);
@@ -349,19 +342,19 @@ class CustomSlider extends HTMLElement {
                 stack: error.stack,
                 elementId: this.#uniqueId
             });
-            const fallbackAttrs = { 
-                autoplayDelay: 3000, 
-                slidesPerView: 1, 
-                navigation: false, 
-                gap: '0', 
-                pagination: false, 
-                paginationIconActive: '<i class="fa-solid fa-circle"></i>', 
-                paginationIconInactive: '<i class="fa-regular fa-circle"></i>', 
-                iconSizeBackground: '', 
-                iconSizeForeground: '', 
-                paginationIconSizeActive: '', 
+            const fallbackAttrs = {
+                autoplayDelay: 3000,
+                slidesPerView: 1,
+                navigation: false,
+                gap: '0',
+                pagination: false,
+                paginationIconActive: '<i class="fa-solid fa-circle"></i>',
+                paginationIconInactive: '<i class="fa-regular fa-circle"></i>',
+                iconSizeBackground: '',
+                iconSizeForeground: '',
+                paginationIconSizeActive: '',
                 paginationIconSizeInactive: '',
-                draggable: false 
+                draggable: false
             };
             const fallbackElement = await this.render(fallbackAttrs);
             this.replaceWith(fallbackElement);
@@ -382,19 +375,17 @@ class CustomSlider extends HTMLElement {
         }
 
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
+        wrapper.style.setProperty('--gap', attrs.gap); // For CSS margin
 
         if (attrs.draggable) {
-            // Prevent dragstart on whole wrapper (for images/links)
             wrapper.addEventListener('dragstart', (e) => e.preventDefault());
-            // Mouse events
             wrapper.addEventListener('mousedown', this.#handleDragStart.bind(this));
-            document.addEventListener('mousemove', this.#handleDragMove.bind(this)); // Global for smoother tracking
+            document.addEventListener('mousemove', this.#handleDragMove.bind(this));
             document.addEventListener('mouseup', this.#handleDragEnd.bind(this));
-            // Touch events
             wrapper.addEventListener('touchstart', this.#handleDragStart.bind(this), { passive: false });
             document.addEventListener('touchmove', this.#handleDragMove.bind(this), { passive: false });
             document.addEventListener('touchend', this.#handleDragEnd.bind(this));
-            this.#log('Drag event listeners added (Swiper-inspired)', { elementId: this.#uniqueId });
+            this.#log('Drag event listeners added (scrollLeft-based)', { elementId: this.#uniqueId });
         }
 
         if (attrs.navigation) {
@@ -415,70 +406,41 @@ class CustomSlider extends HTMLElement {
     }
 
     #handleDragStart(event) {
-        // Ignore if already dragging or multi-touch
         if (this.#isDragging || (event.touches && event.touches.length > 1)) return;
 
         this.#stopAutoplay();
         this.#isDragging = true;
-        this.#velocitySamples = [];
-        const clientX = event.type.includes('touch') ? event.touches[0].pageX : event.pageX; // Use pageX like Swiper
-        this.#startX = clientX;
-        this.#currentX = clientX;
-        this.#lastX = clientX;
-        this.#lastTime = Date.now();
-        this.#dragStartIndex = this.#currentIndex;
-        this.#dragTranslateX = 0;
-        this.#velocity = 0;
-
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         wrapper.classList.add('dragging');
-        // Block pointer events on content during drag
+        const clientX = event.type.includes('touch') ? event.touches[0].pageX : event.pageX;
+        this.#startX = clientX - wrapper.offsetLeft;
+        this.#scrollLeft = wrapper.scrollLeft;
         this.#slides.forEach(slide => {
-            const imgs = slide.querySelectorAll('img, a');
-            imgs.forEach(img => img.style.pointerEvents = 'none');
+            const interactables = slide.querySelectorAll('img, a');
+            interactables.forEach(el => el.style.pointerEvents = 'none');
         });
 
-        // Prevent default for mouse (like Swiper for images)
         if (event.type === 'mousedown') {
             event.preventDefault();
         } else {
             event.preventDefault();
         }
 
-        this.#log('Drag started', { clientX, elementId: this.#uniqueId });
+        this.#log('Drag started', { clientX, scrollLeft: this.#scrollLeft, elementId: this.#uniqueId });
     }
 
     #handleDragMove(event) {
         if (!this.#isDragging) return;
 
-        const clientX = event.type.includes('touch') ? event.touches[0].pageX : event.pageX;
-        const currentTime = Date.now();
-        const deltaX = clientX - this.#lastX;
-        const deltaTime = currentTime - this.#lastTime;
-
-        // Throttle with RAF for smoothness
         if (this.#animationFrameId) cancelAnimationFrame(this.#animationFrameId);
         this.#animationFrameId = requestAnimationFrame(() => {
-            if (Math.abs(this.#dragTranslateX) < this.#dragThreshold) return; // Threshold like Swiper
-
-            // Windowed velocity (last 100ms samples)
-            this.#velocitySamples.push({ x: clientX, time: currentTime });
-            this.#velocitySamples = this.#velocitySamples.filter(sample => currentTime - sample.time < 100);
-            if (this.#velocitySamples.length > 1) {
-                const lastSample = this.#velocitySamples[this.#velocitySamples.length - 1];
-                const firstSample = this.#velocitySamples[0];
-                const velTime = lastSample.time - firstSample.time;
-                if (velTime > 0) {
-                    this.#velocity = ((lastSample.x - firstSample.x) / velTime) * 1000; // px/s
-                }
-            }
-
-            this.#dragTranslateX += deltaX;
-            this.#currentX = clientX;
-            this.#lastX = clientX;
-            this.#lastTime = currentTime;
-
-            this.getAttributes().then(attrs => this.#updateSlider(attrs, true));
+            const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
+            const clientX = event.type.includes('touch') ? event.touches[0].pageX : event.pageX;
+            const x = clientX - wrapper.offsetLeft;
+            const dist = x - this.#startX;
+            if (Math.abs(dist) < this.#dragThreshold) return; // Ignore small movements
+            wrapper.scrollLeft = this.#scrollLeft - dist;
+            this.#log('Drag move', { dist, scrollLeft: wrapper.scrollLeft, elementId: this.#uniqueId });
         });
 
         if (event.type.includes('touch')) {
@@ -492,61 +454,31 @@ class CustomSlider extends HTMLElement {
 
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         wrapper.classList.remove('dragging');
-        // Restore pointer events
         this.#slides.forEach(slide => {
-            const imgs = slide.querySelectorAll('img, a');
-            imgs.forEach(img => img.style.pointerEvents = '');
+            const interactables = slide.querySelectorAll('img, a');
+            interactables.forEach(el => el.style.pointerEvents = '');
         });
 
-        // Momentum with easing (Swiper-like decay)
-        let momentumDistance = this.#velocity * (this.#momentumDuration / 1000) * 0.5; // Adjusted factor
-        let finalTranslateX = this.#dragTranslateX + momentumDistance;
-
+        // Snap to nearest slide
+        const slideWidth = this.#slides[0]?.offsetWidth || window.innerWidth;
+        const gap = parseFloat(this.getAttribute('gap') || '0') || 20; // Fallback to 20px
         const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
         const totalSlides = this.#slides.length;
-        const slideWidthPx = this.#slides[0]?.offsetWidth || window.innerWidth; // Fallback to viewport
         const maxVisibleIndex = totalSlides - slidesPerView;
-        let newIndex = Math.round((this.#dragStartIndex * slideWidthPx - finalTranslateX) / slideWidthPx);
+        const scrollLeft = wrapper.scrollLeft;
+        const slideFullWidth = slideWidth + gap; // Include gap
+        let newIndex = Math.round((scrollLeft - 20) / slideFullWidth); // Adjust for initial margin
 
-        // Clamp and snap to nearest
         newIndex = Math.max(0, Math.min(newIndex, maxVisibleIndex));
         this.#currentIndex = newIndex;
 
-        // Animate momentum decay then snap
-        this.#animateMomentum(finalTranslateX, () => {
-            this.#dragTranslateX = 0;
-            this.#velocity = 0;
-            this.#velocitySamples = [];
-            this.getAttributes().then(attrs => {
-                if (attrs.autoplayDelay) this.#startAutoplay(attrs.autoplayDelay);
-                this.#updateSlider(attrs);
-                this.#log('Drag ended with momentum snap', { newIndex, momentumDistance, elementId: this.#uniqueId });
-            });
-        });
-    }
-
-    #animateMomentum(initialOffset, callback) {
-        let startTime = Date.now();
-        let startOffset = initialOffset;
-        const duration = this.#momentumDuration;
-
-        const animate = () => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            // Exponential decay easing (smooth coast like Swiper)
-            const ease = 1 - Math.pow(1 - progress, 3);
-            const currentOffset = startOffset * (1 - ease);
-
-            this.#dragTranslateX = currentOffset;
-            this.getAttributes().then(attrs => this.#updateSlider(attrs, true));
-
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            } else {
-                callback();
+        this.getAttributes().then(attrs => {
+            this.#updateSlider(attrs);
+            if (attrs.autoplayDelay) {
+                this.#startAutoplay(attrs.autoplayDelay);
             }
-        };
-        requestAnimationFrame(animate);
+            this.#log('Drag ended, snapped to index', { newIndex, scrollLeft, elementId: this.#uniqueId });
+        });
     }
 
     #navigate(direction) {
@@ -564,7 +496,7 @@ class CustomSlider extends HTMLElement {
 
         this.getAttributes().then(attrs => {
             this.#updateSlider(attrs);
-            this.#log('Navigated', { direction, currentIndex: this.#currentIndex, lastDirection: this.#lastDirection, slidesPerView, totalSlides, elementId: this.#uniqueId });
+            this.#log('Navigated', { direction, currentIndex: this.#currentIndex, slidesPerView, totalSlides, elementId: this.#uniqueId });
         });
     }
 
@@ -584,7 +516,7 @@ class CustomSlider extends HTMLElement {
         }
     }
 
-    #updateSlider(attrs, isDragging = false) {
+    #updateSlider(attrs) {
         if (this.#animationFrameId) {
             cancelAnimationFrame(this.#animationFrameId);
         }
@@ -595,27 +527,17 @@ class CustomSlider extends HTMLElement {
             const sliderContainer = document.getElementById(this.#uniqueId);
             if (!sliderContainer) return;
 
-            const slideWidth = 100 / slidesPerView;
-            const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0';
+            const wrapper = sliderContainer.querySelector('.slider-wrapper');
+            const slideWidth = this.#slides[0]?.offsetWidth || window.innerWidth;
+            const gap = parseFloat(attrs.gap || '0') || 20; // Fallback to 20px
+            const slideFullWidth = slideWidth + gap;
+            const targetScroll = this.#currentIndex * slideFullWidth + 20; // Adjust for initial margin
 
-            let translateX;
-            if (isDragging) {
-                const slideWidthPx = this.#slides[0]?.offsetWidth || window.innerWidth;
-                const translatePercent = (this.#dragTranslateX / slideWidthPx) * slideWidth;
-                const baseTranslate = this.#dragStartIndex * slideWidth;
-                const gapOffset = gap === '0' ? '0' : `(${this.#dragStartIndex} + ${(slidesPerView - 1) / 2}) * ${gap}`;
-                translateX = gap === '0' ? `-${baseTranslate + translatePercent}%` : `calc(-${baseTranslate + translatePercent}% - ${gapOffset})`;
-            } else {
-                const addition = (slidesPerView - 1) / 2;
-                const gapOffset = gap === '0' ? '0' : `(${this.#currentIndex} + ${addition}) * ${gap}`;
-                translateX = gap === '0' ? `-${this.#currentIndex * slideWidth}%` : `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset})`;
+            if (!this.#isDragging) {
+                wrapper.scrollLeft = targetScroll;
             }
 
-            const wrapper = sliderContainer.querySelector('.slider-wrapper');
-            // Use translate3d for hardware acceleration (Swiper technique)
-            wrapper.style.transform = `translate3d(${translateX}, 0, 0)`;
-
-            if (attrs.pagination && !isDragging) {
+            if (attrs.pagination) {
                 const pagination = sliderContainer.querySelector('.slider-pagination');
                 if (pagination) {
                     const dots = pagination.querySelectorAll('.icon');
@@ -630,7 +552,7 @@ class CustomSlider extends HTMLElement {
                 }
             }
 
-            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, isDragging, elementId: this.#uniqueId });
+            this.#log('Slider updated', { currentIndex: this.#currentIndex, scrollLeft: wrapper.scrollLeft, slideWidth, gap, elementId: this.#uniqueId });
         });
     }
 
@@ -644,11 +566,9 @@ class CustomSlider extends HTMLElement {
 
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
-        innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`;
         if (attrs.gap && attrs.gap !== '0') {
-            innerWrapper.style.columnGap = attrs.gap;
+            innerWrapper.style.setProperty('--gap', attrs.gap);
         }
-        this.#log('Applied styles to slider-wrapper', { gap: attrs.gap, gridTemplateColumns: innerWrapper.style.gridTemplateColumns });
 
         if (this.#childElements.length === 0) {
             this.#warn('No valid slides found', { elementId: this.#uniqueId });
@@ -661,7 +581,6 @@ class CustomSlider extends HTMLElement {
                 const slideWrapper = document.createElement('div');
                 slideWrapper.className = 'slider-slide';
                 const clonedSlide = slide.cloneNode(true);
-                // Prevent image/link dragging
                 const interactables = clonedSlide.querySelectorAll('img, a');
                 interactables.forEach(el => {
                     el.setAttribute('draggable', 'false');
@@ -806,5 +725,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-26 (Swiper-inspired drag)');
+console.log('CustomSlider version: 2025-10-26 (scrollLeft-based)');
 export { CustomSlider };
