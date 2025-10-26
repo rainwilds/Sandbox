@@ -21,6 +21,8 @@ class CustomBlock extends HTMLElement {
         this.#ignoredChangeCount = 0;
     }
 
+    static #renderCacheMap = new WeakMap();
+
     static #criticalAttributes = [
         'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
         'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
@@ -1368,17 +1370,19 @@ class CustomBlock extends HTMLElement {
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-        this.#log('Attribute changed', { name, oldValue, newValue, elementId: this.id || 'no-id' });
         if (oldValue === newValue) return;
+        if (!this.isInitialized) {
+            this.#ignoredChangeCount++;
+            if (this.debug && this.#ignoredChangeCount % 10 === 0) {
+                this.#log('Attribute changes ignored (not ready - batched)', { count: this.#ignoredChangeCount, name, oldValue, newValue });
+            }
+            return;
+        }
+        this.#log('Attribute changed', { name, oldValue, newValue, elementId: this.id || 'no-id' });
         if (CustomBlock.#criticalAttributes.includes(name)) {
             this.cachedAttributes = null;
             this.criticalAttributesHash = null;
-            if (this.isInitialized) {
-                this.#ignoredChangeCount++;
-                this.initialize().then(() => {
-                    this.#ignoredChangeCount--;
-                });
-            }
+            this.initialize();
         }
     }
 
@@ -1411,21 +1415,6 @@ class CustomBlock extends HTMLElement {
             'video-primary-muted', 'video-primary-playsinline', 'video-primary-poster',
             'video-primary-src'
         ];
-    }
-
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (!this.isInitialized) {
-            this.#ignoredChangeCount++;
-            if (this.debug && this.#ignoredChangeCount % 10 === 0) {
-                this.#log('Attribute changes ignored (not ready - batched)', { count: this.#ignoredChangeCount, name, oldValue, newValue });
-            }
-            return;
-        }
-        this.#log('Attribute changed', { name, oldValue, newValue });
-        if (CustomBlock.#criticalAttributes.includes(name)) {
-            this.cachedAttributes = null;
-            this.initialize();
-        }
     }
 }
 
