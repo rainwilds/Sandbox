@@ -2044,13 +2044,14 @@ div#products {
     transform: translateY(-50%);
 }
 
-.stack {
+.icon-stack {
 
     display: grid;
     place-items: center;
 
     &>i {
         grid-area: 1 / 1;
+        cursor: pointer;
     }
 
 }
