@@ -2034,6 +2034,7 @@ div#products {
     left: 0;
     top: 50%;
     transform: translateY(-50%);
+    margin-left: var(--space-tiny);
 }
 
 .slider-nav-next {
@@ -2042,6 +2043,7 @@ div#products {
     right: 0;
     top: 50%;
     transform: translateY(-50%);
+    margin-right: var(--space-tiny);
 }
 
 .icon-stack {
@@ -2066,10 +2068,6 @@ div#products {
 }
 
 
-.slider-nav-prev:hover,
-.slider-nav-next:hover {
-    background: rgba(255, 255, 255, 1);
-}
 
 .slider-pagination {
     position: absolute;
