@@ -136,6 +136,34 @@ class CustomSlider extends HTMLElement {
         }
         this.#log('Parsed navigation-icon-size', { navigationIconSize, iconSizeBackground, iconSizeForeground });
 
+        // Parse pagination-icon-size
+        const paginationIconSize = this.getAttribute('pagination-icon-size') || '';
+        let paginationIconSizeActive = '';
+        let paginationIconSizeInactive = '';
+        if (paginationIconSize) {
+            const sizes = paginationIconSize.trim().split(/\s+/);
+            const validSizeRegex = /^(\d*\.?\d+(?:px|rem|em|%)|var\(--[a-zA-Z0-9-]+\))$/;
+            if (sizes.length === 1 && validSizeRegex.test(sizes[0])) {
+                paginationIconSizeActive = sizes[0];
+                paginationIconSizeInactive = sizes[0];
+            } else if (sizes.length === 2 && sizes.every(size => validSizeRegex.test(size))) {
+                paginationIconSizeActive = sizes[0];
+                paginationIconSizeInactive = sizes[1];
+                // Warn if two sizes are provided (pagination icons are always single)
+                this.#warn('Two pagination-icon-size values provided but pagination icons are not stacked, using first size', {
+                    paginationIconSize,
+                    paginationIconSizeActive,
+                    paginationIconSizeInactive
+                });
+            } else {
+                this.#warn('Invalid pagination-icon-size format, ignoring', {
+                    value: paginationIconSize,
+                    expected: 'One or two CSS font-size values (e.g., "1.5rem" or "1.5rem 1rem")'
+                });
+            }
+        }
+        this.#log('Parsed pagination-icon-size', { paginationIconSize, paginationIconSizeActive, paginationIconSizeInactive });
+
         const gapAttr = this.getAttribute('gap') || '0'; // Default to 0 if no gap attribute
         let gap = gapAttr;
         if (slidesPerView === 1 && this.hasAttribute('gap')) {
@@ -264,7 +292,9 @@ class CustomSlider extends HTMLElement {
             paginationIconActive,
             paginationIconInactive,
             iconSizeBackground,
-            iconSizeForeground
+            iconSizeForeground,
+            paginationIconSizeActive,
+            paginationIconSizeInactive
         };
     }
 
@@ -291,7 +321,7 @@ class CustomSlider extends HTMLElement {
                 this.#log('Initialization completed successfully', { elementId: this.#uniqueId });
             } else {
                 this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
-                const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>', iconSizeBackground: '', iconSizeForeground: '' });
+                const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>', iconSizeBackground: '', iconSizeForeground: '', paginationIconSizeActive: '', paginationIconSizeInactive: '' });
                 this.replaceWith(fallbackElement);
             }
         } catch (error) {
@@ -300,7 +330,7 @@ class CustomSlider extends HTMLElement {
                 stack: error.stack,
                 elementId: this.#uniqueId
             });
-            const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>', iconSizeBackground: '', iconSizeForeground: '' });
+            const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>', iconSizeBackground: '', iconSizeForeground: '', paginationIconSizeActive: '', paginationIconSizeInactive: '' });
             this.replaceWith(fallbackElement);
         }
     }
@@ -402,6 +432,11 @@ class CustomSlider extends HTMLElement {
                     const dots = pagination.querySelectorAll('.icon');
                     dots.forEach((dot, index) => {
                         dot.innerHTML = index === this.#currentIndex ? attrs.paginationIconActive : attrs.paginationIconInactive;
+                        // Apply font-size to pagination icons
+                        const icon = dot.querySelector('i');
+                        if (icon) {
+                            icon.style.fontSize = index === this.#currentIndex ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
+                        }
                     });
                     this.#log('Pagination updated', { currentIndex: this.#currentIndex, totalSlides, elementId: this.#uniqueId });
                 }
@@ -456,7 +491,7 @@ class CustomSlider extends HTMLElement {
             navNext.className = 'slider-nav-next';
             navNext.innerHTML = attrs.navigationIconRight;
 
-            // Add 'icon' class to all <i> elements and apply font-size styles
+            // Add 'icon' class and apply font-size styles to navigation icons
             [navPrev, navNext].forEach((nav, index) => {
                 const icons = nav.querySelectorAll('i');
                 const isLeftNav = index === 0;
@@ -493,6 +528,11 @@ class CustomSlider extends HTMLElement {
                 const dot = document.createElement('span');
                 dot.className = 'icon';
                 dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
+                // Apply font-size to pagination icon
+                const icon = dot.querySelector('i');
+                if (icon && (attrs.paginationIconSizeActive || attrs.paginationIconSizeInactive)) {
+                    icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
+                }
                 dot.addEventListener('click', () => {
                     this.#currentIndex = i;
                     this.getAttributes().then(attrs => {
@@ -538,7 +578,7 @@ class CustomSlider extends HTMLElement {
         return [
             'autoplay', 'slides-per-view', 'navigation', 'navigation-icon-left', 'navigation-icon-right',
             'navigation-icon-left-background', 'navigation-icon-right-background', 'gap', 'pagination',
-            'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size'
+            'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size', 'pagination-icon-size'
         ];
     }
 
