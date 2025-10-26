@@ -136,20 +136,26 @@ class CustomSlider extends HTMLElement {
             const decodedIcon = icon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
             const doc = parser.parseFromString(decodedIcon, 'text/html');
             const iElement = doc.body.querySelector('i');
-            if (!iElement || !iElement.className.includes('fa-')) {
-                this.#warn(`Invalid ${position} ${isBackground ? 'background ' : ''}icon format, ensure Font Awesome is loaded`, {
-                    value: icon,
-                    expected: 'Font Awesome <i> tag with fa- classes'
-                });
-                return isBackground ? '' : '<i class="fa-solid fa-circle"></i>'; // Fallback for foreground only
+            let classes = iElement ? iElement.className.split(' ').filter(cls => cls) : icon.split(/\s+/).filter(cls => cls);
+            if (!iElement && !icon.match(/fa-/)) {
+                classes = icon.split(/\s+/).filter(cls => cls);
+                if (!classes.some(cls => cls.startsWith('fa-'))) {
+                    this.#warn(`Invalid ${position} ${isBackground ? 'background ' : ''}icon format, ensure Font Awesome classes are provided`, {
+                        value: icon,
+                        expected: 'Font Awesome classes (fa-*) or <i> tag with fa- classes'
+                    });
+                    return isBackground ? '' : '<i class="fa-solid fa-circle"></i>';
+                }
             }
-            const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
+            const validClasses = classes.filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
             if (validClasses.length === 0) {
                 this.#warn(`No valid Font Awesome classes in ${position} ${isBackground ? 'background ' : ''}icon`, {
-                    classes: iElement.className
+                    classes,
+                    elementId: this.#uniqueId
                 });
-                return isBackground ? '' : '<i class="fa-solid fa-circle"></i>'; // Fallback for foreground only
+                return isBackground ? '' : '<i class="fa-solid fa-circle"></i>';
             }
+            validClasses.push('icon'); // Always add 'icon' class
             return `<i class="${validClasses.join(' ')}"></i>`;
         };
 
@@ -166,7 +172,7 @@ class CustomSlider extends HTMLElement {
             // Create stacked icon markup
             return {
                 valid: true,
-                markup: `<span class="fa-stack">${background.replace('<i', '<i class="fa-stack-2x"')}${foreground.replace('<i', '<i class="fa-stack-1x"')}</span>`
+                markup: `<span class="fa-stack">${background.replace('<i class="', '<i class="fa-stack-2x ')}${foreground.replace('<i class="', '<i class="fa-stack-1x ')}</span>`
             };
         };
 
@@ -430,6 +436,16 @@ class CustomSlider extends HTMLElement {
             navNext.style.right = '10px';
             navNext.style.top = '50%';
             navNext.style.transform = 'translateY(-50%)';
+
+            // Add 'icon' class to all <i> elements in navigation buttons
+            [navPrev, navNext].forEach(nav => {
+                const icons = nav.querySelectorAll('i');
+                icons.forEach(icon => {
+                    if (!icon.classList.contains('icon')) {
+                        icon.classList.add('icon');
+                    }
+                });
+            });
 
             sliderWrapper.appendChild(navPrev);
             sliderWrapper.appendChild(navNext);
