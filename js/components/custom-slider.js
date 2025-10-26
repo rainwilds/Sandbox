@@ -166,7 +166,7 @@ class CustomSlider extends HTMLElement {
         }
         this.#log('Parsed pagination-icon-size', { paginationIconSize, paginationIconSizeActive, paginationIconSizeInactive });
 
-        const gapAttr = this.getAttribute('gap') || '20px'; // Default to 20px like example
+        const gapAttr = this.getAttribute('gap') || '20px';
         let gap = gapAttr;
         if (slidesPerView === 1 && this.hasAttribute('gap')) {
             this.#warn('Gap attribute ignored for slides-per-view=1', { gap: gapAttr });
@@ -314,6 +314,10 @@ class CustomSlider extends HTMLElement {
 
         try {
             const attrs = await this.getAttributes();
+            // Defensive check for render method
+            if (typeof this.render !== 'function') {
+                throw new Error('Render method is not defined');
+            }
             const sliderElement = await this.render(attrs);
             if (sliderElement) {
                 this.#log('Render successful, replacing element', { elementId: this.#uniqueId });
@@ -379,6 +383,7 @@ class CustomSlider extends HTMLElement {
 
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
         wrapper.style.setProperty('--gap', attrs.gap);
+        wrapper.style.setProperty('--slides-per-view', attrs.slidesPerView);
 
         if (attrs.draggable) {
             wrapper.addEventListener('dragstart', (e) => e.preventDefault());
@@ -446,11 +451,10 @@ class CustomSlider extends HTMLElement {
             const dist = x - this.#startX;
             if (Math.abs(dist) < this.#dragThreshold) return;
 
-            // Calculate velocity for momentum
             const currentTime = Date.now();
             const deltaTime = currentTime - this.#lastTime;
             if (deltaTime > 0) {
-                this.#velocity = (dist / deltaTime) * 1000; // px/s
+                this.#velocity = ((clientX - this.#startX) / deltaTime) * 1000;
             }
             this.#lastTime = currentTime;
 
@@ -475,26 +479,45 @@ class CustomSlider extends HTMLElement {
         });
 
         // Apply momentum
-        const momentum = this.#velocity * 0.2; // Decay over 200ms
-        const scrollLeft = wrapper.scrollLeft - momentum;
+        const momentum = this.#velocity * 0.3; // Decay over 300ms
+        let scrollLeft = wrapper.scrollLeft - momentum;
         const slideWidth = this.#slides[0]?.offsetWidth || window.innerWidth;
         const gap = parseFloat(this.getAttribute('gap') || '20') || 20;
         const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
         const totalSlides = this.#slides.length;
         const maxVisibleIndex = totalSlides - slidesPerView;
         const slideFullWidth = slideWidth + gap;
-        let newIndex = Math.round((scrollLeft - 20) / slideFullWidth); // Adjust for initial margin
+        let newIndex = Math.round((scrollLeft - 20) / slideFullWidth);
 
         newIndex = Math.max(0, Math.min(newIndex, maxVisibleIndex));
         this.#currentIndex = newIndex;
 
-        this.getAttributes().then(attrs => {
-            this.#updateSlider(attrs);
-            if (attrs.autoplayDelay) {
-                this.#startAutoplay(attrs.autoplayDelay);
+        // Smooth momentum animation
+        const startScroll = wrapper.scrollLeft;
+        const targetScroll = this.#currentIndex * slideFullWidth + 20;
+        const startTime = Date.now();
+        const duration = 300;
+
+        const animateMomentum = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const ease = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
+            wrapper.scrollLeft = startScroll + (targetScroll - startScroll) * ease;
+
+            if (progress < 1) {
+                this.#animationFrameId = requestAnimationFrame(animateMomentum);
+            } else {
+                this.getAttributes().then(attrs => {
+                    this.#updateSlider(attrs);
+                    if (attrs.autoplayDelay) {
+                        this.#startAutoplay(attrs.autoplayDelay);
+                    }
+                    this.#log('Drag ended with momentum snap', { newIndex, scrollLeft: wrapper.scrollLeft, momentum, elementId: this.#uniqueId });
+                });
             }
-            this.#log('Drag ended, snapped to index', { newIndex, scrollLeft, momentum, elementId: this.#uniqueId });
-        });
+        };
+
+        this.#animationFrameId = requestAnimationFrame(animateMomentum);
     }
 
     #navigate(direction) {
@@ -547,7 +570,7 @@ class CustomSlider extends HTMLElement {
             const slideWidth = this.#slides[0]?.offsetWidth || window.innerWidth;
             const gap = parseFloat(attrs.gap || '20') || 20;
             const slideFullWidth = slideWidth + gap;
-            const targetScroll = this.#currentIndex * slideFullWidth + 20; // Adjust for initial margin
+            const targetScroll = this.#currentIndex * slideFullWidth + 20;
 
             if (!this.#isDragging) {
                 wrapper.scrollLeft = targetScroll;
@@ -572,10 +595,112 @@ class CustomSlider extends HTMLElement {
         });
     }
 
+    async render(attrs) {
+        this.#log('Starting render', { elementId: this.#uniqueId, attrs });
+
+        const fragment = document.createDocumentFragment();
+        const sliderWrapper = document.createElement('div');
+        sliderWrapper.id = this.#uniqueId;
+        sliderWrapper.className = 'custom-slider';
+
+        const innerWrapper = document.createElement('div');
+        innerWrapper.className = 'slider-wrapper';
+        if (attrs.gap && attrs.gap !== '0') {
+            innerWrapper.style.setProperty('--gap', attrs.gap);
+        }
+        innerWrapper.style.setProperty('--slides-per-view', attrs.slidesPerView);
+
+        if (this.#childElements.length === 0) {
+            this.#warn('No valid slides found', { elementId: this.#uniqueId });
+            const fallbackSlide = document.createElement('div');
+            fallbackSlide.className = 'slider-slide';
+            fallbackSlide.innerHTML = '<p>No slides available</p>';
+            innerWrapper.appendChild(fallbackSlide);
+        } else {
+            this.#childElements.forEach((slide, index) => {
+                const slideWrapper = document.createElement('div');
+                slideWrapper.className = 'slider-slide';
+                const clonedSlide = slide.cloneNode(true);
+                const interactables = clonedSlide.querySelectorAll('img, a');
+                interactables.forEach(el => {
+                    el.setAttribute('draggable', 'false');
+                    el.style.webkitUserDrag = 'none';
+                });
+                slideWrapper.appendChild(clonedSlide);
+                innerWrapper.appendChild(slideWrapper);
+                this.#log(`Slide ${index + 1} processed`, { elementId: this.#uniqueId });
+            });
+        }
+
+        sliderWrapper.appendChild(innerWrapper);
+
+        if (attrs.navigation && attrs.navigationIconLeft && attrs.navigationIconRight) {
+            const navPrev = document.createElement('div');
+            navPrev.id = `${this.#uniqueId}-prev`;
+            navPrev.className = 'slider-nav-prev';
+            navPrev.innerHTML = attrs.navigationIconLeft;
+
+            const navNext = document.createElement('div');
+            navNext.id = `${this.#uniqueId}-next`;
+            navNext.className = 'slider-nav-next';
+            navNext.innerHTML = attrs.navigationIconRight;
+
+            [navPrev, navNext].forEach((nav, index) => {
+                const icons = nav.querySelectorAll('i');
+                icons.forEach((icon, iconIndex) => {
+                    if (!icon.classList.contains('icon')) {
+                        icon.classList.add('icon');
+                    }
+                    if (attrs.iconSizeBackground && attrs.iconSizeForeground) {
+                        if (icons.length === 2) {
+                            icon.style.fontSize = iconIndex === 0 ? attrs.iconSizeBackground : attrs.iconSizeForeground;
+                        } else {
+                            icon.style.fontSize = attrs.iconSizeBackground;
+                        }
+                    } else if (attrs.iconSizeBackground) {
+                        icon.style.fontSize = attrs.iconSizeBackground;
+                    }
+                });
+            });
+
+            sliderWrapper.appendChild(navPrev);
+            sliderWrapper.appendChild(navNext);
+            this.#log('Navigation buttons added', { elementId: this.#uniqueId });
+        }
+
+        if (attrs.pagination) {
+            const pagination = document.createElement('div');
+            pagination.className = 'slider-pagination';
+
+            const totalSlides = this.#childElements.length;
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('span');
+                dot.className = 'icon';
+                dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
+                const icon = dot.querySelector('i');
+                if (icon && (attrs.paginationIconSizeActive || attrs.paginationIconSizeInactive)) {
+                    icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
+                }
+                dot.addEventListener('click', () => {
+                    this.#currentIndex = i;
+                    this.getAttributes().then(attrs => {
+                        this.#updateSlider(attrs);
+                        this.#log('Pagination dot clicked', { newIndex: this.#currentIndex, elementId: this.#uniqueId });
+                    });
+                });
+                pagination.appendChild(dot);
+            }
+            sliderWrapper.appendChild(pagination);
+            this.#log('Pagination added', { totalSlides, elementId: this.#uniqueId });
+        }
+
+        fragment.appendChild(sliderWrapper);
+        return sliderWrapper;
+    }
+
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.#uniqueId });
 
-        // Setup MutationObserver to watch for custom-block children
         this.#childObserver = new MutationObserver((mutations) => {
             mutations.forEach(mutation => {
                 if (mutation.addedNodes.length) {
@@ -592,7 +717,6 @@ class CustomSlider extends HTMLElement {
 
         this.#childObserver.observe(this, { childList: true });
 
-        // Initial child capture
         this.#childElements = Array.from(this.children)
             .filter(child => child.tagName.toLowerCase() === 'custom-block')
             .map(child => child.cloneNode(true));
