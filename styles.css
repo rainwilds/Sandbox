@@ -2046,13 +2046,7 @@ div#products {
     transform: translateY(-50%);
 }
 
-.slider-nav-prev {
-    left: 10px;
-}
 
-.slider-nav-next {
-    right: 10px;
-}
 
 .slider-nav-prev:hover,
 .slider-nav-next:hover {
