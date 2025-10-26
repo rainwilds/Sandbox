@@ -112,6 +112,8 @@ class CustomSlider extends HTMLElement {
         let navigation = this.hasAttribute('navigation');
         let navigationIconLeft = this.getAttribute('navigation-icon-left') || '<i class="fa-chisel fa-regular fa-angle-left"></i>';
         let navigationIconRight = this.getAttribute('navigation-icon-right') || '<i class="fa-chisel fa-regular fa-angle-right"></i>';
+        let navigationIconLeftBackground = this.getAttribute('navigation-icon-left-background') || '';
+        let navigationIconRightBackground = this.getAttribute('navigation-icon-right-background') || '';
 
         const gapAttr = this.getAttribute('gap') || '0'; // Default to 0 if no gap attribute
         let gap = gapAttr;
@@ -128,39 +130,87 @@ class CustomSlider extends HTMLElement {
         let paginationIconInactive = this.getAttribute('pagination-icon-inactive') || '<i class="fa-regular fa-circle"></i>';
         this.#log('Parsed pagination icons', { paginationIconActive, paginationIconInactive });
 
-        const validateIcon = (icon, position) => {
+        const validateIcon = (icon, position, isBackground = false) => {
             if (!icon) return '';
             const parser = new DOMParser();
             const decodedIcon = icon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
             const doc = parser.parseFromString(decodedIcon, 'text/html');
             const iElement = doc.body.querySelector('i');
             if (!iElement || !iElement.className.includes('fa-')) {
-                this.#warn(`Invalid ${position} pagination icon format, ensure Font Awesome is loaded`, {
+                this.#warn(`Invalid ${position} ${isBackground ? 'background ' : ''}icon format, ensure Font Awesome is loaded`, {
                     value: icon,
                     expected: 'Font Awesome <i> tag with fa- classes'
                 });
-                return '<i class="fa-solid fa-circle"></i>'; // Fallback icon
+                return isBackground ? '' : '<i class="fa-solid fa-circle"></i>'; // Fallback for foreground only
             }
             const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
             if (validClasses.length === 0) {
-                this.#warn(`No valid Font Awesome classes in ${position} pagination icon, ensure Font Awesome is loaded`, {
+                this.#warn(`No valid Font Awesome classes in ${position} ${isBackground ? 'background ' : ''}icon`, {
                     classes: iElement.className
                 });
-                return '<i class="fa-solid fa-circle"></i>'; // Fallback icon
+                return isBackground ? '' : '<i class="fa-solid fa-circle"></i>'; // Fallback for foreground only
             }
             return `<i class="${validClasses.join(' ')}"></i>`;
         };
 
-        navigationIconLeft = validateIcon(navigationIconLeft, 'left');
-        navigationIconRight = validateIcon(navigationIconRight, 'right');
+        const processIconStack = (icon, backgroundIcon, position) => {
+            const foreground = validateIcon(icon, position);
+            const background = validateIcon(backgroundIcon, position, true);
+            if (!foreground) {
+                this.#warn(`No valid foreground icon for ${position}, navigation disabled`, { icon, backgroundIcon });
+                return { valid: false, markup: '' };
+            }
+            if (!background) {
+                return { valid: true, markup: foreground }; // Single icon
+            }
+            // Create stacked icon markup
+            return {
+                valid: true,
+                markup: `<span class="fa-stack">${background.replace('<i', '<i class="fa-stack-2x"')}${foreground.replace('<i', '<i class="fa-stack-1x"')}</span>`
+            };
+        };
+
+        // Parse navigation icons for potential stacks
+        let leftIconResult = { valid: true, markup: navigationIconLeft };
+        let rightIconResult = { valid: true, markup: navigationIconRight };
+
+        if (navigationIconLeftBackground || navigationIconRightBackground) {
+            leftIconResult = processIconStack(navigationIconLeft, navigationIconLeftBackground, 'left');
+            rightIconResult = processIconStack(navigationIconRight, navigationIconRightBackground, 'right');
+        } else {
+            // Check if main icon attributes contain stacked icons
+            const parser = new DOMParser();
+            const leftDoc = parser.parseFromString(navigationIconLeft.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), 'text/html');
+            const rightDoc = parser.parseFromString(navigationIconRight.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), 'text/html');
+            const leftIcons = leftDoc.body.querySelectorAll('i');
+            const rightIcons = rightDoc.body.querySelectorAll('i');
+
+            if (leftIcons.length === 2) {
+                leftIconResult = processIconStack(leftIcons[1].outerHTML, leftIcons[0].outerHTML, 'left');
+            } else {
+                leftIconResult = { valid: true, markup: validateIcon(navigationIconLeft, 'left') };
+            }
+            if (rightIcons.length === 2) {
+                rightIconResult = processIconStack(rightIcons[1].outerHTML, rightIcons[0].outerHTML, 'right');
+            } else {
+                rightIconResult = { valid: true, markup: validateIcon(navigationIconRight, 'right') };
+            }
+        }
+
+        navigationIconLeft = leftIconResult.markup;
+        navigationIconRight = rightIconResult.markup;
+        navigation = navigation && leftIconResult.valid && rightIconResult.valid && this.hasAttribute('navigation-icon-left') && this.hasAttribute('navigation-icon-right');
+        if (!navigation && this.hasAttribute('navigation')) {
+            this.#warn('Navigation disabled due to invalid or missing icon attributes', {
+                leftIconValid: leftIconResult.valid,
+                rightIconValid: rightIconResult.valid,
+                hasLeftIcon: this.hasAttribute('navigation-icon-left'),
+                hasRightIcon: this.hasAttribute('navigation-icon-right')
+            });
+        }
+
         paginationIconActive = validateIcon(paginationIconActive, 'active');
         paginationIconInactive = validateIcon(paginationIconInactive, 'inactive');
-
-        // Check for required attributes for navigation
-        if (navigation && (!this.hasAttribute('navigation-icon-left') || !this.hasAttribute('navigation-icon-right'))) {
-            this.#warn('Navigation requires explicit navigation-icon-left and navigation-icon-right attributes. Ignoring navigation.');
-            navigation = false;
-        }
 
         // Check for required attributes for pagination
         if (pagination && (!this.hasAttribute('pagination-icon-active') || !this.hasAttribute('pagination-icon-inactive'))) {
@@ -435,7 +485,11 @@ class CustomSlider extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return ['autoplay', 'slides-per-view', 'navigation', 'navigation-icon-left', 'navigation-icon-right', 'gap', 'pagination', 'pagination-icon-active', 'pagination-icon-inactive'];
+        return [
+            'autoplay', 'slides-per-view', 'navigation', 'navigation-icon-left', 'navigation-icon-right',
+            'navigation-icon-left-background', 'navigation-icon-right-background', 'gap', 'pagination',
+            'pagination-icon-active', 'pagination-icon-inactive'
+        ];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
