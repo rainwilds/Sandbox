@@ -129,11 +129,11 @@ class CustomSlider extends HTMLElement {
         const slidesPerViewAttr = this.getAttribute('slides-per-view') || '1';
         let slidesPerView = parseInt(slidesPerViewAttr, 10);
         if (isNaN(slidesPerView) || slidesPerView < 1 || !Number.isInteger(Number(slidesPerViewAttr))) {
-            this.#warn('Invalid slides-per-view, defaulting to 1', { 
+            this.#warn('Invalid slides-per-view, defaulting to 1. Check HTML or CMS for correct attribute value.', { 
                 value: slidesPerViewAttr, 
                 expected: 'Positive integer (e.g., "3")',
                 elementId: this.#uniqueId,
-                outerHTML: this.outerHTML.substring(0, 200)
+                outerHTML: this.outerHTML
             });
             slidesPerView = 1;
         }
