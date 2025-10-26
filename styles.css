@@ -2031,7 +2031,6 @@ div#products {
 .slider-nav-prev {
     position: absolute;
     z-index: 10;
-    cursor: pointer;
     left: 0;
     top: 50%;
     transform: translateY(-50%);
@@ -2040,12 +2039,21 @@ div#products {
 .slider-nav-next {
     position: absolute;
     z-index: 10;
-    cursor: pointer;
     right: 0;
     top: 50%;
     transform: translateY(-50%);
 }
 
+.stack {
+
+    display: grid;
+    place-items: center;
+
+    &>i {
+        grid-area: 1 / 1;
+    }
+
+}
 
 
 .slider-nav-prev:hover,

@@ -168,10 +168,10 @@ class CustomSlider extends HTMLElement {
             if (!background) {
                 return { valid: true, markup: foreground }; // Single icon
             }
-            // Create stacked icon markup
+            // Create stacked icon markup with only .icon-stack and .icon classes
             return {
                 valid: true,
-                markup: `<span class="fa-stack">${background.replace('<i class="', '<i class="fa-stack-2x ')}${foreground.replace('<i class="', '<i class="fa-stack-1x ')}</span>`
+                markup: `<span class="icon-stack icon">${background}${foreground}</span>`
             };
         };
 
@@ -350,7 +350,7 @@ class CustomSlider extends HTMLElement {
             const sliderContainer = document.getElementById(this.#uniqueId);
             if (!sliderContainer) return;
 
-            // Calculate slide width in percentage
+            // Calculate slide width in percentage on total slide count
             const slideWidth = 100 / slidesPerView; // Each slide takes 100% / slidesPerView
             const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0'; // Use raw gap value (e.g., '40px', '5em')
 
