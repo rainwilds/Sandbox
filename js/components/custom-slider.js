@@ -25,7 +25,10 @@ class CustomSlider extends HTMLElement {
         this.debug = new URLSearchParams(window.location.search).get('debug') === 'true';
         this.#ignoredChangeCount = 0;
         this.#uniqueId = `slider-${Math.random().toString(36).substr(2, 9)}`;
-        this.#log('Constructor called', { elementId: this.#uniqueId });
+        this.#childElements = Array.from(this.children)
+            .filter(child => child.tagName.toLowerCase() === 'custom-block')
+            .map(child => child.cloneNode(true));
+        this.#log('Constructor called', { elementId: this.#uniqueId, initialChildCount: this.#childElements.length });
         CustomSlider.#observer.observe(this);
         CustomSlider.#observedInstances.add(this);
     }
@@ -132,7 +135,8 @@ class CustomSlider extends HTMLElement {
             this.#warn('Invalid slides-per-view, defaulting to 1', { 
                 value: slidesPerViewAttr, 
                 expected: 'Positive integer (e.g., "3")',
-                elementId: this.#uniqueId
+                elementId: this.#uniqueId,
+                outerHTML: this.outerHTML.substring(0, 200)
             });
             slidesPerView = 1;
         }
@@ -291,15 +295,6 @@ class CustomSlider extends HTMLElement {
         navigationIconLeft = leftIconResult.markup;
         navigationIconRight = rightIconResult.markup;
         navigation = navigation && leftIconResult.valid && rightIconResult.valid;
-        if (!navigation && this.hasAttribute('navigation')) {
-            this.#warn('Navigation disabled due to invalid or missing icon attributes', {
-                leftIconValid: leftIconResult.valid,
-                rightIconValid: rightIconResult.valid,
-                hasLeftIcon: this.hasAttribute('navigation-icon-left'),
-                hasRightIcon: this.hasAttribute('navigation-icon-right'),
-                elementId: this.#uniqueId
-            });
-        }
 
         paginationIconActive = validateIcon(paginationIconActive, 'active');
         paginationIconInactive = validateIcon(paginationIconInactive, 'inactive');
@@ -354,6 +349,7 @@ class CustomSlider extends HTMLElement {
         this.isInitialized = true;
 
         try {
+            this.#observeChildren(); // Start observing after initial capture
             const sliderElement = await this.render();
             if (sliderElement) {
                 this.#log('Render successful, replacing element', { elementId: this.#uniqueId });
@@ -533,7 +529,7 @@ class CustomSlider extends HTMLElement {
 
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
-        const gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`;
+        const gridTemplateColumns = `repeat(${this.#childElements.length || 1}, calc(100% / ${attrs.slidesPerView}))`;
         innerWrapper.style.gridTemplateColumns = gridTemplateColumns;
         if (attrs.gap && attrs.gap !== '0') {
             innerWrapper.style.columnGap = attrs.gap;
@@ -599,7 +595,7 @@ class CustomSlider extends HTMLElement {
             const pagination = document.createElement('div');
             pagination.className = 'slider-pagination';
 
-            const totalSlides = this.#childElements.length;
+            const totalSlides = this.#childElements.length || 1;
             for (let i = 0; i < totalSlides; i++) {
                 const dot = document.createElement('span');
                 dot.className = 'icon';
@@ -630,11 +626,12 @@ class CustomSlider extends HTMLElement {
 
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.#uniqueId });
-        this.#observeChildren();
-        this.#childElements = Array.from(this.children)
-            .filter(child => child.tagName.toLowerCase() === 'custom-block')
-            .map(child => child.cloneNode(true));
-        this.#log('Captured children in connectedCallback', { count: this.#childElements.length, elementId: this.#uniqueId });
+        if (!this.#childElements.length) {
+            this.#childElements = Array.from(this.children)
+                .filter(child => child.tagName.toLowerCase() === 'custom-block')
+                .map(child => child.cloneNode(true));
+            this.#log('Captured children in connectedCallback', { count: this.#childElements.length, elementId: this.#uniqueId });
+        }
         if (this.isVisible) {
             await this.initialize();
         }
