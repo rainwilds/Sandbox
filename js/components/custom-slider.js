@@ -1,4 +1,4 @@
-/* global HTMLElement, IntersectionObserver, document, window, console, requestAnimationFrame, MutationObserver */
+/* global HTMLElement, IntersectionObserver, document, window, console, requestAnimationFrame, MutationObserver, Promise */
 
 'use strict';
 
@@ -25,10 +25,7 @@ class CustomSlider extends HTMLElement {
         this.debug = new URLSearchParams(window.location.search).get('debug') === 'true';
         this.#ignoredChangeCount = 0;
         this.#uniqueId = `slider-${Math.random().toString(36).substr(2, 9)}`;
-        this.#childElements = Array.from(this.children)
-            .filter(child => child.tagName.toLowerCase() === 'custom-block')
-            .map(child => child.cloneNode(true));
-        this.#log('Constructor called', { elementId: this.#uniqueId, initialChildCount: this.#childElements.length });
+        this.#log('Constructor called', { elementId: this.#uniqueId });
         CustomSlider.#observer.observe(this);
         CustomSlider.#observedInstances.add(this);
     }
@@ -122,7 +119,7 @@ class CustomSlider extends HTMLElement {
                     const unit = timeMatch[2];
                     autoplayDelay = unit === 's' ? value * 1000 : value;
                 } else {
-                    this.#warn('Invalid autoplay format, using default 3s', { value: autoplayAttr, expected: 'Ns or Nms' });
+                    this.#warn('Invalid autoplay format, using default 3s', { value: autoplayAttr, expected: 'Ns or Nms', elementId: this.#uniqueId });
                     autoplayDelay = 3000;
                 }
             }
@@ -349,7 +346,7 @@ class CustomSlider extends HTMLElement {
         this.isInitialized = true;
 
         try {
-            this.#observeChildren(); // Start observing after initial capture
+            this.#observeChildren();
             const sliderElement = await this.render();
             if (sliderElement) {
                 this.#log('Render successful, replacing element', { elementId: this.#uniqueId });
@@ -626,15 +623,17 @@ class CustomSlider extends HTMLElement {
 
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.#uniqueId });
-        if (!this.#childElements.length) {
-            this.#childElements = Array.from(this.children)
-                .filter(child => child.tagName.toLowerCase() === 'custom-block')
-                .map(child => child.cloneNode(true));
-            this.#log('Captured children in connectedCallback', { count: this.#childElements.length, elementId: this.#uniqueId });
-        }
-        if (this.isVisible) {
-            await this.initialize();
-        }
+        Promise.resolve().then(() => {
+            if (!this.#childElements.length) {
+                this.#childElements = Array.from(this.children)
+                    .filter(child => child.tagName.toLowerCase() === 'custom-block')
+                    .map(child => child.cloneNode(true));
+                this.#log('Captured children in connectedCallback', { count: this.#childElements.length, elementId: this.#uniqueId });
+            }
+            if (this.isVisible) {
+                this.initialize();
+            }
+        });
     }
 
     disconnectedCallback() {
