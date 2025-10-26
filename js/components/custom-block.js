@@ -1,4 +1,4 @@
-/* global HTMLElement, IntersectionObserver, document, window, JSON, console */
+/* global HTMLElement, document, window, JSON, console */
 import { generatePictureMarkup } from '../generators/image-generator.js';
 import { generateVideoMarkup } from '../generators/video-generator.js';
 import { VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } from '../shared.js';
@@ -10,7 +10,7 @@ class CustomBlock extends HTMLElement {
 
     constructor() {
         super();
-        this.isVisible = false;
+        this.isVisible = true; // Always consider visible for immediate init
         this.isInitialized = false;
         this.callbacks = [];
         this.renderCache = null;
@@ -19,26 +19,7 @@ class CustomBlock extends HTMLElement {
         this.criticalAttributesHash = null;
         this.debug = new URLSearchParams(window.location.search).get('debug') === 'true';
         this.#ignoredChangeCount = 0;
-        CustomBlock.#observer.observe(this);
-        CustomBlock.#observedInstances.add(this);
     }
-
-    static #observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const instance = entry.target;
-                if (instance instanceof CustomBlock) {
-                    instance.isVisible = true;
-                    CustomBlock.#observer.unobserve(instance);
-                    CustomBlock.#observedInstances.delete(instance);
-                    instance.initialize();
-                }
-            }
-        });
-    }, { rootMargin: '50px' });
-
-    static #observedInstances = new WeakSet();
-    static #renderCacheMap = new WeakMap();
 
     static #criticalAttributes = [
         'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
@@ -601,10 +582,9 @@ class CustomBlock extends HTMLElement {
     }
 
     async initialize() {
-        if (this.isInitialized || !this.isVisible) {
+        if (this.isInitialized) {
             this.#log('Skipping initialization', {
                 isInitialized: this.isInitialized,
-                isVisible: this.isVisible,
                 elementId: this.id || 'no-id'
             });
             return;
@@ -640,17 +620,11 @@ class CustomBlock extends HTMLElement {
 
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
-        if (this.isVisible) {
-            await this.initialize();
-        }
+        await this.initialize();
     }
 
     disconnectedCallback() {
         this.#log('Disconnected from DOM', { elementId: this.id || 'no-id' });
-        if (CustomBlock.#observedInstances.has(this)) {
-            CustomBlock.#observer.unobserve(this);
-            CustomBlock.#observedInstances.delete(this);
-        }
         this.callbacks = [];
         this.renderCache = null;
         this.cachedAttributes = null;
@@ -943,7 +917,7 @@ class CustomBlock extends HTMLElement {
                         this.#log('Video background element appended', { elementId: this.id || 'no-id' });
                     } else {
                         this.#warn('Failed to parse video markup', {
-                            markup: videoMarkup.substring(0, 200),
+                            markup: videoMarkup,
                             elementId: this.id || 'no-id'
                         });
                         blockElement.appendChild(document.createElement('p')).textContent = 'Video unavailable';
@@ -1008,8 +982,9 @@ class CustomBlock extends HTMLElement {
                     } else {
                         this.#warn('Failed to parse picture markup', { markup: pictureMarkup.substring(0, 200) });
                         const fallbackImg = document.createElement('img');
-                        fallbackImg.src = 'https://placehold.co/300x200';
+                        fallbackImg.src = 'https://placehold.co/3000x2000';
                         fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                        fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
                         if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
                         fallbackImg.style.width = '100%';
                         blockElement.appendChild(fallbackImg);
@@ -1018,8 +993,9 @@ class CustomBlock extends HTMLElement {
                 } catch (error) {
                     this.#error('Error generating picture markup', { error, sources });
                     const fallbackImg = document.createElement('img');
-                    fallbackImg.src = 'https://placehold.co/300x200';
+                    fallbackImg.src = 'https://placehold.co/3000x2000';
                     fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                    fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
                     if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
                     fallbackImg.style.width = '100%';
                     blockElement.appendChild(fallbackImg);
@@ -1028,8 +1004,9 @@ class CustomBlock extends HTMLElement {
             } else {
                 this.#warn('Invalid background image sources', { invalidSources: sources.filter((_, i) => !validations[i]) });
                 const fallbackImg = document.createElement('img');
-                fallbackImg.src = 'https://placehold.co/300x200';
+                fallbackImg.src = 'https://placehold.co/3000x2000';
                 fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
                 if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
                 fallbackImg.style.width = '100%';
                 blockElement.appendChild(fallbackImg);
@@ -1278,8 +1255,9 @@ class CustomBlock extends HTMLElement {
                         } else {
                             this.#warn('Failed to parse primary picture markup', { markup: pictureMarkup.substring(0, 200) });
                             const fallbackImg = document.createElement('img');
-                            fallbackImg.src = 'https://placehold.co/300x200';
+                            fallbackImg.src = 'https://placehold.co/3000x2000';
                             fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                            fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
                             if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
                             fallbackImg.style.width = '100%';
                             blockElement.appendChild(fallbackImg);
@@ -1327,8 +1305,9 @@ class CustomBlock extends HTMLElement {
                 } catch (error) {
                     this.#error(`Error generating ${hasPrimaryImage ? 'picture' : 'video'} markup (${position})`, { error: error.message, sources });
                     const fallbackImg = document.createElement('img');
-                    fallbackImg.src = 'https://placehold.co/300x200';
+                    fallbackImg.src = 'https://placehold.co/3000x2000';
                     fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                    fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
                     if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
                     fallbackImg.style.width = '100%';
                     blockElement.appendChild(fallbackImg);
@@ -1338,8 +1317,9 @@ class CustomBlock extends HTMLElement {
                 this.#warn('Invalid primary sources', { invalidSources: sources.filter((_, i) => !validations[i]) });
                 blockElement.appendChild(innerDiv);
                 const fallbackImg = document.createElement('img');
-                fallbackImg.src = 'https://placehold.co/300x200';
+                fallbackImg.src = 'https://placehold.co/3000x2000';
                 fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
                 if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
                 fallbackImg.style.width = '100%';
                 blockElement.appendChild(fallbackImg);
@@ -1393,7 +1373,7 @@ class CustomBlock extends HTMLElement {
         if (CustomBlock.#criticalAttributes.includes(name)) {
             this.cachedAttributes = null;
             this.criticalAttributesHash = null;
-            if (this.isInitialized && this.isVisible) {
+            if (this.isInitialized) {
                 this.#ignoredChangeCount++;
                 this.initialize().then(() => {
                     this.#ignoredChangeCount--;
@@ -1434,7 +1414,7 @@ class CustomBlock extends HTMLElement {
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-        if (!this.isInitialized || !this.isVisible) {
+        if (!this.isInitialized) {
             this.#ignoredChangeCount++;
             if (this.debug && this.#ignoredChangeCount % 10 === 0) {
                 this.#log('Attribute changes ignored (not ready - batched)', { count: this.#ignoredChangeCount, name, oldValue, newValue });
