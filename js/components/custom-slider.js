@@ -13,7 +13,9 @@ class CustomSlider extends HTMLElement {
     #autoplayInterval = null;
     #slides = [];
     #childElements = [];
-    #lastDirection = 0; // Track the last navigation direction
+    #lastDirection = 0;
+    #cachedAttributes = null;
+    #criticalAttributesHash = null;
 
     constructor() {
         super();
@@ -42,6 +44,12 @@ class CustomSlider extends HTMLElement {
     }, { rootMargin: '50px' });
 
     static #observedInstances = new WeakSet();
+    static #renderCacheMap = new WeakMap();
+    static #criticalAttributes = [
+        'autoplay', 'slides-per-view', 'navigation', 'navigation-icon-left', 'navigation-icon-right',
+        'navigation-icon-left-background', 'navigation-icon-right-background', 'gap', 'pagination',
+        'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size'
+    ];
 
     #log(message, data = null) {
         if (this.debug) {
@@ -81,18 +89,23 @@ class CustomSlider extends HTMLElement {
     }
 
     async getAttributes() {
-        this.#log('Parsing attributes', { elementId: this.#uniqueId });
+        if (this.#cachedAttributes) {
+            this.#log('Using cached attributes', { elementId: this.#uniqueId });
+            return this.#cachedAttributes;
+        }
+        this.#log('Parsing new attributes', { elementId: this.#uniqueId });
+
         const autoplayAttr = this.getAttribute('autoplay');
-        let autoplayDelay = 0; // Default to disabled if attribute is absent
+        let autoplayDelay = 0;
         if (this.hasAttribute('autoplay')) {
             if (autoplayAttr === '' || autoplayAttr === null) {
-                autoplayDelay = 3000; // Default if present but empty/no value
+                autoplayDelay = 3000;
             } else {
                 const timeMatch = autoplayAttr.match(/^(\d+)(s|ms)$/);
                 if (timeMatch) {
                     const value = parseInt(timeMatch[1], 10);
                     const unit = timeMatch[2];
-                    autoplayDelay = unit === 's' ? value * 1000 : value; // Convert seconds to milliseconds
+                    autoplayDelay = unit === 's' ? value * 1000 : value;
                 } else {
                     this.#warn('Invalid autoplay format, using default 3s', { value: autoplayAttr, expected: 'Ns or Nms' });
                     autoplayDelay = 3000;
@@ -104,7 +117,7 @@ class CustomSlider extends HTMLElement {
         const slidesPerViewAttr = this.getAttribute('slides-per-view') || '1';
         let slidesPerView = parseInt(slidesPerViewAttr, 10);
         if (isNaN(slidesPerView) || slidesPerView < 1) {
-            this.#warn('Invalid slides-per-view', { value: slidesPerViewAttr, defaultingTo: 1 });
+            this.#warn('Invalid slides-per-view, defaulting to 1', { value: slidesPerViewAttr });
             slidesPerView = 1;
         }
 
@@ -114,7 +127,6 @@ class CustomSlider extends HTMLElement {
         let navigationIconLeftBackground = this.getAttribute('navigation-icon-left-background') || '';
         let navigationIconRightBackground = this.getAttribute('navigation-icon-right-background') || '';
 
-        // Parse navigation-icon-size
         const navigationIconSize = this.getAttribute('navigation-icon-size') || '';
         let iconSizeBackground = '';
         let iconSizeForeground = '';
@@ -136,7 +148,6 @@ class CustomSlider extends HTMLElement {
         }
         this.#log('Parsed navigation-icon-size', { navigationIconSize, iconSizeBackground, iconSizeForeground });
 
-        // Parse pagination-icon-size
         const paginationIconSize = this.getAttribute('pagination-icon-size') || '';
         let paginationIconSizeActive = '';
         let paginationIconSizeInactive = '';
@@ -149,7 +160,6 @@ class CustomSlider extends HTMLElement {
             } else if (sizes.length === 2 && sizes.every(size => validSizeRegex.test(size))) {
                 paginationIconSizeActive = sizes[0];
                 paginationIconSizeInactive = sizes[1];
-                // Warn if two sizes are provided (pagination icons are always single)
                 this.#warn('Two pagination-icon-size values provided but pagination icons are not stacked, using first size', {
                     paginationIconSize,
                     paginationIconSizeActive,
@@ -164,20 +174,20 @@ class CustomSlider extends HTMLElement {
         }
         this.#log('Parsed pagination-icon-size', { paginationIconSize, paginationIconSizeActive, paginationIconSizeInactive });
 
-        const gapAttr = this.getAttribute('gap') || '0'; // Default to 0 if no gap attribute
+        const gapAttr = this.getAttribute('gap') || '0';
         let gap = gapAttr;
         if (slidesPerView === 1 && this.hasAttribute('gap')) {
             this.#warn('Gap attribute ignored for slides-per-view=1', { gap: gapAttr });
             gap = '0';
+        } else if (gapAttr && !gapAttr.match(/^(\d*\.?\d+(?:px|rem|em|%)|var\(--[a-zA-Z0-9-]+\))$/)) {
+            this.#warn('Invalid gap format, defaulting to 0', { value: gapAttr });
+            gap = '0';
         }
         this.#log('Parsed gap attribute', { gapAttr, effectiveGap: gap });
 
-        let pagination = this.hasAttribute('pagination'); // Boolean, true if attribute is present
-        this.#log('Parsed pagination attribute', { pagination });
-
+        let pagination = this.hasAttribute('pagination');
         let paginationIconActive = this.getAttribute('pagination-icon-active') || '<i class="fa-solid fa-circle"></i>';
         let paginationIconInactive = this.getAttribute('pagination-icon-inactive') || '<i class="fa-regular fa-circle"></i>';
-        this.#log('Parsed pagination icons', { paginationIconActive, paginationIconInactive });
 
         const validateIcon = (icon, position, isBackground = false) => {
             if (!icon) return '';
@@ -189,7 +199,7 @@ class CustomSlider extends HTMLElement {
             if (!iElement && !icon.match(/fa-/)) {
                 classes = icon.split(/\s+/).filter(cls => cls);
                 if (!classes.some(cls => cls.startsWith('fa-'))) {
-                    this.#warn(`Invalid ${position} ${isBackground ? 'background ' : ''}icon format, ensure Font Awesome classes are provided`, {
+                    this.#warn(`Invalid ${position} ${isBackground ? 'background ' : ''}icon format`, {
                         value: icon,
                         expected: 'Font Awesome classes (fa-*) or <i> tag with fa- classes'
                     });
@@ -204,7 +214,7 @@ class CustomSlider extends HTMLElement {
                 });
                 return isBackground ? '' : '<i class="fa-solid fa-circle"></i>';
             }
-            validClasses.push('icon'); // Always add 'icon' class
+            validClasses.push('icon');
             return `<i class="${validClasses.join(' ')}"></i>`;
         };
 
@@ -215,7 +225,6 @@ class CustomSlider extends HTMLElement {
                 this.#warn(`No valid foreground icon for ${position}, navigation disabled`, { icon, backgroundIcon });
                 return { valid: false, markup: '' };
             }
-            // Check if two sizes were provided but no stack is present
             if (iconSizeBackground && iconSizeForeground && iconSizeBackground !== iconSizeForeground && !background) {
                 this.#warn(`Two navigation-icon-size values provided but ${position} icons are not stacked, using first size`, {
                     navigationIconSize,
@@ -224,16 +233,14 @@ class CustomSlider extends HTMLElement {
                 });
             }
             if (!background) {
-                return { valid: true, markup: foreground }; // Single icon
+                return { valid: true, markup: foreground };
             }
-            // Create stacked icon markup with only .icon-stack and .icon classes
             return {
                 valid: true,
                 markup: `<span class="icon-stack icon">${background}${foreground}</span>`
             };
         };
 
-        // Parse navigation icons for potential stacks
         let leftIconResult = { valid: true, markup: navigationIconLeft };
         let rightIconResult = { valid: true, markup: navigationIconRight };
 
@@ -241,7 +248,6 @@ class CustomSlider extends HTMLElement {
             leftIconResult = processIconStack(navigationIconLeft, navigationIconLeftBackground, 'left');
             rightIconResult = processIconStack(navigationIconRight, navigationIconRightBackground, 'right');
         } else {
-            // Check if main icon attributes contain stacked icons
             const parser = new DOMParser();
             const leftDoc = parser.parseFromString(navigationIconLeft.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), 'text/html');
             const rightDoc = parser.parseFromString(navigationIconRight.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), 'text/html');
@@ -275,13 +281,12 @@ class CustomSlider extends HTMLElement {
         paginationIconActive = validateIcon(paginationIconActive, 'active');
         paginationIconInactive = validateIcon(paginationIconInactive, 'inactive');
 
-        // Check for required attributes for pagination
         if (pagination && (!this.hasAttribute('pagination-icon-active') || !this.hasAttribute('pagination-icon-inactive'))) {
             this.#warn('Pagination requires explicit pagination-icon-active and pagination-icon-inactive attributes. Ignoring pagination.');
             pagination = false;
         }
 
-        return {
+        this.#cachedAttributes = {
             autoplayDelay,
             slidesPerView,
             navigation,
@@ -296,6 +301,18 @@ class CustomSlider extends HTMLElement {
             paginationIconSizeActive,
             paginationIconSizeInactive
         };
+
+        const criticalAttrs = {};
+        CustomSlider.#criticalAttributes.forEach(attr => {
+            criticalAttrs[attr] = this.getAttribute(attr) || '';
+        });
+        this.#criticalAttributesHash = JSON.stringify(criticalAttrs);
+        this.#log('Attributes parsed successfully', {
+            elementId: this.#uniqueId,
+            criticalHashLength: this.#criticalAttributesHash.length
+        });
+
+        return this.#cachedAttributes;
     }
 
     async initialize() {
@@ -312,16 +329,15 @@ class CustomSlider extends HTMLElement {
         this.isInitialized = true;
 
         try {
-            const attrs = await this.getAttributes();
-            const sliderElement = await this.render(attrs);
+            const sliderElement = await this.render();
             if (sliderElement) {
                 this.#log('Render successful, replacing element', { elementId: this.#uniqueId });
                 this.replaceWith(sliderElement);
-                this.#setupSlider(attrs);
+                this.#setupSlider(await this.getAttributes());
                 this.#log('Initialization completed successfully', { elementId: this.#uniqueId });
             } else {
                 this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
-                const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>', iconSizeBackground: '', iconSizeForeground: '', paginationIconSizeActive: '', paginationIconSizeInactive: '' });
+                const fallbackElement = await this.render(true);
                 this.replaceWith(fallbackElement);
             }
         } catch (error) {
@@ -330,7 +346,7 @@ class CustomSlider extends HTMLElement {
                 stack: error.stack,
                 elementId: this.#uniqueId
             });
-            const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>', iconSizeBackground: '', iconSizeForeground: '', paginationIconSizeActive: '', paginationIconSizeInactive: '' });
+            const fallbackElement = await this.render(true);
             this.replaceWith(fallbackElement);
         }
     }
@@ -344,7 +360,7 @@ class CustomSlider extends HTMLElement {
 
         this.#slides = Array.from(sliderContainer.querySelectorAll('.slider-slide'));
         if (this.#slides.length === 0) {
-            this.#warn('No slides to initialize', { elementId: this.#uniqueId });
+            this.#warn('No slides to initialize', { elementId: this.#uniqueId, childCount: this.#childElements.length });
             return;
         }
 
@@ -367,22 +383,21 @@ class CustomSlider extends HTMLElement {
 
     #navigate(direction) {
         const totalSlides = this.#slides.length;
-        const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
-        this.#lastDirection = direction; // Update the last navigation direction
-        this.#currentIndex += direction;
+        const slidesPerView = this.#cachedAttributes?.slidesPerView || parseInt(this.getAttribute('slides-per-view') || '1', 10);
+        this.#lastDirection = direction;
+        const newIndex = this.#currentIndex + direction;
 
-        // Boundary check with reset
         const maxVisibleIndex = totalSlides - slidesPerView;
-        if (this.#currentIndex > maxVisibleIndex) {
-            this.#currentIndex = 0; // Reset to start on "next" overflow
-        } else if (this.#currentIndex < 0) {
-            this.#currentIndex = maxVisibleIndex; // Reset to end on "previous" overflow
+        if (newIndex > maxVisibleIndex) {
+            this.#currentIndex = 0;
+        } else if (newIndex < 0) {
+            this.#currentIndex = maxVisibleIndex;
+        } else {
+            this.#currentIndex = newIndex;
         }
 
-        this.getAttributes().then(attrs => {
-            this.#updateSlider(attrs);
-            this.#log('Navigated', { direction, currentIndex: this.#currentIndex, lastDirection: this.#lastDirection, slidesPerView, totalSlides, elementId: this.#uniqueId });
-        });
+        this.#log('Navigation requested', { direction, newIndex: this.#currentIndex, totalSlides, slidesPerView });
+        this.#debounceUpdateSlider();
     }
 
     #startAutoplay(delay) {
@@ -401,53 +416,90 @@ class CustomSlider extends HTMLElement {
         }
     }
 
+    #debounceUpdateSlider = (() => {
+        let timeout;
+        return () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                this.getAttributes().then(attrs => {
+                    this.#updateSlider(attrs);
+                });
+            }, 50);
+        };
+    })();
+
     #updateSlider(attrs) {
         if (this.#animationFrameId) {
             cancelAnimationFrame(this.#animationFrameId);
         }
 
         this.#animationFrameId = requestAnimationFrame(() => {
-            const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
-            const totalSlides = this.#slides.length;
             const sliderContainer = document.getElementById(this.#uniqueId);
-            if (!sliderContainer) return;
+            if (!sliderContainer) {
+                this.#error('Slider container not found during update', { elementId: this.#uniqueId });
+                return;
+            }
 
-            // Calculate slide width in percentage
-            const slideWidth = 100 / slidesPerView; // Each slide takes 100% / slidesPerView
-            const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0'; // Use raw gap value (e.g., '40px', '5em')
-
-            // Calculate translation: slide width in % plus gap offset in original units
-            const addition = (slidesPerView - 1) / 2;
+            const slideWidth = 100 / attrs.slidesPerView;
+            const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0';
+            const addition = (attrs.slidesPerView - 1) / 2;
             const gapOffset = gap === '0' ? '0' : `(${this.#currentIndex} + ${addition}) * ${gap}`;
-            let translateX = gap === '0' ? `-${this.#currentIndex * slideWidth}%` : `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset})`;
-            this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, gapOffset, slidesPerView, totalSlides, elementId: this.#uniqueId });
+            const translateX = gap === '0' ? `-${this.#currentIndex * slideWidth}%` : `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset})`;
+            this.#log('Applying slider transform', { currentIndex: this.#currentIndex, translateX, slideWidth, gap });
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             wrapper.style.transform = `translateX(${translateX})`;
 
-            // Update pagination if enabled
             if (attrs.pagination) {
                 const pagination = sliderContainer.querySelector('.slider-pagination');
                 if (pagination) {
                     const dots = pagination.querySelectorAll('.icon');
                     dots.forEach((dot, index) => {
-                        dot.innerHTML = index === this.#currentIndex ? attrs.paginationIconActive : attrs.paginationIconInactive;
-                        // Apply font-size to pagination icons
+                        const isActive = index === this.#currentIndex;
+                        dot.innerHTML = isActive ? attrs.paginationIconActive : attrs.paginationIconInactive;
                         const icon = dot.querySelector('i');
-                        if (icon) {
-                            icon.style.fontSize = index === this.#currentIndex ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
+                        if (icon && (attrs.paginationIconSizeActive || attrs.paginationIconSizeInactive)) {
+                            icon.style.fontSize = isActive ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
                         }
                     });
-                    this.#log('Pagination updated', { currentIndex: this.#currentIndex, totalSlides, elementId: this.#uniqueId });
+                    this.#log('Pagination dots updated', { currentIndex: this.#currentIndex, totalDots: dots.length });
                 }
             }
 
-            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, gapOffset, slidesPerView, totalSlides, elementId: this.#uniqueId });
+            this.#log('Slider update completed', { currentIndex: this.#currentIndex, elementId: this.#uniqueId });
         });
     }
 
-    async render(attrs) {
-        this.#log('Starting render', { elementId: this.#uniqueId, attrs });
+    async render(isFallback = false) {
+        this.#log(`Starting render ${isFallback ? '(fallback)' : ''}`, { elementId: this.#uniqueId });
+        let newCriticalAttrsHash;
+        if (!isFallback) {
+            const criticalAttrs = {};
+            CustomSlider.#criticalAttributes.forEach(attr => {
+                criticalAttrs[attr] = this.getAttribute(attr) || '';
+            });
+            newCriticalAttrsHash = JSON.stringify(criticalAttrs);
+            if (CustomSlider.#renderCacheMap.has(this) && this.#criticalAttributesHash === newCriticalAttrsHash) {
+                this.#log('Using cached render', { elementId: this.#uniqueId });
+                return CustomSlider.#renderCacheMap.get(this).cloneNode(true);
+            }
+        }
+
+        const attrs = isFallback ? {
+            autoplayDelay: 3000,
+            slidesPerView: 1,
+            navigation: false,
+            navigationIconLeft: '<i class="fa-solid fa-circle"></i>',
+            navigationIconRight: '<i class="fa-solid fa-circle"></i>',
+            gap: '0',
+            pagination: false,
+            paginationIconActive: '<i class="fa-solid fa-circle"></i>',
+            paginationIconInactive: '<i class="fa-regular fa-circle"></i>',
+            iconSizeBackground: '',
+            iconSizeForeground: '',
+            paginationIconSizeActive: '',
+            paginationIconSizeInactive: ''
+        } : await this.getAttributes();
 
         const fragment = document.createDocumentFragment();
         const sliderWrapper = document.createElement('div');
@@ -456,17 +508,18 @@ class CustomSlider extends HTMLElement {
 
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
-        innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`;
+        const gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`;
+        innerWrapper.style.gridTemplateColumns = gridTemplateColumns;
         if (attrs.gap && attrs.gap !== '0') {
             innerWrapper.style.columnGap = attrs.gap;
         }
-        this.#log('Applied styles to slider-wrapper', { gap: attrs.gap, gridTemplateColumns: innerWrapper.style.gridTemplateColumns });
+        this.#log('Applied styles to slider-wrapper', { gap: attrs.gap, gridTemplateColumns });
 
         if (this.#childElements.length === 0) {
-            this.#warn('No valid slides found', { elementId: this.#uniqueId });
+            this.#warn('No valid slides found', { elementId: this.#uniqueId, childCount: this.#childElements.length });
             const fallbackSlide = document.createElement('div');
             fallbackSlide.className = 'slider-slide';
-            fallbackSlide.innerHTML = '<p>No slides available</p>';
+            fallbackSlide.innerHTML = `<p>No slides available (expected ${this.#childElements.length} slides)</p>`;
             innerWrapper.appendChild(fallbackSlide);
         } else {
             this.#childElements.forEach((slide, index) => {
@@ -491,7 +544,6 @@ class CustomSlider extends HTMLElement {
             navNext.className = 'slider-nav-next';
             navNext.innerHTML = attrs.navigationIconRight;
 
-            // Add 'icon' class and apply font-size styles to navigation icons
             [navPrev, navNext].forEach((nav, index) => {
                 const icons = nav.querySelectorAll('i');
                 const isLeftNav = index === 0;
@@ -500,17 +552,17 @@ class CustomSlider extends HTMLElement {
                     if (!icon.classList.contains('icon')) {
                         icon.classList.add('icon');
                     }
-                    // Apply font-size based on stacking and navigation-icon-size
                     if (attrs.iconSizeBackground && attrs.iconSizeForeground) {
                         if (isStacked) {
                             icon.style.fontSize = iconIndex === 0 ? attrs.iconSizeBackground : attrs.iconSizeForeground;
                         } else {
-                            icon.style.fontSize = attrs.iconSizeBackground; // Use first size for single icon
+                            icon.style.fontSize = attrs.iconSizeBackground;
                         }
                     } else if (attrs.iconSizeBackground) {
-                        icon.style.fontSize = attrs.iconSizeBackground; // Single size for all
+                        icon.style.fontSize = attrs.iconSizeBackground;
                     }
                 });
+                this.#log(`Navigation ${isLeftNav ? 'prev' : 'next'} icon styled`, { isStacked, iconCount: icons.length });
             });
 
             sliderWrapper.appendChild(navPrev);
@@ -518,7 +570,6 @@ class CustomSlider extends HTMLElement {
             this.#log('Navigation buttons added', { elementId: this.#uniqueId });
         }
 
-        // Add pagination if enabled
         if (attrs.pagination) {
             const pagination = document.createElement('div');
             pagination.className = 'slider-pagination';
@@ -528,17 +579,14 @@ class CustomSlider extends HTMLElement {
                 const dot = document.createElement('span');
                 dot.className = 'icon';
                 dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
-                // Apply font-size to pagination icon
                 const icon = dot.querySelector('i');
                 if (icon && (attrs.paginationIconSizeActive || attrs.paginationIconSizeInactive)) {
                     icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
                 }
                 dot.addEventListener('click', () => {
                     this.#currentIndex = i;
-                    this.getAttributes().then(attrs => {
-                        this.#updateSlider(attrs);
-                        this.#log('Pagination dot clicked', { newIndex: this.#currentIndex, elementId: this.#uniqueId });
-                    });
+                    this.#debounceUpdateSlider();
+                    this.#log('Pagination dot clicked', { newIndex: this.#currentIndex, elementId: this.#uniqueId });
                 });
                 pagination.appendChild(dot);
             }
@@ -547,12 +595,16 @@ class CustomSlider extends HTMLElement {
         }
 
         fragment.appendChild(sliderWrapper);
+        if (!isFallback) {
+            CustomSlider.#renderCacheMap.set(this, sliderWrapper.cloneNode(true));
+            this.#criticalAttributesHash = newCriticalAttrsHash;
+        }
+        this.#log('Render completed', { elementId: this.#uniqueId, html: sliderWrapper.outerHTML.substring(0, 200) });
         return sliderWrapper;
     }
 
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.#uniqueId });
-        // Capture child elements here to ensure they're available before initialization
         this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block').map(child => child.cloneNode(true));
         this.#log('Captured children in connectedCallback', { count: this.#childElements.length, elementId: this.#uniqueId });
         if (this.isVisible) {
@@ -572,6 +624,9 @@ class CustomSlider extends HTMLElement {
             CustomSlider.#observedInstances.delete(this);
         }
         this.#childElements = [];
+        CustomSlider.#renderCacheMap.delete(this);
+        this.#cachedAttributes = null;
+        this.#criticalAttributesHash = null;
     }
 
     static get observedAttributes() {
@@ -583,26 +638,26 @@ class CustomSlider extends HTMLElement {
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
+        if (oldValue === newValue) return;
         if (!this.isInitialized || !this.isVisible) {
             this.#ignoredChangeCount++;
             if (this.debug && this.#ignoredChangeCount % 10 === 0) {
                 this.#log('Attribute changes ignored (not ready - batched)', {
                     count: this.#ignoredChangeCount,
-                    name,
-                    oldValue,
-                    newValue,
-                    elementId: this.#uniqueId
+                    name, oldValue, newValue, elementId: this.#uniqueId
                 });
             }
             return;
         }
-
         this.#log('Attribute changed', { name, oldValue, newValue, elementId: this.#uniqueId });
-        if (oldValue !== newValue) {
+        if (CustomSlider.#criticalAttributes.includes(name)) {
+            this.#cachedAttributes = null;
+            this.#criticalAttributesHash = null;
             this.isInitialized = false;
-            this.#stopAutoplay();
             this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block').map(child => child.cloneNode(true));
             this.initialize();
+        } else if (name === 'pagination-icon-size') {
+            this.#debounceUpdateSlider(); // Only update pagination styles
         }
     }
 }
