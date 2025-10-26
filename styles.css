@@ -2026,6 +2026,23 @@ div#products {
     grid-auto-flow: column;
     height: 100%;
     align-content: center;
+    transition: transform 0.3s ease-out; /* Smooth snapping */
+    cursor: grab;
+}
+
+.slider-slide {
+    width: 100%;
+    user-select: none; /* Prevent text/image selection during drag */
+}
+
+.slider-slide img {
+    pointer-events: none; /* Prevent image-specific interactions */
+    user-select: none; /* Prevent image selection */
+}
+
+.slider-wrapper.dragging {
+    transition: none; /* No transition during drag for responsiveness */
+    cursor: grabbing;
 }
 
 .slider-nav-prev {

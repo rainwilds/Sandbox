@@ -89,16 +89,16 @@ class CustomSlider extends HTMLElement {
     async getAttributes() {
         this.#log('Parsing attributes', { elementId: this.#uniqueId });
         const autoplayAttr = this.getAttribute('autoplay');
-        let autoplayDelay = 0; // Default to disabled if attribute is absent
+        let autoplayDelay = 0;
         if (this.hasAttribute('autoplay')) {
             if (autoplayAttr === '' || autoplayAttr === null) {
-                autoplayDelay = 3000; // Default if present but empty/no value
+                autoplayDelay = 3000;
             } else {
                 const timeMatch = autoplayAttr.match(/^(\d+)(s|ms)$/);
                 if (timeMatch) {
                     const value = parseInt(timeMatch[1], 10);
                     const unit = timeMatch[2];
-                    autoplayDelay = unit === 's' ? value * 1000 : value; // Convert seconds to milliseconds
+                    autoplayDelay = unit === 's' ? value * 1000 : value;
                 } else {
                     this.#warn('Invalid autoplay format, using default 3s', { value: autoplayAttr, expected: 'Ns or Nms' });
                     autoplayDelay = 3000;
@@ -120,7 +120,6 @@ class CustomSlider extends HTMLElement {
         let navigationIconLeftBackground = this.getAttribute('navigation-icon-left-background') || '';
         let navigationIconRightBackground = this.getAttribute('navigation-icon-right-background') || '';
 
-        // Parse navigation-icon-size
         const navigationIconSize = this.getAttribute('navigation-icon-size') || '';
         let iconSizeBackground = '';
         let iconSizeForeground = '';
@@ -142,7 +141,6 @@ class CustomSlider extends HTMLElement {
         }
         this.#log('Parsed navigation-icon-size', { navigationIconSize, iconSizeBackground, iconSizeForeground });
 
-        // Parse pagination-icon-size
         const paginationIconSize = this.getAttribute('pagination-icon-size') || '';
         let paginationIconSizeActive = '';
         let paginationIconSizeInactive = '';
@@ -281,7 +279,7 @@ class CustomSlider extends HTMLElement {
             pagination = false;
         }
 
-        const draggable = this.hasAttribute('draggable'); // New draggable attribute
+        const draggable = this.hasAttribute('draggable');
         this.#log('Parsed draggable attribute', { draggable });
 
         return {
@@ -298,7 +296,7 @@ class CustomSlider extends HTMLElement {
             iconSizeForeground,
             paginationIconSizeActive,
             paginationIconSizeInactive,
-            draggable // Include in attributes
+            draggable
         };
     }
 
@@ -381,15 +379,15 @@ class CustomSlider extends HTMLElement {
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
 
         if (attrs.draggable) {
-            // Mouse events
             wrapper.addEventListener('mousedown', this.#handleDragStart.bind(this));
             wrapper.addEventListener('mousemove', this.#handleDragMove.bind(this));
             wrapper.addEventListener('mouseup', this.#handleDragEnd.bind(this));
             wrapper.addEventListener('mouseleave', this.#handleDragEnd.bind(this));
-            // Touch events
             wrapper.addEventListener('touchstart', this.#handleDragStart.bind(this), { passive: false });
             wrapper.addEventListener('touchmove', this.#handleDragMove.bind(this), { passive: false });
             wrapper.addEventListener('touchend', this.#handleDragEnd.bind(this));
+            // Prevent image dragging
+            wrapper.addEventListener('dragstart', (event) => event.preventDefault());
             this.#log('Drag event listeners added', { elementId: this.#uniqueId });
         }
 
@@ -464,10 +462,10 @@ class CustomSlider extends HTMLElement {
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         wrapper.classList.remove('dragging');
 
-        const momentum = this.#velocity * 0.2; // Momentum decay (0.2s)
+        const momentum = this.#velocity * 0.2;
         const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
         const totalSlides = this.#slides.length;
-        const slideWidthPx = this.#slides[0].offsetWidth;
+        const slideWidthPx = this.#slides[0]?.offsetWidth || 1; // Fallback to avoid division by zero
         const maxVisibleIndex = totalSlides - slidesPerView;
 
         let finalTranslateX = this.#dragTranslateX + momentum;
@@ -539,7 +537,7 @@ class CustomSlider extends HTMLElement {
 
             let translateX;
             if (isDragging) {
-                const slideWidthPx = this.#slides[0].offsetWidth;
+                const slideWidthPx = this.#slides[0]?.offsetWidth || 1; // Fallback to avoid division by zero
                 const translatePercent = (this.#dragTranslateX / slideWidthPx) * slideWidth;
                 const baseTranslate = this.#dragStartIndex * slideWidth;
                 const gapOffset = gap === '0' ? '0' : `(${this.#dragStartIndex} + ${(slidesPerView - 1) / 2}) * ${gap}`;
@@ -598,7 +596,13 @@ class CustomSlider extends HTMLElement {
             this.#childElements.forEach((slide, index) => {
                 const slideWrapper = document.createElement('div');
                 slideWrapper.className = 'slider-slide';
-                slideWrapper.appendChild(slide.cloneNode(true));
+                const clonedSlide = slide.cloneNode(true);
+                // Prevent image dragging by setting draggable=false
+                const images = clonedSlide.querySelectorAll('img');
+                images.forEach(img => {
+                    img.setAttribute('draggable', 'false');
+                });
+                slideWrapper.appendChild(clonedSlide);
                 innerWrapper.appendChild(slideWrapper);
                 this.#log(`Slide ${index + 1} processed`, { elementId: this.#uniqueId });
             });
@@ -700,7 +704,7 @@ class CustomSlider extends HTMLElement {
             'autoplay', 'slides-per-view', 'navigation', 'navigation-icon-left', 'navigation-icon-right',
             'navigation-icon-left-background', 'navigation-icon-right-background', 'gap', 'pagination',
             'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size', 'pagination-icon-size',
-            'draggable' // New attribute
+            'draggable'
         ];
     }
 
