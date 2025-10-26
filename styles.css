@@ -2028,20 +2028,20 @@ div#products {
     align-content: center;
 }
 
-.slider-nav-prev,
-.slider-nav-next {
-    color: #333;
-    font-size: 24px;
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 50%;
+.slider-nav-prev {
     position: absolute;
     z-index: 10;
     cursor: pointer;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.slider-nav-next {
+    position: absolute;
+    z-index: 10;
+    cursor: pointer;
+    right: 0;
     top: 50%;
     transform: translateY(-50%);
 }

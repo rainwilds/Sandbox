@@ -419,23 +419,11 @@ class CustomSlider extends HTMLElement {
             navPrev.id = `${this.#uniqueId}-prev`;
             navPrev.className = 'slider-nav-prev';
             navPrev.innerHTML = attrs.navigationIconLeft;
-            navPrev.style.position = 'absolute';
-            navPrev.style.zIndex = '10';
-            navPrev.style.cursor = 'pointer';
-            navPrev.style.left = '10px';
-            navPrev.style.top = '50%';
-            navPrev.style.transform = 'translateY(-50%)';
 
             const navNext = document.createElement('div');
             navNext.id = `${this.#uniqueId}-next`;
             navNext.className = 'slider-nav-next';
             navNext.innerHTML = attrs.navigationIconRight;
-            navNext.style.position = 'absolute';
-            navNext.style.zIndex = '10';
-            navNext.style.cursor = 'pointer';
-            navNext.style.right = '10px';
-            navNext.style.top = '50%';
-            navNext.style.transform = 'translateY(-50%)';
 
             // Add 'icon' class to all <i> elements in navigation buttons
             [navPrev, navNext].forEach(nav => {
