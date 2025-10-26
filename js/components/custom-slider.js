@@ -22,8 +22,7 @@ class CustomSlider extends HTMLElement {
         this.debug = new URLSearchParams(window.location.search).get('debug') === 'true';
         this.#ignoredChangeCount = 0;
         this.#uniqueId = `slider-${Math.random().toString(36).substr(2, 9)}`;
-        this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block');
-        this.#log('Captured children in constructor', { count: this.#childElements.length, elementId: this.#uniqueId });
+        this.#log('Constructor called', { elementId: this.#uniqueId });
         CustomSlider.#observer.observe(this);
         CustomSlider.#observedInstances.add(this);
     }
@@ -469,6 +468,9 @@ class CustomSlider extends HTMLElement {
 
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.#uniqueId });
+        // Capture child elements here to ensure they're available before initialization
+        this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block').map(child => child.cloneNode(true));
+        this.#log('Captured children in connectedCallback', { count: this.#childElements.length, elementId: this.#uniqueId });
         if (this.isVisible) {
             await this.initialize();
         }
@@ -515,7 +517,7 @@ class CustomSlider extends HTMLElement {
         if (oldValue !== newValue) {
             this.isInitialized = false;
             this.#stopAutoplay();
-            this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block');
+            this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block').map(child => child.cloneNode(true));
             this.initialize();
         }
     }
