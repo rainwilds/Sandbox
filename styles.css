@@ -2016,6 +2016,7 @@ div#products {
     height: 100%;
     overflow: hidden;
     position: relative;
+    
 }
 
 .slider-wrapper {
@@ -2023,6 +2024,7 @@ div#products {
     transition: transform 0.5s;
     grid-auto-flow: column;
     height: 100%;
+    align-content: center;
 }
 
 .slider-nav-prev,
