@@ -2012,7 +2012,7 @@ div#products {
 }
 
 
-.custom-slider {
+/* .custom-slider {
     height: 100%;
     overflow: hidden;
     position: relative;
@@ -2026,22 +2026,22 @@ div#products {
     grid-auto-flow: column;
     height: 100%;
     align-content: center;
-    transition: transform 0.3s ease-out; /* Smooth snapping */
+    transition: transform 0.3s ease-out; /
     cursor: grab;
 }
 
 .slider-slide {
     width: 100%;
-    user-select: none; /* Prevent text/image selection during drag */
+    user-select: none; 
 }
 
 .slider-slide img {
-    pointer-events: none; /* Prevent image-specific interactions */
-    user-select: none; /* Prevent image selection */
+    pointer-events: none; 
+    user-select: none; 
 }
 
 .slider-wrapper.dragging {
-    transition: none; /* No transition during drag for responsiveness */
+    transition: none; 
     cursor: grabbing;
 }
 
@@ -2061,6 +2061,72 @@ div#products {
     top: 50%;
     transform: translateY(-50%);
     margin-right: var(--space-tiny);
+} */
+
+.custom-slider {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    touch-action: pan-y; /* Allow vertical scroll, block horizontal interference like Swiper */
+    -webkit-overflow-scrolling: touch; /* Smooth iOS momentum */
+}
+
+.slider-wrapper {
+    display: grid;
+    transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); /* Easing like Swiper for natural snap */
+    cursor: grab;
+    will-change: transform; /* Optimize for animations */
+}
+
+.slider-wrapper.dragging {
+    transition: none;
+    cursor: grabbing;
+}
+
+.slider-wrapper.dragging .slider-slide {
+    opacity: 0.8; /* Subtle feedback during drag */
+}
+
+.slider-slide {
+    width: 100%;
+    user-select: none;
+    -webkit-user-drag: none; /* Prevent image drag on WebKit */
+}
+
+.slider-slide img,
+.slider-slide a {
+    pointer-events: none; /* Block interactions during drag */
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+.slider-nav-prev,
+.slider-nav-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    pointer-events: auto; /* Ensure nav buttons always interactive */
+}
+
+.slider-nav-prev {
+    left: 10px;
+}
+
+.slider-nav-next {
+    right: 10px;
+}
+
+.slider-pagination {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.slider-pagination .icon {
+    cursor: pointer;
+    pointer-events: auto;
 }
 
 .icon-stack {

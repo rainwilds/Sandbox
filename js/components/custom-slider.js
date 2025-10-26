@@ -11,15 +11,18 @@ class CustomSlider extends HTMLElement {
     #autoplayInterval = null;
     #slides = [];
     #childElements = [];
-    #lastDirection = 0; // Track the last navigation direction
-    #isDragging = false; // Drag state
-    #startX = 0; // Drag start position
-    #currentX = 0; // Current drag position
-    #lastX = 0; // Last drag position for velocity
-    #lastTime = 0; // Last drag timestamp for velocity
-    #velocity = 0; // Drag velocity (pixels per second)
-    #dragTranslateX = 0; // Accumulated drag distance
-    #dragStartIndex = 0; // Index at drag start
+    #lastDirection = 0;
+    #isDragging = false;
+    #startX = 0;
+    #currentX = 0;
+    #lastX = 0;
+    #lastTime = 0;
+    #velocity = 0;
+    #dragTranslateX = 0;
+    #dragStartIndex = 0;
+    #velocitySamples = []; // For windowed velocity calculation
+    #dragThreshold = 10; // Minimum px to start drag
+    #momentumDuration = 600; // ms for momentum decay
 
     constructor() {
         super();
@@ -323,7 +326,7 @@ class CustomSlider extends HTMLElement {
                 this.#log('Initialization completed successfully', { elementId: this.#uniqueId });
             } else {
                 this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
-                const fallbackElement = await this.render({ 
+                const fallbackAttrs = { 
                     autoplayDelay: 3000, 
                     slidesPerView: 1, 
                     navigation: false, 
@@ -336,7 +339,8 @@ class CustomSlider extends HTMLElement {
                     paginationIconSizeActive: '', 
                     paginationIconSizeInactive: '',
                     draggable: false 
-                });
+                };
+                const fallbackElement = await this.render(fallbackAttrs);
                 this.replaceWith(fallbackElement);
             }
         } catch (error) {
@@ -345,7 +349,7 @@ class CustomSlider extends HTMLElement {
                 stack: error.stack,
                 elementId: this.#uniqueId
             });
-            const fallbackElement = await this.render({ 
+            const fallbackAttrs = { 
                 autoplayDelay: 3000, 
                 slidesPerView: 1, 
                 navigation: false, 
@@ -358,7 +362,8 @@ class CustomSlider extends HTMLElement {
                 paginationIconSizeActive: '', 
                 paginationIconSizeInactive: '',
                 draggable: false 
-            });
+            };
+            const fallbackElement = await this.render(fallbackAttrs);
             this.replaceWith(fallbackElement);
         }
     }
@@ -379,16 +384,17 @@ class CustomSlider extends HTMLElement {
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
 
         if (attrs.draggable) {
+            // Prevent dragstart on whole wrapper (for images/links)
+            wrapper.addEventListener('dragstart', (e) => e.preventDefault());
+            // Mouse events
             wrapper.addEventListener('mousedown', this.#handleDragStart.bind(this));
-            wrapper.addEventListener('mousemove', this.#handleDragMove.bind(this));
-            wrapper.addEventListener('mouseup', this.#handleDragEnd.bind(this));
-            wrapper.addEventListener('mouseleave', this.#handleDragEnd.bind(this));
+            document.addEventListener('mousemove', this.#handleDragMove.bind(this)); // Global for smoother tracking
+            document.addEventListener('mouseup', this.#handleDragEnd.bind(this));
+            // Touch events
             wrapper.addEventListener('touchstart', this.#handleDragStart.bind(this), { passive: false });
-            wrapper.addEventListener('touchmove', this.#handleDragMove.bind(this), { passive: false });
-            wrapper.addEventListener('touchend', this.#handleDragEnd.bind(this));
-            // Prevent image dragging
-            wrapper.addEventListener('dragstart', (event) => event.preventDefault());
-            this.#log('Drag event listeners added', { elementId: this.#uniqueId });
+            document.addEventListener('touchmove', this.#handleDragMove.bind(this), { passive: false });
+            document.addEventListener('touchend', this.#handleDragEnd.bind(this));
+            this.#log('Drag event listeners added (Swiper-inspired)', { elementId: this.#uniqueId });
         }
 
         if (attrs.navigation) {
@@ -409,48 +415,73 @@ class CustomSlider extends HTMLElement {
     }
 
     #handleDragStart(event) {
+        // Ignore if already dragging or multi-touch
+        if (this.#isDragging || (event.touches && event.touches.length > 1)) return;
+
         this.#stopAutoplay();
         this.#isDragging = true;
-        const clientX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX;
+        this.#velocitySamples = [];
+        const clientX = event.type.includes('touch') ? event.touches[0].pageX : event.pageX; // Use pageX like Swiper
         this.#startX = clientX;
         this.#currentX = clientX;
         this.#lastX = clientX;
-        this.#lastTime = performance.now();
-        this.#velocity = 0;
+        this.#lastTime = Date.now();
         this.#dragStartIndex = this.#currentIndex;
         this.#dragTranslateX = 0;
+        this.#velocity = 0;
 
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         wrapper.classList.add('dragging');
-        this.#log('Drag started', { clientX, elementId: this.#uniqueId });
+        // Block pointer events on content during drag
+        this.#slides.forEach(slide => {
+            const imgs = slide.querySelectorAll('img, a');
+            imgs.forEach(img => img.style.pointerEvents = 'none');
+        });
 
-        if (event.type === 'touchstart') {
+        // Prevent default for mouse (like Swiper for images)
+        if (event.type === 'mousedown') {
+            event.preventDefault();
+        } else {
             event.preventDefault();
         }
+
+        this.#log('Drag started', { clientX, elementId: this.#uniqueId });
     }
 
     #handleDragMove(event) {
         if (!this.#isDragging) return;
 
-        const clientX = event.type === 'touchmove' ? event.touches[0].clientX : event.clientX;
-        const currentTime = performance.now();
+        const clientX = event.type.includes('touch') ? event.touches[0].pageX : event.pageX;
+        const currentTime = Date.now();
         const deltaX = clientX - this.#lastX;
         const deltaTime = currentTime - this.#lastTime;
 
-        if (deltaTime > 0) {
-            this.#velocity = (deltaX / deltaTime) * 1000;
-        }
+        // Throttle with RAF for smoothness
+        if (this.#animationFrameId) cancelAnimationFrame(this.#animationFrameId);
+        this.#animationFrameId = requestAnimationFrame(() => {
+            if (Math.abs(this.#dragTranslateX) < this.#dragThreshold) return; // Threshold like Swiper
 
-        this.#currentX = clientX;
-        this.#lastX = clientX;
-        this.#lastTime = currentTime;
-        this.#dragTranslateX += deltaX;
+            // Windowed velocity (last 100ms samples)
+            this.#velocitySamples.push({ x: clientX, time: currentTime });
+            this.#velocitySamples = this.#velocitySamples.filter(sample => currentTime - sample.time < 100);
+            if (this.#velocitySamples.length > 1) {
+                const lastSample = this.#velocitySamples[this.#velocitySamples.length - 1];
+                const firstSample = this.#velocitySamples[0];
+                const velTime = lastSample.time - firstSample.time;
+                if (velTime > 0) {
+                    this.#velocity = ((lastSample.x - firstSample.x) / velTime) * 1000; // px/s
+                }
+            }
 
-        this.getAttributes().then(attrs => {
-            this.#updateSlider(attrs, true);
+            this.#dragTranslateX += deltaX;
+            this.#currentX = clientX;
+            this.#lastX = clientX;
+            this.#lastTime = currentTime;
+
+            this.getAttributes().then(attrs => this.#updateSlider(attrs, true));
         });
 
-        if (event.type === 'touchmove') {
+        if (event.type.includes('touch')) {
             event.preventDefault();
         }
     }
@@ -461,29 +492,61 @@ class CustomSlider extends HTMLElement {
 
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         wrapper.classList.remove('dragging');
+        // Restore pointer events
+        this.#slides.forEach(slide => {
+            const imgs = slide.querySelectorAll('img, a');
+            imgs.forEach(img => img.style.pointerEvents = '');
+        });
 
-        const momentum = this.#velocity * 0.2;
+        // Momentum with easing (Swiper-like decay)
+        let momentumDistance = this.#velocity * (this.#momentumDuration / 1000) * 0.5; // Adjusted factor
+        let finalTranslateX = this.#dragTranslateX + momentumDistance;
+
         const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
         const totalSlides = this.#slides.length;
-        const slideWidthPx = this.#slides[0]?.offsetWidth || 1; // Fallback to avoid division by zero
+        const slideWidthPx = this.#slides[0]?.offsetWidth || window.innerWidth; // Fallback to viewport
         const maxVisibleIndex = totalSlides - slidesPerView;
+        let newIndex = Math.round((this.#dragStartIndex * slideWidthPx - finalTranslateX) / slideWidthPx);
 
-        let finalTranslateX = this.#dragTranslateX + momentum;
-        let newIndex = this.#dragStartIndex - Math.round(finalTranslateX / slideWidthPx);
-
+        // Clamp and snap to nearest
         newIndex = Math.max(0, Math.min(newIndex, maxVisibleIndex));
-
         this.#currentIndex = newIndex;
-        this.#dragTranslateX = 0;
-        this.#velocity = 0;
 
-        this.getAttributes().then(attrs => {
-            if (attrs.autoplayDelay) {
-                this.#startAutoplay(attrs.autoplayDelay);
-            }
-            this.#updateSlider(attrs);
-            this.#log('Drag ended, snapped to index', { newIndex, momentum, elementId: this.#uniqueId });
+        // Animate momentum decay then snap
+        this.#animateMomentum(finalTranslateX, () => {
+            this.#dragTranslateX = 0;
+            this.#velocity = 0;
+            this.#velocitySamples = [];
+            this.getAttributes().then(attrs => {
+                if (attrs.autoplayDelay) this.#startAutoplay(attrs.autoplayDelay);
+                this.#updateSlider(attrs);
+                this.#log('Drag ended with momentum snap', { newIndex, momentumDistance, elementId: this.#uniqueId });
+            });
         });
+    }
+
+    #animateMomentum(initialOffset, callback) {
+        let startTime = Date.now();
+        let startOffset = initialOffset;
+        const duration = this.#momentumDuration;
+
+        const animate = () => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            // Exponential decay easing (smooth coast like Swiper)
+            const ease = 1 - Math.pow(1 - progress, 3);
+            const currentOffset = startOffset * (1 - ease);
+
+            this.#dragTranslateX = currentOffset;
+            this.getAttributes().then(attrs => this.#updateSlider(attrs, true));
+
+            if (progress < 1) {
+                requestAnimationFrame(animate);
+            } else {
+                callback();
+            }
+        };
+        requestAnimationFrame(animate);
     }
 
     #navigate(direction) {
@@ -537,7 +600,7 @@ class CustomSlider extends HTMLElement {
 
             let translateX;
             if (isDragging) {
-                const slideWidthPx = this.#slides[0]?.offsetWidth || 1; // Fallback to avoid division by zero
+                const slideWidthPx = this.#slides[0]?.offsetWidth || window.innerWidth;
                 const translatePercent = (this.#dragTranslateX / slideWidthPx) * slideWidth;
                 const baseTranslate = this.#dragStartIndex * slideWidth;
                 const gapOffset = gap === '0' ? '0' : `(${this.#dragStartIndex} + ${(slidesPerView - 1) / 2}) * ${gap}`;
@@ -549,7 +612,8 @@ class CustomSlider extends HTMLElement {
             }
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
-            wrapper.style.transform = `translateX(${translateX})`;
+            // Use translate3d for hardware acceleration (Swiper technique)
+            wrapper.style.transform = `translate3d(${translateX}, 0, 0)`;
 
             if (attrs.pagination && !isDragging) {
                 const pagination = sliderContainer.querySelector('.slider-pagination');
@@ -597,10 +661,11 @@ class CustomSlider extends HTMLElement {
                 const slideWrapper = document.createElement('div');
                 slideWrapper.className = 'slider-slide';
                 const clonedSlide = slide.cloneNode(true);
-                // Prevent image dragging by setting draggable=false
-                const images = clonedSlide.querySelectorAll('img');
-                images.forEach(img => {
-                    img.setAttribute('draggable', 'false');
+                // Prevent image/link dragging
+                const interactables = clonedSlide.querySelectorAll('img, a');
+                interactables.forEach(el => {
+                    el.setAttribute('draggable', 'false');
+                    el.style.webkitUserDrag = 'none';
                 });
                 slideWrapper.appendChild(clonedSlide);
                 innerWrapper.appendChild(slideWrapper);
@@ -623,14 +688,12 @@ class CustomSlider extends HTMLElement {
 
             [navPrev, navNext].forEach((nav, index) => {
                 const icons = nav.querySelectorAll('i');
-                const isLeftNav = index === 0;
-                const isStacked = icons.length === 2;
                 icons.forEach((icon, iconIndex) => {
                     if (!icon.classList.contains('icon')) {
                         icon.classList.add('icon');
                     }
                     if (attrs.iconSizeBackground && attrs.iconSizeForeground) {
-                        if (isStacked) {
+                        if (icons.length === 2) {
                             icon.style.fontSize = iconIndex === 0 ? attrs.iconSizeBackground : attrs.iconSizeForeground;
                         } else {
                             icon.style.fontSize = attrs.iconSizeBackground;
@@ -692,6 +755,10 @@ class CustomSlider extends HTMLElement {
             cancelAnimationFrame(this.#animationFrameId);
             this.#animationFrameId = null;
         }
+        document.removeEventListener('mousemove', this.#handleDragMove.bind(this));
+        document.removeEventListener('mouseup', this.#handleDragEnd.bind(this));
+        document.removeEventListener('touchmove', this.#handleDragMove.bind(this));
+        document.removeEventListener('touchend', this.#handleDragEnd.bind(this));
         if (CustomSlider.#observedInstances.has(this)) {
             CustomSlider.#observer.unobserve(this);
             CustomSlider.#observedInstances.delete(this);
@@ -739,5 +806,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-26');
+console.log('CustomSlider version: 2025-10-26 (Swiper-inspired drag)');
 export { CustomSlider };
