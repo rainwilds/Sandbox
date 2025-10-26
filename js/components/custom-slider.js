@@ -12,6 +12,14 @@ class CustomSlider extends HTMLElement {
     #slides = [];
     #childElements = [];
     #lastDirection = 0; // Track the last navigation direction
+    #isDragging = false; // Drag state
+    #startX = 0; // Drag start position
+    #currentX = 0; // Current drag position
+    #lastX = 0; // Last drag position for velocity
+    #lastTime = 0; // Last drag timestamp for velocity
+    #velocity = 0; // Drag velocity (pixels per second)
+    #dragTranslateX = 0; // Accumulated drag distance
+    #dragStartIndex = 0; // Index at drag start
 
     constructor() {
         super();
@@ -147,7 +155,6 @@ class CustomSlider extends HTMLElement {
             } else if (sizes.length === 2 && sizes.every(size => validSizeRegex.test(size))) {
                 paginationIconSizeActive = sizes[0];
                 paginationIconSizeInactive = sizes[1];
-                // Warn if two sizes are provided (pagination icons are always single)
                 this.#warn('Two pagination-icon-size values provided but pagination icons are not stacked, using first size', {
                     paginationIconSize,
                     paginationIconSizeActive,
@@ -162,7 +169,7 @@ class CustomSlider extends HTMLElement {
         }
         this.#log('Parsed pagination-icon-size', { paginationIconSize, paginationIconSizeActive, paginationIconSizeInactive });
 
-        const gapAttr = this.getAttribute('gap') || '0'; // Default to 0 if no gap attribute
+        const gapAttr = this.getAttribute('gap') || '0';
         let gap = gapAttr;
         if (slidesPerView === 1 && this.hasAttribute('gap')) {
             this.#warn('Gap attribute ignored for slides-per-view=1', { gap: gapAttr });
@@ -170,7 +177,7 @@ class CustomSlider extends HTMLElement {
         }
         this.#log('Parsed gap attribute', { gapAttr, effectiveGap: gap });
 
-        let pagination = this.hasAttribute('pagination'); // Boolean, true if attribute is present
+        let pagination = this.hasAttribute('pagination');
         this.#log('Parsed pagination attribute', { pagination });
 
         let paginationIconActive = this.getAttribute('pagination-icon-active') || '<i class="fa-solid fa-circle"></i>';
@@ -202,7 +209,7 @@ class CustomSlider extends HTMLElement {
                 });
                 return isBackground ? '' : '<i class="fa-solid fa-circle"></i>';
             }
-            validClasses.push('icon'); // Always add 'icon' class
+            validClasses.push('icon');
             return `<i class="${validClasses.join(' ')}"></i>`;
         };
 
@@ -213,7 +220,6 @@ class CustomSlider extends HTMLElement {
                 this.#warn(`No valid foreground icon for ${position}, navigation disabled`, { icon, backgroundIcon });
                 return { valid: false, markup: '' };
             }
-            // Check if two sizes were provided but no stack is present
             if (iconSizeBackground && iconSizeForeground && iconSizeBackground !== iconSizeForeground && !background) {
                 this.#warn(`Two navigation-icon-size values provided but ${position} icons are not stacked, using first size`, {
                     navigationIconSize,
@@ -222,16 +228,14 @@ class CustomSlider extends HTMLElement {
                 });
             }
             if (!background) {
-                return { valid: true, markup: foreground }; // Single icon
+                return { valid: true, markup: foreground };
             }
-            // Create stacked icon markup with only .icon-stack and .icon classes
             return {
                 valid: true,
                 markup: `<span class="icon-stack icon">${background}${foreground}</span>`
             };
         };
 
-        // Parse navigation icons for potential stacks
         let leftIconResult = { valid: true, markup: navigationIconLeft };
         let rightIconResult = { valid: true, markup: navigationIconRight };
 
@@ -239,7 +243,6 @@ class CustomSlider extends HTMLElement {
             leftIconResult = processIconStack(navigationIconLeft, navigationIconLeftBackground, 'left');
             rightIconResult = processIconStack(navigationIconRight, navigationIconRightBackground, 'right');
         } else {
-            // Check if main icon attributes contain stacked icons
             const parser = new DOMParser();
             const leftDoc = parser.parseFromString(navigationIconLeft.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), 'text/html');
             const rightDoc = parser.parseFromString(navigationIconRight.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), 'text/html');
@@ -273,11 +276,13 @@ class CustomSlider extends HTMLElement {
         paginationIconActive = validateIcon(paginationIconActive, 'active');
         paginationIconInactive = validateIcon(paginationIconInactive, 'inactive');
 
-        // Check for required attributes for pagination
         if (pagination && (!this.hasAttribute('pagination-icon-active') || !this.hasAttribute('pagination-icon-inactive'))) {
             this.#warn('Pagination requires explicit pagination-icon-active and pagination-icon-inactive attributes. Ignoring pagination.');
             pagination = false;
         }
+
+        const draggable = this.hasAttribute('draggable'); // New draggable attribute
+        this.#log('Parsed draggable attribute', { draggable });
 
         return {
             autoplayDelay,
@@ -292,7 +297,8 @@ class CustomSlider extends HTMLElement {
             iconSizeBackground,
             iconSizeForeground,
             paginationIconSizeActive,
-            paginationIconSizeInactive
+            paginationIconSizeInactive,
+            draggable // Include in attributes
         };
     }
 
@@ -319,7 +325,20 @@ class CustomSlider extends HTMLElement {
                 this.#log('Initialization completed successfully', { elementId: this.#uniqueId });
             } else {
                 this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
-                const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>', iconSizeBackground: '', iconSizeForeground: '', paginationIconSizeActive: '', paginationIconSizeInactive: '' });
+                const fallbackElement = await this.render({ 
+                    autoplayDelay: 3000, 
+                    slidesPerView: 1, 
+                    navigation: false, 
+                    gap: '0', 
+                    pagination: false, 
+                    paginationIconActive: '<i class="fa-solid fa-circle"></i>', 
+                    paginationIconInactive: '<i class="fa-regular fa-circle"></i>', 
+                    iconSizeBackground: '', 
+                    iconSizeForeground: '', 
+                    paginationIconSizeActive: '', 
+                    paginationIconSizeInactive: '',
+                    draggable: false 
+                });
                 this.replaceWith(fallbackElement);
             }
         } catch (error) {
@@ -328,7 +347,20 @@ class CustomSlider extends HTMLElement {
                 stack: error.stack,
                 elementId: this.#uniqueId
             });
-            const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>', iconSizeBackground: '', iconSizeForeground: '', paginationIconSizeActive: '', paginationIconSizeInactive: '' });
+            const fallbackElement = await this.render({ 
+                autoplayDelay: 3000, 
+                slidesPerView: 1, 
+                navigation: false, 
+                gap: '0', 
+                pagination: false, 
+                paginationIconActive: '<i class="fa-solid fa-circle"></i>', 
+                paginationIconInactive: '<i class="fa-regular fa-circle"></i>', 
+                iconSizeBackground: '', 
+                iconSizeForeground: '', 
+                paginationIconSizeActive: '', 
+                paginationIconSizeInactive: '',
+                draggable: false 
+            });
             this.replaceWith(fallbackElement);
         }
     }
@@ -344,6 +376,21 @@ class CustomSlider extends HTMLElement {
         if (this.#slides.length === 0) {
             this.#warn('No slides to initialize', { elementId: this.#uniqueId });
             return;
+        }
+
+        const wrapper = sliderContainer.querySelector('.slider-wrapper');
+
+        if (attrs.draggable) {
+            // Mouse events
+            wrapper.addEventListener('mousedown', this.#handleDragStart.bind(this));
+            wrapper.addEventListener('mousemove', this.#handleDragMove.bind(this));
+            wrapper.addEventListener('mouseup', this.#handleDragEnd.bind(this));
+            wrapper.addEventListener('mouseleave', this.#handleDragEnd.bind(this));
+            // Touch events
+            wrapper.addEventListener('touchstart', this.#handleDragStart.bind(this), { passive: false });
+            wrapper.addEventListener('touchmove', this.#handleDragMove.bind(this), { passive: false });
+            wrapper.addEventListener('touchend', this.#handleDragEnd.bind(this));
+            this.#log('Drag event listeners added', { elementId: this.#uniqueId });
         }
 
         if (attrs.navigation) {
@@ -363,18 +410,95 @@ class CustomSlider extends HTMLElement {
         this.#updateSlider(attrs);
     }
 
+    #handleDragStart(event) {
+        this.#stopAutoplay();
+        this.#isDragging = true;
+        const clientX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX;
+        this.#startX = clientX;
+        this.#currentX = clientX;
+        this.#lastX = clientX;
+        this.#lastTime = performance.now();
+        this.#velocity = 0;
+        this.#dragStartIndex = this.#currentIndex;
+        this.#dragTranslateX = 0;
+
+        const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
+        wrapper.classList.add('dragging');
+        this.#log('Drag started', { clientX, elementId: this.#uniqueId });
+
+        if (event.type === 'touchstart') {
+            event.preventDefault();
+        }
+    }
+
+    #handleDragMove(event) {
+        if (!this.#isDragging) return;
+
+        const clientX = event.type === 'touchmove' ? event.touches[0].clientX : event.clientX;
+        const currentTime = performance.now();
+        const deltaX = clientX - this.#lastX;
+        const deltaTime = currentTime - this.#lastTime;
+
+        if (deltaTime > 0) {
+            this.#velocity = (deltaX / deltaTime) * 1000;
+        }
+
+        this.#currentX = clientX;
+        this.#lastX = clientX;
+        this.#lastTime = currentTime;
+        this.#dragTranslateX += deltaX;
+
+        this.getAttributes().then(attrs => {
+            this.#updateSlider(attrs, true);
+        });
+
+        if (event.type === 'touchmove') {
+            event.preventDefault();
+        }
+    }
+
+    #handleDragEnd(event) {
+        if (!this.#isDragging) return;
+        this.#isDragging = false;
+
+        const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
+        wrapper.classList.remove('dragging');
+
+        const momentum = this.#velocity * 0.2; // Momentum decay (0.2s)
+        const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
+        const totalSlides = this.#slides.length;
+        const slideWidthPx = this.#slides[0].offsetWidth;
+        const maxVisibleIndex = totalSlides - slidesPerView;
+
+        let finalTranslateX = this.#dragTranslateX + momentum;
+        let newIndex = this.#dragStartIndex - Math.round(finalTranslateX / slideWidthPx);
+
+        newIndex = Math.max(0, Math.min(newIndex, maxVisibleIndex));
+
+        this.#currentIndex = newIndex;
+        this.#dragTranslateX = 0;
+        this.#velocity = 0;
+
+        this.getAttributes().then(attrs => {
+            if (attrs.autoplayDelay) {
+                this.#startAutoplay(attrs.autoplayDelay);
+            }
+            this.#updateSlider(attrs);
+            this.#log('Drag ended, snapped to index', { newIndex, momentum, elementId: this.#uniqueId });
+        });
+    }
+
     #navigate(direction) {
         const totalSlides = this.#slides.length;
         const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
-        this.#lastDirection = direction; // Update the last navigation direction
+        this.#lastDirection = direction;
         this.#currentIndex += direction;
 
-        // Boundary check with reset
         const maxVisibleIndex = totalSlides - slidesPerView;
         if (this.#currentIndex > maxVisibleIndex) {
-            this.#currentIndex = 0; // Reset to start on "next" overflow
+            this.#currentIndex = 0;
         } else if (this.#currentIndex < 0) {
-            this.#currentIndex = maxVisibleIndex; // Reset to end on "previous" overflow
+            this.#currentIndex = maxVisibleIndex;
         }
 
         this.getAttributes().then(attrs => {
@@ -399,7 +523,7 @@ class CustomSlider extends HTMLElement {
         }
     }
 
-    #updateSlider(attrs) {
+    #updateSlider(attrs, isDragging = false) {
         if (this.#animationFrameId) {
             cancelAnimationFrame(this.#animationFrameId);
         }
@@ -410,27 +534,31 @@ class CustomSlider extends HTMLElement {
             const sliderContainer = document.getElementById(this.#uniqueId);
             if (!sliderContainer) return;
 
-            // Calculate slide width in percentage
-            const slideWidth = 100 / slidesPerView; // Each slide takes 100% / slidesPerView
-            const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0'; // Use raw gap value (e.g., '40px', '5em')
+            const slideWidth = 100 / slidesPerView;
+            const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0';
 
-            // Calculate translation: slide width in % plus gap offset in original units
-            const addition = (slidesPerView - 1) / 2;
-            const gapOffset = gap === '0' ? '0' : `(${this.#currentIndex} + ${addition}) * ${gap}`;
-            let translateX = gap === '0' ? `-${this.#currentIndex * slideWidth}%` : `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset})`;
-            this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, gapOffset, slidesPerView, totalSlides, elementId: this.#uniqueId });
+            let translateX;
+            if (isDragging) {
+                const slideWidthPx = this.#slides[0].offsetWidth;
+                const translatePercent = (this.#dragTranslateX / slideWidthPx) * slideWidth;
+                const baseTranslate = this.#dragStartIndex * slideWidth;
+                const gapOffset = gap === '0' ? '0' : `(${this.#dragStartIndex} + ${(slidesPerView - 1) / 2}) * ${gap}`;
+                translateX = gap === '0' ? `-${baseTranslate + translatePercent}%` : `calc(-${baseTranslate + translatePercent}% - ${gapOffset})`;
+            } else {
+                const addition = (slidesPerView - 1) / 2;
+                const gapOffset = gap === '0' ? '0' : `(${this.#currentIndex} + ${addition}) * ${gap}`;
+                translateX = gap === '0' ? `-${this.#currentIndex * slideWidth}%` : `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset})`;
+            }
 
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             wrapper.style.transform = `translateX(${translateX})`;
 
-            // Update pagination if enabled
-            if (attrs.pagination) {
+            if (attrs.pagination && !isDragging) {
                 const pagination = sliderContainer.querySelector('.slider-pagination');
                 if (pagination) {
                     const dots = pagination.querySelectorAll('.icon');
                     dots.forEach((dot, index) => {
                         dot.innerHTML = index === this.#currentIndex ? attrs.paginationIconActive : attrs.paginationIconInactive;
-                        // Apply font-size to pagination icons
                         const icon = dot.querySelector('i');
                         if (icon) {
                             icon.style.fontSize = index === this.#currentIndex ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
@@ -440,7 +568,7 @@ class CustomSlider extends HTMLElement {
                 }
             }
 
-            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, gapOffset, slidesPerView, totalSlides, elementId: this.#uniqueId });
+            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, isDragging, elementId: this.#uniqueId });
         });
     }
 
@@ -489,7 +617,6 @@ class CustomSlider extends HTMLElement {
             navNext.className = 'slider-nav-next';
             navNext.innerHTML = attrs.navigationIconRight;
 
-            // Add 'icon' class and apply font-size styles to navigation icons
             [navPrev, navNext].forEach((nav, index) => {
                 const icons = nav.querySelectorAll('i');
                 const isLeftNav = index === 0;
@@ -498,15 +625,14 @@ class CustomSlider extends HTMLElement {
                     if (!icon.classList.contains('icon')) {
                         icon.classList.add('icon');
                     }
-                    // Apply font-size based on stacking and navigation-icon-size
                     if (attrs.iconSizeBackground && attrs.iconSizeForeground) {
                         if (isStacked) {
                             icon.style.fontSize = iconIndex === 0 ? attrs.iconSizeBackground : attrs.iconSizeForeground;
                         } else {
-                            icon.style.fontSize = attrs.iconSizeBackground; // Use first size for single icon
+                            icon.style.fontSize = attrs.iconSizeBackground;
                         }
                     } else if (attrs.iconSizeBackground) {
-                        icon.style.fontSize = attrs.iconSizeBackground; // Single size for all
+                        icon.style.fontSize = attrs.iconSizeBackground;
                     }
                 });
             });
@@ -516,7 +642,6 @@ class CustomSlider extends HTMLElement {
             this.#log('Navigation buttons added', { elementId: this.#uniqueId });
         }
 
-        // Add pagination if enabled
         if (attrs.pagination) {
             const pagination = document.createElement('div');
             pagination.className = 'slider-pagination';
@@ -526,7 +651,6 @@ class CustomSlider extends HTMLElement {
                 const dot = document.createElement('span');
                 dot.className = 'icon';
                 dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
-                // Apply font-size to pagination icon
                 const icon = dot.querySelector('i');
                 if (icon && (attrs.paginationIconSizeActive || attrs.paginationIconSizeInactive)) {
                     icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
@@ -550,7 +674,6 @@ class CustomSlider extends HTMLElement {
 
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.#uniqueId });
-        // Capture child elements here to ensure they're available before initialization
         this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block').map(child => child.cloneNode(true));
         this.#log('Captured children in connectedCallback', { count: this.#childElements.length, elementId: this.#uniqueId });
         if (this.isVisible) {
@@ -576,7 +699,8 @@ class CustomSlider extends HTMLElement {
         return [
             'autoplay', 'slides-per-view', 'navigation', 'navigation-icon-left', 'navigation-icon-right',
             'navigation-icon-left-background', 'navigation-icon-right-background', 'gap', 'pagination',
-            'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size', 'pagination-icon-size'
+            'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size', 'pagination-icon-size',
+            'draggable' // New attribute
         ];
     }
 
