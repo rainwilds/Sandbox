@@ -2052,10 +2052,15 @@ div#products {
     &>i {
         grid-area: 1 / 1;
         cursor: pointer;
+        color: light-dark(var(--color-accent-opaque-dark-scale-6), var(--color-accent-opaque-light-scale-6));
     }
 
     &>i:first-child {
         width: auto;
+    }
+
+    &>i:last-child {
+        color: light-dark(var(--color-dark-scale-6), var(--color-light-scale-6));
     }
 
 }
