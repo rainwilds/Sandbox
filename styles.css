@@ -2063,12 +2063,14 @@ div#products {
     margin-right: var(--space-tiny);
 } */
 
+
+
 .custom-slider {
     position: relative;
     width: 100%;
     overflow: hidden;
-    touch-action: pan-y; /* Allow vertical scrolling */
-    -webkit-overflow-scrolling: touch; /* Smooth iOS scrolling */
+    touch-action: pan-y;
+    -webkit-overflow-scrolling: touch;
 }
 
 .custom-slider::before,
@@ -2078,14 +2080,14 @@ div#products {
     z-index: 1;
     content: "";
     display: block;
-    width: 20px; /* Matches example's $margin */
+    width: 20px;
     height: 100%;
     pointer-events: none;
 }
 
 .custom-slider::before {
     left: 0;
-    background: linear-gradient(90deg, #222, transparent); /* Gradient fade */
+    background: linear-gradient(90deg, #222, transparent);
 }
 
 .custom-slider::after {
@@ -2096,31 +2098,31 @@ div#products {
 .slider-wrapper {
     position: relative;
     width: 100%;
-    overflow-x: auto; /* Enable horizontal scrolling */
+    overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
-    font-size: 0; /* Prevent inline-block spacing */
+    font-size: 0;
     cursor: grab;
-    scroll-behavior: smooth; /* Smooth snapping */
-    transition: scroll-left 0.3s ease-out; /* Smooth snap on release */
+    scroll-behavior: smooth;
 }
 
 .slider-wrapper.dragging {
-    scroll-behavior: auto; /* No snapping during drag */
+    scroll-behavior: auto;
     cursor: grabbing;
 }
 
 .slider-wrapper.dragging .slider-slide {
-    opacity: 0.8; /* Visual feedback during drag */
+    opacity: 0.9; /* Slightly less aggressive than example */
 }
 
 .slider-slide {
     display: inline-block;
-    margin-left: var(--gap, 0); /* Dynamic gap */
+    margin-left: var(--gap, 20px);
     user-select: none;
     -webkit-user-drag: none;
-    font-size: 16px; /* Reset font-size for content */
-    vertical-align: top; /* Align slides */
+    font-size: 16px;
+    vertical-align: top;
+    box-sizing: border-box;
 }
 
 .slider-slide img,
@@ -2131,11 +2133,39 @@ div#products {
 }
 
 .slider-slide:first-child {
-    margin-left: 20px; /* Matches example's margin-left */
+    margin-left: 20px;
 }
 
 .slider-slide:last-child {
-    margin-right: 20px; /* Matches example's margin-right */
+    margin-right: 20px;
+}
+
+/* Responsive slide widths (aligned with example) */
+@media screen and (max-width: 499px) {
+    .slider-slide {
+        width: 50%;
+    }
+}
+
+@media screen and (min-width: 500px) {
+    .slider-slide {
+        width: 33.33%;
+    }
+}
+
+@media screen and (min-width: 800px) {
+    .slider-slide {
+        width: 25%;
+    }
+}
+
+@media screen and (min-width: 1200px) {
+    .custom-slider {
+        margin-left: -20px;
+    }
+    .slider-slide {
+        width: 20%;
+    }
 }
 
 .slider-nav-prev,
@@ -2145,7 +2175,7 @@ div#products {
     transform: translateY(-50%);
     cursor: pointer;
     pointer-events: auto;
-    z-index: 2; /* Above gradient fades */
+    z-index: 2;
 }
 
 .slider-nav-prev {
@@ -2168,44 +2198,6 @@ div#products {
     pointer-events: auto;
 }
 
-.icon-stack {
-
-    display: grid;
-    place-items: center;
-
-    &>i {
-        grid-area: 1 / 1;
-        cursor: pointer;
-        color: light-dark(var(--color-accent-opaque-dark-scale-6), var(--color-accent-opaque-light-scale-6));
-    }
-
-    &>i:first-child {
-        width: auto;
-    }
-
-    &>i:last-child {
-        color: light-dark(var(--color-dark-scale-6), var(--color-light-scale-6));
-    }
-
-}
-
-
-
-.slider-pagination {
-    position: absolute;
-    bottom: 0px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding-bottom: var(--space-small);
-    display: flex;
-    gap: var(--space-tiny);
-    font-size: 0.5rem;
-
-    &>span.icon {
-        cursor: pointer;
-    }
-
-}
 
 
 .animate.animate-fade-in img {
