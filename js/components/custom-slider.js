@@ -1,4 +1,4 @@
-/* global HTMLElement, IntersectionObserver, document, window, console, requestAnimationFrame */
+/* global HTMLElement, IntersectionObserver, document, window, console, requestAnimationFrame, Swiper */
 
 'use strict';
 
@@ -8,10 +8,8 @@ class CustomSlider extends HTMLElement {
     #ignoredChangeCount = 0;
     #basePath = null;
     #currentIndex = 0;
-    #animationFrameId = null;
     #uniqueId = null;
-    #autoplayInterval = null;
-    #slides = [];
+    #swiper = null;
     #childElements = [];
     #lastDirection = 0; // Track the last navigation direction
 
@@ -348,102 +346,57 @@ class CustomSlider extends HTMLElement {
             return;
         }
 
-        if (attrs.navigation) {
-            const prevButton = document.getElementById(`${this.#uniqueId}-prev`);
-            const nextButton = document.getElementById(`${this.#uniqueId}-next`);
-            if (prevButton && nextButton) {
-                prevButton.addEventListener('click', () => this.#navigate(-1));
-                nextButton.addEventListener('click', () => this.#navigate(1));
-                this.#log('Navigation buttons initialized', { elementId: this.#uniqueId });
-            }
+        // Calculate spaceBetween in pixels
+        let spaceBetween = 0;
+        if (attrs.gap && attrs.gap !== '0') {
+            const tempDiv = document.createElement('div');
+            tempDiv.style.width = attrs.gap;
+            document.body.appendChild(tempDiv);
+            spaceBetween = parseFloat(window.getComputedStyle(tempDiv).width) || 0;
+            document.body.removeChild(tempDiv);
         }
 
-        if (attrs.autoplayDelay) {
-            this.#startAutoplay(attrs.autoplayDelay);
+        // Initialize Swiper
+        if (this.#swiper) {
+            this.#swiper.destroy(true, true);
         }
-
-        this.#updateSlider(attrs);
-    }
-
-    #navigate(direction) {
-        const totalSlides = this.#slides.length;
-        const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
-        this.#lastDirection = direction; // Update the last navigation direction
-        this.#currentIndex += direction;
-
-        // Boundary check with reset
-        const maxVisibleIndex = totalSlides - slidesPerView;
-        if (this.#currentIndex > maxVisibleIndex) {
-            this.#currentIndex = 0; // Reset to start on "next" overflow
-        } else if (this.#currentIndex < 0) {
-            this.#currentIndex = maxVisibleIndex; // Reset to end on "previous" overflow
-        }
-
-        this.getAttributes().then(attrs => {
-            this.#updateSlider(attrs);
-            this.#log('Navigated', { direction, currentIndex: this.#currentIndex, lastDirection: this.#lastDirection, slidesPerView, totalSlides, elementId: this.#uniqueId });
+        this.#swiper = new Swiper(`#${this.#uniqueId}`, {
+            slidesPerView: attrs.slidesPerView,
+            spaceBetween: spaceBetween,
+            loop: true,
+            speed: 500,
+            grabCursor: true,
+            navigation: attrs.navigation ? {
+                prevEl: `#${this.#uniqueId}-prev`,
+                nextEl: `#${this.#uniqueId}-next`,
+            } : false,
+            pagination: attrs.pagination ? {
+                el: `#${this.#uniqueId} .slider-pagination`,
+                clickable: true,
+                renderBullet: function (index, className) {
+                    return `<span class="${className} icon">${attrs.paginationIconInactive}</span>`;
+                },
+            } : false,
+            autoplay: attrs.autoplayDelay ? {
+                delay: attrs.autoplayDelay,
+                disableOnInteraction: false,
+            } : false,
         });
-    }
 
-    #startAutoplay(delay) {
-        this.#stopAutoplay();
-        this.#autoplayInterval = setInterval(() => {
-            this.#navigate(1);
-        }, delay);
-        this.#log('Autoplay started', { delay, elementId: this.#uniqueId });
-    }
-
-    #stopAutoplay() {
-        if (this.#autoplayInterval) {
-            clearInterval(this.#autoplayInterval);
-            this.#autoplayInterval = null;
-            this.#log('Autoplay stopped', { elementId: this.#uniqueId });
-        }
-    }
-
-    #updateSlider(attrs) {
-        if (this.#animationFrameId) {
-            cancelAnimationFrame(this.#animationFrameId);
-        }
-
-        this.#animationFrameId = requestAnimationFrame(() => {
-            const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
-            const totalSlides = this.#slides.length;
-            const sliderContainer = document.getElementById(this.#uniqueId);
-            if (!sliderContainer) return;
-
-            // Calculate slide width in percentage
-            const slideWidth = 100 / slidesPerView; // Each slide takes 100% / slidesPerView
-            const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0'; // Use raw gap value (e.g., '40px', '5em')
-
-            // Calculate translation: slide width in % plus gap offset in original units
-            const addition = (slidesPerView - 1) / 2;
-            const gapOffset = gap === '0' ? '0' : `(${this.#currentIndex} + ${addition}) * ${gap}`;
-            let translateX = gap === '0' ? `-${this.#currentIndex * slideWidth}%` : `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset})`;
-            this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, gapOffset, slidesPerView, totalSlides, elementId: this.#uniqueId });
-
-            const wrapper = sliderContainer.querySelector('.slider-wrapper');
-            wrapper.style.transform = `translateX(${translateX})`;
-
-            // Update pagination if enabled
-            if (attrs.pagination) {
-                const pagination = sliderContainer.querySelector('.slider-pagination');
-                if (pagination) {
-                    const dots = pagination.querySelectorAll('.icon');
-                    dots.forEach((dot, index) => {
-                        dot.innerHTML = index === this.#currentIndex ? attrs.paginationIconActive : attrs.paginationIconInactive;
-                        // Apply font-size to pagination icons
-                        const icon = dot.querySelector('i');
-                        if (icon) {
-                            icon.style.fontSize = index === this.#currentIndex ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
-                        }
-                    });
-                    this.#log('Pagination updated', { currentIndex: this.#currentIndex, totalSlides, elementId: this.#uniqueId });
+        // Update pagination icons on init and slide change
+        const updatePaginationIcons = () => {
+            const dots = sliderContainer.querySelectorAll('.swiper-pagination-bullet');
+            dots.forEach((dot, i) => {
+                dot.innerHTML = i === this.#swiper.realIndex ? attrs.paginationIconActive : attrs.paginationIconInactive;
+                const icon = dot.querySelector('i');
+                if (icon) {
+                    icon.style.fontSize = i === this.#swiper.realIndex ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
                 }
-            }
-
-            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, gapOffset, slidesPerView, totalSlides, elementId: this.#uniqueId });
-        });
+            });
+        };
+        this.#swiper.on('init', updatePaginationIcons);
+        this.#swiper.on('slideChange', updatePaginationIcons);
+        updatePaginationIcons(); // Initial update
     }
 
     async render(attrs) {
@@ -452,26 +405,27 @@ class CustomSlider extends HTMLElement {
         const fragment = document.createDocumentFragment();
         const sliderWrapper = document.createElement('div');
         sliderWrapper.id = this.#uniqueId;
-        sliderWrapper.className = 'custom-slider';
+        sliderWrapper.className = 'custom-slider swiper';
 
         const innerWrapper = document.createElement('div');
-        innerWrapper.className = 'slider-wrapper';
-        innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`;
+        innerWrapper.className = 'slider-wrapper swiper-wrapper';
+        innerWrapper.style.display = 'flex';
         if (attrs.gap && attrs.gap !== '0') {
             innerWrapper.style.columnGap = attrs.gap;
         }
-        this.#log('Applied styles to slider-wrapper', { gap: attrs.gap, gridTemplateColumns: innerWrapper.style.gridTemplateColumns });
+        this.#log('Applied styles to slider-wrapper', { gap: attrs.gap });
 
         if (this.#childElements.length === 0) {
             this.#warn('No valid slides found', { elementId: this.#uniqueId });
             const fallbackSlide = document.createElement('div');
-            fallbackSlide.className = 'slider-slide';
+            fallbackSlide.className = 'slider-slide swiper-slide';
             fallbackSlide.innerHTML = '<p>No slides available</p>';
             innerWrapper.appendChild(fallbackSlide);
         } else {
             this.#childElements.forEach((slide, index) => {
                 const slideWrapper = document.createElement('div');
-                slideWrapper.className = 'slider-slide';
+                slideWrapper.className = 'slider-slide swiper-slide';
+                slideWrapper.style.flex = `0 0 calc(100% / ${attrs.slidesPerView})`;
                 slideWrapper.appendChild(slide.cloneNode(true));
                 innerWrapper.appendChild(slideWrapper);
                 this.#log(`Slide ${index + 1} processed`, { elementId: this.#uniqueId });
@@ -483,12 +437,12 @@ class CustomSlider extends HTMLElement {
         if (attrs.navigation && attrs.navigationIconLeft && attrs.navigationIconRight) {
             const navPrev = document.createElement('div');
             navPrev.id = `${this.#uniqueId}-prev`;
-            navPrev.className = 'slider-nav-prev';
+            navPrev.className = 'slider-nav-prev swiper-button-prev';
             navPrev.innerHTML = attrs.navigationIconLeft;
 
             const navNext = document.createElement('div');
             navNext.id = `${this.#uniqueId}-next`;
-            navNext.className = 'slider-nav-next';
+            navNext.className = 'slider-nav-next swiper-button-next';
             navNext.innerHTML = attrs.navigationIconRight;
 
             // Add 'icon' class and apply font-size styles to navigation icons
@@ -521,25 +475,18 @@ class CustomSlider extends HTMLElement {
         // Add pagination if enabled
         if (attrs.pagination) {
             const pagination = document.createElement('div');
-            pagination.className = 'slider-pagination';
+            pagination.className = 'slider-pagination swiper-pagination';
 
             const totalSlides = this.#childElements.length;
             for (let i = 0; i < totalSlides; i++) {
                 const dot = document.createElement('span');
-                dot.className = 'icon';
+                dot.className = 'swiper-pagination-bullet icon';
                 dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
                 // Apply font-size to pagination icon
                 const icon = dot.querySelector('i');
                 if (icon && (attrs.paginationIconSizeActive || attrs.paginationIconSizeInactive)) {
                     icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
                 }
-                dot.addEventListener('click', () => {
-                    this.#currentIndex = i;
-                    this.getAttributes().then(attrs => {
-                        this.#updateSlider(attrs);
-                        this.#log('Pagination dot clicked', { newIndex: this.#currentIndex, elementId: this.#uniqueId });
-                    });
-                });
                 pagination.appendChild(dot);
             }
             sliderWrapper.appendChild(pagination);
@@ -562,10 +509,9 @@ class CustomSlider extends HTMLElement {
 
     disconnectedCallback() {
         this.#log('Disconnected from DOM', { elementId: this.#uniqueId });
-        this.#stopAutoplay();
-        if (this.#animationFrameId) {
-            cancelAnimationFrame(this.#animationFrameId);
-            this.#animationFrameId = null;
+        if (this.#swiper) {
+            this.#swiper.destroy(true, true);
+            this.#swiper = null;
         }
         if (CustomSlider.#observedInstances.has(this)) {
             CustomSlider.#observer.unobserve(this);
@@ -600,7 +546,6 @@ class CustomSlider extends HTMLElement {
         this.#log('Attribute changed', { name, oldValue, newValue, elementId: this.#uniqueId });
         if (oldValue !== newValue) {
             this.isInitialized = false;
-            this.#stopAutoplay();
             this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block').map(child => child.cloneNode(true));
             this.initialize();
         }
