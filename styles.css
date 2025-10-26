@@ -2012,7 +2012,7 @@ div#products {
 }
 
 
-/* .custom-slider {
+.custom-slider {
     height: 100%;
     overflow: hidden;
     position: relative;
@@ -2026,23 +2026,6 @@ div#products {
     grid-auto-flow: column;
     height: 100%;
     align-content: center;
-    transition: transform 0.3s ease-out; /
-    cursor: grab;
-}
-
-.slider-slide {
-    width: 100%;
-    user-select: none; 
-}
-
-.slider-slide img {
-    pointer-events: none; 
-    user-select: none; 
-}
-
-.slider-wrapper.dragging {
-    transition: none; 
-    cursor: grabbing;
 }
 
 .slider-nav-prev {
@@ -2061,147 +2044,46 @@ div#products {
     top: 50%;
     transform: translateY(-50%);
     margin-right: var(--space-tiny);
-} */
-
-
-
-.custom-slider {
-    position: relative;
-    width: 100%;
-    overflow: hidden;
-    touch-action: pan-y;
-    -webkit-overflow-scrolling: touch;
 }
 
-.custom-slider::before,
-.custom-slider::after {
-    position: absolute;
-    top: 0;
-    z-index: 1;
-    content: "";
-    display: block;
-    width: 20px;
-    height: 100%;
-    pointer-events: none;
+.icon-stack {
+
+    display: grid;
+    place-items: center;
+
+    &>i {
+        grid-area: 1 / 1;
+        cursor: pointer;
+        color: light-dark(var(--color-accent-opaque-dark-scale-6), var(--color-accent-opaque-light-scale-6));
+    }
+
+    &>i:first-child {
+        width: auto;
+    }
+
+    &>i:last-child {
+        color: light-dark(var(--color-dark-scale-6), var(--color-light-scale-6));
+    }
+
 }
 
-.custom-slider::before {
-    left: 0;
-    background: linear-gradient(90deg, #222, transparent);
-}
 
-.custom-slider::after {
-    right: 0;
-    background: linear-gradient(-90deg, #222, transparent);
-}
-
-.slider-wrapper {
-    position: relative;
-    width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    white-space: nowrap;
-    font-size: 0;
-    cursor: grab;
-    scroll-behavior: smooth;
-}
-
-.slider-wrapper.dragging {
-    scroll-behavior: auto;
-    cursor: grabbing;
-}
-
-.slider-wrapper.dragging .slider-slide {
-    opacity: 0.9;
-}
-
-.slider-slide {
-    display: inline-block;
-    margin-left: var(--gap, 20px);
-    user-select: none;
-    -webkit-user-drag: none;
-    font-size: 16px;
-    vertical-align: top;
-    box-sizing: border-box;
-}
-
-.slider-slide img,
-.slider-slide a {
-    pointer-events: none;
-    user-select: none;
-    -webkit-user-drag: none;
-}
-
-.slider-slide:first-child {
-    margin-left: 20px;
-}
-
-.slider-slide:last-child {
-    margin-right: 20px;
-}
-
-.slider-nav-prev,
-.slider-nav-next {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    pointer-events: auto;
-    z-index: 2;
-}
-
-.slider-nav-prev {
-    left: 10px;
-}
-
-.slider-nav-next {
-    right: 10px;
-}
 
 .slider-pagination {
+    position: absolute;
+    bottom: 0px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding-bottom: var(--space-small);
     display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 10px;
-}
+    gap: var(--space-tiny);
+    font-size: 0.5rem;
 
-.slider-pagination .icon {
-    cursor: pointer;
-    pointer-events: auto;
-}
-
-/* Responsive slide widths (respecting slides-per-view) */
-.slider-slide {
-    width: calc((100% - (var(--slides-per-view, 1) - 1) * var(--gap, 20px)) / var(--slides-per-view, 1));
-}
-
-@media screen and (max-width: 499px) {
-    .slider-slide {
-        width: calc((100% - (var(--slides-per-view, 2) - 1) * var(--gap, 20px)) / var(--slides-per-view, 2));
+    &>span.icon {
+        cursor: pointer;
     }
-}
 
-@media screen and (min-width: 500px) {
-    .slider-slide {
-        width: calc((100% - (var(--slides-per-view, 3) - 1) * var(--gap, 20px)) / var(--slides-per-view, 3));
-    }
 }
-
-@media screen and (min-width: 800px) {
-    .slider-slide {
-        width: calc((100% - (var(--slides-per-view, 4) - 1) * var(--gap, 20px)) / var(--slides-per-view, 4));
-    }
-}
-
-@media screen and (min-width: 1200px) {
-    .custom-slider {
-        margin-left: -20px;
-    }
-    .slider-slide {
-        width: calc((100% - (var(--slides-per-view, 5) - 1) * var(--gap, 20px)) / var(--slides-per-view, 5));
-    }
-}
-
 
 
 .animate.animate-fade-in img {

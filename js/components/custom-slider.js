@@ -1,3 +1,5 @@
+/* global HTMLElement, IntersectionObserver, document, window, console, requestAnimationFrame */
+
 'use strict';
 
 import { getConfig } from '../config.js';
@@ -11,14 +13,7 @@ class CustomSlider extends HTMLElement {
     #autoplayInterval = null;
     #slides = [];
     #childElements = [];
-    #lastDirection = 0;
-    #isDragging = false;
-    #startX = 0;
-    #scrollLeft = 0;
-    #dragThreshold = 10;
-    #velocity = 0;
-    #lastTime = 0;
-    #childObserver = null;
+    #lastDirection = 0; // Track the last navigation direction
 
     constructor() {
         super();
@@ -88,16 +83,16 @@ class CustomSlider extends HTMLElement {
     async getAttributes() {
         this.#log('Parsing attributes', { elementId: this.#uniqueId });
         const autoplayAttr = this.getAttribute('autoplay');
-        let autoplayDelay = 0;
+        let autoplayDelay = 0; // Default to disabled if attribute is absent
         if (this.hasAttribute('autoplay')) {
             if (autoplayAttr === '' || autoplayAttr === null) {
-                autoplayDelay = 3000;
+                autoplayDelay = 3000; // Default if present but empty/no value
             } else {
                 const timeMatch = autoplayAttr.match(/^(\d+)(s|ms)$/);
                 if (timeMatch) {
                     const value = parseInt(timeMatch[1], 10);
                     const unit = timeMatch[2];
-                    autoplayDelay = unit === 's' ? value * 1000 : value;
+                    autoplayDelay = unit === 's' ? value * 1000 : value; // Convert seconds to milliseconds
                 } else {
                     this.#warn('Invalid autoplay format, using default 3s', { value: autoplayAttr, expected: 'Ns or Nms' });
                     autoplayDelay = 3000;
@@ -119,6 +114,7 @@ class CustomSlider extends HTMLElement {
         let navigationIconLeftBackground = this.getAttribute('navigation-icon-left-background') || '';
         let navigationIconRightBackground = this.getAttribute('navigation-icon-right-background') || '';
 
+        // Parse navigation-icon-size
         const navigationIconSize = this.getAttribute('navigation-icon-size') || '';
         let iconSizeBackground = '';
         let iconSizeForeground = '';
@@ -140,6 +136,7 @@ class CustomSlider extends HTMLElement {
         }
         this.#log('Parsed navigation-icon-size', { navigationIconSize, iconSizeBackground, iconSizeForeground });
 
+        // Parse pagination-icon-size
         const paginationIconSize = this.getAttribute('pagination-icon-size') || '';
         let paginationIconSizeActive = '';
         let paginationIconSizeInactive = '';
@@ -152,6 +149,7 @@ class CustomSlider extends HTMLElement {
             } else if (sizes.length === 2 && sizes.every(size => validSizeRegex.test(size))) {
                 paginationIconSizeActive = sizes[0];
                 paginationIconSizeInactive = sizes[1];
+                // Warn if two sizes are provided (pagination icons are always single)
                 this.#warn('Two pagination-icon-size values provided but pagination icons are not stacked, using first size', {
                     paginationIconSize,
                     paginationIconSizeActive,
@@ -166,15 +164,15 @@ class CustomSlider extends HTMLElement {
         }
         this.#log('Parsed pagination-icon-size', { paginationIconSize, paginationIconSizeActive, paginationIconSizeInactive });
 
-        const gapAttr = this.getAttribute('gap') || '20px';
+        const gapAttr = this.getAttribute('gap') || '0'; // Default to 0 if no gap attribute
         let gap = gapAttr;
         if (slidesPerView === 1 && this.hasAttribute('gap')) {
             this.#warn('Gap attribute ignored for slides-per-view=1', { gap: gapAttr });
-            gap = '20px';
+            gap = '0';
         }
         this.#log('Parsed gap attribute', { gapAttr, effectiveGap: gap });
 
-        let pagination = this.hasAttribute('pagination');
+        let pagination = this.hasAttribute('pagination'); // Boolean, true if attribute is present
         this.#log('Parsed pagination attribute', { pagination });
 
         let paginationIconActive = this.getAttribute('pagination-icon-active') || '<i class="fa-solid fa-circle"></i>';
@@ -206,7 +204,7 @@ class CustomSlider extends HTMLElement {
                 });
                 return isBackground ? '' : '<i class="fa-solid fa-circle"></i>';
             }
-            validClasses.push('icon');
+            validClasses.push('icon'); // Always add 'icon' class
             return `<i class="${validClasses.join(' ')}"></i>`;
         };
 
@@ -217,6 +215,7 @@ class CustomSlider extends HTMLElement {
                 this.#warn(`No valid foreground icon for ${position}, navigation disabled`, { icon, backgroundIcon });
                 return { valid: false, markup: '' };
             }
+            // Check if two sizes were provided but no stack is present
             if (iconSizeBackground && iconSizeForeground && iconSizeBackground !== iconSizeForeground && !background) {
                 this.#warn(`Two navigation-icon-size values provided but ${position} icons are not stacked, using first size`, {
                     navigationIconSize,
@@ -225,14 +224,16 @@ class CustomSlider extends HTMLElement {
                 });
             }
             if (!background) {
-                return { valid: true, markup: foreground };
+                return { valid: true, markup: foreground }; // Single icon
             }
+            // Create stacked icon markup with only .icon-stack and .icon classes
             return {
                 valid: true,
                 markup: `<span class="icon-stack icon">${background}${foreground}</span>`
             };
         };
 
+        // Parse navigation icons for potential stacks
         let leftIconResult = { valid: true, markup: navigationIconLeft };
         let rightIconResult = { valid: true, markup: navigationIconRight };
 
@@ -240,6 +241,7 @@ class CustomSlider extends HTMLElement {
             leftIconResult = processIconStack(navigationIconLeft, navigationIconLeftBackground, 'left');
             rightIconResult = processIconStack(navigationIconRight, navigationIconRightBackground, 'right');
         } else {
+            // Check if main icon attributes contain stacked icons
             const parser = new DOMParser();
             const leftDoc = parser.parseFromString(navigationIconLeft.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), 'text/html');
             const rightDoc = parser.parseFromString(navigationIconRight.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), 'text/html');
@@ -273,13 +275,11 @@ class CustomSlider extends HTMLElement {
         paginationIconActive = validateIcon(paginationIconActive, 'active');
         paginationIconInactive = validateIcon(paginationIconInactive, 'inactive');
 
+        // Check for required attributes for pagination
         if (pagination && (!this.hasAttribute('pagination-icon-active') || !this.hasAttribute('pagination-icon-inactive'))) {
             this.#warn('Pagination requires explicit pagination-icon-active and pagination-icon-inactive attributes. Ignoring pagination.');
             pagination = false;
         }
-
-        const draggable = this.hasAttribute('draggable');
-        this.#log('Parsed draggable attribute', { draggable });
 
         return {
             autoplayDelay,
@@ -294,8 +294,7 @@ class CustomSlider extends HTMLElement {
             iconSizeBackground,
             iconSizeForeground,
             paginationIconSizeActive,
-            paginationIconSizeInactive,
-            draggable
+            paginationIconSizeInactive
         };
     }
 
@@ -314,10 +313,6 @@ class CustomSlider extends HTMLElement {
 
         try {
             const attrs = await this.getAttributes();
-            // Defensive check for render method
-            if (typeof this.render !== 'function') {
-                throw new Error('Render method is not defined');
-            }
             const sliderElement = await this.render(attrs);
             if (sliderElement) {
                 this.#log('Render successful, replacing element', { elementId: this.#uniqueId });
@@ -326,21 +321,7 @@ class CustomSlider extends HTMLElement {
                 this.#log('Initialization completed successfully', { elementId: this.#uniqueId });
             } else {
                 this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
-                const fallbackAttrs = {
-                    autoplayDelay: 3000,
-                    slidesPerView: 1,
-                    navigation: false,
-                    gap: '20px',
-                    pagination: false,
-                    paginationIconActive: '<i class="fa-solid fa-circle"></i>',
-                    paginationIconInactive: '<i class="fa-regular fa-circle"></i>',
-                    iconSizeBackground: '',
-                    iconSizeForeground: '',
-                    paginationIconSizeActive: '',
-                    paginationIconSizeInactive: '',
-                    draggable: false
-                };
-                const fallbackElement = await this.render(fallbackAttrs);
+                const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>', iconSizeBackground: '', iconSizeForeground: '', paginationIconSizeActive: '', paginationIconSizeInactive: '' });
                 this.replaceWith(fallbackElement);
             }
         } catch (error) {
@@ -349,21 +330,7 @@ class CustomSlider extends HTMLElement {
                 stack: error.stack,
                 elementId: this.#uniqueId
             });
-            const fallbackAttrs = {
-                autoplayDelay: 3000,
-                slidesPerView: 1,
-                navigation: false,
-                gap: '20px',
-                pagination: false,
-                paginationIconActive: '<i class="fa-solid fa-circle"></i>',
-                paginationIconInactive: '<i class="fa-regular fa-circle"></i>',
-                iconSizeBackground: '',
-                iconSizeForeground: '',
-                paginationIconSizeActive: '',
-                paginationIconSizeInactive: '',
-                draggable: false
-            };
-            const fallbackElement = await this.render(fallbackAttrs);
+            const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>', iconSizeBackground: '', iconSizeForeground: '', paginationIconSizeActive: '', paginationIconSizeInactive: '' });
             this.replaceWith(fallbackElement);
         }
     }
@@ -379,22 +346,6 @@ class CustomSlider extends HTMLElement {
         if (this.#slides.length === 0) {
             this.#warn('No slides to initialize', { elementId: this.#uniqueId });
             return;
-        }
-
-        const wrapper = sliderContainer.querySelector('.slider-wrapper');
-        wrapper.style.setProperty('--gap', attrs.gap);
-        wrapper.style.setProperty('--slides-per-view', attrs.slidesPerView);
-
-        if (attrs.draggable) {
-            wrapper.addEventListener('dragstart', (e) => e.preventDefault());
-            wrapper.addEventListener('mousedown', this.#handleDragStart.bind(this));
-            document.addEventListener('mousemove', this.#handleDragMove.bind(this));
-            document.addEventListener('mouseup', this.#handleDragEnd.bind(this));
-            document.addEventListener('mouseleave', this.#handleDragEnd.bind(this));
-            wrapper.addEventListener('touchstart', this.#handleDragStart.bind(this), { passive: false });
-            document.addEventListener('touchmove', this.#handleDragMove.bind(this), { passive: false });
-            document.addEventListener('touchend', this.#handleDragEnd.bind(this));
-            this.#log('Drag event listeners added (scrollLeft-based)', { elementId: this.#uniqueId });
         }
 
         if (attrs.navigation) {
@@ -414,128 +365,23 @@ class CustomSlider extends HTMLElement {
         this.#updateSlider(attrs);
     }
 
-    #handleDragStart(event) {
-        if (this.#isDragging || (event.touches && event.touches.length > 1)) return;
-
-        this.#stopAutoplay();
-        this.#isDragging = true;
-        const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
-        wrapper.classList.add('dragging');
-        const clientX = event.type.includes('touch') ? event.touches[0].pageX : event.pageX;
-        this.#startX = clientX - wrapper.offsetLeft;
-        this.#scrollLeft = wrapper.scrollLeft;
-        this.#velocity = 0;
-        this.#lastTime = Date.now();
-        this.#slides.forEach(slide => {
-            const interactables = slide.querySelectorAll('img, a');
-            interactables.forEach(el => el.style.pointerEvents = 'none');
-        });
-
-        if (event.type === 'mousedown') {
-            event.preventDefault();
-        } else {
-            event.preventDefault();
-        }
-
-        this.#log('Drag started', { clientX, scrollLeft: this.#scrollLeft, elementId: this.#uniqueId });
-    }
-
-    #handleDragMove(event) {
-        if (!this.#isDragging) return;
-
-        if (this.#animationFrameId) cancelAnimationFrame(this.#animationFrameId);
-        this.#animationFrameId = requestAnimationFrame(() => {
-            const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
-            const clientX = event.type.includes('touch') ? event.touches[0].pageX : event.pageX;
-            const x = clientX - wrapper.offsetLeft;
-            const dist = x - this.#startX;
-            if (Math.abs(dist) < this.#dragThreshold) return;
-
-            const currentTime = Date.now();
-            const deltaTime = currentTime - this.#lastTime;
-            if (deltaTime > 0) {
-                this.#velocity = ((clientX - this.#startX) / deltaTime) * 1000;
-            }
-            this.#lastTime = currentTime;
-
-            wrapper.scrollLeft = this.#scrollLeft - dist;
-            this.#log('Drag move', { dist, scrollLeft: wrapper.scrollLeft, velocity: this.#velocity, elementId: this.#uniqueId });
-        });
-
-        if (event.type.includes('touch')) {
-            event.preventDefault();
-        }
-    }
-
-    #handleDragEnd(event) {
-        if (!this.#isDragging) return;
-        this.#isDragging = false;
-
-        const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
-        wrapper.classList.remove('dragging');
-        this.#slides.forEach(slide => {
-            const interactables = slide.querySelectorAll('img, a');
-            interactables.forEach(el => el.style.pointerEvents = '');
-        });
-
-        // Apply momentum
-        const momentum = this.#velocity * 0.3; // Decay over 300ms
-        let scrollLeft = wrapper.scrollLeft - momentum;
-        const slideWidth = this.#slides[0]?.offsetWidth || window.innerWidth;
-        const gap = parseFloat(this.getAttribute('gap') || '20') || 20;
-        const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
-        const totalSlides = this.#slides.length;
-        const maxVisibleIndex = totalSlides - slidesPerView;
-        const slideFullWidth = slideWidth + gap;
-        let newIndex = Math.round((scrollLeft - 20) / slideFullWidth);
-
-        newIndex = Math.max(0, Math.min(newIndex, maxVisibleIndex));
-        this.#currentIndex = newIndex;
-
-        // Smooth momentum animation
-        const startScroll = wrapper.scrollLeft;
-        const targetScroll = this.#currentIndex * slideFullWidth + 20;
-        const startTime = Date.now();
-        const duration = 300;
-
-        const animateMomentum = () => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const ease = 1 - Math.pow(1 - progress, 3); // Cubic ease-out
-            wrapper.scrollLeft = startScroll + (targetScroll - startScroll) * ease;
-
-            if (progress < 1) {
-                this.#animationFrameId = requestAnimationFrame(animateMomentum);
-            } else {
-                this.getAttributes().then(attrs => {
-                    this.#updateSlider(attrs);
-                    if (attrs.autoplayDelay) {
-                        this.#startAutoplay(attrs.autoplayDelay);
-                    }
-                    this.#log('Drag ended with momentum snap', { newIndex, scrollLeft: wrapper.scrollLeft, momentum, elementId: this.#uniqueId });
-                });
-            }
-        };
-
-        this.#animationFrameId = requestAnimationFrame(animateMomentum);
-    }
-
     #navigate(direction) {
         const totalSlides = this.#slides.length;
         const slidesPerView = parseInt(this.getAttribute('slides-per-view') || '1', 10);
-        this.#lastDirection = direction;
+        this.#lastDirection = direction; // Update the last navigation direction
         this.#currentIndex += direction;
 
+        // Boundary check with reset
         const maxVisibleIndex = totalSlides - slidesPerView;
         if (this.#currentIndex > maxVisibleIndex) {
-            this.#currentIndex = 0;
+            this.#currentIndex = 0; // Reset to start on "next" overflow
         } else if (this.#currentIndex < 0) {
-            this.#currentIndex = maxVisibleIndex;
+            this.#currentIndex = maxVisibleIndex; // Reset to end on "previous" overflow
         }
 
         this.getAttributes().then(attrs => {
             this.#updateSlider(attrs);
-            this.#log('Navigated', { direction, currentIndex: this.#currentIndex, slidesPerView, totalSlides, elementId: this.#uniqueId });
+            this.#log('Navigated', { direction, currentIndex: this.#currentIndex, lastDirection: this.#lastDirection, slidesPerView, totalSlides, elementId: this.#uniqueId });
         });
     }
 
@@ -566,22 +412,27 @@ class CustomSlider extends HTMLElement {
             const sliderContainer = document.getElementById(this.#uniqueId);
             if (!sliderContainer) return;
 
+            // Calculate slide width in percentage
+            const slideWidth = 100 / slidesPerView; // Each slide takes 100% / slidesPerView
+            const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0'; // Use raw gap value (e.g., '40px', '5em')
+
+            // Calculate translation: slide width in % plus gap offset in original units
+            const addition = (slidesPerView - 1) / 2;
+            const gapOffset = gap === '0' ? '0' : `(${this.#currentIndex} + ${addition}) * ${gap}`;
+            let translateX = gap === '0' ? `-${this.#currentIndex * slideWidth}%` : `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset})`;
+            this.#log('Slider translation', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, gapOffset, slidesPerView, totalSlides, elementId: this.#uniqueId });
+
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
-            const slideWidth = this.#slides[0]?.offsetWidth || window.innerWidth;
-            const gap = parseFloat(attrs.gap || '20') || 20;
-            const slideFullWidth = slideWidth + gap;
-            const targetScroll = this.#currentIndex * slideFullWidth + 20;
+            wrapper.style.transform = `translateX(${translateX})`;
 
-            if (!this.#isDragging) {
-                wrapper.scrollLeft = targetScroll;
-            }
-
+            // Update pagination if enabled
             if (attrs.pagination) {
                 const pagination = sliderContainer.querySelector('.slider-pagination');
                 if (pagination) {
                     const dots = pagination.querySelectorAll('.icon');
                     dots.forEach((dot, index) => {
                         dot.innerHTML = index === this.#currentIndex ? attrs.paginationIconActive : attrs.paginationIconInactive;
+                        // Apply font-size to pagination icons
                         const icon = dot.querySelector('i');
                         if (icon) {
                             icon.style.fontSize = index === this.#currentIndex ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
@@ -591,7 +442,7 @@ class CustomSlider extends HTMLElement {
                 }
             }
 
-            this.#log('Slider updated', { currentIndex: this.#currentIndex, scrollLeft: wrapper.scrollLeft, slideWidth, gap, elementId: this.#uniqueId });
+            this.#log('Slider updated', { currentIndex: this.#currentIndex, translateX, slideWidth, gap, gapOffset, slidesPerView, totalSlides, elementId: this.#uniqueId });
         });
     }
 
@@ -605,10 +456,11 @@ class CustomSlider extends HTMLElement {
 
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
+        innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`;
         if (attrs.gap && attrs.gap !== '0') {
-            innerWrapper.style.setProperty('--gap', attrs.gap);
+            innerWrapper.style.columnGap = attrs.gap;
         }
-        innerWrapper.style.setProperty('--slides-per-view', attrs.slidesPerView);
+        this.#log('Applied styles to slider-wrapper', { gap: attrs.gap, gridTemplateColumns: innerWrapper.style.gridTemplateColumns });
 
         if (this.#childElements.length === 0) {
             this.#warn('No valid slides found', { elementId: this.#uniqueId });
@@ -620,13 +472,7 @@ class CustomSlider extends HTMLElement {
             this.#childElements.forEach((slide, index) => {
                 const slideWrapper = document.createElement('div');
                 slideWrapper.className = 'slider-slide';
-                const clonedSlide = slide.cloneNode(true);
-                const interactables = clonedSlide.querySelectorAll('img, a');
-                interactables.forEach(el => {
-                    el.setAttribute('draggable', 'false');
-                    el.style.webkitUserDrag = 'none';
-                });
-                slideWrapper.appendChild(clonedSlide);
+                slideWrapper.appendChild(slide.cloneNode(true));
                 innerWrapper.appendChild(slideWrapper);
                 this.#log(`Slide ${index + 1} processed`, { elementId: this.#uniqueId });
             });
@@ -645,20 +491,24 @@ class CustomSlider extends HTMLElement {
             navNext.className = 'slider-nav-next';
             navNext.innerHTML = attrs.navigationIconRight;
 
+            // Add 'icon' class and apply font-size styles to navigation icons
             [navPrev, navNext].forEach((nav, index) => {
                 const icons = nav.querySelectorAll('i');
+                const isLeftNav = index === 0;
+                const isStacked = icons.length === 2;
                 icons.forEach((icon, iconIndex) => {
                     if (!icon.classList.contains('icon')) {
                         icon.classList.add('icon');
                     }
+                    // Apply font-size based on stacking and navigation-icon-size
                     if (attrs.iconSizeBackground && attrs.iconSizeForeground) {
-                        if (icons.length === 2) {
+                        if (isStacked) {
                             icon.style.fontSize = iconIndex === 0 ? attrs.iconSizeBackground : attrs.iconSizeForeground;
                         } else {
-                            icon.style.fontSize = attrs.iconSizeBackground;
+                            icon.style.fontSize = attrs.iconSizeBackground; // Use first size for single icon
                         }
                     } else if (attrs.iconSizeBackground) {
-                        icon.style.fontSize = attrs.iconSizeBackground;
+                        icon.style.fontSize = attrs.iconSizeBackground; // Single size for all
                     }
                 });
             });
@@ -668,6 +518,7 @@ class CustomSlider extends HTMLElement {
             this.#log('Navigation buttons added', { elementId: this.#uniqueId });
         }
 
+        // Add pagination if enabled
         if (attrs.pagination) {
             const pagination = document.createElement('div');
             pagination.className = 'slider-pagination';
@@ -677,6 +528,7 @@ class CustomSlider extends HTMLElement {
                 const dot = document.createElement('span');
                 dot.className = 'icon';
                 dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
+                // Apply font-size to pagination icon
                 const icon = dot.querySelector('i');
                 if (icon && (attrs.paginationIconSizeActive || attrs.paginationIconSizeInactive)) {
                     icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
@@ -700,29 +552,10 @@ class CustomSlider extends HTMLElement {
 
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.#uniqueId });
-
-        this.#childObserver = new MutationObserver((mutations) => {
-            mutations.forEach(mutation => {
-                if (mutation.addedNodes.length) {
-                    this.#childElements = Array.from(this.children)
-                        .filter(child => child.tagName.toLowerCase() === 'custom-block')
-                        .map(child => child.cloneNode(true));
-                    this.#log('Children updated via MutationObserver', { count: this.#childElements.length, elementId: this.#uniqueId });
-                    if (this.isVisible && this.#childElements.length > 0) {
-                        this.initialize();
-                    }
-                }
-            });
-        });
-
-        this.#childObserver.observe(this, { childList: true });
-
-        this.#childElements = Array.from(this.children)
-            .filter(child => child.tagName.toLowerCase() === 'custom-block')
-            .map(child => child.cloneNode(true));
+        // Capture child elements here to ensure they're available before initialization
+        this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block').map(child => child.cloneNode(true));
         this.#log('Captured children in connectedCallback', { count: this.#childElements.length, elementId: this.#uniqueId });
-
-        if (this.isVisible && this.#childElements.length > 0) {
+        if (this.isVisible) {
             await this.initialize();
         }
     }
@@ -734,15 +567,6 @@ class CustomSlider extends HTMLElement {
             cancelAnimationFrame(this.#animationFrameId);
             this.#animationFrameId = null;
         }
-        if (this.#childObserver) {
-            this.#childObserver.disconnect();
-            this.#childObserver = null;
-        }
-        document.removeEventListener('mousemove', this.#handleDragMove.bind(this));
-        document.removeEventListener('mouseup', this.#handleDragEnd.bind(this));
-        document.removeEventListener('mouseleave', this.#handleDragEnd.bind(this));
-        document.removeEventListener('touchmove', this.#handleDragMove.bind(this));
-        document.removeEventListener('touchend', this.#handleDragEnd.bind(this));
         if (CustomSlider.#observedInstances.has(this)) {
             CustomSlider.#observer.unobserve(this);
             CustomSlider.#observedInstances.delete(this);
@@ -754,8 +578,7 @@ class CustomSlider extends HTMLElement {
         return [
             'autoplay', 'slides-per-view', 'navigation', 'navigation-icon-left', 'navigation-icon-right',
             'navigation-icon-left-background', 'navigation-icon-right-background', 'gap', 'pagination',
-            'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size', 'pagination-icon-size',
-            'draggable'
+            'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size', 'pagination-icon-size'
         ];
     }
 
@@ -778,9 +601,7 @@ class CustomSlider extends HTMLElement {
         if (oldValue !== newValue) {
             this.isInitialized = false;
             this.#stopAutoplay();
-            this.#childElements = Array.from(this.children)
-                .filter(child => child.tagName.toLowerCase() === 'custom-block')
-                .map(child => child.cloneNode(true));
+            this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block').map(child => child.cloneNode(true));
             this.initialize();
         }
     }
@@ -792,5 +613,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-26 (scrollLeft-based with momentum)');
+console.log('CustomSlider version: 2025-10-26');
 export { CustomSlider };
