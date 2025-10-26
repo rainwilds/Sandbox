@@ -114,6 +114,28 @@ class CustomSlider extends HTMLElement {
         let navigationIconLeftBackground = this.getAttribute('navigation-icon-left-background') || '';
         let navigationIconRightBackground = this.getAttribute('navigation-icon-right-background') || '';
 
+        // Parse navigation-icon-size
+        const navigationIconSize = this.getAttribute('navigation-icon-size') || '';
+        let iconSizeBackground = '';
+        let iconSizeForeground = '';
+        if (navigationIconSize) {
+            const sizes = navigationIconSize.trim().split(/\s+/);
+            const validSizeRegex = /^(\d*\.?\d+(?:px|rem|em|%)|var\(--[a-zA-Z0-9-]+\))$/;
+            if (sizes.length === 1 && validSizeRegex.test(sizes[0])) {
+                iconSizeBackground = sizes[0];
+                iconSizeForeground = sizes[0];
+            } else if (sizes.length === 2 && sizes.every(size => validSizeRegex.test(size))) {
+                iconSizeBackground = sizes[0];
+                iconSizeForeground = sizes[1];
+            } else {
+                this.#warn('Invalid navigation-icon-size format, ignoring', {
+                    value: navigationIconSize,
+                    expected: 'One or two CSS font-size values (e.g., "1.5rem" or "2rem 1.5rem")'
+                });
+            }
+        }
+        this.#log('Parsed navigation-icon-size', { navigationIconSize, iconSizeBackground, iconSizeForeground });
+
         const gapAttr = this.getAttribute('gap') || '0'; // Default to 0 if no gap attribute
         let gap = gapAttr;
         if (slidesPerView === 1 && this.hasAttribute('gap')) {
@@ -164,6 +186,14 @@ class CustomSlider extends HTMLElement {
             if (!foreground) {
                 this.#warn(`No valid foreground icon for ${position}, navigation disabled`, { icon, backgroundIcon });
                 return { valid: false, markup: '' };
+            }
+            // Check if two sizes were provided but no stack is present
+            if (iconSizeBackground && iconSizeForeground && iconSizeBackground !== iconSizeForeground && !background) {
+                this.#warn(`Two navigation-icon-size values provided but ${position} icons are not stacked, using first size`, {
+                    navigationIconSize,
+                    iconSizeBackground,
+                    iconSizeForeground
+                });
             }
             if (!background) {
                 return { valid: true, markup: foreground }; // Single icon
@@ -232,7 +262,9 @@ class CustomSlider extends HTMLElement {
             gap,
             pagination,
             paginationIconActive,
-            paginationIconInactive
+            paginationIconInactive,
+            iconSizeBackground,
+            iconSizeForeground
         };
     }
 
@@ -259,7 +291,7 @@ class CustomSlider extends HTMLElement {
                 this.#log('Initialization completed successfully', { elementId: this.#uniqueId });
             } else {
                 this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
-                const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>' });
+                const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>', iconSizeBackground: '', iconSizeForeground: '' });
                 this.replaceWith(fallbackElement);
             }
         } catch (error) {
@@ -268,7 +300,7 @@ class CustomSlider extends HTMLElement {
                 stack: error.stack,
                 elementId: this.#uniqueId
             });
-            const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>' });
+            const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>', iconSizeBackground: '', iconSizeForeground: '' });
             this.replaceWith(fallbackElement);
         }
     }
@@ -350,7 +382,7 @@ class CustomSlider extends HTMLElement {
             const sliderContainer = document.getElementById(this.#uniqueId);
             if (!sliderContainer) return;
 
-            // Calculate slide width in percentage on total slide count
+            // Calculate slide width in percentage
             const slideWidth = 100 / slidesPerView; // Each slide takes 100% / slidesPerView
             const gap = attrs.gap && attrs.gap !== '0' ? attrs.gap : '0'; // Use raw gap value (e.g., '40px', '5em')
 
@@ -424,12 +456,24 @@ class CustomSlider extends HTMLElement {
             navNext.className = 'slider-nav-next';
             navNext.innerHTML = attrs.navigationIconRight;
 
-            // Add 'icon' class to all <i> elements in navigation buttons
-            [navPrev, navNext].forEach(nav => {
+            // Add 'icon' class to all <i> elements and apply font-size styles
+            [navPrev, navNext].forEach((nav, index) => {
                 const icons = nav.querySelectorAll('i');
-                icons.forEach(icon => {
+                const isLeftNav = index === 0;
+                const isStacked = icons.length === 2;
+                icons.forEach((icon, iconIndex) => {
                     if (!icon.classList.contains('icon')) {
                         icon.classList.add('icon');
+                    }
+                    // Apply font-size based on stacking and navigation-icon-size
+                    if (attrs.iconSizeBackground && attrs.iconSizeForeground) {
+                        if (isStacked) {
+                            icon.style.fontSize = iconIndex === 0 ? attrs.iconSizeBackground : attrs.iconSizeForeground;
+                        } else {
+                            icon.style.fontSize = attrs.iconSizeBackground; // Use first size for single icon
+                        }
+                    } else if (attrs.iconSizeBackground) {
+                        icon.style.fontSize = attrs.iconSizeBackground; // Single size for all
                     }
                 });
             });
@@ -494,7 +538,7 @@ class CustomSlider extends HTMLElement {
         return [
             'autoplay', 'slides-per-view', 'navigation', 'navigation-icon-left', 'navigation-icon-right',
             'navigation-icon-left-background', 'navigation-icon-right-background', 'gap', 'pagination',
-            'pagination-icon-active', 'pagination-icon-inactive'
+            'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size'
         ];
     }
 
@@ -529,5 +573,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-23');
+console.log('CustomSlider version: 2025-10-26');
 export { CustomSlider };

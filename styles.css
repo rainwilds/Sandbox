@@ -2054,6 +2054,10 @@ div#products {
         cursor: pointer;
     }
 
+    &>i:first-child {
+        width: auto;
+    }
+
 }
 
 
