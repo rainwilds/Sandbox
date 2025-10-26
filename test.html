@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Basic Draggable Carousel Example</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+        }
+
+        .carousel {
+            overflow: hidden;
+            width: 100%;
+            max-width: 600px;
+            position: relative;
+            user-select: none;
+            touch-action: pan-y; /* Prevents vertical scroll during horizontal drag */
+        }
+
+        .slides {
+            display: flex;
+            transition: transform 0.5s ease-out;
+            will-change: transform; /* Hints to browser for hardware acceleration */
+        }
+
+        .slide {
+            flex: 0 0 100%;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            color: white;
+        }
+
+        .slide:nth-child(odd) {
+            background-color: #4a90e2;
+        }
+
+        .slide:nth-child(even) {
+            background-color: #50e3c2;
+        }
+    </style>
+</head>
+<body>
+    <div class="carousel">
+        <div class="slides">
+            <div class="slide">Slide 1</div>
+            <div class="slide">Slide 2</div>
+            <div class="slide">Slide 3</div>
+            <div class="slide">Slide 4</div>
+        </div>
+    </div>
+
+    <script>
+        const carousel = document.querySelector('.carousel');
+        const slides = carousel.querySelector('.slides');
+
+        let isDragging = false;
+        let startPos = 0;
+        let currentTranslate = 0;
+        let prevTranslate = 0;
+        let animationID;
+        let currentIndex = 0;
+
+        // Prevent context menu on long touch
+        window.oncontextmenu = function(event) {
+            if (event.target.closest('.slides')) {
+                event.preventDefault();
+                event.stopPropagation();
+                return false;
+            }
+        };
+
+        slides.addEventListener('pointerdown', pointerDown);
+        slides.addEventListener('pointerup', pointerUp);
+        slides.addEventListener('pointercancel', pointerUp);
+        slides.addEventListener('pointerleave', pointerUp);
+        slides.addEventListener('pointermove', pointerMove);
+
+        function getPositionX(event) {
+            return event.clientX;
+        }
+
+        function pointerDown(event) {
+            if (event.pointerType === 'touch' || event.pointerType === 'mouse') {
+                isDragging = true;
+                startPos = getPositionX(event);
+                animationID = requestAnimationFrame(animation);
+                slides.style.transition = 'none';
+                event.target.setPointerCapture(event.pointerId);
+            }
+        }
+
+        function pointerMove(event) {
+            if (isDragging) {
+                const currentPosition = getPositionX(event);
+                currentTranslate = prevTranslate + currentPosition - startPos;
+            }
+        }
+
+        function pointerUp(event) {
+            cancelAnimationFrame(animationID);
+            isDragging = false;
+            const movedBy = currentTranslate - prevTranslate;
+
+            // Threshold for swipe to next/prev (adjust as needed)
+            if (movedBy < -100 && currentIndex < slides.children.length - 1) {
+                currentIndex += 1;
+            } else if (movedBy > 100 && currentIndex > 0) {
+                currentIndex -= 1;
+            }
+
+            setPositionByIndex();
+            slides.style.transition = 'transform 0.5s ease-out';
+            event.target.releasePointerCapture(event.pointerId);
+        }
+
+        function animation() {
+            setSliderPosition();
+            if (isDragging) requestAnimationFrame(animation);
+        }
+
+        function setSliderPosition() {
+            slides.style.transform = `translate3d(${currentTranslate}px, 0, 0)`; // translate3d for hardware acceleration
+        }
+
+        function setPositionByIndex() {
+            currentTranslate = currentIndex * -carousel.clientWidth;
+            prevTranslate = currentTranslate;
+            setSliderPosition();
+        }
+    </script>
+</body>
+</html>
