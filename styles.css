@@ -189,32 +189,32 @@
 
 
 
---color-light-scale-1: #b839f7;
---color-light-scale-2: #9471ff;
---color-light-scale-3: #7c92ff;
---color-light-scale-4: #7dacff;
---color-light-scale-5: #97c0f1;
---color-light-scale-6: #bfd0df;
---color-dark-scale-1: #34251d;
---color-dark-scale-2: #331f1e;
---color-dark-scale-3: #2e1a21;
---color-dark-scale-4: #251825;
---color-dark-scale-5: #181626;
---color-dark-scale-6: #051524;
---color-accent-opaque-light-scale-1: rgba(184,57,247,0.2);
---color-accent-opaque-light-scale-2: rgba(148,113,255,0.2);
---color-accent-opaque-light-scale-3: rgba(124,146,255,0.2);
---color-accent-opaque-light-scale-4: rgba(125,172,255,0.2);
---color-accent-opaque-light-scale-5: rgba(151,192,241,0.2);
---color-accent-opaque-light-scale-6: rgba(191,208,223,0.2);
---color-accent-opaque-dark-scale-1: rgba(52,37,29,0.5);
---color-accent-opaque-dark-scale-2: rgba(51,31,30,0.5);
---color-accent-opaque-dark-scale-3: rgba(46,26,33,0.5);
---color-accent-opaque-dark-scale-4: rgba(37,24,37,0.5);
---color-accent-opaque-dark-scale-5: rgba(24,22,38,0.5);
---color-accent-opaque-dark-scale-6: rgba(5,21,36,0.5);
---color-static-light: white;
---color-static-dark: black;
+        --color-light-scale-1: #b839f7;
+        --color-light-scale-2: #9471ff;
+        --color-light-scale-3: #7c92ff;
+        --color-light-scale-4: #7dacff;
+        --color-light-scale-5: #97c0f1;
+        --color-light-scale-6: #bfd0df;
+        --color-dark-scale-1: #34251d;
+        --color-dark-scale-2: #331f1e;
+        --color-dark-scale-3: #2e1a21;
+        --color-dark-scale-4: #251825;
+        --color-dark-scale-5: #181626;
+        --color-dark-scale-6: #051524;
+        --color-accent-opaque-light-scale-1: rgba(184, 57, 247, 0.2);
+        --color-accent-opaque-light-scale-2: rgba(148, 113, 255, 0.2);
+        --color-accent-opaque-light-scale-3: rgba(124, 146, 255, 0.2);
+        --color-accent-opaque-light-scale-4: rgba(125, 172, 255, 0.2);
+        --color-accent-opaque-light-scale-5: rgba(151, 192, 241, 0.2);
+        --color-accent-opaque-light-scale-6: rgba(191, 208, 223, 0.2);
+        --color-accent-opaque-dark-scale-1: rgba(52, 37, 29, 0.5);
+        --color-accent-opaque-dark-scale-2: rgba(51, 31, 30, 0.5);
+        --color-accent-opaque-dark-scale-3: rgba(46, 26, 33, 0.5);
+        --color-accent-opaque-dark-scale-4: rgba(37, 24, 37, 0.5);
+        --color-accent-opaque-dark-scale-5: rgba(24, 22, 38, 0.5);
+        --color-accent-opaque-dark-scale-6: rgba(5, 21, 36, 0.5);
+        --color-static-light: white;
+        --color-static-dark: black;
 
 
 
@@ -2016,11 +2016,12 @@ div#products {
     height: 100%;
     overflow: hidden;
     position: relative;
-    
+
 }
 
 .slider-wrapper {
     display: grid;
+    grid-template-rows: 1fr;
     transition: transform 0.5s;
     grid-auto-flow: column;
     height: 100%;
