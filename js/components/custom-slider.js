@@ -1,4 +1,4 @@
-/* global HTMLElement, IntersectionObserver, document, window, console, requestAnimationFrame */
+/* global HTMLElement, IntersectionObserver, document, window, console, requestAnimationFrame, MutationObserver */
 
 'use strict';
 
@@ -16,6 +16,7 @@ class CustomSlider extends HTMLElement {
     #lastDirection = 0;
     #cachedAttributes = null;
     #criticalAttributesHash = null;
+    #mutationObserver = null;
 
     constructor() {
         super();
@@ -86,6 +87,17 @@ class CustomSlider extends HTMLElement {
             this.#log('Base path fetched', { basePath: this.#basePath });
         }
         return this.#basePath;
+    }
+
+    #observeChildren() {
+        if (this.#mutationObserver) return;
+        this.#mutationObserver = new MutationObserver(() => {
+            this.#childElements = Array.from(this.children)
+                .filter(child => child.tagName.toLowerCase() === 'custom-block')
+                .map(child => child.cloneNode(true));
+            this.#log('Children updated via MutationObserver', { count: this.#childElements.length, elementId: this.#uniqueId });
+        });
+        this.#mutationObserver.observe(this, { childList: true });
     }
 
     async getAttributes() {
@@ -278,7 +290,7 @@ class CustomSlider extends HTMLElement {
 
         navigationIconLeft = leftIconResult.markup;
         navigationIconRight = rightIconResult.markup;
-        navigation = navigation && leftIconResult.valid && rightIconResult.valid && this.hasAttribute('navigation-icon-left') && this.hasAttribute('navigation-icon-right');
+        navigation = navigation && leftIconResult.valid && rightIconResult.valid;
         if (!navigation && this.hasAttribute('navigation')) {
             this.#warn('Navigation disabled due to invalid or missing icon attributes', {
                 leftIconValid: leftIconResult.valid,
@@ -618,7 +630,10 @@ class CustomSlider extends HTMLElement {
 
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.#uniqueId });
-        this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block').map(child => child.cloneNode(true));
+        this.#observeChildren();
+        this.#childElements = Array.from(this.children)
+            .filter(child => child.tagName.toLowerCase() === 'custom-block')
+            .map(child => child.cloneNode(true));
         this.#log('Captured children in connectedCallback', { count: this.#childElements.length, elementId: this.#uniqueId });
         if (this.isVisible) {
             await this.initialize();
@@ -631,6 +646,10 @@ class CustomSlider extends HTMLElement {
         if (this.#animationFrameId) {
             cancelAnimationFrame(this.#animationFrameId);
             this.#animationFrameId = null;
+        }
+        if (this.#mutationObserver) {
+            this.#mutationObserver.disconnect();
+            this.#mutationObserver = null;
         }
         if (CustomSlider.#observedInstances.has(this)) {
             CustomSlider.#observer.unobserve(this);
@@ -667,7 +686,9 @@ class CustomSlider extends HTMLElement {
             this.#cachedAttributes = null;
             this.#criticalAttributesHash = null;
             this.isInitialized = false;
-            this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block').map(child => child.cloneNode(true));
+            this.#childElements = Array.from(this.children)
+                .filter(child => child.tagName.toLowerCase() === 'custom-block')
+                .map(child => child.cloneNode(true));
             this.initialize();
         } else if (name === 'pagination-icon-size') {
             this.#debounceUpdateSlider();
