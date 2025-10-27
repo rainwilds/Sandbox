@@ -1183,8 +1183,9 @@
 
         display: grid;
         height: 100%;
-        align-content: stretch;
+        /* align-content: stretch; */
         width: stretch;
+        grid-template-rows: 100%;
         /* ensure content spans all vertical space of parent */
         /* max-height: 100vh; */
 
