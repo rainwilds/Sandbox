@@ -175,6 +175,11 @@ class CustomSlider extends HTMLElement {
         let paginationIconActive = this.getAttribute('pagination-icon-active') || '<i class="fa-solid fa-circle"></i>';
         let paginationIconInactive = this.getAttribute('pagination-icon-inactive') || '<i class="fa-regular fa-circle"></i>';
 
+        const crossFade = this.hasAttribute('cross-fade');
+        if (crossFade && slidesPerView !== 1) {
+            this.#warn('Cross-fade attribute is only supported for slides-per-view=1, ignoring', { slidesPerView });
+        }
+
         const validateIcon = (icon, position, isBackground = false) => {
             if (!icon) return '';
             const parser = new DOMParser();
@@ -285,7 +290,8 @@ class CustomSlider extends HTMLElement {
             iconSizeBackground,
             iconSizeForeground,
             paginationIconSizeActive,
-            paginationIconSizeInactive
+            paginationIconSizeInactive,
+            crossFade
         };
     }
 
@@ -307,7 +313,7 @@ class CustomSlider extends HTMLElement {
                 this.#log('Initialization completed', { elementId: this.#uniqueId });
             } else {
                 this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
-                const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>', iconSizeBackground: '', iconSizeForeground: '', paginationIconSizeActive: '', paginationIconSizeInactive: '' });
+                const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>', iconSizeBackground: '', iconSizeForeground: '', paginationIconSizeActive: '', paginationIconSizeInactive: '', crossFade: false });
                 this.replaceWith(fallbackElement);
             }
         } catch (error) {
@@ -316,7 +322,7 @@ class CustomSlider extends HTMLElement {
                 stack: error.stack,
                 elementId: this.#uniqueId
             });
-            const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>', iconSizeBackground: '', iconSizeForeground: '', paginationIconSizeActive: '', paginationIconSizeInactive: '' });
+            const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>', iconSizeBackground: '', iconSizeForeground: '', paginationIconSizeActive: '', paginationIconSizeInactive: '', crossFade: false });
             this.replaceWith(fallbackElement);
         }
     }
@@ -340,9 +346,16 @@ class CustomSlider extends HTMLElement {
         wrapper.style.willChange = 'transform';
         wrapper.style.userSelect = 'none';
         wrapper.style.touchAction = 'pan-y';
-        // Set grab cursor if draggable
         if (this.hasAttribute('draggable')) {
             wrapper.style.cursor = 'grab';
+        }
+
+        if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
+            sliderContainer.setAttribute('cross-fade', '');
+            this.#slides.forEach((slide, index) => {
+                slide.style.opacity = index === 0 ? '1' : '0';
+                if (index === 0) slide.classList.add('active');
+            });
         }
 
         if (this.hasAttribute('draggable')) {
@@ -408,20 +421,23 @@ class CustomSlider extends HTMLElement {
     }
 
     #pointerDown(event) {
+        if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
+            return; // Disable dragging for cross-fade
+        }
         if (event.pointerType === 'touch' || event.pointerType === 'mouse') {
             this.#isDragging = true;
             this.#startPos = event.clientX;
             this.#animationID = requestAnimationFrame(this.#animation.bind(this));
             const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
             wrapper.style.transition = 'none';
-            wrapper.style.cursor = 'grabbing'; // Set grabbing cursor on drag start
+            wrapper.style.cursor = 'grabbing';
             event.target.setPointerCapture(event.pointerId);
             this.#log('Pointer down, grabbing cursor set', { elementId: this.#uniqueId });
         }
     }
 
     #pointerMove(event) {
-        if (this.#isDragging) {
+        if (this.#isDragging && !this.#attrs.crossFade) {
             const currentPosition = event.clientX;
             this.#currentTranslate = this.#prevTranslate + currentPosition - this.#startPos;
             const maxIndex = this.#slides.length - this.#attrs.slidesPerView;
@@ -432,6 +448,9 @@ class CustomSlider extends HTMLElement {
     }
 
     #pointerUp(event) {
+        if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
+            return; // No drag handling for cross-fade
+        }
         cancelAnimationFrame(this.#animationID);
         this.#isDragging = false;
         const movedBy = this.#currentTranslate - this.#prevTranslate;
@@ -448,18 +467,23 @@ class CustomSlider extends HTMLElement {
         this.#setPositionByIndex();
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         wrapper.style.transition = 'transform 0.5s ease-out';
-        wrapper.style.cursor = 'grab'; // Revert to grab cursor on drag end
+        wrapper.style.cursor = 'grab';
         event.target.releasePointerCapture(event.pointerId);
         this.#updateSlider();
         this.#log(`[Drag End] currentIndex=${this.#currentIndex}, oldIndex=${oldIndex}, movedBy=${movedBy}px, grab cursor restored`, { elementId: this.#uniqueId, expectedActiveDot: this.#currentIndex + 1 });
     }
 
     #animation() {
-        this.#setSliderPosition();
+        if (!this.#attrs.crossFade) {
+            this.#setSliderPosition();
+        }
         if (this.#isDragging) requestAnimationFrame(this.#animation.bind(this));
     }
 
     #setSliderPosition() {
+        if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
+            return; // No transform for cross-fade
+        }
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         wrapper.style.transform = `translate3d(${this.#currentTranslate}px, 0, 0)`;
         this.#log('Slider position set', {
@@ -469,9 +493,13 @@ class CustomSlider extends HTMLElement {
     }
 
     #setPositionByIndex() {
-        this.#currentTranslate = this.#calculateTranslate();
-        this.#prevTranslate = this.#currentTranslate;
-        this.#setSliderPosition();
+        if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
+            this.#updateSlider();
+        } else {
+            this.#currentTranslate = this.#calculateTranslate();
+            this.#prevTranslate = this.#currentTranslate;
+            this.#setSliderPosition();
+        }
     }
 
     #calculateTranslate() {
@@ -544,7 +572,19 @@ class CustomSlider extends HTMLElement {
         if (!sliderContainer) return;
 
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
-        wrapper.style.transform = `translate3d(${this.#calculateTranslate()}px, 0, 0)`;
+        if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
+            this.#slides.forEach((slide, index) => {
+                slide.classList.remove('active');
+                slide.style.opacity = '0';
+                if (index === this.#currentIndex) {
+                    slide.classList.add('active');
+                    slide.style.opacity = '1';
+                }
+            });
+            this.#log(`[Cross-Fade Updated] currentIndex=${this.#currentIndex}`, { elementId: this.#uniqueId });
+        } else {
+            wrapper.style.transform = `translate3d(${this.#calculateTranslate()}px, 0, 0)`;
+        }
 
         if (this.#attrs.pagination) {
             const pagination = sliderContainer.querySelector('.slider-pagination');
@@ -578,15 +618,20 @@ class CustomSlider extends HTMLElement {
 
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
-        innerWrapper.style.display = 'grid';
-        innerWrapper.style.gridTemplateRows = '1fr';
-        innerWrapper.style.gridAutoFlow = 'column';
-        innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`;
-        innerWrapper.style.transition = 'transform 0.5s';
+        if (!attrs.crossFade || attrs.slidesPerView !== 1) {
+            innerWrapper.style.display = 'grid';
+            innerWrapper.style.gridTemplateRows = '1fr';
+            innerWrapper.style.gridAutoFlow = 'column';
+            innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`;
+            innerWrapper.style.transition = 'transform 0.5s';
+        } else {
+            innerWrapper.style.position = 'relative';
+            innerWrapper.style.height = '100%';
+        }
         innerWrapper.style.height = '100%';
         innerWrapper.style.alignContent = 'center';
         innerWrapper.style.willChange = 'transform';
-        if (attrs.gap && attrs.gap !== '0') {
+        if (attrs.gap && attrs.gap !== '0' && (!attrs.crossFade || attrs.slidesPerView !== 1)) {
             innerWrapper.style.columnGap = attrs.gap;
         }
 
@@ -597,9 +642,18 @@ class CustomSlider extends HTMLElement {
             fallbackSlide.innerHTML = '<p>No slides available</p>';
             innerWrapper.appendChild(fallbackSlide);
         } else {
-            this.#childElements.forEach((slide) => {
+            this.#childElements.forEach((slide, index) => {
                 const slideWrapper = document.createElement('div');
                 slideWrapper.className = 'slider-slide';
+                if (attrs.crossFade && attrs.slidesPerView === 1) {
+                    slideWrapper.style.position = 'absolute';
+                    slideWrapper.style.top = '0';
+                    slideWrapper.style.left = '0';
+                    slideWrapper.style.width = '100%';
+                    slideWrapper.style.height = '100%';
+                    slideWrapper.style.opacity = index === 0 ? '1' : '0';
+                    if (index === 0) slideWrapper.classList.add('active');
+                }
                 slideWrapper.appendChild(slide.cloneNode(true));
                 innerWrapper.appendChild(slideWrapper);
             });
@@ -653,7 +707,7 @@ class CustomSlider extends HTMLElement {
                 dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
                 const icon = dot.querySelector('i');
                 if (icon && (attrs.paginationIconSizeActive || attrs.paginationIconSizeInactive)) {
-                    icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : this.#attrs.paginationIconSizeInactive;
+                    icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
                 }
                 dot.addEventListener('click', () => {
                     const oldIndex = this.#currentIndex;
@@ -697,7 +751,7 @@ class CustomSlider extends HTMLElement {
         return [
             'autoplay', 'slides-per-view', 'navigation', 'navigation-icon-left', 'navigation-icon-right',
             'navigation-icon-left-background', 'navigation-icon-right-background', 'gap', 'pagination',
-            'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size', 'pagination-icon-size', 'draggable'
+            'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size', 'pagination-icon-size', 'draggable', 'cross-fade'
         ];
     }
 
