@@ -2045,12 +2045,13 @@ div#products {
 
 .custom-slider[cross-fade] .slider-slide {
     position: absolute;
-    place-content: center;
+    /* place-content: center; */
+    align-self: center;
     width: 100%;
-    height: 100%;
+    /* height: 100%; */
     opacity: 0;
     transition: opacity 1.5s ease-in-out;
-    display: grid;
+    /* display: grid; */
 }
 
 .custom-slider[cross-fade] .slider-slide.active {
