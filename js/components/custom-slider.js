@@ -23,6 +23,9 @@ class CustomSlider extends HTMLElement {
     #slideWidthPx = 0;
     #gapPx = 0;
     #addition = 0;
+    #activeIconClasses = [];
+    #inactiveIconClasses = [];
+    #commonIconClasses = [];
 
     constructor() {
         super();
@@ -397,11 +400,31 @@ class CustomSlider extends HTMLElement {
             this.#startAutoplay(this.#attrs.autoplayDelay);
         }
 
+        // Parse pagination icon classes if pagination is enabled
+        if (this.#attrs.pagination) {
+            this.#parsePaginationIconClasses();
+        }
+
         // Initial update
         this.#updateSlider();
 
         // Handle resize
         window.addEventListener('resize', this.#handleResize.bind(this));
+    }
+
+    #parsePaginationIconClasses() {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = this.#attrs.paginationIconActive;
+        const iActive = tempDiv.querySelector('i');
+        const activeClasses = iActive ? Array.from(iActive.classList) : [];
+
+        tempDiv.innerHTML = this.#attrs.paginationIconInactive;
+        const iInactive = tempDiv.querySelector('i');
+        const inactiveClasses = iInactive ? Array.from(iInactive.classList) : [];
+
+        this.#commonIconClasses = activeClasses.filter(cls => inactiveClasses.includes(cls));
+        this.#activeIconClasses = activeClasses.filter(cls => !inactiveClasses.includes(cls));
+        this.#inactiveIconClasses = inactiveClasses.filter(cls => !activeClasses.includes(cls));
     }
 
     #recalculateDimensions() {
@@ -534,11 +557,15 @@ class CustomSlider extends HTMLElement {
                 const dots = pagination.querySelectorAll('.icon');
                 dots.forEach((dot, index) => {
                     const isActive = index === this.#currentIndex;
-                    dot.innerHTML = isActive ? this.#attrs.paginationIconActive : this.#attrs.paginationIconInactive;
-                    // Apply font-size to pagination icons
-                    const icon = dot.querySelector('i');
-                    if (icon) {
-                        icon.style.fontSize = isActive ? this.#attrs.paginationIconSizeActive : this.#attrs.paginationIconSizeInactive;
+                    const i = dot.querySelector('i');
+                    if (i) {
+                        i.classList.remove(...this.#activeIconClasses, ...this.#inactiveIconClasses);
+                        if (isActive) {
+                            i.classList.add(...this.#activeIconClasses);
+                        } else {
+                            i.classList.add(...this.#inactiveIconClasses);
+                        }
+                        i.style.fontSize = isActive ? this.#attrs.paginationIconSizeActive : this.#attrs.paginationIconSizeInactive;
                     }
                 });
                 this.#log('Pagination updated', { currentIndex: this.#currentIndex, totalSlides: this.#slides.length, elementId: this.#uniqueId });
@@ -640,11 +667,11 @@ class CustomSlider extends HTMLElement {
             for (let i = 0; i < totalDots; i++) {
                 const dot = document.createElement('span');
                 dot.className = 'icon';
-                dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
+                dot.innerHTML = attrs.paginationIconInactive;
                 // Apply font-size to pagination icon
                 const icon = dot.querySelector('i');
                 if (icon && (attrs.paginationIconSizeActive || attrs.paginationIconSizeInactive)) {
-                    icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
+                    icon.style.fontSize = attrs.paginationIconSizeInactive;
                 }
                 dot.addEventListener('click', () => {
                     this.#currentIndex = i;
@@ -664,7 +691,7 @@ class CustomSlider extends HTMLElement {
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.#uniqueId });
         // Capture child elements here to ensure they're available before initialization
-        this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block' || (child.tagName.toLowerCase() === 'div' && child.classList.contains('block'))).map(child => child.cloneNode(true));
+        this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block')).map(child => child.cloneNode(true));
         this.#log('Captured children in connectedCallback', { count: this.#childElements.length, elementId: this.#uniqueId });
         if (this.isVisible) {
             await this.initialize();
@@ -713,7 +740,7 @@ class CustomSlider extends HTMLElement {
         if (oldValue !== newValue) {
             this.isInitialized = false;
             this.#stopAutoplay();
-            this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block' || (child.tagName.toLowerCase() === 'div' && child.classList.contains('block'))).map(child => child.cloneNode(true));
+            this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block')).map(child => child.cloneNode(true));
             this.initialize();
         }
     }
