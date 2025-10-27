@@ -2133,6 +2133,7 @@ div#products {
     display: flex;
     gap: var(--space-tiny);
     font-size: 0.5rem;
+        z-index: 1;
 
     &>span.icon {
         cursor: pointer;
