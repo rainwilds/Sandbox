@@ -22,6 +22,9 @@ class CustomSlider extends HTMLElement {
     #animationID = null;
     #slideWidth = 0;
     #gapPx = 0;
+    #activeIconClasses = [];
+    #inactiveIconClasses = [];
+    #commonIconClasses = [];
 
     constructor() {
         super();
@@ -283,6 +286,18 @@ class CustomSlider extends HTMLElement {
         paginationIconActive = validateIcon(paginationIconActive, 'active');
         paginationIconInactive = validateIcon(paginationIconInactive, 'inactive');
 
+        // Parse pagination icon classes
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = paginationIconActive;
+        const iActive = tempDiv.querySelector('i');
+        const activeClasses = iActive ? Array.from(iActive.classList) : [];
+        tempDiv.innerHTML = paginationIconInactive;
+        const iInactive = tempDiv.querySelector('i');
+        const inactiveClasses = iInactive ? Array.from(iInactive.classList) : [];
+        this.#activeIconClasses = activeClasses.filter(cls => !inactiveClasses.includes(cls));
+        this.#inactiveIconClasses = inactiveClasses.filter(cls => !activeClasses.includes(cls));
+        this.#commonIconClasses = activeClasses.filter(cls => inactiveClasses.includes(cls));
+
         // Check for required attributes for pagination
         if (pagination && (!this.hasAttribute('pagination-icon-active') || !this.hasAttribute('pagination-icon-inactive'))) {
             this.#warn('Pagination requires explicit pagination-icon-active and pagination-icon-inactive attributes. Ignoring pagination.');
@@ -535,22 +550,27 @@ class CustomSlider extends HTMLElement {
 
         // Update pagination if enabled
         if (this.#attrs.pagination) {
-            const pagination = sliderContainer.querySelector('.slider-pagination');
+            const pagination = sliderContainer.querySelector(`#${this.#uniqueId} .slider-pagination`);
             if (pagination) {
                 const dots = pagination.querySelectorAll('.icon');
                 const totalDots = dots.length;
                 const expectedActiveDot = this.#currentIndex + 1; // 1-based for logging
                 dots.forEach((dot, index) => {
                     const isActive = index === this.#currentIndex;
-                    dot.innerHTML = isActive ? this.#attrs.paginationIconActive : this.#attrs.paginationIconInactive;
-                    // Apply font-size to pagination icons
-                    const icon = dot.querySelector('i');
-                    if (icon) {
-                        icon.style.fontSize = isActive ? this.#attrs.paginationIconSizeActive : this.#attrs.paginationIconSizeInactive;
+                    const i = dot.querySelector('i');
+                    if (i) {
+                        i.classList.remove(...this.#activeIconClasses, ...this.#inactiveIconClasses);
+                        if (isActive) {
+                            i.classList.add(...this.#activeIconClasses);
+                            i.style.fontSize = this.#attrs.paginationIconSizeActive;
+                        } else {
+                            i.classList.add(...this.#inactiveIconClasses);
+                            i.style.fontSize = this.#attrs.paginationIconSizeInactive;
+                        }
                     }
                     this.#log(`[Pagination Dot Update] index=${index}, isActive=${isActive}, currentIndex=${this.#currentIndex}, expectedActiveDot=${expectedActiveDot}`, {
                         elementId: this.#uniqueId,
-                        dotClasses: icon ? Array.from(icon.classList) : [],
+                        dotClasses: i ? Array.from(i.classList) : [],
                         activeIcon: this.#attrs.paginationIconActive,
                         inactiveIcon: this.#attrs.paginationIconInactive
                     });
@@ -657,12 +677,16 @@ class CustomSlider extends HTMLElement {
             for (let i = 0; i < totalDots; i++) {
                 const dot = document.createElement('span');
                 dot.className = 'icon';
-                dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
-                // Apply font-size to pagination icon
-                const icon = dot.querySelector('i');
-                if (icon && (attrs.paginationIconSizeActive || attrs.paginationIconSizeInactive)) {
-                    icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
+                const icon = document.createElement('i');
+                icon.classList.add(...this.#commonIconClasses);
+                if (i === 0) {
+                    icon.classList.add(...this.#activeIconClasses);
+                    icon.style.fontSize = attrs.paginationIconSizeActive;
+                } else {
+                    icon.classList.add(...this.#inactiveIconClasses);
+                    icon.style.fontSize = attrs.paginationIconSizeInactive;
                 }
+                dot.appendChild(icon);
                 dot.addEventListener('click', () => {
                     const oldIndex = this.#currentIndex;
                     this.#currentIndex = i;
