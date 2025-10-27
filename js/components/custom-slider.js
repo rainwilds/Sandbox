@@ -22,6 +22,7 @@ class CustomSlider extends HTMLElement {
     #animationID = null;
     #slideWidth = 0;
     #gapPx = 0;
+    #lastContainerWidth = 0; // Track last container width for resize scaling
 
     constructor() {
         super();
@@ -88,16 +89,16 @@ class CustomSlider extends HTMLElement {
 
     async getAttributes() {
         const autoplayAttr = this.getAttribute('autoplay');
-        let autoplayDelay = 0; // Default to disabled if attribute is absent
+        let autoplayDelay = 0;
         if (this.hasAttribute('autoplay')) {
             if (autoplayAttr === '' || autoplayAttr === null) {
-                autoplayDelay = 3000; // Default if present but empty/no value
+                autoplayDelay = 3000;
             } else {
                 const timeMatch = autoplayAttr.match(/^(\d+)(s|ms)$/);
                 if (timeMatch) {
                     const value = parseInt(timeMatch[1], 10);
                     const unit = timeMatch[2];
-                    autoplayDelay = unit === 's' ? value * 1000 : value; // Convert seconds to milliseconds
+                    autoplayDelay = unit === 's' ? value * 1000 : value;
                 } else {
                     this.#warn('Invalid autoplay format, using default 3s', { value: autoplayAttr, expected: 'Ns or Nms' });
                     autoplayDelay = 3000;
@@ -118,7 +119,6 @@ class CustomSlider extends HTMLElement {
         let navigationIconLeftBackground = this.getAttribute('navigation-icon-left-background') || '';
         let navigationIconRightBackground = this.getAttribute('navigation-icon-right-background') || '';
 
-        // Parse navigation-icon-size
         const navigationIconSize = this.getAttribute('navigation-icon-size') || '';
         let iconSizeBackground = '';
         let iconSizeForeground = '';
@@ -139,7 +139,6 @@ class CustomSlider extends HTMLElement {
             }
         }
 
-        // Parse pagination-icon-size
         const paginationIconSize = this.getAttribute('pagination-icon-size') || '';
         let paginationIconSizeActive = '';
         let paginationIconSizeInactive = '';
@@ -165,14 +164,14 @@ class CustomSlider extends HTMLElement {
             }
         }
 
-        const gapAttr = this.getAttribute('gap') || '0'; // Default to 0 if no gap attribute
+        const gapAttr = this.getAttribute('gap') || '0';
         let gap = gapAttr;
         if (slidesPerView === 1 && this.hasAttribute('gap')) {
             this.#warn('Gap attribute ignored for slides-per-view=1', { gap: gapAttr });
             gap = '0';
         }
 
-        let pagination = this.hasAttribute('pagination'); // Boolean, true if attribute is present
+        let pagination = this.hasAttribute('pagination');
         let paginationIconActive = this.getAttribute('pagination-icon-active') || '<i class="fa-solid fa-circle"></i>';
         let paginationIconInactive = this.getAttribute('pagination-icon-inactive') || '<i class="fa-regular fa-circle"></i>';
 
@@ -201,7 +200,7 @@ class CustomSlider extends HTMLElement {
                 });
                 return isBackground ? '' : '<i class="fa-solid fa-circle"></i>';
             }
-            validClasses.push('icon'); // Always add 'icon' class
+            validClasses.push('icon');
             return `<i class="${validClasses.join(' ')}"></i>`;
         };
 
@@ -220,7 +219,7 @@ class CustomSlider extends HTMLElement {
                 });
             }
             if (!background) {
-                return { valid: true, markup: foreground }; // Single icon
+                return { valid: true, markup: foreground };
             }
             return {
                 valid: true,
@@ -377,9 +376,17 @@ class CustomSlider extends HTMLElement {
     #recalculateDimensions() {
         const sliderContainer = document.getElementById(this.#uniqueId);
         if (sliderContainer && this.#slides.length > 0) {
-            this.#slideWidth = sliderContainer.clientWidth / this.#attrs.slidesPerView;
+            const newContainerWidth = sliderContainer.clientWidth;
+            this.#slideWidth = newContainerWidth / this.#attrs.slidesPerView;
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             this.#gapPx = parseFloat(window.getComputedStyle(wrapper).columnGap) || 0;
+            this.#lastContainerWidth = newContainerWidth;
+            this.#log('Dimensions recalculated', {
+                containerWidth: newContainerWidth,
+                slideWidth: this.#slideWidth,
+                gapPx: this.#gapPx,
+                elementId: this.#uniqueId
+            });
         }
     }
 
@@ -391,6 +398,7 @@ class CustomSlider extends HTMLElement {
             const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
             wrapper.style.transition = 'none';
             event.target.setPointerCapture(event.pointerId);
+            this.#log(`[Drag Start] currentIndex=${this.#currentIndex}`, { elementId: this.#uniqueId, startPos: this.#startPos });
         }
     }
 
@@ -402,6 +410,7 @@ class CustomSlider extends HTMLElement {
             const minTranslate = this.#calculateTranslateForIndex(maxIndex);
             const maxTranslate = this.#calculateTranslateForIndex(0);
             this.#currentTranslate = Math.min(Math.max(this.#currentTranslate, minTranslate), maxTranslate);
+            this.#log(`[Drag Move] currentIndex=${this.#currentIndex}, translate=${this.#currentTranslate}px`, { elementId: this.#uniqueId, currentPos: currentPosition });
         }
     }
 
@@ -454,8 +463,27 @@ class CustomSlider extends HTMLElement {
     }
 
     #handleResize() {
+        const sliderContainer = document.getElementById(this.#uniqueId);
+        if (!sliderContainer) return;
+
+        const oldWidth = this.#lastContainerWidth;
+        const oldTranslate = this.#currentTranslate;
         this.#recalculateDimensions();
-        this.#setPositionByIndex();
+        const newWidth = this.#lastContainerWidth;
+
+        if (oldWidth && newWidth !== oldWidth) {
+            const scaleFactor = newWidth / oldWidth;
+            this.#currentTranslate = oldTranslate * scaleFactor;
+            this.#prevTranslate = this.#currentTranslate;
+            this.#setSliderPosition();
+            this.#log(`[Resize] oldWidth=${oldWidth}px, newWidth=${newWidth}px, scaleFactor=${scaleFactor}, newTranslate=${this.#currentTranslate}px`, {
+                elementId: this.#uniqueId,
+                slideWidth: this.#slideWidth,
+                currentIndex: this.#currentIndex
+            });
+        }
+
+        this.#updateSlider();
     }
 
     #navigate(direction) {
@@ -495,7 +523,7 @@ class CustomSlider extends HTMLElement {
         if (!sliderContainer) return;
 
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
-        wrapper.style.transform = `translate3d(${this.#calculateTranslate()}px, 0, 0)`;
+        wrapper.style.transform = `translate3d(${this.#currentTranslate}px, 0, 0)`;
 
         if (this.#attrs.pagination) {
             const pagination = sliderContainer.querySelector('.slider-pagination');
@@ -526,6 +554,9 @@ class CustomSlider extends HTMLElement {
         sliderWrapper.style.position = 'relative';
         sliderWrapper.style.userSelect = 'none';
         sliderWrapper.style.touchAction = 'pan-y';
+        sliderWrapper.style.width = '100%'; // Ensure dynamic width
+        sliderWrapper.style.margin = '0 auto'; // Center the slider
+        sliderWrapper.style.boxSizing = 'border-box'; // Include padding/margins
 
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
