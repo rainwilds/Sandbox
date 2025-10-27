@@ -30,7 +30,6 @@ class CustomSlider extends HTMLElement {
         this.debug = new URLSearchParams(window.location.search).get('debug') === 'true';
         this.#ignoredChangeCount = 0;
         this.#uniqueId = `slider-${Math.random().toString(36).substr(2, 9)}`;
-        this.#log('Constructor called', { elementId: this.#uniqueId });
         CustomSlider.#observer.observe(this);
         CustomSlider.#observedInstances.add(this);
     }
@@ -83,13 +82,11 @@ class CustomSlider extends HTMLElement {
         if (!this.#basePath) {
             const config = await getConfig();
             this.#basePath = config.general?.basePath || '/';
-            this.#log('Base path fetched', { basePath: this.#basePath });
         }
         return this.#basePath;
     }
 
     async getAttributes() {
-        this.#log('Parsing attributes', { elementId: this.#uniqueId });
         const autoplayAttr = this.getAttribute('autoplay');
         let autoplayDelay = 0; // Default to disabled if attribute is absent
         if (this.hasAttribute('autoplay')) {
@@ -107,7 +104,6 @@ class CustomSlider extends HTMLElement {
                 }
             }
         }
-        this.#log('Parsed autoplay attribute', { autoplayAttr, autoplayDelay });
 
         const slidesPerViewAttr = this.getAttribute('slides-per-view') || '1';
         let slidesPerView = parseInt(slidesPerViewAttr, 10);
@@ -142,7 +138,6 @@ class CustomSlider extends HTMLElement {
                 });
             }
         }
-        this.#log('Parsed navigation-icon-size', { navigationIconSize, iconSizeBackground, iconSizeForeground });
 
         // Parse pagination-icon-size
         const paginationIconSize = this.getAttribute('pagination-icon-size') || '';
@@ -157,7 +152,6 @@ class CustomSlider extends HTMLElement {
             } else if (sizes.length === 2 && sizes.every(size => validSizeRegex.test(size))) {
                 paginationIconSizeActive = sizes[0];
                 paginationIconSizeInactive = sizes[1];
-                // Warn if two sizes are provided (pagination icons are always single)
                 this.#warn('Two pagination-icon-size values provided but pagination icons are not stacked, using first size', {
                     paginationIconSize,
                     paginationIconSizeActive,
@@ -170,7 +164,6 @@ class CustomSlider extends HTMLElement {
                 });
             }
         }
-        this.#log('Parsed pagination-icon-size', { paginationIconSize, paginationIconSizeActive, paginationIconSizeInactive });
 
         const gapAttr = this.getAttribute('gap') || '0'; // Default to 0 if no gap attribute
         let gap = gapAttr;
@@ -178,14 +171,10 @@ class CustomSlider extends HTMLElement {
             this.#warn('Gap attribute ignored for slides-per-view=1', { gap: gapAttr });
             gap = '0';
         }
-        this.#log('Parsed gap attribute', { gapAttr, effectiveGap: gap });
 
         let pagination = this.hasAttribute('pagination'); // Boolean, true if attribute is present
-        this.#log('Parsed pagination attribute', { pagination });
-
         let paginationIconActive = this.getAttribute('pagination-icon-active') || '<i class="fa-solid fa-circle"></i>';
         let paginationIconInactive = this.getAttribute('pagination-icon-inactive') || '<i class="fa-regular fa-circle"></i>';
-        this.#log('Parsed pagination icons', { paginationIconActive, paginationIconInactive });
 
         const validateIcon = (icon, position, isBackground = false) => {
             if (!icon) return '';
@@ -223,7 +212,6 @@ class CustomSlider extends HTMLElement {
                 this.#warn(`No valid foreground icon for ${position}, navigation disabled`, { icon, backgroundIcon });
                 return { valid: false, markup: '' };
             }
-            // Check if two sizes were provided but no stack is present
             if (iconSizeBackground && iconSizeForeground && iconSizeBackground !== iconSizeForeground && !background) {
                 this.#warn(`Two navigation-icon-size values provided but ${position} icons are not stacked, using first size`, {
                     navigationIconSize,
@@ -234,14 +222,12 @@ class CustomSlider extends HTMLElement {
             if (!background) {
                 return { valid: true, markup: foreground }; // Single icon
             }
-            // Create stacked icon markup with only .icon-stack and .icon classes
             return {
                 valid: true,
                 markup: `<span class="icon-stack icon">${background}${foreground}</span>`
             };
         };
 
-        // Parse navigation icons for potential stacks
         let leftIconResult = { valid: true, markup: navigationIconLeft };
         let rightIconResult = { valid: true, markup: navigationIconRight };
 
@@ -249,7 +235,6 @@ class CustomSlider extends HTMLElement {
             leftIconResult = processIconStack(navigationIconLeft, navigationIconLeftBackground, 'left');
             rightIconResult = processIconStack(navigationIconRight, navigationIconRightBackground, 'right');
         } else {
-            // Check if main icon attributes contain stacked icons
             const parser = new DOMParser();
             const leftDoc = parser.parseFromString(navigationIconLeft.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), 'text/html');
             const rightDoc = parser.parseFromString(navigationIconRight.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), 'text/html');
@@ -283,7 +268,6 @@ class CustomSlider extends HTMLElement {
         paginationIconActive = validateIcon(paginationIconActive, 'active');
         paginationIconInactive = validateIcon(paginationIconInactive, 'inactive');
 
-        // Check for required attributes for pagination
         if (pagination && (!this.hasAttribute('pagination-icon-active') || !this.hasAttribute('pagination-icon-inactive'))) {
             this.#warn('Pagination requires explicit pagination-icon-active and pagination-icon-inactive attributes. Ignoring pagination.');
             pagination = false;
@@ -308,26 +292,20 @@ class CustomSlider extends HTMLElement {
 
     async initialize() {
         if (this.isInitialized || !this.isVisible) {
-            this.#log('Skipping initialization', {
-                isInitialized: this.isInitialized,
-                isVisible: this.isVisible,
-                elementId: this.#uniqueId
-            });
             return;
         }
 
-        this.#log('Starting initialization', { elementId: this.#uniqueId });
         this.isInitialized = true;
+        this.#log('Initialization started', { elementId: this.#uniqueId });
 
         try {
             const attrs = await this.getAttributes();
             this.#attrs = attrs;
             const sliderElement = await this.render(attrs);
             if (sliderElement) {
-                this.#log('Render successful, replacing element', { elementId: this.#uniqueId });
                 this.replaceWith(sliderElement);
                 this.#setupSlider();
-                this.#log('Initialization completed successfully', { elementId: this.#uniqueId });
+                this.#log('Initialization completed', { elementId: this.#uniqueId });
             } else {
                 this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
                 const fallbackElement = await this.render({ autoplayDelay: 3000, slidesPerView: 1, navigation: false, gap: '0', pagination: false, paginationIconActive: '<i class="fa-solid fa-circle"></i>', paginationIconInactive: '<i class="fa-regular fa-circle"></i>', iconSizeBackground: '', iconSizeForeground: '', paginationIconSizeActive: '', paginationIconSizeInactive: '' });
@@ -357,7 +335,6 @@ class CustomSlider extends HTMLElement {
             return;
         }
 
-        // Calculate slideWidth and gapPx from actual DOM
         this.#recalculateDimensions();
 
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
@@ -366,14 +343,12 @@ class CustomSlider extends HTMLElement {
         wrapper.style.touchAction = 'pan-y';
 
         if (this.hasAttribute('draggable')) {
-            // Add dragging events
             wrapper.addEventListener('pointerdown', this.#pointerDown.bind(this));
             wrapper.addEventListener('pointerup', this.#pointerUp.bind(this));
             wrapper.addEventListener('pointercancel', this.#pointerUp.bind(this));
             wrapper.addEventListener('pointerleave', this.#pointerUp.bind(this));
             wrapper.addEventListener('pointermove', this.#pointerMove.bind(this));
 
-            // Prevent context menu on long touch
             window.addEventListener('contextmenu', (event) => {
                 if (event.target.closest('.slider-wrapper')) {
                     event.preventDefault();
@@ -389,7 +364,6 @@ class CustomSlider extends HTMLElement {
             if (prevButton && nextButton) {
                 prevButton.addEventListener('click', () => this.#navigate(-1));
                 nextButton.addEventListener('click', () => this.#navigate(1));
-                this.#log('Navigation buttons initialized', { elementId: this.#uniqueId });
             }
         }
 
@@ -397,11 +371,7 @@ class CustomSlider extends HTMLElement {
             this.#startAutoplay(this.#attrs.autoplayDelay);
         }
 
-        // Initial update
         this.#updateSlider();
-
-        // Handle resize
-        window.addEventListener('resize', this.#handleResize.bind(this));
     }
 
     #recalculateDimensions() {
@@ -421,7 +391,6 @@ class CustomSlider extends HTMLElement {
             const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
             wrapper.style.transition = 'none';
             event.target.setPointerCapture(event.pointerId);
-            this.#log(`[Drag Start] currentIndex=${this.#currentIndex}`, { elementId: this.#uniqueId, startPos: this.#startPos });
         }
     }
 
@@ -429,12 +398,10 @@ class CustomSlider extends HTMLElement {
         if (this.#isDragging) {
             const currentPosition = event.clientX;
             this.#currentTranslate = this.#prevTranslate + currentPosition - this.#startPos;
-            // Clamp to bounds
             const maxIndex = this.#slides.length - this.#attrs.slidesPerView;
             const minTranslate = this.#calculateTranslateForIndex(maxIndex);
             const maxTranslate = this.#calculateTranslateForIndex(0);
             this.#currentTranslate = Math.min(Math.max(this.#currentTranslate, minTranslate), maxTranslate);
-            this.#log(`[Drag Move] currentIndex=${this.#currentIndex}, translate=${this.#currentTranslate}px`, { elementId: this.#uniqueId, currentPos: currentPosition });
         }
     }
 
@@ -442,7 +409,7 @@ class CustomSlider extends HTMLElement {
         cancelAnimationFrame(this.#animationID);
         this.#isDragging = false;
         const movedBy = this.#currentTranslate - this.#prevTranslate;
-        const threshold = this.#slideWidth / 3; // Adjust as needed
+        const threshold = this.#slideWidth / 3;
         const maxIndex = this.#slides.length - this.#attrs.slidesPerView;
         const oldIndex = this.#currentIndex;
 
@@ -495,15 +462,14 @@ class CustomSlider extends HTMLElement {
         const totalSlides = this.#slides.length;
         const slidesPerView = this.#attrs.slidesPerView;
         const oldIndex = this.#currentIndex;
-        this.#lastDirection = direction; // Update the last navigation direction
+        this.#lastDirection = direction;
         this.#currentIndex += direction;
 
-        // Boundary check with reset
         const maxIndex = totalSlides - slidesPerView;
         if (this.#currentIndex > maxIndex) {
-            this.#currentIndex = 0; // Reset to start on "next" overflow
+            this.#currentIndex = 0;
         } else if (this.#currentIndex < 0) {
-            this.#currentIndex = maxIndex; // Reset to end on "previous" overflow
+            this.#currentIndex = maxIndex;
         }
 
         this.#updateSlider();
@@ -515,14 +481,12 @@ class CustomSlider extends HTMLElement {
         this.#autoplayInterval = setInterval(() => {
             this.#navigate(1);
         }, delay);
-        this.#log('Autoplay started', { delay, elementId: this.#uniqueId });
     }
 
     #stopAutoplay() {
         if (this.#autoplayInterval) {
             clearInterval(this.#autoplayInterval);
             this.#autoplayInterval = null;
-            this.#log('Autoplay stopped', { elementId: this.#uniqueId });
         }
     }
 
@@ -533,27 +497,19 @@ class CustomSlider extends HTMLElement {
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
         wrapper.style.transform = `translate3d(${this.#calculateTranslate()}px, 0, 0)`;
 
-        // Update pagination if enabled
         if (this.#attrs.pagination) {
             const pagination = sliderContainer.querySelector('.slider-pagination');
             if (pagination) {
                 const dots = pagination.querySelectorAll('span.icon');
                 const totalDots = dots.length;
-                const expectedActiveDot = this.#currentIndex + 1; // 1-based for logging
+                const expectedActiveDot = this.#currentIndex + 1;
                 dots.forEach((dot, index) => {
                     const isActive = index === this.#currentIndex;
                     dot.innerHTML = isActive ? this.#attrs.paginationIconActive : this.#attrs.paginationIconInactive;
-                    // Apply font-size to pagination icons
                     const icon = dot.querySelector('i');
                     if (icon) {
                         icon.style.fontSize = isActive ? this.#attrs.paginationIconSizeActive : this.#attrs.paginationIconSizeInactive;
                     }
-                    this.#log(`[Pagination Dot Update] index=${index}, isActive=${isActive}, currentIndex=${this.#currentIndex}, expectedActiveDot=${expectedActiveDot}`, {
-                        elementId: this.#uniqueId,
-                        dotClasses: icon ? Array.from(icon.classList) : [],
-                        activeIcon: this.#attrs.paginationIconActive,
-                        inactiveIcon: this.#attrs.paginationIconInactive
-                    });
                 });
                 this.#log(`[Pagination Updated] currentIndex=${this.#currentIndex}, totalDots=${totalDots}, expectedActiveDot=${expectedActiveDot}`, { elementId: this.#uniqueId, totalSlides: this.#slides.length });
             }
@@ -563,9 +519,6 @@ class CustomSlider extends HTMLElement {
     }
 
     async render(attrs) {
-        this.#log('Starting render', { elementId: this.#uniqueId, attrs });
-
-        const fragment = document.createDocumentFragment();
         const sliderWrapper = document.createElement('div');
         sliderWrapper.id = this.#uniqueId;
         sliderWrapper.className = 'custom-slider';
@@ -587,7 +540,6 @@ class CustomSlider extends HTMLElement {
         if (attrs.gap && attrs.gap !== '0') {
             innerWrapper.style.columnGap = attrs.gap;
         }
-        this.#log('Applied styles to slider-wrapper', { gap: attrs.gap, gridTemplateColumns: innerWrapper.style.gridTemplateColumns });
 
         if (this.#childElements.length === 0) {
             this.#warn('No valid slides found', { elementId: this.#uniqueId });
@@ -596,12 +548,11 @@ class CustomSlider extends HTMLElement {
             fallbackSlide.innerHTML = '<p>No slides available</p>';
             innerWrapper.appendChild(fallbackSlide);
         } else {
-            this.#childElements.forEach((slide, index) => {
+            this.#childElements.forEach((slide) => {
                 const slideWrapper = document.createElement('div');
                 slideWrapper.className = 'slider-slide';
                 slideWrapper.appendChild(slide.cloneNode(true));
                 innerWrapper.appendChild(slideWrapper);
-                this.#log(`Slide ${index + 1} processed`, { elementId: this.#uniqueId });
             });
         }
 
@@ -618,7 +569,6 @@ class CustomSlider extends HTMLElement {
             navNext.className = 'slider-nav-next';
             navNext.innerHTML = attrs.navigationIconRight;
 
-            // Add 'icon' class and apply font-size styles to navigation icons
             [navPrev, navNext].forEach((nav, index) => {
                 const icons = nav.querySelectorAll('i');
                 const isStacked = icons.length === 2;
@@ -626,25 +576,22 @@ class CustomSlider extends HTMLElement {
                     if (!icon.classList.contains('icon')) {
                         icon.classList.add('icon');
                     }
-                    // Apply font-size based on stacking and navigation-icon-size
                     if (attrs.iconSizeBackground && attrs.iconSizeForeground) {
                         if (isStacked) {
                             icon.style.fontSize = iconIndex === 0 ? attrs.iconSizeBackground : attrs.iconSizeForeground;
                         } else {
-                            icon.style.fontSize = attrs.iconSizeBackground; // Use first size for single icon
+                            icon.style.fontSize = attrs.iconSizeBackground;
                         }
                     } else if (attrs.iconSizeBackground) {
-                        icon.style.fontSize = attrs.iconSizeBackground; // Single size for all
+                        icon.style.fontSize = attrs.iconSizeBackground;
                     }
                 });
             });
 
             sliderWrapper.appendChild(navPrev);
             sliderWrapper.appendChild(navNext);
-            this.#log('Navigation buttons added', { elementId: this.#uniqueId });
         }
 
-        // Add pagination if enabled
         if (attrs.pagination) {
             const pagination = document.createElement('div');
             pagination.className = 'slider-pagination';
@@ -655,7 +602,6 @@ class CustomSlider extends HTMLElement {
                 const dot = document.createElement('span');
                 dot.className = 'icon';
                 dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
-                // Apply font-size to pagination icon
                 const icon = dot.querySelector('i');
                 if (icon && (attrs.paginationIconSizeActive || attrs.paginationIconSizeInactive)) {
                     icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
@@ -672,22 +618,17 @@ class CustomSlider extends HTMLElement {
             this.#log(`[Pagination Added] totalDots=${totalDots}`, { elementId: this.#uniqueId, totalSlides });
         }
 
-        fragment.appendChild(sliderWrapper);
         return sliderWrapper;
     }
 
     async connectedCallback() {
-        this.#log('Connected to DOM', { elementId: this.#uniqueId });
-        // Capture child elements here to ensure they're available before initialization
         this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block')).map(child => child.cloneNode(true));
-        this.#log('Captured children in connectedCallback', { count: this.#childElements.length, elementId: this.#uniqueId });
         if (this.isVisible) {
             await this.initialize();
         }
     }
 
     disconnectedCallback() {
-        this.#log('Disconnected from DOM', { elementId: this.#uniqueId });
         this.#stopAutoplay();
         if (this.#animationID) {
             cancelAnimationFrame(this.#animationID);
@@ -712,19 +653,9 @@ class CustomSlider extends HTMLElement {
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) {
             this.#ignoredChangeCount++;
-            if (this.debug && this.#ignoredChangeCount % 10 === 0) {
-                this.#log('Attribute changes ignored (not ready - batched)', {
-                    count: this.#ignoredChangeCount,
-                    name,
-                    oldValue,
-                    newValue,
-                    elementId: this.#uniqueId
-                });
-            }
             return;
         }
 
-        this.#log('Attribute changed', { name, oldValue, newValue, elementId: this.#uniqueId });
         if (oldValue !== newValue) {
             this.isInitialized = false;
             this.#stopAutoplay();
