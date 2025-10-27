@@ -407,9 +407,8 @@ class CustomSlider extends HTMLElement {
     #recalculateDimensions() {
         const sliderContainer = document.getElementById(this.#uniqueId);
         if (sliderContainer && this.#slides.length > 0) {
-            this.#slideWidth = sliderContainer.clientWidth / this.#attrs.slidesPerView;
-            const wrapper = sliderContainer.querySelector('.slider-wrapper');
-            this.#gapPx = parseFloat(window.getComputedStyle(wrapper).columnGap) || 0;
+            this.#slideWidth = this.#slides[0].getBoundingClientRect().width;
+            this.#gapPx = (this.#slides[1] ? this.#slides[1].getBoundingClientRect().left - this.#slides[0].getBoundingClientRect().right : 0);
         }
     }
 
@@ -473,11 +472,13 @@ class CustomSlider extends HTMLElement {
     }
 
     #calculateTranslate() {
-        return - this.#currentIndex * this.#slideWidth - (this.#currentIndex + (this.#attrs.slidesPerView - 1) / 2) * this.#gapPx;
+        const addition = (this.#attrs.slidesPerView - 1) / 2;
+        return - this.#currentIndex * this.#slideWidth - (this.#currentIndex + addition) * this.#gapPx;
     }
 
     #calculateTranslateForIndex(index) {
-        return - index * this.#slideWidth - (index + (this.#attrs.slidesPerView - 1) / 2) * this.#gapPx;
+        const addition = (this.#attrs.slidesPerView - 1) / 2;
+        return - index * this.#slideWidth - (index + addition) * this.#gapPx;
     }
 
     #handleResize() {
@@ -644,7 +645,7 @@ class CustomSlider extends HTMLElement {
                     icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
                 }
                 dot.addEventListener('click', () => {
-                    this.#currentIndex = i;
+                    this.#currentIndex = Math.max(0, Math.min(i, totalSlides - attrs.slidesPerView));
                     this.#updateSlider();
                     this.#log('Pagination dot clicked', { newIndex: this.#currentIndex, elementId: this.#uniqueId });
                 });
