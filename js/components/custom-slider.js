@@ -376,10 +376,7 @@ class CustomSlider extends HTMLElement {
     #recalculateDimensions() {
         const sliderContainer = document.getElementById(this.#uniqueId);
         if (sliderContainer && this.#slides.length > 0) {
-            const parentWidth = sliderContainer.parentElement ? sliderContainer.parentElement.clientWidth : window.innerWidth;
-            const newContainerWidth = parentWidth; // Match parent width
-            sliderContainer.style.width = `${newContainerWidth}px`;
-            sliderContainer.style.maxWidth = '100%'; // Ensure it doesn't exceed parent
+            const newContainerWidth = sliderContainer.clientWidth; // Use current container width
             this.#slideWidth = newContainerWidth / this.#attrs.slidesPerView;
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             this.#gapPx = parseFloat(window.getComputedStyle(wrapper).columnGap) || 0;
@@ -461,12 +458,12 @@ class CustomSlider extends HTMLElement {
         const sliderContainer = document.getElementById(this.#uniqueId);
         if (!sliderContainer) return;
 
-        const parentWidth = sliderContainer.parentElement ? sliderContainer.parentElement.clientWidth : window.innerWidth;
-        if (parentWidth === this.#lastContainerWidth) return; // Skip if no change
+        const currentWidth = sliderContainer.clientWidth;
+        if (currentWidth === this.#lastContainerWidth) return; // Skip if no change
 
         this.#recalculateDimensions();
         this.#setPositionByIndex();
-        this.#log(`[Resize] containerWidth=${parentWidth}px, slideWidth=${this.#slideWidth}px`, { elementId: this.#uniqueId });
+        this.#log(`[Resize] containerWidth=${currentWidth}px, slideWidth=${this.#slideWidth}px`, { elementId: this.#uniqueId });
     }
 
     #navigate(direction) {
@@ -537,7 +534,7 @@ class CustomSlider extends HTMLElement {
         sliderWrapper.style.position = 'relative';
         sliderWrapper.style.userSelect = 'none';
         sliderWrapper.style.touchAction = 'pan-y';
-        sliderWrapper.style.width = '100%'; // Ensure responsive width
+        sliderWrapper.style.width = '100%'; // Fluid width
         sliderWrapper.style.maxWidth = '100%'; // Prevent overflow
         sliderWrapper.style.margin = '0 auto'; // Center the slider
         sliderWrapper.style.boxSizing = 'border-box'; // Include padding/margins
