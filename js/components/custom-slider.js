@@ -660,7 +660,7 @@ class CustomSlider extends HTMLElement {
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.#uniqueId });
         // Capture child elements here to ensure they're available before initialization
-        this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block').map(child => child.cloneNode(true));
+        this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block')).map(child => child.cloneNode(true));
         this.#log('Captured children in connectedCallback', { count: this.#childElements.length, elementId: this.#uniqueId });
         if (this.isVisible) {
             await this.initialize();
@@ -709,7 +709,7 @@ class CustomSlider extends HTMLElement {
         if (oldValue !== newValue) {
             this.isInitialized = false;
             this.#stopAutoplay();
-            this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block').map(child => child.cloneNode(true));
+            this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block')).map(child => child.cloneNode(true));
             this.initialize();
         }
     }
