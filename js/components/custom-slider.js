@@ -421,6 +421,7 @@ class CustomSlider extends HTMLElement {
             const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
             wrapper.style.transition = 'none';
             event.target.setPointerCapture(event.pointerId);
+            this.#log(`[Drag Start] currentIndex=${this.#currentIndex}`, { elementId: this.#uniqueId, startPos: this.#startPos });
         }
     }
 
@@ -433,6 +434,7 @@ class CustomSlider extends HTMLElement {
             const minTranslate = this.#calculateTranslateForIndex(maxIndex);
             const maxTranslate = this.#calculateTranslateForIndex(0);
             this.#currentTranslate = Math.min(Math.max(this.#currentTranslate, minTranslate), maxTranslate);
+            this.#log(`[Drag Move] currentIndex=${this.#currentIndex}, translate=${this.#currentTranslate}px`, { elementId: this.#uniqueId, currentPos: currentPosition });
         }
     }
 
@@ -442,6 +444,7 @@ class CustomSlider extends HTMLElement {
         const movedBy = this.#currentTranslate - this.#prevTranslate;
         const threshold = this.#slideWidth / 3; // Adjust as needed
         const maxIndex = this.#slides.length - this.#attrs.slidesPerView;
+        const oldIndex = this.#currentIndex;
 
         if (movedBy < -threshold && this.#currentIndex < maxIndex) {
             this.#currentIndex += 1;
@@ -454,6 +457,7 @@ class CustomSlider extends HTMLElement {
         wrapper.style.transition = 'transform 0.5s ease-out';
         event.target.releasePointerCapture(event.pointerId);
         this.#updateSlider();
+        this.#log(`[Drag End] currentIndex=${this.#currentIndex}, oldIndex=${oldIndex}, movedBy=${movedBy}px`, { elementId: this.#uniqueId, expectedActiveDot: this.#currentIndex + 1 });
     }
 
     #animation() {
@@ -490,6 +494,7 @@ class CustomSlider extends HTMLElement {
     #navigate(direction) {
         const totalSlides = this.#slides.length;
         const slidesPerView = this.#attrs.slidesPerView;
+        const oldIndex = this.#currentIndex;
         this.#lastDirection = direction; // Update the last navigation direction
         this.#currentIndex += direction;
 
@@ -502,7 +507,7 @@ class CustomSlider extends HTMLElement {
         }
 
         this.#updateSlider();
-        this.#log('Navigated', { direction, currentIndex: this.#currentIndex, lastDirection: this.#lastDirection, slidesPerView, totalSlides, elementId: this.#uniqueId });
+        this.#log(`[Navigation] currentIndex=${this.#currentIndex}, direction=${direction}, oldIndex=${oldIndex}`, { elementId: this.#uniqueId, expectedActiveDot: this.#currentIndex + 1 });
     }
 
     #startAutoplay(delay) {
@@ -533,19 +538,31 @@ class CustomSlider extends HTMLElement {
             const pagination = sliderContainer.querySelector('.slider-pagination');
             if (pagination) {
                 const dots = pagination.querySelectorAll('.icon');
+                const totalDots = dots.length;
+                const expectedActiveDot = this.#currentIndex + 1; // 1-based for logging
                 dots.forEach((dot, index) => {
-                    dot.innerHTML = index === this.#currentIndex ? this.#attrs.paginationIconActive : this.#attrs.paginationIconInactive;
+                    const isActive = index === this.#currentIndex;
+                    dot.innerHTML = isActive ? this.#attrs.paginationIconActive : this.#attrs.paginationIconInactive;
                     // Apply font-size to pagination icons
                     const icon = dot.querySelector('i');
                     if (icon) {
-                        icon.style.fontSize = index === this.#currentIndex ? this.#attrs.paginationIconSizeActive : this.#attrs.paginationIconSizeInactive;
+                        icon.style.fontSize = isActive ? this.#attrs.paginationIconSizeActive : this.#attrs.paginationIconSizeInactive;
                     }
+                    this.#log(`[Pagination Dot Update] index=${index}, isActive=${isActive}, currentIndex=${this.#currentIndex}, expectedActiveDot=${expectedActiveDot}`, {
+                        elementId: this.#uniqueId,
+                        dotClasses: icon ? Array.from(icon.classList) : [],
+                        activeIcon: this.#attrs.paginationIconActive,
+                        inactiveIcon: this.#attrs.paginationIconInactive
+                    });
                 });
-                this.#log('Pagination updated', { currentIndex: this.#currentIndex, totalSlides: this.#slides.length, elementId: this.#uniqueId });
+                this.#log(`[Pagination Updated] currentIndex=${this.#currentIndex}, totalDots=${totalDots}, expectedActiveDot=${expectedActiveDot}`, {
+                    elementId: this.#uniqueId,
+                    totalSlides: this.#slides.length
+                });
             }
         }
 
-        this.#log('Slider updated', { currentIndex: this.#currentIndex, elementId: this.#uniqueId });
+        this.#log(`[Slider Updated] currentIndex=${this.#currentIndex}`, { elementId: this.#uniqueId });
     }
 
     async render(attrs) {
@@ -647,14 +664,15 @@ class CustomSlider extends HTMLElement {
                     icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
                 }
                 dot.addEventListener('click', () => {
+                    const oldIndex = this.#currentIndex;
                     this.#currentIndex = i;
                     this.#updateSlider();
-                    this.#log('Pagination dot clicked', { newIndex: this.#currentIndex, elementId: this.#uniqueId });
+                    this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, oldIndex=${oldIndex}, clickedDot=${i + 1}`, { elementId: this.#uniqueId, expectedActiveDot: this.#currentIndex + 1 });
                 });
                 pagination.appendChild(dot);
             }
             sliderWrapper.appendChild(pagination);
-            this.#log('Pagination added', { totalDots, elementId: this.#uniqueId });
+            this.#log(`[Pagination Added] totalDots=${totalDots}`, { elementId: this.#uniqueId, totalSlides });
         }
 
         fragment.appendChild(sliderWrapper);
