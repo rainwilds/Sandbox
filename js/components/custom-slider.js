@@ -22,7 +22,6 @@ class CustomSlider extends HTMLElement {
     #animationID = null;
     #slideWidth = 0;
     #gapPx = 0;
-    #lastContainerWidth = 0; // Track last container width to optimize resize
 
     constructor() {
         super();
@@ -89,16 +88,16 @@ class CustomSlider extends HTMLElement {
 
     async getAttributes() {
         const autoplayAttr = this.getAttribute('autoplay');
-        let autoplayDelay = 0;
+        let autoplayDelay = 0; // Default to disabled if attribute is absent
         if (this.hasAttribute('autoplay')) {
             if (autoplayAttr === '' || autoplayAttr === null) {
-                autoplayDelay = 3000;
+                autoplayDelay = 3000; // Default if present but empty/no value
             } else {
                 const timeMatch = autoplayAttr.match(/^(\d+)(s|ms)$/);
                 if (timeMatch) {
                     const value = parseInt(timeMatch[1], 10);
                     const unit = timeMatch[2];
-                    autoplayDelay = unit === 's' ? value * 1000 : value;
+                    autoplayDelay = unit === 's' ? value * 1000 : value; // Convert seconds to milliseconds
                 } else {
                     this.#warn('Invalid autoplay format, using default 3s', { value: autoplayAttr, expected: 'Ns or Nms' });
                     autoplayDelay = 3000;
@@ -119,6 +118,7 @@ class CustomSlider extends HTMLElement {
         let navigationIconLeftBackground = this.getAttribute('navigation-icon-left-background') || '';
         let navigationIconRightBackground = this.getAttribute('navigation-icon-right-background') || '';
 
+        // Parse navigation-icon-size
         const navigationIconSize = this.getAttribute('navigation-icon-size') || '';
         let iconSizeBackground = '';
         let iconSizeForeground = '';
@@ -139,6 +139,7 @@ class CustomSlider extends HTMLElement {
             }
         }
 
+        // Parse pagination-icon-size
         const paginationIconSize = this.getAttribute('pagination-icon-size') || '';
         let paginationIconSizeActive = '';
         let paginationIconSizeInactive = '';
@@ -164,14 +165,14 @@ class CustomSlider extends HTMLElement {
             }
         }
 
-        const gapAttr = this.getAttribute('gap') || '0';
+        const gapAttr = this.getAttribute('gap') || '0'; // Default to 0 if no gap attribute
         let gap = gapAttr;
         if (slidesPerView === 1 && this.hasAttribute('gap')) {
             this.#warn('Gap attribute ignored for slides-per-view=1', { gap: gapAttr });
             gap = '0';
         }
 
-        let pagination = this.hasAttribute('pagination');
+        let pagination = this.hasAttribute('pagination'); // Boolean, true if attribute is present
         let paginationIconActive = this.getAttribute('pagination-icon-active') || '<i class="fa-solid fa-circle"></i>';
         let paginationIconInactive = this.getAttribute('pagination-icon-inactive') || '<i class="fa-regular fa-circle"></i>';
 
@@ -200,7 +201,7 @@ class CustomSlider extends HTMLElement {
                 });
                 return isBackground ? '' : '<i class="fa-solid fa-circle"></i>';
             }
-            validClasses.push('icon');
+            validClasses.push('icon'); // Always add 'icon' class
             return `<i class="${validClasses.join(' ')}"></i>`;
         };
 
@@ -219,7 +220,7 @@ class CustomSlider extends HTMLElement {
                 });
             }
             if (!background) {
-                return { valid: true, markup: foreground };
+                return { valid: true, markup: foreground }; // Single icon
             }
             return {
                 valid: true,
@@ -376,11 +377,9 @@ class CustomSlider extends HTMLElement {
     #recalculateDimensions() {
         const sliderContainer = document.getElementById(this.#uniqueId);
         if (sliderContainer && this.#slides.length > 0) {
-            const newContainerWidth = sliderContainer.clientWidth; // Use current container width
-            this.#slideWidth = newContainerWidth / this.#attrs.slidesPerView;
+            this.#slideWidth = sliderContainer.clientWidth / this.#attrs.slidesPerView;
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             this.#gapPx = parseFloat(window.getComputedStyle(wrapper).columnGap) || 0;
-            this.#lastContainerWidth = newContainerWidth;
         }
     }
 
@@ -455,15 +454,8 @@ class CustomSlider extends HTMLElement {
     }
 
     #handleResize() {
-        const sliderContainer = document.getElementById(this.#uniqueId);
-        if (!sliderContainer) return;
-
-        const currentWidth = sliderContainer.clientWidth;
-        if (currentWidth === this.#lastContainerWidth) return; // Skip if no change
-
         this.#recalculateDimensions();
         this.#setPositionByIndex();
-        this.#log(`[Resize] containerWidth=${currentWidth}px, slideWidth=${this.#slideWidth}px`, { elementId: this.#uniqueId });
     }
 
     #navigate(direction) {
@@ -534,10 +526,6 @@ class CustomSlider extends HTMLElement {
         sliderWrapper.style.position = 'relative';
         sliderWrapper.style.userSelect = 'none';
         sliderWrapper.style.touchAction = 'pan-y';
-        sliderWrapper.style.width = '100%'; // Fluid width
-        sliderWrapper.style.maxWidth = '100%'; // Prevent overflow
-        sliderWrapper.style.margin = '0 auto'; // Center the slider
-        sliderWrapper.style.boxSizing = 'border-box'; // Include padding/margins
 
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
