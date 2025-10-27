@@ -357,7 +357,7 @@ class CustomSlider extends HTMLElement {
             wrapper.style.setProperty('--slider-gap', this.#attrs.gap);
             sliderContainer.setAttribute('gap', '');
         }
-        wrapper.style.setProperty('--slider-columns', `repeat(${this.#slides.length}, calc(100% / ${this.#attrs.slidesPerView}))`);
+        wrapper.style.setProperty('--slider-columns', `repeat(${this.#slides.length}, ${100 / this.#attrs.slidesPerView}%)`);
 
         if (this.hasAttribute('draggable')) {
             wrapper.addEventListener('pointerdown', this.#pointerDown.bind(this));
@@ -613,6 +613,13 @@ class CustomSlider extends HTMLElement {
 
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
+        if (!attrs.crossFade || attrs.slidesPerView !== 1) {
+            innerWrapper.style.setProperty('--slider-columns', `repeat(${this.#childElements.length}, ${100 / attrs.slidesPerView}%)`);
+            if (attrs.gap && attrs.gap !== '0') {
+                innerWrapper.style.setProperty('--slider-gap', attrs.gap);
+                sliderWrapper.setAttribute('gap', '');
+            }
+        }
 
         if (this.#childElements.length === 0) {
             this.#warn('No valid slides found', { elementId: this.#uniqueId });
