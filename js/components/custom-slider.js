@@ -405,9 +405,11 @@ class CustomSlider extends HTMLElement {
     }
 
     #recalculateDimensions() {
-        if (this.#slides.length > 0) {
-            this.#slideWidth = this.#slides[0].getBoundingClientRect().width;
-            this.#gapPx = (this.#slides[1] ? this.#slides[1].getBoundingClientRect().left - this.#slides[0].getBoundingClientRect().right : 0);
+        const sliderContainer = document.getElementById(this.#uniqueId);
+        if (sliderContainer && this.#slides.length > 0) {
+            this.#slideWidth = sliderContainer.clientWidth / this.#attrs.slidesPerView;
+            const wrapper = sliderContainer.querySelector('.slider-wrapper');
+            this.#gapPx = parseFloat(window.getComputedStyle(wrapper).columnGap) || 0;
         }
     }
 
@@ -471,11 +473,11 @@ class CustomSlider extends HTMLElement {
     }
 
     #calculateTranslate() {
-        return - this.#currentIndex * (this.#slideWidth + this.#gapPx);
+        return - this.#currentIndex * this.#slideWidth - (this.#currentIndex + (this.#attrs.slidesPerView - 1) / 2) * this.#gapPx;
     }
 
     #calculateTranslateForIndex(index) {
-        return - index * (this.#slideWidth + this.#gapPx);
+        return - index * this.#slideWidth - (index + (this.#attrs.slidesPerView - 1) / 2) * this.#gapPx;
     }
 
     #handleResize() {
@@ -632,8 +634,7 @@ class CustomSlider extends HTMLElement {
             pagination.className = 'slider-pagination';
 
             const totalSlides = this.#childElements.length;
-            const totalDots = Math.max(1, totalSlides - attrs.slidesPerView + 1);
-            for (let i = 0; i < totalDots; i++) {
+            for (let i = 0; i < totalSlides; i++) {
                 const dot = document.createElement('span');
                 dot.className = 'icon';
                 dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
@@ -650,7 +651,7 @@ class CustomSlider extends HTMLElement {
                 pagination.appendChild(dot);
             }
             sliderWrapper.appendChild(pagination);
-            this.#log('Pagination added', { totalDots, elementId: this.#uniqueId });
+            this.#log('Pagination added', { totalSlides, elementId: this.#uniqueId });
         }
 
         fragment.appendChild(sliderWrapper);
