@@ -562,10 +562,11 @@ class CustomSlider extends HTMLElement {
                         i.classList.remove(...this.#activeIconClasses, ...this.#inactiveIconClasses);
                         if (isActive) {
                             i.classList.add(...this.#activeIconClasses);
+                            i.style.fontSize = this.#attrs.paginationIconSizeActive;
                         } else {
                             i.classList.add(...this.#inactiveIconClasses);
+                            i.style.fontSize = this.#attrs.paginationIconSizeInactive;
                         }
-                        i.style.fontSize = isActive ? this.#attrs.paginationIconSizeActive : this.#attrs.paginationIconSizeInactive;
                     }
                 });
                 this.#log('Pagination updated', { currentIndex: this.#currentIndex, totalSlides: this.#slides.length, elementId: this.#uniqueId });
@@ -667,11 +668,16 @@ class CustomSlider extends HTMLElement {
             for (let i = 0; i < totalDots; i++) {
                 const dot = document.createElement('span');
                 dot.className = 'icon';
-                dot.innerHTML = attrs.paginationIconInactive;
-                // Apply font-size to pagination icon
+                dot.innerHTML = `<i class="${this.#commonIconClasses.join(' ')}"></i>`;
                 const icon = dot.querySelector('i');
-                if (icon && (attrs.paginationIconSizeActive || attrs.paginationIconSizeInactive)) {
-                    icon.style.fontSize = attrs.paginationIconSizeInactive;
+                if (icon) {
+                    if (i === 0) {
+                        icon.classList.add(...this.#activeIconClasses);
+                        icon.style.fontSize = attrs.paginationIconSizeActive;
+                    } else {
+                        icon.classList.add(...this.#inactiveIconClasses);
+                        icon.style.fontSize = attrs.paginationIconSizeInactive;
+                    }
                 }
                 dot.addEventListener('click', () => {
                     this.#currentIndex = i;
