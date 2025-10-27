@@ -2026,6 +2026,10 @@ div#products {
     grid-auto-flow: column;
     height: 100%;
     align-content: center;
+    position: relative;
+    will-change: transform;
+    user-select: none;
+    touch-action: pan-y;
 }
 
 .slider-nav-prev {
@@ -2044,6 +2048,26 @@ div#products {
     top: 50%;
     transform: translateY(-50%);
     margin-right: var(--space-tiny);
+}
+
+.custom-slider[cross-fade] .slider-wrapper {
+    position: relative;
+    overflow: hidden;
+}
+
+.custom-slider[cross-fade] .slider-slide {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+    display: grid;
+    align-self: center;
+}
+
+.custom-slider[cross-fade] .slider-slide.active {
+    opacity: 1;
+    z-index: 1;
 }
 
 .icon-stack {
@@ -2431,6 +2455,7 @@ div#products {
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -2440,30 +2465,8 @@ div#products {
     from {
         opacity: 1;
     }
+
     to {
         opacity: 0;
     }
-}
-
-/* Styles for cross-fade slides */
-.custom-slider[cross-fade] .slider-wrapper {
-    position: relative;
-    overflow: hidden;
-}
-
-.custom-slider[cross-fade] .slider-slide {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    transition: opacity 1.5s ease-in-out;
-    display: grid;
-    align-self: center;
-}
-
-.custom-slider[cross-fade] .slider-slide.active {
-    opacity: 1;
-    z-index: 1;
 }
