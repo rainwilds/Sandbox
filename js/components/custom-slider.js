@@ -525,11 +525,7 @@ class CustomSlider extends HTMLElement {
         if (!sliderContainer) return;
 
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
-        const slideWidth = 100 / this.#attrs.slidesPerView;
-        const gap = this.#attrs.gap && this.#attrs.gap !== '0' ? this.#attrs.gap : '0';
-        const gapOffset = gap === '0' ? '0' : `(${this.#currentIndex} + ${this.#addition}) * ${gap}`;
-        const translateX = gap === '0' ? `-${this.#currentIndex * slideWidth}%` : `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset})`;
-        wrapper.style.transform = `translate3d(${translateX}, 0, 0)`;
+        wrapper.style.transform = `translate3d(${this.#calculateTranslatePx()}px, 0, 0)`;
 
         // Update pagination if enabled
         if (this.#attrs.pagination) {
@@ -537,11 +533,12 @@ class CustomSlider extends HTMLElement {
             if (pagination) {
                 const dots = pagination.querySelectorAll('.icon');
                 dots.forEach((dot, index) => {
-                    dot.innerHTML = index === this.#currentIndex ? this.#attrs.paginationIconActive : this.#attrs.paginationIconInactive;
+                    const isActive = index === this.#currentIndex;
+                    dot.innerHTML = isActive ? this.#attrs.paginationIconActive : this.#attrs.paginationIconInactive;
                     // Apply font-size to pagination icons
                     const icon = dot.querySelector('i');
                     if (icon) {
-                        icon.style.fontSize = index === this.#currentIndex ? this.#attrs.paginationIconSizeActive : this.#attrs.paginationIconSizeInactive;
+                        icon.style.fontSize = isActive ? this.#attrs.paginationIconSizeActive : this.#attrs.paginationIconSizeInactive;
                     }
                 });
                 this.#log('Pagination updated', { currentIndex: this.#currentIndex, totalSlides: this.#slides.length, elementId: this.#uniqueId });
@@ -639,7 +636,8 @@ class CustomSlider extends HTMLElement {
             pagination.className = 'slider-pagination';
 
             const totalSlides = this.#childElements.length;
-            for (let i = 0; i < totalSlides; i++) {
+            const totalDots = Math.max(1, totalSlides - attrs.slidesPerView + 1);
+            for (let i = 0; i < totalDots; i++) {
                 const dot = document.createElement('span');
                 dot.className = 'icon';
                 dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
@@ -656,7 +654,7 @@ class CustomSlider extends HTMLElement {
                 pagination.appendChild(dot);
             }
             sliderWrapper.appendChild(pagination);
-            this.#log('Pagination added', { totalSlides, elementId: this.#uniqueId });
+            this.#log('Pagination added', { totalDots, elementId: this.#uniqueId });
         }
 
         fragment.appendChild(sliderWrapper);
@@ -666,7 +664,7 @@ class CustomSlider extends HTMLElement {
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.#uniqueId });
         // Capture child elements here to ensure they're available before initialization
-        this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block')).map(child => child.cloneNode(true));
+        this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block' || (child.tagName.toLowerCase() === 'div' && child.classList.contains('block'))).map(child => child.cloneNode(true));
         this.#log('Captured children in connectedCallback', { count: this.#childElements.length, elementId: this.#uniqueId });
         if (this.isVisible) {
             await this.initialize();
@@ -715,7 +713,7 @@ class CustomSlider extends HTMLElement {
         if (oldValue !== newValue) {
             this.isInitialized = false;
             this.#stopAutoplay();
-            this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block')).map(child => child.cloneNode(true));
+            this.#childElements = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block' || (child.tagName.toLowerCase() === 'div' && child.classList.contains('block'))).map(child => child.cloneNode(true));
             this.initialize();
         }
     }
