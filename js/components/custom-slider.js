@@ -20,8 +20,9 @@ class CustomSlider extends HTMLElement {
     #currentTranslate = 0;
     #prevTranslate = 0;
     #animationID = null;
-    #slideWidth = 0;
+    #slideWidthPx = 0;
     #gapPx = 0;
+    #addition = 0;
 
     constructor() {
         super();
@@ -322,6 +323,7 @@ class CustomSlider extends HTMLElement {
         try {
             const attrs = await this.getAttributes();
             this.#attrs = attrs;
+            this.#addition = (attrs.slidesPerView - 1) / 2;
             const sliderElement = await this.render(attrs);
             if (sliderElement) {
                 this.#log('Render successful, replacing element', { elementId: this.#uniqueId });
@@ -357,7 +359,7 @@ class CustomSlider extends HTMLElement {
             return;
         }
 
-        // Calculate slideWidth and gapPx from actual DOM
+        // Calculate slideWidthPx and gapPx
         this.#recalculateDimensions();
 
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
@@ -366,14 +368,12 @@ class CustomSlider extends HTMLElement {
         wrapper.style.touchAction = 'pan-y';
 
         if (this.hasAttribute('draggable')) {
-            // Add dragging events
             wrapper.addEventListener('pointerdown', this.#pointerDown.bind(this));
             wrapper.addEventListener('pointerup', this.#pointerUp.bind(this));
             wrapper.addEventListener('pointercancel', this.#pointerUp.bind(this));
             wrapper.addEventListener('pointerleave', this.#pointerUp.bind(this));
             wrapper.addEventListener('pointermove', this.#pointerMove.bind(this));
 
-            // Prevent context menu on long touch
             window.addEventListener('contextmenu', (event) => {
                 if (event.target.closest('.slider-wrapper')) {
                     event.preventDefault();
@@ -407,7 +407,7 @@ class CustomSlider extends HTMLElement {
     #recalculateDimensions() {
         const sliderContainer = document.getElementById(this.#uniqueId);
         if (sliderContainer && this.#slides.length > 0) {
-            this.#slideWidth = sliderContainer.clientWidth / this.#attrs.slidesPerView;
+            this.#slideWidthPx = sliderContainer.clientWidth / this.#attrs.slidesPerView;
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             this.#gapPx = parseFloat(window.getComputedStyle(wrapper).columnGap) || 0;
         }
@@ -417,6 +417,7 @@ class CustomSlider extends HTMLElement {
         if (event.pointerType === 'touch' || event.pointerType === 'mouse') {
             this.#isDragging = true;
             this.#startPos = event.clientX;
+            this.#prevTranslate = this.#getCurrentTranslatePx();
             this.#animationID = requestAnimationFrame(this.#animation.bind(this));
             const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
             wrapper.style.transition = 'none';
@@ -430,8 +431,8 @@ class CustomSlider extends HTMLElement {
             this.#currentTranslate = this.#prevTranslate + currentPosition - this.#startPos;
             // Clamp to bounds
             const maxIndex = this.#slides.length - this.#attrs.slidesPerView;
-            const minTranslate = this.#calculateTranslateForIndex(maxIndex);
-            const maxTranslate = this.#calculateTranslateForIndex(0);
+            const minTranslate = this.#calculateTranslatePxForIndex(maxIndex);
+            const maxTranslate = this.#calculateTranslatePxForIndex(0);
             this.#currentTranslate = Math.min(Math.max(this.#currentTranslate, minTranslate), maxTranslate);
         }
     }
@@ -440,7 +441,7 @@ class CustomSlider extends HTMLElement {
         cancelAnimationFrame(this.#animationID);
         this.#isDragging = false;
         const movedBy = this.#currentTranslate - this.#prevTranslate;
-        const threshold = this.#slideWidth / 3; // Adjust as needed
+        const threshold = this.#slideWidthPx / 3; // Adjust as needed
         const maxIndex = this.#slides.length - this.#attrs.slidesPerView;
 
         if (movedBy < -threshold && this.#currentIndex < maxIndex) {
@@ -449,11 +450,17 @@ class CustomSlider extends HTMLElement {
             this.#currentIndex -= 1;
         }
 
-        this.#setPositionByIndex();
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         wrapper.style.transition = 'transform 0.5s ease-out';
         event.target.releasePointerCapture(event.pointerId);
         this.#updateSlider();
+    }
+
+    #getCurrentTranslatePx() {
+        const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
+        const style = window.getComputedStyle(wrapper);
+        const matrix = new DOMMatrix(style.transform);
+        return matrix.m41;
     }
 
     #animation() {
@@ -466,25 +473,17 @@ class CustomSlider extends HTMLElement {
         wrapper.style.transform = `translate3d(${this.#currentTranslate}px, 0, 0)`;
     }
 
-    #setPositionByIndex() {
-        this.#currentTranslate = this.#calculateTranslate();
-        this.#prevTranslate = this.#currentTranslate;
-        this.#setSliderPosition();
+    #calculateTranslatePx() {
+        return - this.#currentIndex * this.#slideWidthPx - (this.#currentIndex + this.#addition) * this.#gapPx;
     }
 
-    #calculateTranslate() {
-        const addition = (this.#attrs.slidesPerView - 1) / 2;
-        return - this.#currentIndex * this.#slideWidth - (this.#currentIndex + addition) * this.#gapPx;
-    }
-
-    #calculateTranslateForIndex(index) {
-        const addition = (this.#attrs.slidesPerView - 1) / 2;
-        return - index * this.#slideWidth - (index + addition) * this.#gapPx;
+    #calculateTranslatePxForIndex(index) {
+        return - index * this.#slideWidthPx - (index + this.#addition) * this.#gapPx;
     }
 
     #handleResize() {
         this.#recalculateDimensions();
-        this.#setPositionByIndex();
+        this.#updateSlider();
     }
 
     #navigate(direction) {
@@ -526,7 +525,11 @@ class CustomSlider extends HTMLElement {
         if (!sliderContainer) return;
 
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
-        wrapper.style.transform = `translate3d(${this.#calculateTranslate()}px, 0, 0)`;
+        const slideWidth = 100 / this.#attrs.slidesPerView;
+        const gap = this.#attrs.gap && this.#attrs.gap !== '0' ? this.#attrs.gap : '0';
+        const gapOffset = gap === '0' ? '0' : `(${this.#currentIndex} + ${this.#addition}) * ${gap}`;
+        const translateX = gap === '0' ? `-${this.#currentIndex * slideWidth}%` : `calc(-${this.#currentIndex * slideWidth}% - ${gapOffset})`;
+        wrapper.style.transform = `translate3d(${translateX}, 0, 0)`;
 
         // Update pagination if enabled
         if (this.#attrs.pagination) {
@@ -636,8 +639,7 @@ class CustomSlider extends HTMLElement {
             pagination.className = 'slider-pagination';
 
             const totalSlides = this.#childElements.length;
-            const totalDots = Math.max(1, totalSlides - attrs.slidesPerView + 1);
-            for (let i = 0; i < totalDots; i++) {
+            for (let i = 0; i < totalSlides; i++) {
                 const dot = document.createElement('span');
                 dot.className = 'icon';
                 dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
@@ -654,7 +656,7 @@ class CustomSlider extends HTMLElement {
                 pagination.appendChild(dot);
             }
             sliderWrapper.appendChild(pagination);
-            this.#log('Pagination added', { totalDots, elementId: this.#uniqueId });
+            this.#log('Pagination added', { totalSlides, elementId: this.#uniqueId });
         }
 
         fragment.appendChild(sliderWrapper);
