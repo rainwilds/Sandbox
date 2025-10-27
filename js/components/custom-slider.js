@@ -197,7 +197,7 @@ class CustomSlider extends HTMLElement {
                     return isBackground ? '' : '<i class="fa-solid fa-circle"></i>';
                 }
             }
-            const validClasses = classes.filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
+            const validClasses = classes.filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel' || cls === 'fa-utility' || cls === 'fa-utility-fill' || cls === 'fa-semibold');
             if (validClasses.length === 0) {
                 this.#warn(`No valid Font Awesome classes in ${position} ${isBackground ? 'background ' : ''}icon`, {
                     classes,
@@ -343,13 +343,9 @@ class CustomSlider extends HTMLElement {
         this.#recalculateDimensions();
 
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
-        wrapper.style.willChange = 'transform';
-        wrapper.style.userSelect = 'none';
-        wrapper.style.touchAction = 'pan-y';
         if (this.hasAttribute('draggable')) {
-            wrapper.style.cursor = 'grab';
+            sliderContainer.setAttribute('draggable', '');
         }
-
         if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
             sliderContainer.setAttribute('cross-fade', '');
             this.#slides.forEach((slide, index) => {
@@ -357,6 +353,11 @@ class CustomSlider extends HTMLElement {
                 if (index === 0) slide.classList.add('active');
             });
         }
+        if (this.#attrs.gap && this.#attrs.gap !== '0' && (!this.#attrs.crossFade || this.#attrs.slidesPerView !== 1)) {
+            wrapper.style.setProperty('--slider-gap', this.#attrs.gap);
+            sliderContainer.setAttribute('gap', '');
+        }
+        wrapper.style.setProperty('--slider-columns', `repeat(${this.#slides.length}, calc(100% / ${this.#attrs.slidesPerView}))`);
 
         if (this.hasAttribute('draggable')) {
             wrapper.addEventListener('pointerdown', this.#pointerDown.bind(this));
@@ -429,10 +430,9 @@ class CustomSlider extends HTMLElement {
             this.#startPos = event.clientX;
             this.#animationID = requestAnimationFrame(this.#animation.bind(this));
             const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
-            wrapper.style.transition = 'none';
-            wrapper.style.cursor = 'grabbing';
+            wrapper.classList.add('dragging');
             event.target.setPointerCapture(event.pointerId);
-            this.#log('Pointer down, grabbing cursor set', { elementId: this.#uniqueId });
+            this.#log('Pointer down, dragging class added', { elementId: this.#uniqueId });
         }
     }
 
@@ -466,11 +466,10 @@ class CustomSlider extends HTMLElement {
 
         this.#setPositionByIndex();
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
-        wrapper.style.transition = 'transform 0.5s ease-out';
-        wrapper.style.cursor = 'grab';
+        wrapper.classList.remove('dragging');
         event.target.releasePointerCapture(event.pointerId);
         this.#updateSlider();
-        this.#log(`[Drag End] currentIndex=${this.#currentIndex}, oldIndex=${oldIndex}, movedBy=${movedBy}px, grab cursor restored`, { elementId: this.#uniqueId, expectedActiveDot: this.#currentIndex + 1 });
+        this.#log(`[Drag End] currentIndex=${this.#currentIndex}, oldIndex=${oldIndex}, movedBy=${movedBy}px, dragging class removed`, { elementId: this.#uniqueId, expectedActiveDot: this.#currentIndex + 1 });
     }
 
     #animation() {
@@ -611,29 +610,9 @@ class CustomSlider extends HTMLElement {
         const sliderWrapper = document.createElement('div');
         sliderWrapper.id = this.#uniqueId;
         sliderWrapper.className = 'custom-slider';
-        sliderWrapper.style.overflow = 'hidden';
-        sliderWrapper.style.position = 'relative';
-        sliderWrapper.style.userSelect = 'none';
-        sliderWrapper.style.touchAction = 'pan-y';
 
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
-        if (!attrs.crossFade || attrs.slidesPerView !== 1) {
-            innerWrapper.style.display = 'grid';
-            innerWrapper.style.gridTemplateRows = '1fr';
-            innerWrapper.style.gridAutoFlow = 'column';
-            innerWrapper.style.gridTemplateColumns = `repeat(${this.#childElements.length}, calc(100% / ${attrs.slidesPerView}))`;
-            innerWrapper.style.transition = 'transform 0.5s';
-        } else {
-            innerWrapper.style.position = 'relative';
-            innerWrapper.style.height = '100%';
-        }
-        innerWrapper.style.height = '100%';
-        innerWrapper.style.alignContent = 'center';
-        innerWrapper.style.willChange = 'transform';
-        if (attrs.gap && attrs.gap !== '0' && (!attrs.crossFade || attrs.slidesPerView !== 1)) {
-            innerWrapper.style.columnGap = attrs.gap;
-        }
 
         if (this.#childElements.length === 0) {
             this.#warn('No valid slides found', { elementId: this.#uniqueId });
@@ -667,19 +646,15 @@ class CustomSlider extends HTMLElement {
             navNext.className = 'slider-nav-next';
             navNext.innerHTML = attrs.navigationIconRight;
 
-            [navPrev, navNext].forEach((nav, index) => {
+            [navPrev, navNext].forEach((nav) => {
                 const icons = nav.querySelectorAll('i');
                 const isStacked = icons.length === 2;
                 icons.forEach((icon, iconIndex) => {
                     if (!icon.classList.contains('icon')) {
                         icon.classList.add('icon');
                     }
-                    if (attrs.iconSizeBackground && attrs.iconSizeForeground) {
-                        if (isStacked) {
-                            icon.style.fontSize = index === 0 ? attrs.iconSizeBackground : attrs.iconSizeForeground;
-                        } else {
-                            icon.style.fontSize = attrs.iconSizeBackground;
-                        }
+                    if (attrs.iconSizeBackground && attrs.iconSizeForeground && isStacked) {
+                        icon.style.fontSize = iconIndex === 0 ? attrs.iconSizeBackground : attrs.iconSizeForeground;
                     } else if (attrs.iconSizeBackground) {
                         icon.style.fontSize = attrs.iconSizeBackground;
                     }
