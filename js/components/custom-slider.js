@@ -13,7 +13,7 @@ class CustomSlider extends HTMLElement {
     #autoplayInterval = null;
     #slides = [];
     #childElements = [];
-    #lastDirection = 0; // Track the last navigation direction
+    #lastDirection = 0;
     #attrs = null;
     #isDragging = false;
     #startPos = 0;
@@ -22,6 +22,7 @@ class CustomSlider extends HTMLElement {
     #animationID = null;
     #slideWidth = 0;
     #gapPx = 0;
+    #debouncedHandleResize = null;
 
     constructor() {
         super();
@@ -88,16 +89,16 @@ class CustomSlider extends HTMLElement {
 
     async getAttributes() {
         const autoplayAttr = this.getAttribute('autoplay');
-        let autoplayDelay = 0; // Default to disabled if attribute is absent
+        let autoplayDelay = 0;
         if (this.hasAttribute('autoplay')) {
             if (autoplayAttr === '' || autoplayAttr === null) {
-                autoplayDelay = 3000; // Default if present but empty/no value
+                autoplayDelay = 3000;
             } else {
                 const timeMatch = autoplayAttr.match(/^(\d+)(s|ms)$/);
                 if (timeMatch) {
                     const value = parseInt(timeMatch[1], 10);
                     const unit = timeMatch[2];
-                    autoplayDelay = unit === 's' ? value * 1000 : value; // Convert seconds to milliseconds
+                    autoplayDelay = unit === 's' ? value * 1000 : value;
                 } else {
                     this.#warn('Invalid autoplay format, using default 3s', { value: autoplayAttr, expected: 'Ns or Nms' });
                     autoplayDelay = 3000;
@@ -118,7 +119,6 @@ class CustomSlider extends HTMLElement {
         let navigationIconLeftBackground = this.getAttribute('navigation-icon-left-background') || '';
         let navigationIconRightBackground = this.getAttribute('navigation-icon-right-background') || '';
 
-        // Parse navigation-icon-size
         const navigationIconSize = this.getAttribute('navigation-icon-size') || '';
         let iconSizeBackground = '';
         let iconSizeForeground = '';
@@ -139,7 +139,6 @@ class CustomSlider extends HTMLElement {
             }
         }
 
-        // Parse pagination-icon-size
         const paginationIconSize = this.getAttribute('pagination-icon-size') || '';
         let paginationIconSizeActive = '';
         let paginationIconSizeInactive = '';
@@ -165,14 +164,14 @@ class CustomSlider extends HTMLElement {
             }
         }
 
-        const gapAttr = this.getAttribute('gap') || '0'; // Default to 0 if no gap attribute
+        const gapAttr = this.getAttribute('gap') || '0';
         let gap = gapAttr;
         if (slidesPerView === 1 && this.hasAttribute('gap')) {
             this.#warn('Gap attribute ignored for slides-per-view=1', { gap: gapAttr });
             gap = '0';
         }
 
-        let pagination = this.hasAttribute('pagination'); // Boolean, true if attribute is present
+        let pagination = this.hasAttribute('pagination');
         let paginationIconActive = this.getAttribute('pagination-icon-active') || '<i class="fa-solid fa-circle"></i>';
         let paginationIconInactive = this.getAttribute('pagination-icon-inactive') || '<i class="fa-regular fa-circle"></i>';
 
@@ -201,7 +200,7 @@ class CustomSlider extends HTMLElement {
                 });
                 return isBackground ? '' : '<i class="fa-solid fa-circle"></i>';
             }
-            validClasses.push('icon'); // Always add 'icon' class
+            validClasses.push('icon');
             return `<i class="${validClasses.join(' ')}"></i>`;
         };
 
@@ -220,7 +219,7 @@ class CustomSlider extends HTMLElement {
                 });
             }
             if (!background) {
-                return { valid: true, markup: foreground }; // Single icon
+                return { valid: true, markup: foreground };
             }
             return {
                 valid: true,
@@ -371,7 +370,24 @@ class CustomSlider extends HTMLElement {
             this.#startAutoplay(this.#attrs.autoplayDelay);
         }
 
+        // Add debounced resize event listener
+        this.#debouncedHandleResize = this.#debounce(this.#handleResize.bind(this), 100);
+        window.addEventListener('resize', this.#debouncedHandleResize);
+
         this.#updateSlider();
+    }
+
+    // Debounce utility to limit resize event frequency
+    #debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+            const later = () => {
+                clearTimeout(timeout);
+                func(...args);
+            };
+            clearTimeout(timeout);
+            timeout = setTimeout(later, wait);
+        };
     }
 
     #recalculateDimensions() {
@@ -380,6 +396,12 @@ class CustomSlider extends HTMLElement {
             this.#slideWidth = sliderContainer.clientWidth / this.#attrs.slidesPerView;
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             this.#gapPx = parseFloat(window.getComputedStyle(wrapper).columnGap) || 0;
+            this.#log('Dimensions recalculated', {
+                slideWidth: this.#slideWidth,
+                gapPx: this.#gapPx,
+                containerWidth: sliderContainer.clientWidth,
+                slidesPerView: this.#attrs.slidesPerView
+            });
         }
     }
 
@@ -435,6 +457,10 @@ class CustomSlider extends HTMLElement {
     #setSliderPosition() {
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         wrapper.style.transform = `translate3d(${this.#currentTranslate}px, 0, 0)`;
+        this.#log('Slider position set', {
+            translate: this.#currentTranslate,
+            currentIndex: this.#currentIndex
+        });
     }
 
     #setPositionByIndex() {
@@ -445,17 +471,35 @@ class CustomSlider extends HTMLElement {
 
     #calculateTranslate() {
         const addition = (this.#attrs.slidesPerView - 1) / 2;
-        return - this.#currentIndex * this.#slideWidth - (this.#currentIndex + addition) * this.#gapPx;
+        const translate = -this.#currentIndex * this.#slideWidth - (this.#currentIndex + addition) * this.#gapPx;
+        this.#log('Translate calculated', {
+            currentIndex: this.#currentIndex,
+            slideWidth: this.#slideWidth,
+            gapPx: this.#gapPx,
+            translate
+        });
+        return translate;
     }
 
     #calculateTranslateForIndex(index) {
         const addition = (this.#attrs.slidesPerView - 1) / 2;
-        return - index * this.#slideWidth - (index + addition) * this.#gapPx;
+        const translate = -index * this.#slideWidth - (index + addition) * this.#gapPx;
+        this.#log('Translate for index calculated', {
+            index,
+            slideWidth: this.#slideWidth,
+            gapPx: this.#gapPx,
+            translate
+        });
+        return translate;
     }
 
     #handleResize() {
         this.#recalculateDimensions();
         this.#setPositionByIndex();
+        this.#log('Resize handled', {
+            currentIndex: this.#currentIndex,
+            translate: this.#currentTranslate
+        });
     }
 
     #navigate(direction) {
@@ -634,7 +678,9 @@ class CustomSlider extends HTMLElement {
             cancelAnimationFrame(this.#animationID);
             this.#animationID = null;
         }
-        window.removeEventListener('resize', this.#handleResize.bind(this));
+        if (this.#debouncedHandleResize) {
+            window.removeEventListener('resize', this.#debouncedHandleResize);
+        }
         if (CustomSlider.#observedInstances.has(this)) {
             CustomSlider.#observer.unobserve(this);
             CustomSlider.#observedInstances.delete(this);
