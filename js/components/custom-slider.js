@@ -537,7 +537,7 @@ class CustomSlider extends HTMLElement {
         if (this.#attrs.pagination) {
             const pagination = sliderContainer.querySelector('.slider-pagination');
             if (pagination) {
-                const dots = pagination.querySelectorAll('.icon');
+                const dots = pagination.querySelectorAll('span.icon');
                 const totalDots = dots.length;
                 const expectedActiveDot = this.#currentIndex + 1; // 1-based for logging
                 dots.forEach((dot, index) => {
@@ -548,6 +548,12 @@ class CustomSlider extends HTMLElement {
                     if (icon) {
                         icon.style.fontSize = isActive ? this.#attrs.paginationIconSizeActive : this.#attrs.paginationIconSizeInactive;
                     }
+                    this.#log(`[Pagination Dot Update] index=${index}, isActive=${isActive}, currentIndex=${this.#currentIndex}, expectedActiveDot=${expectedActiveDot}`, {
+                        elementId: this.#uniqueId,
+                        dotClasses: icon ? Array.from(icon.classList) : [],
+                        activeIcon: this.#attrs.paginationIconActive,
+                        inactiveIcon: this.#attrs.paginationIconInactive
+                    });
                 });
                 this.#log(`[Pagination Updated] currentIndex=${this.#currentIndex}, totalDots=${totalDots}, expectedActiveDot=${expectedActiveDot}`, { elementId: this.#uniqueId, totalSlides: this.#slides.length });
             }
