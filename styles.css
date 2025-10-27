@@ -2028,6 +2028,7 @@ div#products {
     position: relative;
     user-select: none;
     touch-action: pan-y;
+    height: stretch;
 }
 
 /* Styles for cross-fade slides */
