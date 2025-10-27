@@ -646,11 +646,6 @@ class CustomSlider extends HTMLElement {
                 const slideWrapper = document.createElement('div');
                 slideWrapper.className = 'slider-slide';
                 if (attrs.crossFade && attrs.slidesPerView === 1) {
-                    slideWrapper.style.position = 'absolute';
-                    slideWrapper.style.top = '0';
-                    slideWrapper.style.left = '0';
-                    slideWrapper.style.width = '100%';
-                    slideWrapper.style.height = '100%';
                     slideWrapper.style.opacity = index === 0 ? '1' : '0';
                     if (index === 0) slideWrapper.classList.add('active');
                 }
@@ -681,7 +676,7 @@ class CustomSlider extends HTMLElement {
                     }
                     if (attrs.iconSizeBackground && attrs.iconSizeForeground) {
                         if (isStacked) {
-                            icon.style.fontSize = iconIndex === 0 ? attrs.iconSizeBackground : attrs.iconSizeForeground;
+                            icon.style.fontSize = index === 0 ? attrs.iconSizeBackground : attrs.iconSizeForeground;
                         } else {
                             icon.style.fontSize = attrs.iconSizeBackground;
                         }

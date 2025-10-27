@@ -2426,7 +2426,7 @@ div#products {
 }
 
 
-/* New keyframes for cross-fade effect */
+/* Cross-fade keyframes */
 @keyframes crossFadeIn {
     from {
         opacity: 0;
@@ -2458,7 +2458,7 @@ div#products {
     width: 100%;
     height: 100%;
     opacity: 0;
-    transition: opacity 0.5s ease-in-out;
+    transition: opacity 1s ease-in-out; /* Increased from 0.5s to 1s */
 }
 
 .custom-slider[cross-fade] .slider-slide.active {
