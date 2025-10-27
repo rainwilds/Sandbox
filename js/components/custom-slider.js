@@ -340,6 +340,10 @@ class CustomSlider extends HTMLElement {
         wrapper.style.willChange = 'transform';
         wrapper.style.userSelect = 'none';
         wrapper.style.touchAction = 'pan-y';
+        // Set grab cursor if draggable
+        if (this.hasAttribute('draggable')) {
+            wrapper.style.cursor = 'grab';
+        }
 
         if (this.hasAttribute('draggable')) {
             wrapper.addEventListener('pointerdown', this.#pointerDown.bind(this));
@@ -370,14 +374,12 @@ class CustomSlider extends HTMLElement {
             this.#startAutoplay(this.#attrs.autoplayDelay);
         }
 
-        // Add debounced resize event listener
         this.#debouncedHandleResize = this.#debounce(this.#handleResize.bind(this), 100);
         window.addEventListener('resize', this.#debouncedHandleResize);
 
         this.#updateSlider();
     }
 
-    // Debounce utility to limit resize event frequency
     #debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
@@ -412,7 +414,9 @@ class CustomSlider extends HTMLElement {
             this.#animationID = requestAnimationFrame(this.#animation.bind(this));
             const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
             wrapper.style.transition = 'none';
+            wrapper.style.cursor = 'grabbing'; // Set grabbing cursor on drag start
             event.target.setPointerCapture(event.pointerId);
+            this.#log('Pointer down, grabbing cursor set', { elementId: this.#uniqueId });
         }
     }
 
@@ -444,9 +448,10 @@ class CustomSlider extends HTMLElement {
         this.#setPositionByIndex();
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         wrapper.style.transition = 'transform 0.5s ease-out';
+        wrapper.style.cursor = 'grab'; // Revert to grab cursor on drag end
         event.target.releasePointerCapture(event.pointerId);
         this.#updateSlider();
-        this.#log(`[Drag End] currentIndex=${this.#currentIndex}, oldIndex=${oldIndex}, movedBy=${movedBy}px`, { elementId: this.#uniqueId, expectedActiveDot: this.#currentIndex + 1 });
+        this.#log(`[Drag End] currentIndex=${this.#currentIndex}, oldIndex=${oldIndex}, movedBy=${movedBy}px, grab cursor restored`, { elementId: this.#uniqueId, expectedActiveDot: this.#currentIndex + 1 });
     }
 
     #animation() {
@@ -648,7 +653,7 @@ class CustomSlider extends HTMLElement {
                 dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
                 const icon = dot.querySelector('i');
                 if (icon && (attrs.paginationIconSizeActive || attrs.paginationIconSizeInactive)) {
-                    icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
+                    icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : this.#attrs.paginationIconSizeInactive;
                 }
                 dot.addEventListener('click', () => {
                     const oldIndex = this.#currentIndex;
