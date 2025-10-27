@@ -2020,7 +2020,7 @@ div#products {
     transition: transform 0.5s;
     grid-auto-flow: column;
     height: 100%;
-    align-content: center;
+    /* align-content: center; */
 }
 
 .custom-slider {
@@ -2036,7 +2036,7 @@ div#products {
     overflow: hidden;
     position: relative;
     height: 100%;
-    align-content: center;
+    /* align-content: center; */
     will-change: transform;
     user-select: none;
     touch-action: pan-y;
