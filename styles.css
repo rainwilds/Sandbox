@@ -2019,6 +2019,7 @@ div#products {
     position: relative;
     user-select: none;
     touch-action: pan-y;
+    height: stretch;
 }
 
 /* Base styles for .slider-wrapper */
