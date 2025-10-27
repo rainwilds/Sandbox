@@ -2012,166 +2012,39 @@ div#products {
 }
 
 
-
-
-
-
-/* Existing keyframes remain unchanged */
-@media (max-width: 768px) {
-    @keyframes gallery-scroll {
-        0% {
-            transform: translateX(calc(((((100vw / 2) * 10) - 100vw) + (11 * var(--space-tiny))) * -1)) !important;
-        }
-
-        100% {
-            transform: translateX(0);
-        }
-    }
-}
-
-@media (max-width: 980px) {
-    @keyframes gallery-scroll {
-        0% {
-            transform: translateX(calc(((((100vw / 4) * 10) - 100vw) + (11 * var(--space-tiny))) * -1));
-        }
-
-        100% {
-            transform: translateX(0);
-        }
-    }
-}
-
-@media (min-width: 981px) {
-    @keyframes gallery-scroll {
-        0% {
-            transform: translateX(calc(((((100vw / 7) * 10) - 100vw) + (11 * var(--space-tiny))) * -1));
-        }
-
-        100% {
-            transform: translateX(0);
-        }
-    }
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes fadeInTopDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Cross-fade keyframes */
-@keyframes crossFadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes crossFadeOut {
-    from {
-        opacity: 1;
-    }
-
-    to {
-        opacity: 0;
-    }
-}
-
-/* Base styles for .custom-slider */
 .custom-slider {
+    height: 100%;
     overflow: hidden;
     position: relative;
-    user-select: none;
-    touch-action: pan-y;
+
 }
 
-/* Base styles for .slider-wrapper */
-.custom-slider .slider-wrapper {
-    height: 100%;
-    user-select: none;
-    touch-action: pan-y;
-    will-change: transform;
-    transition: transform 0.5s ease-out;
-    /* Default transition for sliding */
-}
-
-/* Draggable cursor styles */
-.custom-slider[draggable] .slider-wrapper {
-    cursor: grab;
-}
-
-.custom-slider[draggable] .slider-wrapper.dragging {
-    cursor: grabbing;
-    transition: none;
-    /* Disable transition during drag */
-}
-
-/* Non-cross-fade styles */
-.custom-slider:not([cross-fade]) .slider-wrapper {
+.slider-wrapper {
     display: grid;
     grid-template-rows: 1fr;
+    transition: transform 0.5s;
     grid-auto-flow: column;
-    align-content: center;
-    grid-template-columns: var(--slider-columns);
-    /* Set dynamically in JS */
-}
-
-.custom-slider:not([cross-fade])[gap] .slider-wrapper {
-    column-gap: var(--slider-gap);
-    /* Set dynamically in JS */
-}
-
-/* Cross-fade styles */
-.custom-slider[cross-fade] .slider-wrapper {
-    position: relative;
-    overflow: hidden;
-    transition: none;
-    /* No transform transition for cross-fade */
-}
-
-.custom-slider[cross-fade] .slider-slide {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
     height: 100%;
-    opacity: 0;
-    transition: opacity 1s ease-in-out;
-    /* 1-second cross-fade */
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    align-content: center;
 }
 
-.custom-slider[cross-fade] .slider-slide.active {
-    opacity: 1;
-    z-index: 1;
+.slider-nav-prev {
+    position: absolute;
+    z-index: 10;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-left: var(--space-tiny);
 }
 
-
-
-
-
-
+.slider-nav-next {
+    position: absolute;
+    z-index: 10;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-right: var(--space-tiny);
+}
 
 .icon-stack {
 
@@ -2558,7 +2431,6 @@ div#products {
     from {
         opacity: 0;
     }
-
     to {
         opacity: 1;
     }
@@ -2568,8 +2440,28 @@ div#products {
     from {
         opacity: 1;
     }
-
     to {
         opacity: 0;
     }
+}
+
+/* Styles for cross-fade slides */
+.custom-slider[cross-fade] .slider-wrapper {
+    position: relative;
+    overflow: hidden;
+}
+
+.custom-slider[cross-fade] .slider-slide {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out;
+    display: grid;
+    align-self: center;
+}
+
+.custom-slider[cross-fade] .slider-slide.active {
+    opacity: 1;
+    z-index: 1;
 }
