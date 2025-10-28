@@ -245,7 +245,7 @@ class CustomSlider extends HTMLElement {
         } else {
             const parser = new DOMParser();
             const leftDoc = parser.parseFromString(navigationIconLeft.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), 'text/html');
-            const rightDoc = parser.parseFromString(navigationIconRight.replace(/&lt;/g, '< | >').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), 'text/html');
+            const rightDoc = parser.parseFromString(navigationIconRight.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), 'text/html');
             const leftIcons = leftDoc.body.querySelectorAll('i');
             const rightIcons = rightDoc.body.querySelectorAll('i');
 
@@ -257,7 +257,6 @@ class CustomSlider extends HTMLElement {
             if (rightIcons.length === 2) {
                 rightIconResult = processIconStack(rightIcons[1].outerHTML, rightIcons[0].outerHTML, 'right');
             } else {
-                // Fixed: Removed stray '8' before 'markup'
                 rightIconResult = { valid: true, markup: validateIcon(navigationIconRight, 'right') };
             }
         }
@@ -656,13 +655,18 @@ class CustomSlider extends HTMLElement {
 
     #navigate(direction) {
         const oldIndex = this.#currentIndex;
-        this.#currentIndex += direction;
+        const newIndex = this.#currentIndex + direction;
 
         if (this.#attrs.infiniteScrolling) {
+            this.#currentIndex = newIndex;
             this.#adjustForLoop();
+        } else if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
+            // Cross-fade with slides-per-view=1 always loops
+            this.#currentIndex = (newIndex + this.#originalLength) % this.#originalLength;
         } else {
-            // Always wrap around for navigation, regardless of crossFade
-            this.#currentIndex = (this.#currentIndex + this.#originalLength) % this.#originalLength;
+            // Clamp index for non-infinite, non-cross-fade mode
+            const maxIndex = this.#originalLength - this.#attrs.slidesPerView;
+            this.#currentIndex = Math.max(0, Math.min(newIndex, maxIndex));
         }
 
         this.#setPositionByIndex();
@@ -885,5 +889,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (navigation loop fixed, cross-fade loop, infinite-scrolling conditional, syntax fixed)');
+console.log('CustomSlider version: 2025-10-28 (navigation clamping fixed, cross-fade loop, infinite-scrolling conditional)');
 export { CustomSlider };
