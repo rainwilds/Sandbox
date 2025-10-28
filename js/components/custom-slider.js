@@ -223,6 +223,7 @@ class CustomSlider extends HTMLElement {
         }
 
         const infiniteScrolling = this.hasAttribute('infinite-scrolling');
+        const pauseOnHover = this.hasAttribute('pause-on-hover'); // New attribute for optional hover-to-pause
 
         const validateIcon = (icon, position, isBackground = false) => {
             if (!icon) {
@@ -336,7 +337,8 @@ class CustomSlider extends HTMLElement {
             paginationIconSizeActive,
             paginationIconSizeInactive,
             crossFade,
-            infiniteScrolling
+            infiniteScrolling,
+            pauseOnHover // Added to attributes
         };
     }
 
@@ -373,7 +375,8 @@ class CustomSlider extends HTMLElement {
                     paginationIconSizeActive: '',
                     paginationIconSizeInactive: '',
                     crossFade: false,
-                    infiniteScrolling: false
+                    infiniteScrolling: false,
+                    pauseOnHover: false // Default to false in fallback
                 });
                 this.replaceWith(fallback);
             }
@@ -398,7 +401,8 @@ class CustomSlider extends HTMLElement {
                 paginationIconSizeActive: '',
                 paginationIconSizeInactive: '',
                 crossFade: false,
-                infiniteScrolling: false
+                infiniteScrolling: false,
+                pauseOnHover: false // Default to false in fallback
             });
             this.replaceWith(fallback);
         }
@@ -488,19 +492,23 @@ class CustomSlider extends HTMLElement {
             });
         }
 
-        // Add hover event listeners for pause/resume
-        sliderContainer.addEventListener('mouseenter', () => {
-            this.#isHovering = true;
-            this.#stopAutoplay();
-            this.#log('Autoplay paused due to hover', { elementId: this.#uniqueId });
-        });
-        sliderContainer.addEventListener('mouseleave', () => {
-            this.#isHovering = false;
-            if (this.#attrs.autoplayType !== 'none') {
-                this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
-                this.#log('Autoplay resumed after hover', { elementId: this.#uniqueId });
-            }
-        });
+        // Conditionally add hover event listeners for pause/resume if pauseOnHover is true
+        if (this.#attrs.pauseOnHover) {
+            sliderContainer.addEventListener('mouseenter', () => {
+                this.#isHovering = true;
+                this.#stopAutoplay();
+                this.#log('Autoplay paused due to hover (pause-on-hover enabled)', { elementId: this.#uniqueId });
+            });
+            sliderContainer.addEventListener('mouseleave', () => {
+                this.#isHovering = false;
+                if (this.#attrs.autoplayType !== 'none') {
+                    this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
+                    this.#log('Autoplay resumed after hover (pause-on-hover enabled)', { elementId: this.#uniqueId });
+                }
+            });
+        } else {
+            this.#log('Hover-to-pause disabled (no pause-on-hover attribute)', { elementId: this.#uniqueId });
+        }
 
         if (this.#attrs.navigation) {
             const prevButton = document.getElementById(`${this.#uniqueId}-prev`);
@@ -1216,7 +1224,7 @@ class CustomSlider extends HTMLElement {
             'autoplay', 'slides-per-view', 'navigation', 'navigation-icon-left', 'navigation-icon-right',
             'navigation-icon-left-background', 'navigation-icon-right-background', 'gap', 'pagination',
             'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size', 'pagination-icon-size',
-            'draggable', 'cross-fade', 'infinite-scrolling'
+            'draggable', 'cross-fade', 'infinite-scrolling', 'pause-on-hover' // Added to observed attributes
         ];
     }
 
@@ -1243,5 +1251,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, pause-on-hover, and fixed pagination clicks during autoplay with enhanced position sync)');
+console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, and optional pause-on-hover)');
 export { CustomSlider };
