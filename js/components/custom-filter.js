@@ -7,6 +7,7 @@ class CustomFilter extends HTMLElement {
   #observer = null;
   #filterControls = null;
   #childrenCache = new Map();
+  #containerId = `filter-${Math.random().toString(36).substr(2, 9)}`;
 
   constructor() {
     super();
@@ -113,7 +114,7 @@ class CustomFilter extends HTMLElement {
 
     const filterContainer = document.createElement('div');
     filterContainer.className = 'custom-filter';
-    filterContainer.id = `filter-${Math.random().toString(36).substr(2, 9)}`;
+    filterContainer.id = this.#containerId;
 
     const controlsContainer = document.createElement('div');
     controlsContainer.className = `filter-controls ${VALID_ALIGN_MAP[filterAlignment] || 'center'}`;
@@ -126,12 +127,12 @@ class CustomFilter extends HTMLElement {
     allButton.textContent = 'All';
     if (buttonStyle) allButton.setAttribute('style', buttonStyle);
     allButton.addEventListener('click', () => {
+      this.#log('All button clicked', { activeFiltersBefore: [...this.activeFilters] });
       this.activeFilters.clear();
       Array.from(controlsContainer.querySelectorAll('button')).forEach(btn => 
         btn.removeAttribute('aria-pressed')
       );
       this.applyFilters();
-      this.#log('Reset filters to show all', { elementId: this.id || 'no-id' });
     });
     controlsContainer.appendChild(allButton);
 
@@ -142,6 +143,7 @@ class CustomFilter extends HTMLElement {
       button.textContent = value;
       if (buttonStyle) button.setAttribute('style', buttonStyle);
       button.addEventListener('click', () => {
+        this.#log('Filter button clicked', { value, activeFiltersBefore: [...this.activeFilters] });
         if (this.activeFilters.has(value)) {
           this.activeFilters.delete(value);
           button.removeAttribute('aria-pressed');
@@ -150,17 +152,14 @@ class CustomFilter extends HTMLElement {
           button.setAttribute('aria-pressed', 'true');
         }
         this.applyFilters();
-        this.#log('Filter toggled', { value, activeFilters: [...this.activeFilters] });
       });
       controlsContainer.appendChild(button);
     });
 
     filterContainer.appendChild(controlsContainer);
 
-    // Move existing children to the new container
     Array.from(this.children).forEach(child => filterContainer.appendChild(child));
 
-    // Add ARIA live region
     const liveRegion = document.createElement('div');
     liveRegion.setAttribute('aria-live', 'polite');
     liveRegion.style.position = 'absolute';
@@ -175,27 +174,39 @@ class CustomFilter extends HTMLElement {
   }
 
   getUniqueFilterValues(filterType) {
+    this.#log('Getting unique filter values', { filterType });
     const values = new Set();
     const children = Array.from(this.children).filter(child => child.hasAttribute(`data-${filterType}`));
     children.forEach(child => {
       const value = child.getAttribute(`data-${filterType}`)?.split(',').map(v => v.trim());
+      this.#log('Processing child', { tagName: child.tagName, filterValue: value });
       if (value) {
         value.forEach(v => values.add(v));
       }
     });
-    return [...values].sort();
+    const result = [...values].sort();
+    this.#log('Unique filter values retrieved', { values: result });
+    return result;
   }
 
   applyFilters() {
-    const container = document.getElementById(`filter-${this.id || this.querySelector('.custom-filter')?.id}`);
+    const filterType = this.getAttribute('filter-type') || 'tags';
+    this.#log('Applying filters', { filterType, activeFilters: [...this.activeFilters] });
+    const container = document.getElementById(this.#containerId);
     const children = container
-      ? Array.from(container.children).filter(child => child.hasAttribute(`data-${this.getAttribute('filter-type') || 'tags'}`))
-      : Array.from(this.children).filter(child => child.hasAttribute(`data-${this.getAttribute('filter-type') || 'tags'}`));
-    this.#log('Applying filters', { activeFilters: [...this.activeFilters], childCount: children.length });
+      ? Array.from(container.children).filter(child => child.hasAttribute(`data-${filterType}`))
+      : Array.from(this.children).filter(child => child.hasAttribute(`data-${filterType}`));
+    this.#log('Found filterable children', { childCount: children.length, children: children.map(c => ({ tag: c.tagName, tags: c.getAttribute(`data-${filterType}`) })) });
 
     children.forEach(child => {
-      const values = child.getAttribute(`data-${this.getAttribute('filter-type') || 'tags'}`)?.split(',').map(v => v.trim()) || [];
+      const values = child.getAttribute(`data-${filterType}`)?.split(',').map(v => v.trim()) || [];
       const isVisible = this.activeFilters.size === 0 || values.some(value => this.activeFilters.has(value));
+      this.#log('Evaluating child visibility', {
+        childTag: child.tagName,
+        childTags: values,
+        isVisible,
+        activeFilters: [...this.activeFilters]
+      });
       child.style.display = isVisible ? '' : 'none';
       this.#childrenCache.set(child, isVisible);
     });
@@ -208,6 +219,7 @@ class CustomFilter extends HTMLElement {
     liveRegion.style.overflow = 'hidden';
     liveRegion.textContent = `Filtered to show ${this.activeFilters.size === 0 ? 'all items' : [...this.activeFilters].join(', ')}`;
     if (!liveRegion.parentNode && container) container.appendChild(liveRegion);
+    this.#log('Live region updated', { text: liveRegion.textContent });
   }
 
   setupMutationObserver() {
@@ -215,10 +227,10 @@ class CustomFilter extends HTMLElement {
       mutations.forEach(mutation => {
         if (mutation.type === 'childList') {
           this.#log('Child list mutated', { added: mutation.addedNodes.length, removed: mutation.removedNodes.length });
-          const container = document.getElementById(`filter-${this.id || this.querySelector('.custom-filter')?.id}`);
+          const container = document.getElementById(this.#containerId);
           if (container) {
             this.#filterControls = container.querySelector('.filter-controls');
-            this.renderFilterControls();
+            this.render();
             this.applyFilters();
           }
         }
@@ -241,8 +253,11 @@ class CustomFilter extends HTMLElement {
     if (oldValue === newValue || !this.#isInitialized) return;
     this.#log('Attribute changed', { name, oldValue, newValue, elementId: this.id || 'no-id' });
     if (['filter-type', 'filter-values', 'filter-alignment', 'button-class', 'button-style'].includes(name)) {
-      this.renderFilterControls();
-      this.applyFilters();
+      const container = document.getElementById(this.#containerId);
+      if (container) {
+        this.render();
+        this.applyFilters();
+      }
     }
   }
 }

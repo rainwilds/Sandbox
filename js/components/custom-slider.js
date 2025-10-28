@@ -328,6 +328,7 @@ class CustomSlider extends HTMLElement {
 
     async initialize() {
         if (this.isInitialized || !this.isVisible) {
+            this.#log('Initialization skipped: already initialized or not visible', { elementId: this.#uniqueId });
             return;
         }
 
@@ -337,39 +338,29 @@ class CustomSlider extends HTMLElement {
         try {
             const attrs = await this.getAttributes();
             this.#attrs = attrs;
-            const sliderElement = await this.render(attrs);
-            if (sliderElement) {
-                this.replaceWith(sliderElement);
-                this.#setupSlider();
-                this.#log('Initialization completed', { elementId: this.#uniqueId });
-            } else {
-                this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
-                const fallback = await this.render({
-                    autoplayDelay: 3000,
-                    autoplayType: 'discrete',
-                    autoplaySpeed: 100,
-                    slidesPerView: 1,
-                    navigation: false,
-                    gap: '0',
-                    pagination: false,
-                    paginationIconActive: '<i class="fa-solid fa-circle"></i>',
-                    paginationIconInactive: '<i class="fa-regular fa-circle"></i>',
-                    iconSizeBackground: '',
-                    iconSizeForeground: '',
-                    paginationIconSizeActive: '',
-                    paginationIconSizeInactive: '',
-                    crossFade: false,
-                    infiniteScrolling: false
-                });
-                this.replaceWith(fallback);
+            this.#log('Attributes fetched', { attrs, elementId: this.#uniqueId });
+
+            if (this.#childElements.length === 0) {
+                this.#warn('No child elements found, using fallback', { elementId: this.#uniqueId });
+                throw new Error('No valid child elements for rendering');
             }
+
+            const sliderElement = await this.render(attrs);
+            if (!sliderElement) {
+                this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
+                throw new Error('Render failed to produce a slider element');
+            }
+
+            this.replaceWith(sliderElement);
+            this.#setupSlider();
+            this.#log('Initialization completed', { elementId: this.#uniqueId });
         } catch (error) {
             this.#error('Initialization failed', {
                 error: error.message,
                 stack: error.stack,
                 elementId: this.#uniqueId
             });
-            const fallback = await this.render({
+            const fallbackAttrs = {
                 autoplayDelay: 3000,
                 autoplayType: 'discrete',
                 autoplaySpeed: 100,
@@ -385,12 +376,20 @@ class CustomSlider extends HTMLElement {
                 paginationIconSizeInactive: '',
                 crossFade: false,
                 infiniteScrolling: false
-            });
+            };
+            const fallback = await this.render(fallbackAttrs);
+            this.#attrs = fallbackAttrs;
             this.replaceWith(fallback);
+            this.#setupSlider();
         }
     }
 
     #setupSlider() {
+        if (!this.#attrs) {
+            this.#error('Attributes not set, cannot setup slider', { elementId: this.#uniqueId });
+            return;
+        }
+
         const sliderContainer = document.getElementById(this.#uniqueId);
         if (!sliderContainer) {
             this.#error('Slider container not found', { elementId: this.#uniqueId });
@@ -880,6 +879,7 @@ class CustomSlider extends HTMLElement {
     }
 
     async render(attrs) {
+        this.#log('Rendering started', { elementId: this.#uniqueId, childElementsCount: this.#childElements.length });
         const sliderWrapper = document.createElement('div');
         sliderWrapper.id = this.#uniqueId;
         sliderWrapper.className = 'custom-slider';
@@ -960,10 +960,11 @@ class CustomSlider extends HTMLElement {
                     icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
                 }
                 dot.addEventListener('click', () => {
+                    const oldIndex = this.#currentIndex;
                     this.#currentIndex = i + (this.#attrs.infiniteScrolling ? this.#bufferSize : 0);
                     this.#setPositionByIndex();
                     this.#updateSlider();
-                    this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, oldIndex=${i + 1}`, { elementId: this.#uniqueId });
+                    this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, oldIndex=${oldIndex}, clickedDot=${i + 1}`, { elementId: this.#uniqueId });
                 });
                 pagination.appendChild(dot);
             }
@@ -971,6 +972,7 @@ class CustomSlider extends HTMLElement {
             this.#log(`[Pagination Added] totalDots=${totalDots}`, { elementId: this.#uniqueId, totalSlides });
         }
 
+        this.#log('Rendering completed', { elementId: this.#uniqueId });
         return sliderWrapper;
     }
 
@@ -978,8 +980,9 @@ class CustomSlider extends HTMLElement {
         this.#childElements = Array.from(this.children)
             .filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block'))
             .map(child => child.cloneNode(true));
+        this.#log('Connected, child elements captured', { childElementsCount: this.#childElements.length, elementId: this.#uniqueId });
 
-        if (this.isVisible) {
+        if (this.isVisible && this.#childElements.length > 0) {
             await this.initialize();
         }
     }
@@ -989,14 +992,44 @@ class CustomSlider extends HTMLElement {
         if (this.#animationID) {
             cancelAnimationFrame(this.#animationID);
             this.#animationID = null;
+            this.#log('Animation frame cancelled in disconnectedCallback', { elementId: this.#uniqueId });
         }
         if (this.#debouncedHandleResize) {
             window.removeEventListener('resize', this.#debouncedHandleResize);
+            this.#debouncedHandleResize = null;
+            this.#log('Resize listener removed in disconnectedCallback', { elementId: this.#uniqueId });
         }
         if (CustomSlider.#observedInstances.has(this)) {
             CustomSlider.#observer.unobserve(this);
             CustomSlider.#observedInstances.delete(this);
+            this.#log('IntersectionObserver unbound in disconnectedCallback', { elementId: this.#uniqueId });
         }
+
+        const wrapper = document.getElementById(this.#uniqueId)?.querySelector('.slider-wrapper');
+        if (wrapper) {
+            wrapper.removeEventListener('pointerdown', this.#pointerDown);
+            wrapper.removeEventListener('pointerup', this.#pointerUp);
+            wrapper.removeEventListener('pointercancel', this.#pointerCancel);
+            wrapper.removeEventListener('pointerleave', this.#pointerCancel);
+            wrapper.removeEventListener('pointermove', this.#pointerMove);
+            this.#log('Pointer event listeners removed in disconnectedCallback', { elementId: this.#uniqueId });
+        }
+
+        const prevButton = document.getElementById(`${this.#uniqueId}-prev`);
+        const nextButton = document.getElementById(`${this.#uniqueId}-next`);
+        if (prevButton) prevButton.removeEventListener('click', this.#navigate);
+        if (nextButton) nextButton.removeEventListener('click', this.#navigate);
+        this.#log('Navigation button listeners removed in disconnectedCallback', { elementId: this.#uniqueId });
+
+        const pagination = document.getElementById(this.#uniqueId)?.querySelector('.slider-pagination');
+        if (pagination) {
+            const dots = pagination.querySelectorAll('span.icon');
+            dots.forEach((dot) => {
+                dot.removeEventListener('click', this.#navigate);
+            });
+            this.#log('Pagination dot listeners removed in disconnectedCallback', { elementId: this.#uniqueId });
+        }
+
         this.#childElements = [];
         this.#slides = [];
         this.#attrs = null;
@@ -1017,6 +1050,7 @@ class CustomSlider extends HTMLElement {
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) {
             this.#ignoredChangeCount++;
+            this.#log('Attribute change ignored', { name, oldValue, newValue, elementId: this.#uniqueId });
             return;
         }
 
@@ -1037,5 +1071,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (autoplay continuous mode added, infinite-scrolling animation fix, navigation clamping, cross-fade loop)');
+console.log('CustomSlider version: 2025-10-28 (autoplay continuous mode added, infinite-scrolling animation fix, navigation clamping, cross-fade loop, null attrs fix)');
 export { CustomSlider };
