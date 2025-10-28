@@ -182,7 +182,6 @@ class CustomSlider extends HTMLElement {
             this.#warn('Cross-fade attribute is only supported for slides-per-view=1, ignoring', { slidesPerView });
         }
 
-        // INFINITE SCROLLING ATTRIBUTE
         const infiniteScrolling = this.hasAttribute('infinite-scrolling');
 
         const validateIcon = (icon, position, isBackground = false) => {
@@ -380,7 +379,6 @@ class CustomSlider extends HTMLElement {
 
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
 
-        // INFINITE SCROLLING: ONLY ENABLE IF ATTRIBUTE EXISTS AND ENOUGH SLIDES
         const enableInfinite = this.#attrs.infiniteScrolling && this.#originalLength > this.#bufferSize;
 
         if (enableInfinite) {
@@ -409,9 +407,11 @@ class CustomSlider extends HTMLElement {
         }
         if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
             sliderContainer.setAttribute('cross-fade', '');
+            const displayIndex = this.#currentIndex % this.#originalLength;
             this.#slides.forEach((slide, index) => {
-                slide.style.opacity = index === this.#currentIndex ? '1' : '0';
-                if (index === this.#currentIndex) slide.classList.add('active');
+                const isActive = index === displayIndex;
+                slide.style.opacity = isActive ? '1' : '0';
+                if (isActive) slide.classList.add('active');
             });
         }
         if (this.#attrs.gap && this.#attrs.gap !== '0' && (!this.#attrs.crossFade || this.#attrs.slidesPerView !== 1)) {
@@ -452,7 +452,7 @@ class CustomSlider extends HTMLElement {
                 const dots = pagination.querySelectorAll('span.icon');
                 dots.forEach((dot, index) => {
                     dot.addEventListener('click', () => {
-                        this.#currentIndex = index + this.#bufferSize;
+                        this.#currentIndex = index + (this.#attrs.infiniteScrolling ? this.#bufferSize : 0);
                         this.#setPositionByIndex();
                         this.#updateSlider();
                     });
@@ -525,8 +525,33 @@ class CustomSlider extends HTMLElement {
 
     #pointerUp(event) {
         if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
+            cancelAnimationFrame(this.#animationID);
+            this.#isDragging = false;
+            const movedBy = this.#currentTranslate - this.#prevTranslate;
+            const threshold = this.#slideWidth / 3;
+
+            if (movedBy < -threshold) {
+                this.#currentIndex += 1;
+            } else if (movedBy > threshold) {
+                this.#currentIndex -= 1;
+            }
+
+            if (this.#attrs.crossFade) {
+                this.#currentIndex = (this.#currentIndex + this.#originalLength) % this.#originalLength;
+            } else if (!this.#attrs.infiniteScrolling) {
+                this.#currentIndex = Math.max(0, Math.min(this.#currentIndex, this.#originalLength - this.#attrs.slidesPerView));
+            } else {
+                this.#adjustForLoop();
+            }
+
+            this.#setPositionByIndex();
+            const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
+            wrapper.classList.remove('dragging');
+            event.target.releasePointerCapture(event.pointerId);
+            this.#updateSlider();
             return;
         }
+
         cancelAnimationFrame(this.#animationID);
         this.#isDragging = false;
         const movedBy = this.#currentTranslate - this.#prevTranslate;
@@ -634,6 +659,8 @@ class CustomSlider extends HTMLElement {
 
         if (this.#attrs.infiniteScrolling) {
             this.#adjustForLoop();
+        } else if (this.#attrs.crossFade) {
+            this.#currentIndex = (this.#currentIndex + this.#originalLength) % this.#originalLength;
         } else {
             const minIndex = 0;
             const maxIndex = this.#originalLength - this.#attrs.slidesPerView;
@@ -665,16 +692,19 @@ class CustomSlider extends HTMLElement {
         if (!sliderContainer) return;
 
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
+
         if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
+            const displayIndex = this.#attrs.infiniteScrolling
+                ? (this.#currentIndex - this.#bufferSize + this.#originalLength) % this.#originalLength
+                : this.#currentIndex % this.#originalLength;
+
             this.#slides.forEach((slide, index) => {
-                slide.classList.remove('active');
-                slide.style.opacity = '0';
-                if (index === this.#currentIndex) {
-                    slide.classList.add('active');
-                    slide.style.opacity = '1';
-                }
+                const isActive = index === displayIndex;
+                slide.classList.toggle('active', isActive);
+                slide.style.opacity = isActive ? '1' : '0';
             });
-            this.#log(`[Cross-Fade Updated] currentIndex=${this.#currentIndex}`, { elementId: this.#uniqueId });
+
+            this.#log(`[Cross-Fade Updated] currentIndex=${this.#currentIndex}, displayIndex=${displayIndex}`, { elementId: this.#uniqueId });
         } else {
             wrapper.style.transform = `translate3d(${this.#calculateTranslate()}px, 0, 0)`;
         }
@@ -683,7 +713,10 @@ class CustomSlider extends HTMLElement {
             const pagination = sliderContainer.querySelector('.slider-pagination');
             if (pagination) {
                 const dots = pagination.querySelectorAll('span.icon');
-                const logicalIndex = this.#currentIndex - this.#bufferSize;
+                const logicalIndex = this.#attrs.infiniteScrolling
+                    ? (this.#currentIndex - this.#bufferSize + this.#originalLength) % this.#originalLength
+                    : this.#currentIndex % this.#originalLength;
+
                 dots.forEach((dot, index) => {
                     const isActive = index === logicalIndex;
                     dot.innerHTML = isActive ? this.#attrs.paginationIconActive : this.#attrs.paginationIconInactive;
@@ -781,7 +814,7 @@ class CustomSlider extends HTMLElement {
                 }
                 dot.addEventListener('click', () => {
                     const oldIndex = this.#currentIndex;
-                    this.#currentIndex = i + this.#bufferSize;
+                    this.#currentIndex = i + (this.#attrs.infiniteScrolling ? this.#bufferSize : 0);
                     this.#setPositionByIndex();
                     this.#updateSlider();
                     this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, oldIndex=${oldIndex}, clickedDot=${i + 1}`, { elementId: this.#uniqueId });
@@ -796,7 +829,6 @@ class CustomSlider extends HTMLElement {
     }
 
     async connectedCallback() {
-        // Fixed: removed stray "Response" token
         this.#childElements = Array.from(this.children)
             .filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block'))
             .map(child => child.cloneNode(true));
@@ -828,7 +860,7 @@ class CustomSlider extends HTMLElement {
             'navigation-icon-left-background', 'navigation-icon-right-background', 'gap', 'pagination',
             'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size', 'pagination-icon-size',
             'draggable', 'cross-fade',
-            'infinite-scrolling'  // added
+            'infinite-scrolling'
         ];
     }
 
@@ -855,5 +887,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (infinite-scrolling conditional, syntax fixed)');
+console.log('CustomSlider version: 2025-10-28 (cross-fade loop fixed, infinite-scrolling conditional)');
 export { CustomSlider };
