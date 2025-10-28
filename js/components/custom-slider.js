@@ -29,7 +29,7 @@ class CustomSlider extends HTMLElement {
     #isAnimating = false;
     #lastFrameTime = null;
     #mutationObserver = null;
-    #contextMenuHandler = null; // Declare private field
+    #contextMenuHandler = null;
     #prevClickHandler = null;
     #nextClickHandler = null;
     #dotClickHandlers = null;
@@ -341,13 +341,24 @@ class CustomSlider extends HTMLElement {
         this.isInitialized = true;
         this.#log('Initialization started', { elementId: this.#uniqueId, childElementsCount: this.#childElements.length });
 
+        // Retry fetching children if empty
+        let retries = 3;
+        while (this.#childElements.length === 0 && retries > 0) {
+            this.#log('Retrying to fetch child elements', { elementId: this.#uniqueId, retriesLeft: retries });
+            await new Promise(resolve => setTimeout(resolve, 100));
+            this.#childElements = Array.from(this.children)
+                .filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block'))
+                .map(child => child.cloneNode(true));
+            retries--;
+        }
+
         try {
             const attrs = await this.getAttributes();
             this.#attrs = attrs;
             this.#log('Attributes fetched', { attrs, elementId: this.#uniqueId });
 
             if (this.#childElements.length === 0) {
-                this.#warn('No child elements found, using fallback', { elementId: this.#uniqueId });
+                this.#warn('No child elements found after retries, using fallback', { elementId: this.#uniqueId });
                 throw new Error('No valid child elements for rendering');
             }
 
@@ -1037,8 +1048,18 @@ class CustomSlider extends HTMLElement {
             }
         });
 
-        this.#mutationObserver.observe(this, { childList: true });
+        this.#mutationObserver.observe(this, { childList: true, subtree: true });
         this.#log('MutationObserver set up', { elementId: this.#uniqueId });
+
+        // Initial check for children
+        this.#childElements = Array.from(this.children)
+            .filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block'))
+            .map(child => child.cloneNode(true));
+        if (this.isVisible && this.#childElements.length > 0) {
+            this.#mutationObserver.disconnect();
+            this.#mutationObserver = null;
+            this.initialize();
+        }
     }
 
     disconnectedCallback() {
@@ -1099,7 +1120,6 @@ class CustomSlider extends HTMLElement {
             this.#log('Pagination dot listeners removed in disconnectedCallback', { elementId: this.#uniqueId });
         }
 
-        // Do not clear attrs or childElements to preserve state for replaceWith
         this.#slides = [];
         this.isInitialized = false;
         this.isVisible = false;
@@ -1139,5 +1159,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (autoplay continuous mode added, infinite-scrolling animation fix, navigation clamping, cross-fade loop, contextMenuHandler fix)');
+console.log('CustomSlider version: 2025-10-28 (autoplay continuous mode added, infinite-scrolling animation fix, navigation clamping, cross-fade loop, childElements retry)');
 export { CustomSlider };
