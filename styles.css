@@ -397,11 +397,11 @@
         }
 
         .mask-image-top-bottom {
-            mask-image: linear-gradient(to bottom, transparent, var(--color-dark-scale-6) 15%, var(--color-dark-scale-6) 85%, transparent);
+            mask-image: linear-gradient(to bottom, transparent, light-dark(var(--color-dark-scale-6), var(--color-light-scale-6)) 15%, light-dark(var(--color-dark-scale-6), var(--color-light-scale-6)) 85%, transparent);
         }
 
         .mask-image-left-right {
-            mask-image: linear-gradient(to right, transparent, var(--color-dark-scale-6) 15%, var(--color-dark-scale-6) 85%, transparent);
+            mask-image: linear-gradient(to right, transparent, light-dark(var(--color-dark-scale-6), var(--color-light-scale-6)) 15%, light-dark(var(--color-dark-scale-6), var(--color-light-scale-6)) 85%, transparent);
         }
 
         .background-image-noise {
