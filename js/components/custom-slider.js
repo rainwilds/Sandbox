@@ -424,8 +424,8 @@ class CustomSlider extends HTMLElement {
         if (this.hasAttribute('draggable')) {
             wrapper.addEventListener('pointerdown', this.#pointerDown.bind(this));
             wrapper.addEventListener('pointerup', this.#pointerUp.bind(this));
-            wrapper.addEventListener('pointercancel', this.#pointerUp.bind(this));
-            wrapper.addEventListener('pointerleave', this.#pointerUp.bind(this));
+            wrapper.addEventListener('pointercancel', this.#pointerCancel.bind(this));
+            wrapper.addEventListener('pointerleave', this.#pointerCancel.bind(this));
             wrapper.addEventListener('pointermove', this.#pointerMove.bind(this));
 
             window.addEventListener('contextmenu', (event) => {
@@ -504,6 +504,7 @@ class CustomSlider extends HTMLElement {
         if (event.pointerType === 'touch' || event.pointerType === 'mouse') {
             this.#isDragging = true;
             this.#startPos = event.clientX;
+            this.#prevTranslate = this.#currentTranslate;
             this.#animationID = requestAnimationFrame(this.#animation.bind(this));
             const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
             wrapper.classList.add('dragging');
@@ -523,66 +524,111 @@ class CustomSlider extends HTMLElement {
         }
     }
 
-    #pointerUp(event) {
-        if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
+    #pointerCancel(event) {
+        if (!this.#isDragging) return;
+
+        this.#isDragging = false;
+        if (this.#animationID) {
             cancelAnimationFrame(this.#animationID);
+            this.#animationID = null;
+        }
+        const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
+        wrapper.classList.remove('dragging');
+        if (event.target.releasePointerCapture) {
+            try {
+                event.target.releasePointerCapture(event.pointerId);
+            } catch (e) {
+                this.#warn('Failed to release pointer capture', { error: e.message });
+            }
+        }
+        this.#setPositionByIndex();
+        this.#log('Pointer cancelled or left', { elementId: this.#uniqueId });
+    }
+
+    #pointerUp(event) {
+        if (!this.#isDragging) return;
+
+        if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
             this.#isDragging = false;
+            if (this.#animationID) {
+                cancelAnimationFrame(this.#animationID);
+                this.#animationID = null;
+            }
             const movedBy = this.#currentTranslate - this.#prevTranslate;
             const threshold = this.#slideWidth / 3;
 
-            if (movedBy < -threshold) {
-                this.#currentIndex += 1;
-            } else if (movedBy > threshold) {
-                this.#currentIndex -= 1;
-            }
-
-            if (this.#attrs.crossFade) {
-                this.#currentIndex = (this.#currentIndex + this.#originalLength) % this.#originalLength;
-            } else if (!this.#attrs.infiniteScrolling) {
-                this.#currentIndex = Math.max(0, Math.min(this.#currentIndex, this.#originalLength - this.#attrs.slidesPerView));
-            } else {
-                this.#adjustForLoop();
+            if (Math.abs(movedBy) > threshold) {
+                if (movedBy < -threshold) {
+                    this.#currentIndex += 1;
+                } else if (movedBy > threshold) {
+                    this.#currentIndex -= 1;
+                }
+                if (this.#attrs.crossFade) {
+                    this.#currentIndex = (this.#currentIndex + this.#originalLength) % this.#originalLength;
+                } else if (!this.#attrs.infiniteScrolling) {
+                    this.#currentIndex = Math.max(0, Math.min(this.#currentIndex, this.#originalLength - this.#attrs.slidesPerView));
+                } else {
+                    this.#adjustForLoop();
+                }
             }
 
             this.#setPositionByIndex();
             const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
             wrapper.classList.remove('dragging');
-            event.target.releasePointerCapture(event.pointerId);
+            if (event.target.releasePointerCapture) {
+                try {
+                    event.target.releasePointerCapture(event.pointerId);
+                } catch (e) {
+                    this.#warn('Failed to release pointer capture', { error: e.message });
+                }
+            }
             this.#updateSlider();
+            this.#log(`[Drag End] currentIndex=${this.#currentIndex}, movedBy=${movedBy}px`, { elementId: this.#uniqueId });
             return;
         }
 
-        cancelAnimationFrame(this.#animationID);
         this.#isDragging = false;
+        if (this.#animationID) {
+            cancelAnimationFrame(this.#animationID);
+            this.#animationID = null;
+        }
         const movedBy = this.#currentTranslate - this.#prevTranslate;
         const threshold = this.#slideWidth / 3;
         const oldIndex = this.#currentIndex;
 
-        if (movedBy < -threshold && this.#currentIndex < this.#slides.length - this.#attrs.slidesPerView) {
-            this.#currentIndex += 1;
-        } else if (movedBy > threshold && this.#currentIndex > 0) {
-            this.#currentIndex -= 1;
-        }
+        if (Math.abs(movedBy) > threshold) {
+            if (movedBy < -threshold && this.#currentIndex < this.#slides.length - this.#attrs.slidesPerView) {
+                this.#currentIndex += 1;
+            } else if (movedBy > threshold && this.#currentIndex > 0) {
+                this.#currentIndex -= 1;
+            }
 
-        if (this.#attrs.infiniteScrolling) {
-            this.#adjustForLoop();
-        } else {
-            this.#currentIndex = Math.max(0, Math.min(this.#currentIndex, this.#originalLength - this.#attrs.slidesPerView));
+            if (this.#attrs.infiniteScrolling) {
+                this.#adjustForLoop();
+            } else {
+                this.#currentIndex = Math.max(0, Math.min(this.#currentIndex, this.#originalLength - this.#attrs.slidesPerView));
+            }
         }
 
         this.#setPositionByIndex();
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         wrapper.classList.remove('dragging');
-        event.target.releasePointerCapture(event.pointerId);
+        if (event.target.releasePointerCapture) {
+            try {
+                event.target.releasePointerCapture(event.pointerId);
+            } catch (e) {
+                this.#warn('Failed to release pointer capture', { error: e.message });
+            }
+        }
         this.#updateSlider();
         this.#log(`[Drag End] currentIndex=${this.#currentIndex}, oldIndex=${oldIndex}, movedBy=${movedBy}px`, { elementId: this.#uniqueId });
     }
 
     #animation() {
-        if (!this.#attrs.crossFade) {
+        if (!this.#attrs.crossFade && this.#isDragging) {
             this.#setSliderPosition();
+            this.#animationID = requestAnimationFrame(this.#animation.bind(this));
         }
-        if (this.#isDragging) requestAnimationFrame(this.#animation.bind(this));
     }
 
     #setSliderPosition() {
@@ -661,10 +707,8 @@ class CustomSlider extends HTMLElement {
             this.#currentIndex = newIndex;
             this.#adjustForLoop();
         } else if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
-            // Cross-fade with slides-per-view=1 always loops
             this.#currentIndex = (newIndex + this.#originalLength) % this.#originalLength;
         } else {
-            // Clamp index for non-infinite, non-cross-fade mode
             const maxIndex = this.#originalLength - this.#attrs.slidesPerView;
             this.#currentIndex = Math.max(0, Math.min(newIndex, maxIndex));
         }
@@ -889,5 +933,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (navigation clamping fixed, cross-fade loop, infinite-scrolling conditional)');
+console.log('CustomSlider version: 2025-10-28 (infinite-scrolling drag fix, navigation clamping, cross-fade loop)');
 export { CustomSlider };
