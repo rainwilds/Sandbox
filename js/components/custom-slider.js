@@ -982,21 +982,30 @@ class CustomSlider extends HTMLElement {
             if (pagination) {
                 const dots = pagination.querySelectorAll('span.icon');
                 let logicalIndex;
+                let rawIndex;
                 if (this.#attrs.autoplayType === 'continuous') {
                     // Calculate index from translate position
                     const slideWidthTotal = this.#slideWidth + this.#gapPx;
-                    const rawIndex = Math.round((-this.#currentTranslate - (this.#attrs.slidesPerView - 1) / 2 * this.#gapPx) / slideWidthTotal);
-                    logicalIndex = this.#attrs.infiniteScrolling
-                        ? (rawIndex - this.#bufferSize + this.#originalLength) % this.#originalLength
-                        : Math.max(0, Math.min(rawIndex, this.#originalLength - this.#attrs.slidesPerView));
+                    rawIndex = Math.round((-this.#currentTranslate - (this.#attrs.slidesPerView - 1) / 2 * this.#gapPx) / slideWidthTotal);
+                    if (this.#attrs.infiniteScrolling) {
+                        // Normalize to original slide range, then map to pagination range
+                        const normalizedIndex = (rawIndex - this.#bufferSize + this.#originalLength) % this.#originalLength;
+                        logicalIndex = Math.floor(normalizedIndex / 1); // 1 slide per dot
+                        logicalIndex = Math.max(0, Math.min(logicalIndex, this.#originalLength - this.#attrs.slidesPerView));
+                    } else {
+                        logicalIndex = Math.max(0, Math.min(rawIndex, this.#originalLength - this.#attrs.slidesPerView));
+                    }
                 } else {
-                    logicalIndex = this.#attrs.infiniteScrolling
-                        ? (this.#currentIndex - this.#bufferSize + this.#originalLength) % this.#originalLength
-                        : Math.max(0, Math.min(this.#currentIndex, this.#originalLength - this.#attrs.slidesPerView));
+                    rawIndex = this.#currentIndex;
+                    if (this.#attrs.infiniteScrolling) {
+                        // Normalize currentIndex to original slide range
+                        const normalizedIndex = (this.#currentIndex - this.#bufferSize + this.#originalLength) % this.#originalLength;
+                        logicalIndex = Math.floor(normalizedIndex / 1); // 1 slide per dot
+                        logicalIndex = Math.max(0, Math.min(logicalIndex, this.#originalLength - this.#attrs.slidesPerView));
+                    } else {
+                        logicalIndex = Math.max(0, Math.min(this.#currentIndex, this.#originalLength - this.#attrs.slidesPerView));
+                    }
                 }
-
-                // Ensure logicalIndex is within pagination range
-                logicalIndex = Math.max(0, Math.min(logicalIndex, this.#originalLength - this.#attrs.slidesPerView));
 
                 dots.forEach((dot, index) => {
                     const isActive = index === logicalIndex;
@@ -1006,9 +1015,14 @@ class CustomSlider extends HTMLElement {
                         icon.style.fontSize = isActive ? this.#attrs.paginationIconSizeActive : this.#attrs.paginationIconSizeInactive;
                     }
                 });
+
+                // Calculate visible slide range for debug logging
+                const firstVisibleSlide = rawIndex - this.#bufferSize + 1;
+                const lastVisibleSlide = firstVisibleSlide + this.#attrs.slidesPerView - 1;
                 this.#log(`[Pagination Updated] currentIndex=${this.#currentIndex}, logicalIndex=${logicalIndex}, translate=${this.#currentTranslate}`, {
                     elementId: this.#uniqueId,
-                    rawIndex: this.#attrs.autoplayType === 'continuous' ? Math.round((-this.#currentTranslate - (this.#attrs.slidesPerView - 1) / 2 * this.#gapPx) / (this.#slideWidth + this.#gapPx)) : null
+                    rawIndex,
+                    visibleSlides: `${Math.max(1, firstVisibleSlide)}-${Math.min(this.#originalLength, lastVisibleSlide)}`
                 });
             }
         }
@@ -1097,15 +1111,14 @@ class CustomSlider extends HTMLElement {
                     icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
                 }
                 dot.addEventListener('click', () => {
-                    const oldIndex = this.#currentIndex;
+                    this.#stopAutoplay();
                     this.#currentIndex = i + (this.#attrs.infiniteScrolling ? this.#bufferSize : 0);
                     this.#setPositionByIndex();
                     this.#updateSlider();
-                    this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, oldIndex=${oldIndex}, clickedDot=${i + 1}`, { elementId: this.#uniqueId });
+                    this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${i + 1}`, { elementId: this.#uniqueId });
                 });
                 pagination.appendChild(dot);
             }
-            sliderWrapper.appendChild(pagination);
             this.#log(`[Pagination Added] totalDots=${totalDots}`, { elementId: this.#uniqueId, totalSlides });
         }
 
@@ -1170,5 +1183,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, and pagination fix)');
+console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, and refined pagination tracking)');
 export { CustomSlider };
