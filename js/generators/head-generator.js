@@ -45,7 +45,8 @@ const DEPENDENCIES = {
   'custom-nav': ['shared'],
   'custom-logo': ['image-generator', 'shared'],
   'custom-header': ['image-generator', 'shared'],
-  'custom-slider': ['custom-block']  // New: Depends on custom-block
+  'custom-slider': ['custom-block'],
+  'custom-filter': ['shared']
 };
 
 const PATH_MAP = {
@@ -57,7 +58,8 @@ const PATH_MAP = {
   'custom-nav': '../components/custom-nav.js',
   'custom-logo': '../components/custom-logo.js',
   'custom-header': '../components/custom-header.js',
-  'custom-slider': '../components/custom-slider.js'  // New
+  'custom-slider': '../components/custom-slider.js',
+  'custom-filter': '../components/custom-filter.js'
 };
 
 async function loadModule(moduleName) {
