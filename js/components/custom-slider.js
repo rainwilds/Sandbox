@@ -29,6 +29,10 @@ class CustomSlider extends HTMLElement {
     #isAnimating = false;
     #lastFrameTime = null;
     #mutationObserver = null;
+    #contextMenuHandler = null; // Declare private field
+    #prevClickHandler = null;
+    #nextClickHandler = null;
+    #dotClickHandlers = null;
 
     constructor() {
         super();
@@ -39,6 +43,7 @@ class CustomSlider extends HTMLElement {
         this.#uniqueId = `slider-${Math.random().toString(36).substr(2, 9)}`;
         CustomSlider.#observer.observe(this);
         CustomSlider.#observedInstances.add(this);
+        this.#log('CustomSlider constructed', { elementId: this.#uniqueId });
     }
 
     static #observer = new IntersectionObserver((entries) => {
@@ -484,13 +489,14 @@ class CustomSlider extends HTMLElement {
             wrapper.addEventListener('pointerleave', this.#pointerCancel.bind(this));
             wrapper.addEventListener('pointermove', this.#pointerMove.bind(this));
 
-            window.addEventListener('contextmenu', this.#contextMenuHandler = (event) => {
+            this.#contextMenuHandler = (event) => {
                 if (event.target.closest('.slider-wrapper')) {
                     event.preventDefault();
                     event.stopPropagation();
                     return false;
                 }
-            });
+            };
+            window.addEventListener('contextmenu', this.#contextMenuHandler);
         }
 
         if (this.#attrs.navigation) {
@@ -1093,7 +1099,7 @@ class CustomSlider extends HTMLElement {
             this.#log('Pagination dot listeners removed in disconnectedCallback', { elementId: this.#uniqueId });
         }
 
-        // Do not clear attrs or childElements here to preserve state for replaceWith
+        // Do not clear attrs or childElements to preserve state for replaceWith
         this.#slides = [];
         this.isInitialized = false;
         this.isVisible = false;
@@ -1133,5 +1139,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (autoplay continuous mode added, infinite-scrolling animation fix, navigation clamping, cross-fade loop, replaceWith fix)');
+console.log('CustomSlider version: 2025-10-28 (autoplay continuous mode added, infinite-scrolling animation fix, navigation clamping, cross-fade loop, contextMenuHandler fix)');
 export { CustomSlider };
