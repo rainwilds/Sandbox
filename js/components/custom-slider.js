@@ -372,19 +372,51 @@ class CustomSlider extends HTMLElement {
             const tempAttrs = this.#attrs;
             const tempChildElements = this.#childElements;
 
+            // Transfer attributes to the new element
+            const originalAttributes = Array.from(this.attributes);
             this.replaceWith(sliderElement);
 
-            // Restore state on new element
+            // Restore state and attributes on new element
             const newElement = document.getElementById(this.#uniqueId);
-            if (newElement instanceof CustomSlider) {
-                newElement.#attrs = tempAttrs;
-                newElement.#childElements = tempChildElements;
-                newElement.isInitialized = true;
-                newElement.isVisible = true;
-                newElement.#setupSlider();
-                this.#log('Initialization completed, state restored', { elementId: this.#uniqueId });
+            if (newElement) {
+                // Reapply attributes
+                originalAttributes.forEach(attr => {
+                    newElement.setAttribute(attr.name, attr.value);
+                });
+                if (newElement instanceof CustomSlider) {
+                    newElement.#attrs = tempAttrs;
+                    newElement.#childElements = tempChildElements;
+                    newElement.isInitialized = true;
+                    newElement.isVisible = true;
+                    newElement.#setupSlider();
+                    this.#log('Initialization completed, state restored', { elementId: this.#uniqueId });
+                } else {
+                    // Create a new CustomSlider instance if the replacement is not correct
+                    const customSlider = document.createElement('custom-slider');
+                    customSlider.id = this.#uniqueId;
+                    originalAttributes.forEach(attr => {
+                        customSlider.setAttribute(attr.name, attr.value);
+                    });
+                    customSlider.appendChild(sliderElement.querySelector('.slider-wrapper').cloneNode(true));
+                    if (sliderElement.querySelector('.slider-nav-prev')) {
+                        customSlider.appendChild(sliderElement.querySelector('.slider-nav-prev').cloneNode(true));
+                    }
+                    if (sliderElement.querySelector('.slider-nav-next')) {
+                        customSlider.appendChild(sliderElement.querySelector('.slider-nav-next').cloneNode(true));
+                    }
+                    if (sliderElement.querySelector('.slider-pagination')) {
+                        customSlider.appendChild(sliderElement.querySelector('.slider-pagination').cloneNode(true));
+                    }
+                    sliderElement.replaceWith(customSlider);
+                    customSlider.#attrs = tempAttrs;
+                    customSlider.#childElements = tempChildElements;
+                    customSlider.isInitialized = true;
+                    customSlider.isVisible = true;
+                    customSlider.#setupSlider();
+                    this.#log('Initialization completed, created new CustomSlider instance', { elementId: this.#uniqueId });
+                }
             } else {
-                this.#error('Replacement element is not a CustomSlider instance', { elementId: this.#uniqueId });
+                this.#error('Replacement element not found', { elementId: this.#uniqueId });
             }
         } catch (error) {
             this.#error('Initialization failed', {
@@ -413,16 +445,46 @@ class CustomSlider extends HTMLElement {
             const fallback = await this.render(fallbackAttrs);
             const tempChildElements = this.#childElements;
 
+            // Transfer attributes for fallback
+            const originalAttributes = Array.from(this.attributes);
             this.replaceWith(fallback);
 
             const newElement = document.getElementById(this.#uniqueId);
-            if (newElement instanceof CustomSlider) {
-                newElement.#attrs = fallbackAttrs;
-                newElement.#childElements = tempChildElements;
-                newElement.isInitialized = true;
-                newElement.isVisible = true;
-                newElement.#setupSlider();
-                this.#log('Fallback initialization completed', { elementId: this.#uniqueId });
+            if (newElement) {
+                originalAttributes.forEach(attr => {
+                    newElement.setAttribute(attr.name, attr.value);
+                });
+                if (newElement instanceof CustomSlider) {
+                    newElement.#attrs = fallbackAttrs;
+                    newElement.#childElements = tempChildElements;
+                    newElement.isInitialized = true;
+                    newElement.isVisible = true;
+                    newElement.#setupSlider();
+                    this.#log('Fallback initialization completed', { elementId: this.#uniqueId });
+                } else {
+                    const customSlider = document.createElement('custom-slider');
+                    customSlider.id = this.#uniqueId;
+                    originalAttributes.forEach(attr => {
+                        customSlider.setAttribute(attr.name, attr.value);
+                    });
+                    customSlider.appendChild(fallback.querySelector('.slider-wrapper').cloneNode(true));
+                    if (fallback.querySelector('.slider-nav-prev')) {
+                        customSlider.appendChild(fallback.querySelector('.slider-nav-prev').cloneNode(true));
+                    }
+                    if (fallback.querySelector('.slider-nav-next')) {
+                        customSlider.appendChild(fallback.querySelector('.slider-nav-next').cloneNode(true));
+                    }
+                    if (fallback.querySelector('.slider-pagination')) {
+                        customSlider.appendChild(fallback.querySelector('.slider-pagination').cloneNode(true));
+                    }
+                    fallback.replaceWith(customSlider);
+                    customSlider.#attrs = fallbackAttrs;
+                    customSlider.#childElements = tempChildElements;
+                    customSlider.isInitialized = true;
+                    customSlider.isVisible = true;
+                    customSlider.#setupSlider();
+                    this.#log('Fallback initialization completed, created new CustomSlider instance', { elementId: this.#uniqueId });
+                }
             }
         }
     }
@@ -476,24 +538,6 @@ class CustomSlider extends HTMLElement {
 
         if (this.hasAttribute('draggable')) {
             sliderContainer.setAttribute('draggable', '');
-        }
-        if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
-            sliderContainer.setAttribute('cross-fade', '');
-            const displayIndex = this.#currentIndex % this.#originalLength;
-            this.#slides.forEach((slide, index) => {
-                const isActive = index === displayIndex;
-                slide.style.opacity = isActive ? '1' : '0';
-                if (isActive) slide.classList.add('active');
-            });
-        }
-        if (this.#attrs.gap && this.#attrs.gap !== '0' && (!this.#attrs.crossFade || this.#attrs.slidesPerView !== 1)) {
-            wrapper.style.setProperty('--slider-gap', this.#attrs.gap);
-            sliderContainer.setAttribute('gap', '');
-        }
-
-        wrapper.style.setProperty('--slider-columns', `repeat(${this.#slides.length}, ${100 / this.#attrs.slidesPerView}%)`);
-
-        if (this.hasAttribute('draggable')) {
             wrapper.addEventListener('pointerdown', this.#pointerDown.bind(this));
             wrapper.addEventListener('pointerup', this.#pointerUp.bind(this));
             wrapper.addEventListener('pointercancel', this.#pointerCancel.bind(this));
@@ -937,7 +981,7 @@ class CustomSlider extends HTMLElement {
 
     async render(attrs) {
         this.#log('Rendering started', { elementId: this.#uniqueId, childElementsCount: this.#childElements.length });
-        const sliderWrapper = document.createElement('div');
+        const sliderWrapper = document.createElement('custom-slider');
         sliderWrapper.id = this.#uniqueId;
         sliderWrapper.className = 'custom-slider';
 
@@ -1159,5 +1203,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (autoplay continuous mode added, infinite-scrolling animation fix, navigation clamping, cross-fade loop, childElements retry)');
+console.log('CustomSlider version: 2025-10-28 (autoplay continuous mode added, infinite-scrolling animation fix, navigation clamping, cross-fade loop, custom-slider replacement fix)');
 export { CustomSlider };
