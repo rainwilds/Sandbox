@@ -23,6 +23,8 @@ class CustomSlider extends HTMLElement {
     #slideWidth = 0;
     #gapPx = 0;
     #debouncedHandleResize = null;
+    #originalLength = 0;
+    #bufferSize = 0;
 
     constructor() {
         super();
@@ -340,6 +342,27 @@ class CustomSlider extends HTMLElement {
             return;
         }
 
+        const originalSlides = this.#slides;
+        this.#originalLength = originalSlides.length;
+        this.#bufferSize = this.#attrs.slidesPerView;
+
+        if (this.#originalLength > this.#bufferSize) {
+            const leftBuffer = originalSlides.slice(-this.#bufferSize).map(slide => slide.cloneNode(true));
+            const rightBuffer = originalSlides.slice(0, this.#bufferSize).map(slide => slide.cloneNode(true));
+
+            const wrapper = sliderContainer.querySelector('.slider-wrapper');
+            wrapper.innerHTML = '';
+            leftBuffer.forEach(slide => wrapper.appendChild(slide));
+            originalSlides.forEach(slide => wrapper.appendChild(slide));
+            rightBuffer.forEach(slide => wrapper.appendChild(slide));
+
+            this.#slides = Array.from(wrapper.querySelectorAll('.slider-slide'));
+        } else {
+            this.#bufferSize = 0;
+        }
+
+        this.#currentIndex = this.#bufferSize;
+
         this.#recalculateDimensions();
 
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
@@ -349,8 +372,8 @@ class CustomSlider extends HTMLElement {
         if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
             sliderContainer.setAttribute('cross-fade', '');
             this.#slides.forEach((slide, index) => {
-                slide.style.opacity = index === 0 ? '1' : '0';
-                if (index === 0) slide.classList.add('active');
+                slide.style.opacity = index === this.#currentIndex ? '1' : '0';
+                if (index === this.#currentIndex) slide.classList.add('active');
             });
         }
         if (this.#attrs.gap && this.#attrs.gap !== '0' && (!this.#attrs.crossFade || this.#attrs.slidesPerView !== 1)) {
@@ -381,6 +404,20 @@ class CustomSlider extends HTMLElement {
             if (prevButton && nextButton) {
                 prevButton.addEventListener('click', () => this.#navigate(-1));
                 nextButton.addEventListener('click', () => this.#navigate(1));
+            }
+        }
+
+        if (this.#attrs.pagination) {
+            const pagination = sliderContainer.querySelector('.slider-pagination');
+            if (pagination) {
+                const dots = pagination.querySelectorAll('span.icon');
+                dots.forEach((dot, index) => {
+                    dot.addEventListener('click', () => {
+                        this.#currentIndex = index + this.#bufferSize;
+                        this.#setPositionByIndex();
+                        this.#updateSlider();
+                    });
+                });
             }
         }
 
@@ -455,15 +492,16 @@ class CustomSlider extends HTMLElement {
         this.#isDragging = false;
         const movedBy = this.#currentTranslate - this.#prevTranslate;
         const threshold = this.#slideWidth / 3;
-        const maxIndex = this.#slides.length - this.#attrs.slidesPerView;
         const oldIndex = this.#currentIndex;
 
-        if (movedBy < -threshold && this.#currentIndex < maxIndex) {
+        if (movedBy < -threshold) {
             this.#currentIndex += 1;
-        } else if (movedBy > threshold && this.#currentIndex > 0) {
+        } else if (movedBy > threshold) {
             this.#currentIndex -= 1;
         }
 
+        this.#setPositionByIndex();
+        this.#adjustForLoop();
         this.#setPositionByIndex();
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         wrapper.classList.remove('dragging');
@@ -534,20 +572,23 @@ class CustomSlider extends HTMLElement {
         });
     }
 
-    #navigate(direction) {
-        const totalSlides = this.#slides.length;
-        const slidesPerView = this.#attrs.slidesPerView;
-        const oldIndex = this.#currentIndex;
-        this.#lastDirection = direction;
-        this.#currentIndex += direction;
-
-        const maxIndex = totalSlides - slidesPerView;
-        if (this.#currentIndex > maxIndex) {
-            this.#currentIndex = 0;
-        } else if (this.#currentIndex < 0) {
-            this.#currentIndex = maxIndex;
+    #adjustForLoop() {
+        const minIndex = this.#bufferSize;
+        const maxIndex = this.#bufferSize + this.#originalLength - this.#attrs.slidesPerView;
+        if (this.#currentIndex < minIndex) {
+            this.#currentIndex += this.#originalLength;
+        } else if (this.#currentIndex > maxIndex) {
+            this.#currentIndex -= this.#originalLength;
         }
+    }
 
+    #navigate(direction) {
+        const oldIndex = this.#currentIndex;
+        this.#currentIndex += direction;
+        this.#setPositionByIndex();
+        this.#adjustForLoop();
+        this.#setPositionByIndex();
+        this.#lastDirection = direction;
         this.#updateSlider();
         this.#log(`[Navigation] currentIndex=${this.#currentIndex}, direction=${direction}, oldIndex=${oldIndex}`, { elementId: this.#uniqueId, expectedActiveDot: this.#currentIndex + 1 });
     }
@@ -590,9 +631,10 @@ class CustomSlider extends HTMLElement {
             if (pagination) {
                 const dots = pagination.querySelectorAll('span.icon');
                 const totalDots = dots.length;
-                const expectedActiveDot = this.#currentIndex + 1;
+                const logicalIndex = this.#currentIndex - this.#bufferSize;
+                const expectedActiveDot = logicalIndex + 1;
                 dots.forEach((dot, index) => {
-                    const isActive = index === this.#currentIndex;
+                    const isActive = index === logicalIndex;
                     dot.innerHTML = isActive ? this.#attrs.paginationIconActive : this.#attrs.paginationIconInactive;
                     const icon = dot.querySelector('i');
                     if (icon) {
@@ -688,7 +730,8 @@ class CustomSlider extends HTMLElement {
                 }
                 dot.addEventListener('click', () => {
                     const oldIndex = this.#currentIndex;
-                    this.#currentIndex = i;
+                    this.#currentIndex = i + this.#bufferSize;
+                    this.#setPositionByIndex();
                     this.#updateSlider();
                     this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, oldIndex=${oldIndex}, clickedDot=${i + 1}`, { elementId: this.#uniqueId, expectedActiveDot: this.#currentIndex + 1 });
                 });

@@ -384,8 +384,6 @@
 
         }
 
-
-
         .background-gradient-2 {
             background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--ff-primary-background-color-dark) 100%);
             transform: scale(1.003);
@@ -396,6 +394,14 @@
             background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--ff-primary-background-color-dark) 100%);
             transform: scale(1.003);
             /* fixes edge blending */
+        }
+
+        .mask-image-top-bottom {
+            mask-image: linear-gradient(to bottom, transparent, var(--color-dark-scale-6) 15%, var(--color-dark-scale-6) 85%, transparent);
+        }
+
+        .mask-image-left-right {
+            mask-image: linear-gradient(to right, transparent, var(--color-dark-scale-6) 15%, var(--color-dark-scale-6) 85%, transparent);
         }
 
         .background-image-noise {
@@ -2030,7 +2036,8 @@ div#products {
     user-select: none;
     touch-action: pan-y;
     will-change: transform;
-    transition: transform 0.5s ease-out; /* Default transition for sliding */
+    transition: transform 0.5s ease-out;
+    /* Default transition for sliding */
 }
 
 /* Draggable cursor styles */
@@ -2040,7 +2047,8 @@ div#products {
 
 .custom-slider[draggable] .slider-wrapper.dragging {
     cursor: grabbing;
-    transition: none; /* Disable transition during drag */
+    transition: none;
+    /* Disable transition during drag */
 }
 
 /* Non-cross-fade styles */
@@ -2049,18 +2057,21 @@ div#products {
     grid-template-rows: 1fr;
     grid-auto-flow: column;
     align-content: center;
-    grid-template-columns: var(--slider-columns); /* Set dynamically in JS */
+    grid-template-columns: var(--slider-columns);
+    /* Set dynamically in JS */
 }
 
 .custom-slider:not([cross-fade])[gap] .slider-wrapper {
-    column-gap: var(--slider-gap); /* Set dynamically in JS */
+    column-gap: var(--slider-gap);
+    /* Set dynamically in JS */
 }
 
 /* Cross-fade styles */
 .custom-slider[cross-fade] .slider-wrapper {
     position: relative;
     overflow: hidden;
-    transition: none; /* No transform transition for cross-fade */
+    transition: none;
+    /* No transform transition for cross-fade */
 }
 
 .custom-slider[cross-fade] .slider-slide {
@@ -2070,7 +2081,8 @@ div#products {
     width: 100%;
     height: 100%;
     opacity: 0;
-    transition: opacity 1s ease-in-out; /* 1-second cross-fade */
+    transition: opacity 1s ease-in-out;
+    /* 1-second cross-fade */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2133,7 +2145,7 @@ div#products {
     display: flex;
     gap: var(--space-tiny);
     font-size: 0.5rem;
-        z-index: 1;
+    z-index: 1;
 
     &>span.icon {
         cursor: pointer;
@@ -2502,4 +2514,3 @@ div#products {
         opacity: 0;
     }
 }
-
