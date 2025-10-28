@@ -1,4 +1,4 @@
-/* global HTMLElement, IntersectionObserver, document, window, console, requestAnimationFrame */
+/* global HTMLElement, IntersectionObserver, MutationObserver, document, window, console, requestAnimationFrame */
 
 'use strict';
 
@@ -28,6 +28,7 @@ class CustomSlider extends HTMLElement {
     #bufferSize = 0;
     #isAnimating = false;
     #lastFrameTime = null;
+    #mutationObserver = null;
 
     constructor() {
         super();
@@ -95,7 +96,7 @@ class CustomSlider extends HTMLElement {
     async getAttributes() {
         let autoplayDelay = 0;
         let autoplayType = 'discrete';
-        let autoplaySpeed = 100; // Default speed for continuous mode (pixels per second)
+        let autoplaySpeed = 100;
         const autoplayAttr = this.getAttribute('autoplay');
         if (this.hasAttribute('autoplay')) {
             if (autoplayAttr === '' || autoplayAttr === null) {
@@ -135,7 +136,7 @@ class CustomSlider extends HTMLElement {
         const slidesPerViewAttr = this.getAttribute('slides-per-view') || '1';
         let slidesPerView = parseInt(slidesPerViewAttr, 10);
         if (isNaN(slidesPerView) || slidesPerView < 1) {
-            this.#warn('Invalid slides-per-view', { value: slidesPerViewAttr, defaultingTo: 1 });
+            this.#warn('Invalid slides-per-view, defaulting to 1', { value: slidesPerViewAttr });
             slidesPerView = 1;
         }
 
@@ -333,7 +334,7 @@ class CustomSlider extends HTMLElement {
         }
 
         this.isInitialized = true;
-        this.#log('Initialization started', { elementId: this.#uniqueId });
+        this.#log('Initialization started', { elementId: this.#uniqueId, childElementsCount: this.#childElements.length });
 
         try {
             const attrs = await this.getAttributes();
@@ -351,9 +352,24 @@ class CustomSlider extends HTMLElement {
                 throw new Error('Render failed to produce a slider element');
             }
 
+            // Store state before replaceWith
+            const tempAttrs = this.#attrs;
+            const tempChildElements = this.#childElements;
+
             this.replaceWith(sliderElement);
-            this.#setupSlider();
-            this.#log('Initialization completed', { elementId: this.#uniqueId });
+
+            // Restore state on new element
+            const newElement = document.getElementById(this.#uniqueId);
+            if (newElement instanceof CustomSlider) {
+                newElement.#attrs = tempAttrs;
+                newElement.#childElements = tempChildElements;
+                newElement.isInitialized = true;
+                newElement.isVisible = true;
+                newElement.#setupSlider();
+                this.#log('Initialization completed, state restored', { elementId: this.#uniqueId });
+            } else {
+                this.#error('Replacement element is not a CustomSlider instance', { elementId: this.#uniqueId });
+            }
         } catch (error) {
             this.#error('Initialization failed', {
                 error: error.message,
@@ -377,10 +393,21 @@ class CustomSlider extends HTMLElement {
                 crossFade: false,
                 infiniteScrolling: false
             };
-            const fallback = await this.render(fallbackAttrs);
             this.#attrs = fallbackAttrs;
+            const fallback = await this.render(fallbackAttrs);
+            const tempChildElements = this.#childElements;
+
             this.replaceWith(fallback);
-            this.#setupSlider();
+
+            const newElement = document.getElementById(this.#uniqueId);
+            if (newElement instanceof CustomSlider) {
+                newElement.#attrs = fallbackAttrs;
+                newElement.#childElements = tempChildElements;
+                newElement.isInitialized = true;
+                newElement.isVisible = true;
+                newElement.#setupSlider();
+                this.#log('Fallback initialization completed', { elementId: this.#uniqueId });
+            }
         }
     }
 
@@ -457,7 +484,7 @@ class CustomSlider extends HTMLElement {
             wrapper.addEventListener('pointerleave', this.#pointerCancel.bind(this));
             wrapper.addEventListener('pointermove', this.#pointerMove.bind(this));
 
-            window.addEventListener('contextmenu', (event) => {
+            window.addEventListener('contextmenu', this.#contextMenuHandler = (event) => {
                 if (event.target.closest('.slider-wrapper')) {
                     event.preventDefault();
                     event.stopPropagation();
@@ -470,21 +497,26 @@ class CustomSlider extends HTMLElement {
             const prevButton = document.getElementById(`${this.#uniqueId}-prev`);
             const nextButton = document.getElementById(`${this.#uniqueId}-next`);
             if (prevButton && nextButton) {
-                prevButton.addEventListener('click', () => this.#navigate(-1));
-                nextButton.addEventListener('click', () => this.#navigate(1));
+                this.#prevClickHandler = () => this.#navigate(-1);
+                this.#nextClickHandler = () => this.#navigate(1);
+                prevButton.addEventListener('click', this.#prevClickHandler);
+                nextButton.addEventListener('click', this.#nextClickHandler);
             }
         }
 
         if (this.#attrs.pagination) {
             const pagination = sliderContainer.querySelector('.slider-pagination');
             if (pagination) {
+                this.#dotClickHandlers = [];
                 const dots = pagination.querySelectorAll('span.icon');
                 dots.forEach((dot, index) => {
-                    dot.addEventListener('click', () => {
+                    const handler = () => {
                         this.#currentIndex = index + (this.#attrs.infiniteScrolling ? this.#bufferSize : 0);
                         this.#setPositionByIndex();
                         this.#updateSlider();
-                    });
+                    };
+                    dot.addEventListener('click', handler);
+                    this.#dotClickHandlers.push({ dot, handler });
                 });
             }
         }
@@ -499,6 +531,7 @@ class CustomSlider extends HTMLElement {
         window.addEventListener('resize', this.#debouncedHandleResize);
 
         this.#updateSlider();
+        this.#log('Slider setup completed', { elementId: this.#uniqueId });
     }
 
     #debounce(func, wait) {
@@ -515,7 +548,7 @@ class CustomSlider extends HTMLElement {
 
     #recalculateDimensions() {
         const sliderContainer = document.getElementById(this.#uniqueId);
-        if (sliderContainer && this.#slides.length > 0) {
+        if (sliderContainer && this.#slides.length > 0 && this.#attrs) {
             this.#slideWidth = sliderContainer.clientWidth / this.#attrs.slidesPerView;
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             this.#gapPx = parseFloat(window.getComputedStyle(wrapper).columnGap) || 0;
@@ -529,7 +562,7 @@ class CustomSlider extends HTMLElement {
     }
 
     #pointerDown(event) {
-        if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
+        if (!this.#attrs || (this.#attrs.crossFade && this.#attrs.slidesPerView === 1)) {
             return;
         }
         if (event.pointerType === 'touch' || event.pointerType === 'mouse') {
@@ -629,17 +662,18 @@ class CustomSlider extends HTMLElement {
     }
 
     #animation() {
-        if (!this.#attrs.crossFade && this.#isDragging) {
+        if (!this.#attrs || !this.#attrs.crossFade && this.#isDragging) {
             this.#setSliderPosition('0s');
             this.#animationID = requestAnimationFrame(this.#animation.bind(this));
         }
     }
 
     #setSliderPosition(transitionDuration = '0.3s') {
-        if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
+        if (!this.#attrs || (this.#attrs.crossFade && this.#attrs.slidesPerView === 1)) {
             return;
         }
-        const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
+        const wrapper = document.getElementById(this.#uniqueId)?.querySelector('.slider-wrapper');
+        if (!wrapper) return;
         wrapper.style.transition = `transform ${transitionDuration}`;
         wrapper.style.transform = `translate3d(${this.#currentTranslate}px, 0, 0)`;
         this.#log('Slider position set', {
@@ -650,13 +684,17 @@ class CustomSlider extends HTMLElement {
     }
 
     #animateLoop(tempTranslate, targetIndex, direction) {
-        if (!this.#attrs.infiniteScrolling || this.#attrs.crossFade) {
+        if (!this.#attrs || !this.#attrs.infiniteScrolling || this.#attrs.crossFade) {
             this.#setPositionByIndex();
             return;
         }
 
         this.#isAnimating = true;
-        const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
+        const wrapper = document.getElementById(this.#uniqueId)?.querySelector('.slider-wrapper');
+        if (!wrapper) {
+            this.#isAnimating = false;
+            return;
+        }
 
         wrapper.style.transition = 'transform 0.3s';
         wrapper.style.transform = `translate3d(${tempTranslate}px, 0, 0)`;
@@ -676,6 +714,7 @@ class CustomSlider extends HTMLElement {
     }
 
     #setPositionByIndex() {
+        if (!this.#attrs) return;
         if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
             this.#updateSlider();
         } else {
@@ -687,21 +726,21 @@ class CustomSlider extends HTMLElement {
 
     #startContinuousAutoplay(speed) {
         this.#stopAutoplay();
-        if (!this.#attrs.infiniteScrolling || this.#attrs.crossFade) {
+        if (!this.#attrs || !this.#attrs.infiniteScrolling || this.#attrs.crossFade) {
             this.#log('Continuous autoplay requires infinite-scrolling and non-cross-fade mode, falling back to discrete', { elementId: this.#uniqueId });
             this.#startAutoplay(3000);
             return;
         }
 
         const totalWidth = this.#originalLength * (this.#slideWidth + this.#gapPx);
-        const pixelsPerFrame = speed / 60; // Assuming 60 FPS for smooth animation
+        const pixelsPerFrame = speed / 60;
 
         const animate = (timestamp) => {
             if (!this.#lastFrameTime) this.#lastFrameTime = timestamp;
-            const deltaTime = (timestamp - this.#lastFrameTime) / 1000; // Time in seconds
+            const deltaTime = (timestamp - this.#lastFrameTime) / 1000;
             this.#lastFrameTime = timestamp;
 
-            this.#currentTranslate -= pixelsPerFrame * deltaTime * 60; // Move left
+            this.#currentTranslate -= pixelsPerFrame * deltaTime * 60;
             const maxTranslate = this.#calculateTranslateForIndex(this.#bufferSize + this.#originalLength - this.#attrs.slidesPerView);
             const minTranslate = this.#calculateTranslateForIndex(this.#bufferSize);
 
@@ -725,6 +764,7 @@ class CustomSlider extends HTMLElement {
     }
 
     #calculateTranslate() {
+        if (!this.#attrs) return 0;
         const addition = (this.#attrs.slidesPerView - 1) / 2;
         const translate = -this.#currentIndex * this.#slideWidth - (this.#currentIndex + addition) * this.#gapPx;
         this.#log('Translate calculated', {
@@ -737,6 +777,7 @@ class CustomSlider extends HTMLElement {
     }
 
     #calculateTranslateForIndex(index) {
+        if (!this.#attrs) return 0;
         const addition = (this.#attrs.slidesPerView - 1) / 2;
         const translate = -index * this.#slideWidth - (index + addition) * this.#gapPx;
         this.#log('Translate for index calculated', {
@@ -758,7 +799,7 @@ class CustomSlider extends HTMLElement {
     }
 
     #adjustForLoop() {
-        if (!this.#attrs.infiniteScrolling) return;
+        if (!this.#attrs || !this.#attrs.infiniteScrolling) return;
 
         const minIndex = this.#bufferSize;
         const maxIndex = this.#bufferSize + this.#originalLength - this.#attrs.slidesPerView;
@@ -771,7 +812,7 @@ class CustomSlider extends HTMLElement {
     }
 
     #navigate(direction) {
-        if (this.#isAnimating) return;
+        if (this.#isAnimating || !this.#attrs) return;
 
         const oldIndex = this.#currentIndex;
         const newIndex = this.#currentIndex + direction;
@@ -781,13 +822,11 @@ class CustomSlider extends HTMLElement {
             const maxIndex = this.#bufferSize + this.#originalLength - this.#attrs.slidesPerView;
 
             if (newIndex > maxIndex) {
-                // Next: animate right to left
                 const tempTranslate = this.#calculateTranslateForIndex(this.#currentIndex + direction);
                 const targetIndex = newIndex - this.#originalLength;
                 this.#animateLoop(tempTranslate, targetIndex, 1);
                 return;
             } else if (newIndex < minIndex) {
-                // Prev: animate left to right
                 const tempTranslate = this.#calculateTranslateForIndex(this.#currentIndex + direction);
                 const targetIndex = newIndex + this.#originalLength;
                 this.#animateLoop(tempTranslate, targetIndex, -1);
@@ -834,6 +873,7 @@ class CustomSlider extends HTMLElement {
     }
 
     #updateSlider() {
+        if (!this.#attrs) return;
         const sliderContainer = document.getElementById(this.#uniqueId);
         if (!sliderContainer) return;
 
@@ -887,7 +927,7 @@ class CustomSlider extends HTMLElement {
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
         if (!attrs.crossFade || attrs.slidesPerView !== 1) {
-            innerWrapper.style.setProperty('--slider-columns', `repeat(${this.#childElements.length}, ${100 / attrs.slidesPerView}%)`);
+            innerWrapper.style.setProperty('--slider-columns', `repeat(${this.#childElements.length || 1}, ${100 / attrs.slidesPerView}%)`);
             if (attrs.gap && attrs.gap !== '0') {
                 innerWrapper.style.setProperty('--slider-gap', attrs.gap);
                 sliderWrapper.setAttribute('gap', '');
@@ -977,17 +1017,30 @@ class CustomSlider extends HTMLElement {
     }
 
     async connectedCallback() {
-        this.#childElements = Array.from(this.children)
-            .filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block'))
-            .map(child => child.cloneNode(true));
-        this.#log('Connected, child elements captured', { childElementsCount: this.#childElements.length, elementId: this.#uniqueId });
+        // Use MutationObserver to wait for children to be ready
+        this.#mutationObserver = new MutationObserver((mutations, observer) => {
+            this.#childElements = Array.from(this.children)
+                .filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block'))
+                .map(child => child.cloneNode(true));
+            this.#log('Connected, child elements captured', { childElementsCount: this.#childElements.length, elementId: this.#uniqueId });
 
-        if (this.isVisible && this.#childElements.length > 0) {
-            await this.initialize();
-        }
+            if (this.isVisible && this.#childElements.length > 0) {
+                observer.disconnect();
+                this.#mutationObserver = null;
+                this.initialize();
+            }
+        });
+
+        this.#mutationObserver.observe(this, { childList: true });
+        this.#log('MutationObserver set up', { elementId: this.#uniqueId });
     }
 
     disconnectedCallback() {
+        if (this.#mutationObserver) {
+            this.#mutationObserver.disconnect();
+            this.#mutationObserver = null;
+            this.#log('MutationObserver disconnected', { elementId: this.#uniqueId });
+        }
         this.#stopAutoplay();
         if (this.#animationID) {
             cancelAnimationFrame(this.#animationID);
@@ -1012,27 +1065,36 @@ class CustomSlider extends HTMLElement {
             wrapper.removeEventListener('pointercancel', this.#pointerCancel);
             wrapper.removeEventListener('pointerleave', this.#pointerCancel);
             wrapper.removeEventListener('pointermove', this.#pointerMove);
+            if (this.#contextMenuHandler) {
+                window.removeEventListener('contextmenu', this.#contextMenuHandler);
+                this.#contextMenuHandler = null;
+            }
             this.#log('Pointer event listeners removed in disconnectedCallback', { elementId: this.#uniqueId });
         }
 
         const prevButton = document.getElementById(`${this.#uniqueId}-prev`);
         const nextButton = document.getElementById(`${this.#uniqueId}-next`);
-        if (prevButton) prevButton.removeEventListener('click', this.#navigate);
-        if (nextButton) nextButton.removeEventListener('click', this.#navigate);
+        if (prevButton && this.#prevClickHandler) {
+            prevButton.removeEventListener('click', this.#prevClickHandler);
+            this.#prevClickHandler = null;
+        }
+        if (nextButton && this.#nextClickHandler) {
+            nextButton.removeEventListener('click', this.#nextClickHandler);
+            this.#nextClickHandler = null;
+        }
         this.#log('Navigation button listeners removed in disconnectedCallback', { elementId: this.#uniqueId });
 
         const pagination = document.getElementById(this.#uniqueId)?.querySelector('.slider-pagination');
-        if (pagination) {
-            const dots = pagination.querySelectorAll('span.icon');
-            dots.forEach((dot) => {
-                dot.removeEventListener('click', this.#navigate);
+        if (pagination && this.#dotClickHandlers) {
+            this.#dotClickHandlers.forEach(({ dot, handler }) => {
+                dot.removeEventListener('click', handler);
             });
+            this.#dotClickHandlers = null;
             this.#log('Pagination dot listeners removed in disconnectedCallback', { elementId: this.#uniqueId });
         }
 
-        this.#childElements = [];
+        // Do not clear attrs or childElements here to preserve state for replaceWith
         this.#slides = [];
-        this.#attrs = null;
         this.isInitialized = false;
         this.isVisible = false;
         this.#log('Resources cleaned up in disconnectedCallback', { elementId: this.#uniqueId });
@@ -1071,5 +1133,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (autoplay continuous mode added, infinite-scrolling animation fix, navigation clamping, cross-fade loop, null attrs fix)');
+console.log('CustomSlider version: 2025-10-28 (autoplay continuous mode added, infinite-scrolling animation fix, navigation clamping, cross-fade loop, replaceWith fix)');
 export { CustomSlider };
