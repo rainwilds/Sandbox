@@ -610,7 +610,25 @@ class CustomSlider extends HTMLElement {
                 this.#warn('Failed to release pointer capture', { error: e.message });
             }
         }
-        this.#setPositionByIndex();
+        // Update index for pagination but preserve translate for continuous mode
+        if (this.#attrs.autoplayType === 'continuous') {
+            const slideWidthTotal = this.#slideWidth + this.#gapPx;
+            this.#currentIndex = Math.round((-this.#currentTranslate - (this.#attrs.slidesPerView - 1) / 2 * this.#gapPx) / slideWidthTotal);
+            if (this.#attrs.infiniteScrolling) {
+                this.#adjustForLoop();
+            } else {
+                this.#currentIndex = Math.max(0, Math.min(this.#currentIndex, this.#originalLength - this.#attrs.slidesPerView));
+            }
+            this.#setSliderPosition('0s');
+            this.#log('Pointer cancel in continuous mode', {
+                elementId: this.#uniqueId,
+                currentTranslate: this.#currentTranslate,
+                currentIndex: this.#currentIndex
+            });
+        } else {
+            this.#setPositionByIndex();
+        }
+        this.#updateSlider();
         if (this.#attrs.autoplayType !== 'none') {
             this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
         }
@@ -636,7 +654,7 @@ class CustomSlider extends HTMLElement {
                 this.#currentIndex -= 1;
             }
 
-            if (this.#attrs.infiniteScrolling) {
+            if (this.#attrs.infiniteScrolling && this.#attrs.autoplayType !== 'continuous') {
                 const minIndex = this.#bufferSize;
                 const maxIndex = this.#bufferSize + this.#originalLength - this.#attrs.slidesPerView;
                 if (this.#currentIndex > maxIndex) {
@@ -655,7 +673,6 @@ class CustomSlider extends HTMLElement {
             }
         }
 
-        this.#setPositionByIndex();
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         wrapper.classList.remove('dragging');
         if (event.target.releasePointerCapture) {
@@ -665,6 +682,27 @@ class CustomSlider extends HTMLElement {
                 this.#warn('Failed to release pointer capture', { error: e.message });
             }
         }
+
+        // For continuous mode, update index for pagination but preserve translate
+        if (this.#attrs.autoplayType === 'continuous') {
+            const slideWidthTotal = this.#slideWidth + this.#gapPx;
+            this.#currentIndex = Math.round((-this.#currentTranslate - (this.#attrs.slidesPerView - 1) / 2 * this.#gapPx) / slideWidthTotal);
+            if (this.#attrs.infiniteScrolling) {
+                this.#adjustForLoop();
+            } else {
+                this.#currentIndex = Math.max(0, Math.min(this.#currentIndex, this.#originalLength - this.#attrs.slidesPerView));
+            }
+            this.#setSliderPosition('0s');
+            this.#log('Drag end in continuous mode', {
+                elementId: this.#uniqueId,
+                currentTranslate: this.#currentTranslate,
+                currentIndex: this.#currentIndex,
+                movedBy: movedBy
+            });
+        } else {
+            this.#setPositionByIndex();
+        }
+
         this.#updateSlider();
         if (this.#attrs.autoplayType !== 'none') {
             this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
@@ -763,12 +801,7 @@ class CustomSlider extends HTMLElement {
 
         wrapper.style.transition = 'transform 0.3s';
         wrapper.style.transform = `translate3d(${tempTranslate}px, 0, 0)`;
-        this.#log('Animating loop', {
-            tempTranslate,
-            currentIndex: this.#currentIndex,
-            targetIndex,
-            direction
-        });
+        this.#log('Animating loop', { tempTranslate, currentIndex: this.#currentIndex, targetIndex, direction });
 
         setTimeout(() => {
             this.#currentIndex = targetIndex;
@@ -895,7 +928,10 @@ class CustomSlider extends HTMLElement {
             this.#continuousSpeed = continuousSpeed;
             this.#lastFrameTime = performance.now();
             this.#continuousAnimationId = requestAnimationFrame(this.#continuousScroll.bind(this));
-            this.#log(`Started continuous autoplay with speed ${continuousSpeed}px/s`, { elementId: this.#uniqueId });
+            this.#log(`Started continuous autoplay with speed ${continuousSpeed}px/s`, {
+                elementId: this.#uniqueId,
+                currentTranslate: this.#currentTranslate
+            });
         }
     }
 
@@ -1127,5 +1163,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop)');
+console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop and drag resumption)');
 export { CustomSlider };
