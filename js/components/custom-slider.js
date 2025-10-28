@@ -983,16 +983,20 @@ class CustomSlider extends HTMLElement {
                 const dots = pagination.querySelectorAll('span.icon');
                 let logicalIndex;
                 if (this.#attrs.autoplayType === 'continuous') {
+                    // Calculate index from translate position
                     const slideWidthTotal = this.#slideWidth + this.#gapPx;
-                    logicalIndex = Math.round((-this.#currentTranslate - (this.#attrs.slidesPerView - 1) / 2 * this.#gapPx) / slideWidthTotal);
+                    const rawIndex = Math.round((-this.#currentTranslate - (this.#attrs.slidesPerView - 1) / 2 * this.#gapPx) / slideWidthTotal);
                     logicalIndex = this.#attrs.infiniteScrolling
-                        ? Math.max(0, Math.min(logicalIndex - this.#bufferSize, this.#originalLength - this.#attrs.slidesPerView))
-                        : Math.max(0, Math.min(logicalIndex, this.#originalLength - this.#attrs.slidesPerView));
+                        ? (rawIndex - this.#bufferSize + this.#originalLength) % this.#originalLength
+                        : Math.max(0, Math.min(rawIndex, this.#originalLength - this.#attrs.slidesPerView));
                 } else {
                     logicalIndex = this.#attrs.infiniteScrolling
-                        ? Math.max(0, Math.min((this.#currentIndex - this.#bufferSize), this.#originalLength - this.#attrs.slidesPerView))
-                        : this.#currentIndex;
+                        ? (this.#currentIndex - this.#bufferSize + this.#originalLength) % this.#originalLength
+                        : Math.max(0, Math.min(this.#currentIndex, this.#originalLength - this.#attrs.slidesPerView));
                 }
+
+                // Ensure logicalIndex is within pagination range
+                logicalIndex = Math.max(0, Math.min(logicalIndex, this.#originalLength - this.#attrs.slidesPerView));
 
                 dots.forEach((dot, index) => {
                     const isActive = index === logicalIndex;
@@ -1002,7 +1006,10 @@ class CustomSlider extends HTMLElement {
                         icon.style.fontSize = isActive ? this.#attrs.paginationIconSizeActive : this.#attrs.paginationIconSizeInactive;
                     }
                 });
-                this.#log(`[Pagination Updated] currentIndex=${this.#currentIndex}, logicalIndex=${logicalIndex}`, { elementId: this.#uniqueId });
+                this.#log(`[Pagination Updated] currentIndex=${this.#currentIndex}, logicalIndex=${logicalIndex}, translate=${this.#currentTranslate}`, {
+                    elementId: this.#uniqueId,
+                    rawIndex: this.#attrs.autoplayType === 'continuous' ? Math.round((-this.#currentTranslate - (this.#attrs.slidesPerView - 1) / 2 * this.#gapPx) / (this.#slideWidth + this.#gapPx)) : null
+                });
             }
         }
 
@@ -1163,5 +1170,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop and drag resumption)');
+console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, and pagination fix)');
 export { CustomSlider };
