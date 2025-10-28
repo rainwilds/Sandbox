@@ -127,6 +127,9 @@ class CustomFilter extends HTMLElement {
     if (buttonStyle) allButton.setAttribute('style', buttonStyle);
     allButton.addEventListener('click', () => {
       this.activeFilters.clear();
+      Array.from(controlsContainer.querySelectorAll('button')).forEach(btn => 
+        btn.removeAttribute('aria-pressed')
+      );
       this.applyFilters();
       this.#log('Reset filters to show all', { elementId: this.id || 'no-id' });
     });
@@ -154,7 +157,7 @@ class CustomFilter extends HTMLElement {
 
     filterContainer.appendChild(controlsContainer);
 
-    // Move existing children (custom-block) to the new container
+    // Move existing children to the new container
     Array.from(this.children).forEach(child => filterContainer.appendChild(child));
 
     // Add ARIA live region
@@ -173,18 +176,9 @@ class CustomFilter extends HTMLElement {
 
   getUniqueFilterValues(filterType) {
     const values = new Set();
-    const children = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block');
+    const children = Array.from(this.children).filter(child => child.hasAttribute(`data-${filterType}`));
     children.forEach(child => {
-      let value;
-      if (filterType === 'tags') {
-        value = child.getAttribute('data-tags')?.split(',').map(v => v.trim());
-      } else if (filterType === 'category') {
-        value = child.getAttribute('data-category')?.split(',').map(v => v.trim());
-      } else if (filterType === 'snipcart-price') {
-        value = child.getAttribute('data-snipcart-price')?.split(',').map(v => v.trim());
-      } else {
-        value = child.getAttribute(`data-${filterType}`)?.split(',').map(v => v.trim());
-      }
+      const value = child.getAttribute(`data-${filterType}`)?.split(',').map(v => v.trim());
       if (value) {
         value.forEach(v => values.add(v));
       }
@@ -195,17 +189,12 @@ class CustomFilter extends HTMLElement {
   applyFilters() {
     const container = document.getElementById(`filter-${this.id || this.querySelector('.custom-filter')?.id}`);
     const children = container
-      ? Array.from(container.children).filter(child => child.classList.contains('block'))
-      : Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block');
+      ? Array.from(container.children).filter(child => child.hasAttribute(`data-${this.getAttribute('filter-type') || 'tags'}`))
+      : Array.from(this.children).filter(child => child.hasAttribute(`data-${this.getAttribute('filter-type') || 'tags'}`));
     this.#log('Applying filters', { activeFilters: [...this.activeFilters], childCount: children.length });
 
     children.forEach(child => {
-      const tags = child.getAttribute('data-tags')?.split(',').map(v => v.trim()) || [];
-      const category = child.getAttribute('data-category')?.split(',').map(v => v.trim()) || [];
-      const price = child.getAttribute('data-snipcart-price')?.split(',').map(v => v.trim()) || [];
-      const filterType = this.getAttribute('filter-type') || 'tags';
-      const values = filterType === 'tags' ? tags : filterType === 'category' ? category : filterType === 'snipcart-price' ? price : child.getAttribute(`data-${filterType}`)?.split(',').map(v => v.trim()) || [];
-
+      const values = child.getAttribute(`data-${this.getAttribute('filter-type') || 'tags'}`)?.split(',').map(v => v.trim()) || [];
       const isVisible = this.activeFilters.size === 0 || values.some(value => this.activeFilters.has(value));
       child.style.display = isVisible ? '' : 'none';
       this.#childrenCache.set(child, isVisible);
