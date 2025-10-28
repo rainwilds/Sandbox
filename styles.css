@@ -2191,6 +2191,98 @@ div#products {
 
 
 
+
+
+
+
+
+
+@layer components {
+  .frosted-glass {
+    --thickness: 4px; /* Match Josh's edge thickness */
+    position: sticky;
+    top: 0;
+    /* Fallback for unsupported browsers */
+    background: light-dark(
+      hsl(0deg 0% 100% / 0.95), /* Matches Josh's fallback */
+      hsl(0deg 0% 0% / 0.95)
+    );
+    /* Support for backdrop-filter */
+    @supports (backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px)) {
+      background: light-dark(
+        hsl(0deg 0% 100% / 0.5), /* Matches Josh's opacity */
+        hsl(0deg 0% 0% / 0.5)
+      );
+    }
+  }
+  .frosted-glass .backdrop {
+    position: absolute;
+    inset: 0;
+    -webkit-backdrop-filter: blur(16px); /* Matches Josh's blur */
+    backdrop-filter: blur(16px);
+    background: light-dark(
+      linear-gradient(to bottom, hsl(0deg 0% 95%), transparent 50%),
+      linear-gradient(to bottom, hsl(0deg 0% 10%), transparent 50%)
+    );
+    pointer-events: none;
+    /* Support for mask-image */
+    @supports (mask-image: none) or (-webkit-mask-image: none) {
+      height: 200%;
+      -webkit-mask-image: linear-gradient(
+        to bottom,
+        black 0% 50%,
+        transparent 50% 100%
+      );
+      mask-image: linear-gradient(
+        to bottom,
+        black 0% 50%,
+        transparent 50% 100%
+      );
+    }
+  }
+  .frosted-glass .backdrop-edge {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--thickness);
+    background: light-dark(
+      hsl(0deg 0% 100% / 0.1), /* Matches Josh's edge */
+      hsl(0deg 0% 0% / 0.1)
+    );
+    -webkit-backdrop-filter: blur(12px) brightness(0.96); /* Matches Josh's edge */
+    backdrop-filter: blur(12px) brightness(0.96);
+    transform: translateY(100%);
+    pointer-events: none;
+    /* Support for mask-image */
+    @supports (mask-image: none) or (-webkit-mask-image: none) {
+      height: 100%;
+      inset: 0;
+      -webkit-mask-image: linear-gradient(
+        to bottom,
+        black 0,
+        black var(--thickness),
+        transparent var(--thickness)
+      );
+      mask-image: linear-gradient(
+        to bottom,
+        black 0,
+        black var(--thickness),
+        transparent var(--thickness)
+      );
+    }
+  }
+}
+
+
+
+
+
+
+
+
+
+
 /* Light theme animated gradients */
 .light-gradient-1 {
     background: linear-gradient(135deg, var(--color-light-scale-1) 0%, var(--color-light-scale-2) 30%, var(--color-light-scale-3) 60%, var(--color-light-scale-4) 100%);
