@@ -16,6 +16,7 @@ class CustomSlider extends HTMLElement {
     #lastDirection = 0;
     #attrs = null;
     #isDragging = false;
+    #isHovering = false; // New property to track hover state
     #startPos = 0;
     #currentTranslate = 0;
     #prevTranslate = 0;
@@ -487,6 +488,20 @@ class CustomSlider extends HTMLElement {
             });
         }
 
+        // Add hover event listeners for pause/resume
+        sliderContainer.addEventListener('mouseenter', () => {
+            this.#isHovering = true;
+            this.#stopAutoplay();
+            this.#log('Autoplay paused due to hover', { elementId: this.#uniqueId });
+        });
+        sliderContainer.addEventListener('mouseleave', () => {
+            this.#isHovering = false;
+            if (this.#attrs.autoplayType !== 'none') {
+                this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
+                this.#log('Autoplay resumed after hover', { elementId: this.#uniqueId });
+            }
+        });
+
         if (this.#attrs.navigation) {
             const prevButton = document.getElementById(`${this.#uniqueId}-prev`);
             const nextButton = document.getElementById(`${this.#uniqueId}-next`);
@@ -494,14 +509,14 @@ class CustomSlider extends HTMLElement {
                 prevButton.addEventListener('click', () => {
                     this.#stopAutoplay();
                     this.#navigate(-1);
-                    if (this.#attrs.autoplayType !== 'none') {
+                    if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
                         this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
                     }
                 });
                 nextButton.addEventListener('click', () => {
                     this.#stopAutoplay();
                     this.#navigate(1);
-                    if (this.#attrs.autoplayType !== 'none') {
+                    if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
                         this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
                     }
                 });
@@ -522,7 +537,7 @@ class CustomSlider extends HTMLElement {
                         }
                         this.#setPositionByIndex();
                         this.#updateSlider();
-                        if (this.#attrs.autoplayType !== 'none') {
+                        if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
                             this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
                         }
                     });
@@ -530,7 +545,7 @@ class CustomSlider extends HTMLElement {
             }
         }
 
-        if (this.#attrs.autoplayType !== 'none') {
+        if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
             this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
         }
 
@@ -631,7 +646,7 @@ class CustomSlider extends HTMLElement {
             this.#setPositionByIndex();
         }
         this.#updateSlider();
-        if (this.#attrs.autoplayType !== 'none') {
+        if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
             this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
         }
         this.#log('Pointer cancelled or left', { elementId: this.#uniqueId });
@@ -706,7 +721,7 @@ class CustomSlider extends HTMLElement {
         }
 
         this.#updateSlider();
-        if (this.#attrs.autoplayType !== 'none') {
+        if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
             this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
         }
         this.#log(`[Drag End] currentIndex=${this.#currentIndex}, oldIndex=${oldIndex}, movedBy=${movedBy}px`, { elementId: this.#uniqueId });
@@ -724,7 +739,7 @@ class CustomSlider extends HTMLElement {
             return;
         }
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
-        wrapper.style.transition = this.#attrs.autoplayType === 'continuous' && !this.#isDragging ? 'none' : `transform ${transitionDuration}`;
+        wrapper.style.transition = this.#attrs.autoplayType === 'continuous' && !this.#isDragging && !this.#isHovering ? 'none' : `transform ${transitionDuration}`;
         wrapper.style.transform = `translate3d(${this.#currentTranslate}px, 0, 0)`;
         this.#log('Slider position set', {
             translate: this.#currentTranslate,
@@ -734,7 +749,7 @@ class CustomSlider extends HTMLElement {
     }
 
     #continuousScroll(timestamp) {
-        if (!this.#continuousSpeed || this.#isDragging || this.#isAnimating) {
+        if (!this.#continuousSpeed || this.#isDragging || this.#isAnimating || this.#isHovering) {
             this.#continuousAnimationId = requestAnimationFrame(this.#continuousScroll.bind(this));
             return;
         }
@@ -921,9 +936,16 @@ class CustomSlider extends HTMLElement {
     #startAutoplay(autoplayType, autoplayDelay, continuousSpeed) {
         this.#stopAutoplay();
 
+        if (this.#isHovering) {
+            this.#log('Autoplay start skipped due to hover', { elementId: this.#uniqueId });
+            return;
+        }
+
         if (autoplayType === 'interval' && autoplayDelay > 0) {
             this.#autoplayInterval = setInterval(() => {
-                this.#navigate(1);
+                if (!this.#isHovering) {
+                    this.#navigate(1);
+                }
             }, autoplayDelay);
             this.#log(`Started interval autoplay with delay ${autoplayDelay}ms`, { elementId: this.#uniqueId });
         } else if (autoplayType === 'continuous' && continuousSpeed > 0 && !this.#attrs.crossFade) {
@@ -1135,7 +1157,9 @@ class CustomSlider extends HTMLElement {
                     }
                     this.#setPositionByIndex();
                     this.#updateSlider();
-                    this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${i + 1}`, { elementId: this.#uniqueId });
+                    if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
+                        this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
+                    }
                 });
                 pagination.appendChild(dot);
             }
@@ -1206,5 +1230,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, and extra pagination dots for infinite scrolling)');
+console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, and pause-on-hover feature)');
 export { CustomSlider };
