@@ -13,7 +13,7 @@
 
     <script src="js/generators/head-generator.js" type="module"></script>
 
-    <data-custom-head data-components="custom-block custom-header custom-logo custom-nav custom-slider"
+    <data-custom-head data-components="custom-block custom-header custom-logo custom-nav custom-slider custom-filter"
         data-title="Header 1" data-description="Custom header web component."
         data-canonical="https://rainwilds.github.io/Sandbox/header-1.html">
     </data-custom-head>
@@ -506,6 +506,106 @@
         </div>     
 
         </section>
+
+      
+
+  <!-- Gallery Example -->
+  <section>
+    <h2>Gallery Filter</h2>
+    <custom-filter filter-type="tags" filter-alignment="center" button-class="btn">
+      <custom-block
+        data-tags="nature,landscape"
+        heading="Nature Scene"
+        heading-tag="h3"
+        img-background-src="tourism-photography-light-1.jpg"
+        img-background-alt="Nature landscape background"
+        img-background-position="center"
+        text-alignment="center"
+        inner-alignment="center"
+        inner-class="padding-medium"
+      ></custom-block>
+      <custom-block
+        data-tags="urban,city"
+        heading="Cityscape"
+        heading-tag="h3"
+        img-background-src="tourism-photography-dark-1.jpg"
+        img-background-alt="Cityscape background"
+        img-background-position="center"
+        text-alignment="center"
+        inner-alignment="center"
+        inner-class="padding-medium"
+      ></custom-block>
+      <custom-block
+        data-tags="nature,forest"
+        heading="Forest View"
+        heading-tag="h3"
+        img-background-src="tourism-photography-light-2.jpg"
+        img-background-alt="Forest background"
+        img-background-position="center"
+        text-alignment="center"
+        inner-alignment="center"
+        inner-class="padding-medium"
+      ></custom-block>
+    </custom-filter>
+  </section>
+
+  <!-- Snipcart Product Example -->
+  <section>
+    <h2>Product Filter</h2>
+    <custom-filter filter-type="snipcart-price" filter-alignment="left" button-class="btn" button-style="background-color: #f0f0f0; padding: 0.5rem 1rem;">
+      <custom-block
+        data-snipcart-price="under-50"
+        data-snipcart="true"
+        data-item-id="prod1"
+        data-item-price="29.99"
+        data-item-url="/products/prod1"
+        data-item-description="Affordable Widget"
+        heading="Affordable Widget"
+        heading-tag="h3"
+        img-background-src="product1.jpg"
+        img-background-alt="Product 1 image"
+        text-alignment="center"
+        inner-alignment="center"
+        inner-class="padding-medium"
+        button-text="Add to Cart"
+        button-class="snipcart-add-item"
+      ></custom-block>
+      <custom-block
+        data-snipcart-price="50-100"
+        data-snipcart="true"
+        data-item-id="prod2"
+        data-item-price="79.99"
+        data-item-url="/products/prod2"
+        data-item-description="Premium Gadget"
+        heading="Premium Gadget"
+        heading-tag="h3"
+        img-background-src="product2.jpg"
+        img-background-alt="Product 2 image"
+        text-alignment="center"
+        inner-alignment="center"
+        inner-class="padding-medium"
+        button-text="Add to Cart"
+        button-class="snipcart-add-item"
+      ></custom-block>
+      <custom-block
+        data-snipcart-price="over-100"
+        data-snipcart="true"
+        data-item-id="prod3"
+        data-item-price="149.99"
+        data-item-url="/products/prod3"
+        data-item-description="Luxury Item"
+        heading="Luxury Item"
+        heading-tag="h3"
+        img-background-src="product3.jpg"
+        img-background-alt="Product 3 image"
+        text-alignment="center"
+        inner-alignment="center"
+        inner-class="padding-medium"
+        button-text="Add to Cart"
+        button-class="snipcart-add-item"
+      ></custom-block>
+    </custom-filter>
+  </section>
 
     </main>
 
