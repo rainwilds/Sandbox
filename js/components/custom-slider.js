@@ -102,16 +102,13 @@ class CustomSlider extends HTMLElement {
         const autoplayAttr = this.getAttribute('autoplay');
         if (this.hasAttribute('autoplay')) {
             if (autoplayAttr === '' || autoplayAttr === null) {
-                // Case 1: Simple autoplay (default 3s)
                 autoplayType = 'interval';
                 autoplayDelay = 3000;
                 this.#log('Autoplay: Simple autoplay, defaulting to 3s', { elementId: this.#uniqueId });
             } else if (autoplayAttr.startsWith('continuous')) {
-                // Case 3 & 4: Continuous scrolling
                 autoplayType = 'continuous';
                 const parts = autoplayAttr.split(/\s+/);
                 if (parts.length === 2) {
-                    // Case 4: Continuous with specified speed (e.g., "continuous 200")
                     const speedMatch = parts[1].match(/^(\d+)(?:px\/s)?$/);
                     if (speedMatch) {
                         continuousSpeed = parseInt(speedMatch[1], 10);
@@ -126,10 +123,8 @@ class CustomSlider extends HTMLElement {
                         });
                     }
                 }
-                // Case 3: Continuous with default speed (already set to 100px/s)
                 this.#log(`Autoplay: Continuous scrolling, speed=${continuousSpeed}px/s`, { elementId: this.#uniqueId });
             } else {
-                // Case 2: Time-based autoplay (e.g., "3s" or "3000ms")
                 const timeMatch = autoplayAttr.match(/^(\d+)(s|ms)$/);
                 if (timeMatch) {
                     autoplayType = 'interval';
@@ -443,6 +438,12 @@ class CustomSlider extends HTMLElement {
             this.#slides = Array.from(wrapper.querySelectorAll('.slider-slide'));
             this.#currentIndex = this.#bufferSize;
             this.#currentTranslate = this.#calculateTranslate();
+            this.#log('Infinite scrolling initialized', {
+                elementId: this.#uniqueId,
+                bufferSize: this.#bufferSize,
+                totalSlides: this.#slides.length,
+                initialTranslate: this.#currentTranslate
+            });
         } else {
             wrapper.innerHTML = '';
             originalSlides.forEach(slide => wrapper.appendChild(slide));
@@ -712,12 +713,21 @@ class CustomSlider extends HTMLElement {
             const maxTranslate = this.#calculateTranslateForIndex(this.#bufferSize);
 
             if (this.#currentTranslate < minTranslate) {
-                // Loop from end to start
-                this.#currentTranslate += this.#originalLength * (this.#slideWidth + this.#gapPx);
+                // Calculate the new translate position to maintain visual continuity
+                const loopOffset = this.#originalLength * (this.#slideWidth + this.#gapPx);
+                this.#currentTranslate += loopOffset;
                 this.#log('Continuous loop to start', {
+                    elementId: this.#uniqueId,
                     currentTranslate: this.#currentTranslate,
-                    currentIndex: this.#currentIndex
+                    minTranslate: minTranslate,
+                    loopOffset: loopOffset,
+                    timestamp: timestamp
                 });
+
+                // Force immediate update with no transition to prevent jump
+                const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
+                wrapper.style.transition = 'none';
+                wrapper.style.transform = `translate3d(${this.#currentTranslate}px, 0, 0)`;
             }
         } else {
             // Non-infinite: clamp to boundaries
@@ -726,7 +736,11 @@ class CustomSlider extends HTMLElement {
             if (this.#currentTranslate < minTranslate) {
                 this.#currentTranslate = minTranslate;
                 this.#stopAutoplay();
-                this.#log('Continuous scrolling stopped at end', { currentTranslate: this.#currentTranslate });
+                this.#log('Continuous scrolling stopped at end', {
+                    elementId: this.#uniqueId,
+                    currentTranslate: this.#currentTranslate,
+                    minTranslate: minTranslate
+                });
                 return;
             }
         }
@@ -749,7 +763,12 @@ class CustomSlider extends HTMLElement {
 
         wrapper.style.transition = 'transform 0.3s';
         wrapper.style.transform = `translate3d(${tempTranslate}px, 0, 0)`;
-        this.#log('Animating loop', { tempTranslate, currentIndex: this.#currentIndex, targetIndex, direction });
+        this.#log('Animating loop', {
+            tempTranslate,
+            currentIndex: this.#currentIndex,
+            targetIndex,
+            direction
+        });
 
         setTimeout(() => {
             this.#currentIndex = targetIndex;
@@ -928,7 +947,6 @@ class CustomSlider extends HTMLElement {
                 const dots = pagination.querySelectorAll('span.icon');
                 let logicalIndex;
                 if (this.#attrs.autoplayType === 'continuous') {
-                    // Calculate index based on translate position
                     const slideWidthTotal = this.#slideWidth + this.#gapPx;
                     logicalIndex = Math.round((-this.#currentTranslate - (this.#attrs.slidesPerView - 1) / 2 * this.#gapPx) / slideWidthTotal);
                     logicalIndex = this.#attrs.infiniteScrolling
@@ -1109,5 +1127,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay)');
+console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop)');
 export { CustomSlider };
