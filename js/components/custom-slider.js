@@ -31,6 +31,7 @@ class CustomSlider extends HTMLElement {
     #lastFrameTime = null; // Timestamp of last animation frame
     #continuousAnimationId = null; // For continuous scrolling animation
     #lastPaginationUpdate = 0; // Timestamp for debouncing pagination updates
+    #isProcessingClick = false; // New flag to lock during pagination clicks
 
     constructor() {
         super();
@@ -223,7 +224,7 @@ class CustomSlider extends HTMLElement {
         }
 
         const infiniteScrolling = this.hasAttribute('infinite-scrolling');
-        const pauseOnHover = this.hasAttribute('pause-on-hover'); // New attribute for optional hover-to-pause
+        const pauseOnHover = this.hasAttribute('pause-on-hover'); // Optional hover-to-pause
 
         const validateIcon = (icon, position, isBackground = false) => {
             if (!icon) {
@@ -338,7 +339,7 @@ class CustomSlider extends HTMLElement {
             paginationIconSizeInactive,
             crossFade,
             infiniteScrolling,
-            pauseOnHover // Added to attributes
+            pauseOnHover
         };
     }
 
@@ -376,7 +377,7 @@ class CustomSlider extends HTMLElement {
                     paginationIconSizeInactive: '',
                     crossFade: false,
                     infiniteScrolling: false,
-                    pauseOnHover: false // Default to false in fallback
+                    pauseOnHover: false
                 });
                 this.replaceWith(fallback);
             }
@@ -402,7 +403,7 @@ class CustomSlider extends HTMLElement {
                 paginationIconSizeInactive: '',
                 crossFade: false,
                 infiniteScrolling: false,
-                pauseOnHover: false // Default to false in fallback
+                pauseOnHover: false
             });
             this.replaceWith(fallback);
         }
@@ -537,6 +538,8 @@ class CustomSlider extends HTMLElement {
                 const dots = pagination.querySelectorAll('span.icon');
                 dots.forEach((dot, index) => {
                     dot.addEventListener('click', () => {
+                        if (this.#isProcessingClick) return; // Prevent re-entrancy
+                        this.#isProcessingClick = true;
                         if (this.#continuousAnimationId) {
                             cancelAnimationFrame(this.#continuousAnimationId);
                             this.#continuousAnimationId = null;
@@ -550,11 +553,14 @@ class CustomSlider extends HTMLElement {
                         this.#currentTranslate = this.#calculateTranslate();
                         this.#prevTranslate = this.#currentTranslate;
                         this.#setSliderPosition('0s'); // Immediate position update
-                        this.#updateSlider(true); // Force update to bypass debounce
-                        if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
-                            this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
-                        }
-                        this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${index + 1}, translate=${this.#currentTranslate}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
+                        setTimeout(() => {
+                            this.#updateSlider(true); // Force update after delay
+                            this.#isProcessingClick = false;
+                            if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
+                                this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
+                            }
+                            this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${index + 1}, translate=${this.#currentTranslate}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
+                        }, 50); // 50ms delay to ensure DOM stability
                     });
                 });
             }
@@ -764,7 +770,7 @@ class CustomSlider extends HTMLElement {
     }
 
     #continuousScroll(timestamp) {
-        if (!this.#continuousSpeed || this.#isDragging || this.#isAnimating || this.#isHovering) {
+        if (!this.#continuousSpeed || this.#isDragging || this.#isAnimating || this.#isHovering || this.#isProcessingClick) {
             this.#continuousAnimationId = requestAnimationFrame(this.#continuousScroll.bind(this));
             return;
         }
@@ -957,7 +963,7 @@ class CustomSlider extends HTMLElement {
 
         if (autoplayType === 'interval' && autoplayDelay > 0) {
             this.#autoplayInterval = setInterval(() => {
-                if (!this.#isHovering) {
+                if (!this.#isHovering && !this.#isProcessingClick) {
                     this.#navigate(1);
                 }
             }, autoplayDelay);
@@ -1163,6 +1169,8 @@ class CustomSlider extends HTMLElement {
                     icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
                 }
                 dot.addEventListener('click', () => {
+                    if (this.#isProcessingClick) return; // Prevent re-entrancy
+                    this.#isProcessingClick = true;
                     if (this.#continuousAnimationId) {
                         cancelAnimationFrame(this.#continuousAnimationId);
                         this.#continuousAnimationId = null;
@@ -1176,11 +1184,14 @@ class CustomSlider extends HTMLElement {
                     this.#currentTranslate = this.#calculateTranslate();
                     this.#prevTranslate = this.#currentTranslate;
                     this.#setSliderPosition('0s'); // Immediate position update
-                    this.#updateSlider(true); // Force update to bypass debounce
-                    if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
-                        this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
-                    }
-                    this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${i + 1}, translate=${this.#currentTranslate}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
+                    setTimeout(() => {
+                        this.#updateSlider(true); // Force update after delay
+                        this.#isProcessingClick = false;
+                        if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
+                            this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
+                        }
+                        this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${i + 1}, translate=${this.#currentTranslate}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
+                    }, 50); // 50ms delay to ensure DOM stability
                 });
                 pagination.appendChild(dot);
             }
@@ -1224,7 +1235,7 @@ class CustomSlider extends HTMLElement {
             'autoplay', 'slides-per-view', 'navigation', 'navigation-icon-left', 'navigation-icon-right',
             'navigation-icon-left-background', 'navigation-icon-right-background', 'gap', 'pagination',
             'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size', 'pagination-icon-size',
-            'draggable', 'cross-fade', 'infinite-scrolling', 'pause-on-hover' // Added to observed attributes
+            'draggable', 'cross-fade', 'infinite-scrolling', 'pause-on-hover'
         ];
     }
 
@@ -1251,5 +1262,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, and optional pause-on-hover)');
+console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, optional pause-on-hover, and fixed pagination navigation during active autoplay)');
 export { CustomSlider };
