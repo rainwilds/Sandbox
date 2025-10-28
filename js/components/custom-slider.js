@@ -257,7 +257,7 @@ class CustomSlider extends HTMLElement {
             if (rightIcons.length === 2) {
                 rightIconResult = processIconStack(rightIcons[1].outerHTML, rightIcons[0].outerHTML, 'right');
             } else {
-                rightIconResult = { valid: true, markup: validateIcon(navigationIconRight, 'right') };
+                rightIconResult = { valid: true,8 markup: validateIcon(navigationIconRight, 'right') };
             }
         }
 
@@ -659,12 +659,9 @@ class CustomSlider extends HTMLElement {
 
         if (this.#attrs.infiniteScrolling) {
             this.#adjustForLoop();
-        } else if (this.#attrs.crossFade) {
-            this.#currentIndex = (this.#currentIndex + this.#originalLength) % this.#originalLength;
         } else {
-            const minIndex = 0;
-            const maxIndex = this.#originalLength - this.#attrs.slidesPerView;
-            this.#currentIndex = Math.max(minIndex, Math.min(maxIndex, this.#currentIndex));
+            // Always wrap around for navigation, regardless of crossFade
+            this.#currentIndex = (this.#currentIndex + this.#originalLength) % this.#originalLength;
         }
 
         this.#setPositionByIndex();
@@ -777,7 +774,7 @@ class CustomSlider extends HTMLElement {
             const navNext = document.createElement('div');
             navNext.id = `${this.#uniqueId}-next`;
             navNext.className = 'slider-nav-next';
-            navNext.innerHTML = attrs.navigationIconRight;
+    navNext.innerHTML = attrs.navigationIconRight;
 
             [navPrev, navNext].forEach((nav) => {
                 const icons = nav.querySelectorAll('i');
@@ -887,5 +884,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (cross-fade loop fixed, infinite-scrolling conditional)');
+console.log('CustomSlider version: 2025-10-28 (navigation loop fixed, cross-fade loop, infinite-scrolling conditional)');
 export { CustomSlider };
