@@ -26,6 +26,9 @@ class CustomSlider extends HTMLElement {
     #originalLength = 0;
     #bufferSize = 0;
     #isAnimating = false;
+    #continuousSpeed = 0; // Speed for continuous scrolling (px/s)
+    #lastFrameTime = null; // Timestamp of last animation frame
+    #continuousAnimationId = null; // For continuous scrolling animation
 
     constructor() {
         super();
@@ -91,20 +94,54 @@ class CustomSlider extends HTMLElement {
     }
 
     async getAttributes() {
+        let autoplayType = 'none'; // 'none', 'interval', or 'continuous'
+        let autoplayDelay = 0; // For interval-based autoplay (ms)
+        let continuousSpeed = 100; // Default speed for continuous scrolling (px/s)
+
         const autoplayAttr = this.getAttribute('autoplay');
-        let autoplayDelay = 0;
         if (this.hasAttribute('autoplay')) {
             if (autoplayAttr === '' || autoplayAttr === null) {
+                // Case 1: Simple autoplay (default 3s)
+                autoplayType = 'interval';
                 autoplayDelay = 3000;
+                this.#log('Autoplay: Simple autoplay, defaulting to 3s', { elementId: this.#uniqueId });
+            } else if (autoplayAttr.startsWith('continuous')) {
+                // Case 3 & 4: Continuous scrolling
+                autoplayType = 'continuous';
+                const parts = autoplayAttr.split(/\s+/);
+                if (parts.length === 2) {
+                    // Case 4: Continuous with specified speed (e.g., "continuous 200")
+                    const speedMatch = parts[1].match(/^(\d+)(?:px\/s)?$/);
+                    if (speedMatch) {
+                        continuousSpeed = parseInt(speedMatch[1], 10);
+                        if (continuousSpeed <= 0) {
+                            this.#warn('Invalid continuous speed, using default 100px/s', { value: parts[1] });
+                            continuousSpeed = 100;
+                        }
+                    } else {
+                        this.#warn('Invalid continuous speed format, using default 100px/s', {
+                            value: parts[1],
+                            expected: 'Npx/s or N'
+                        });
+                    }
+                }
+                // Case 3: Continuous with default speed (already set to 100px/s)
+                this.#log(`Autoplay: Continuous scrolling, speed=${continuousSpeed}px/s`, { elementId: this.#uniqueId });
             } else {
+                // Case 2: Time-based autoplay (e.g., "3s" or "3000ms")
                 const timeMatch = autoplayAttr.match(/^(\d+)(s|ms)$/);
                 if (timeMatch) {
+                    autoplayType = 'interval';
                     const value = parseInt(timeMatch[1], 10);
                     const unit = timeMatch[2];
                     autoplayDelay = unit === 's' ? value * 1000 : value;
+                    this.#log(`Autoplay: Interval-based, delay=${autoplayDelay}ms`, { elementId: this.#uniqueId });
                 } else {
-                    this.#warn('Invalid autoplay format, using default 3s', { value: autoplayAttr, expected: 'Ns or Nms' });
-                    autoplayDelay = 3000;
+                    this.#warn('Invalid autoplay format, disabling autoplay', {
+                        value: autoplayAttr,
+                        expected: 'Ns, Nms, continuous, or continuous N'
+                    });
+                    autoplayType = 'none';
                 }
             }
         }
@@ -112,7 +149,7 @@ class CustomSlider extends HTMLElement {
         const slidesPerViewAttr = this.getAttribute('slides-per-view') || '1';
         let slidesPerView = parseInt(slidesPerViewAttr, 10);
         if (isNaN(slidesPerView) || slidesPerView < 1) {
-            this.#warn('Invalid slides-per-view', { value: slidesPerViewAttr, defaultingTo: 1 });
+            this.#warn('Invalid slides-per-view, defaulting to 1', { value: slidesPerViewAttr });
             slidesPerView = 1;
         }
 
@@ -179,6 +216,11 @@ class CustomSlider extends HTMLElement {
         let paginationIconInactive = this.getAttribute('pagination-icon-inactive') || '<i class="fa-regular fa-circle"></i>';
 
         const crossFade = this.hasAttribute('cross-fade');
+        if (crossFade && autoplayType === 'continuous') {
+            this.#warn('Continuous autoplay is not supported with cross-fade, disabling autoplay', { elementId: this.#uniqueId });
+            autoplayType = 'none';
+            continuousSpeed = 0;
+        }
         if (crossFade && slidesPerView !== 1) {
             this.#warn('Cross-fade attribute is only supported for slides-per-view=1, ignoring', { slidesPerView });
         }
@@ -283,7 +325,9 @@ class CustomSlider extends HTMLElement {
         }
 
         return {
+            autoplayType,
             autoplayDelay,
+            continuousSpeed,
             slidesPerView,
             navigation,
             navigationIconLeft,
@@ -320,7 +364,9 @@ class CustomSlider extends HTMLElement {
             } else {
                 this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
                 const fallback = await this.render({
-                    autoplayDelay: 3000,
+                    autoplayType: 'none',
+                    autoplayDelay: 0,
+                    continuousSpeed: 0,
                     slidesPerView: 1,
                     navigation: false,
                     gap: '0',
@@ -343,7 +389,9 @@ class CustomSlider extends HTMLElement {
                 elementId: this.#uniqueId
             });
             const fallback = await this.render({
-                autoplayDelay: 3000,
+                autoplayType: 'none',
+                autoplayDelay: 0,
+                continuousSpeed: 0,
                 slidesPerView: 1,
                 navigation: false,
                 gap: '0',
@@ -461,8 +509,8 @@ class CustomSlider extends HTMLElement {
             }
         }
 
-        if (this.#attrs.autoplayDelay) {
-            this.#startAutoplay(this.#attrs.autoplayDelay);
+        if (this.#attrs.autoplayType !== 'none') {
+            this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
         }
 
         this.#debouncedHandleResize = this.#debounce(this.#handleResize.bind(this), 100);
@@ -619,6 +667,59 @@ class CustomSlider extends HTMLElement {
         });
     }
 
+    #continuousScroll(timestamp) {
+        if (!this.#continuousSpeed || this.#isDragging || this.#isAnimating) {
+            this.#continuousAnimationId = requestAnimationFrame(this.#continuousScroll.bind(this));
+            return;
+        }
+
+        const deltaTime = (timestamp - (this.#lastFrameTime || timestamp)) / 1000; // Time in seconds
+        this.#lastFrameTime = timestamp;
+
+        // Calculate pixel movement for this frame
+        const pixelsPerFrame = this.#continuousSpeed * deltaTime;
+        this.#currentTranslate -= pixelsPerFrame;
+
+        // Handle infinite scrolling
+        if (this.#attrs.infiniteScrolling) {
+            const maxIndex = this.#bufferSize + this.#originalLength - this.#attrs.slidesPerView;
+            const minTranslate = this.#calculateTranslateForIndex(maxIndex);
+            const maxTranslate = this.#calculateTranslateForIndex(this.#bufferSize);
+
+            if (this.#currentTranslate < minTranslate) {
+                // Loop from end to start
+                const targetIndex = this.#currentIndex - this.#originalLength;
+                this.#currentTranslate += this.#originalLength * (this.#slideWidth + this.#gapPx);
+                this.#currentIndex = targetIndex;
+                this.#log('Continuous loop to start', {
+                    currentTranslate: this.#currentTranslate,
+                    currentIndex: this.#currentIndex
+                });
+            }
+        } else {
+            // Non-infinite: clamp to boundaries
+            const maxIndex = this.#originalLength - this.#attrs.slidesPerView;
+            const minTranslate = this.#calculateTranslateForIndex(maxIndex);
+            const maxTranslate = this.#calculateTranslateForIndex(0);
+            if (this.#currentTranslate < minTranslate) {
+                this.#currentTranslate = minTranslate;
+                this.#stopAutoplay();
+                this.#log('Continuous scrolling stopped at end', { currentTranslate: this.#currentTranslate });
+                return;
+            }
+        }
+
+        this.#prevTranslate = this.#currentTranslate;
+        this.#setSliderPosition('0s');
+        this.#updateSlider();
+
+        // Update currentIndex based on translate position
+        const slideIndex = Math.round(-this.#currentTranslate / (this.#slideWidth + this.#gapPx));
+        this.#currentIndex = Math.max(this.#bufferSize, Math.min(slideIndex, this.#slides.length - this.#attrs.slidesPerView));
+
+        this.#continuousAnimationId = requestAnimationFrame(this.#continuousScroll.bind(this));
+    }
+
     #animateLoop(tempTranslate, targetIndex, direction) {
         if (!this.#attrs.infiniteScrolling || this.#attrs.crossFade) {
             this.#setPositionByIndex();
@@ -742,17 +843,33 @@ class CustomSlider extends HTMLElement {
         this.#log(`[Navigation] currentIndex=${this.#currentIndex}, direction=${direction}, oldIndex=${oldIndex}`, { elementId: this.#uniqueId });
     }
 
-    #startAutoplay(delay) {
+    #startAutoplay(autoplayType, autoplayDelay, continuousSpeed) {
         this.#stopAutoplay();
-        this.#autoplayInterval = setInterval(() => {
-            this.#navigate(1);
-        }, delay);
+
+        if (autoplayType === 'interval' && autoplayDelay > 0) {
+            this.#autoplayInterval = setInterval(() => {
+                this.#navigate(1);
+            }, autoplayDelay);
+            this.#log(`Started interval autoplay with delay ${autoplayDelay}ms`, { elementId: this.#uniqueId });
+        } else if (autoplayType === 'continuous' && continuousSpeed > 0 && !this.#attrs.crossFade) {
+            this.#continuousSpeed = continuousSpeed;
+            this.#lastFrameTime = performance.now();
+            this.#continuousAnimationId = requestAnimationFrame(this.#continuousScroll.bind(this));
+            this.#log(`Started continuous autoplay with speed ${continuousSpeed}px/s`, { elementId: this.#uniqueId });
+        }
     }
 
     #stopAutoplay() {
         if (this.#autoplayInterval) {
             clearInterval(this.#autoplayInterval);
             this.#autoplayInterval = null;
+            this.#log('Stopped interval autoplay', { elementId: this.#uniqueId });
+        }
+        if (this.#continuousAnimationId) {
+            cancelAnimationFrame(this.#continuousAnimationId);
+            this.#continuousAnimationId = null;
+            this.#lastFrameTime = null;
+            this.#log('Stopped continuous autoplay', { elementId: this.#uniqueId });
         }
     }
 
@@ -955,5 +1072,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop)');
+console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced autoplay)');
 export { CustomSlider };
