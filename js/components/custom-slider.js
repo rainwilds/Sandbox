@@ -529,18 +529,24 @@ class CustomSlider extends HTMLElement {
                 const dots = pagination.querySelectorAll('span.icon');
                 dots.forEach((dot, index) => {
                     dot.addEventListener('click', () => {
+                        if (this.#continuousAnimationId) {
+                            cancelAnimationFrame(this.#continuousAnimationId);
+                            this.#continuousAnimationId = null;
+                        }
                         this.#stopAutoplay();
                         if (this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1) {
                             this.#currentIndex = index + this.#bufferSize;
                         } else {
                             this.#currentIndex = index;
                         }
-                        this.#setPositionByIndex();
+                        this.#currentTranslate = this.#calculateTranslate();
+                        this.#prevTranslate = this.#currentTranslate;
+                        this.#setSliderPosition('0s'); // Immediate position update
                         this.#updateSlider(true); // Force update to bypass debounce
                         if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
                             this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
                         }
-                        this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${index + 1}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
+                        this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${index + 1}, translate=${this.#currentTranslate}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
                     });
                 });
             }
@@ -1149,18 +1155,24 @@ class CustomSlider extends HTMLElement {
                     icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
                 }
                 dot.addEventListener('click', () => {
+                    if (this.#continuousAnimationId) {
+                        cancelAnimationFrame(this.#continuousAnimationId);
+                        this.#continuousAnimationId = null;
+                    }
                     this.#stopAutoplay();
                     if (this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1) {
                         this.#currentIndex = i + this.#bufferSize;
                     } else {
                         this.#currentIndex = i;
                     }
-                    this.#setPositionByIndex();
+                    this.#currentTranslate = this.#calculateTranslate();
+                    this.#prevTranslate = this.#currentTranslate;
+                    this.#setSliderPosition('0s'); // Immediate position update
                     this.#updateSlider(true); // Force update to bypass debounce
                     if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
                         this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
                     }
-                    this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${i + 1}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
+                    this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${i + 1}, translate=${this.#currentTranslate}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
                 });
                 pagination.appendChild(dot);
             }
@@ -1231,5 +1243,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, pause-on-hover, and fixed pagination clicks during autoplay)');
+console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, pause-on-hover, and fixed pagination clicks during autoplay with enhanced position sync)');
 export { CustomSlider };
