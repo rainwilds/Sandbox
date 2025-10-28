@@ -66,11 +66,17 @@ class CustomFilter extends HTMLElement {
     this.#isInitialized = true;
     this.#log('Starting initialization', { elementId: this.id || 'no-id' });
     try {
-      await this.renderFilterControls();
-      this.setupMutationObserver();
-      this.applyFilters();
-      this.callbacks.forEach(callback => callback());
-      this.#log('Initialization completed', { elementId: this.id || 'no-id' });
+      const filterElement = await this.render();
+      if (filterElement) {
+        this.replaceWith(filterElement);
+        this.#filterControls = filterElement.querySelector('.filter-controls');
+        this.setupMutationObserver();
+        this.applyFilters();
+        this.callbacks.forEach(callback => callback());
+        this.#log('Initialization completed', { elementId: this.id || 'no-id' });
+      } else {
+        this.#error('Render returned null', { elementId: this.id || 'no-id' });
+      }
     } catch (error) {
       this.#error('Initialization failed', {
         error: error.message,
@@ -80,8 +86,8 @@ class CustomFilter extends HTMLElement {
     }
   }
 
-  async renderFilterControls() {
-    this.#log('Rendering filter controls', { elementId: this.id || 'no-id' });
+  async render() {
+    this.#log('Rendering filter component', { elementId: this.id || 'no-id' });
     const filterType = this.getAttribute('filter-type') || 'tags';
     const filterValues = this.getAttribute('filter-values')?.split(',').map(v => v.trim()) || [];
     const filterAlignment = this.getAttribute('filter-alignment') || 'center';
@@ -102,8 +108,12 @@ class CustomFilter extends HTMLElement {
 
     if (!autoValues.length) {
       this.#warn('No filter values available', { filterType, elementId: this.id || 'no-id' });
-      return;
+      return null;
     }
+
+    const filterContainer = document.createElement('div');
+    filterContainer.className = 'custom-filter';
+    filterContainer.id = `filter-${Math.random().toString(36).substr(2, 9)}`;
 
     const controlsContainer = document.createElement('div');
     controlsContainer.className = `filter-controls ${VALID_ALIGN_MAP[filterAlignment] || 'center'}`;
@@ -142,9 +152,23 @@ class CustomFilter extends HTMLElement {
       controlsContainer.appendChild(button);
     });
 
-    this.insertBefore(controlsContainer, this.firstChild);
-    this.#filterControls = controlsContainer;
-    this.#log('Filter controls rendered', { values: autoValues, elementId: this.id || 'no-id' });
+    filterContainer.appendChild(controlsContainer);
+
+    // Move existing children (custom-block) to the new container
+    Array.from(this.children).forEach(child => filterContainer.appendChild(child));
+
+    // Add ARIA live region
+    const liveRegion = document.createElement('div');
+    liveRegion.setAttribute('aria-live', 'polite');
+    liveRegion.style.position = 'absolute';
+    liveRegion.style.width = '1px';
+    liveRegion.style.height = '1px';
+    liveRegion.style.overflow = 'hidden';
+    liveRegion.textContent = 'Filtered to show all items';
+    filterContainer.appendChild(liveRegion);
+
+    this.#log('Filter component rendered', { values: autoValues, elementId: this.id || 'no-id' });
+    return filterContainer;
   }
 
   getUniqueFilterValues(filterType) {
@@ -169,7 +193,10 @@ class CustomFilter extends HTMLElement {
   }
 
   applyFilters() {
-    const children = Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block');
+    const container = document.getElementById(`filter-${this.id || this.querySelector('.custom-filter')?.id}`);
+    const children = container
+      ? Array.from(container.children).filter(child => child.classList.contains('block'))
+      : Array.from(this.children).filter(child => child.tagName.toLowerCase() === 'custom-block');
     this.#log('Applying filters', { activeFilters: [...this.activeFilters], childCount: children.length });
 
     children.forEach(child => {
@@ -184,14 +211,14 @@ class CustomFilter extends HTMLElement {
       this.#childrenCache.set(child, isVisible);
     });
 
-    const liveRegion = this.querySelector('[aria-live="polite"]') || document.createElement('div');
+    const liveRegion = container?.querySelector('[aria-live="polite"]') || this.querySelector('[aria-live="polite"]') || document.createElement('div');
     liveRegion.setAttribute('aria-live', 'polite');
     liveRegion.style.position = 'absolute';
     liveRegion.style.width = '1px';
     liveRegion.style.height = '1px';
     liveRegion.style.overflow = 'hidden';
     liveRegion.textContent = `Filtered to show ${this.activeFilters.size === 0 ? 'all items' : [...this.activeFilters].join(', ')}`;
-    if (!liveRegion.parentNode) this.appendChild(liveRegion);
+    if (!liveRegion.parentNode && container) container.appendChild(liveRegion);
   }
 
   setupMutationObserver() {
@@ -199,8 +226,12 @@ class CustomFilter extends HTMLElement {
       mutations.forEach(mutation => {
         if (mutation.type === 'childList') {
           this.#log('Child list mutated', { added: mutation.addedNodes.length, removed: mutation.removedNodes.length });
-          this.renderFilterControls();
-          this.applyFilters();
+          const container = document.getElementById(`filter-${this.id || this.querySelector('.custom-filter')?.id}`);
+          if (container) {
+            this.#filterControls = container.querySelector('.filter-controls');
+            this.renderFilterControls();
+            this.applyFilters();
+          }
         }
       });
     });
