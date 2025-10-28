@@ -515,7 +515,11 @@ class CustomSlider extends HTMLElement {
                 dots.forEach((dot, index) => {
                     dot.addEventListener('click', () => {
                         this.#stopAutoplay();
-                        this.#currentIndex = index + (this.#attrs.infiniteScrolling ? this.#bufferSize : 0);
+                        if (this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1) {
+                            this.#currentIndex = index + this.#bufferSize;
+                        } else {
+                            this.#currentIndex = index;
+                        }
                         this.#setPositionByIndex();
                         this.#updateSlider();
                         if (this.#attrs.autoplayType !== 'none') {
@@ -985,24 +989,25 @@ class CustomSlider extends HTMLElement {
                     // Calculate index from translate position
                     const slideWidthTotal = this.#slideWidth + this.#gapPx;
                     rawIndex = Math.round((-this.#currentTranslate - (this.#attrs.slidesPerView - 1) / 2 * this.#gapPx) / slideWidthTotal);
-                    if (this.#attrs.infiniteScrolling) {
-                        // Normalize to original slide range and map to pagination dots
-                        const normalizedIndex = (rawIndex - this.#bufferSize + this.#originalLength) % this.#originalLength;
-                        logicalIndex = Math.floor(normalizedIndex);
-                        logicalIndex = Math.max(0, Math.min(logicalIndex, this.#originalLength - this.#attrs.slidesPerView));
+                    if (this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1) {
+                        logicalIndex = (rawIndex - this.#bufferSize + this.#originalLength) % this.#originalLength;
                     } else {
                         logicalIndex = Math.max(0, Math.min(rawIndex, this.#originalLength - this.#attrs.slidesPerView));
                     }
                 } else {
                     rawIndex = this.#currentIndex;
-                    if (this.#attrs.infiniteScrolling) {
-                        const normalizedIndex = (this.#currentIndex - this.#bufferSize + this.#originalLength) % this.#originalLength;
-                        logicalIndex = Math.floor(normalizedIndex);
-                        logicalIndex = Math.max(0, Math.min(logicalIndex, this.#originalLength - this.#attrs.slidesPerView));
+                    if (this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1) {
+                        logicalIndex = (this.#currentIndex - this.#bufferSize + this.#originalLength) % this.#originalLength;
                     } else {
                         logicalIndex = Math.max(0, Math.min(this.#currentIndex, this.#originalLength - this.#attrs.slidesPerView));
                     }
                 }
+
+                // Ensure logicalIndex is within valid range
+                const maxIndex = (this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1)
+                    ? this.#originalLength - 1
+                    : this.#originalLength - this.#attrs.slidesPerView;
+                logicalIndex = Math.max(0, Math.min(logicalIndex, maxIndex));
 
                 dots.forEach((dot, index) => {
                     const isActive = index === logicalIndex;
@@ -1017,13 +1022,11 @@ class CustomSlider extends HTMLElement {
                 const firstVisibleSlide = rawIndex - this.#bufferSize + 1;
                 const lastVisibleSlide = firstVisibleSlide + this.#attrs.slidesPerView - 1;
                 const visibleSlides = `${Math.max(1, firstVisibleSlide)}-${Math.min(this.#originalLength, lastVisibleSlide)}`;
-                if (logicalIndex > this.#originalLength - this.#attrs.slidesPerView) {
+                if (logicalIndex > maxIndex) {
                     this.#warn('Unexpected logicalIndex value', {
                         logicalIndex,
                         rawIndex,
-                        normalizedIndex: this.#attrs.autoplayType === 'continuous'
-                            ? (rawIndex - this.#bufferSize + this.#originalLength) % this.#originalLength
-                            : (this.#currentIndex - this.#bufferSize + this.#originalLength) % this.#originalLength,
+                        normalizedIndex: (rawIndex - this.#bufferSize + this.#originalLength) % this.#originalLength,
                         visibleSlides,
                         elementId: this.#uniqueId
                     });
@@ -1112,7 +1115,9 @@ class CustomSlider extends HTMLElement {
             pagination.className = 'slider-pagination';
 
             const totalSlides = this.#childElements.length;
-            const totalDots = Math.max(1, totalSlides - attrs.slidesPerView + 1);
+            const totalDots = (attrs.infiniteScrolling && attrs.slidesPerView > 1)
+                ? totalSlides
+                : Math.max(1, totalSlides - attrs.slidesPerView + 1);
             for (let i = 0; i < totalDots; i++) {
                 const dot = document.createElement('span');
                 dot.className = 'icon';
@@ -1123,7 +1128,11 @@ class CustomSlider extends HTMLElement {
                 }
                 dot.addEventListener('click', () => {
                     this.#stopAutoplay();
-                    this.#currentIndex = i + (this.#attrs.infiniteScrolling ? this.#bufferSize : 0);
+                    if (attrs.infiniteScrolling && attrs.slidesPerView > 1) {
+                        this.#currentIndex = i + this.#bufferSize;
+                    } else {
+                        this.#currentIndex = i;
+                    }
                     this.#setPositionByIndex();
                     this.#updateSlider();
                     this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${i + 1}`, { elementId: this.#uniqueId });
@@ -1197,5 +1206,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, and refined pagination tracking for transitional slide groups)');
+console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, and extra pagination dots for infinite scrolling)');
 export { CustomSlider };
