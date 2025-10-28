@@ -16,7 +16,7 @@ class CustomSlider extends HTMLElement {
     #lastDirection = 0;
     #attrs = null;
     #isDragging = false;
-    #isHovering = false; // New property to track hover state
+    #isHovering = false;
     #startPos = 0;
     #currentTranslate = 0;
     #prevTranslate = 0;
@@ -536,10 +536,11 @@ class CustomSlider extends HTMLElement {
                             this.#currentIndex = index;
                         }
                         this.#setPositionByIndex();
-                        this.#updateSlider();
+                        this.#updateSlider(true); // Force update to bypass debounce
                         if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
                             this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
                         }
+                        this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${index + 1}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
                     });
                 });
             }
@@ -803,7 +804,6 @@ class CustomSlider extends HTMLElement {
         this.#prevTranslate = this.#currentTranslate;
         this.#setSliderPosition('0s');
         this.#updateSlider();
-
         this.#continuousAnimationId = requestAnimationFrame(this.#continuousScroll.bind(this));
     }
 
@@ -836,10 +836,10 @@ class CustomSlider extends HTMLElement {
     #setPositionByIndex() {
         if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
             this.#updateSlider();
-        } else if (this.#attrs.autoplayType !== 'continuous') {
+        } else {
             this.#currentTranslate = this.#calculateTranslate();
             this.#prevTranslate = this.#currentTranslate;
-            this.#setSliderPosition();
+            this.#setSliderPosition('0.3s');
         }
     }
 
@@ -973,7 +973,7 @@ class CustomSlider extends HTMLElement {
         }
     }
 
-    #updateSlider() {
+    #updateSlider(forceUpdate = false) {
         const sliderContainer = document.getElementById(this.#uniqueId);
         if (!sliderContainer) return;
 
@@ -991,14 +991,14 @@ class CustomSlider extends HTMLElement {
             });
 
             this.#log(`[Cross-Fade Updated] currentIndex=${this.#currentIndex}, displayIndex=${displayIndex}`, { elementId: this.#uniqueId });
-        } else if (this.#attrs.autoplayType !== 'continuous') {
-            wrapper.style.transform = `translate3d(${this.#calculateTranslate()}px, 0, 0)`;
+        } else if (forceUpdate || this.#attrs.autoplayType !== 'continuous') {
+            wrapper.style.transform = `translate3d(${this.#currentTranslate}px, 0, 0)`;
         }
 
         if (this.#attrs.pagination) {
             const now = performance.now();
-            if (now - this.#lastPaginationUpdate < 100) {
-                return; // Debounce pagination updates to 100ms
+            if (!forceUpdate && now - this.#lastPaginationUpdate < 100) {
+                return; // Debounce pagination updates to 100ms unless forced
             }
             this.#lastPaginationUpdate = now;
 
@@ -1053,7 +1053,7 @@ class CustomSlider extends HTMLElement {
                         elementId: this.#uniqueId
                     });
                 }
-                this.#log(`[Pagination Updated] currentIndex=${this.#currentIndex}, logicalIndex=${logicalIndex}, translate=${this.#currentTranslate}`, {
+                this.#log(`[Pagination Updated] currentIndex=${this.#currentIndex}, logicalIndex=${logicalIndex}, translate=${this.#currentTranslate}, forceUpdate=${forceUpdate}`, {
                     elementId: this.#uniqueId,
                     rawIndex,
                     visibleSlides
@@ -1063,7 +1063,7 @@ class CustomSlider extends HTMLElement {
             }
         }
 
-        this.#log(`[Slider Updated] currentIndex=${this.#currentIndex}, translate=${this.#currentTranslate}`, { elementId: this.#uniqueId });
+        this.#log(`[Slider Updated] currentIndex=${this.#currentIndex}, translate=${this.#currentTranslate}, forceUpdate=${forceUpdate}`, { elementId: this.#uniqueId });
     }
 
     async render(attrs) {
@@ -1150,16 +1150,17 @@ class CustomSlider extends HTMLElement {
                 }
                 dot.addEventListener('click', () => {
                     this.#stopAutoplay();
-                    if (attrs.infiniteScrolling && attrs.slidesPerView > 1) {
+                    if (this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1) {
                         this.#currentIndex = i + this.#bufferSize;
                     } else {
                         this.#currentIndex = i;
                     }
                     this.#setPositionByIndex();
-                    this.#updateSlider();
+                    this.#updateSlider(true); // Force update to bypass debounce
                     if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
                         this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
                     }
+                    this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${i + 1}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
                 });
                 pagination.appendChild(dot);
             }
@@ -1230,5 +1231,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, and pause-on-hover feature)');
+console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, pause-on-hover, and fixed pagination clicks during autoplay)');
 export { CustomSlider };
