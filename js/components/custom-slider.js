@@ -109,28 +109,84 @@ class CustomSlider extends HTMLElement {
 
         const slidesPerViewConfig = {};
         let defaultSlidesPerView = 1;
+        let useBreakpoints = false;
+
+        // Check for breakpoint-specific attributes
+        const definedBreakpoints = breakpointAttrs.filter(attr => this.hasAttribute(attr));
+        if (definedBreakpoints.length > 0) {
+            // If any breakpoint-specific attribute is defined, all must be defined
+            if (definedBreakpoints.length !== breakpointAttrs.length) {
+                this.#error(
+                    'All breakpoint-specific slides-per-view attributes must be defined if any are used. Missing: ' +
+                    breakpointAttrs.filter(attr => !this.hasAttribute(attr)).join(', '),
+                    { definedBreakpoints, required: breakpointAttrs, elementId: this.#uniqueId }
+                );
+                return {
+                    autoplayType: 'none',
+                    autoplayDelay: 0,
+                    continuousSpeed: 0,
+                    defaultSlidesPerView: 1,
+                    slidesPerViewConfig: {},
+                    useBreakpoints: false,
+                    navigation: false,
+                    gap: '0',
+                    pagination: false,
+                    paginationIconActive: '<i class="fa-solid fa-circle"></i>',
+                    paginationIconInactive: '<i class="fa-regular fa-circle"></i>',
+                    iconSizeBackground: '',
+                    iconSizeForeground: '',
+                    paginationIconSizeActive: '',
+                    paginationIconSizeInactive: '',
+                    crossFade: false,
+                    infiniteScrolling: false,
+                    pauseOnHover: false
+                };
+            }
+            useBreakpoints = true;
+        }
 
         // Parse default
         const defaultAttr = this.getAttribute('slides-per-view') || '1';
         defaultSlidesPerView = Math.max(1, parseInt(defaultAttr, 10)) || 1;
 
         // Parse breakpoint-specific
-        breakpointAttrs.forEach(attr => {
-            const value = this.getAttribute(attr);
-            if (value !== null) {
+        if (useBreakpoints) {
+            for (const attr of breakpointAttrs) {
+                const value = this.getAttribute(attr);
                 const num = parseInt(value, 10);
                 if (!isNaN(num) && num >= 1) {
                     const breakpointName = attr.replace('slides-per-view-', '');
                     slidesPerViewConfig[breakpointName] = num;
                 } else {
-                    this.#warn(`Invalid ${attr} value, must be integer >= 1`, { value });
+                    this.#error(`Invalid ${attr} value, must be integer >= 1. Using fallback rendering.`, { value, elementId: this.#uniqueId });
+                    return {
+                        autoplayType: 'none',
+                        autoplayDelay: 0,
+                        continuousSpeed: 0,
+                        defaultSlidesPerView: 1,
+                        slidesPerViewConfig: {},
+                        useBreakpoints: false,
+                        navigation: false,
+                        gap: '0',
+                        pagination: false,
+                        paginationIconActive: '<i class="fa-solid fa-circle"></i>',
+                        paginationIconInactive: '<i class="fa-regular fa-circle"></i>',
+                        iconSizeBackground: '',
+                        iconSizeForeground: '',
+                        paginationIconSizeActive: '',
+                        paginationIconSizeInactive: '',
+                        crossFade: false,
+                        infiniteScrolling: false,
+                        pauseOnHover: false
+                    };
                 }
             }
-        });
+        }
 
         this.#log('Slides per view configuration', {
             defaultSlidesPerView,
             slidesPerViewConfig,
+            useBreakpoints,
             elementId: this.#uniqueId
         });
 
@@ -355,6 +411,7 @@ class CustomSlider extends HTMLElement {
             continuousSpeed,
             defaultSlidesPerView,
             slidesPerViewConfig,
+            useBreakpoints,
             navigation,
             navigationIconLeft: leftIconResult.markup,
             navigationIconRight: rightIconResult.markup,
@@ -373,6 +430,10 @@ class CustomSlider extends HTMLElement {
     }
 
     #getCurrentBreakpoint() {
+        if (!this.#attrs.useBreakpoints) {
+            this.#log('Breakpoints ignored, using fixed slides-per-view', { elementId: this.#uniqueId });
+            return null;
+        }
         const width = window.innerWidth;
         let selectedBreakpoint = 'large';
         for (const bp of VIEWPORT_BREAKPOINTS) {
@@ -390,6 +451,13 @@ class CustomSlider extends HTMLElement {
     }
 
     #getSlidesPerView() {
+        if (!this.#attrs.useBreakpoints) {
+            this.#log('Using fixed slides-per-view', {
+                slidesPerView: this.#attrs.defaultSlidesPerView,
+                elementId: this.#uniqueId
+            });
+            return this.#attrs.defaultSlidesPerView;
+        }
         const bp = this.#getCurrentBreakpoint();
         const spv = this.#attrs.slidesPerViewConfig[bp] ?? this.#attrs.defaultSlidesPerView;
         this.#log('Slides per view determined', {
@@ -413,7 +481,9 @@ class CustomSlider extends HTMLElement {
         this.#attrs.slidesPerView = newSpv;
         this.#bufferSize = newSpv;
         this.#recalculateDimensions();
-        this.#rebuildInfiniteBuffer();
+        if (this.#attrs.useBreakpoints) {
+            this.#rebuildInfiniteBuffer();
+        }
 
         const wrapper = document.getElementById(this.#uniqueId)?.querySelector('.slider-wrapper');
         if (wrapper) {
@@ -470,6 +540,11 @@ class CustomSlider extends HTMLElement {
 
         try {
             const attrs = await this.getAttributes();
+            if (!attrs.useBreakpoints && !this.hasAttribute('slides-per-view')) {
+                this.#error('slides-per-view attribute is required when not using breakpoint-specific attributes', { elementId: this.#uniqueId });
+                attrs.defaultSlidesPerView = 1;
+                attrs.slidesPerView = 1;
+            }
             this.#attrs = attrs;
             this.#attrs.slidesPerView = this.#getSlidesPerView();
             const sliderElement = await this.render(attrs);
@@ -485,6 +560,7 @@ class CustomSlider extends HTMLElement {
                     continuousSpeed: 0,
                     defaultSlidesPerView: 1,
                     slidesPerViewConfig: {},
+                    useBreakpoints: false,
                     navigation: false,
                     gap: '0',
                     pagination: false,
@@ -512,6 +588,7 @@ class CustomSlider extends HTMLElement {
                 continuousSpeed: 0,
                 defaultSlidesPerView: 1,
                 slidesPerViewConfig: {},
+                useBreakpoints: false,
                 navigation: false,
                 gap: '0',
                 pagination: false,
@@ -577,7 +654,7 @@ class CustomSlider extends HTMLElement {
         }
 
         this.#recalculateDimensions();
-        this.#applySlidesPerView(); // Force initial application of correct slidesPerView
+        this.#applySlidesPerView();
 
         if (this.hasAttribute('draggable')) {
             sliderContainer.setAttribute('draggable', '');
@@ -1374,5 +1451,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with breakpoints, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix)');
+console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with strict breakpoint validation, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix)');
 export { CustomSlider };
