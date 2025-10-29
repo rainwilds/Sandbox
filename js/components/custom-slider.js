@@ -113,13 +113,11 @@ class CustomSlider extends HTMLElement {
         let defaultSlidesPerView = 1;
         let useBreakpoints = false;
 
-        // Check for breakpoint-specific attributes
         const definedBreakpoints = breakpointAttrs.filter(attr => this.hasAttribute(attr));
         this.#log('Checking breakpoint attributes', { definedBreakpoints, elementId: this.#uniqueId });
 
         if (definedBreakpoints.length > 0) {
             useBreakpoints = true;
-            // Validate all breakpoint attributes
             for (const attr of breakpointAttrs) {
                 if (!this.hasAttribute(attr)) {
                     this.#error(`Missing required breakpoint attribute: ${attr}`, { definedBreakpoints, elementId: this.#uniqueId });
@@ -138,7 +136,6 @@ class CustomSlider extends HTMLElement {
             }
         }
 
-        // Parse default slides-per-view
         const defaultAttr = this.getAttribute('slides-per-view') || '1';
         defaultSlidesPerView = Math.max(1, parseInt(defaultAttr, 10)) || 1;
 
@@ -154,7 +151,6 @@ class CustomSlider extends HTMLElement {
             });
         }
 
-        // Other attributes
         let autoplayType = 'none';
         let autoplayDelay = 0;
         let continuousSpeed = 100;
@@ -478,6 +474,19 @@ class CustomSlider extends HTMLElement {
             return;
         }
 
+        // Re-fetch child elements to ensure #childElements is up-to-date
+        this.#childElements = Array.from(this.children)
+            .filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block'))
+            .map(child => child.cloneNode(true));
+
+        const totalSlides = this.#childElements.length;
+        this.#log('Updating pagination', {
+            totalSlides,
+            slidesPerView: this.#attrs.slidesPerView,
+            infiniteScrolling: this.#attrs.infiniteScrolling,
+            elementId: this.#uniqueId
+        });
+
         let pagination = sliderContainer.querySelector('.slider-pagination');
         if (!pagination) {
             pagination = document.createElement('div');
@@ -487,8 +496,8 @@ class CustomSlider extends HTMLElement {
             pagination.innerHTML = ''; // Clear existing dots
         }
 
-        const totalSlides = this.#childElements.length;
-        const totalDots = (this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1)
+        // Calculate total dots, ensuring at least one dot
+        const totalDots = this.#attrs.infiniteScrolling
             ? totalSlides
             : Math.max(1, totalSlides - this.#attrs.slidesPerView + 1);
 
@@ -1319,7 +1328,7 @@ class CustomSlider extends HTMLElement {
             const pagination = document.createElement('div');
             pagination.className = 'slider-pagination';
             const totalSlides = this.#childElements.length;
-            const totalDots = (attrs.infiniteScrolling && attrs.slidesPerView > 1)
+            const totalDots = attrs.infiniteScrolling
                 ? totalSlides
                 : Math.max(1, totalSlides - attrs.slidesPerView + 1);
             for (let i = 0; i < totalDots; i++) {
@@ -1428,5 +1437,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with strict breakpoint validation, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix, gap attribute fix, dynamic pagination update on resize, enhanced error handling)');
+console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with strict breakpoint validation, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix, gap attribute fix, dynamic pagination update on resize, enhanced error handling, fixed pagination dots)');
 export { CustomSlider };
