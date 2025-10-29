@@ -112,7 +112,6 @@ class CustomSlider extends HTMLElement {
         const slidesPerViewConfig = {};
         let defaultSlidesPerView = 1;
         let useBreakpoints = false;
-
         const definedBreakpoints = breakpointAttrs.filter(attr => this.hasAttribute(attr));
         this.#log('Checking breakpoint attributes', { definedBreakpoints, elementId: this.#uniqueId });
 
@@ -253,14 +252,17 @@ class CustomSlider extends HTMLElement {
         let paginationIconActive = this.getAttribute('pagination-icon-active') || '<i class="fa-solid fa-circle"></i>';
         let paginationIconInactive = this.getAttribute('pagination-icon-inactive') || '<i class="fa-regular fa-circle"></i>';
         const crossFade = this.hasAttribute('cross-fade');
+
         if (crossFade && autoplayType === 'continuous') {
             this.#warn('Continuous autoplay is not supported with cross-fade, disabling autoplay', { elementId: this.#uniqueId });
             autoplayType = 'none';
             continuousSpeed = 0;
         }
+
         if (crossFade && defaultSlidesPerView !== 1) {
             this.#warn('Cross-fade attribute is only supported for slides-per-view=1, ignoring', { defaultSlidesPerView });
         }
+
         const infiniteScrolling = this.hasAttribute('infinite-scrolling');
         const pauseOnHover = this.hasAttribute('pause-on-hover');
 
@@ -346,7 +348,6 @@ class CustomSlider extends HTMLElement {
 
         paginationIconActive = validateIcon(paginationIconActive, 'active');
         paginationIconInactive = validateIcon(paginationIconInactive, 'inactive');
-
         this.#log('Pagination attributes validated', {
             pagination,
             paginationIconActive,
@@ -447,8 +448,8 @@ class CustomSlider extends HTMLElement {
             this.#attrs.slidesPerView = newSpv;
             this.#bufferSize = newSpv;
         }
-        this.#recalculateDimensions();
 
+        this.#recalculateDimensions();
         if (this.#attrs?.useBreakpoints) {
             this.#rebuildInfiniteBuffer();
         }
@@ -477,8 +478,15 @@ class CustomSlider extends HTMLElement {
         this.#childElements = Array.from(sliderContainer.querySelectorAll('.slider-slide'))
             .map(slide => slide.cloneNode(true));
         const totalSlides = this.#childElements.length;
+
+        if (!this.#originalLength) {
+            this.#originalLength = totalSlides;
+            this.#warn('originalLength was not set, defaulting to totalSlides', { totalSlides, elementId: this.#uniqueId });
+        }
+
         this.#log('Updating pagination', {
             totalSlides,
+            originalLength: this.#originalLength,
             slidesPerView: this.#attrs.slidesPerView,
             infiniteScrolling: this.#attrs.infiniteScrolling,
             elementId: this.#uniqueId
@@ -494,7 +502,7 @@ class CustomSlider extends HTMLElement {
         }
 
         const totalDots = this.#attrs.infiniteScrolling
-            ? Math.max(1, totalSlides - this.#attrs.slidesPerView + 1)
+            ? Math.max(1, this.#originalLength - this.#attrs.slidesPerView + 1)
             : Math.max(1, totalSlides - this.#attrs.slidesPerView + 1);
 
         for (let i = 0; i < totalDots; i++) {
@@ -576,8 +584,10 @@ class CustomSlider extends HTMLElement {
             this.#log('Initialization skipped', { isInitialized: this.isInitialized, isVisible: this.isVisible, elementId: this.#uniqueId });
             return;
         }
+
         this.isInitialized = true;
         this.#log('Initialization started', { elementId: this.#uniqueId });
+
         try {
             const attrs = await this.getAttributes();
             if (!attrs.useBreakpoints && !this.hasAttribute('slides-per-view')) {
@@ -652,16 +662,19 @@ class CustomSlider extends HTMLElement {
             this.#error('Slider container not found', { elementId: this.#uniqueId });
             return;
         }
+
         this.#slides = Array.from(sliderContainer.querySelectorAll('.slider-slide'));
         if (this.#slides.length === 0) {
             this.#warn('No slides to initialize', { elementId: this.#uniqueId });
             return;
         }
+
         const originalSlides = this.#slides;
         this.#originalLength = originalSlides.length;
         this.#bufferSize = this.#attrs.slidesPerView;
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
         const enableInfinite = this.#attrs.infiniteScrolling && this.#originalLength > this.#bufferSize;
+
         if (enableInfinite) {
             const leftBuffer = originalSlides.slice(-this.#bufferSize).map(slide => slide.cloneNode(true));
             const rightBuffer = originalSlides.slice(0, this.#bufferSize).map(slide => slide.cloneNode(true));
@@ -685,11 +698,14 @@ class CustomSlider extends HTMLElement {
             this.#currentIndex = 0;
             this.#currentTranslate = 0;
         }
+
         this.#recalculateDimensions();
         this.#applySlidesPerView();
+
         if (this.hasAttribute('draggable')) {
             sliderContainer.setAttribute('draggable', '');
         }
+
         if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
             sliderContainer.setAttribute('cross-fade', '');
             const displayIndex = this.#currentIndex % this.#originalLength;
@@ -699,11 +715,14 @@ class CustomSlider extends HTMLElement {
                 if (isActive) slide.classList.add('active');
             });
         }
+
         if (this.#attrs.gap && this.#attrs.gap !== '0' && (!this.#attrs.crossFade || this.#attrs.slidesPerView !== 1)) {
             wrapper.style.setProperty('--slider-gap', this.#attrs.gap);
             sliderContainer.setAttribute('gap', '');
         }
+
         wrapper.style.setProperty('--slider-columns', `repeat(${this.#slides.length}, ${100 / this.#attrs.slidesPerView}%)`);
+
         if (this.hasAttribute('draggable')) {
             wrapper.addEventListener('pointerdown', this.#pointerDown.bind(this));
             wrapper.addEventListener('pointerup', this.#pointerUp.bind(this));
@@ -718,6 +737,7 @@ class CustomSlider extends HTMLElement {
                 }
             });
         }
+
         if (this.#attrs.pauseOnHover) {
             sliderContainer.addEventListener('mouseenter', () => {
                 this.#isHovering = true;
@@ -734,6 +754,7 @@ class CustomSlider extends HTMLElement {
         } else {
             this.#log('Hover-to-pause disabled (no pause-on-hover attribute)', { elementId: this.#uniqueId });
         }
+
         if (this.#attrs.navigation) {
             const prevButton = document.getElementById(`${this.#uniqueId}-prev`);
             const nextButton = document.getElementById(`${this.#uniqueId}-next`);
@@ -754,6 +775,7 @@ class CustomSlider extends HTMLElement {
                 });
             }
         }
+
         if (this.#attrs.pagination) {
             const pagination = sliderContainer.querySelector('.slider-pagination');
             if (pagination) {
@@ -787,9 +809,11 @@ class CustomSlider extends HTMLElement {
                 });
             }
         }
+
         if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
             this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
         }
+
         this.#debouncedHandleResize = this.#debounce(() => {
             this.#recalculateDimensions();
             this.#applySlidesPerView();
@@ -800,6 +824,7 @@ class CustomSlider extends HTMLElement {
                 this.#setSliderPosition('0s');
             }
         }, 100);
+
         window.addEventListener('resize', this.#debouncedHandleResize);
         this.#updateSlider();
     }
@@ -1005,7 +1030,6 @@ class CustomSlider extends HTMLElement {
         this.#lastFrameTime = timestamp;
         const pixelsPerFrame = this.#continuousSpeed * deltaTime;
         this.#currentTranslate -= pixelsPerFrame;
-
         if (this.#attrs.infiniteScrolling) {
             const totalWidth = this.#originalLength * (this.#slideWidth + this.#gapPx);
             const minTranslate = -totalWidth + this.#slideWidth;
@@ -1202,6 +1226,7 @@ class CustomSlider extends HTMLElement {
     #updateSlider(forceUpdate = false) {
         const sliderContainer = document.getElementById(this.#uniqueId);
         if (!sliderContainer) return;
+
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
         if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
             const displayIndex = this.#attrs.infiniteScrolling
@@ -1216,6 +1241,7 @@ class CustomSlider extends HTMLElement {
         } else if (forceUpdate || this.#attrs.autoplayType !== 'continuous') {
             wrapper.style.transform = `translate3d(${this.#currentTranslate}px, 0, 0)`;
         }
+
         if (this.#attrs.pagination) {
             const now = performance.now();
             if (!forceUpdate && now - this.#lastPaginationUpdate < 100) {
@@ -1263,6 +1289,7 @@ class CustomSlider extends HTMLElement {
                 this.#warn('Pagination element not found in updateSlider', { elementId: this.#uniqueId });
             }
         }
+
         this.#log(`[Slider Updated] currentIndex=${this.#currentIndex}, translate=${this.#currentTranslate}, forceUpdate=${forceUpdate}`, { elementId: this.#uniqueId });
     }
 
@@ -1272,6 +1299,7 @@ class CustomSlider extends HTMLElement {
         sliderWrapper.className = 'custom-slider';
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
+
         if (!attrs.crossFade || attrs.slidesPerView !== 1) {
             const spv = this.#getSlidesPerView();
             innerWrapper.style.setProperty('--slider-columns', `repeat(${this.#childElements.length}, ${100 / spv}%)`);
@@ -1280,6 +1308,7 @@ class CustomSlider extends HTMLElement {
                 sliderWrapper.setAttribute('gap', '');
             }
         }
+
         if (this.#childElements.length === 0) {
             this.#warn('No valid slides found', { elementId: this.#uniqueId });
             const fallbackSlide = document.createElement('div');
@@ -1287,6 +1316,7 @@ class CustomSlider extends HTMLElement {
             fallbackSlide.innerHTML = '<p>No slides available</p>';
             innerWrapper.appendChild(fallbackSlide);
         } else {
+            this.#originalLength = this.#childElements.length; // Set originalLength here
             this.#childElements.forEach((slide, index) => {
                 const slideWrapper = document.createElement('div');
                 slideWrapper.className = 'slider-slide';
@@ -1298,7 +1328,9 @@ class CustomSlider extends HTMLElement {
                 innerWrapper.appendChild(slideWrapper);
             });
         }
+
         sliderWrapper.appendChild(innerWrapper);
+
         if (attrs.navigation && attrs.navigationIconLeft && attrs.navigationIconRight) {
             const navPrev = document.createElement('div');
             navPrev.id = `${this.#uniqueId}-prev`;
@@ -1325,12 +1357,13 @@ class CustomSlider extends HTMLElement {
             sliderWrapper.appendChild(navPrev);
             sliderWrapper.appendChild(navNext);
         }
+
         if (attrs.pagination) {
             const pagination = document.createElement('div');
             pagination.className = 'slider-pagination';
             const totalSlides = this.#childElements.length;
             const totalDots = attrs.infiniteScrolling
-                ? Math.max(1, totalSlides - attrs.slidesPerView + 1)
+                ? Math.max(1, this.#originalLength - attrs.slidesPerView + 1)
                 : Math.max(1, totalSlides - attrs.slidesPerView + 1);
             for (let i = 0; i < totalDots; i++) {
                 const dot = document.createElement('span');
@@ -1368,10 +1401,11 @@ class CustomSlider extends HTMLElement {
                 pagination.appendChild(dot);
             }
             sliderWrapper.appendChild(pagination);
-            this.#log(`[Pagination Added] totalDots=${totalDots}`, { elementId: this.#uniqueId, totalSlides });
+            this.#log(`[Pagination Added] totalDots=${totalDots}, originalLength=${this.#originalLength}, totalSlides=${totalSlides}`, { elementId: this.#uniqueId });
         } else {
             this.#log('Pagination not added', { pagination: attrs.pagination, elementId: this.#uniqueId });
         }
+
         return sliderWrapper;
     }
 
@@ -1438,5 +1472,6 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with strict breakpoint validation, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix, gap attribute fix, dynamic pagination update on resize, enhanced error handling, fixed pagination dots, fixed infinite scrolling continuous loop, fixed validateIcon typo)');
+console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with strict breakpoint validation, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, fixed pagination dots for infinite scrolling, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix, gap attribute fix, dynamic pagination update on resize, enhanced error handling, fixed pagination dots, fixed infinite scrolling continuous loop, fixed validateIcon typo)');
+
 export { CustomSlider };
