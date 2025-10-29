@@ -364,7 +364,7 @@ class CustomSlider extends HTMLElement {
             useBreakpoints,
             navigation,
             navigationIconLeft: leftIconResult.markup,
-            navigationIconRight: rightIconResult Markup,
+            navigationIconRight: rightIconResult.markup,
             gap,
             pagination,
             paginationIconActive,
@@ -793,7 +793,7 @@ class CustomSlider extends HTMLElement {
         }
 
         if (this.#attrs.pagination) {
-            const pagination = slidersContainer.querySelector('.slider-pagination');
+            const pagination = sliderContainer.querySelector('.slider-pagination');
             if (pagination) {
                 const dots = pagination.querySelectorAll('span.icon');
                 dots.forEach((dot, index) => {
@@ -1327,7 +1327,7 @@ class CustomSlider extends HTMLElement {
             fallbackSlide.innerHTML = '<p>No slides available</p>';
             innerWrapper.appendChild(fallbackSlide);
         } else {
-            this.#originalLength = this.#childElements.length; // Set originalLength here
+            this.#originalLength = this.#childElements.length;
             this.#childElements.forEach((slide, index) => {
                 const slideWrapper = document.createElement('div');
                 slideWrapper.className = 'slider-slide';
@@ -1483,6 +1483,6 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with strict breakpoint validation, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, fixed pagination dots for infinite scrolling with unique slide navigation, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix, gap attribute fix, dynamic pagination update on resize, enhanced error handling, fixed validateIcon typo, fixed pagination dot count on viewport resize)');
+console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with strict breakpoint validation, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, fixed pagination dots for infinite scrolling with unique slide navigation, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix, gap attribute fix, dynamic pagination update on resize, enhanced error handling, fixed validateIcon typo, fixed pagination dot count on viewport resize, fixed navigationIconRight typo)');
 
 export { CustomSlider };
