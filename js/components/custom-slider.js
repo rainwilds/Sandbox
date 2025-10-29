@@ -364,7 +364,7 @@ class CustomSlider extends HTMLElement {
             useBreakpoints,
             navigation,
             navigationIconLeft: leftIconResult.markup,
-            navigationIconRight: rightIconResult.markup,
+            navigationIconRight: rightIconResult Markup,
             gap,
             pagination,
             paginationIconActive,
@@ -429,9 +429,10 @@ class CustomSlider extends HTMLElement {
     }
 
     #applySlidesPerView() {
+        const oldSpv = this.#attrs?.slidesPerView || 0;
         const newSpv = this.#getSlidesPerView();
         this.#log('Applying slides per view', {
-            currentSlidesPerView: this.#attrs?.slidesPerView,
+            currentSlidesPerView: oldSpv,
             newSlidesPerView: newSpv,
             gap: this.#attrs?.gap,
             elementId: this.#uniqueId
@@ -454,6 +455,12 @@ class CustomSlider extends HTMLElement {
             this.#rebuildInfiniteBuffer();
         }
 
+        // Clamp currentIndex to prevent invalid states after slidesPerView change
+        if (!this.#attrs.infiniteScrolling) {
+            const maxIndex = Math.max(0, this.#originalLength - this.#attrs.slidesPerView);
+            this.#currentIndex = Math.min(this.#currentIndex, maxIndex);
+        }
+
         const wrapper = document.getElementById(this.#uniqueId)?.querySelector('.slider-wrapper');
         if (wrapper) {
             wrapper.style.setProperty('--slider-columns', `repeat(${this.#slides.length}, ${100 / newSpv}%)`);
@@ -461,11 +468,19 @@ class CustomSlider extends HTMLElement {
             this.#warn('Slider wrapper not found during applySlidesPerView', { elementId: this.#uniqueId });
         }
 
+        // Update slider position to align with new slidesPerView
+        this.#setPositionByIndex();
+
         if (this.#attrs?.pagination) {
             this.#updatePagination();
         }
 
         this.#updateSlider(true);
+        this.#log('Slides per view applied', {
+            newSlidesPerView: newSpv,
+            currentIndex: this.#currentIndex,
+            elementId: this.#uniqueId
+        });
     }
 
     #updatePagination() {
@@ -489,6 +504,7 @@ class CustomSlider extends HTMLElement {
             originalLength: this.#originalLength,
             slidesPerView: this.#attrs.slidesPerView,
             infiniteScrolling: this.#attrs.infiniteScrolling,
+            currentIndex: this.#currentIndex,
             elementId: this.#uniqueId
         });
 
@@ -498,19 +514,19 @@ class CustomSlider extends HTMLElement {
             pagination.className = 'slider-pagination';
             sliderContainer.appendChild(pagination);
         } else {
-            pagination.innerHTML = '';
+            pagination.innerHTML = ''; // Clear existing dots
         }
 
         const totalDots = this.#attrs.infiniteScrolling
             ? this.#originalLength
-            : Math.max(1, totalSlides - this.#attrs.slidesPerView + 1);
+            : Math.max(1, this.#originalLength - this.#attrs.slidesPerView + 1);
 
         for (let i = 0; i < totalDots; i++) {
             const dot = document.createElement('span');
             dot.className = 'icon';
-            const logicalIndex = this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1
+            const logicalIndex = this.#attrs.infiniteScrolling
                 ? (this.#currentIndex - this.#bufferSize + this.#originalLength) % this.#originalLength
-                : this.#currentIndex;
+                : Math.max(0, Math.min(this.#currentIndex, this.#originalLength - this.#attrs.slidesPerView));
             dot.innerHTML = i === logicalIndex ? this.#attrs.paginationIconActive : this.#attrs.paginationIconInactive;
             const icon = dot.querySelector('i');
             if (icon && (this.#attrs.paginationIconSizeActive || this.#attrs.paginationIconSizeInactive)) {
@@ -777,7 +793,7 @@ class CustomSlider extends HTMLElement {
         }
 
         if (this.#attrs.pagination) {
-            const pagination = sliderContainer.querySelector('.slider-pagination');
+            const pagination = slidersContainer.querySelector('.slider-pagination');
             if (pagination) {
                 const dots = pagination.querySelectorAll('span.icon');
                 dots.forEach((dot, index) => {
@@ -815,14 +831,9 @@ class CustomSlider extends HTMLElement {
         }
 
         this.#debouncedHandleResize = this.#debounce(() => {
+            this.#log('Resize event triggered', { viewportWidth: window.innerWidth, elementId: this.#uniqueId });
             this.#recalculateDimensions();
             this.#applySlidesPerView();
-            if (this.#attrs.autoplayType !== 'continuous') {
-                this.#setPositionByIndex();
-            } else {
-                this.#currentTranslate = this.#calculateTranslate();
-                this.#setSliderPosition('0s');
-            }
         }, 100);
 
         window.addEventListener('resize', this.#debouncedHandleResize);
@@ -1252,7 +1263,7 @@ class CustomSlider extends HTMLElement {
             if (pagination) {
                 const dots = pagination.querySelectorAll('span.icon');
                 let logicalIndex;
-                if (this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1) {
+                if (this.#attrs.infiniteScrolling) {
                     logicalIndex = (this.#currentIndex - this.#bufferSize + this.#originalLength) % this.#originalLength;
                 } else {
                     logicalIndex = Math.max(0, Math.min(this.#currentIndex, this.#originalLength - this.#attrs.slidesPerView));
@@ -1472,6 +1483,6 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with strict breakpoint validation, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, fixed pagination dots for infinite scrolling with unique slide navigation, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix, gap attribute fix, dynamic pagination update on resize, enhanced error handling, fixed validateIcon typo)');
+console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with strict breakpoint validation, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, fixed pagination dots for infinite scrolling with unique slide navigation, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix, gap attribute fix, dynamic pagination update on resize, enhanced error handling, fixed validateIcon typo, fixed pagination dot count on viewport resize)');
 
 export { CustomSlider };
