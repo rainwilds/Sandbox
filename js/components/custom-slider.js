@@ -128,6 +128,12 @@ class CustomSlider extends HTMLElement {
             }
         });
 
+        this.#log('Slides per view configuration', {
+            defaultSlidesPerView,
+            slidesPerViewConfig,
+            elementId: this.#uniqueId
+        });
+
         // === OTHER ATTRIBUTES ===
         let autoplayType = 'none';
         let autoplayDelay = 0;
@@ -368,50 +374,90 @@ class CustomSlider extends HTMLElement {
 
     #getCurrentBreakpoint() {
         const width = window.innerWidth;
+        let selectedBreakpoint = 'large';
         for (const bp of VIEWPORT_BREAKPOINTS) {
             if (width <= bp.maxWidth) {
-                return bp.name;
+                selectedBreakpoint = bp.name;
+                break;
             }
         }
-        return 'large';
+        this.#log('Current breakpoint detected', {
+            viewportWidth: width,
+            breakpoint: selectedBreakpoint,
+            elementId: this.#uniqueId
+        });
+        return selectedBreakpoint;
     }
 
     #getSlidesPerView() {
         const bp = this.#getCurrentBreakpoint();
-        return this.#attrs.slidesPerViewConfig[bp] ?? this.#attrs.defaultSlidesPerView;
+        const spv = this.#attrs.slidesPerViewConfig[bp] ?? this.#attrs.defaultSlidesPerView;
+        this.#log('Slides per view determined', {
+            breakpoint: bp,
+            slidesPerView: spv,
+            slidesPerViewConfig: this.#attrs.slidesPerViewConfig,
+            defaultSlidesPerView: this.#attrs.defaultSlidesPerView,
+            elementId: this.#uniqueId
+        });
+        return spv;
     }
 
     #applySlidesPerView() {
         const newSpv = this.#getSlidesPerView();
-        if (newSpv === this.#attrs.slidesPerView) return;
+        this.#log('Applying slides per view', {
+            currentSlidesPerView: this.#attrs.slidesPerView,
+            newSlidesPerView: newSpv,
+            elementId: this.#uniqueId
+        });
 
         this.#attrs.slidesPerView = newSpv;
         this.#bufferSize = newSpv;
         this.#recalculateDimensions();
         this.#rebuildInfiniteBuffer();
+
+        const wrapper = document.getElementById(this.#uniqueId)?.querySelector('.slider-wrapper');
+        if (wrapper) {
+            wrapper.style.setProperty('--slider-columns', `repeat(${this.#slides.length}, ${100 / newSpv}%)`);
+        }
+
         this.#updateSlider(true);
     }
 
     #rebuildInfiniteBuffer() {
-        if (!this.#attrs.infiniteScrolling || this.#originalLength <= this.#attrs.slidesPerView) return;
+        if (!this.#attrs.infiniteScrolling || this.#originalLength <= this.#attrs.slidesPerView) {
+            this.#log('Skipping infinite buffer rebuild', {
+                infiniteScrolling: this.#attrs.infiniteScrolling,
+                originalLength: this.#originalLength,
+                slidesPerView: this.#attrs.slidesPerView,
+                elementId: this.#uniqueId
+            });
+            return;
+        }
 
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         const currentTranslate = this.#currentTranslate;
 
         const originalSlides = this.#slides.slice(this.#bufferSize, this.#bufferSize + this.#originalLength);
-        const leftBuffer = originalSlides.slice(-this.#bufferSize);
-        const rightBuffer = originalSlides.slice(0, this.#bufferSize);
+        const leftBuffer = originalSlides.slice(-this.#bufferSize).map(slide => slide.cloneNode(true));
+        const rightBuffer = originalSlides.slice(0, this.#bufferSize).map(slide => slide.cloneNode(true));
 
         wrapper.innerHTML = '';
-        [...leftBuffer, ...originalSlides, ...rightBuffer].forEach(s => wrapper.appendChild(s.cloneNode(true)));
+        [...leftBuffer, ...originalSlides, ...rightBuffer].forEach(s => wrapper.appendChild(s));
 
         this.#slides = Array.from(wrapper.querySelectorAll('.slider-slide'));
         this.#currentIndex = this.#bufferSize + (this.#currentIndex - this.#bufferSize);
         this.#currentTranslate = this.#calculateTranslate();
 
-        const sliderWrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
-        sliderWrapper.style.transition = 'none';
-        sliderWrapper.style.transform = `translate3d(${this.#currentTranslate}px, 0, 0)`;
+        wrapper.style.transition = 'none';
+        wrapper.style.transform = `translate3d(${this.#currentTranslate}px, 0, 0)`;
+
+        this.#log('Infinite buffer rebuilt', {
+            bufferSize: this.#bufferSize,
+            totalSlides: this.#slides.length,
+            currentIndex: this.#currentIndex,
+            currentTranslate: this.#currentTranslate,
+            elementId: this.#uniqueId
+        });
     }
 
     async initialize() {
@@ -531,6 +577,7 @@ class CustomSlider extends HTMLElement {
         }
 
         this.#recalculateDimensions();
+        this.#applySlidesPerView(); // Force initial application of correct slidesPerView
 
         if (this.hasAttribute('draggable')) {
             sliderContainer.setAttribute('draggable', '');
@@ -648,6 +695,9 @@ class CustomSlider extends HTMLElement {
             this.#applySlidesPerView();
             if (this.#attrs.autoplayType !== 'continuous') {
                 this.#setPositionByIndex();
+            } else {
+                this.#currentTranslate = this.#calculateTranslate();
+                this.#setSliderPosition('0s');
             }
         }, 100);
         window.addEventListener('resize', this.#debouncedHandleResize);
@@ -677,7 +727,8 @@ class CustomSlider extends HTMLElement {
                 slideWidth: this.#slideWidth,
                 gapPx: this.#gapPx,
                 containerWidth: sliderContainer.clientWidth,
-                slidesPerView: this.#attrs.slidesPerView
+                slidesPerView: this.#attrs.slidesPerView,
+                elementId: this.#uniqueId
             });
         }
     }
@@ -842,7 +893,8 @@ class CustomSlider extends HTMLElement {
         this.#log('Slider position set', {
             translate: this.#currentTranslate,
             currentIndex: this.#currentIndex,
-            transitionDuration
+            transitionDuration,
+            elementId: this.#uniqueId
         });
     }
 
@@ -942,7 +994,8 @@ class CustomSlider extends HTMLElement {
             currentIndex: this.#currentIndex,
             slideWidth: this.#slideWidth,
             gapPx: this.#gapPx,
-            translate
+            translate,
+            elementId: this.#uniqueId
         });
         return translate;
     }
@@ -954,23 +1007,10 @@ class CustomSlider extends HTMLElement {
             index,
             slideWidth: this.#slideWidth,
             gapPx: this.#gapPx,
-            translate
+            translate,
+            elementId: this.#uniqueId
         });
         return translate;
-    }
-
-    #handleResize() {
-        this.#recalculateDimensions();
-        if (this.#attrs.autoplayType !== 'continuous') {
-            this.#setPositionByIndex();
-        } else {
-            this.#currentTranslate = this.#calculateTranslate();
-            this.#setSliderPosition('0s');
-        }
-        this.#log('Resize handled', {
-            currentIndex: this.#currentIndex,
-            translate: this.#currentTranslate
-        });
     }
 
     #adjustForLoop() {
@@ -1334,5 +1374,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with breakpoints, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, optional pause-on-hover, and fixed pagination navigation during active autoplay)');
+console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with breakpoints, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix)');
 export { CustomSlider };
