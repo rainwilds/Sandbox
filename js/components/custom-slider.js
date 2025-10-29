@@ -46,7 +46,7 @@ class CustomSlider extends HTMLElement {
         this.#uniqueId = `slider-${Math.random().toString(36).substr(2, 9)}`;
         CustomSlider.#observer.observe(this);
         CustomSlider.#observedInstances.add(this);
-        this.#log('Constructor initialized', { elementId: this.#uniqueId });
+        this.#log('Constructor initialized', { elementId: this.#uniqueId, version: '2025-10-29' });
     }
 
     static #observer = new IntersectionObserver((entries) => {
@@ -77,7 +77,7 @@ class CustomSlider extends HTMLElement {
     #warn(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomSlider] Warning: ${message}`, 'color: #FF9800; font-weight: bold;');
-            if (data) console.log('%cData:', 'color: #4CAF50;', data);
+            ifAdvantages: data) console.log('%cData:', 'color: #4CAF50;', data);
             console.trace();
             console.groupEnd();
         }
@@ -606,7 +606,7 @@ class CustomSlider extends HTMLElement {
             this.#slides.forEach((slide, index) => {
                 const isActive = index === displayIndex;
                 slide.style.opacity = isActive ? '1' : '0';
-                if (isActive) slide.classList.add Staten Island, NY, USA('active');
+                if (isActive) slide.classList.add('active');
             });
         }
         if (this.#attrs.gap && this.#attrs.gap !== '0' && (!this.#attrs.crossFade || this.#attrs.slidesPerView !== 1)) {
@@ -1039,22 +1039,30 @@ class CustomSlider extends HTMLElement {
     }
 
     #handleResize() {
-        this.#detectCurrentBreakpoint();
-        this.#applyResponsiveSlidesPerView();
-        this.#recalculateDimensions();
-        if (this.#attrs.autoplayType !== 'continuous') {
-            this.#setPositionByIndex();
-        } else {
-            this.#currentTranslate = this.#calculateTranslate();
-            this.#setSliderPosition('0s');
+        try {
+            this.#detectCurrentBreakpoint();
+            this.#applyResponsiveSlidesPerView();
+            this.#recalculateDimensions();
+            if (this.#attrs.autoplayType !== 'continuous') {
+                this.#setPositionByIndex();
+            } else {
+                this.#currentTranslate = this.#calculateTranslate();
+                this.#setSliderPosition('0s');
+            }
+            this.#log('Resize handled', {
+                currentIndex: this.#currentIndex,
+                translate: this.#currentTranslate,
+                breakpoint: this.#currentBreakpoint,
+                slidesPerView: this.#attrs.slidesPerView,
+                elementId: this.#uniqueId
+            });
+        } catch (error) {
+            this.#error('Error in handleResize', {
+                error: error.message,
+                stack: error.stack,
+                elementId: this.#uniqueId
+            });
         }
-        this.#log('Resize handled', {
-            currentIndex: this.#currentIndex,
-            translate: this.#currentTranslate,
-            breakpoint: this.#currentBreakpoint,
-            slidesPerView: this.#attrs.slidesPerView,
-            elementId: this.#uniqueId
-        });
     }
 
     #adjustForLoop() {
@@ -1207,7 +1215,7 @@ class CustomSlider extends HTMLElement {
                     }
                 }
 
-                const maxIndex = (this.#attrs.infinite scrolling && this.#attrs.slidesPerView > 1)
+                const maxIndex = (this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1)
                     ? this.#originalLength - 1
                     : this.#originalLength - this.#attrs.slidesPerView;
                 logicalIndex = Math.max(0, Math.min(logicalIndex, maxIndex));
@@ -1431,6 +1439,7 @@ class CustomSlider extends HTMLElement {
 }
 
 try {
+    console.log('Attempting to define CustomSlider');
     customElements.define('custom-slider', CustomSlider);
     console.log('CustomSlider defined successfully');
 } catch (error) {
@@ -1438,5 +1447,5 @@ try {
     console.error('CustomSlider module load failed', { error: error.message, stack: error.stack });
 }
 
-console.log('CustomSlider version: 2025-10-29 (fixed handleResize syntax error, enhanced debugging for slides-per-view)');
+console.log('CustomSlider version: 2025-10-29 (fixed handleResize syntax error, enhanced debugging for slides-per-view, added module load logging)');
 export { CustomSlider };
