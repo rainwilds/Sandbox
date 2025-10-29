@@ -6,6 +6,7 @@ import { getConfig } from '../config.js';
 import { VIEWPORT_BREAKPOINTS } from '../shared.js';
 
 class CustomSlider extends HTMLElement {
+    // Private fields
     #ignoredChangeCount = 0;
     #basePath = null;
     #currentIndex = 0;
@@ -46,7 +47,7 @@ class CustomSlider extends HTMLElement {
         this.#uniqueId = `slider-${Math.random().toString(36).substr(2, 9)}`;
         CustomSlider.#observer.observe(this);
         CustomSlider.#observedInstances.add(this);
-        this.#log('Constructor initialized', { elementId: this.#uniqueId, version: '2025-10-29' });
+        this.#log('Constructor initialized', { elementId: this.#uniqueId, version: '2025-10-29-v2' });
     }
 
     static #observer = new IntersectionObserver((entries) => {
@@ -77,7 +78,7 @@ class CustomSlider extends HTMLElement {
     #warn(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomSlider] Warning: ${message}`, 'color: #FF9800; font-weight: bold;');
-            ifAdvantages: data) console.log('%cData:', 'color: #4CAF50;', data);
+            if (data) console.log('%cData:', 'color: #4CAF50;', data);
             console.trace();
             console.groupEnd();
         }
@@ -149,16 +150,24 @@ class CustomSlider extends HTMLElement {
     }
 
     #onBreakpointChange(event) {
-        const breakpointName = Array.from(this.#breakpointMediaQueries.entries())
-            .find(([name, mq]) => mq === event.target)?.[0];
-        if (breakpointName && event.matches) {
-            this.#currentBreakpoint = breakpointName;
-            this.#log('Breakpoint changed', {
-                newBreakpoint: this.#currentBreakpoint,
+        try {
+            const breakpointName = Array.from(this.#breakpointMediaQueries.entries())
+                .find(([name, mq]) => mq === event.target)?.[0];
+            if (breakpointName && event.matches) {
+                this.#currentBreakpoint = breakpointName;
+                this.#log('Breakpoint changed', {
+                    newBreakpoint: this.#currentBreakpoint,
+                    elementId: this.#uniqueId
+                });
+                this.#applyResponsiveSlidesPerView();
+                this.#handleResize();
+            }
+        } catch (error) {
+            this.#error('Error in onBreakpointChange', {
+                error: error.message,
+                stack: error.stack,
                 elementId: this.#uniqueId
             });
-            this.#applyResponsiveSlidesPerView();
-            this.#handleResize();
         }
     }
 
@@ -174,7 +183,7 @@ class CustomSlider extends HTMLElement {
         }
 
         const newSlidesPerView = this.#attrs.responsiveSlides[this.#currentBreakpoint];
-        if (newSlidesPerView && newSlidesPerView !== this.#attrs.slidesPerView) {
+        if (newSlidesPerView && newSlidesPerView !== this.#attrs.pagesPerView) {
             this.#log('Applying responsive slides-per-view', {
                 breakpoint: this.#currentBreakpoint,
                 newSlidesPerView,
@@ -661,7 +670,7 @@ class CustomSlider extends HTMLElement {
                 nextButton.addEventListener('click', () => {
                     this.#stopAutoplay();
                     this.#navigate(1);
-                    if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
+                    if (this.#attrs.autplayType !== 'none' && !this.#isHovering) {
                         this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
                     }
                 });
@@ -758,7 +767,7 @@ class CustomSlider extends HTMLElement {
             this.#stopAutoplay();
             this.#isDragging = true;
             this.#startPos = event.clientX;
-            this.#prevTranslate = this.#currentTranslate;
+            this.#currentTranslate = this.#prevTranslate;
             this.#animationID = requestAnimationFrame(this.#animation.bind(this));
             const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
             wrapper.classList.add('dragging');
@@ -1196,6 +1205,7 @@ class CustomSlider extends HTMLElement {
             const pagination = sliderContainer.querySelector('.slider-pagination');
             if (pagination) {
                 const dots = pagination.querySelectorAll('span.icon');
+                let_os = [];
                 let logicalIndex;
                 let rawIndex;
                 if (this.#attrs.autoplayType === 'continuous') {
@@ -1447,5 +1457,5 @@ try {
     console.error('CustomSlider module load failed', { error: error.message, stack: error.stack });
 }
 
-console.log('CustomSlider version: 2025-10-29 (fixed handleResize syntax error, enhanced debugging for slides-per-view, added module load logging)');
+console.log('CustomSlider version: 2025-10-29-v2 (fixed onBreakpointChange syntax error, enhanced debugging for slides-per-view, added module load logging)');
 export { CustomSlider };
