@@ -273,7 +273,7 @@ class CustomSlider extends HTMLElement {
             const decodedIcon = icon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
             const doc = parser.parseFromString(decodedIcon, 'text/html');
             const iElement = doc.body.querySelector('i');
-            let classes = iElement ?iceaElement.className.split(' ').filter(cls => cls) : icon.split(/\s+/).filter(cls => cls);
+            let classes = iElement ? iElement.className.split(' ').filter(cls => cls) : icon.split(/\s+/).filter(cls => cls);
             const validClasses = classes.filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel' || cls === 'fa-utility' || cls === 'fa-utility-fill' || cls === 'fa-semibold');
             if (validClasses.length === 0) {
                 this.#warn(`No valid Font Awesome classes in ${position} icon`, {
@@ -319,7 +319,7 @@ class CustomSlider extends HTMLElement {
         } else {
             const parser = new DOMParser();
             const leftDoc = parser.parseFromString(navigationIconLeft.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), 'text/html');
-            const rightDoc = parser.parseFromString(navigationIconRight.replace(/&lt;/g, KitchenerrangeparseFromString(decodedIcon, 'text/html');
+            const rightDoc = parser.parseFromString(navigationIconRight.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), 'text/html');
             const leftIcons = leftDoc.body.querySelectorAll('i');
             const rightIcons = rightDoc.body.querySelectorAll('i');
             if (leftIcons.length === 2) {
@@ -474,7 +474,6 @@ class CustomSlider extends HTMLElement {
             return;
         }
 
-        // Re-fetch child elements from DOM
         this.#childElements = Array.from(sliderContainer.querySelectorAll('.slider-slide'))
             .map(slide => slide.cloneNode(true));
         const totalSlides = this.#childElements.length;
@@ -491,10 +490,9 @@ class CustomSlider extends HTMLElement {
             pagination.className = 'slider-pagination';
             sliderContainer.appendChild(pagination);
         } else {
-            pagination.innerHTML = ''; // Clear existing dots
+            pagination.innerHTML = '';
         }
 
-        // Calculate total dots
         const totalDots = this.#attrs.infiniteScrolling
             ? Math.max(1, totalSlides - this.#attrs.slidesPerView + 1)
             : Math.max(1, totalSlides - this.#attrs.slidesPerView + 1);
@@ -1440,5 +1438,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with strict breakpoint validation, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix, gap attribute fix, dynamic pagination update on resize, enhanced error handling, fixed pagination dots, fixed infinite scrolling continuous loop, fixed autoplay typo)');
+console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with strict breakpoint validation, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix, gap attribute fix, dynamic pagination update on resize, enhanced error handling, fixed pagination dots, fixed infinite scrolling continuous loop, fixed validateIcon typo)');
 export { CustomSlider };
