@@ -41,6 +41,7 @@ class CustomSlider extends HTMLElement {
         this.#uniqueId = `slider-${Math.random().toString(36).substr(2, 9)}`;
         CustomSlider.#observer.observe(this);
         CustomSlider.#observedInstances.add(this);
+        this.#log('Constructor called', { elementId: this.#uniqueId });
     }
 
     static #observer = new IntersectionObserver((entries) => {
@@ -89,8 +90,13 @@ class CustomSlider extends HTMLElement {
 
     async #getBasePath() {
         if (!this.#basePath) {
-            const config = await getConfig();
-            this.#basePath = config.general?.basePath || '/';
+            try {
+                const config = await getConfig();
+                this.#basePath = config.general?.basePath || '/';
+            } catch (error) {
+                this.#error('Failed to fetch base path', { error: error.message });
+                this.#basePath = '/';
+            }
         }
         return this.#basePath;
     }
@@ -107,81 +113,48 @@ class CustomSlider extends HTMLElement {
         let defaultSlidesPerView = 1;
         let useBreakpoints = false;
 
+        // Check for breakpoint-specific attributes
         const definedBreakpoints = breakpointAttrs.filter(attr => this.hasAttribute(attr));
+        this.#log('Checking breakpoint attributes', { definedBreakpoints, elementId: this.#uniqueId });
+
         if (definedBreakpoints.length > 0) {
-            if (definedBreakpoints.length !== breakpointAttrs.length) {
-                this.#error(
-                    'All breakpoint-specific slides-per-view attributes must be defined if any are used. Missing: ' +
-                    breakpointAttrs.filter(attr => !this.hasAttribute(attr)).join(', '),
-                    { definedBreakpoints, required: breakpointAttrs, elementId: this.#uniqueId }
-                );
-                return {
-                    autoplayType: 'none',
-                    autoplayDelay: 0,
-                    continuousSpeed: 0,
-                    defaultSlidesPerView: 1,
-                    slidesPerViewConfig: {},
-                    useBreakpoints: false,
-                    navigation: false,
-                    gap: '0',
-                    pagination: false,
-                    paginationIconActive: '<i class="fa-solid fa-circle"></i>',
-                    paginationIconInactive: '<i class="fa-regular fa-circle"></i>',
-                    iconSizeBackground: '',
-                    iconSizeForeground: '',
-                    paginationIconSizeActive: '',
-                    paginationIconSizeInactive: '',
-                    crossFade: false,
-                    infiniteScrolling: false,
-                    pauseOnHover: false
-                };
-            }
             useBreakpoints = true;
+            // Validate all breakpoint attributes
+            for (const attr of breakpointAttrs) {
+                if (!this.hasAttribute(attr)) {
+                    this.#error(`Missing required breakpoint attribute: ${attr}`, { definedBreakpoints, elementId: this.#uniqueId });
+                    useBreakpoints = false;
+                    break;
+                }
+                const value = this.getAttribute(attr);
+                const num = parseInt(value, 10);
+                if (isNaN(num) || num < 1) {
+                    this.#error(`Invalid ${attr} value, must be integer >= 1`, { value, elementId: this.#uniqueId });
+                    useBreakpoints = false;
+                    break;
+                }
+                const breakpointName = attr.replace('slides-per-view-', '');
+                slidesPerViewConfig[breakpointName] = num;
+            }
         }
 
+        // Parse default slides-per-view
         const defaultAttr = this.getAttribute('slides-per-view') || '1';
         defaultSlidesPerView = Math.max(1, parseInt(defaultAttr, 10)) || 1;
 
-        if (useBreakpoints) {
-            for (const attr of breakpointAttrs) {
-                const value = this.getAttribute(attr);
-                const num = parseInt(value, 10);
-                if (!isNaN(num) && num >= 1) {
-                    const breakpointName = attr.replace('slides-per-view-', '');
-                    slidesPerViewConfig[breakpointName] = num;
-                } else {
-                    this.#error(`Invalid ${attr} value, must be integer >= 1. Using fallback rendering.`, { value, elementId: this.#uniqueId });
-                    return {
-                        autoplayType: 'none',
-                        autoplayDelay: 0,
-                        continuousSpeed: 0,
-                        defaultSlidesPerView: 1,
-                        slidesPerViewConfig: {},
-                        useBreakpoints: false,
-                        navigation: false,
-                        gap: '0',
-                        pagination: false,
-                        paginationIconActive: '<i class="fa-solid fa-circle"></i>',
-                        paginationIconInactive: '<i class="fa-regular fa-circle"></i>',
-                        iconSizeBackground: '',
-                        iconSizeForeground: '',
-                        paginationIconSizeActive: '',
-                        paginationIconSizeInactive: '',
-                        crossFade: false,
-                        infiniteScrolling: false,
-                        pauseOnHover: false
-                    };
-                }
-            }
+        if (!useBreakpoints) {
+            this.#log('Using default slides-per-view due to invalid or missing breakpoint attributes', {
+                defaultSlidesPerView,
+                elementId: this.#uniqueId
+            });
+        } else {
+            this.#log('Breakpoint attributes validated', {
+                slidesPerViewConfig,
+                elementId: this.#uniqueId
+            });
         }
 
-        this.#log('Slides per view configuration', {
-            defaultSlidesPerView,
-            slidesPerViewConfig,
-            useBreakpoints,
-            elementId: this.#uniqueId
-        });
-
+        // Other attributes
         let autoplayType = 'none';
         let autoplayDelay = 0;
         let continuousSpeed = 100;
@@ -356,7 +329,6 @@ class CustomSlider extends HTMLElement {
             if (leftIcons.length === 2) {
                 leftIconResult = processIconStack(leftIcons[1].outerHTML, leftIcons[0].outerHTML, 'left');
             } else {
-Injector: {
                 leftIconResult = { valid: true, markup: validateIcon(navigationIconLeft, 'left') };
             }
             if (rightIcons.length === 2) {
@@ -411,12 +383,16 @@ Injector: {
     }
 
     #getCurrentBreakpoint() {
-        if (!this.#attrs.useBreakpoints) {
+        if (!this.#attrs || !this.#attrs.useBreakpoints) {
             this.#log('Breakpoints ignored, using fixed slides-per-view', { elementId: this.#uniqueId });
             return null;
         }
         const width = window.innerWidth;
         let selectedBreakpoint = 'large';
+        if (!VIEWPORT_BREAKPOINTS || !Array.isArray(VIEWPORT_BREAKPOINTS)) {
+            this.#error('VIEWPORT_BREAKPOINTS is undefined or invalid', { elementId: this.#uniqueId });
+            return selectedBreakpoint;
+        }
         for (const bp of VIEWPORT_BREAKPOINTS) {
             if (width <= bp.maxWidth) {
                 selectedBreakpoint = bp.name;
@@ -432,6 +408,10 @@ Injector: {
     }
 
     #getSlidesPerView() {
+        if (!this.#attrs) {
+            this.#error('Attributes not initialized', { elementId: this.#uniqueId });
+            return 1;
+        }
         if (!this.#attrs.useBreakpoints) {
             this.#log('Using fixed slides-per-view', {
                 slidesPerView: this.#attrs.defaultSlidesPerView,
@@ -454,41 +434,40 @@ Injector: {
     #applySlidesPerView() {
         const newSpv = this.#getSlidesPerView();
         this.#log('Applying slides per view', {
-            currentSlidesPerView: this.#attrs.slidesPerView,
+            currentSlidesPerView: this.#attrs?.slidesPerView,
             newSlidesPerView: newSpv,
-            gap: this.#attrs.gap,
+            gap: this.#attrs?.gap,
             elementId: this.#uniqueId
         });
 
-        if (newSpv === 1 && this.#attrs.gap !== '0') {
+        if (newSpv === 1 && this.#attrs?.gap !== '0') {
             this.#warn('Gap attribute has no visual effect when slides-per-view=1', {
                 gap: this.#attrs.gap,
                 elementId: this.#uniqueId
             });
         }
 
-        // Update slidesPerView and bufferSize
-        this.#attrs.slidesPerView = newSpv;
-        this.#bufferSize = newSpv;
+        if (this.#attrs) {
+            this.#attrs.slidesPerView = newSpv;
+            this.#bufferSize = newSpv;
+        }
         this.#recalculateDimensions();
 
-        // Rebuild infinite scrolling buffer if needed
-        if (this.#attrs.useBreakpoints) {
+        if (this.#attrs?.useBreakpoints) {
             this.#rebuildInfiniteBuffer();
         }
 
-        // Update CSS grid columns
         const wrapper = document.getElementById(this.#uniqueId)?.querySelector('.slider-wrapper');
         if (wrapper) {
             wrapper.style.setProperty('--slider-columns', `repeat(${this.#slides.length}, ${100 / newSpv}%)`);
+        } else {
+            this.#warn('Slider wrapper not found during applySlidesPerView', { elementId: this.#uniqueId });
         }
 
-        // Update pagination dots
-        if (this.#attrs.pagination) {
+        if (this.#attrs?.pagination) {
             this.#updatePagination();
         }
 
-        // Update slider position
         this.#updateSlider(true);
     }
 
@@ -586,6 +565,7 @@ Injector: {
 
     async initialize() {
         if (this.isInitialized || !this.isVisible) {
+            this.#log('Initialization skipped', { isInitialized: this.isInitialized, isVisible: this.isVisible, elementId: this.#uniqueId });
             return;
         }
         this.isInitialized = true;
@@ -839,6 +819,12 @@ Injector: {
                 gapPx: this.#gapPx,
                 containerWidth: sliderContainer.clientWidth,
                 slidesPerView: this.#attrs.slidesPerView,
+                elementId: this.#uniqueId
+            });
+        } else {
+            this.#warn('Failed to recalculate dimensions', {
+                sliderContainerExists: !!sliderContainer,
+                slidesLength: this.#slides.length,
                 elementId: this.#uniqueId
             });
         }
@@ -1383,6 +1369,7 @@ Injector: {
         this.#childElements = Array.from(this.children)
             .filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block'))
             .map(child => child.cloneNode(true));
+        this.#log('Connected to DOM', { childElementsCount: this.#childElements.length, elementId: this.#uniqueId });
         if (this.isVisible) {
             await this.initialize();
         }
@@ -1402,6 +1389,7 @@ Injector: {
             CustomSlider.#observedInstances.delete(this);
         }
         this.#childElements = [];
+        this.#log('Disconnected from DOM', { elementId: this.#uniqueId });
     }
 
     static get observedAttributes() {
@@ -1418,9 +1406,11 @@ Injector: {
     attributeChangedCallback(name, oldValue, newValue) {
         if (!this.isInitialized || !this.isVisible) {
             this.#ignoredChangeCount++;
+            this.#log('Attribute change ignored', { name, oldValue, newValue, ignoredCount: this.#ignoredChangeCount, elementId: this.#uniqueId });
             return;
         }
         if (oldValue !== newValue) {
+            this.#log('Attribute changed, reinitializing', { name, oldValue, newValue, elementId: this.#uniqueId });
             this.isInitialized = false;
             this.#stopAutoplay();
             this.#childElements = Array.from(this.children)
@@ -1433,9 +1423,10 @@ Injector: {
 
 try {
     customElements.define('custom-slider', CustomSlider);
+    console.log('CustomSlider defined successfully');
 } catch (error) {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with strict breakpoint validation, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix, gap attribute fix, dynamic pagination update on resize)');
+console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with strict breakpoint validation, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix, gap attribute fix, dynamic pagination update on resize, enhanced error handling)');
 export { CustomSlider };
