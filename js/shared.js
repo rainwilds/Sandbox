@@ -1,3 +1,17 @@
+// shared.js
+
+// Standard viewport breakpoints for consistent responsive behavior across components
+export const VIEWPORT_BREAKPOINTS = [
+  { maxWidth: 768, name: 'mobile' },    // Mobile portrait
+  { maxWidth: 1024, name: 'tablet' },   // Tablet portrait
+  { maxWidth: 1366, name: 'laptop' },   // Laptop/small desktop
+  { maxWidth: 1920, name: 'desktop' },  // Full HD desktop
+  { maxWidth: 2560, name: 'large' }     // 2K/4K displays
+];
+
+// Array of just the maxWidth values for quick lookups
+export const VIEWPORT_BREAKPOINT_WIDTHS = VIEWPORT_BREAKPOINTS.map(bp => bp.maxWidth);
+
 // Array of valid alignment strings for positioning elements.
 // Includes basic directions and combinations for flexible grid placements.
 // Used in validation to prevent invalid layout configurations.

@@ -3,6 +3,7 @@
 'use strict';
 
 import { getConfig } from '../config.js';
+import { VIEWPORT_BREAKPOINTS } from '../shared.js'; // Removed VIEWPORT_BREAKPOINT_WIDTHS import
 
 class CustomSlider extends HTMLElement {
     #ignoredChangeCount = 0;
@@ -31,7 +32,10 @@ class CustomSlider extends HTMLElement {
     #lastFrameTime = null; // Timestamp of last animation frame
     #continuousAnimationId = null; // For continuous scrolling animation
     #lastPaginationUpdate = 0; // Timestamp for debouncing pagination updates
-    #isProcessingClick = false; // New flag to lock during pagination clicks
+    #isProcessingClick = false; // Lock during pagination clicks
+    #currentBreakpoint = null;
+    #breakpointMediaQueries = new Map();
+    #handleBreakpointChange = this.#onBreakpointChange.bind(this);
 
     constructor() {
         super();
@@ -96,10 +100,67 @@ class CustomSlider extends HTMLElement {
         return this.#basePath;
     }
 
+    #initializeBreakpoints() {
+        VIEWPORT_BREAKPOINTS.forEach(bp => {
+            const mediaQuery = window.matchMedia(`(max-width: ${bp.maxWidth}px)`);
+            this.#breakpointMediaQueries.set(bp.name, mediaQuery);
+            mediaQuery.addEventListener('change', this.#handleBreakpointChange);
+        });
+        this.#detectCurrentBreakpoint();
+        this.#log('Breakpoints initialized', {
+            breakpoints: VIEWPORT_BREAKPOINTS.map(bp => bp.name),
+            currentBreakpoint: this.#currentBreakpoint
+        });
+    }
+
+    #detectCurrentBreakpoint() {
+        let detectedBreakpoint = 'large';
+        for (const bp of VIEWPORT_BREAKPOINTS) {
+            const mediaQuery = this.#breakpointMediaQueries.get(bp.name);
+            if (mediaQuery.matches) {
+                detectedBreakpoint = bp.name;
+                break;
+            }
+        }
+        this.#currentBreakpoint = detectedBreakpoint;
+        this.#log('Current breakpoint detected', { breakpoint: this.#currentBreakpoint });
+    }
+
+    #onBreakpointChange(event) {
+        const breakpointName = Array.from(this.#breakpointMediaQueries.entries())
+            .find(([name, mq]) => mq === event.target)?.[0];
+        if (breakpointName && event.matches) {
+            this.#currentBreakpoint = breakpointName;
+            this.#log('Breakpoint changed', { newBreakpoint: this.#currentBreakpoint });
+            this.#applyResponsiveSlidesPerView();
+            this.#handleResize();
+        }
+    }
+
+    #applyResponsiveSlidesPerView() {
+        if (!this.#attrs.responsiveSlides || !this.#currentBreakpoint) return;
+
+        // Check if there's a slides-per-view value for the current breakpoint name
+        if (this.#attrs.responsiveSlides[this.#currentBreakpoint]) {
+            const newSlidesPerView = this.#attrs.responsiveSlides[this.#currentBreakpoint];
+            if (newSlidesPerView !== this.#attrs.slidesPerView) {
+                this.#attrs.slidesPerView = newSlidesPerView;
+                this.#log('Responsive slides-per-view applied', {
+                    breakpoint: this.#currentBreakpoint,
+                    slidesPerView: newSlidesPerView
+                });
+                this.#recalculateDimensions();
+                this.#updateSlider(true);
+                this.isInitialized = false;
+                this.initialize();
+            }
+        }
+    }
+
     async getAttributes() {
-        let autoplayType = 'none'; // 'none', 'interval', or 'continuous'
-        let autoplayDelay = 0; // For interval-based autoplay (ms)
-        let continuousSpeed = 100; // Default speed for continuous scrolling (px/s)
+        let autoplayType = 'none';
+        let autoplayDelay = 0;
+        let continuousSpeed = 100;
 
         const autoplayAttr = this.getAttribute('autoplay');
         if (this.hasAttribute('autoplay')) {
@@ -146,6 +207,21 @@ class CustomSlider extends HTMLElement {
 
         const slidesPerViewAttr = this.getAttribute('slides-per-view') || '1';
         let slidesPerView = parseInt(slidesPerViewAttr, 10);
+        const responsiveSlides = {};
+        // Iterate over breakpoint names instead of widths
+        VIEWPORT_BREAKPOINTS.forEach(bp => {
+            const attrName = `slides-per-view-${bp.name}`;
+            const attrValue = this.getAttribute(attrName);
+            if (attrValue) {
+                const value = parseInt(attrValue, 10);
+                if (!isNaN(value) && value >= 1) {
+                    responsiveSlides[bp.name] = value; // Use breakpoint name as key
+                } else {
+                    this.#warn(`Invalid ${attrName}, ignoring`, { value: attrValue });
+                }
+            }
+        });
+
         if (isNaN(slidesPerView) || slidesPerView < 1) {
             this.#warn('Invalid slides-per-view, defaulting to 1', { value: slidesPerViewAttr });
             slidesPerView = 1;
@@ -224,7 +300,7 @@ class CustomSlider extends HTMLElement {
         }
 
         const infiniteScrolling = this.hasAttribute('infinite-scrolling');
-        const pauseOnHover = this.hasAttribute('pause-on-hover'); // Optional hover-to-pause
+        const pauseOnHover = this.hasAttribute('pause-on-hover');
 
         const validateIcon = (icon, position, isBackground = false) => {
             if (!icon) {
@@ -298,8 +374,6 @@ class CustomSlider extends HTMLElement {
             }
         }
 
-        navigationIconLeft = leftIconResult.markup;
-        navigationIconRight = rightIconResult.markup;
         navigation = navigation && leftIconResult.valid && rightIconResult.valid && this.hasAttribute('navigation-icon-left') && this.hasAttribute('navigation-icon-right');
         if (!navigation && this.hasAttribute('navigation')) {
             this.#warn('Navigation disabled due to invalid or missing icon attributes', {
@@ -313,11 +387,10 @@ class CustomSlider extends HTMLElement {
         paginationIconActive = validateIcon(paginationIconActive, 'active');
         paginationIconInactive = validateIcon(paginationIconInactive, 'inactive');
 
-        // Log pagination validation result
         this.#log('Pagination attributes validated', {
-            pagination: pagination,
-            paginationIconActive: paginationIconActive,
-            paginationIconInactive: paginationIconInactive,
+            pagination,
+            paginationIconActive,
+            paginationIconInactive,
             elementId: this.#uniqueId
         });
 
@@ -326,6 +399,7 @@ class CustomSlider extends HTMLElement {
             autoplayDelay,
             continuousSpeed,
             slidesPerView,
+            responsiveSlides,
             navigation,
             navigationIconLeft,
             navigationIconRight,
@@ -354,6 +428,8 @@ class CustomSlider extends HTMLElement {
         try {
             const attrs = await this.getAttributes();
             this.#attrs = attrs;
+            this.#initializeBreakpoints();
+            this.#applyResponsiveSlidesPerView();
             const sliderElement = await this.render(attrs);
             if (sliderElement) {
                 this.replaceWith(sliderElement);
@@ -366,6 +442,7 @@ class CustomSlider extends HTMLElement {
                     autoplayDelay: 0,
                     continuousSpeed: 0,
                     slidesPerView: 1,
+                    responsiveSlides: {},
                     navigation: false,
                     gap: '0',
                     pagination: false,
@@ -392,6 +469,7 @@ class CustomSlider extends HTMLElement {
                 autoplayDelay: 0,
                 continuousSpeed: 0,
                 slidesPerView: 1,
+                responsiveSlides: {},
                 navigation: false,
                 gap: '0',
                 pagination: false,
@@ -422,21 +500,19 @@ class CustomSlider extends HTMLElement {
             return;
         }
 
-        const originalSlides = this.#slides;
-        this.#originalLength = originalSlides.length;
+        this.#originalLength = this.#slides.length;
         this.#bufferSize = this.#attrs.slidesPerView;
 
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
-
         const enableInfinite = this.#attrs.infiniteScrolling && this.#originalLength > this.#bufferSize;
 
         if (enableInfinite) {
-            const leftBuffer = originalSlides.slice(-this.#bufferSize).map(slide => slide.cloneNode(true));
-            const rightBuffer = originalSlides.slice(0, this.#bufferSize).map(slide => slide.cloneNode(true));
+            const leftBuffer = this.#slides.slice(-this.#bufferSize).map(slide => slide.cloneNode(true));
+            const rightBuffer = this.#slides.slice(0, this.#bufferSize).map(slide => slide.cloneNode(true));
 
             wrapper.innerHTML = '';
             leftBuffer.forEach(slide => wrapper.appendChild(slide));
-            originalSlides.forEach(slide => wrapper.appendChild(slide));
+            this.#slides.forEach(slide => wrapper.appendChild(slide));
             rightBuffer.forEach(slide => wrapper.appendChild(slide));
 
             this.#slides = Array.from(wrapper.querySelectorAll('.slider-slide'));
@@ -450,13 +526,13 @@ class CustomSlider extends HTMLElement {
             });
         } else {
             wrapper.innerHTML = '';
-            originalSlides.forEach(slide => wrapper.appendChild(slide));
-            this.#slides = originalSlides;
+            this.#slides.forEach(slide => wrapper.appendChild(slide));
             this.#currentIndex = 0;
             this.#currentTranslate = 0;
         }
 
         this.#recalculateDimensions();
+        this.#applyResponsiveSlidesPerView();
 
         if (this.hasAttribute('draggable')) {
             sliderContainer.setAttribute('draggable', '');
@@ -493,22 +569,19 @@ class CustomSlider extends HTMLElement {
             });
         }
 
-        // Conditionally add hover event listeners for pause/resume if pauseOnHover is true
         if (this.#attrs.pauseOnHover) {
             sliderContainer.addEventListener('mouseenter', () => {
                 this.#isHovering = true;
                 this.#stopAutoplay();
-                this.#log('Autoplay paused due to hover (pause-on-hover enabled)', { elementId: this.#uniqueId });
+                this.#log('Autoplay paused due to hover', { elementId: this.#uniqueId });
             });
             sliderContainer.addEventListener('mouseleave', () => {
                 this.#isHovering = false;
                 if (this.#attrs.autoplayType !== 'none') {
                     this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
-                    this.#log('Autoplay resumed after hover (pause-on-hover enabled)', { elementId: this.#uniqueId });
+                    this.#log('Autoplay resumed after hover', { elementId: this.#uniqueId });
                 }
             });
-        } else {
-            this.#log('Hover-to-pause disabled (no pause-on-hover attribute)', { elementId: this.#uniqueId });
         }
 
         if (this.#attrs.navigation) {
@@ -538,7 +611,7 @@ class CustomSlider extends HTMLElement {
                 const dots = pagination.querySelectorAll('span.icon');
                 dots.forEach((dot, index) => {
                     dot.addEventListener('click', () => {
-                        if (this.#isProcessingClick) return; // Prevent re-entrancy
+                        if (this.#isProcessingClick) return;
                         this.#isProcessingClick = true;
                         if (this.#continuousAnimationId) {
                             cancelAnimationFrame(this.#continuousAnimationId);
@@ -552,15 +625,15 @@ class CustomSlider extends HTMLElement {
                         }
                         this.#currentTranslate = this.#calculateTranslate();
                         this.#prevTranslate = this.#currentTranslate;
-                        this.#setSliderPosition('0s'); // Immediate position update
+                        this.#setSliderPosition('0s');
                         setTimeout(() => {
-                            this.#updateSlider(true); // Force update after delay
+                            this.#updateSlider(true);
                             this.#isProcessingClick = false;
                             if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
                                 this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
                             }
-                            this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${index + 1}, translate=${this.#currentTranslate}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
-                        }, 50); // 50ms delay to ensure DOM stability
+                            this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${index + 1}`, { elementId: this.#uniqueId });
+                        }, 50);
                     });
                 });
             }
@@ -648,7 +721,6 @@ class CustomSlider extends HTMLElement {
                 this.#warn('Failed to release pointer capture', { error: e.message });
             }
         }
-        // Update index for pagination but preserve translate for continuous mode
         if (this.#attrs.autoplayType === 'continuous') {
             const slideWidthTotal = this.#slideWidth + this.#gapPx;
             this.#currentIndex = Math.round((-this.#currentTranslate - (this.#attrs.slidesPerView - 1) / 2 * this.#gapPx) / slideWidthTotal);
@@ -721,7 +793,6 @@ class CustomSlider extends HTMLElement {
             }
         }
 
-        // For continuous mode, update index for pagination but preserve translate
         if (this.#attrs.autoplayType === 'continuous') {
             const slideWidthTotal = this.#slideWidth + this.#gapPx;
             this.#currentIndex = Math.round((-this.#currentTranslate - (this.#attrs.slidesPerView - 1) / 2 * this.#gapPx) / slideWidthTotal);
@@ -735,7 +806,7 @@ class CustomSlider extends HTMLElement {
                 elementId: this.#uniqueId,
                 currentTranslate: this.#currentTranslate,
                 currentIndex: this.#currentIndex,
-                movedBy: movedBy
+                movedBy
             });
         } else {
             this.#setPositionByIndex();
@@ -775,38 +846,32 @@ class CustomSlider extends HTMLElement {
             return;
         }
 
-        const deltaTime = (timestamp - (this.#lastFrameTime || timestamp)) / 1000; // Time in seconds
+        const deltaTime = (timestamp - (this.#lastFrameTime || timestamp)) / 1000;
         this.#lastFrameTime = timestamp;
 
-        // Calculate pixel movement for this frame
         const pixelsPerFrame = this.#continuousSpeed * deltaTime;
         this.#currentTranslate -= pixelsPerFrame;
 
-        // Handle infinite scrolling
         if (this.#attrs.infiniteScrolling) {
             const maxIndex = this.#bufferSize + this.#originalLength - this.#attrs.slidesPerView;
             const minTranslate = this.#calculateTranslateForIndex(maxIndex);
             const maxTranslate = this.#calculateTranslateForIndex(this.#bufferSize);
 
             if (this.#currentTranslate < minTranslate) {
-                // Calculate the new translate position to maintain visual continuity
                 const loopOffset = this.#originalLength * (this.#slideWidth + this.#gapPx);
                 this.#currentTranslate += loopOffset;
                 this.#log('Continuous loop to start', {
                     elementId: this.#uniqueId,
                     currentTranslate: this.#currentTranslate,
-                    minTranslate: minTranslate,
-                    loopOffset: loopOffset,
-                    timestamp: timestamp
+                    minTranslate,
+                    loopOffset,
+                    timestamp
                 });
-
-                // Force immediate update with no transition to prevent jump
                 const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
                 wrapper.style.transition = 'none';
                 wrapper.style.transform = `translate3d(${this.#currentTranslate}px, 0, 0)`;
             }
         } else {
-            // Non-infinite: clamp to boundaries
             const maxIndex = this.#originalLength - this.#attrs.slidesPerView;
             const minTranslate = this.#calculateTranslateForIndex(maxIndex);
             if (this.#currentTranslate < minTranslate) {
@@ -815,7 +880,7 @@ class CustomSlider extends HTMLElement {
                 this.#log('Continuous scrolling stopped at end', {
                     elementId: this.#uniqueId,
                     currentTranslate: this.#currentTranslate,
-                    minTranslate: minTranslate
+                    minTranslate
                 });
                 return;
             }
@@ -888,6 +953,8 @@ class CustomSlider extends HTMLElement {
     }
 
     #handleResize() {
+        this.#detectCurrentBreakpoint();
+        this.#applyResponsiveSlidesPerView();
         this.#recalculateDimensions();
         if (this.#attrs.autoplayType !== 'continuous') {
             this.#setPositionByIndex();
@@ -897,7 +964,8 @@ class CustomSlider extends HTMLElement {
         }
         this.#log('Resize handled', {
             currentIndex: this.#currentIndex,
-            translate: this.#currentTranslate
+            translate: this.#currentTranslate,
+            breakpoint: this.#currentBreakpoint
         });
     }
 
@@ -1018,7 +1086,7 @@ class CustomSlider extends HTMLElement {
         if (this.#attrs.pagination) {
             const now = performance.now();
             if (!forceUpdate && now - this.#lastPaginationUpdate < 100) {
-                return; // Debounce pagination updates to 100ms unless forced
+                return;
             }
             this.#lastPaginationUpdate = now;
 
@@ -1028,7 +1096,6 @@ class CustomSlider extends HTMLElement {
                 let logicalIndex;
                 let rawIndex;
                 if (this.#attrs.autoplayType === 'continuous') {
-                    // Calculate index from translate position
                     const slideWidthTotal = this.#slideWidth + this.#gapPx;
                     rawIndex = Math.round((-this.#currentTranslate - (this.#attrs.slidesPerView - 1) / 2 * this.#gapPx) / slideWidthTotal);
                     if (this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1) {
@@ -1045,7 +1112,6 @@ class CustomSlider extends HTMLElement {
                     }
                 }
 
-                // Ensure logicalIndex is within valid range
                 const maxIndex = (this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1)
                     ? this.#originalLength - 1
                     : this.#originalLength - this.#attrs.slidesPerView;
@@ -1060,7 +1126,6 @@ class CustomSlider extends HTMLElement {
                     }
                 });
 
-                // Calculate visible slide range for debug logging
                 const firstVisibleSlide = rawIndex - this.#bufferSize + 1;
                 const lastVisibleSlide = firstVisibleSlide + this.#attrs.slidesPerView - 1;
                 const visibleSlides = `${Math.max(1, firstVisibleSlide)}-${Math.min(this.#originalLength, lastVisibleSlide)}`;
@@ -1073,13 +1138,11 @@ class CustomSlider extends HTMLElement {
                         elementId: this.#uniqueId
                     });
                 }
-                this.#log(`[Pagination Updated] currentIndex=${this.#currentIndex}, logicalIndex=${logicalIndex}, translate=${this.#currentTranslate}, forceUpdate=${forceUpdate}`, {
+                this.#log(`[Pagination Updated] currentIndex=${this.#currentIndex}, logicalIndex=${logicalIndex}, translate=${this.#currentTranslate}`, {
                     elementId: this.#uniqueId,
                     rawIndex,
                     visibleSlides
                 });
-            } else {
-                this.#warn('Pagination element not found in updateSlider', { elementId: this.#uniqueId });
             }
         }
 
@@ -1169,7 +1232,7 @@ class CustomSlider extends HTMLElement {
                     icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
                 }
                 dot.addEventListener('click', () => {
-                    if (this.#isProcessingClick) return; // Prevent re-entrancy
+                    if (this.#isProcessingClick) return;
                     this.#isProcessingClick = true;
                     if (this.#continuousAnimationId) {
                         cancelAnimationFrame(this.#continuousAnimationId);
@@ -1183,22 +1246,20 @@ class CustomSlider extends HTMLElement {
                     }
                     this.#currentTranslate = this.#calculateTranslate();
                     this.#prevTranslate = this.#currentTranslate;
-                    this.#setSliderPosition('0s'); // Immediate position update
+                    this.#setSliderPosition('0s');
                     setTimeout(() => {
-                        this.#updateSlider(true); // Force update after delay
+                        this.#updateSlider(true);
                         this.#isProcessingClick = false;
                         if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
                             this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
                         }
-                        this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${i + 1}, translate=${this.#currentTranslate}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
-                    }, 50); // 50ms delay to ensure DOM stability
+                        this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${i + 1}`, { elementId: this.#uniqueId });
+                    }, 50);
                 });
                 pagination.appendChild(dot);
             }
             sliderWrapper.appendChild(pagination);
             this.#log(`[Pagination Added] totalDots=${totalDots}`, { elementId: this.#uniqueId, totalSlides });
-        } else {
-            this.#log('Pagination not added', { pagination: attrs.pagination, elementId: this.#uniqueId });
         }
 
         return sliderWrapper;
@@ -1227,7 +1288,12 @@ class CustomSlider extends HTMLElement {
             CustomSlider.#observer.unobserve(this);
             CustomSlider.#observedInstances.delete(this);
         }
+        this.#breakpointMediaQueries.forEach(mq => {
+            mq.removeEventListener('change', this.#handleBreakpointChange);
+        });
+        this.#breakpointMediaQueries.clear();
         this.#childElements = [];
+        this.#log('Disconnected and cleaned up', { elementId: this.#uniqueId });
     }
 
     static get observedAttributes() {
@@ -1235,24 +1301,25 @@ class CustomSlider extends HTMLElement {
             'autoplay', 'slides-per-view', 'navigation', 'navigation-icon-left', 'navigation-icon-right',
             'navigation-icon-left-background', 'navigation-icon-right-background', 'gap', 'pagination',
             'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size', 'pagination-icon-size',
-            'draggable', 'cross-fade', 'infinite-scrolling', 'pause-on-hover'
+            'draggable', 'cross-fade', 'infinite-scrolling', 'pause-on-hover',
+            // Observe attributes with breakpoint names instead of widths
+            ...VIEWPORT_BREAKPOINTS.map(bp => `slides-per-view-${bp.name}`)
         ];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-        if (!this.isInitialized || !this.isVisible) {
+        if (!this.isInitialized || !this.isVisible || oldValue === newValue) {
             this.#ignoredChangeCount++;
             return;
         }
 
-        if (oldValue !== newValue) {
-            this.isInitialized = false;
-            this.#stopAutoplay();
-            this.#childElements = Array.from(this.children)
-                .filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block'))
-                .map(child => child.cloneNode(true));
-            this.initialize();
-        }
+        this.#log('Attribute changed', { name, oldValue, newValue, elementId: this.#uniqueId });
+        this.isInitialized = false;
+        this.#stopAutoplay();
+        this.#childElements = Array.from(this.children)
+            .filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block'))
+            .map(child => child.cloneNode(true));
+        this.initialize();
     }
 }
 
@@ -1262,5 +1329,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, optional pause-on-hover, and fixed pagination navigation during active autoplay)');
+console.log('CustomSlider version: 2025-10-28 (infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, named breakpoint attributes)');
 export { CustomSlider };
