@@ -291,10 +291,6 @@ class CustomSlider extends HTMLElement {
 
         const gapAttr = this.getAttribute('gap') || '0';
         let gap = gapAttr;
-        if (defaultSlidesPerView === 1 && this.hasAttribute('gap')) {
-            this.#warn('Gap attribute ignored for slides-per-view=1', { gap: gapAttr });
-            gap = '0';
-        }
 
         let pagination = this.hasAttribute('pagination');
         let paginationIconActive = this.getAttribute('pagination-icon-active') || '<i class="fa-solid fa-circle"></i>';
@@ -475,8 +471,16 @@ class CustomSlider extends HTMLElement {
         this.#log('Applying slides per view', {
             currentSlidesPerView: this.#attrs.slidesPerView,
             newSlidesPerView: newSpv,
+            gap: this.#attrs.gap,
             elementId: this.#uniqueId
         });
+
+        if (newSpv === 1 && this.#attrs.gap !== '0') {
+            this.#warn('Gap attribute has no visual effect when slides-per-view=1', {
+                gap: this.#attrs.gap,
+                elementId: this.#uniqueId
+            });
+        }
 
         this.#attrs.slidesPerView = newSpv;
         this.#bufferSize = newSpv;
@@ -1451,5 +1455,5 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with strict breakpoint validation, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix)');
+console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with strict breakpoint validation, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, extra pagination dots for infinite scrolling, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix, gap attribute fix)');
 export { CustomSlider };
