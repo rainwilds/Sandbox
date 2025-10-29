@@ -47,7 +47,7 @@ class CustomSlider extends HTMLElement {
         this.#uniqueId = `slider-${Math.random().toString(36).substr(2, 9)}`;
         CustomSlider.#observer.observe(this);
         CustomSlider.#observedInstances.add(this);
-        this.#log('Constructor initialized', { elementId: this.#uniqueId, version: '2025-10-29-v2' });
+        this.#log('Constructor initialized', { elementId: this.#uniqueId, version: '2025-10-29-v3' });
     }
 
     static #observer = new IntersectionObserver((entries) => {
@@ -183,7 +183,7 @@ class CustomSlider extends HTMLElement {
         }
 
         const newSlidesPerView = this.#attrs.responsiveSlides[this.#currentBreakpoint];
-        if (newSlidesPerView && newSlidesPerView !== this.#attrs.pagesPerView) {
+        if (newSlidesPerView && newSlidesPerView !== this.#attrs.slidesPerView) {
             this.#log('Applying responsive slides-per-view', {
                 breakpoint: this.#currentBreakpoint,
                 newSlidesPerView,
@@ -536,6 +536,7 @@ class CustomSlider extends HTMLElement {
                 stack: error.stack,
                 elementId: this.#uniqueId
             });
+            // Continue with fallback to prevent breaking the page
             const fallback = await this.render({
                 autoplayType: 'none',
                 autoplayDelay: 0,
@@ -568,7 +569,7 @@ class CustomSlider extends HTMLElement {
 
         this.#slides = Array.from(sliderContainer.querySelectorAll('.slider-slide'));
         if (this.#slides.length === 0) {
-            this.#warn('No slides to initialize', { elementId: this.#uniqueId });
+            this.#warn('No slides initialized in setupSlider', { elementId: this.#uniqueId });
             return;
         }
 
@@ -670,7 +671,7 @@ class CustomSlider extends HTMLElement {
                 nextButton.addEventListener('click', () => {
                     this.#stopAutoplay();
                     this.#navigate(1);
-                    if (this.#attrs.autplayType !== 'none' && !this.#isHovering) {
+                    if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
                         this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
                     }
                 });
@@ -767,7 +768,7 @@ class CustomSlider extends HTMLElement {
             this.#stopAutoplay();
             this.#isDragging = true;
             this.#startPos = event.clientX;
-            this.#currentTranslate = this.#prevTranslate;
+            this.#prevTranslate = this.#currentTranslate;
             this.#animationID = requestAnimationFrame(this.#animation.bind(this));
             const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
             wrapper.classList.add('dragging');
@@ -1168,7 +1169,10 @@ class CustomSlider extends HTMLElement {
 
     #updateSlider(forceUpdate = false) {
         const sliderContainer = document.getElementById(this.#uniqueId);
-        if (!sliderContainer) return;
+        if (!sliderContainer) {
+            this.#warn('Slider container not found in updateSlider', { elementId: this.#uniqueId });
+            return;
+        }
 
         const wrapper = sliderContainer.querySelector('.slider-wrapper');
 
@@ -1205,7 +1209,6 @@ class CustomSlider extends HTMLElement {
             const pagination = sliderContainer.querySelector('.slider-pagination');
             if (pagination) {
                 const dots = pagination.querySelectorAll('span.icon');
-                let_os = [];
                 let logicalIndex;
                 let rawIndex;
                 if (this.#attrs.autoplayType === 'continuous') {
@@ -1267,6 +1270,8 @@ class CustomSlider extends HTMLElement {
     }
 
     async render(attrs) {
+        this.#log('Rendering slider with attributes', { attrs, childElementsCount: this.#childElements.length, elementId: this.#uniqueId });
+
         const sliderWrapper = document.createElement('div');
         sliderWrapper.id = this.#uniqueId;
         sliderWrapper.className = 'custom-slider';
@@ -1274,7 +1279,7 @@ class CustomSlider extends HTMLElement {
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
         if (!attrs.crossFade || attrs.slidesPerView !== 1) {
-            innerWrapper.style.setProperty('--slider-columns', `repeat(${this.#childElements.length}, ${100 / attrs.slidesPerView}%)`);
+            innerWrapper.style.setProperty('--slider-columns', `repeat(${this.#childElements.length || 1}, ${100 / attrs.slidesPerView}%)`);
             if (attrs.gap && attrs.gap !== '0') {
                 innerWrapper.style.setProperty('--slider-gap', attrs.gap);
                 sliderWrapper.setAttribute('gap', '');
@@ -1282,7 +1287,13 @@ class CustomSlider extends HTMLElement {
         }
 
         if (this.#childElements.length === 0) {
-            this.#warn('No valid slides found', { elementId: this.#uniqueId });
+            this.#warn('No valid slides found', {
+                elementId: this.#uniqueId,
+                children: Array.from(this.children).map(child => ({
+                    tagName: child.tagName,
+                    classList: Array.from(child.classList)
+                }))
+            });
             const fallbackSlide = document.createElement('div');
             fallbackSlide.className = 'slider-slide';
             fallbackSlide.innerHTML = '<p>No slides available</p>';
@@ -1336,7 +1347,7 @@ class CustomSlider extends HTMLElement {
             const pagination = document.createElement('div');
             pagination.className = 'slider-pagination';
 
-            const totalSlides = this.#childElements.length;
+            const totalSlides = this.#childElements.length || 1; // Fallback to 1 if no slides
             const totalDots = (attrs.infiniteScrolling && attrs.slidesPerView > 1)
                 ? totalSlides
                 : Math.max(1, totalSlides - attrs.slidesPerView + 1);
@@ -1357,9 +1368,9 @@ class CustomSlider extends HTMLElement {
                     }
                     this.#stopAutoplay();
                     if (this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1) {
-                        this.#currentIndex = i + this.#bufferSize;
+                        this.#currentIndex = index + this.#bufferSize;
                     } else {
-                        this.#currentIndex = i;
+                        this.#currentIndex = index;
                     }
                     this.#currentTranslate = this.#calculateTranslate();
                     this.#prevTranslate = this.#currentTranslate;
@@ -1370,7 +1381,7 @@ class CustomSlider extends HTMLElement {
                         if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
                             this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
                         }
-                        this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${i + 1}`, { elementId: this.#uniqueId });
+                        this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${index + 1}`, { elementId: this.#uniqueId });
                     }, 50);
                 });
                 pagination.appendChild(dot);
@@ -1386,6 +1397,14 @@ class CustomSlider extends HTMLElement {
         this.#childElements = Array.from(this.children)
             .filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block'))
             .map(child => child.cloneNode(true));
+        this.#log('Connected to DOM, child elements detected', {
+            childElementsCount: this.#childElements.length,
+            children: Array.from(this.children).map(child => ({
+                tagName: child.tagName,
+                classList: Array.from(child.classList)
+            })),
+            elementId: this.#uniqueId
+        });
 
         if (this.isVisible) {
             await this.initialize();
@@ -1457,5 +1476,5 @@ try {
     console.error('CustomSlider module load failed', { error: error.message, stack: error.stack });
 }
 
-console.log('CustomSlider version: 2025-10-29-v2 (fixed onBreakpointChange syntax error, enhanced debugging for slides-per-view, added module load logging)');
+console.log('CustomSlider version: 2025-10-29-v3 (fixed let_os typo, improved slide detection, enhanced debugging for slides-per-view)');
 export { CustomSlider };
