@@ -38,19 +38,41 @@
       {
         "rel": "icon",
         "type": "image/png",
+        "sizes": "16x16",
+        "href": "./img/icons/favicon-16x16.png"
+      },
+      {
+        "rel": "icon",
+        "type": "image/png",
         "sizes": "32x32",
         "href": "./img/icons/favicon-32x32.png"
       },
       {
         "rel": "icon",
         "type": "image/png",
-        "sizes": "16x16",
-        "href": "./img/icons/favicon-16x16.png"
+        "sizes": "48x48",
+        "href": "./img/icons/favicon.ico" 
+      },
+      {
+        "rel": "icon",
+        "type": "image/png",
+        "sizes": "192x192",
+        "href": "./img/icons/android-chrome-192x192.png"
+      },
+      {
+        "rel": "icon",
+        "type": "image/png",
+        "sizes": "512x512",
+        "href": "./img/icons/android-chrome-512x512.png"
       },
       {
         "rel": "icon",
         "type": "image/x-icon",
         "href": "./img/icons/favicon.ico"
+      },
+      {
+        "rel": "manifest",
+        "href": "./site.webmanifest"
       }
     ],
     "snipcart": {
@@ -111,7 +133,7 @@
     {
       "text": "Blog",
       "href": "/blog"
-    },    
+    },
     {
       "text": "Contact",
       "href": "/contact"
