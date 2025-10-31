@@ -1,0 +1,8 @@
+.templatesyncignore
+.github/workflows/
+index.html
+img/primary/tourism-*
+img/responsive/tourism-*
+JSON/setup.json
+fonts/Futura_PT_Demi.woff2
+fonts/futura_pt_book.woff2
