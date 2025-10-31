@@ -31,48 +31,20 @@
     "include_e_commerce": true,
     "favicons": [
       {
-        "rel": "apple-touch-icon",
-        "sizes": "180x180",
-        "href": "./img/icons/apple-touch-icon.png"
-      },
-      {
         "rel": "icon",
-        "type": "image/png",
-        "sizes": "16x16",
-        "href": "./img/icons/favicon-16x16.png"
-      },
-      {
-        "rel": "icon",
-        "type": "image/png",
-        "sizes": "32x32",
-        "href": "./img/icons/favicon-32x32.png"
-      },
-      {
-        "rel": "icon",
-        "type": "image/png",
-        "sizes": "48x48",
-        "href": "./img/icons/favicon.ico" 
+        "type": "image/svg+xml",
+        "href": "./favicon.svg"
       },
       {
         "rel": "icon",
         "type": "image/png",
         "sizes": "192x192",
-        "href": "./img/icons/android-chrome-192x192.png"
+        "href": "./favicon-192x192.png"
       },
       {
-        "rel": "icon",
-        "type": "image/png",
-        "sizes": "512x512",
-        "href": "./img/icons/android-chrome-512x512.png"
-      },
-      {
-        "rel": "icon",
-        "type": "image/x-icon",
-        "href": "./img/icons/favicon.ico"
-      },
-      {
-        "rel": "manifest",
-        "href": "./site.webmanifest"
+        "rel": "apple-touch-icon",
+        "sizes": "180x180",
+        "href": "./apple-touch-icon.png"
       }
     ],
     "snipcart": {
