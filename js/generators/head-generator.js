@@ -334,154 +334,137 @@ async function updateHead(attributes, setup) {
   }
 }
 
-// FIXED: AUTO-PRELOAD CRITICAL IMAGES (SLIDERS + BLOCKS)
+// ——— FIXED: ROBUST IMAGE PRELOADING ———
 async function addCriticalImagePreloads() {
   const head = document.head;
   const preloaded = new Set();
 
-  // Wait for custom elements to be defined and DOM to settle
-  try {
-    await Promise.all([
-      customElements.whenDefined('custom-slider').catch(() => {}),
-      customElements.whenDefined('custom-block').catch(() => {})
-    ]);
-    
-    // Give browser 2 frames to layout
-    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-  } catch (err) {
-    logger.warn('Error waiting for custom elements', err);
+  logger.log('Waiting for custom-slider or custom-block to appear in DOM...');
+
+  // 1. Wait for ANY slider/block to appear
+  await new Promise(resolve => {
+    const check = () => {
+      const hasSlider = !!document.querySelector('custom-slider');
+      const hasBlock = !!document.querySelector('custom-block');
+      if (hasSlider || hasBlock) {
+        logger.log(`Found hero element: ${hasSlider ? 'custom-slider' : 'custom-block'}`);
+        setTimeout(resolve, 100); // let images render
+      } else {
+        requestAnimationFrame(check);
+      }
+    };
+    check();
+  });
+
+  // 2. Wait 2 frames for layout
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  // 3. Find hero
+  const candidates = [
+    ...document.querySelectorAll('custom-slider'),
+    ...document.querySelectorAll('custom-block')
+  ];
+
+  if (candidates.length === 0) {
+    logger.log('No preload candidates found even after waiting');
+    return;
   }
 
   const isAboveTheFold = (el) => {
     const rect = el.getBoundingClientRect();
-    const vh = window.innerHeight || document.documentElement.clientHeight;
-    // More forgiving: accept anything visible within 1.5 viewports
-    return rect.bottom > 0 && rect.top < vh * 1.5;
+    const vh = window.innerHeight;
+    return rect.top < vh * 1.5;
   };
 
-  const candidates = [
-    ...Array.from(document.querySelectorAll('custom-slider')),
-    ...Array.from(document.querySelectorAll('custom-block'))
-  ];
-
-  logger.log('Image preload candidates found:', {
-    sliders: document.querySelectorAll('custom-slider').length,
-    blocks: document.querySelectorAll('custom-block').length,
-    total: candidates.length
-  });
-
-  if (candidates.length === 0) {
-    logger.log('No sliders or blocks found — skipping preload');
-    return;
-  }
-
   const sorted = candidates
-    .map(el => ({ 
-      el, 
-      top: el.getBoundingClientRect().top,
-      tagName: el.tagName 
-    }))
+    .map(el => ({ el, top: el.getBoundingClientRect().top }))
     .sort((a, b) => a.top - b.top);
 
-  // Take first above-the-fold OR fallback to very first candidate
-  let heroEl = sorted.find(s => isAboveTheFold(s.el))?.el;
-  if (!heroEl && sorted.length) {
-    heroEl = sorted[0].el;
-    logger.log('No ATF hero, falling back to first candidate');
-  }
+  let heroEl = sorted.find(s => isAboveTheFold(s.el))?.el || sorted[0].el;
 
-  if (!heroEl) {
-    logger.log('No suitable hero element found');
-    return;
-  }
-
-  logger.log('Preloading from hero element', {
-    tagName: heroEl.tagName,
-    class: heroEl.className,
+  logger.log('Preloading from hero:', {
+    tag: heroEl.tagName,
     id: heroEl.id,
-    rect: heroEl.getBoundingClientRect()
+    class: heroEl.className
   });
 
-  let imagesPreloaded = 0;
+  let preloadedCount = 0;
 
   if (heroEl.tagName === 'CUSTOM-SLIDER') {
-    const firstSlide = heroEl.querySelector('.slider-wrapper .slider-slide:nth-child(1)');
+    const firstSlide = heroEl.querySelector('.slider-slide:first-child');
     if (firstSlide) {
-      const imgs = firstSlide.querySelectorAll('img[srcset], img[src]');
-      imgs.forEach(img => {
-        if (preloadImg(img, head, preloaded)) imagesPreloaded++;
+      firstSlide.querySelectorAll('img').forEach(img => {
+        if (preloadImg(img, head, preloaded)) preloadedCount++;
       });
     }
   } else if (heroEl.tagName === 'CUSTOM-BLOCK') {
-    const picture = heroEl.querySelector('picture');
-    if (picture) {
-      const img = picture.querySelector('img');
-      if (img && (img.srcset || img.src)) {
-        if (preloadImg(img, head, preloaded)) imagesPreloaded++;
-      }
-    }
+    const img = heroEl.querySelector('img');
+    if (img && preloadImg(img, head, preloaded)) preloadedCount++;
   }
 
-  logger.log(`✅ Image preloading complete: ${imagesPreloaded} images preloaded`);
+  logger.log(`Image preloading complete: ${preloadedCount} images preloaded`);
 }
 
 function preloadImg(img, head, preloaded) {
   const src = img.currentSrc || img.src;
-  const srcset = img.getAttribute('srcset');
+  let srcset = img.getAttribute('srcset');
   const sizes = img.getAttribute('sizes') || '100vw';
 
-  if (!src || preloaded.has(src)) {
-    logger.log('Skipping already preloaded or invalid img', { src, hasSrcset: !!srcset });
-    return false;
-  }
+  if (!src && !srcset) return false;
+  if (preloaded.has(src)) return false;
 
   preloaded.add(src);
 
-  // Use largest image from srcset, fallback to src
-  let preloadUrl = src;
+  // Clean invalid srcset (remove Infinityw, non-numeric w)
   if (srcset) {
-    const sources = srcset.split(',')
-      .map(s => s.trim().split(' '))
-      .filter(([url]) => url);
-    
-    const largest = sources.reduce((a, b) => {
-      const aSize = parseInt(a[1]) || 0;
-      const bSize = parseInt(b[1]) || 0;
-      return bSize > aSize ? b : a;
-    });
-    preloadUrl = largest[0];
+    const validSources = srcset
+      .split(',')
+      .map(s => s.trim())
+      .filter(s => {
+        const match = s.match(/(\d+)w$/);
+        return match && parseInt(match[1]) > 0;
+      });
+
+    if (validSources.length > 0) {
+      srcset = validSources.join(', ');
+      const largest = validSources
+        .map(s => s.split(' '))
+        .reduce((a, b) => (parseInt(b[1]) > parseInt(a[1]) ? b : a));
+
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.href = largest[0];
+      link.imagesrcset = srcset;
+      link.imagesizes = sizes;
+      link.importance = 'high';
+      head.appendChild(link);
+
+      img.loading = 'eager';
+      logger.log('PRELOADED IMAGE', { href: largest[0], from: 'slider/block' });
+      return true;
+    }
   }
 
-  const link = document.createElement('link');
-  link.rel = 'preload';
-  link.as = 'image';
-  link.href = preloadUrl;
-  link.importance = 'high';
-  if (srcset) link.imagesrcset = srcset;
-  if (sizes) link.imagesizes = sizes;
-  
-  head.appendChild(link);
-
-  // Force eager loading
-  if (img.loading !== 'eager') {
+  // Fallback to src
+  if (src) {
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = src;
+    link.importance = 'high';
+    head.appendChild(link);
     img.loading = 'eager';
+    logger.log('PRELOADED IMAGE (fallback)', { href: src });
+    return true;
   }
 
-  logger.log('🎯 PRELOADED IMAGE', {
-    from: img.closest('custom-slider, custom-block')?.tagName || 'unknown',
-    href: preloadUrl,
-    srcset,
-    sizes,
-    loading: img.loading,
-    currentSrc: img.currentSrc
-  });
-
-  return true;
+  return false;
 }
 
 (async () => {
   try {
-    logger.log('🚀 Starting HeadGenerator');
+    logger.log('Starting HeadGenerator');
     const setupPromise = getConfig();
     const customHead = document.querySelector('data-custom-head');
     if (!customHead) {
@@ -494,133 +477,85 @@ function preloadImg(img, head, preloaded) {
       if (trimmed) attributes[key] = trimmed;
     }
     logger.log('Merged attributes', attributes);
-    
+
     if (attributes.components) {
       await loadComponents(attributes.components);
     }
-    
+
     const setup = await setupPromise;
     await updateHead(attributes, setup);
     customHead.remove();
     logger.log('Removed data-custom-head element');
 
-    // Ensure all <style> elements are in <head>
+    // ——— MOVE ALL <style>, <link>, <script> TO CORRECT PLACE ———
     const styles = document.querySelectorAll('style');
     let movedStyleCount = 0;
     styles.forEach(style => {
       if (style.parentNode !== document.head && style.parentNode !== null) {
-        logger.log(`Moving <style> from ${style.parentNode.tagName} to <head>`);
         document.head.appendChild(style);
         movedStyleCount++;
       }
     });
-    if (movedStyleCount > 0) {
-      logger.log(`Moved ${movedStyleCount} <style> element(s) to <head>`);
-    }
+    if (movedStyleCount > 0) logger.log(`Moved ${movedStyleCount} <style> to <head>`);
 
-    // Ensure all <link> elements are in <head>
     const links = document.querySelectorAll('link');
     let movedLinkCount = 0;
     links.forEach(link => {
       if (link.parentNode !== document.head && link.parentNode !== null) {
-        logger.log(`Moving <link> from ${link.parentNode.tagName} to <head> (rel="${link.rel}")`);
         document.head.appendChild(link);
         movedLinkCount++;
       }
     });
-    if (movedLinkCount > 0) {
-      logger.log(`Moved ${movedLinkCount} <link> element(s) to <head>`);
-    }
+    if (movedLinkCount > 0) logger.log(`Moved ${movedLinkCount} <link> to <head>`);
 
-    // Ensure all <script> elements are properly placed
     const scripts = document.querySelectorAll('script');
     let movedScriptCount = 0;
-    let deferredScriptCount = 0;
     scripts.forEach(script => {
       const isExternal = script.src;
-      const targetParent = isExternal ? document.head : document.body;
-      if (script.parentNode !== targetParent && script.parentNode !== null) {
-        logger.log(`Moving <script> from ${script.parentNode.tagName} to ${targetParent.tagName} (external: ${isExternal ? 'yes' : 'no'})`);
-        if (isExternal && !script.hasAttribute('defer') && !script.hasAttribute('async')) {
-          script.defer = true;
-          logger.log('Added defer to external <script> for head placement');
-        }
-        targetParent.appendChild(script);
+      const target = isExternal ? document.head : document.body;
+      if (script.parentNode !== target && script.parentNode !== null) {
+        if (isExternal && !script.defer && !script.async) script.defer = true;
+        target.appendChild(script);
         movedScriptCount++;
-        if (isExternal) deferredScriptCount++;
       }
     });
-    if (movedScriptCount > 0) {
-      logger.log(`Moved ${movedScriptCount} <script> element(s): ${deferredScriptCount} external to <head> (deferred), ${movedScriptCount - deferredScriptCount} inline to <body>`);
-    }
+    if (movedScriptCount > 0) logger.log(`Moved ${movedScriptCount} <script>`);
 
-    // Rescue misparsed <script> and <style> content (unchanged)
-    logger.log('Scanning body for text nodes resembling scripts...');
+    // ——— RESCUE MISPARSED <script>/<style> ———
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-    let node;
-    let rescuedScriptCount = 0;
+    let node, rescued = 0;
     while ((node = walker.nextNode())) {
       const text = node.textContent || '';
       const scriptMatch = text.match(/<script\b[^>]*>[\s\S]*?<\/script>/i);
       if (scriptMatch) {
-        const scriptText = scriptMatch[0];
-        const innerMatch = scriptText.match(/<script\b[^>]*>([\s\S]*?)<\/script>/i);
-        if (innerMatch) {
-          const jsCode = innerMatch[1].trim();
-          if (jsCode) {
-            const newScript = document.createElement('script');
-            newScript.textContent = jsCode;
-            document.body.appendChild(newScript);
-            if (text === scriptText) {
-              node.parentNode.removeChild(node);
-            } else {
-              node.textContent = text.replace(scriptMatch[0], '').trim();
-            }
-            rescuedScriptCount++;
-          }
+        const inner = scriptMatch[0].match(/<script\b[^>]*>([\s\S]*?)<\/script>/i);
+        if (inner && inner[1].trim()) {
+          const s = document.createElement('script');
+          s.textContent = inner[1].trim();
+          document.body.appendChild(s);
+          node.textContent = text.replace(scriptMatch[0], '').trim();
+          rescued++;
         }
       }
     }
+    if (rescued > 0) logger.log(`Rescued ${rescued} misparsed scripts`);
 
-    logger.log('Scanning body for text nodes resembling styles...');
-    const walkerStyle = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-    let nodeStyle;
-    let rescuedStyleCount = 0;
-    while ((nodeStyle = walkerStyle.nextNode())) {
-      const text = nodeStyle.textContent || '';
-      const styleMatch = text.match(/<style\b[^>]*>[\s\S]*?<\/style>/i);
-      if (styleMatch) {
-        const styleText = styleMatch[0];
-        const innerMatch = styleText.match(/<style\b[^>]*>([\s\S]*?)<\/style>/i);
-        if (innerMatch) {
-          const cssCode = innerMatch[1].trim();
-          if (cssCode) {
-            const newStyle = document.createElement('style');
-            newStyle.textContent = cssCode;
-            document.head.appendChild(newStyle);
-            if (text === styleText) {
-              nodeStyle.parentNode.removeChild(nodeStyle);
-            } else {
-              nodeStyle.textContent = text.replace(styleMatch[0], '').trim();
-            }
-            rescuedStyleCount++;
-          }
-        }
-      }
-    }
+    // ——— FINAL: WAIT FOR HEADER + PRELOAD IMAGES ———
+    logger.log('Waiting for custom-header to finish rendering...');
+    await Promise.all([
+      customElements.whenDefined('custom-header').catch(() => {}),
+      customElements.whenDefined('custom-slider').catch(() => {}),
+      customElements.whenDefined('custom-block').catch(() => {})
+    ]);
 
-    if (rescuedScriptCount > 0 || rescuedStyleCount > 0) {
-      logger.log(`Rescued ${rescuedScriptCount} scripts and ${rescuedStyleCount} styles from text nodes`);
-    }
+    await new Promise(r => setTimeout(r, 150)); // Let render settle
 
-    // 🔥 FIXED: Now run image preloading AFTER components are loaded and DOM is settled
-    logger.log('🔄 Waiting for DOM to settle before image preloading...');
     await addCriticalImagePreloads();
 
-    logger.log('✅ HeadGenerator completed successfully');
+    logger.log('HeadGenerator completed successfully');
     window.__PAGE_FULLY_RENDERED__ = true;
     document.documentElement.setAttribute('data-page-ready', 'true');
   } catch (err) {
-    logger.error('💥 Error in HeadGenerator', { error: err.message, stack: err.stack });
+    logger.error('Error in HeadGenerator', { error: err.message, stack: err.stack });
   }
 })();
