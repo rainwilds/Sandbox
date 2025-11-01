@@ -334,15 +334,29 @@ async function updateHead(attributes, setup) {
   }
 }
 
-// AUTO-PRELOAD CRITICAL IMAGES (SLIDERS + BLOCKS)
-function addCriticalImagePreloads() {
+// FIXED: AUTO-PRELOAD CRITICAL IMAGES (SLIDERS + BLOCKS)
+async function addCriticalImagePreloads() {
   const head = document.head;
   const preloaded = new Set();
 
+  // Wait for custom elements to be defined and DOM to settle
+  try {
+    await Promise.all([
+      customElements.whenDefined('custom-slider').catch(() => {}),
+      customElements.whenDefined('custom-block').catch(() => {})
+    ]);
+    
+    // Give browser 2 frames to layout
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  } catch (err) {
+    logger.warn('Error waiting for custom elements', err);
+  }
+
   const isAboveTheFold = (el) => {
     const rect = el.getBoundingClientRect();
-    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-    return rect.top >= 0 && rect.top < viewportHeight * 0.8;
+    const vh = window.innerHeight || document.documentElement.clientHeight;
+    // More forgiving: accept anything visible within 1.5 viewports
+    return rect.bottom > 0 && rect.top < vh * 1.5;
   };
 
   const candidates = [
@@ -350,76 +364,124 @@ function addCriticalImagePreloads() {
     ...Array.from(document.querySelectorAll('custom-block'))
   ];
 
+  logger.log('Image preload candidates found:', {
+    sliders: document.querySelectorAll('custom-slider').length,
+    blocks: document.querySelectorAll('custom-block').length,
+    total: candidates.length
+  });
+
   if (candidates.length === 0) {
     logger.log('No sliders or blocks found — skipping preload');
     return;
   }
 
   const sorted = candidates
-    .map(el => ({ el, top: el.getBoundingClientRect().top }))
+    .map(el => ({ 
+      el, 
+      top: el.getBoundingClientRect().top,
+      tagName: el.tagName 
+    }))
     .sort((a, b) => a.top - b.top);
 
-  const heroEl = sorted.find(s => isAboveTheFold(s.el))?.el;
+  // Take first above-the-fold OR fallback to very first candidate
+  let heroEl = sorted.find(s => isAboveTheFold(s.el))?.el;
+  if (!heroEl && sorted.length) {
+    heroEl = sorted[0].el;
+    logger.log('No ATF hero, falling back to first candidate');
+  }
+
   if (!heroEl) {
-    logger.log('No above-the-fold hero element found');
+    logger.log('No suitable hero element found');
     return;
   }
 
   logger.log('Preloading from hero element', {
     tagName: heroEl.tagName,
     class: heroEl.className,
-    id: heroEl.id
+    id: heroEl.id,
+    rect: heroEl.getBoundingClientRect()
   });
+
+  let imagesPreloaded = 0;
 
   if (heroEl.tagName === 'CUSTOM-SLIDER') {
     const firstSlide = heroEl.querySelector('.slider-wrapper .slider-slide:nth-child(1)');
     if (firstSlide) {
-      firstSlide.querySelectorAll('img[srcset]').forEach(img => preloadImg(img));
+      const imgs = firstSlide.querySelectorAll('img[srcset], img[src]');
+      imgs.forEach(img => {
+        if (preloadImg(img, head, preloaded)) imagesPreloaded++;
+      });
     }
   } else if (heroEl.tagName === 'CUSTOM-BLOCK') {
     const picture = heroEl.querySelector('picture');
     if (picture) {
       const img = picture.querySelector('img');
-      if (img && img.srcset) preloadImg(img);
+      if (img && (img.srcset || img.src)) {
+        if (preloadImg(img, head, preloaded)) imagesPreloaded++;
+      }
     }
   }
 
-  function preloadImg(img) {
-    const src = img.currentSrc || img.src;
-    const srcset = img.getAttribute('srcset');
-    const sizes = img.getAttribute('sizes') || '100vw';
+  logger.log(`✅ Image preloading complete: ${imagesPreloaded} images preloaded`);
+}
 
-    if (!srcset || preloaded.has(src)) return;
-    preloaded.add(src);
+function preloadImg(img, head, preloaded) {
+  const src = img.currentSrc || img.src;
+  const srcset = img.getAttribute('srcset');
+  const sizes = img.getAttribute('sizes') || '100vw';
 
-    const largest = srcset
-      .split(',')
-      .map(s => s.trim().split(' '))
-      .reduce((a, b) => (parseInt(b[1]) || 0) > (parseInt(a[1]) || 0) ? b : a);
-
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'image';
-    link.href = largest[0];
-    link.importance = 'high';
-    if (srcset) link.imagesrcset = srcset;
-    if (sizes) link.imagesizes = sizes;
-    head.appendChild(link);
-
-    // Force eager loading
-    img.loading = 'eager';
-
-    logger.log('Preloaded + eager applied', {
-      from: img.closest('custom-slider, custom-block')?.tagName,
-      href: largest[0],
-      loading: img.loading
-    });
+  if (!src || preloaded.has(src)) {
+    logger.log('Skipping already preloaded or invalid img', { src, hasSrcset: !!srcset });
+    return false;
   }
+
+  preloaded.add(src);
+
+  // Use largest image from srcset, fallback to src
+  let preloadUrl = src;
+  if (srcset) {
+    const sources = srcset.split(',')
+      .map(s => s.trim().split(' '))
+      .filter(([url]) => url);
+    
+    const largest = sources.reduce((a, b) => {
+      const aSize = parseInt(a[1]) || 0;
+      const bSize = parseInt(b[1]) || 0;
+      return bSize > aSize ? b : a;
+    });
+    preloadUrl = largest[0];
+  }
+
+  const link = document.createElement('link');
+  link.rel = 'preload';
+  link.as = 'image';
+  link.href = preloadUrl;
+  link.importance = 'high';
+  if (srcset) link.imagesrcset = srcset;
+  if (sizes) link.imagesizes = sizes;
+  
+  head.appendChild(link);
+
+  // Force eager loading
+  if (img.loading !== 'eager') {
+    img.loading = 'eager';
+  }
+
+  logger.log('🎯 PRELOADED IMAGE', {
+    from: img.closest('custom-slider, custom-block')?.tagName || 'unknown',
+    href: preloadUrl,
+    srcset,
+    sizes,
+    loading: img.loading,
+    currentSrc: img.currentSrc
+  });
+
+  return true;
 }
 
 (async () => {
   try {
-    logger.log('Starting HeadGenerator');
+    logger.log('🚀 Starting HeadGenerator');
     const setupPromise = getConfig();
     const customHead = document.querySelector('data-custom-head');
     if (!customHead) {
@@ -432,9 +494,11 @@ function addCriticalImagePreloads() {
       if (trimmed) attributes[key] = trimmed;
     }
     logger.log('Merged attributes', attributes);
+    
     if (attributes.components) {
       await loadComponents(attributes.components);
     }
+    
     const setup = await setupPromise;
     await updateHead(attributes, setup);
     customHead.remove();
@@ -452,8 +516,6 @@ function addCriticalImagePreloads() {
     });
     if (movedStyleCount > 0) {
       logger.log(`Moved ${movedStyleCount} <style> element(s) to <head>`);
-    } else {
-      logger.log('All <style> elements already in <head>');
     }
 
     // Ensure all <link> elements are in <head>
@@ -468,18 +530,10 @@ function addCriticalImagePreloads() {
     });
     if (movedLinkCount > 0) {
       logger.log(`Moved ${movedLinkCount} <link> element(s) to <head>`);
-    } else {
-      logger.log('All <link> elements already in <head>');
     }
 
     // Ensure all <script> elements are properly placed
     const scripts = document.querySelectorAll('script');
-    logger.log('Found scripts before processing:', Array.from(scripts).map(s => ({
-      tagName: s.tagName,
-      src: s.src || 'inline',
-      parent: s.parentNode?.tagName || 'null',
-      outerHTML: (s.outerHTML || s.textContent || '').substring(0, 150) + '...'
-    })));
     let movedScriptCount = 0;
     let deferredScriptCount = 0;
     scripts.forEach(script => {
@@ -498,22 +552,18 @@ function addCriticalImagePreloads() {
     });
     if (movedScriptCount > 0) {
       logger.log(`Moved ${movedScriptCount} <script> element(s): ${deferredScriptCount} external to <head> (deferred), ${movedScriptCount - deferredScriptCount} inline to <body>`);
-    } else {
-      logger.log('All <script> elements already in valid positions');
     }
 
-    // Rescue misparsed <script> content
+    // Rescue misparsed <script> and <style> content (unchanged)
     logger.log('Scanning body for text nodes resembling scripts...');
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
     let node;
     let rescuedScriptCount = 0;
-    const rescuedScripts = [];
     while ((node = walker.nextNode())) {
       const text = node.textContent || '';
       const scriptMatch = text.match(/<script\b[^>]*>[\s\S]*?<\/script>/i);
       if (scriptMatch) {
         const scriptText = scriptMatch[0];
-        logger.log(`Found potential misparsed script in text node (parent: ${node.parentNode.tagName}):`, { snippet: scriptText.substring(0, 100) + '...' });
         const innerMatch = scriptText.match(/<script\b[^>]*>([\s\S]*?)<\/script>/i);
         if (innerMatch) {
           const jsCode = innerMatch[1].trim();
@@ -526,31 +576,21 @@ function addCriticalImagePreloads() {
             } else {
               node.textContent = text.replace(scriptMatch[0], '').trim();
             }
-            rescuedScripts.push({ codeSnippet: jsCode.substring(0, 100) + '...', parent: node.parentNode.tagName });
             rescuedScriptCount++;
-            logger.log(`Rescued and appended script:`, { codeSnippet: jsCode.substring(0, 100) + '...' });
           }
         }
       }
     }
-    if (rescuedScriptCount > 0) {
-      logger.log(`Rescued ${rescuedScriptCount} misparsed script(s) from text nodes`, { details: rescuedScripts });
-    } else {
-      logger.log('No misparsed scripts found in text nodes');
-    }
 
-    // Rescue misparsed <style> content
     logger.log('Scanning body for text nodes resembling styles...');
     const walkerStyle = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
     let nodeStyle;
     let rescuedStyleCount = 0;
-    const rescuedStyles = [];
     while ((nodeStyle = walkerStyle.nextNode())) {
       const text = nodeStyle.textContent || '';
       const styleMatch = text.match(/<style\b[^>]*>[\s\S]*?<\/style>/i);
       if (styleMatch) {
         const styleText = styleMatch[0];
-        logger.log(`Found potential misparsed style in text node (parent: ${nodeStyle.parentNode.tagName}):`, { snippet: styleText.substring(0, 100) + '...' });
         const innerMatch = styleText.match(/<style\b[^>]*>([\s\S]*?)<\/style>/i);
         if (innerMatch) {
           const cssCode = innerMatch[1].trim();
@@ -563,26 +603,24 @@ function addCriticalImagePreloads() {
             } else {
               nodeStyle.textContent = text.replace(styleMatch[0], '').trim();
             }
-            rescuedStyles.push({ codeSnippet: cssCode.substring(0, 100) + '...', parent: nodeStyle.parentNode.tagName });
             rescuedStyleCount++;
-            logger.log(`Rescued and appended style:`, { codeSnippet: cssCode.substring(0, 100) + '...' });
           }
         }
       }
     }
-    if (rescuedStyleCount > 0) {
-      logger.log(`Rescued ${rescuedStyleCount} misparsed style(s) from text nodes`, { details: rescuedStyles });
-    } else {
-      logger.log('No misparsed styles found in text nodes');
+
+    if (rescuedScriptCount > 0 || rescuedStyleCount > 0) {
+      logger.log(`Rescued ${rescuedScriptCount} scripts and ${rescuedStyleCount} styles from text nodes`);
     }
 
-    // AUTO-PRELOAD CRITICAL IMAGES
-    addCriticalImagePreloads();
+    // 🔥 FIXED: Now run image preloading AFTER components are loaded and DOM is settled
+    logger.log('🔄 Waiting for DOM to settle before image preloading...');
+    await addCriticalImagePreloads();
 
-    logger.log('HeadGenerator completed successfully');
+    logger.log('✅ HeadGenerator completed successfully');
     window.__PAGE_FULLY_RENDERED__ = true;
     document.documentElement.setAttribute('data-page-ready', 'true');
   } catch (err) {
-    logger.error('Error in HeadGenerator', { error: err.message, stack: err.stack });
+    logger.error('💥 Error in HeadGenerator', { error: err.message, stack: err.stack });
   }
 })();
