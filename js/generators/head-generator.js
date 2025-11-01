@@ -95,12 +95,12 @@ async function loadComponentWithDependencies(componentName) {
   collectDependencies(componentName);
   const loadOrder = [...allDependencies, componentName];
   logger.log(`Load order for ${componentName}:`, loadOrder);
-  
+
   // New: Load SwiperJS CDN scripts/styles before custom-slider
   if (componentName === 'custom-slider') {
     const head = document.head;
     const criticalFrag = document.createDocumentFragment();
-    
+
     // Core Swiper CSS
     const swiperCss = document.createElement('link');
     swiperCss.rel = 'stylesheet';
@@ -527,7 +527,11 @@ async function updateHead(attributes, setup) {
     }
 
     logger.log('HeadGenerator completed successfully');
+    // SIGNAL: Page is fully rendered and ready to save
+    window.__PAGE_FULLY_RENDERED__ = true;
+    document.documentElement.setAttribute('data-page-ready', 'true');
   } catch (err) {
     logger.error('Error in HeadGenerator', { error: err.message, stack: err.stack });
   }
+
 })();
