@@ -17,7 +17,7 @@ const createLogger = (prefix) => ({
   },
   warn: (message, data = null) => {
     if (isDev) {
-      console.groupCollapsed(`%c[${prefix}] ⚠️ ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
+      console.groupCollapsed(`%c[${prefix}] Warning: ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
       if (data) console.log('%cData:', 'color: #4CAF50;', data);
       console.trace();
       console.groupEnd();
@@ -25,7 +25,7 @@ const createLogger = (prefix) => ({
   },
   error: (message, data = null) => {
     if (isDev) {
-      console.groupCollapsed(`%c[${prefix}] ❌ ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
+      console.groupCollapsed(`%c[${prefix}] Error: ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
       if (data) console.log('%cData:', 'color: #4CAF50;', data);
       console.trace();
       console.groupEnd();
@@ -96,19 +96,17 @@ async function loadComponentWithDependencies(componentName) {
   const loadOrder = [...allDependencies, componentName];
   logger.log(`Load order for ${componentName}:`, loadOrder);
 
-  // New: Load SwiperJS CDN scripts/styles before custom-slider
+  // Load SwiperJS CDN scripts/styles before custom-slider
   if (componentName === 'custom-slider') {
     const head = document.head;
     const criticalFrag = document.createDocumentFragment();
 
-    // Core Swiper CSS
     const swiperCss = document.createElement('link');
     swiperCss.rel = 'stylesheet';
     swiperCss.href = 'https://unpkg.com/swiper@10/swiper-bundle.min.css';
     criticalFrag.appendChild(swiperCss);
     logger.log('Added Swiper CSS', { href: swiperCss.href });
 
-    // Core Swiper JS
     const swiperJs = document.createElement('script');
     swiperJs.src = 'https://unpkg.com/swiper@10/swiper-bundle.min.js';
     swiperJs.defer = true;
@@ -187,7 +185,6 @@ async function updateHead(attributes, setup) {
   criticalFrag.appendChild(styleLink);
   logger.log('Applied stylesheet: ./styles.css');
 
-  // Add custom.css after styles.css
   const customStyleLink = document.createElement('link');
   customStyleLink.rel = 'stylesheet';
   customStyleLink.href = './custom.css';
@@ -205,12 +202,11 @@ async function updateHead(attributes, setup) {
   } else {
     logger.warn('No Font Awesome kit URL found; icons may not load');
   }
-  // Updated: Conditional OG meta tags based on presence of page attributes
+
   let metaTags = [];
   const hasPageAttributes = Object.keys(attributes).length > 0;
 
   if (hasPageAttributes) {
-    // Full set with overrides and fallbacks
     metaTags = [
       { name: 'robots', content: setup.general?.robots },
       { name: 'title', content: attributes.title ?? setup.general?.title },
@@ -232,7 +228,6 @@ async function updateHead(attributes, setup) {
       { name: 'twitter:image', content: setup.business?.image }
     ].filter(tag => tag.content?.trim());
   } else {
-    // Minimal set: Critical, non-page-specific OG properties from setup.json
     metaTags = [
       { name: 'og:locale', property: true, content: setup.general?.og?.locale ?? setup.general?.ogLocale },
       { name: 'og:site_name', property: true, content: setup.general?.og?.site_name ?? setup.general?.siteName },
@@ -252,6 +247,7 @@ async function updateHead(attributes, setup) {
     criticalFrag.appendChild(meta);
     logger.log(`Added ${property ? 'property' : 'name'} "${name}" with content: ${content}`);
   });
+
   const canonicalUrl = attributes.canonical ?? setup.general?.canonical ?? window.location.href;
   const canonicalLink = document.createElement('link');
   canonicalLink.rel = 'canonical';
@@ -259,13 +255,11 @@ async function updateHead(attributes, setup) {
   criticalFrag.appendChild(canonicalLink);
   logger.log('Added canonical link: ' + canonicalUrl);
 
-  // Delayed: Query CSS vars for theme colors after a microtask (to ensure CSS is parsed)
   setTimeout(() => {
     const rootStyles = getComputedStyle(document.documentElement);
     const lightTheme = rootStyles.getPropertyValue('--color-light-scale-1').trim();
     const darkTheme = rootStyles.getPropertyValue('--color-dark-scale-1').trim();
 
-    // Fallback: If CSS vars are empty, skip adding meta tags (browser defaults)
     if (lightTheme) {
       const themeMetaLight = document.createElement('meta');
       themeMetaLight.name = 'theme-color';
@@ -273,8 +267,6 @@ async function updateHead(attributes, setup) {
       themeMetaLight.media = '(prefers-color-scheme: light)';
       head.appendChild(themeMetaLight);
       logger.log(`Updated theme-color (light): ${lightTheme}`);
-    } else {
-      logger.log('Light theme CSS var empty; skipping meta tag for browser defaults');
     }
 
     if (darkTheme && darkTheme !== lightTheme) {
@@ -284,10 +276,6 @@ async function updateHead(attributes, setup) {
       themeMetaDark.media = '(prefers-color-scheme: dark)';
       head.appendChild(themeMetaDark);
       logger.log(`Updated theme-color (dark): ${darkTheme}`);
-    } else if (darkTheme) {
-      logger.log('Dark theme same as light; no additional meta tag needed');
-    } else {
-      logger.log('Dark theme CSS var empty; skipping meta tag for browser defaults');
     }
   }, 0);
 
@@ -326,9 +314,8 @@ async function updateHead(attributes, setup) {
       url: cleanedJsonLd.url,
       sameAsCount: cleanedJsonLd.sameAs?.length || 0
     });
-  } else {
-    logger.log('Skipped empty JSON-LD schema');
   }
+
   const favicons = (setup.general?.favicons || []).filter(f => f.href?.trim());
   favicons.forEach(favicon => {
     const link = document.createElement('link');
@@ -339,6 +326,7 @@ async function updateHead(attributes, setup) {
     criticalFrag.appendChild(link);
     logger.log(`Added favicon: ${favicon.href}`);
   });
+
   if (setup.general?.include_e_commerce && setup.general?.snipcart) {
     const snipcart = setup.general.snipcart;
     const script = document.createElement('script');
@@ -351,19 +339,99 @@ async function updateHead(attributes, setup) {
     deferredFrag.appendChild(script);
     logger.log('Added Snipcart script (deferred)', { version: snipcart.version });
   }
+
   head.appendChild(criticalFrag);
   logger.log('Appended critical elements to head', { count: criticalFrag.childNodes.length });
-  logger.log('Head after critical append:', Array.from(head.children).map(el => el.outerHTML));
-  logger.log('Body children:', Array.from(document.body.children).map(el => el.outerHTML));
+
   const appendDeferred = () => {
     head.appendChild(deferredFrag);
     logger.log('Appended deferred elements to head', { count: deferredFrag.childNodes.length });
-    logger.log('Head after deferred append:', Array.from(head.children).map(el => el.outerHTML));
   };
   if (window.requestIdleCallback) {
     requestIdleCallback(appendDeferred, { timeout: 2000 });
   } else {
     setTimeout(appendDeferred, 0);
+  }
+}
+
+// === AUTO-PRELOAD CRITICAL IMAGES (SLIDERS + BLOCKS) ===
+function addCriticalImagePreloads() {
+  const head = document.head;
+  const preloaded = new Set();
+
+  const isAboveTheFold = (el) => {
+    const rect = el.getBoundingClientRect();
+    const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
+    return rect.top >= 0 && rect.top < viewportHeight * 0.8;
+  };
+
+  const candidates = [
+    ...Array.from(document.querySelectorAll('custom-slider')),
+    ...Array.from(document.querySelectorAll('custom-block'))
+  ];
+
+  if (candidates.length === 0) {
+    logger.log('No sliders or blocks found — skipping preload');
+    return;
+  }
+
+  const sorted = candidates
+    .map(el => ({ el, top: el.getBoundingClientRect().top }))
+    .sort((a, b) => a.top - b.top);
+
+  const heroEl = sorted.find(s => isAboveTheFold(s.el))?.el;
+  if (!heroEl) {
+    logger.log('No above-the-fold hero element found');
+    return;
+  }
+
+  logger.log('Preloading from hero element', {
+    tagName: heroEl.tagName,
+    class: heroEl.className,
+    id: heroEl.id
+  });
+
+  if (heroEl.tagName === 'CUSTOM-SLIDER') {
+    const firstSlide = heroEl.querySelector('.slider-wrapper .slider-slide:nth-child(1)');
+    if (firstSlide) {
+      firstSlide.querySelectorAll('img[srcset]').forEach(img => preloadImg(img));
+    }
+  } else if (heroEl.tagName === 'CUSTOM-BLOCK') {
+    const picture = heroEl.querySelector('picture');
+    if (picture) {
+      const img = picture.querySelector('img');
+      if (img && img.srcset) preloadImg(img);
+    }
+  }
+
+  function preloadImg(img) {
+    const src = img.currentSrc || img.src;
+    const srcset = img.getAttribute('srcset');
+    const sizes = img.getAttribute('sizes') || '100vw';
+
+    if (!srcset || preloaded.has(src)) return;
+    preloaded.add(src);
+
+    const largest = srcset
+      .split(',')
+      .map(s => s.trim().split(' '))
+      .reduce((a, b) => (parseInt(b[1]) || 0) > (parseInt(a[1]) || 0) ? b : a);
+
+    const link = document.createElement('link');
+    link.rel = 'preload';
+    link.as = 'image';
+    link.href = largest[0];
+    link.importance = 'high';
+    if (srcset) link.imagesrcset = srcset;
+    if (sizes) link.imagesizes = sizes;
+
+    head.appendChild(link);
+
+    logger.log('Preloaded critical image', {
+      from: img.closest('custom-slider, custom-block')?.tagName,
+      href: largest[0],
+      imagesrcset: !!srcset
+    });
   }
 }
 
@@ -526,12 +594,13 @@ async function updateHead(attributes, setup) {
       logger.log('No misparsed styles found in text nodes');
     }
 
+    // === AUTO-PRELOAD CRITICAL IMAGES ===
+    addCriticalImagePreloads();
+
     logger.log('HeadGenerator completed successfully');
-    // SIGNAL: Page is fully rendered and ready to save
     window.__PAGE_FULLY_RENDERED__ = true;
     document.documentElement.setAttribute('data-page-ready', 'true');
   } catch (err) {
     logger.error('Error in HeadGenerator', { error: err.message, stack: err.stack });
   }
-
 })();

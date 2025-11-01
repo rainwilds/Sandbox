@@ -1,141 +1,2625 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Basic Draggable Carousel Example</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background-color: #f0f0f0;
-        }
+< !DOCTYPE html><html lang="en" data-page-ready="true"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="preconnect" href="https://kit.fontawesome.com" crossorigin="anonymous"><link rel="preload" href="./JSON/setup.json" as="fetch" crossorigin="anonymous"><link rel="preload" href="./styles.css" as="style"><link rel="preload" href="./custom.css" as="style"><script src="js/generators/head-generator.js" type="module"></script><link rel="stylesheet" href="https://unpkg.com/swiper@10/swiper-bundle.min.css"><script src="https://unpkg.com/swiper@10/swiper-bundle.min.js" defer=""></script><link rel="preload" href="./fonts/Futura_PT_Demi.woff2" as="font" type="font/woff2" crossorigin="anonymous"><link rel="preload" href="./fonts/futura_pt_book.woff2" as="font" type="font/woff2" crossorigin="anonymous"><link rel="stylesheet" href="./styles.css"><link rel="stylesheet" href="./custom.css"><script src="https://kit.fontawesome.com/85d1e578b1.js" crossorigin="anonymous" async=""></script><style media="all" id="fa-main">@charset "utf-8";
 
-        .carousel {
-            overflow: hidden;
-            width: 100%;
-            max-width: 600px;
-            position: relative;
-            user-select: none;
-            touch-action: pan-y; /* Prevents vertical scroll during horizontal drag */
-        }
+.fa-solid,
+.fa-regular,
+.fa-brands,
+.fa-classic,
+.fas,
+.far,
+.fab,
+.fal,
+.fat,
+.fad,
+.fadr,
+.fadl,
+.fadt,
+.fass,
+.fasr,
+.fasl,
+.fast,
+.fasds,
+.fasdr,
+.fasdl,
+.fasdt,
+.faslr,
+.faslpr,
+.fawsb,
+.fatl,
+.fans,
+.fands,
+.faes,
+.fajr,
+.fajfr,
+.fajdr,
+.facr,
+.fausb,
+.faudsb,
+.faufsb,
+.fa-solid,
+.fa-semibold,
+.fa-regular,
+.fa-light,
+.fa-thin,
+.fa-brands,
+.fa-classic,
+.fa-duotone,
+.fa-sharp,
+.fa-sharp-duotone,
+.fa-chisel,
+.fa-etch,
+.fa-jelly,
+.fa-jelly-duo,
+.fa-jelly-fill,
+.fa-notdog,
+.fa-notdog-duo,
+.fa-slab,
+.fa-slab-press,
+.fa-thumbprint,
+.fa-utility,
+.fa-utility-duo,
+.fa-utility-fill,
+.fa-whiteboard,
+.fa {
+    --_fa-family: var(--fa-family, var(--fa-style-family, "Font Awesome 7 Pro"));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    display: var(--fa-display, inline-block);
+    font-family: var(--_fa-family);
+    font-feature-settings: normal;
+    font-style: normal;
+    font-synthesis: none;
+    font-variant: normal;
+    font-weight: var(--fa-style, 900);
+    line-height: 1;
+    text-align: center;
+    text-rendering: auto;
+    width: var(--fa-width, 1.25em)
+}
 
-        .slides {
-            display: flex;
-            transition: transform 0.5s ease-out;
-            will-change: transform; /* Hints to browser for hardware acceleration */
-        }
+:is(.fas, .fass, .far, .fasr, .fal, .fasl, .fat, .fast, .fad, .fadr, .fadl, .fadt, .fasds, .fasdr, .fasdl, .fasdt, .fab, .faslr, .faslpr, .fawsb, .fatl, .fans, .fands, .faes, .fajr, .fajfr, .fajdr, .facr, .fausb, .faudsb, .faufsb, .fa-solid, .fa-semibold, .fa-regular, .fa-light, .fa-thin, .fa-brands, .fa-classic, .fa-duotone, .fa-sharp, .fa-sharp-duotone, .fa-chisel, .fa-etch, .fa-jelly, .fa-jelly-duo, .fa-jelly-fill, .fa-notdog, .fa-notdog-duo, .fa-slab, .fa-slab-press, .fa-thumbprint, .fa-utility, .fa-utility-duo, .fa-utility-fill, .fa-whiteboard, .fa):before {
+    content: var(--fa)/""
+}
 
-        .slide {
-            flex: 0 0 100%;
-            height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3em;
-            color: white;
-        }
+@supports not (content:"" /"") {
+    :is(.fas, .fass, .far, .fasr, .fal, .fasl, .fat, .fast, .fad, .fadr, .fadl, .fadt, .fasds, .fasdr, .fasdl, .fasdt, .fab, .faslr, .faslpr, .fawsb, .fatl, .fans, .fands, .faes, .fajr, .fajfr, .fajdr, .facr, .fausb, .faudsb, .faufsb, .fa-solid, .fa-semibold, .fa-regular, .fa-light, .fa-thin, .fa-brands, .fa-classic, .fa-duotone, .fa-sharp, .fa-sharp-duotone, .fa-chisel, .fa-etch, .fa-jelly, .fa-jelly-duo, .fa-jelly-fill, .fa-notdog, .fa-notdog-duo, .fa-slab, .fa-slab-press, .fa-thumbprint, .fa-utility, .fa-utility-duo, .fa-utility-fill, .fa-whiteboard, .fa):before {
+        content: var(--fa)
+    }
+}
 
-        .slide:nth-child(odd) {
-            background-color: #4a90e2;
-        }
+:is(.fad, .fa-duotone, .fadr, .fadl, .fadt, .fasds, .fa-sharp-duotone, .fasdr, .fasdl, .fasdt, .fatl, .fa-thumbprint, .fands, .fa-notdog-duo, .fajdr, .fa-jelly-duo, .faudsb, .fa-utility-duo):after {
+    content: var(--fa);
+    font-feature-settings: "ss01"
+}
 
-        .slide:nth-child(even) {
-            background-color: #50e3c2;
-        }
-    </style>
-</head>
-<body>
-    <div class="carousel">
-        <div class="slides">
-            <div class="slide">Slide 1</div>
-            <div class="slide">Slide 2</div>
-            <div class="slide">Slide 3</div>
-            <div class="slide">Slide 4</div>
-        </div>
-    </div>
+@supports not (content:"" /"") {
+    :is(.fad, .fa-duotone, .fadr, .fadl, .fadt, .fasds, .fa-sharp-duotone, .fasdr, .fasdl, .fasdt, .fatl, .fa-thumbprint, .fands, .fa-notdog-duo, .fajdr, .fa-jelly-duo, .faudsb, .fa-utility-duo):after {
+        content: var(--fa)
+    }
+}
 
-    <script>
-        const carousel = document.querySelector('.carousel');
-        const slides = carousel.querySelector('.slides');
+.fa-1x {
+    font-size: 1em
+}
 
-        let isDragging = false;
-        let startPos = 0;
-        let currentTranslate = 0;
-        let prevTranslate = 0;
-        let animationID;
-        let currentIndex = 0;
+.fa-2x {
+    font-size: 2em
+}
 
-        // Prevent context menu on long touch
-        window.oncontextmenu = function(event) {
-            if (event.target.closest('.slides')) {
-                event.preventDefault();
-                event.stopPropagation();
-                return false;
-            }
-        };
+.fa-3x {
+    font-size: 3em
+}
 
-        slides.addEventListener('pointerdown', pointerDown);
-        slides.addEventListener('pointerup', pointerUp);
-        slides.addEventListener('pointercancel', pointerUp);
-        slides.addEventListener('pointerleave', pointerUp);
-        slides.addEventListener('pointermove', pointerMove);
+.fa-4x {
+    font-size: 4em
+}
 
-        function getPositionX(event) {
-            return event.clientX;
-        }
+.fa-5x {
+    font-size: 5em
+}
 
-        function pointerDown(event) {
-            if (event.pointerType === 'touch' || event.pointerType === 'mouse') {
-                isDragging = true;
-                startPos = getPositionX(event);
-                animationID = requestAnimationFrame(animation);
-                slides.style.transition = 'none';
-                event.target.setPointerCapture(event.pointerId);
-            }
-        }
+.fa-6x {
+    font-size: 6em
+}
 
-        function pointerMove(event) {
-            if (isDragging) {
-                const currentPosition = getPositionX(event);
-                currentTranslate = prevTranslate + currentPosition - startPos;
-            }
-        }
+.fa-7x {
+    font-size: 7em
+}
 
-        function pointerUp(event) {
-            cancelAnimationFrame(animationID);
-            isDragging = false;
-            const movedBy = currentTranslate - prevTranslate;
+.fa-8x {
+    font-size: 8em
+}
 
-            // Threshold for swipe to next/prev (adjust as needed)
-            if (movedBy < -100 && currentIndex < slides.children.length - 1) {
-                currentIndex += 1;
-            } else if (movedBy > 100 && currentIndex > 0) {
-                currentIndex -= 1;
-            }
+.fa-9x {
+    font-size: 9em
+}
 
-            setPositionByIndex();
-            slides.style.transition = 'transform 0.5s ease-out';
-            event.target.releasePointerCapture(event.pointerId);
-        }
+.fa-10x {
+    font-size: 10em
+}
 
-        function animation() {
-            setSliderPosition();
-            if (isDragging) requestAnimationFrame(animation);
-        }
+.fa-2xs {
+    font-size: .625em;
+    line-height: .1em;
+    vertical-align: .225em
+}
 
-        function setSliderPosition() {
-            slides.style.transform = `translate3d(${currentTranslate}px, 0, 0)`; // translate3d for hardware acceleration
-        }
+.fa-xs {
+    font-size: .75em;
+    line-height: .0833333em;
+    vertical-align: .125em
+}
 
-        function setPositionByIndex() {
-            currentTranslate = currentIndex * -carousel.clientWidth;
-            prevTranslate = currentTranslate;
-            setSliderPosition();
-        }
-    </script>
-</body>
-</html>
+.fa-sm {
+    font-size: .875em;
+    line-height: .0714286em;
+    vertical-align: .0535715em
+}
+
+.fa-lg {
+    font-size: 1.25em;
+    line-height: .05em;
+    vertical-align: -.075em
+}
+
+.fa-xl {
+    font-size: 1.5em;
+    line-height: .0416667em;
+    vertical-align: -.125em
+}
+
+.fa-2xl {
+    font-size: 2em;
+    line-height: .03125em;
+    vertical-align: -.1875em
+}
+
+.fa-width-auto {
+    --fa-width: auto
+}
+
+.fa-fw,
+.fa-width-fixed {
+    --fa-width: 1.25em
+}
+
+.fa-ul {
+    list-style-type: none;
+    margin-inline-start: var(--fa-li-margin, 2.5em);
+    padding-inline-start: 0
+}
+
+.fa-ul>li {
+    position: relative
+}
+
+.fa-li {
+    inset-inline-start: calc(-1*var(--fa-li-width, 2em));
+    position: absolute;
+    text-align: center;
+    width: var(--fa-li-width, 2em);
+    line-height: inherit
+}
+
+.fa-border {
+    border-color: var(--fa-border-color, #eee);
+    border-radius: var(--fa-border-radius, .1em);
+    border-style: var(--fa-border-style, solid);
+    border-width: var(--fa-border-width, .0625em);
+    box-sizing: var(--fa-border-box-sizing, content-box);
+    padding: var(--fa-border-padding, .1875em .25em)
+}
+
+.fa-pull-left,
+.fa-pull-start {
+    float: inline-start;
+    margin-inline-end: var(--fa-pull-margin, .3em)
+}
+
+.fa-pull-right,
+.fa-pull-end {
+    float: inline-end;
+    margin-inline-start: var(--fa-pull-margin, .3em)
+}
+
+.fa-beat {
+    animation-name: fa-beat;
+    animation-delay: var(--fa-animation-delay, 0s);
+    animation-direction: var(--fa-animation-direction, normal);
+    animation-duration: var(--fa-animation-duration, 1s);
+    animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    animation-timing-function: var(--fa-animation-timing, ease-in-out)
+}
+
+.fa-bounce {
+    animation-name: fa-bounce;
+    animation-delay: var(--fa-animation-delay, 0s);
+    animation-direction: var(--fa-animation-direction, normal);
+    animation-duration: var(--fa-animation-duration, 1s);
+    animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    animation-timing-function: var(--fa-animation-timing, cubic-bezier(.28, .84, .42, 1))
+}
+
+.fa-fade {
+    animation-name: fa-fade;
+    animation-delay: var(--fa-animation-delay, 0s);
+    animation-direction: var(--fa-animation-direction, normal);
+    animation-duration: var(--fa-animation-duration, 1s);
+    animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    animation-timing-function: var(--fa-animation-timing, cubic-bezier(.4, 0, .6, 1))
+}
+
+.fa-beat-fade {
+    animation-name: fa-beat-fade;
+    animation-delay: var(--fa-animation-delay, 0s);
+    animation-direction: var(--fa-animation-direction, normal);
+    animation-duration: var(--fa-animation-duration, 1s);
+    animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    animation-timing-function: var(--fa-animation-timing, cubic-bezier(.4, 0, .6, 1))
+}
+
+.fa-flip {
+    animation-name: fa-flip;
+    animation-delay: var(--fa-animation-delay, 0s);
+    animation-direction: var(--fa-animation-direction, normal);
+    animation-duration: var(--fa-animation-duration, 1s);
+    animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    animation-timing-function: var(--fa-animation-timing, ease-in-out)
+}
+
+.fa-shake {
+    animation-name: fa-shake;
+    animation-delay: var(--fa-animation-delay, 0s);
+    animation-direction: var(--fa-animation-direction, normal);
+    animation-duration: var(--fa-animation-duration, 1s);
+    animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    animation-timing-function: var(--fa-animation-timing, linear)
+}
+
+.fa-spin {
+    animation-name: fa-spin;
+    animation-delay: var(--fa-animation-delay, 0s);
+    animation-direction: var(--fa-animation-direction, normal);
+    animation-duration: var(--fa-animation-duration, 2s);
+    animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    animation-timing-function: var(--fa-animation-timing, linear)
+}
+
+.fa-spin-reverse {
+    --fa-animation-direction: reverse
+}
+
+.fa-pulse,
+.fa-spin-pulse {
+    animation-name: fa-spin;
+    animation-direction: var(--fa-animation-direction, normal);
+    animation-duration: var(--fa-animation-duration, 1s);
+    animation-iteration-count: var(--fa-animation-iteration-count, infinite);
+    animation-timing-function: var(--fa-animation-timing, steps(8))
+}
+
+@media (prefers-reduced-motion:reduce) {
+
+    .fa-beat,
+    .fa-bounce,
+    .fa-fade,
+    .fa-beat-fade,
+    .fa-flip,
+    .fa-pulse,
+    .fa-shake,
+    .fa-spin,
+    .fa-spin-pulse {
+        animation: none !important;
+        transition: none !important
+    }
+}
+
+@keyframes fa-beat {
+
+    0%,
+    90% {
+        transform: scale(1)
+    }
+
+    45% {
+        transform: scale(var(--fa-beat-scale, 1.25))
+    }
+}
+
+@keyframes fa-bounce {
+    0% {
+        transform: scale(1)translateY(0)
+    }
+
+    10% {
+        transform: scale(var(--fa-bounce-start-scale-x, 1.1), var(--fa-bounce-start-scale-y, .9))translateY(0)
+    }
+
+    30% {
+        transform: scale(var(--fa-bounce-jump-scale-x, .9), var(--fa-bounce-jump-scale-y, 1.1))translateY(var(--fa-bounce-height, -.5em))
+    }
+
+    50% {
+        transform: scale(var(--fa-bounce-land-scale-x, 1.05), var(--fa-bounce-land-scale-y, .95))translateY(0)
+    }
+
+    57% {
+        transform: scale(1, 1)translateY(var(--fa-bounce-rebound, -.125em))
+    }
+
+    64% {
+        transform: scale(1)translateY(0)
+    }
+
+    to {
+        transform: scale(1)translateY(0)
+    }
+}
+
+@keyframes fa-fade {
+    50% {
+        opacity: var(--fa-fade-opacity, .4)
+    }
+}
+
+@keyframes fa-beat-fade {
+
+    0%,
+    to {
+        opacity: var(--fa-beat-fade-opacity, .4);
+        transform: scale(1)
+    }
+
+    50% {
+        opacity: 1;
+        transform: scale(var(--fa-beat-fade-scale, 1.125))
+    }
+}
+
+@keyframes fa-flip {
+    50% {
+        transform: rotate3d(var(--fa-flip-x, 0), var(--fa-flip-y, 1), var(--fa-flip-z, 0), var(--fa-flip-angle, -180deg))
+    }
+}
+
+@keyframes fa-shake {
+    0% {
+        transform: rotate(-15deg)
+    }
+
+    4% {
+        transform: rotate(15deg)
+    }
+
+    8%,
+    24% {
+        transform: rotate(-18deg)
+    }
+
+    12%,
+    28% {
+        transform: rotate(18deg)
+    }
+
+    16% {
+        transform: rotate(-22deg)
+    }
+
+    20% {
+        transform: rotate(22deg)
+    }
+
+    32% {
+        transform: rotate(-12deg)
+    }
+
+    36% {
+        transform: rotate(12deg)
+    }
+
+    40%,
+    to {
+        transform: rotate(0)
+    }
+}
+
+@keyframes fa-spin {
+    0% {
+        transform: rotate(0)
+    }
+
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+.fa-rotate-90 {
+    transform: rotate(90deg)
+}
+
+.fa-rotate-180 {
+    transform: rotate(180deg)
+}
+
+.fa-rotate-270 {
+    transform: rotate(270deg)
+}
+
+.fa-flip-horizontal {
+    transform: scaleX(-1)
+}
+
+.fa-flip-vertical {
+    transform: scaleY(-1)
+}
+
+.fa-flip-both,
+.fa-flip-horizontal.fa-flip-vertical {
+    transform: scale(-1)
+}
+
+.fa-rotate-by {
+    transform: rotate(var(--fa-rotate-angle, 0))
+}
+
+.fa-stack {
+    display: inline-block;
+    height: 2em;
+    line-height: 2em;
+    position: relative;
+    vertical-align: middle;
+    width: 2.5em
+}
+
+.fa-stack-1x,
+.fa-stack-2x {
+    --fa-width: 100%;
+    inset: 0;
+    position: absolute;
+    text-align: center;
+    width: var(--fa-width);
+    z-index: var(--fa-stack-z-index, auto)
+}
+
+.fa-stack-1x {
+    line-height: inherit
+}
+
+.fa-stack-2x {
+    font-size: 2em
+}
+
+.fa-inverse {
+    color: var(--fa-inverse, #fff)
+}
+
+.fa-add {
+    --fa: "+"
+}
+
+.fa-adjust {
+    --fa: ""
+}
+
+.fa-airplay {
+    --fa: ""
+}
+
+.fa-alarm-clock {
+    --fa: ""
+}
+
+.fa-anchor {
+    --fa: ""
+}
+
+.fa-angle-down {
+    --fa: ""
+}
+
+.fa-angle-left {
+    --fa: ""
+}
+
+.fa-angle-right {
+    --fa: ""
+}
+
+.fa-angle-up {
+    --fa: ""
+}
+
+.fa-aperture {
+    --fa: ""
+}
+
+.fa-archive {
+    --fa: ""
+}
+
+.fa-arrow-circle-down {
+    --fa: ""
+}
+
+.fa-arrow-circle-left {
+    --fa: ""
+}
+
+.fa-arrow-circle-right {
+    --fa: ""
+}
+
+.fa-arrow-circle-up {
+    --fa: ""
+}
+
+.fa-arrow-down {
+    --fa: ""
+}
+
+.fa-arrow-down-to-bracket {
+    --fa: ""
+}
+
+.fa-arrow-down-to-line {
+    --fa: ""
+}
+
+.fa-arrow-down-wide-short {
+    --fa: ""
+}
+
+.fa-arrow-from-bottom {
+    --fa: ""
+}
+
+.fa-arrow-from-left {
+    --fa: ""
+}
+
+.fa-arrow-left {
+    --fa: ""
+}
+
+.fa-arrow-left-rotate {
+    --fa: ""
+}
+
+.fa-arrow-pointer {
+    --fa: ""
+}
+
+.fa-arrow-right {
+    --fa: ""
+}
+
+.fa-arrow-right-arrow-left {
+    --fa: ""
+}
+
+.fa-arrow-right-from-bracket {
+    --fa: ""
+}
+
+.fa-arrow-right-from-line {
+    --fa: ""
+}
+
+.fa-arrow-right-rotate {
+    --fa: ""
+}
+
+.fa-arrow-right-to-bracket {
+    --fa: ""
+}
+
+.fa-arrow-right-to-line {
+    --fa: ""
+}
+
+.fa-arrow-rotate-back {
+    --fa: ""
+}
+
+.fa-arrow-rotate-backward {
+    --fa: ""
+}
+
+.fa-arrow-rotate-forward {
+    --fa: ""
+}
+
+.fa-arrow-rotate-left {
+    --fa: ""
+}
+
+.fa-arrow-rotate-left-10 {
+    --fa: ""
+}
+
+.fa-arrow-rotate-right {
+    --fa: ""
+}
+
+.fa-arrow-rotate-right-10 {
+    --fa: ""
+}
+
+.fa-arrow-to-bottom {
+    --fa: ""
+}
+
+.fa-arrow-to-right {
+    --fa: ""
+}
+
+.fa-arrow-up {
+    --fa: ""
+}
+
+.fa-arrow-up-arrow-down {
+    --fa: ""
+}
+
+.fa-arrow-up-from-bracket {
+    --fa: ""
+}
+
+.fa-arrow-up-from-line {
+    --fa: ""
+}
+
+.fa-arrow-up-right-from-square {
+    --fa: ""
+}
+
+.fa-arrow-up-wide-short {
+    --fa: ""
+}
+
+.fa-arrows-rotate {
+    --fa: ""
+}
+
+.fa-at {
+    --fa: "@"
+}
+
+.fa-automobile {
+    --fa: ""
+}
+
+.fa-backward {
+    --fa: ""
+}
+
+.fa-backward-step {
+    --fa: ""
+}
+
+.fa-bag-shopping {
+    --fa: ""
+}
+
+.fa-bars {
+    --fa: ""
+}
+
+.fa-battery {
+    --fa: ""
+}
+
+.fa-battery-0 {
+    --fa: ""
+}
+
+.fa-battery-2 {
+    --fa: ""
+}
+
+.fa-battery-3 {
+    --fa: ""
+}
+
+.fa-battery-4 {
+    --fa: ""
+}
+
+.fa-battery-5 {
+    --fa: ""
+}
+
+.fa-battery-bolt {
+    --fa: ""
+}
+
+.fa-battery-empty {
+    --fa: ""
+}
+
+.fa-battery-full {
+    --fa: ""
+}
+
+.fa-battery-half {
+    --fa: ""
+}
+
+.fa-battery-quarter {
+    --fa: ""
+}
+
+.fa-battery-slash {
+    --fa: ""
+}
+
+.fa-battery-three-quarters {
+    --fa: ""
+}
+
+.fa-bed {
+    --fa: ""
+}
+
+.fa-bed-empty {
+    --fa: ""
+}
+
+.fa-bell {
+    --fa: ""
+}
+
+.fa-bell-ring {
+    --fa: ""
+}
+
+.fa-bell-slash {
+    --fa: ""
+}
+
+.fa-biking {
+    --fa: ""
+}
+
+.fa-birthday-cake {
+    --fa: ""
+}
+
+.fa-block-quote {
+    --fa: ""
+}
+
+.fa-bold {
+    --fa: ""
+}
+
+.fa-bolt {
+    --fa: ""
+}
+
+.fa-bolt-slash {
+    --fa: ""
+}
+
+.fa-bomb {
+    --fa: ""
+}
+
+.fa-book {
+    --fa: ""
+}
+
+.fa-book-open {
+    --fa: ""
+}
+
+.fa-bookmark {
+    --fa: ""
+}
+
+.fa-box {
+    --fa: ""
+}
+
+.fa-box-archive {
+    --fa: ""
+}
+
+.fa-briefcase {
+    --fa: ""
+}
+
+.fa-bug {
+    --fa: ""
+}
+
+.fa-bug-slash {
+    --fa: ""
+}
+
+.fa-building {
+    --fa: ""
+}
+
+.fa-buildings {
+    --fa: ""
+}
+
+.fa-burger {
+    --fa: ""
+}
+
+.fa-bus {
+    --fa: ""
+}
+
+.fa-cake {
+    --fa: ""
+}
+
+.fa-cake-candles {
+    --fa: ""
+}
+
+.fa-calendar {
+    --fa: ""
+}
+
+.fa-calendar-check {
+    --fa: ""
+}
+
+.fa-calendar-plus {
+    --fa: ""
+}
+
+.fa-camera {
+    --fa: ""
+}
+
+.fa-camera-alt {
+    --fa: ""
+}
+
+.fa-camera-slash {
+    --fa: ""
+}
+
+.fa-car {
+    --fa: ""
+}
+
+.fa-cart-shopping {
+    --fa: ""
+}
+
+.fa-chain {
+    --fa: ""
+}
+
+.fa-chart-pie {
+    --fa: ""
+}
+
+.fa-chart-simple {
+    --fa: ""
+}
+
+.fa-check {
+    --fa: ""
+}
+
+.fa-check-circle {
+    --fa: ""
+}
+
+.fa-circle {
+    --fa: ""
+}
+
+.fa-circle-arrow-down {
+    --fa: ""
+}
+
+.fa-circle-arrow-left {
+    --fa: ""
+}
+
+.fa-circle-arrow-right {
+    --fa: ""
+}
+
+.fa-circle-arrow-up {
+    --fa: ""
+}
+
+.fa-circle-check {
+    --fa: ""
+}
+
+.fa-circle-dollar {
+    --fa: ""
+}
+
+.fa-circle-exclamation {
+    --fa: ""
+}
+
+.fa-circle-half-stroke {
+    --fa: ""
+}
+
+.fa-circle-info {
+    --fa: ""
+}
+
+.fa-circle-plus {
+    --fa: ""
+}
+
+.fa-circle-question {
+    --fa: ""
+}
+
+.fa-circle-user {
+    --fa: ""
+}
+
+.fa-clipboard {
+    --fa: ""
+}
+
+.fa-clipboard-check {
+    --fa: ""
+}
+
+.fa-clock {
+    --fa: ""
+}
+
+.fa-clock-four {
+    --fa: ""
+}
+
+.fa-close {
+    --fa: ""
+}
+
+.fa-closed-captioning {
+    --fa: ""
+}
+
+.fa-cloud {
+    --fa: ""
+}
+
+.fa-cloud-arrow-down {
+    --fa: ""
+}
+
+.fa-cloud-arrow-up {
+    --fa: ""
+}
+
+.fa-cloud-bolt {
+    --fa: ""
+}
+
+.fa-cloud-download {
+    --fa: ""
+}
+
+.fa-cloud-download-alt {
+    --fa: ""
+}
+
+.fa-cloud-drizzle {
+    --fa: ""
+}
+
+.fa-cloud-moon {
+    --fa: ""
+}
+
+.fa-cloud-showers {
+    --fa: ""
+}
+
+.fa-cloud-slash {
+    --fa: ""
+}
+
+.fa-cloud-snow {
+    --fa: ""
+}
+
+.fa-cloud-sun {
+    --fa: ""
+}
+
+.fa-cloud-upload {
+    --fa: ""
+}
+
+.fa-cloud-upload-alt {
+    --fa: ""
+}
+
+.fa-code {
+    --fa: ""
+}
+
+.fa-coffee {
+    --fa: ""
+}
+
+.fa-cog {
+    --fa: ""
+}
+
+.fa-command {
+    --fa: ""
+}
+
+.fa-comment {
+    --fa: ""
+}
+
+.fa-comment-slash {
+    --fa: ""
+}
+
+.fa-comments {
+    --fa: ""
+}
+
+.fa-compact-disc {
+    --fa: ""
+}
+
+.fa-compass {
+    --fa: ""
+}
+
+.fa-compress {
+    --fa: ""
+}
+
+.fa-computer-classic {
+    --fa: ""
+}
+
+.fa-copy {
+    --fa: ""
+}
+
+.fa-credit-card {
+    --fa: ""
+}
+
+.fa-credit-card-alt {
+    --fa: ""
+}
+
+.fa-crown {
+    --fa: ""
+}
+
+.fa-cut {
+    --fa: ""
+}
+
+.fa-cutlery {
+    --fa: ""
+}
+
+.fa-dashboard {
+    --fa: ""
+}
+
+.fa-database {
+    --fa: ""
+}
+
+.fa-diamond {
+    --fa: ""
+}
+
+.fa-display {
+    --fa: ""
+}
+
+.fa-dollar {
+    --fa: "$"
+}
+
+.fa-dollar-circle {
+    --fa: ""
+}
+
+.fa-dollar-sign {
+    --fa: "$"
+}
+
+.fa-drivers-license {
+    --fa: ""
+}
+
+.fa-droplet {
+    --fa: ""
+}
+
+.fa-edit {
+    --fa: ""
+}
+
+.fa-ellipsis {
+    --fa: ""
+}
+
+.fa-ellipsis-h {
+    --fa: ""
+}
+
+.fa-envelope {
+    --fa: ""
+}
+
+.fa-envelope-open {
+    --fa: ""
+}
+
+.fa-equals {
+    --fa: "="
+}
+
+.fa-exchange {
+    --fa: ""
+}
+
+.fa-exclamation-circle {
+    --fa: ""
+}
+
+.fa-expand {
+    --fa: ""
+}
+
+.fa-external-link {
+    --fa: ""
+}
+
+.fa-eye {
+    --fa: ""
+}
+
+.fa-eye-slash {
+    --fa: ""
+}
+
+.fa-face-frown {
+    --fa: ""
+}
+
+.fa-face-laugh {
+    --fa: ""
+}
+
+.fa-face-meh {
+    --fa: ""
+}
+
+.fa-face-smile {
+    --fa: ""
+}
+
+.fa-feather {
+    --fa: ""
+}
+
+.fa-file {
+    --fa: ""
+}
+
+.fa-file-check {
+    --fa: ""
+}
+
+.fa-file-minus {
+    --fa: ""
+}
+
+.fa-file-plus {
+    --fa: ""
+}
+
+.fa-files {
+    --fa: ""
+}
+
+.fa-fill {
+    --fa: ""
+}
+
+.fa-film {
+    --fa: ""
+}
+
+.fa-film-alt {
+    --fa: ""
+}
+
+.fa-film-simple {
+    --fa: ""
+}
+
+.fa-filter {
+    --fa: ""
+}
+
+.fa-fire {
+    --fa: ""
+}
+
+.fa-fish {
+    --fa: ""
+}
+
+.fa-flag {
+    --fa: ""
+}
+
+.fa-floppy-disk {
+    --fa: ""
+}
+
+.fa-flower {
+    --fa: ""
+}
+
+.fa-folder {
+    --fa: ""
+}
+
+.fa-folder-blank {
+    --fa: ""
+}
+
+.fa-folder-check {
+    --fa: ""
+}
+
+.fa-folder-minus {
+    --fa: ""
+}
+
+.fa-folder-plus {
+    --fa: ""
+}
+
+.fa-folders {
+    --fa: ""
+}
+
+.fa-font {
+    --fa: ""
+}
+
+.fa-font-awesome {
+    --fa: ""
+}
+
+.fa-font-awesome-flag {
+    --fa: ""
+}
+
+.fa-font-awesome-logo-full {
+    --fa: ""
+}
+
+.fa-font-case {
+    --fa: ""
+}
+
+.fa-forward {
+    --fa: ""
+}
+
+.fa-forward-step {
+    --fa: ""
+}
+
+.fa-frame {
+    --fa: ""
+}
+
+.fa-frown {
+    --fa: ""
+}
+
+.fa-gamepad-alt {
+    --fa: ""
+}
+
+.fa-gamepad-modern {
+    --fa: ""
+}
+
+.fa-gauge {
+    --fa: ""
+}
+
+.fa-gauge-high {
+    --fa: ""
+}
+
+.fa-gauge-low {
+    --fa: ""
+}
+
+.fa-gauge-med {
+    --fa: ""
+}
+
+.fa-gear {
+    --fa: ""
+}
+
+.fa-ghost {
+    --fa: ""
+}
+
+.fa-gift {
+    --fa: ""
+}
+
+.fa-glass-martini-alt {
+    --fa: ""
+}
+
+.fa-globe {
+    --fa: ""
+}
+
+.fa-grid-2 {
+    --fa: ""
+}
+
+.fa-grid-round {
+    --fa: ""
+}
+
+.fa-hamburger {
+    --fa: ""
+}
+
+.fa-hand {
+    --fa: ""
+}
+
+.fa-hand-paper {
+    --fa: ""
+}
+
+.fa-hard-drive {
+    --fa: ""
+}
+
+.fa-hdd {
+    --fa: ""
+}
+
+.fa-headphones {
+    --fa: ""
+}
+
+.fa-headphones-alt {
+    --fa: ""
+}
+
+.fa-headphones-simple {
+    --fa: ""
+}
+
+.fa-heart {
+    --fa: ""
+}
+
+.fa-heart-half {
+    --fa: ""
+}
+
+.fa-heart-slash {
+    --fa: ""
+}
+
+.fa-home {
+    --fa: ""
+}
+
+.fa-home-alt {
+    --fa: ""
+}
+
+.fa-home-lg-alt {
+    --fa: ""
+}
+
+.fa-hourglass {
+    --fa: ""
+}
+
+.fa-hourglass-empty {
+    --fa: ""
+}
+
+.fa-house {
+    --fa: ""
+}
+
+.fa-id-card {
+    --fa: ""
+}
+
+.fa-image {
+    --fa: ""
+}
+
+.fa-images {
+    --fa: ""
+}
+
+.fa-inbox {
+    --fa: ""
+}
+
+.fa-info-circle {
+    --fa: ""
+}
+
+.fa-italic {
+    --fa: ""
+}
+
+.fa-joystick {
+    --fa: ""
+}
+
+.fa-key {
+    --fa: ""
+}
+
+.fa-keyboard {
+    --fa: ""
+}
+
+.fa-landmark {
+    --fa: ""
+}
+
+.fa-landmark-alt {
+    --fa: ""
+}
+
+.fa-landmark-dome {
+    --fa: ""
+}
+
+.fa-language {
+    --fa: ""
+}
+
+.fa-laptop {
+    --fa: ""
+}
+
+.fa-laugh {
+    --fa: ""
+}
+
+.fa-layer-group {
+    --fa: ""
+}
+
+.fa-leaf {
+    --fa: ""
+}
+
+.fa-life-ring {
+    --fa: ""
+}
+
+.fa-lightbulb {
+    --fa: ""
+}
+
+.fa-lightbulb-slash {
+    --fa: ""
+}
+
+.fa-link {
+    --fa: ""
+}
+
+.fa-link-simple {
+    --fa: ""
+}
+
+.fa-list-1-2 {
+    --fa: ""
+}
+
+.fa-list-dots {
+    --fa: ""
+}
+
+.fa-list-music {
+    --fa: ""
+}
+
+.fa-list-numeric {
+    --fa: ""
+}
+
+.fa-list-ol {
+    --fa: ""
+}
+
+.fa-list-ul {
+    --fa: ""
+}
+
+.fa-location-arrow {
+    --fa: ""
+}
+
+.fa-location-dot {
+    --fa: ""
+}
+
+.fa-lock {
+    --fa: ""
+}
+
+.fa-lock-open {
+    --fa: ""
+}
+
+.fa-magic {
+    --fa: ""
+}
+
+.fa-magic-wand-sparkles {
+    --fa: ""
+}
+
+.fa-magnifying-glass {
+    --fa: ""
+}
+
+.fa-magnifying-glass-minus {
+    --fa: ""
+}
+
+.fa-magnifying-glass-plus {
+    --fa: ""
+}
+
+.fa-map {
+    --fa: ""
+}
+
+.fa-map-marker-alt {
+    --fa: ""
+}
+
+.fa-martini-glass {
+    --fa: ""
+}
+
+.fa-meh {
+    --fa: ""
+}
+
+.fa-microchip {
+    --fa: ""
+}
+
+.fa-microphone {
+    --fa: ""
+}
+
+.fa-microphone-slash {
+    --fa: ""
+}
+
+.fa-minus {
+    --fa: ""
+}
+
+.fa-mobile {
+    --fa: ""
+}
+
+.fa-mobile-android {
+    --fa: ""
+}
+
+.fa-mobile-phone {
+    --fa: ""
+}
+
+.fa-money-bill {
+    --fa: ""
+}
+
+.fa-money-bill-wave {
+    --fa: ""
+}
+
+.fa-moon {
+    --fa: ""
+}
+
+.fa-moon-star {
+    --fa: ""
+}
+
+.fa-mouse-pointer {
+    --fa: ""
+}
+
+.fa-mug-hot {
+    --fa: ""
+}
+
+.fa-mug-saucer {
+    --fa: ""
+}
+
+.fa-multiply {
+    --fa: ""
+}
+
+.fa-music {
+    --fa: ""
+}
+
+.fa-navicon {
+    --fa: ""
+}
+
+.fa-newspaper {
+    --fa: ""
+}
+
+.fa-notdef {
+    --fa: ""
+}
+
+.fa-paint-brush {
+    --fa: ""
+}
+
+.fa-paintbrush {
+    --fa: ""
+}
+
+.fa-paintbrush-slash {
+    --fa: ""
+}
+
+.fa-palette {
+    --fa: ""
+}
+
+.fa-paper-plane {
+    --fa: ""
+}
+
+.fa-paperclip {
+    --fa: ""
+}
+
+.fa-pause {
+    --fa: ""
+}
+
+.fa-paw {
+    --fa: ""
+}
+
+.fa-pen {
+    --fa: ""
+}
+
+.fa-pen-line {
+    --fa: ""
+}
+
+.fa-pen-nib {
+    --fa: ""
+}
+
+.fa-pen-slash {
+    --fa: ""
+}
+
+.fa-pen-to-square {
+    --fa: ""
+}
+
+.fa-pencil {
+    --fa: ""
+}
+
+.fa-pencil-alt {
+    --fa: ""
+}
+
+.fa-pencil-line {
+    --fa: ""
+}
+
+.fa-percent {
+    --fa: "%"
+}
+
+.fa-percentage {
+    --fa: "%"
+}
+
+.fa-person-biking {
+    --fa: ""
+}
+
+.fa-phone {
+    --fa: ""
+}
+
+.fa-phone-arrow-down {
+    --fa: ""
+}
+
+.fa-phone-arrow-down-left {
+    --fa: ""
+}
+
+.fa-phone-arrow-right {
+    --fa: ""
+}
+
+.fa-phone-arrow-up {
+    --fa: ""
+}
+
+.fa-phone-arrow-up-right {
+    --fa: ""
+}
+
+.fa-phone-hangup {
+    --fa: ""
+}
+
+.fa-phone-incoming {
+    --fa: ""
+}
+
+.fa-phone-outgoing {
+    --fa: ""
+}
+
+.fa-phone-plus {
+    --fa: ""
+}
+
+.fa-phone-slash {
+    --fa: ""
+}
+
+.fa-phone-volume {
+    --fa: ""
+}
+
+.fa-phone-xmark {
+    --fa: ""
+}
+
+.fa-pie-chart {
+    --fa: ""
+}
+
+.fa-plane {
+    --fa: ""
+}
+
+.fa-plane-up {
+    --fa: ""
+}
+
+.fa-play {
+    --fa: ""
+}
+
+.fa-play-pause {
+    --fa: ""
+}
+
+.fa-plus {
+    --fa: "+"
+}
+
+.fa-plus-circle {
+    --fa: ""
+}
+
+.fa-poop {
+    --fa: ""
+}
+
+.fa-print {
+    --fa: ""
+}
+
+.fa-question {
+    --fa: "?"
+}
+
+.fa-question-circle {
+    --fa: ""
+}
+
+.fa-quotes {
+    --fa: ""
+}
+
+.fa-radio {
+    --fa: ""
+}
+
+.fa-rectangle {
+    --fa: ""
+}
+
+.fa-rectangle-code {
+    --fa: ""
+}
+
+.fa-rectangle-landscape {
+    --fa: ""
+}
+
+.fa-rectangle-portrait {
+    --fa: ""
+}
+
+.fa-rectangle-tall {
+    --fa: ""
+}
+
+.fa-rectangle-vertical {
+    --fa: ""
+}
+
+.fa-rectangle-wide {
+    --fa: ""
+}
+
+.fa-redo {
+    --fa: ""
+}
+
+.fa-refresh {
+    --fa: ""
+}
+
+.fa-remove {
+    --fa: ""
+}
+
+.fa-rocket-launch {
+    --fa: ""
+}
+
+.fa-save {
+    --fa: ""
+}
+
+.fa-scissors {
+    --fa: ""
+}
+
+.fa-screencast {
+    --fa: ""
+}
+
+.fa-search {
+    --fa: ""
+}
+
+.fa-search-minus {
+    --fa: ""
+}
+
+.fa-search-plus {
+    --fa: ""
+}
+
+.fa-server {
+    --fa: ""
+}
+
+.fa-share-alt {
+    --fa: ""
+}
+
+.fa-share-nodes {
+    --fa: ""
+}
+
+.fa-shield {
+    --fa: ""
+}
+
+.fa-shield-alt {
+    --fa: ""
+}
+
+.fa-shield-blank {
+    --fa: ""
+}
+
+.fa-shield-check {
+    --fa: ""
+}
+
+.fa-shield-halved {
+    --fa: ""
+}
+
+.fa-shield-slash {
+    --fa: ""
+}
+
+.fa-ship {
+    --fa: ""
+}
+
+.fa-shirt {
+    --fa: ""
+}
+
+.fa-shop {
+    --fa: ""
+}
+
+.fa-shopping-bag {
+    --fa: ""
+}
+
+.fa-shopping-cart {
+    --fa: ""
+}
+
+.fa-shredder {
+    --fa: ""
+}
+
+.fa-sign-in {
+    --fa: ""
+}
+
+.fa-sign-out {
+    --fa: ""
+}
+
+.fa-signal {
+    --fa: ""
+}
+
+.fa-signal-1 {
+    --fa: ""
+}
+
+.fa-signal-2 {
+    --fa: ""
+}
+
+.fa-signal-3 {
+    --fa: ""
+}
+
+.fa-signal-5 {
+    --fa: ""
+}
+
+.fa-signal-fair {
+    --fa: ""
+}
+
+.fa-signal-good {
+    --fa: ""
+}
+
+.fa-signal-perfect {
+    --fa: ""
+}
+
+.fa-signal-slash {
+    --fa: ""
+}
+
+.fa-signal-weak {
+    --fa: ""
+}
+
+.fa-skull {
+    --fa: ""
+}
+
+.fa-skull-crossbones {
+    --fa: ""
+}
+
+.fa-sliders {
+    --fa: ""
+}
+
+.fa-sliders-h {
+    --fa: ""
+}
+
+.fa-smile {
+    --fa: ""
+}
+
+.fa-snowflake {
+    --fa: ""
+}
+
+.fa-sort {
+    --fa: ""
+}
+
+.fa-sort-amount-asc {
+    --fa: ""
+}
+
+.fa-sort-amount-down {
+    --fa: ""
+}
+
+.fa-sort-amount-up {
+    --fa: ""
+}
+
+.fa-sort-up-down {
+    --fa: ""
+}
+
+.fa-sparkles {
+    --fa: ""
+}
+
+.fa-speaker {
+    --fa: ""
+}
+
+.fa-square {
+    --fa: ""
+}
+
+.fa-star {
+    --fa: ""
+}
+
+.fa-star-half {
+    --fa: ""
+}
+
+.fa-step-backward {
+    --fa: ""
+}
+
+.fa-step-forward {
+    --fa: ""
+}
+
+.fa-stop {
+    --fa: ""
+}
+
+.fa-stopwatch {
+    --fa: ""
+}
+
+.fa-store {
+    --fa: ""
+}
+
+.fa-store-alt {
+    --fa: ""
+}
+
+.fa-strikethrough {
+    --fa: ""
+}
+
+.fa-subtract {
+    --fa: ""
+}
+
+.fa-subway {
+    --fa: ""
+}
+
+.fa-suitcase {
+    --fa: ""
+}
+
+.fa-sun {
+    --fa: ""
+}
+
+.fa-sync {
+    --fa: ""
+}
+
+.fa-t-shirt {
+    --fa: ""
+}
+
+.fa-tachometer-alt {
+    --fa: ""
+}
+
+.fa-tachometer-alt-average {
+    --fa: ""
+}
+
+.fa-tachometer-alt-fast {
+    --fa: ""
+}
+
+.fa-tachometer-alt-slow {
+    --fa: ""
+}
+
+.fa-tag {
+    --fa: ""
+}
+
+.fa-television {
+    --fa: ""
+}
+
+.fa-text {
+    --fa: ""
+}
+
+.fa-thumb-tack {
+    --fa: ""
+}
+
+.fa-thumbs-down {
+    --fa: ""
+}
+
+.fa-thumbs-up {
+    --fa: ""
+}
+
+.fa-thumbtack {
+    --fa: ""
+}
+
+.fa-thunderstorm {
+    --fa: ""
+}
+
+.fa-ticket {
+    --fa: ""
+}
+
+.fa-times {
+    --fa: ""
+}
+
+.fa-tint {
+    --fa: ""
+}
+
+.fa-train {
+    --fa: ""
+}
+
+.fa-train-subway {
+    --fa: ""
+}
+
+.fa-trash {
+    --fa: ""
+}
+
+.fa-trash-slash {
+    --fa: ""
+}
+
+.fa-tree {
+    --fa: ""
+}
+
+.fa-triangle {
+    --fa: ""
+}
+
+.fa-trophy {
+    --fa: ""
+}
+
+.fa-truck {
+    --fa: ""
+}
+
+.fa-tshirt {
+    --fa: ""
+}
+
+.fa-tv {
+    --fa: ""
+}
+
+.fa-tv-alt {
+    --fa: ""
+}
+
+.fa-tv-retro {
+    --fa: ""
+}
+
+.fa-umbrella {
+    --fa: ""
+}
+
+.fa-underline {
+    --fa: ""
+}
+
+.fa-undo {
+    --fa: ""
+}
+
+.fa-universal-access {
+    --fa: ""
+}
+
+.fa-unlock {
+    --fa: ""
+}
+
+.fa-unsorted {
+    --fa: ""
+}
+
+.fa-usd {
+    --fa: "$"
+}
+
+.fa-usd-circle {
+    --fa: ""
+}
+
+.fa-user {
+    --fa: ""
+}
+
+.fa-user-alt {
+    --fa: ""
+}
+
+.fa-user-check {
+    --fa: ""
+}
+
+.fa-user-circle {
+    --fa: ""
+}
+
+.fa-user-large {
+    --fa: ""
+}
+
+.fa-user-minus {
+    --fa: ""
+}
+
+.fa-user-plus {
+    --fa: ""
+}
+
+.fa-user-times {
+    --fa: ""
+}
+
+.fa-user-xmark {
+    --fa: ""
+}
+
+.fa-users {
+    --fa: ""
+}
+
+.fa-utensils {
+    --fa: ""
+}
+
+.fa-video {
+    --fa: ""
+}
+
+.fa-video-camera {
+    --fa: ""
+}
+
+.fa-video-slash {
+    --fa: ""
+}
+
+.fa-voicemail {
+    --fa: ""
+}
+
+.fa-volume {
+    --fa: ""
+}
+
+.fa-volume-control-phone {
+    --fa: ""
+}
+
+.fa-volume-down {
+    --fa: ""
+}
+
+.fa-volume-low {
+    --fa: ""
+}
+
+.fa-volume-medium {
+    --fa: ""
+}
+
+.fa-volume-mute {
+    --fa: ""
+}
+
+.fa-volume-off {
+    --fa: ""
+}
+
+.fa-volume-slash {
+    --fa: ""
+}
+
+.fa-volume-times {
+    --fa: ""
+}
+
+.fa-volume-xmark {
+    --fa: ""
+}
+
+.fa-wand-magic {
+    --fa: ""
+}
+
+.fa-wand-magic-sparkles {
+    --fa: ""
+}
+
+.fa-water {
+    --fa: ""
+}
+
+.fa-wheelchair {
+    --fa: ""
+}
+
+.fa-wheelchair-alt {
+    --fa: ""
+}
+
+.fa-wheelchair-move {
+    --fa: ""
+}
+
+.fa-wifi {
+    --fa: ""
+}
+
+.fa-wifi-3 {
+    --fa: ""
+}
+
+.fa-wifi-slash {
+    --fa: ""
+}
+
+.fa-wifi-strong {
+    --fa: ""
+}
+
+.fa-wind {
+    --fa: ""
+}
+
+.fa-wrench {
+    --fa: ""
+}
+
+.fa-xmark {
+    --fa: ""
+}
+
+.fa-zap {
+    --fa: ""
+}
+
+:root,
+:host {
+    --fa-family-utility-fill: "Font Awesome 7 Utility Fill";
+    --fa-font-utility-fill-semibold: normal 600 1em/1 var(--fa-family-utility-fill);
+    --fa-style-family-utility-fill: var(--fa-family-utility-fill)
+}
+
+@font-face {
+    font-family: "Font Awesome 7 Utility Fill";
+    font-style: normal;
+    font-weight: 600;
+    font-display: block;
+    src: url(https://ka-p.fontawesome.com/releases/v7.1.0/webfonts/pro-fa-utility-fill-semibold-600-3.woff2)
+}
+
+@font-face {
+    font-family: "Font Awesome 7 Utility Fill";
+    font-style: normal;
+    font-weight: 600;
+    font-display: block;
+    src: url(https://ka-p.fontawesome.com/releases/v7.1.0/webfonts/pro-fa-utility-fill-semibold-600-2.woff2);
+    unicode-range: U+2039-2600, U+2639, U+2700-270B, U+2744-F3ED, U+F401-F599, U+F8E5, U+1F374-1F3A8, U+1F44E-1F455, U+1F480-1F56E, U+1F588-1F698, U+1F6CC, U+1F6D2-1FAB6
+}
+
+@font-face {
+    font-family: "Font Awesome 7 Utility Fill";
+    font-style: normal;
+    font-weight: 600;
+    font-display: block;
+    src: url(https://ka-p.fontawesome.com/releases/v7.1.0/webfonts/pro-fa-utility-fill-semibold-600-1.woff2);
+    unicode-range: U+3D-D7, U+21BB, U+2328, U+23FE, U+25B2-25D0, U+2615, U+2666-2699, U+270F, U+2715-2716, U+273F, U+274C-F059, U+F05D, U+F087, U+F0F7, U+F11C-F121, U+F130-F13D, U+F145-F15B, U+F164, U+F186, U+F188, U+F1AB-F1AD, U+F1BB-F1C0, U+F1D8-F1D9, U+F1EA-F1EB, U+F1F8-F1FA, U+F20A-F234, U+F238, U+F29C-F2A0, U+F2DB, U+F2EC, U+F2F7, U+F2FC-F303, U+F316, U+F328, U+F3C5-F3CE, U+F4E2, U+F503, U+F521-F52C, U+F54E, U+F578, U+F5FD, U+F673, U+F695-F6A8, U+F72E, U+F773-F7FF, U+F866, U+F893-F8BC, U+F8D7-F8DF, U+1F319, U+1F332-1F33C, U+1F39F, U+1F3AE, U+1F3E2-1F44D, U+1F451, U+1F4A7, U+1F4C4-1F4CB, U+1F4F0-1F4F1, U+1F4FB, U+1F508-1F509, U+1F50D, U+1F5CB-1F5D9, U+1F680-1F686, U+1F6A2, U+1F6E1, U+1F9ED
+}
+
+@font-face {
+    font-family: "Font Awesome 7 Utility Fill";
+    font-style: normal;
+    font-weight: 600;
+    font-display: block;
+    src: url(https://ka-p.fontawesome.com/releases/v7.1.0/webfonts/pro-fa-utility-fill-semibold-600-0.woff2);
+    unicode-range: U+24-2B, U+3F, U+2013, U+2190-2193, U+2212-2303, U+2399-23EA, U+23F8-23F9, U+25A0, U+25B6-25CF, U+25FB-25FC, U+2601, U+2665, U+26A1-26AB, U+26DF, U+2709, U+2713-2714, U+2753-2B50, U+F001, U+F003-F00C, U+F012, U+F015, U+F017-F01C, U+F023-F025, U+F02D-F031, U+F03D-F03E, U+F04A-F04E, U+F060-F065, U+F067-F068, U+F06B-F06E, U+F072-F075, U+F07B-F086, U+F08A, U+F091-F09D, U+F0A2, U+F0AC-F0C2, U+F0C5-F0C6, U+F0C8-F0C9, U+F0CC, U+F0D1-F0E0, U+F0E5-F0E7, U+F0EB, U+F0F3, U+F106, U+F109-F114, U+F11D, U+F128, U+F155, U+F1DB, U+F283, U+F295, U+F2C0, U+F332, U+F3A0, U+F406, U+F541, U+F58F, U+F80A-F80C, U+1F310, U+1F381, U+1F39E, U+1F3A7, U+1F3B5-1F3C6, U+1F3E0, U+1F3F4, U+1F441, U+1F464, U+1F499-1F4A1, U+1F4B2-1F4BC, U+1F4C1, U+1F4CE-1F4D4, U+1F4DE, U+1F4F6, U+1F511-1F514, U+1F516-1F553, U+1F57B-1F582, U+1F5A4-1F5A8, U+1F5B6, U+1F5BF, U+1F5E9-1F5EA, U+1F69A, U+1F7E0-1F90E, U+1F9E1
+}
+
+.faufsb {
+    --fa-family: var(--fa-family-utility-fill);
+    --fa-style: 600
+}
+
+.fa-utility-fill {
+    --fa-family: var(--fa-family-utility-fill)
+}
+
+.fa-semibold {
+    --fa-style: 600
+}
+
+:root,
+:host {
+    --fa-family-utility: "Font Awesome 7 Utility";
+    --fa-font-utility-semibold: normal 600 1em/1 var(--fa-family-utility);
+    --fa-style-family-utility: var(--fa-family-utility)
+}
+
+@font-face {
+    font-family: "Font Awesome 7 Utility";
+    font-style: normal;
+    font-weight: 600;
+    font-display: block;
+    src: url(https://ka-p.fontawesome.com/releases/v7.1.0/webfonts/pro-fa-utility-semibold-600-3.woff2)
+}
+
+@font-face {
+    font-family: "Font Awesome 7 Utility";
+    font-style: normal;
+    font-weight: 600;
+    font-display: block;
+    src: url(https://ka-p.fontawesome.com/releases/v7.1.0/webfonts/pro-fa-utility-semibold-600-2.woff2);
+    unicode-range: U+2039-2600, U+2639, U+2700-270B, U+2744-F3ED, U+F401-F599, U+F8E5, U+1F374-1F3A8, U+1F44E-1F455, U+1F480-1F56E, U+1F588-1F698, U+1F6CC, U+1F6D2-1FAB6
+}
+
+@font-face {
+    font-family: "Font Awesome 7 Utility";
+    font-style: normal;
+    font-weight: 600;
+    font-display: block;
+    src: url(https://ka-p.fontawesome.com/releases/v7.1.0/webfonts/pro-fa-utility-semibold-600-1.woff2);
+    unicode-range: U+3D-D7, U+21BB, U+2328, U+23FE, U+25B2-25D0, U+2615, U+2666-2699, U+270F, U+2715-2716, U+273F, U+274C-F059, U+F05D, U+F087, U+F0F7, U+F11C-F121, U+F130-F13D, U+F145-F15B, U+F164, U+F186, U+F188, U+F1AB-F1AD, U+F1BB-F1C0, U+F1D8-F1D9, U+F1EA-F1EB, U+F1F8-F1FA, U+F20A-F234, U+F238, U+F29C-F2A0, U+F2DB, U+F2EC, U+F2F7, U+F2FC-F303, U+F316, U+F328, U+F3C5-F3CE, U+F4E2, U+F503, U+F521-F52C, U+F54E, U+F578, U+F5FD, U+F673, U+F695-F6A8, U+F72E, U+F773-F7FF, U+F866, U+F893-F8BC, U+F8D7-F8DF, U+1F319, U+1F332-1F33C, U+1F39F, U+1F3AE, U+1F3E2-1F44D, U+1F451, U+1F4A7, U+1F4C4-1F4CB, U+1F4F0-1F4F1, U+1F4FB, U+1F508-1F509, U+1F50D, U+1F5CB-1F5D9, U+1F680-1F686, U+1F6A2, U+1F6E1, U+1F9ED
+}
+
+@font-face {
+    font-family: "Font Awesome 7 Utility";
+    font-style: normal;
+    font-weight: 600;
+    font-display: block;
+    src: url(https://ka-p.fontawesome.com/releases/v7.1.0/webfonts/pro-fa-utility-semibold-600-0.woff2);
+    unicode-range: U+24-2B, U+3F, U+2013, U+2190-2193, U+2212-2303, U+2399-23EA, U+23F8-23F9, U+25A0, U+25B6-25CF, U+25FB-25FC, U+2601, U+2665, U+26A1-26AB, U+26DF, U+2709, U+2713-2714, U+2753-2B50, U+F001, U+F003-F00C, U+F012, U+F015, U+F017-F01C, U+F023-F025, U+F02D-F031, U+F03D-F03E, U+F04A-F04E, U+F060-F065, U+F067-F068, U+F06B-F06E, U+F072-F075, U+F07B-F086, U+F08A, U+F091-F09D, U+F0A2, U+F0AC-F0C2, U+F0C5-F0C6, U+F0C8-F0C9, U+F0CC, U+F0D1-F0E0, U+F0E5-F0E7, U+F0EB, U+F0F3, U+F106, U+F109-F114, U+F11D, U+F128, U+F155, U+F1DB, U+F283, U+F295, U+F2C0, U+F332, U+F3A0, U+F406, U+F541, U+F58F, U+F80A-F80C, U+1F310, U+1F381, U+1F39E, U+1F3A7, U+1F3B5-1F3C6, U+1F3E0, U+1F3F4, U+1F441, U+1F464, U+1F499-1F4A1, U+1F4B2-1F4BC, U+1F4C1, U+1F4CE-1F4D4, U+1F4DE, U+1F4F6, U+1F511-1F514, U+1F516-1F553, U+1F57B-1F582, U+1F5A4-1F5A8, U+1F5B6, U+1F5BF, U+1F5E9-1F5EA, U+1F69A, U+1F7E0-1F90E, U+1F9E1
+}
+
+.fausb {
+    --fa-family: var(--fa-family-utility);
+    --fa-style: 600
+}
+
+.fa-utility {
+    --fa-family: var(--fa-family-utility)
+}
+
+.fa-semibold {
+    --fa-style: 600
+}
+
+</style><meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"><meta name="title" content="Header 1"><meta name="author" content="David Dufourq"><meta name="description" content="Custom header web component."><meta property="og:locale" content="en_AU"><meta property="og:url" content="https://rainwilds.github.io/Sandbox/header-1.html"><meta property="og:type" content="website"><meta property="og:title" content="Header 1"><meta property="og:description" content="Custom header web component."><meta property="og:image" content="https://rainwilds.github.io/img/logo.jpg"><meta property="og:site_name" content="Behive"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:domain" content="rainwilds.github.io"><meta name="twitter:site" content="@behive"><meta name="twitter:url" content="https://rainwilds.github.io/Sandbox/header-1.html"><meta name="twitter:title" content="Header 1"><meta name="twitter:description" content="Custom header web component."><meta name="twitter:image" content="https://rainwilds.github.io/img/logo.jpg"><link rel="canonical" href="https://rainwilds.github.io/Sandbox/header-1.html"><link rel="icon" href="./favicon.svg" type="image/svg+xml"><link rel="icon" href="./favicon-192x192.png" sizes="192x192" type="image/png"><link rel="apple-touch-icon" href="./apple-touch-icon.png" sizes="180x180"><meta name="theme-color" content="#b839f7" media="(prefers-color-scheme: light)"><meta name="theme-color" content="#34251d" media="(prefers-color-scheme: dark)"><script type="application/ld+json"> {
+
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Behive",
+    "url": "https://rainwilds.github.io",
+    "telephone": "+61-3-9876-5432",
+    "address": {
+        "@type": "PostalAddress",
+            "streetAddress": "456 Creative Lane",
+            "addressLocality": "Melbourne",
+            "addressRegion": "VIC",
+            "postalCode": "3000",
+            "addressCountry": "AU"
+    }
+
+    ,
+    "openingHours": [ "Mo-Fr 09:00-18:00"
+
+    ],
+    "geo": {
+        "@type": "GeoCoordinates",
+            "latitude": -37.8136,
+            "longitude": 144.9631
+    }
+
+    ,
+    "image": "https://rainwilds.github.io/img/logo.jpg",
+    "logo": "https://rainwilds.github.io/img/logo.jpg",
+    "sameAs": [ "https://www.facebook.com/behive",
+    "https://www.instagram.com/behive"
+    ]
+}
+
+</script><script id="snipcart" src="https://cdn.snipcart.com/themes/v3.7.3/default/snipcart.3.7.3.js" data-api-key="NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5" data-config-modal-style="side" data-config-load-strategy="on-user-interaction" data-templates-url="./plugins/snipcart.html"></script></head><body><header><div class="block position-sticky-top" style="height: min-content" role="banner"><style>@media (max-width: 1023px) {
+    .logo-container {
+        place-self: center !important;
+    }
+}
+
+</style><div class="background-image-noise background-overlay-2 backdrop-filter-blur-large" style="height: min-content; width: 100%; padding: var(--space-tiny); display: flex; justify-content: space-between; align-items: center;; z-index: 2"><style>@media (max-width: 1023px) {
+    .logo-container {
+        place-self: place-content-center !important;
+    }
+}
+
+</style><div class="logo-container place-content-center"><a href="/"><picture><source media="(max-width: 1023px) and (prefers-color-scheme: dark)" type="image/svg+xml" srcset="/Sandbox/img/logos/logo-icon-light-1.svg" data-alt="Icon Light Logo"><source media="(max-width: 1023px) and (prefers-color-scheme: light)" type="image/svg+xml" srcset="/Sandbox/img/logos/logo-icon-dark-1.svg" data-alt="Icon Dark Logo"><source media="(min-width: 1024px) and (prefers-color-scheme: light)" type="image/svg+xml" srcset="/Sandbox/img/logos/logo-full-light-1.svg" data-alt="Full Light Logo"><source media="(min-width: 1024px) and (prefers-color-scheme: dark)" type="image/svg+xml" srcset="/Sandbox/img/logos/logo-full-dark-1.svg" data-alt="Full Dark Logo"><img src="/Sandbox/img/logos/logo-icon-light-1.svg" alt="Icon Light Logo" style="height: 40px;" loading="lazy" fetchpriority="high" onerror="this.src='https://placehold.co/300x40'; this.alt='Full Dark Logo'; this.onerror=null;"></picture></a></div><div class="place-content-center" style="height: min-content; display: flex; justify-content: space-between;"><div class="place-content-center" style="height: min-content; display: flex; justify-content: space-between"><nav aria-label="Primary site navigation" class="nav-horizontal" style="display: flex"><button aria-expanded="false" aria-controls="nav-menu-fyyz7kba0" aria-label="Toggle navigation"><span class="hamburger-icon"><i class="fa-chisel fa-regular fa-bars"></i></span></button><ul class="nav-links" id="nav-menu-fyyz7kba0"><li><a href="https://rainwilds.github.io/">Home</a></li><li><a href="https://rainwilds.github.io/about">About</a></li><li><a href="https://rainwilds.github.io/services">Services</a></li><li><a href="https://rainwilds.github.io/blog">Blog</a></li><li><a href="https://rainwilds.github.io/contact">Contact</a></li></ul></nav></div></div></div></div><div class="mask-image-left-right" style="min-height: 100%;"><div id="slider-7tjehw4q3" class="custom-slider" draggable=""><div class="slider-wrapper" style="--slider-columns: repeat(12, 50%); transition: none; transform: translate3d(-2583.24px, 0px, 0px);"><div class="slider-slide"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-dark-2.jxl 3840w, /Sandbox/img/responsive/tourism-photography-dark-2-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-dark-2-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-dark-2-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-dark-2-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-dark-2-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-dark-2.avif 3840w, /Sandbox/img/responsive/tourism-photography-dark-2-576.avif 576w, /Sandbox/img/responsive/tourism-photography-dark-2-768.avif 768w, /Sandbox/img/responsive/tourism-photography-dark-2-992.avif 992w, /Sandbox/img/responsive/tourism-photography-dark-2-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-dark-2-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-dark-2.webp 3840w, /Sandbox/img/responsive/tourism-photography-dark-2-576.webp 576w, /Sandbox/img/responsive/tourism-photography-dark-2-768.webp 768w, /Sandbox/img/responsive/tourism-photography-dark-2-992.webp 992w, /Sandbox/img/responsive/tourism-photography-dark-2-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-dark-2-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-dark-2.jpg 3840w, /Sandbox/img/responsive/tourism-photography-dark-2-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-dark-2-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-dark-2-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-dark-2-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-dark-2-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-dark-2.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 4</h2></div></div></div></div><div class="slider-slide"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-light-3.jxl 3840w, /Sandbox/img/responsive/tourism-photography-light-3-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-light-3-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-light-3-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-light-3-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-light-3-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-light-3.avif 3840w, /Sandbox/img/responsive/tourism-photography-light-3-576.avif 576w, /Sandbox/img/responsive/tourism-photography-light-3-768.avif 768w, /Sandbox/img/responsive/tourism-photography-light-3-992.avif 992w, /Sandbox/img/responsive/tourism-photography-light-3-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-light-3-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-light-3.webp 3840w, /Sandbox/img/responsive/tourism-photography-light-3-576.webp 576w, /Sandbox/img/responsive/tourism-photography-light-3-768.webp 768w, /Sandbox/img/responsive/tourism-photography-light-3-992.webp 992w, /Sandbox/img/responsive/tourism-photography-light-3-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-light-3-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-light-3.jpg 3840w, /Sandbox/img/responsive/tourism-photography-light-3-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-light-3-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-light-3-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-light-3-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-light-3-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-light-3.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 5</h2></div></div></div></div><div class="slider-slide"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-dark-3.jxl 3840w, /Sandbox/img/responsive/tourism-photography-dark-3-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-dark-3-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-dark-3-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-dark-3-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-dark-3-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-dark-3.avif 3840w, /Sandbox/img/responsive/tourism-photography-dark-3-576.avif 576w, /Sandbox/img/responsive/tourism-photography-dark-3-768.avif 768w, /Sandbox/img/responsive/tourism-photography-dark-3-992.avif 992w, /Sandbox/img/responsive/tourism-photography-dark-3-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-dark-3-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-dark-3.webp 3840w, /Sandbox/img/responsive/tourism-photography-dark-3-576.webp 576w, /Sandbox/img/responsive/tourism-photography-dark-3-768.webp 768w, /Sandbox/img/responsive/tourism-photography-dark-3-992.webp 992w, /Sandbox/img/responsive/tourism-photography-dark-3-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-dark-3-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-dark-3.jpg 3840w, /Sandbox/img/responsive/tourism-photography-dark-3-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-dark-3-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-dark-3-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-dark-3-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-dark-3-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-dark-3.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 6</h2></div></div></div></div><div class="slider-slide"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-light-4.jxl 3840w, /Sandbox/img/responsive/tourism-photography-light-4-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-light-4-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-light-4-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-light-4-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-light-4-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-light-4.avif 3840w, /Sandbox/img/responsive/tourism-photography-light-4-576.avif 576w, /Sandbox/img/responsive/tourism-photography-light-4-768.avif 768w, /Sandbox/img/responsive/tourism-photography-light-4-992.avif 992w, /Sandbox/img/responsive/tourism-photography-light-4-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-light-4-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-light-4.webp 3840w, /Sandbox/img/responsive/tourism-photography-light-4-576.webp 576w, /Sandbox/img/responsive/tourism-photography-light-4-768.webp 768w, /Sandbox/img/responsive/tourism-photography-light-4-992.webp 992w, /Sandbox/img/responsive/tourism-photography-light-4-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-light-4-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-light-4.jpg 3840w, /Sandbox/img/responsive/tourism-photography-light-4-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-light-4-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-light-4-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-light-4-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-light-4-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-light-4.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 7</h2></div></div></div></div><div class="slider-slide"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-light-2.jxl 3840w, /Sandbox/img/responsive/tourism-photography-light-2-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-light-2-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-light-2-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-light-2-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-light-2-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-light-2.avif 3840w, /Sandbox/img/responsive/tourism-photography-light-2-576.avif 576w, /Sandbox/img/responsive/tourism-photography-light-2-768.avif 768w, /Sandbox/img/responsive/tourism-photography-light-2-992.avif 992w, /Sandbox/img/responsive/tourism-photography-light-2-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-light-2-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-light-2.webp 3840w, /Sandbox/img/responsive/tourism-photography-light-2-576.webp 576w, /Sandbox/img/responsive/tourism-photography-light-2-768.webp 768w, /Sandbox/img/responsive/tourism-photography-light-2-992.webp 992w, /Sandbox/img/responsive/tourism-photography-light-2-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-light-2-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-light-2.jpg 3840w, /Sandbox/img/responsive/tourism-photography-light-2-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-light-2-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-light-2-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-light-2-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-light-2-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-light-2.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 8</h2></div></div></div></div><div class="slider-slide"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-light-1.jxl 3840w, /Sandbox/img/responsive/tourism-photography-light-1-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-light-1-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-light-1-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-light-1-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-light-1-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-light-1.avif 3840w, /Sandbox/img/responsive/tourism-photography-light-1-576.avif 576w, /Sandbox/img/responsive/tourism-photography-light-1-768.avif 768w, /Sandbox/img/responsive/tourism-photography-light-1-992.avif 992w, /Sandbox/img/responsive/tourism-photography-light-1-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-light-1-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-light-1.webp 3840w, /Sandbox/img/responsive/tourism-photography-light-1-576.webp 576w, /Sandbox/img/responsive/tourism-photography-light-1-768.webp 768w, /Sandbox/img/responsive/tourism-photography-light-1-992.webp 992w, /Sandbox/img/responsive/tourism-photography-light-1-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-light-1-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-light-1.jpg 3840w, /Sandbox/img/responsive/tourism-photography-light-1-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-light-1-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-light-1-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-light-1-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-light-1-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-light-1.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 1</h2></div></div></div></div><div class="slider-slide"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-dark-1.jxl 3840w, /Sandbox/img/responsive/tourism-photography-dark-1-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-dark-1-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-dark-1-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-dark-1-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-dark-1-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-dark-1.avif 3840w, /Sandbox/img/responsive/tourism-photography-dark-1-576.avif 576w, /Sandbox/img/responsive/tourism-photography-dark-1-768.avif 768w, /Sandbox/img/responsive/tourism-photography-dark-1-992.avif 992w, /Sandbox/img/responsive/tourism-photography-dark-1-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-dark-1-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-dark-1.webp 3840w, /Sandbox/img/responsive/tourism-photography-dark-1-576.webp 576w, /Sandbox/img/responsive/tourism-photography-dark-1-768.webp 768w, /Sandbox/img/responsive/tourism-photography-dark-1-992.webp 992w, /Sandbox/img/responsive/tourism-photography-dark-1-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-dark-1-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-dark-1.jpg 3840w, /Sandbox/img/responsive/tourism-photography-dark-1-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-dark-1-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-dark-1-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-dark-1-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-dark-1-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-dark-1.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 2</h2></div></div></div></div><div class="slider-slide"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-light-2.jxl 3840w, /Sandbox/img/responsive/tourism-photography-light-2-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-light-2-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-light-2-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-light-2-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-light-2-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-light-2.avif 3840w, /Sandbox/img/responsive/tourism-photography-light-2-576.avif 576w, /Sandbox/img/responsive/tourism-photography-light-2-768.avif 768w, /Sandbox/img/responsive/tourism-photography-light-2-992.avif 992w, /Sandbox/img/responsive/tourism-photography-light-2-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-light-2-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-light-2.webp 3840w, /Sandbox/img/responsive/tourism-photography-light-2-576.webp 576w, /Sandbox/img/responsive/tourism-photography-light-2-768.webp 768w, /Sandbox/img/responsive/tourism-photography-light-2-992.webp 992w, /Sandbox/img/responsive/tourism-photography-light-2-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-light-2-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-light-2.jpg 3840w, /Sandbox/img/responsive/tourism-photography-light-2-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-light-2-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-light-2-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-light-2-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-light-2-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-light-2.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 3</h2></div></div></div></div><div class="slider-slide"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-dark-2.jxl 3840w, /Sandbox/img/responsive/tourism-photography-dark-2-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-dark-2-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-dark-2-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-dark-2-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-dark-2-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-dark-2.avif 3840w, /Sandbox/img/responsive/tourism-photography-dark-2-576.avif 576w, /Sandbox/img/responsive/tourism-photography-dark-2-768.avif 768w, /Sandbox/img/responsive/tourism-photography-dark-2-992.avif 992w, /Sandbox/img/responsive/tourism-photography-dark-2-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-dark-2-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-dark-2.webp 3840w, /Sandbox/img/responsive/tourism-photography-dark-2-576.webp 576w, /Sandbox/img/responsive/tourism-photography-dark-2-768.webp 768w, /Sandbox/img/responsive/tourism-photography-dark-2-992.webp 992w, /Sandbox/img/responsive/tourism-photography-dark-2-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-dark-2-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-dark-2.jpg 3840w, /Sandbox/img/responsive/tourism-photography-dark-2-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-dark-2-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-dark-2-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-dark-2-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-dark-2-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-dark-2.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 4</h2></div></div></div></div><div class="slider-slide"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-light-3.jxl 3840w, /Sandbox/img/responsive/tourism-photography-light-3-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-light-3-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-light-3-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-light-3-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-light-3-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-light-3.avif 3840w, /Sandbox/img/responsive/tourism-photography-light-3-576.avif 576w, /Sandbox/img/responsive/tourism-photography-light-3-768.avif 768w, /Sandbox/img/responsive/tourism-photography-light-3-992.avif 992w, /Sandbox/img/responsive/tourism-photography-light-3-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-light-3-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-light-3.webp 3840w, /Sandbox/img/responsive/tourism-photography-light-3-576.webp 576w, /Sandbox/img/responsive/tourism-photography-light-3-768.webp 768w, /Sandbox/img/responsive/tourism-photography-light-3-992.webp 992w, /Sandbox/img/responsive/tourism-photography-light-3-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-light-3-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-light-3.jpg 3840w, /Sandbox/img/responsive/tourism-photography-light-3-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-light-3-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-light-3-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-light-3-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-light-3-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-light-3.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 5</h2></div></div></div></div><div class="slider-slide"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-dark-3.jxl 3840w, /Sandbox/img/responsive/tourism-photography-dark-3-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-dark-3-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-dark-3-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-dark-3-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-dark-3-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-dark-3.avif 3840w, /Sandbox/img/responsive/tourism-photography-dark-3-576.avif 576w, /Sandbox/img/responsive/tourism-photography-dark-3-768.avif 768w, /Sandbox/img/responsive/tourism-photography-dark-3-992.avif 992w, /Sandbox/img/responsive/tourism-photography-dark-3-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-dark-3-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-dark-3.webp 3840w, /Sandbox/img/responsive/tourism-photography-dark-3-576.webp 576w, /Sandbox/img/responsive/tourism-photography-dark-3-768.webp 768w, /Sandbox/img/responsive/tourism-photography-dark-3-992.webp 992w, /Sandbox/img/responsive/tourism-photography-dark-3-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-dark-3-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-dark-3.jpg 3840w, /Sandbox/img/responsive/tourism-photography-dark-3-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-dark-3-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-dark-3-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-dark-3-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-dark-3-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-dark-3.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 6</h2></div></div></div></div><div class="slider-slide"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-light-4.jxl 3840w, /Sandbox/img/responsive/tourism-photography-light-4-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-light-4-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-light-4-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-light-4-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-light-4-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-light-4.avif 3840w, /Sandbox/img/responsive/tourism-photography-light-4-576.avif 576w, /Sandbox/img/responsive/tourism-photography-light-4-768.avif 768w, /Sandbox/img/responsive/tourism-photography-light-4-992.avif 992w, /Sandbox/img/responsive/tourism-photography-light-4-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-light-4-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-light-4.webp 3840w, /Sandbox/img/responsive/tourism-photography-light-4-576.webp 576w, /Sandbox/img/responsive/tourism-photography-light-4-768.webp 768w, /Sandbox/img/responsive/tourism-photography-light-4-992.webp 992w, /Sandbox/img/responsive/tourism-photography-light-4-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-light-4-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-light-4.jpg 3840w, /Sandbox/img/responsive/tourism-photography-light-4-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-light-4-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-light-4-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-light-4-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-light-4-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-light-4.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 7</h2></div></div></div></div></div><div id="slider-7tjehw4q3-prev" class="slider-nav-prev"><span class="icon-stack icon"><i class="fa-utility-fill fa-semibold fa-square icon" style="font-size: 2rem;"></i><i class="fa-utility fa-semibold fa-angle-left icon" style="font-size: 1rem;"></i></span></div><div id="slider-7tjehw4q3-next" class="slider-nav-next"><span class="icon-stack icon"><i class="fa-utility-fill fa-semibold fa-square icon" style="font-size: 2rem;"></i><i class="fa-utility fa-semibold fa-angle-right icon" style="font-size: 1rem;"></i></span></div><div class="slider-pagination"><span class="icon"><i class="fa-utility fa-semibold fa-circle icon" style="font-size: 0.4rem;"></i></span><span class="icon"><i class="fa-utility fa-semibold fa-circle icon" style="font-size: 0.4rem;"></i></span><span class="icon"><i class="fa-utility fa-semibold fa-circle icon" style="font-size: 0.4rem;"></i></span><span class="icon"><i class="fa-utility fa-semibold fa-circle icon" style="font-size: 0.4rem;"></i></span><span class="icon"><i class="fa-utility fa-semibold fa-circle icon" style="font-size: 0.4rem;"></i></span><span class="icon"><i class="fa-utility-fill fa-semibold fa-circle icon" style="font-size: 0.4rem;"></i></span><span class="icon"><i class="fa-utility fa-semibold fa-circle icon" style="font-size: 0.4rem;"></i></span><span class="icon"><i class="fa-utility fa-semibold fa-circle icon" style="font-size: 0.4rem;"></i></span></div></div></div></header><main><div style="grid-column: 2 / -2;"><h1>Et magnam aspernatur ut tempore quia. </h1><p>Lorem ipsum dolor sit amet. Sit quia assumenda <em>Et doloremque sit voluptate iusto ex impedit commodi id aperiam recusandae</em>hic inventore quidem sit quos labore. Ab dolorem laudantium <strong>Et quasi et nihil fugiat qui earum nulla</strong>rem ipsam vero et voluptas velit qui repellat pariatur? </p><h2>Sed ullam quia aut omnis mollitia. </h2><p>Ut earum rerum ut ipsa adipisciet laborum id laboriosam ratione. Quo omnis itaqueet recusandae sed voluptas omnis. Est molestias nihilId vero ea sint vero est ipsam esse aut quos enim et fugiat eligendi. </p><h3>In facere voluptatum ea repudiandae blanditiis? </h3><p>Eum nostrum veritatis est quasi rerumsit earum vel tenetur sequi? Et quod nemo <a href="https://www.loremipzum.com" target="_blank">Vel tempora est blanditiis maxime qui quia officiis et corrupti accusantium</a>qui reprehenderit ducimus est minima minima? </p><ol><li>Aut ipsa voluptatibus et soluta velit et illum sunt. </li><li>Est voluptatibus provident vel voluptates blanditiis qui dolorum magnam. </li><li>Hic quaerat voluptas et itaque omnis ! </li><li>Et sint similique eum voluptatem pariatur. </li></ol><ul><li>Eum quasi beatae ea quod voluptates aut ipsa quae sed architecto veritatis ! </li><li>Sit fuga dolorem est minima internos aut praesentium laboriosam et sunt iusto. </li><li>Et iusto harum id fuga distinctio non impedit rerum et dolorem enim. </li><li>Ut voluptate ipsum nam alias aspernatur cum perspiciatis iusto ad doloremque praesentium. </li><li>Eos incidunt animi et consequatur distinctio. </li></ul><h4>Id sint voluptatem ad praesentium soluta et optio voluptatum. </h4><p>Ut corrupti quasi ut placeat accusamus <em>Qui quia ut dolor reprehenderit et magnam quia ut nesciunt ducimus</em>. Sit natus maioresQui aperiam in architecto galisum vel quia nisi hic voluptatum animi. Aut facilis soluta <strong>Sed obcaecati ea dolor adipisci vel placeat quia</strong>non ratione suscipit a magni voluptatum. </p><blockquote cite="https://www.loremipzum.com">Qui dolores assumenda eum provident earum sed esse iste sit soluta dignissimos aut minima molestiae ad distinctio animi? </blockquote><h5>Est itaque recusandae est delectus officiis. </h5><p>Sed doloremque quia <a href="https://www.loremipzum.com" target="_blank">A porro est doloribus error aut reprehenderit sapiente</a>ut quia beatae. Quo quas suscipit <strong>Et sunt ea enim omnis ab beatae suscipit</strong>sit velit quia cum quisquam saepe et laboriosam consequatur. </p><p>Est iste facere At repellendus laboriosam <a href="https://www.loremipzum.com" target="_blank">Vel consequatur et rerum ipsa qui molestias deserunt vel totam consequatur</a>. Ea commodi culpa et rerum numquam <em>Ea sint eum excepturi voluptates aut neque illo aut quaerat nulla</em>. Et aliquam aliquid aut tempora ullamnon fugiat hic illo magni ut quam enim? In consequatur galisumEt atque ex accusamus ratione hic deleniti tempore hic unde modi. </p><p>Hic optio fugiat nam quas laboriosam <a href="https://www.loremipzum.com" target="_blank">Non expedita et aperiam beatae qui quaerat dolore</a>. Eum possimus similique <em>Eos ipsa qui eligendi quod sit quae consectetur aut omnis asperiores</em>aut esse fugit est earum aliquam? </p><dl><dt><dfn>Sit provident neque. </dfn></dt><dd>Et internos cupiditate ut voluptatem nisi est deleniti eligendi eos velit dolorum. </dd><dt><dfn>Eum incidunt galisum? </dfn></dt><dd>Qui dolorem consectetur eos voluptatum rerum non cupiditate molestiae aut impedit omnis. </dd><dt><dfn>Qui perferendis consectetur ut obcaecati illum. </dfn></dt><dd>Qui doloremque dolores aut deleniti deserunt est nisi mollitia qui ipsam inventore. </dd><dt><dfn>Ut itaque officia et dolore possimus. </dfn></dt><dd>Aut molestiae sequi quo delectus quia non deleniti sint. </dd></dl><p>Et iusto omnis ea autem nullaet tempora eum corporis sint. Et vero obcaecati <em>Sed asperiores non fugiat iusto id quia similique</em>quo voluptas placeat est alias dolore. </p><p>Et quibusdam magnam 33 neque porrout distinctio nam facere dignissimos quo quidem reprehenderit. Ad temporibus ducimus sit accusantium sinteos voluptatem. Sed officiis soluta <em>Aut illum rem quibusdam expedita sit pariatur mollitia cum quae libero</em>qui porro officiis est iure autem ! Aut molestiae numquamQuo error qui libero porro in quos modi qui molestiae obcaecati. </p><p>Ut eligendi voluptas a modi aliquam <em>Sed ullam a corporis rerum</em>nam doloribus praesentium est nihil aperiam est dolores dolor. Sit aliquid eveniet <a href="https://www.loremipzum.com" target="_blank">Qui eius ea voluptatibus assumenda id nisi enim eos modi rerum</a>cum similique alias non animi deserunt? </p><p>Et aperiam voluptas <a href="https://www.loremipzum.com" target="_blank">Et illo qui rerum delectus non dolores numquam</a>. In internos temporibus cum quae quibusdam <em>Non molestiae et vero sunt</em>. Et doloribus voluptatem cum fuga deseruntUt modi sit commodi ipsa aut dolor neque vel magni placeat 33 magnam incidunt. Id illum voluptas est dolorem molestiassed dolores qui dicta numquam. </p></div><section><div><div id="slider-8m9b3zhx1" class="custom-slider" gap="" draggable=""><div class="slider-wrapper" style="--slider-columns: repeat(7, 20%); --slider-gap: var(--space-medium); transition: transform 0.3s; transform: translate3d(-112px, 0px, 0px);"><div class="slider-slide"><div class="block" data-section-title="true"><div class="padding-medium color-invert background-color-2 place-content-center-left" aria-live="polite"><div role="group" style="text-align: left;"><span class="icon" style="padding-bottom: var(--space-small); font-size: 2.5rem"><i class="fa-utility-fill fa-semibold fa-pen-to-square"></i></span><h4>Driven by Innovation</h4><h2>Our Mission</h2><p>Building a future through creativity and dedication.</p></div></div></div></div><div class="slider-slide"><div class="block" data-section-title="true"><div class="padding-medium color-invert background-color-2 place-content-center-left" aria-live="polite"><div role="group" style="text-align: left;"><span class="icon" style="padding-bottom: var(--space-small); font-size: 2.5rem"><i class="fa-utility-fill fa-semibold fa-pen-to-square"></i></span><h4>Together We Thrive</h4><h2>Who We Are</h2><p>Uniting hearts and minds to create lasting impact.</p></div></div></div></div><div class="slider-slide"><div class="block" data-section-title="true"><div class="padding-medium color-invert background-color-2 place-content-center-left" aria-live="polite"><div role="group" style="text-align: left;"><span class="icon" style="padding-bottom: var(--space-small); font-size: 2.5rem"><i class="fa-utility-fill fa-semibold fa-pen-to-square"></i></span><h4>Where Art Meets Purpose</h4><h2>Our Craft</h2><p>Weaving stories that spark imagination and inspire change.</p></div></div></div></div><div class="slider-slide"><div class="block" data-section-title="true"><div class="padding-medium color-invert background-color-2 place-content-center-left" aria-live="polite"><div role="group" style="text-align: left;"><span class="icon" style="padding-bottom: var(--space-small); font-size: 2.5rem"><i class="fa-utility-fill fa-semibold fa-pen-to-square"></i></span><h4>Shaping Tomorrow</h4><h2>Our Vision</h2><p>Pushing boundaries to redefine what's possible.</p></div></div></div></div><div class="slider-slide"><div class="block" data-section-title="true"><div class="padding-medium color-invert background-color-2 place-content-center-left" aria-live="polite"><div role="group" style="text-align: left;"><span class="icon" style="padding-bottom: var(--space-small); font-size: 2.5rem"><i class="fa-utility-fill fa-semibold fa-pen-to-square"></i></span><h4>A Path of Connection</h4><h2>Our Journey</h2><p>Sharing stories that bring us closer together.</p></div></div></div></div><div class="slider-slide"><div class="block" data-section-title="true"><div class="padding-medium color-invert background-color-2 place-content-center-left" aria-live="polite"><div role="group" style="text-align: left;"><span class="icon" style="padding-bottom: var(--space-small); font-size: 2.5rem"><i class="fa-utility-fill fa-semibold fa-pen-to-square"></i></span><h4>Fueled by Action</h4><h2>Our Drive</h2><p>Igniting change with bold ideas and relentless energy.</p></div></div></div></div><div class="slider-slide"><div class="block" data-section-title="true"><div class="padding-medium color-invert background-color-2 place-content-center-left" aria-live="polite"><div role="group" style="text-align: left;"><span class="icon" style="padding-bottom: var(--space-small); font-size: 2.5rem"><i class="fa-utility-fill fa-semibold fa-pen-to-square"></i></span><h4>Rooted in Meaning</h4><h2>Our Purpose</h2><p>Crafting a legacy of impact through thoughtful storytelling.</p></div></div></div></div></div></div>
+
+</div></section><section><div style="height: 50vh;"><div id="slider-iq7m0ybna" class="custom-slider" cross-fade=""><div class="slider-wrapper" style="--slider-columns: repeat(7, 100%);"><div class="slider-slide" style="opacity: 0;"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-light-1.jxl 3840w, /Sandbox/img/responsive/tourism-photography-light-1-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-light-1-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-light-1-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-light-1-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-light-1-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-light-1.avif 3840w, /Sandbox/img/responsive/tourism-photography-light-1-576.avif 576w, /Sandbox/img/responsive/tourism-photography-light-1-768.avif 768w, /Sandbox/img/responsive/tourism-photography-light-1-992.avif 992w, /Sandbox/img/responsive/tourism-photography-light-1-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-light-1-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-light-1.webp 3840w, /Sandbox/img/responsive/tourism-photography-light-1-576.webp 576w, /Sandbox/img/responsive/tourism-photography-light-1-768.webp 768w, /Sandbox/img/responsive/tourism-photography-light-1-992.webp 992w, /Sandbox/img/responsive/tourism-photography-light-1-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-light-1-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-light-1.jpg 3840w, /Sandbox/img/responsive/tourism-photography-light-1-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-light-1-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-light-1-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-light-1-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-light-1-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-light-1.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 1</h2></div></div></div></div><div class="slider-slide" style="opacity: 0;"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-dark-1.jxl 3840w, /Sandbox/img/responsive/tourism-photography-dark-1-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-dark-1-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-dark-1-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-dark-1-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-dark-1-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-dark-1.avif 3840w, /Sandbox/img/responsive/tourism-photography-dark-1-576.avif 576w, /Sandbox/img/responsive/tourism-photography-dark-1-768.avif 768w, /Sandbox/img/responsive/tourism-photography-dark-1-992.avif 992w, /Sandbox/img/responsive/tourism-photography-dark-1-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-dark-1-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-dark-1.webp 3840w, /Sandbox/img/responsive/tourism-photography-dark-1-576.webp 576w, /Sandbox/img/responsive/tourism-photography-dark-1-768.webp 768w, /Sandbox/img/responsive/tourism-photography-dark-1-992.webp 992w, /Sandbox/img/responsive/tourism-photography-dark-1-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-dark-1-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-dark-1.jpg 3840w, /Sandbox/img/responsive/tourism-photography-dark-1-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-dark-1-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-dark-1-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-dark-1-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-dark-1-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-dark-1.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 2</h2></div></div></div></div><div class="slider-slide" style="opacity: 0;"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-light-2.jxl 3840w, /Sandbox/img/responsive/tourism-photography-light-2-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-light-2-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-light-2-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-light-2-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-light-2-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-light-2.avif 3840w, /Sandbox/img/responsive/tourism-photography-light-2-576.avif 576w, /Sandbox/img/responsive/tourism-photography-light-2-768.avif 768w, /Sandbox/img/responsive/tourism-photography-light-2-992.avif 992w, /Sandbox/img/responsive/tourism-photography-light-2-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-light-2-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-light-2.webp 3840w, /Sandbox/img/responsive/tourism-photography-light-2-576.webp 576w, /Sandbox/img/responsive/tourism-photography-light-2-768.webp 768w, /Sandbox/img/responsive/tourism-photography-light-2-992.webp 992w, /Sandbox/img/responsive/tourism-photography-light-2-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-light-2-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-light-2.jpg 3840w, /Sandbox/img/responsive/tourism-photography-light-2-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-light-2-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-light-2-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-light-2-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-light-2-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-light-2.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 3</h2></div></div></div></div><div class="slider-slide" style="opacity: 0;"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-dark-2.jxl 3840w, /Sandbox/img/responsive/tourism-photography-dark-2-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-dark-2-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-dark-2-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-dark-2-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-dark-2-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-dark-2.avif 3840w, /Sandbox/img/responsive/tourism-photography-dark-2-576.avif 576w, /Sandbox/img/responsive/tourism-photography-dark-2-768.avif 768w, /Sandbox/img/responsive/tourism-photography-dark-2-992.avif 992w, /Sandbox/img/responsive/tourism-photography-dark-2-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-dark-2-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-dark-2.webp 3840w, /Sandbox/img/responsive/tourism-photography-dark-2-576.webp 576w, /Sandbox/img/responsive/tourism-photography-dark-2-768.webp 768w, /Sandbox/img/responsive/tourism-photography-dark-2-992.webp 992w, /Sandbox/img/responsive/tourism-photography-dark-2-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-dark-2-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-dark-2.jpg 3840w, /Sandbox/img/responsive/tourism-photography-dark-2-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-dark-2-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-dark-2-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-dark-2-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-dark-2-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-dark-2.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 4</h2></div></div></div></div><div class="slider-slide" style="opacity: 0;"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-light-3.jxl 3840w, /Sandbox/img/responsive/tourism-photography-light-3-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-light-3-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-light-3-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-light-3-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-light-3-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-light-3.avif 3840w, /Sandbox/img/responsive/tourism-photography-light-3-576.avif 576w, /Sandbox/img/responsive/tourism-photography-light-3-768.avif 768w, /Sandbox/img/responsive/tourism-photography-light-3-992.avif 992w, /Sandbox/img/responsive/tourism-photography-light-3-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-light-3-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-light-3.webp 3840w, /Sandbox/img/responsive/tourism-photography-light-3-576.webp 576w, /Sandbox/img/responsive/tourism-photography-light-3-768.webp 768w, /Sandbox/img/responsive/tourism-photography-light-3-992.webp 992w, /Sandbox/img/responsive/tourism-photography-light-3-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-light-3-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-light-3.jpg 3840w, /Sandbox/img/responsive/tourism-photography-light-3-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-light-3-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-light-3-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-light-3-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-light-3-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-light-3.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 5</h2></div></div></div></div><div class="slider-slide active" style="opacity: 1;"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-dark-3.jxl 3840w, /Sandbox/img/responsive/tourism-photography-dark-3-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-dark-3-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-dark-3-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-dark-3-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-dark-3-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-dark-3.avif 3840w, /Sandbox/img/responsive/tourism-photography-dark-3-576.avif 576w, /Sandbox/img/responsive/tourism-photography-dark-3-768.avif 768w, /Sandbox/img/responsive/tourism-photography-dark-3-992.avif 992w, /Sandbox/img/responsive/tourism-photography-dark-3-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-dark-3-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-dark-3.webp 3840w, /Sandbox/img/responsive/tourism-photography-dark-3-576.webp 576w, /Sandbox/img/responsive/tourism-photography-dark-3-768.webp 768w, /Sandbox/img/responsive/tourism-photography-dark-3-992.webp 992w, /Sandbox/img/responsive/tourism-photography-dark-3-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-dark-3-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-dark-3.jpg 3840w, /Sandbox/img/responsive/tourism-photography-dark-3-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-dark-3-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-dark-3-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-dark-3-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-dark-3-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-dark-3.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 6</h2></div></div></div></div><div class="slider-slide" style="opacity: 0;"><div class="block background-image" data-section-title="true"><picture class="animate animate-fade-in"><source type="image/jxl" srcset="/Sandbox/img/responsive/tourism-photography-light-4.jxl 3840w, /Sandbox/img/responsive/tourism-photography-light-4-576.jxl 576w, /Sandbox/img/responsive/tourism-photography-light-4-768.jxl 768w, /Sandbox/img/responsive/tourism-photography-light-4-992.jxl 992w, /Sandbox/img/responsive/tourism-photography-light-4-1200.jxl 1200w, /Sandbox/img/responsive/tourism-photography-light-4-Infinity.jxl Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/avif" srcset="/Sandbox/img/responsive/tourism-photography-light-4.avif 3840w, /Sandbox/img/responsive/tourism-photography-light-4-576.avif 576w, /Sandbox/img/responsive/tourism-photography-light-4-768.avif 768w, /Sandbox/img/responsive/tourism-photography-light-4-992.avif 992w, /Sandbox/img/responsive/tourism-photography-light-4-1200.avif 1200w, /Sandbox/img/responsive/tourism-photography-light-4-Infinity.avif Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/webp" srcset="/Sandbox/img/responsive/tourism-photography-light-4.webp 3840w, /Sandbox/img/responsive/tourism-photography-light-4-576.webp 576w, /Sandbox/img/responsive/tourism-photography-light-4-768.webp 768w, /Sandbox/img/responsive/tourism-photography-light-4-992.webp 992w, /Sandbox/img/responsive/tourism-photography-light-4-1200.webp 1200w, /Sandbox/img/responsive/tourism-photography-light-4-Infinity.webp Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><source type="image/jpeg" srcset="/Sandbox/img/primary/tourism-photography-light-4.jpg 3840w, /Sandbox/img/responsive/tourism-photography-light-4-576.jpg 576w, /Sandbox/img/responsive/tourism-photography-light-4-768.jpg 768w, /Sandbox/img/responsive/tourism-photography-light-4-992.jpg 992w, /Sandbox/img/responsive/tourism-photography-light-4-1200.jpg 1200w, /Sandbox/img/responsive/tourism-photography-light-4-Infinity.jpg Infinityw" sizes="(max-width: 576px) 100vw, (max-width: 768px) 100vw, (max-width: 992px) 100vw, (max-width: 1200px) 100vw, (max-width: Infinitypx) 100vw, 3840px" data-alt="Nature landscape background"><img src="/Sandbox/img/primary/tourism-photography-light-4.jpg" alt="Nature landscape background" loading="lazy" onerror="this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;"></picture><div class="background-overlay-1"></div><div class="padding-medium place-content-center" aria-live="polite"><div role="group" style="text-align: center;"><h2>Slide 7</h2></div></div></div></div></div><div class="slider-pagination"><span class="icon"><i class="fa-utility fa-semibold fa-circle icon"></i></span><span class="icon"><i class="fa-utility fa-semibold fa-circle icon"></i></span><span class="icon"><i class="fa-utility fa-semibold fa-circle icon"></i></span><span class="icon"><i class="fa-utility fa-semibold fa-circle icon"></i></span><span class="icon"><i class="fa-utility fa-semibold fa-circle icon"></i></span><span class="icon"><i class="fa-utility-fill fa-semibold fa-circle icon"></i></span><span class="icon"><i class="fa-utility fa-semibold fa-circle icon"></i></span></div></div></div></section></main><protonpass-root-dfc2 data-protonpass-role="root" data-protonpass-theme="os"></protonpass-root-dfc2></body></html>
