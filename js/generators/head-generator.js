@@ -96,26 +96,6 @@ async function loadComponentWithDependencies(componentName) {
   const loadOrder = [...allDependencies, componentName];
   logger.log(`Load order for ${componentName}:`, loadOrder);
 
-  // Load SwiperJS CDN scripts/styles before custom-slider
-  if (componentName === 'custom-slider') {
-    const head = document.head;
-    const criticalFrag = document.createDocumentFragment();
-
-    const swiperCss = document.createElement('link');
-    swiperCss.rel = 'stylesheet';
-    swiperCss.href = 'https://unpkg.com/swiper@10/swiper-bundle.min.css';
-    criticalFrag.appendChild(swiperCss);
-    logger.log('Added Swiper CSS', { href: swiperCss.href });
-
-    const swiperJs = document.createElement('script');
-    swiperJs.src = 'https://unpkg.com/swiper@10/swiper-bundle.min.js';
-    swiperJs.defer = true;
-    criticalFrag.appendChild(swiperJs);
-    logger.log('Added Swiper JS', { src: swiperJs.src });
-
-    head.appendChild(criticalFrag);
-  }
-
   const loadPromises = loadOrder.map(moduleName => loadModule(moduleName));
   const results = await Promise.all(loadPromises);
   const componentResult = results.find(r => r.name === componentName);
@@ -354,7 +334,7 @@ async function updateHead(attributes, setup) {
   }
 }
 
-// === AUTO-PRELOAD CRITICAL IMAGES (SLIDERS + BLOCKS) ===
+// AUTO-PRELOAD CRITICAL IMAGES (SLIDERS + BLOCKS)
 function addCriticalImagePreloads() {
   const head = document.head;
   const preloaded = new Set();
@@ -424,13 +404,15 @@ function addCriticalImagePreloads() {
     link.importance = 'high';
     if (srcset) link.imagesrcset = srcset;
     if (sizes) link.imagesizes = sizes;
-
     head.appendChild(link);
 
-    logger.log('Preloaded critical image', {
+    // Force eager loading
+    img.loading = 'eager';
+
+    logger.log('Preloaded + eager applied', {
       from: img.closest('custom-slider, custom-block')?.tagName,
       href: largest[0],
-      imagesrcset: !!srcset
+      loading: img.loading
     });
   }
 }
@@ -594,7 +576,7 @@ function addCriticalImagePreloads() {
       logger.log('No misparsed styles found in text nodes');
     }
 
-    // === AUTO-PRELOAD CRITICAL IMAGES ===
+    // AUTO-PRELOAD CRITICAL IMAGES
     addCriticalImagePreloads();
 
     logger.log('HeadGenerator completed successfully');
