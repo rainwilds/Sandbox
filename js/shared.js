@@ -2,11 +2,11 @@
 
 // Standard viewport breakpoints for consistent responsive behavior across components
 export const VIEWPORT_BREAKPOINTS = [
-    { name: 'mobile', maxWidth: 576 },
-    { name: 'tablet', maxWidth: 768 },
-    { name: 'laptop', maxWidth: 992 },
-    { name: 'desktop', maxWidth: 1200 },
-    { name: 'large', maxWidth: Infinity }
+    { name: 'mobile', maxWidth: 768 },
+    { name: 'tablet', maxWidth: 1024 },
+    { name: 'laptop', maxWidth: 1366 },
+    { name: 'desktop', maxWidth: 1920 },
+    { name: 'large', maxWidth: 2560 }
 ];
 
 // Array of just the maxWidth values for quick lookups
