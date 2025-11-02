@@ -190,9 +190,11 @@ async function updateHead(attributes, setup) {
     if (widths.length > 0) {
       const largest = widths[widths.length - 1];
 
-      // Special case: 3840w has no suffix
+      // Special case: 3840w has NO "-3840" and NO "{width}"
       const href = largest === '3840'
-        ? attributes.heroImage.replace('{format}', format)
+        ? attributes.heroImage
+          .replace('{width}.', '')  // Remove "{width}." completely
+          .replace('{format}', format)
         : attributes.heroImage
           .replace('{width}', largest)
           .replace('{format}', format);
@@ -200,7 +202,7 @@ async function updateHead(attributes, setup) {
       const srcset = widths
         .map(w => {
           const url = w === '3840'
-            ? attributes.heroImage.replace('{format}', format)
+            ? attributes.heroImage.replace('{width}.', '').replace('{format}', format)
             : attributes.heroImage.replace('{width}', w).replace('{format}', format);
           return `${url} ${w}w`;
         })
