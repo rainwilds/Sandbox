@@ -32,21 +32,17 @@ const createLogger = (prefix) => ({
       console.groupEnd();
     }
     console.error(`[${prefix}] ${message}`, data);
-);
-);
-);
-an);
   }
 });
 
-const createLogger('HeadGenerator');
+const logger = createLogger('HeadGenerator');
 
 const DEPENDENCIES = {
   'shared': [],
-  ': [],
+  'config': [],
   'image-generator': ['shared'],
-  ' video-generator': ['['shared'],
-  'custom: ['image-generator', 'video-generator', 'shared'],
+  'video-generator': ['shared'],
+  'custom-block': ['image-generator', 'video-generator', 'shared'],
   'custom-nav': ['shared'],
   'custom-logo': ['image-generator', 'shared'],
   'custom-header': ['image-generator', 'shared'],
@@ -61,7 +57,7 @@ const PATH_MAP = {
   'shared': '../shared.js',
   'custom-block': '../components/custom-block.js',
   'custom-nav': '../components/custom-nav.js',
-  'custom-logo': '../ '../components/custom-logo.js',
+  'custom-logo': '../components/custom-logo.js',
   'custom-header': '../components/custom-header.js',
   'custom-slider': '../components/custom-slider.js',
   'custom-filter': '../components/custom-filter.js'
