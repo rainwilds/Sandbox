@@ -192,66 +192,62 @@ async function updateHead(attributes, setup) {
         .split(',')
         .map(s => s.trim())
         .filter(Boolean);
+
       if (imageTemplates.length > 0) {
         const actualCount = Math.min(count, imageTemplates.length);
 
-        const defaultWidths = Array.isArray(VIEWPORT_BREAKPOINTS)
-          ? VIEWPORT_BREAKPOINTS.map(bp => bp.maxWidth).filter(w => Number.isFinite(w))
-          : [1920];
-
+        // ---- widths -------------------------------------------------
+        const defaultWidths = VIEWPORT_BREAKPOINTS
+          .map(bp => bp.maxWidth)
+          .filter(w => Number.isFinite(w));
         const widths = attributes.heroWidths
-          ? attributes.heroWidths.split(',').map(w => w.trim()).filter(Boolean)
+          ? attributes.heroWidths
+            .split(',')
+            .map(w => parseInt(w.trim()))
+            .filter(w => w > 0)
           : defaultWidths;
 
         const sizes = attributes.heroSize || '100vw';
         const format = attributes.heroFormat || 'avif';
 
-        // Load paths (for primary JPG only)
-        let primaryPath = '/img/primary/';
-        (async () => {
-          try {
-            const { getImagePrimaryPath } = await import('../config.js');
-            primaryPath = await getImagePrimaryPath();
-          } catch (e) {
-            logger.warn('Using fallback primary path', e);
-          }
-        })();
+        // ---- async paths (same as image-generator.js) ---------------
+        const [responsivePath, primaryPath] = await Promise.all([
+          import('../config.js').then(m => m.getImageResponsivePath()),
+          import('../config.js').then(m => m.getImagePrimaryPath())
+        ]);
+
+        const largestWidth = Math.max(...widths);          // usually 3840
+        const isJpg = format === 'jpg';
+        const usePrimary = isJpg && largestWidth === 3840;
 
         for (let i = 0; i < actualCount; i++) {
-          const template = imageTemplates[i];
-          const largest = widths[widths.length - 1];
+          let raw = imageTemplates[i];
 
-          // Determine if template has full path
-          const hasFullPath = template.startsWith('/');
+          // ---- 1. Normalise the user-supplied name ----------------
+          const hasFullPath = raw.startsWith('/');
+          const cleanName = raw
+            .replace(/^\/+/, '')                // strip leading slashes
+            .replace(/-\d+$/, '')               // strip any existing -XXXX
+            .replace(/\.[^/.]+$/, '');          // strip extension
 
-          // Build srcset
+          // ---- 2. Build the *srcset* (all widths) -----------------
           const srcset = widths
             .map(w => {
-              const is3840 = w === '3840';
-              const isJpg = format === 'jpg';
-              const usePrimary = is3840 && isJpg;
-
-              const basePath = usePrimary ? primaryPath : (hasFullPath ? '' : '/img/responsive/');
-              const filename = is3840
-                ? template.replace(/-\{width\}\./, '.').replace('{format}', format)
-                : template.replace('{width}', w).replace('{format}', format);
-
-              return `${basePath}${filename} ${w}w`;
+              const filename = `${cleanName}-${w}.${format}`;
+              const path = (w === largestWidth && usePrimary) ? primaryPath : responsivePath;
+              return `${path}${filename} ${w}w`;
             })
             .join(', ');
 
-          // href = largest image
-          const isLargest3840 = largest === '3840';
-          const isJpg = format === 'jpg';
-          const usePrimary = isLargest3840 && isJpg;
+          // ---- 3. Build the *href* (largest image) ---------------
+          const largestFilename = usePrimary
+            ? `${cleanName}.${format}`                     // NO width suffix for primary JPG
+            : `${cleanName}-${largestWidth}.${format}`;   // normal suffix for everything else
 
-          const hrefBase = usePrimary ? primaryPath : (hasFullPath ? '' : '/img/responsive/');
-          const href = isLargest3840
-            ? template.replace(/-\{width\}\./, '.').replace('{format}', format)
-            : template.replace('{width}', largest).replace('{format}', format);
+          const hrefPath = usePrimary ? primaryPath : responsivePath;
+          const finalHref = `${hrefPath}${largestFilename}`;
 
-          const finalHref = `${hrefBase}${href}`;
-
+          // ---- 4. Create the <link rel="preload"> -----------------
           const link = document.createElement('link');
           link.rel = 'preload';
           link.as = 'image';
@@ -265,9 +261,10 @@ async function updateHead(attributes, setup) {
             href: finalHref,
             srcset,
             format,
-            largest,
+            largest: largestWidth,
             usePrimary,
-            hasFullPath
+            hasFullPath,
+            cleanName
           });
         }
       }
