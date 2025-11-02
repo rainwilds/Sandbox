@@ -182,27 +182,29 @@ async function updateHead(attributes, setup) {
   }
 
   // ——— HERO IMAGE PRELOAD (data-hero-*) ———
-  if (attributes.heroImage && attributes.heroWidths) {
+  if (attributes.heroImages && attributes.heroWidths) {
+    const imageTemplates = attributes.heroImages.split(',').map(s => s.trim());
     const widths = attributes.heroWidths.split(',').map(w => w.trim()).filter(Boolean);
     const sizes = attributes.heroSizes || '100vw';
     const format = attributes.heroFormat || 'avif';
+    const count = parseInt(attributes.heroCount) || 1;
 
-    if (widths.length > 0) {
+    const preloadCount = Math.min(count, imageTemplates.length);
+
+    for (let i = 0; i < preloadCount; i++) {
+      const template = imageTemplates[i];
       const largest = widths[widths.length - 1];
 
+      // Handle 3840w (no suffix)
       const href = largest === '3840'
-        ? attributes.heroImage
-          .replace(/-\{width\}\./, '.')  // Replace "-{width}." → "."
-          .replace('{format}', format)
-        : attributes.heroImage
-          .replace('{width}', largest)
-          .replace('{format}', format);
+        ? template.replace(/-\{width\}\./, '.').replace('{format}', format)
+        : template.replace('{width}', largest).replace('{format}', format);
 
       const srcset = widths
         .map(w => {
           const url = w === '3840'
-            ? attributes.heroImage.replace(/-\{width\}\./, '.').replace('{format}', format)
-            : attributes.heroImage.replace('{width}', w).replace('{format}', format);
+            ? template.replace(/-\{width\}\./, '.').replace('{format}', format)
+            : template.replace('{width}', w).replace('{format}', format);
           return `${url} ${w}w`;
         })
         .join(', ');
@@ -216,7 +218,7 @@ async function updateHead(attributes, setup) {
       link.importance = 'high';
       criticalFrag.appendChild(link);
 
-      logger.log('HERO IMAGE PRELOADED (data-hero-*)', { href, srcset, sizes });
+      logger.log(`HERO SLIDE ${i + 1} PRELOADED`, { href, srcset, sizes });
     }
   }
 
