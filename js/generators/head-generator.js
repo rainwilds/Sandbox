@@ -189,12 +189,21 @@ async function updateHead(attributes, setup) {
 
     if (widths.length > 0) {
       const largest = widths[widths.length - 1];
-      const href = attributes.heroImage
-        .replace('{width}', largest)
-        .replace('{format}', format);
+
+      // Special case: 3840w has no suffix
+      const href = largest === '3840'
+        ? attributes.heroImage.replace('{format}', format)
+        : attributes.heroImage
+          .replace('{width}', largest)
+          .replace('{format}', format);
 
       const srcset = widths
-        .map(w => `${attributes.heroImage.replace('{width}', w).replace('{format}', format)} ${w}w`)
+        .map(w => {
+          const url = w === '3840'
+            ? attributes.heroImage.replace('{format}', format)
+            : attributes.heroImage.replace('{width}', w).replace('{format}', format);
+          return `${url} ${w}w`;
+        })
         .join(', ');
 
       const link = document.createElement('link');
