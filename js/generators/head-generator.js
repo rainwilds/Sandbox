@@ -196,58 +196,56 @@ async function updateHead(attributes, setup) {
       if (imageTemplates.length > 0) {
         const actualCount = Math.min(count, imageTemplates.length);
 
-        // ---- widths -------------------------------------------------
         const defaultWidths = VIEWPORT_BREAKPOINTS
           .map(bp => bp.maxWidth)
           .filter(w => Number.isFinite(w));
         const widths = attributes.heroWidths
-          ? attributes.heroWidths
-            .split(',')
-            .map(w => parseInt(w.trim()))
-            .filter(w => w > 0)
+          ? attributes.heroWidths.split(',').map(w => parseInt(w.trim())).filter(w => w > 0)
           : defaultWidths;
 
         const sizes = attributes.heroSize || '100vw';
         const format = attributes.heroFormat || 'avif';
 
-        // ---- async paths (same as image-generator.js) ---------------
+        // Load paths from config (same as image-generator.js)
         const [responsivePath, primaryPath] = await Promise.all([
           import('../config.js').then(m => m.getImageResponsivePath()),
           import('../config.js').then(m => m.getImagePrimaryPath())
         ]);
 
-        const largestWidth = Math.max(...widths);          // usually 3840
+        const largestWidth = Math.max(...widths);
         const isJpg = format === 'jpg';
         const usePrimary = isJpg && largestWidth === 3840;
 
         for (let i = 0; i < actualCount; i++) {
           let raw = imageTemplates[i];
 
-          // ---- 1. Normalise the user-supplied name ----------------
+          // Normalize input: remove path, extension, and any existing -XXXX
           const hasFullPath = raw.startsWith('/');
           const cleanName = raw
-            .replace(/^\/+/, '')                // strip leading slashes
-            .replace(/-\d+$/, '')               // strip any existing -XXXX
-            .replace(/\.[^/.]+$/, '');          // strip extension
+            .replace(/^\/+/, '')
+            .replace(/-\d+$/, '')
+            .replace(/\.[^/.]+$/, '');
 
-          // ---- 2. Build the *srcset* (all widths) -----------------
+          // Build srcset: ALL sizes get -WIDTH except the largest (unless primary JPG)
           const srcset = widths
             .map(w => {
-              const filename = `${cleanName}-${w}.${format}`;
-              const path = (w === largestWidth && usePrimary) ? primaryPath : responsivePath;
+              const isLargest = w === largestWidth;
+              const filename = isLargest && !usePrimary
+                ? `${cleanName}.${format}`  // ← largest AVIF/WebP: NO suffix
+                : `${cleanName}-${w}.${format}`;
+              const path = (isLargest && usePrimary) ? primaryPath : responsivePath;
               return `${path}${filename} ${w}w`;
             })
             .join(', ');
 
-          // ---- 3. Build the *href* (largest image) ---------------
-          const largestFilename = usePrimary
-            ? `${cleanName}.${format}`                     // NO width suffix for primary JPG
-            : `${cleanName}-${largestWidth}.${format}`;   // normal suffix for everything else
+          // href = largest image
+          const hrefFilename = usePrimary
+            ? `${cleanName}.${format}`  // primary JPG: no suffix
+            : `${cleanName}.${format}`; // ← largest AVIF: NO -3840
 
           const hrefPath = usePrimary ? primaryPath : responsivePath;
-          const finalHref = `${hrefPath}${largestFilename}`;
+          const finalHref = `${hrefPath}${hrefFilename}`;
 
-          // ---- 4. Create the <link rel="preload"> -----------------
           const link = document.createElement('link');
           link.rel = 'preload';
           link.as = 'image';
