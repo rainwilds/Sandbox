@@ -1,7 +1,6 @@
 name: Sync with template
 
 on:
-  schedule:
   workflow_dispatch:  # Allows manual triggering via the Actions tab
 
 jobs:
