@@ -190,10 +190,10 @@ async function updateHead(attributes, setup) {
     if (widths.length > 0) {
       const largest = widths[widths.length - 1];
 
-      // Special case: 3840w has NO "-3840" and NO "{width}"
+      // 3840w has NO suffix in /responsive/
       const href = largest === '3840'
         ? attributes.heroImage
-          .replace('{width}.', '')  // Remove "{width}." completely
+          .replace('{width}.', '')  // Remove "{width}."
           .replace('{format}', format)
         : attributes.heroImage
           .replace('{width}', largest)
