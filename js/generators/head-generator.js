@@ -140,9 +140,10 @@ async function loadComponents(componentList) {
 async function updateHead(attributes, setup) {
   logger.log('updateHead called with attributes', attributes);
   const head = document.head;
-  logger.log('Head before update:', Array.from(head.children).map(el => el.outerHTML));
   const criticalFrag = document.createDocumentFragment();
   const deferredFrag = document.createDocumentFragment();
+
+  // ——— FONT PRELOAD ———
   const validFonts = (setup.fonts || []).filter(font => font.href || font.url);
   if (validFonts.length > 0) {
     validFonts.forEach(font => {
@@ -156,21 +157,20 @@ async function updateHead(attributes, setup) {
       criticalFrag.appendChild(link);
       logger.log(`Added font preload: ${fontUrl}`);
     });
-  } else {
-    logger.warn('No valid fonts in setup.json; relying on CSS @font-face');
   }
+
+  // ——— STYLESHEETS ———
   const styleLink = document.createElement('link');
   styleLink.rel = 'stylesheet';
   styleLink.href = './styles.css';
   criticalFrag.appendChild(styleLink);
-  logger.log('Applied stylesheet: ./styles.css');
 
   const customStyleLink = document.createElement('link');
   customStyleLink.rel = 'stylesheet';
   customStyleLink.href = './custom.css';
   criticalFrag.appendChild(customStyleLink);
-  logger.log('Applied custom stylesheet: ./custom.css');
 
+  // ——— FONT AWESOME ———
   const faKitUrl = setup.font_awesome?.kit_url ?? setup.font_awesome?.kitUrl;
   if (faKitUrl) {
     const script = document.createElement('script');
@@ -178,11 +178,38 @@ async function updateHead(attributes, setup) {
     script.crossOrigin = 'anonymous';
     script.async = true;
     criticalFrag.appendChild(script);
-    logger.log(`Added Font Awesome Kit script: ${faKitUrl}`);
-  } else {
-    logger.warn('No Font Awesome kit URL found; icons may not load');
   }
 
+  // ——— HERO IMAGE PRELOAD (data-hero-*) ———
+  if (attributes.heroImage && attributes.heroWidths) {
+    const widths = attributes.heroWidths.split(',').map(w => w.trim()).filter(Boolean);
+    const sizes = attributes.heroSizes || '100vw';
+    const format = attributes.heroFormat || 'avif';
+
+    if (widths.length > 0) {
+      const largest = widths[widths.length - 1];
+      const href = attributes.heroImage
+        .replace('{width}', largest)
+        .replace('{format}', format);
+
+      const srcset = widths
+        .map(w => `${attributes.heroImage.replace('{width}', w).replace('{format}', format)} ${w}w`)
+        .join(', ');
+
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'image';
+      link.href = href;
+      link.imagesrcset = srcset;
+      link.imagesizes = sizes;
+      link.importance = 'high';
+      criticalFrag.appendChild(link);
+
+      logger.log('HERO IMAGE PRELOADED (data-hero-*)', { href, srcset, sizes });
+    }
+  }
+
+  // ——— META TAGS ———
   let metaTags = [];
   const hasPageAttributes = Object.keys(attributes).length > 0;
 
@@ -225,16 +252,16 @@ async function updateHead(attributes, setup) {
     else meta.name = name;
     meta.content = content;
     criticalFrag.appendChild(meta);
-    logger.log(`Added ${property ? 'property' : 'name'} "${name}" with content: ${content}`);
   });
 
+  // ——— CANONICAL ———
   const canonicalUrl = attributes.canonical ?? setup.general?.canonical ?? window.location.href;
   const canonicalLink = document.createElement('link');
   canonicalLink.rel = 'canonical';
   canonicalLink.href = canonicalUrl;
   criticalFrag.appendChild(canonicalLink);
-  logger.log('Added canonical link: ' + canonicalUrl);
 
+  // ——— THEME COLOR ———
   setTimeout(() => {
     const rootStyles = getComputedStyle(document.documentElement);
     const lightTheme = rootStyles.getPropertyValue('--color-light-scale-1').trim();
@@ -246,19 +273,17 @@ async function updateHead(attributes, setup) {
       themeMetaLight.content = lightTheme;
       themeMetaLight.media = '(prefers-color-scheme: light)';
       head.appendChild(themeMetaLight);
-      logger.log(`Updated theme-color (light): ${lightTheme}`);
     }
-
     if (darkTheme && darkTheme !== lightTheme) {
       const themeMetaDark = document.createElement('meta');
       themeMetaDark.name = 'theme-color';
       themeMetaDark.content = darkTheme;
       themeMetaDark.media = '(prefers-color-scheme: dark)';
       head.appendChild(themeMetaDark);
-      logger.log(`Updated theme-color (dark): ${darkTheme}`);
     }
   }, 0);
 
+  // ——— JSON-LD ———
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -289,13 +314,9 @@ async function updateHead(attributes, setup) {
     script.type = 'application/ld+json';
     script.textContent = JSON.stringify(cleanedJsonLd, null, 2);
     deferredFrag.appendChild(script);
-    logger.log('Added Organization JSON-LD schema (deferred)', {
-      name: cleanedJsonLd.name,
-      url: cleanedJsonLd.url,
-      sameAsCount: cleanedJsonLd.sameAs?.length || 0
-    });
   }
 
+  // ——— FAVICONS ———
   const favicons = (setup.general?.favicons || []).filter(f => f.href?.trim());
   favicons.forEach(favicon => {
     const link = document.createElement('link');
@@ -304,9 +325,9 @@ async function updateHead(attributes, setup) {
     if (favicon.sizes) link.sizes = favicon.sizes;
     if (favicon.type) link.type = favicon.type;
     criticalFrag.appendChild(link);
-    logger.log(`Added favicon: ${favicon.href}`);
   });
 
+  // ——— SNIPCART ———
   if (setup.general?.include_e_commerce && setup.general?.snipcart) {
     const snipcart = setup.general.snipcart;
     const script = document.createElement('script');
@@ -317,15 +338,14 @@ async function updateHead(attributes, setup) {
     script.setAttribute('data-config-load-strategy', snipcart.loadStrategy);
     if (snipcart.templatesUrl) script.setAttribute('data-templates-url', snipcart.templatesUrl);
     deferredFrag.appendChild(script);
-    logger.log('Added Snipcart script (deferred)', { version: snipcart.version });
   }
 
   head.appendChild(criticalFrag);
-  logger.log('Appended critical elements to head', { count: criticalFrag.childNodes.length });
+  logger.log('Appended critical elements to head');
 
   const appendDeferred = () => {
     head.appendChild(deferredFrag);
-    logger.log('Appended deferred elements to head', { count: deferredFrag.childNodes.length });
+    logger.log('Appended deferred elements to head');
   };
   if (window.requestIdleCallback) {
     requestIdleCallback(appendDeferred, { timeout: 2000 });
@@ -334,134 +354,7 @@ async function updateHead(attributes, setup) {
   }
 }
 
-// ——— FIXED: ROBUST IMAGE PRELOADING ———
-async function addCriticalImagePreloads() {
-  const head = document.head;
-  const preloaded = new Set();
-
-  logger.log('Waiting for custom-slider or custom-block to appear in DOM...');
-
-  // 1. Wait for ANY slider/block to appear
-  await new Promise(resolve => {
-    const check = () => {
-      const hasSlider = !!document.querySelector('custom-slider');
-      const hasBlock = !!document.querySelector('custom-block');
-      if (hasSlider || hasBlock) {
-        logger.log(`Found hero element: ${hasSlider ? 'custom-slider' : 'custom-block'}`);
-        setTimeout(resolve, 100); // let images render
-      } else {
-        requestAnimationFrame(check);
-      }
-    };
-    check();
-  });
-
-  // 2. Wait 2 frames for layout
-  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-
-  // 3. Find hero
-  const candidates = [
-    ...document.querySelectorAll('custom-slider'),
-    ...document.querySelectorAll('custom-block')
-  ];
-
-  if (candidates.length === 0) {
-    logger.log('No preload candidates found even after waiting');
-    return;
-  }
-
-  const isAboveTheFold = (el) => {
-    const rect = el.getBoundingClientRect();
-    const vh = window.innerHeight;
-    return rect.top < vh * 1.5;
-  };
-
-  const sorted = candidates
-    .map(el => ({ el, top: el.getBoundingClientRect().top }))
-    .sort((a, b) => a.top - b.top);
-
-  let heroEl = sorted.find(s => isAboveTheFold(s.el))?.el || sorted[0].el;
-
-  logger.log('Preloading from hero:', {
-    tag: heroEl.tagName,
-    id: heroEl.id,
-    class: heroEl.className
-  });
-
-  let preloadedCount = 0;
-
-  if (heroEl.tagName === 'CUSTOM-SLIDER') {
-    const firstSlide = heroEl.querySelector('.slider-slide:first-child');
-    if (firstSlide) {
-      firstSlide.querySelectorAll('img').forEach(img => {
-        if (preloadImg(img, head, preloaded)) preloadedCount++;
-      });
-    }
-  } else if (heroEl.tagName === 'CUSTOM-BLOCK') {
-    const img = heroEl.querySelector('img');
-    if (img && preloadImg(img, head, preloaded)) preloadedCount++;
-  }
-
-  logger.log(`Image preloading complete: ${preloadedCount} images preloaded`);
-}
-
-function preloadImg(img, head, preloaded) {
-  const src = img.currentSrc || img.src;
-  let srcset = img.getAttribute('srcset');
-  const sizes = img.getAttribute('sizes') || '100vw';
-
-  if (!src && !srcset) return false;
-  if (preloaded.has(src)) return false;
-
-  preloaded.add(src);
-
-  // Clean invalid srcset (remove Infinityw, non-numeric w)
-  if (srcset) {
-    const validSources = srcset
-      .split(',')
-      .map(s => s.trim())
-      .filter(s => {
-        const match = s.match(/(\d+)w$/);
-        return match && parseInt(match[1]) > 0;
-      });
-
-    if (validSources.length > 0) {
-      srcset = validSources.join(', ');
-      const largest = validSources
-        .map(s => s.split(' '))
-        .reduce((a, b) => (parseInt(b[1]) > parseInt(a[1]) ? b : a));
-
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'image';
-      link.href = largest[0];
-      link.imagesrcset = srcset;
-      link.imagesizes = sizes;
-      link.importance = 'high';
-      head.appendChild(link);
-
-      img.loading = 'eager';
-      logger.log('PRELOADED IMAGE', { href: largest[0], from: 'slider/block' });
-      return true;
-    }
-  }
-
-  // Fallback to src
-  if (src) {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.as = 'image';
-    link.href = src;
-    link.importance = 'high';
-    head.appendChild(link);
-    img.loading = 'eager';
-    logger.log('PRELOADED IMAGE (fallback)', { href: src });
-    return true;
-  }
-
-  return false;
-}
-
+// ——— MAIN IIFE ———
 (async () => {
   try {
     logger.log('Starting HeadGenerator');
@@ -471,6 +364,7 @@ function preloadImg(img, head, preloaded) {
       logger.warn('No data-custom-head element found');
       return;
     }
+
     const attributes = {};
     for (const [key, value] of Object.entries(customHead.dataset)) {
       const trimmed = value?.trim();
@@ -487,70 +381,15 @@ function preloadImg(img, head, preloaded) {
     customHead.remove();
     logger.log('Removed data-custom-head element');
 
-    // ——— MOVE ALL <style>, <link>, <script> TO CORRECT PLACE ———
-    const styles = document.querySelectorAll('style');
-    let movedStyleCount = 0;
-    styles.forEach(style => {
-      if (style.parentNode !== document.head && style.parentNode !== null) {
-        document.head.appendChild(style);
-        movedStyleCount++;
-      }
-    });
-    if (movedStyleCount > 0) logger.log(`Moved ${movedStyleCount} <style> to <head>`);
-
-    const links = document.querySelectorAll('link');
-    let movedLinkCount = 0;
-    links.forEach(link => {
-      if (link.parentNode !== document.head && link.parentNode !== null) {
-        document.head.appendChild(link);
-        movedLinkCount++;
-      }
-    });
-    if (movedLinkCount > 0) logger.log(`Moved ${movedLinkCount} <link> to <head>`);
-
-    const scripts = document.querySelectorAll('script');
-    let movedScriptCount = 0;
-    scripts.forEach(script => {
-      const isExternal = script.src;
-      const target = isExternal ? document.head : document.body;
-      if (script.parentNode !== target && script.parentNode !== null) {
-        if (isExternal && !script.defer && !script.async) script.defer = true;
-        target.appendChild(script);
-        movedScriptCount++;
-      }
-    });
-    if (movedScriptCount > 0) logger.log(`Moved ${movedScriptCount} <script>`);
-
-    // ——— RESCUE MISPARSED <script>/<style> ———
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
-    let node, rescued = 0;
-    while ((node = walker.nextNode())) {
-      const text = node.textContent || '';
-      const scriptMatch = text.match(/<script\b[^>]*>[\s\S]*?<\/script>/i);
-      if (scriptMatch) {
-        const inner = scriptMatch[0].match(/<script\b[^>]*>([\s\S]*?)<\/script>/i);
-        if (inner && inner[1].trim()) {
-          const s = document.createElement('script');
-          s.textContent = inner[1].trim();
-          document.body.appendChild(s);
-          node.textContent = text.replace(scriptMatch[0], '').trim();
-          rescued++;
+    // Cleanup: move styles/links/scripts
+    ['style', 'link', 'script'].forEach(tag => {
+      document.querySelectorAll(tag).forEach(el => {
+        if (el.parentNode !== document.head && el.parentNode !== null) {
+          if (tag === 'script' && el.src && !el.defer && !el.async) el.defer = true;
+          document.head.appendChild(el);
         }
-      }
-    }
-    if (rescued > 0) logger.log(`Rescued ${rescued} misparsed scripts`);
-
-    // ——— FINAL: WAIT FOR HEADER + PRELOAD IMAGES ———
-    logger.log('Waiting for custom-header to finish rendering...');
-    await Promise.all([
-      customElements.whenDefined('custom-header').catch(() => {}),
-      customElements.whenDefined('custom-slider').catch(() => {}),
-      customElements.whenDefined('custom-block').catch(() => {})
-    ]);
-
-    await new Promise(r => setTimeout(r, 150)); // Let render settle
-
-    await addCriticalImagePreloads();
+      });
+    });
 
     logger.log('HeadGenerator completed successfully');
     window.__PAGE_FULLY_RENDERED__ = true;
