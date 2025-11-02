@@ -206,14 +206,16 @@ async function updateHead(attributes, setup) {
         const sizes = attributes.heroSize || '100vw';
         const format = attributes.heroFormat || 'avif';
 
-        // Always use responsive path
+        // Load paths
         let responsivePath = '/img/responsive/';
+        let primaryPath = '/img/primary/';
         (async () => {
           try {
-            const { getImageResponsivePath } = await import('../config.js');
+            const { getImageResponsivePath, getImagePrimaryPath } = await import('../config.js');
             responsivePath = await getImageResponsivePath();
+            primaryPath = await getImagePrimaryPath();
           } catch (e) {
-            logger.warn('Using fallback responsive path', e);
+            logger.warn('Using fallback image paths', e);
           }
         })();
 
@@ -225,20 +227,32 @@ async function updateHead(attributes, setup) {
           const srcset = widths
             .map(w => {
               const is3840 = w === '3840';
+              const isJpg = format === 'jpg';
+              const usePrimary = is3840 && isJpg;
+
+              const dir = usePrimary ? primaryPath : responsivePath;
+
+              // For 3840: remove -{width}, keep format
+              // For others: replace {width}
               const filename = is3840
                 ? template.replace(/-\{width\}\./, '.').replace('{format}', format)
                 : template.replace('{width}', w).replace('{format}', format);
-              return `${responsivePath}${filename} ${w}w`;
+
+              return `${dir}${filename} ${w}w`;
             })
             .join(', ');
 
           // href = largest image
           const isLargest3840 = largest === '3840';
+          const isJpg = format === 'jpg';
+          const usePrimary = isLargest3840 && isJpg;
+
+          const hrefDir = usePrimary ? primaryPath : responsivePath;
           const href = isLargest3840
             ? template.replace(/-\{width\}\./, '.').replace('{format}', format)
             : template.replace('{width}', largest).replace('{format}', format);
 
-          const finalHref = `${responsivePath}${href}`;
+          const finalHref = `${hrefDir}${href}`;
 
           const link = document.createElement('link');
           link.rel = 'preload';
@@ -254,7 +268,7 @@ async function updateHead(attributes, setup) {
             srcset,
             format,
             largest,
-            is3840: isLargest3840
+            usePrimary
           });
         }
       }
