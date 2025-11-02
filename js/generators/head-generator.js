@@ -195,7 +195,6 @@ async function updateHead(attributes, setup) {
       if (imageTemplates.length > 0) {
         const actualCount = Math.min(count, imageTemplates.length);
 
-        // Use maxWidth from VIEWPORT_BREAKPOINTS
         const defaultWidths = Array.isArray(VIEWPORT_BREAKPOINTS)
           ? VIEWPORT_BREAKPOINTS.map(bp => bp.maxWidth).filter(w => Number.isFinite(w))
           : [1920];
@@ -207,33 +206,63 @@ async function updateHead(attributes, setup) {
         const sizes = attributes.heroSize || '100vw';
         const format = attributes.heroFormat || 'avif';
 
+        // Load paths from config
+        let responsivePath = '/img/responsive/';
+        let primaryPath = '/img/primary/';
+        (async () => {
+          try {
+            const { getImageResponsivePath, getImagePrimaryPath } = await import('../config.js');
+            responsivePath = await getImageResponsivePath();
+            primaryPath = await getImagePrimaryPath();
+          } catch (e) {
+            logger.warn('Using fallback image paths', e);
+          }
+        })();
+
         for (let i = 0; i < actualCount; i++) {
           const template = imageTemplates[i];
           const largest = widths[widths.length - 1];
 
-          const href = largest === '3840'
-            ? template.replace(/-\{width\}\./, '.').replace('{format}', format)
-            : template.replace('{width}', largest).replace('{format}', format);
-
+          // Build srcset
           const srcset = widths
             .map(w => {
-              const url = w === '3840'
-                ? template.replace(/-\{width\}\./, '.').replace('{format}', format)
+              const is3840 = w === '3840';
+              const isJpg = format === 'jpg';
+              const usePrimary = is3840 && isJpg;
+              const dir = usePrimary ? primaryPath : responsivePath;
+              const filename = usePrimary
+                ? template.replace(/-\{width\}\./, '.').replace('{format}', 'jpg')
                 : template.replace('{width}', w).replace('{format}', format);
-              return `${url} ${w}w`;
+              return `${dir}${filename} ${w}w`;
             })
             .join(', ');
+
+          // href = largest image
+          const isLargest3840 = largest === '3840';
+          const isJpg = format === 'jpg';
+          const usePrimary = isLargest3840 && isJpg;
+          const hrefDir = usePrimary ? primaryPath : responsivePath;
+          const href = usePrimary
+            ? template.replace(/-\{width\}\./, '.').replace('{format}', 'jpg')
+            : template.replace('{width}', largest).replace('{format}', format);
+          const finalHref = `${hrefDir}${href}`;
 
           const link = document.createElement('link');
           link.rel = 'preload';
           link.as = 'image';
-          link.href = href;
+          link.href = finalHref;
           link.imagesrcset = srcset;
           link.imagesizes = sizes;
           link.importance = 'high';
           criticalFrag.appendChild(link);
 
-          logger.log(`HERO SLIDE ${i + 1}/${actualCount} PRELOADED`, { href, srcset, sizes });
+          logger.log(`HERO SLIDE ${i + 1}/${actualCount} PRELOADED`, {
+            href: finalHref,
+            srcset,
+            format,
+            largest,
+            usePrimary
+          });
         }
       }
     }
