@@ -6,7 +6,8 @@ export const VIEWPORT_BREAKPOINTS = [
     { name: 'tablet', maxWidth: 1024 },
     { name: 'laptop', maxWidth: 1366 },
     { name: 'desktop', maxWidth: 1920 },
-    { name: 'large', maxWidth: 2560 }
+    { name: 'large', maxWidth: 2560 },
+    { name: 'ultra', maxWidth: 3840 }
 ];
 
 // Array of just the maxWidth values for quick lookups

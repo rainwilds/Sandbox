@@ -3,7 +3,7 @@
 'use strict';
 
 import { getConfig } from '../config.js';
-import { VIEWPORT_BREAKPOINT_WIDTHS } from '../shared.js';
+import { VIEWPORT_BREAKPOINTS } from '../shared.js';
 
 const isDev = window.location.pathname.includes('/dev/') || new URLSearchParams(window.location.search).get('debug') === 'true';
 
@@ -195,9 +195,9 @@ async function updateHead(attributes, setup) {
       if (imageTemplates.length > 0) {
         const actualCount = Math.min(count, imageTemplates.length);
 
-        // Use shared breakpoint widths (exclude Infinity)
-        const defaultWidths = Array.isArray(VIEWPORT_BREAKPOINT_WIDTHS)
-          ? VIEWPORT_BREAKPOINT_WIDTHS.filter(w => Number.isFinite(w))
+        // Use maxWidth from VIEWPORT_BREAKPOINTS
+        const defaultWidths = Array.isArray(VIEWPORT_BREAKPOINTS)
+          ? VIEWPORT_BREAKPOINTS.map(bp => bp.maxWidth).filter(w => Number.isFinite(w))
           : [1920];
 
         const widths = attributes.heroWidths
