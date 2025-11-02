@@ -3,6 +3,7 @@
 'use strict';
 
 import { getConfig } from '../config.js';
+import { VIEWPORT_BREAKPOINT_WIDTHS } from '../shared.js';
 
 const isDev = window.location.pathname.includes('/dev/') || new URLSearchParams(window.location.search).get('debug') === 'true';
 
@@ -31,17 +32,21 @@ const createLogger = (prefix) => ({
       console.groupEnd();
     }
     console.error(`[${prefix}] ${message}`, data);
+);
+);
+);
+an);
   }
 });
 
-const logger = createLogger('HeadGenerator');
+const createLogger('HeadGenerator');
 
 const DEPENDENCIES = {
   'shared': [],
-  'config': [],
+  ': [],
   'image-generator': ['shared'],
-  'video-generator': ['shared'],
-  'custom-block': ['image-generator', 'video-generator', 'shared'],
+  ' video-generator': ['['shared'],
+  'custom: ['image-generator', 'video-generator', 'shared'],
   'custom-nav': ['shared'],
   'custom-logo': ['image-generator', 'shared'],
   'custom-header': ['image-generator', 'shared'],
@@ -56,7 +61,7 @@ const PATH_MAP = {
   'shared': '../shared.js',
   'custom-block': '../components/custom-block.js',
   'custom-nav': '../components/custom-nav.js',
-  'custom-logo': '../components/custom-logo.js',
+  'custom-logo': '../ '../components/custom-logo.js',
   'custom-header': '../components/custom-header.js',
   'custom-slider': '../components/custom-slider.js',
   'custom-filter': '../components/custom-filter.js'
@@ -181,41 +186,60 @@ async function updateHead(attributes, setup) {
     logger.log(`Added Font Awesome Kit script: ${faKitUrl}`);
   }
 
-  // ——— HERO IMAGE PRELOAD (data-hero-images) ———
-  if (attributes.heroImages && attributes.heroWidths) {
-    const imageTemplates = attributes.heroImages.split(',').map(s => s.trim());
-    const widths = attributes.heroWidths.split(',').map(w => w.trim()).filter(Boolean);
-    const sizes = attributes.heroSizes || '100vw';
-    const format = attributes.heroFormat || 'avif';
-    const count = Math.min(parseInt(attributes.heroCount) || 1, imageTemplates.length);
+  // ——— HERO IMAGE PRELOAD ———
+  if (attributes.heroImage && attributes.heroCount) {
+    const count = Math.max(1, parseInt(attributes.heroCount) || 0);
+    if (count === 0) {
+      logger.log('Hero preload skipped: hero-count=0');
+    } else {
+      const imageTemplates = attributes.heroImage
+        .split(',')
+        .map(s => s.trim())
+        .filter(Boolean);
+      if (imageTemplates.length > 0) {
+        const actualCount = Math.min(count, imageTemplates.length);
 
-    for (let i = 0; i < count; i++) {
-      const template = imageTemplates[i];
-      const largest = widths[widths.length - 1];
+        // Use shared breakpoint widths (exclude Infinity)
+        const defaultWidths = Array.isArray(VIEWPORT_BREAKPOINT_WIDTHS)
+          ? VIEWPORT_BREAKPOINT_WIDTHS.filter(w => Number.isFinite(w))
+          : [1920];
 
-      const href = largest === '3840'
-        ? template.replace(/-\{width\}\./, '.').replace('{format}', format)
-        : template.replace('{width}', largest).replace('{format}', format);
+        const widths = attributes.heroWidths
+          ? attributes.heroWidths.split(',').map(w => w.trim()).filter(Boolean)
+          : defaultWidths;
 
-      const srcset = widths
-        .map(w => {
-          const url = w === '3840'
+        const sizes = attributes.heroSize || '100vw';
+        const format = attributes.heroFormat || 'avif';
+
+        for (let i = 0; i < actualCount; i++) {
+          const template = imageTemplates[i];
+          const largest = widths[widths.length - 1];
+
+          const href = largest === '3840'
             ? template.replace(/-\{width\}\./, '.').replace('{format}', format)
-            : template.replace('{width}', w).replace('{format}', format);
-          return `${url} ${w}w`;
-        })
-        .join(', ');
+            : template.replace('{width}', largest).replace('{format}', format);
 
-      const link = document.createElement('link');
-      link.rel = 'preload';
-      link.as = 'image';
-      link.href = href;
-      link.imagesrcset = srcset;
-      link.imagesizes = sizes;
-      link.importance = 'high';
-      criticalFrag.appendChild(link);
+          const srcset = widths
+            .map(w => {
+              const url = w === '3840'
+                ? template.replace(/-\{width\}\./, '.').replace('{format}', format)
+                : template.replace('{width}', w).replace('{format}', format);
+              return `${url} ${w}w`;
+            })
+            .join(', ');
 
-      logger.log(`HERO SLIDE ${i + 1} PRELOADED`, { href, srcset, sizes });
+          const link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = href;
+          link.imagesrcset = srcset;
+          link.imagesizes = sizes;
+          link.importance = 'high';
+          criticalFrag.appendChild(link);
+
+          logger.log(`HERO SLIDE ${i + 1}/${actualCount} PRELOADED`, { href, srcset, sizes });
+        }
+      }
     }
   }
 
