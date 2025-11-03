@@ -218,32 +218,18 @@
 
 
 
-        /* --color-light-scale-1: #daccbf;
-        --color-light-scale-2: #e0c9c5;
-        --color-light-scale-3: #e0c8ce;
-        --color-light-scale-4: #d8cad8;
-        --color-light-scale-5: #cccddf;
-        --color-light-scale-6: #bfd0df;
-        --color-dark-scale-1: #34251d;
-        --color-dark-scale-2: #331f1e;
-        --color-dark-scale-3: #2e1a21;
-        --color-dark-scale-4: #251825;
-        --color-dark-scale-5: #181626;
-        --color-dark-scale-6: #051524;
-        --color-accent-opaque-light-scale-1: rgba(218, 204, 191, 0.2);
-        --color-accent-opaque-light-scale-2: rgba(224, 201, 197, 0.2);
-        --color-accent-opaque-light-scale-3: rgba(224, 200, 206, 0.2);
-        --color-accent-opaque-light-scale-4: rgba(216, 202, 216, 0.2);
-        --color-accent-opaque-light-scale-5: rgba(204, 205, 223, 0.2);
-        --color-accent-opaque-light-scale-6: rgba(191, 208, 223, 0.2);
-        --color-accent-opaque-dark-scale-1: rgba(52, 37, 29, 0.5);
-        --color-accent-opaque-dark-scale-2: rgba(51, 31, 30, 0.5);
-        --color-accent-opaque-dark-scale-3: rgba(46, 26, 33, 0.5);
-        --color-accent-opaque-dark-scale-4: rgba(37, 24, 37, 0.5);
-        --color-accent-opaque-dark-scale-5: rgba(24, 22, 38, 0.5);
-        --color-accent-opaque-dark-scale-6: rgba(5, 21, 36, 0.5);
-        --color-static-light: white;
-        --color-static-dark: black; */
+        /* Snipcart UI */
+        --snipcart-bg: light-dark(var(--color-light-scale-3), var(--color-dark-scale-3));
+        --snipcart-fg: light-dark(var(--color-dark-scale-6), var(--color-light-scale-6));
+        --snipcart-primary: var(--color-light-scale-1);
+        --snipcart-primary-hover: #a033d8;
+        /* darker shade of primary */
+        --snipcart-border: light-dark(var(--color-dark-scale-1), var(--color-light-scale-1));
+        --snipcart-radius: var(--border-radius-medium);
+        --snipcart-gap: var(--space-medium);
+        --snipcart-font: var(--font-2-family);
+        --snipcart-font-size: var(--font-2-size-medium);
+        --snipcart-font-bold: 600;
 
 
 
@@ -1129,6 +1115,205 @@
 }
 
 @layer components {
+
+
+    /* -------------------------------------------------
+     1. ROOT – hide the default Snipcart CSS
+     ------------------------------------------------- */
+    #snipcart {
+        all: initial;
+        /* reset everything */
+        font-family: var(--snipcart-font);
+        font-size: var(--snipcart-font-size);
+        color: var(--snipcart-fg);
+        line-height: 1.5;
+    }
+
+    /* -------------------------------------------------
+     2. MODAL CONTAINER
+     ------------------------------------------------- */
+    .snipcart-modal__container {
+        background: var(--snipcart-bg);
+        border-radius: var(--snipcart-radius);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, .15);
+        max-width: 520px;
+        margin: 2rem auto;
+        overflow: hidden;
+    }
+
+    /* -------------------------------------------------
+     3. HEADER (close button + title)
+     ------------------------------------------------- */
+    .snipcart-cart-header {
+        background: var(--snipcart-primary);
+        color: #fff;
+        padding: var(--snipcart-gap);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+    }
+
+    .snipcart-cart-header__close-button {
+        background: none;
+        border: none;
+        color: #fff;
+        font-size: 1.4rem;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+    }
+
+    .snipcart-modal__close-title {
+        font-weight: var(--snipcart-font-bold);
+    }
+
+    /* -------------------------------------------------
+     4. TEST MODE BANNER
+     ------------------------------------------------- */
+    .snipcart-test-banner {
+        background: #ffb302;
+        color: #000;
+        text-align: center;
+        font-weight: 600;
+        padding: .4rem 0;
+        font-size: .85rem;
+    }
+
+    /* -------------------------------------------------
+     5. FORM FIELDS
+     ------------------------------------------------- */
+    .snipcart-form__field {
+        margin-bottom: var(--snipcart-gap);
+    }
+
+    .snipcart-form__label {
+        display: block;
+        margin-bottom: .4rem;
+        font-size: .85rem;
+        color: var(--snipcart-fg);
+    }
+
+    .snipcart-input__input,
+    .snipcart-textbox,
+    .snipcart-typeahead__input input {
+        width: 100%;
+        padding: .75rem;
+        border: 1px solid var(--snipcart-border);
+        border-radius: var(--border-radius-small);
+        background: var(--snipcart-bg);
+        font: inherit;
+        color: var(--snipcart-fg);
+    }
+
+    .snipcart-input__input:focus,
+    .snipcart-textbox:focus,
+    .snipcart-typeahead__input input:focus {
+        outline: 2px solid var(--snipcart-primary);
+        outline-offset: -1px;
+    }
+
+    /* -------------------------------------------------
+     6. PRIMARY BUTTON (Continue / Checkout)
+     ------------------------------------------------- */
+    .snipcart-button-primary {
+        background: var(--snipcart-primary);
+        color: #fff;
+        border: none;
+        border-radius: var(--snipcart-radius);
+        padding: .9rem 1.8rem;
+        font-weight: var(--snipcart-font-bold);
+        font-size: 1rem;
+        cursor: pointer;
+        width: 100%;
+        transition: background .25s;
+    }
+
+    .snipcart-button-primary:hover {
+        background: var(--snipcart-primary-hover);
+    }
+
+    /* -------------------------------------------------
+     7. SUMMARY PANEL (right column)
+     ------------------------------------------------- */
+    .snipcart-cart-summary {
+        background: var(--snipcart-bg);
+        border-left: 1px solid var(--snipcart-border);
+        padding: var(--snipcart-gap);
+        font-size: .9rem;
+    }
+
+    .snipcart-cart-summary__title {
+        font-weight: var(--snipcart-font-bold);
+        margin-bottom: .5rem;
+    }
+
+    .snipcart-cart-summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: .4rem;
+    }
+
+    .snipcart-summary-fees__total {
+        font-weight: var(--snipcart-font-bold);
+        font-size: 1.1rem;
+        margin-top: .8rem;
+    }
+
+    .snipcart-summary-fees__amount--highlight {
+        color: var(--snipcart-primary);
+    }
+
+    /* -------------------------------------------------
+     8. PAYMENT METHODS (icons at bottom)
+     ------------------------------------------------- */
+    .snipcart-featured-payment-methods {
+        margin-top: var(--snipcart-gap);
+        text-align: center;
+        font-size: .85rem;
+    }
+
+    .snipcart-featured-payment-methods__list {
+        display: flex;
+        justify-content: center;
+        gap: .8rem;
+        margin-top: .4rem;
+    }
+
+    .snipcart__icon--brand {
+        height: 28px;
+    }
+
+    /* -------------------------------------------------
+     9. MISC – hide things we don’t need
+     ------------------------------------------------- */
+    .snipcart-cart-summary__actions .snipcart-button-link,
+    .snipcart-cart-header__options>* {
+        display: none;
+        /* clean look */
+    }
+
+    /* -------------------------------------------------
+    10. RESPONSIVE TWEAKS
+    ------------------------------------------------- */
+    @media (max-width: 768px) {
+        .snipcart-modal__container {
+            margin: 1rem;
+            max-width: none;
+        }
+
+        .snipcart-layout__cols {
+            flex-direction: column;
+        }
+
+        .snipcart-cart-summary {
+            border-left: none;
+            border-top: 1px solid var(--snipcart-border);
+        }
+    }
+
 
     button[aria-controls="nav-menu"] {
         background: none;
@@ -2173,19 +2358,19 @@ div#products {
 
 
 .item {
-  width: 100%;
-  border: 1px solid #ddd;
-  padding: 1rem;
-  text-align: center;
+    width: 100%;
+    border: 1px solid #ddd;
+    padding: 1rem;
+    text-align: center;
 }
 
 .item img {
-  max-width: 100%;
-  height: auto;
+    max-width: 100%;
+    height: auto;
 }
 
 .item[style*="display: none"] {
-  display: none !important;
+    display: none !important;
 }
 
 
