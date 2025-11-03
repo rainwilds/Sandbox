@@ -54,7 +54,7 @@
       "templatesUrl": "./plugins/snipcart.html",
       "modalStyle": "side",
       "currency": "aud",
-      "loadCSS": false
+      "loadCSS": true
     }
   },
   "business": {
