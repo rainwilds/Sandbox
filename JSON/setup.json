@@ -50,7 +50,7 @@
     "snipcart": {
       "publicApiKey": "NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5",
       "loadStrategy": "on-user-interaction",
-
+      "version": "",
       "templatesUrl": "./plugins/snipcart.html",
       "modalStyle": "side",
       "currency": "aud",
