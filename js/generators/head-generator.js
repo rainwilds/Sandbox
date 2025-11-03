@@ -171,15 +171,30 @@ async function updateHead(attributes, setup) {
   customStyleLink.href = './custom.css';
   criticalFrag.appendChild(customStyleLink);
 
-  // ——— FONT AWESOME ———
-  const faKitUrl = setup.font_awesome?.kit_url ?? setup.font_awesome?.kitUrl;
-  if (faKitUrl) {
-    const script = document.createElement('script');
-    script.src = faKitUrl;
-    script.crossOrigin = 'anonymous';
-    script.async = true;
-    criticalFrag.appendChild(script);
-    logger.log(`Added Font Awesome Kit script: ${faKitUrl}`);
+  // ——— FONT AWESOME (self-hosted) ———
+  const fa = setup.font_awesome;
+  if (fa && fa.core && fa.base_path) {
+    const base = (setup.general?.basePath || '') + fa.base_path.replace(/\/+$/, '') + '/';
+    const makeScript = (file) => {
+      const script = document.createElement('script');
+      script.src = base + file;
+      script.crossOrigin = 'anonymous';
+      if (fa.defer !== false) script.defer = true;
+      if (fa.async === true) script.async = true;
+      return script;
+    };
+
+    // Core
+    criticalFrag.appendChild(makeScript(fa.core));
+    logger.log(`Added FA core: ${base}${fa.core}`);
+
+    // Packages
+    if (Array.isArray(fa.packages) && fa.packages.length) {
+      fa.packages.forEach(pkg => {
+        criticalFrag.appendChild(makeScript(pkg));
+        logger.log(`Added FA package: ${base}${pkg}`);
+      });
+    }
   }
 
   // ——— HERO IMAGE PRELOAD ———

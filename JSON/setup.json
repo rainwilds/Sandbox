@@ -79,7 +79,13 @@
     ]
   },
   "font_awesome": {
-    "kit_url": "https://kit.fontawesome.com/85d1e578b1.js"
+    "base_path": "img/icons/fontawesome/",
+    "core": "js/fontawesome.min.js",
+    "packages": [
+      "utility-fill-semibold.min.js",
+      "utility-semibold.min.js"
+    ],
+    "defer": true
   },
   "media": {
     "responsive_images": {
