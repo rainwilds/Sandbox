@@ -52,7 +52,9 @@
       "loadStrategy": "on-user-interaction",
       "version": "3.7.3",
       "templatesUrl": "./plugins/snipcart.html",
-      "modalStyle": "side"
+      "modalStyle": "side",
+      "currency": "aud",
+      "loadCSS": true
     }
   },
   "business": {

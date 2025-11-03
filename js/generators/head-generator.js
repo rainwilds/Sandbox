@@ -407,12 +407,36 @@ async function updateHead(attributes, setup) {
     const snipcart = setup.general.snipcart;
     const script = document.createElement('script');
     script.id = 'snipcart';
-    script.src = `https://cdn.snipcart.com/themes/v${snipcart.version}/default/snipcart.${snipcart.version}.js`;
+    script.defer = true; // Required for deferred strategies
+
+    // Only pin version if explicitly set and non-empty
+    const version = snipcart.version && snipcart.version.trim() ? snipcart.version.trim() : '';
+    const baseUrl = version
+      ? `https://cdn.snipcart.com/themes/v${version}/default/snipcart.${version}.js`
+      : 'https://cdn.snipcart.com/themes/default/snipcart.js';
+
+    script.src = baseUrl;
+
+    // Core required attributes
     script.setAttribute('data-api-key', snipcart.publicApiKey);
-    script.setAttribute('data-config-modal-style', snipcart.modalStyle);
-    script.setAttribute('data-config-load-strategy', snipcart.loadStrategy);
+
+    // Optional config attributes
+    if (snipcart.modalStyle) script.setAttribute('data-config-modal-style', snipcart.modalStyle);
+    if (snipcart.loadStrategy) script.setAttribute('data-config-load-strategy', snipcart.loadStrategy);
     if (snipcart.templatesUrl) script.setAttribute('data-templates-url', snipcart.templatesUrl);
+    if (snipcart.currency) script.setAttribute('data-currency', snipcart.currency);
+    if (snipcart.loadCSS === false) {
+      script.setAttribute('data-config-load-css', 'false');
+    }
+
     deferredFrag.appendChild(script);
+    logger.log('Snipcart initialized', {
+      version: version || 'latest',
+      currency: snipcart.currency,
+      loadStrategy: snipcart.loadStrategy,
+      modalStyle: snipcart.modalStyle,
+      loadCSS: snipcart.loadCSS
+    });
   }
 
   head.appendChild(criticalFrag);
