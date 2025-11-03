@@ -407,35 +407,28 @@ async function updateHead(attributes, setup) {
     const snipcart = setup.general.snipcart;
     const script = document.createElement('script');
     script.id = 'snipcart';
-    script.defer = true; // Required for deferred strategies
+    script.defer = true;
 
-    // Only pin version if explicitly set and non-empty
     const version = snipcart.version && snipcart.version.trim() ? snipcart.version.trim() : '';
-    const baseUrl = version
+    script.src = version
       ? `https://cdn.snipcart.com/themes/v${version}/default/snipcart.${version}.js`
       : 'https://cdn.snipcart.com/themes/default/snipcart.js';
 
-    script.src = baseUrl;
-
-    // Core required attributes
     script.setAttribute('data-api-key', snipcart.publicApiKey);
-
-    // Optional config attributes
     if (snipcart.modalStyle) script.setAttribute('data-config-modal-style', snipcart.modalStyle);
     if (snipcart.loadStrategy) script.setAttribute('data-config-load-strategy', snipcart.loadStrategy);
     if (snipcart.templatesUrl) script.setAttribute('data-templates-url', snipcart.templatesUrl);
-    if (snipcart.currency) script.setAttribute('data-currency', snipcart.currency);
-    if (snipcart.loadCSS === false) {
-      script.setAttribute('data-config-load-css', 'false');
-    }
+
+    // Default currency (single value; multi-currency handled per-product)
+    if (snipcart.currency) script.setAttribute('data-currency', snipcart.currency.toLowerCase());  // e.g., "aud"
+
+    if (snipcart.loadCSS === false) script.setAttribute('data-config-load-css', 'false');
 
     deferredFrag.appendChild(script);
-    logger.log('Snipcart initialized', {
+    logger.log('Snipcart initialized with multi-currency support', {
+      defaultCurrency: snipcart.currency,
       version: version || 'latest',
-      currency: snipcart.currency,
-      loadStrategy: snipcart.loadStrategy,
-      modalStyle: snipcart.modalStyle,
-      loadCSS: snipcart.loadCSS
+      loadStrategy: snipcart.loadStrategy
     });
   }
 

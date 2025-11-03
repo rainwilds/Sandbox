@@ -8,6 +8,8 @@ The `setup.json` file is a centralized configuration file that defines global, s
 - Add your site’s domain (e.g., `rainwilds.github.io`) to the allowed domains list.
 - Test to ensure Snipcart only works on your whitelisted domain.
 
+> **Note**: If the `version` field in `general.snipcart` is empty (`""`) or omitted, the **latest version** of Snipcart will be loaded automatically.
+
 ## General Section
 
 The `general` section contains site-wide metadata and settings that apply to all pages unless overridden by `<data-custom-head>` attributes.
@@ -15,18 +17,34 @@ The `general` section contains site-wide metadata and settings that apply to all
 | Property Name | Description | Default Value | Expected Format |
 |---------------|-------------|---------------|-----------------|
 | author | Specifies the site’s author for the `<meta name="author">` tag. | `'David Dufourq'` | Plain text (e.g., `'Jane Doe'`) |
-| favicons | Defines favicon links for various devices. | `[]` (empty array) | Array of objects with `rel`, `href`, optional `type`, and optional `sizes` (e.g., `[{ "rel": "apple-touch-icon", "sizes": "180x180", "href": "../Sandbox/img/icons/apple-touch-icon.png" }`) |
+| basePath | Defines the base path for the site (used in routing and asset resolution). | `"/Sandbox/"` | String (e.g., `"/"`, `"/my-site/"`) |
+| favicons | Defines favicon links for various devices. | `[]` (empty array) | Array of objects with `rel`, `href`, optional `type`, and optional `sizes` |
 | include_e_commerce | Enables Snipcart e-commerce functionality when `true`. | `false` | Boolean (`true` or `false`) |
 | og.locale | Sets the Open Graph locale for the site’s language/region. | `'en_AU'` | Valid locale string (e.g., `'en_US'`, `'fr_FR'`) |
 | og.site_name | Specifies the site name for Open Graph metadata. | `'Behive'` | Plain text (e.g., `'Behive Media'`) |
-| robots | Defines the `<meta name="robots">` content for search engine indexing. | `'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'` | Comma-separated robots directives (e.g., `'noindex, nofollow'`) |
-| snipcart | Configures Snipcart e-commerce settings. | `{}` (empty object) | Object with `publicApiKey`, `loadStrategy`, `version`, `templatesUrl`, `modalStyle` (e.g., `{ "publicApiKey": "NTMz...", "loadStrategy": "on-user-interaction", "version": "3.7.3", "templatesUrl": "/Sandbox/plugins/snipcart.html", "modalStyle": "side" }`) |
-| theme_colors.dark | Specifies the theme color for dark mode in `<meta name="theme-color">`. | `'#000000'` | Valid CSS color (e.g., `'#141b32'`, `'rgb(20, 27, 50)'`) |
-| theme_colors.light | Specifies the theme color for light mode in `<meta name="theme-color">`. | `'#ffffff'` | Valid CSS color (e.g., `'#faf9f3'`, `'rgb(250, 249, 243)'`) |
+| og.type | Defines the Open Graph content type. | `'website'` | Valid OG type (e.g., `'website'`, `'article'`) |
+| og.image | URL of the default image used in Open Graph sharing. | `"https://rainwilds.github.io/img/logo.jpg"` | Valid image URL |
+| robots | Defines the `<meta name="robots">` content for search engine indexing. | `'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1'` | Comma-separated robots directives |
+| snipcart | Configures Snipcart e-commerce settings. | `{}` (empty object) | Object — see **Snipcart Sub-Properties** below |
 | x.card | Sets the Twitter/X card type for social sharing. | `'summary_large_image'` | One of: `'summary'`, `'summary_large_image'`, `'app'`, `'player'` |
 | x.domain | Specifies the domain for Twitter/X metadata. | `'rainwilds.github.io'` | Valid domain name (e.g., `'example.com'`) |
+| x.site | Twitter/X handle for the site (with `@`). | `'@behive'` | String starting with `@` |
 
-**Note**: Properties like `title`, `description`, `og:title`, `x:url`, etc., are page-specific and managed via `<data-custom-head>` attributes, not `setup.json`.
+### Snipcart Sub-Properties (`general.snipcart`)
+
+| Property | Description | Default | Expected Format |
+|--------|-------------|---------|-----------------|
+| publicApiKey | Your Snipcart public API key (required for e-commerce). | `""` | String (e.g., `"NTMzMT...YWNl..."`) |
+| loadStrategy | When to load Snipcart script. | `"on-user-interaction"` | `"on-user-interaction"` or `"immediate"` |
+| version | Specific Snipcart version to load. **Leave empty to use latest.** | `"3.7.3"` | String (e.g., `"3.7.3"`, `""`) |
+| templatesUrl | Path to custom Snipcart HTML templates. | `"./plugins/snipcart.html"` | Relative or absolute URL |
+| modalStyle | Cart modal layout style. | `"side"` | `"side"` or `"bottom"` |
+| currency | Default currency for transactions. | `"aud"` | ISO 4217 code (e.g., `"usd"`, `"eur"`) |
+| loadCSS | Whether to load Snipcart’s default CSS. | `true` | Boolean |
+
+> **Important**: Always whitelist your domain in the Snipcart dashboard to protect your `publicApiKey`.
+
+---
 
 ## Business Section
 
@@ -34,44 +52,39 @@ The `business` section provides data for JSON-LD schema markup representing the 
 
 | Property Name | Description | Default Value | Expected Format |
 |---------------|-------------|---------------|-----------------|
-| address.addressCountry | Specifies the country for the business address. | `'AU'` | ISO 3166-1 alpha-2 country code (e.g., `'US'`) |
-| address.addressLocality | Defines the city or locality of the business address. | `'Melbourne'` | Plain text (e.g., `'Sydney'`) |
-| address.addressRegion | Specifies the state or region of the business address. | `'VIC'` | Region abbreviation or name (e.g., `'NSW'`) |
-| address.postalCode | Sets the postal code for the business address. | `'3000'` | Postal code (e.g., `'2000'`) |
-| address.streetAddress | Specifies the street address of the business. | `'456 Creative Lane'` | Plain text (e.g., `'123 Main St'`) |
-| geo.latitude | Provides the latitude for the business location. | `-37.8136` | Numeric value (e.g., `40.7128`) |
-| geo.longitude | Provides the longitude for the business location. | `144.9631` | Numeric value (e.g., `-74.0060`) |
-| image | Specifies the URL for the business image in schema markup. | `'https://rainwilds.github.io/Sandbox/img/logo.jpg'` | Valid image URL |
-| logo | Specifies the URL for the business logo in schema markup. | `'https://rainwilds.github.io/Sandbox/img/logo.jpg'` | Valid image URL |
-| name | Defines the business name for schema markup. | `'Behive'` | Plain text (e.g., `'Behive Media'`) |
-| openingHours | Specifies the business’s opening hours. | `'Mo-Fr 09:00-18:00'` | Schema.org opening hours format (e.g., `'Mo,Tu,We 09:00-17:00'`) |
-| sameAs | Lists social media or other URLs for the business. | `['https://www.facebook.com/behive', 'https://www.instagram.com/behive']` | Array of valid URLs |
-| telephone | Specifies the business’s contact phone number. | `'+61-3-9876-5432'` | International phone number format (e.g., `'+1-123-456-7890'`) |
-| url | Defines the canonical URL for the business. | `'https://rainwilds.github.io/Sandbox/'` | Valid URL |
+| address.addressCountry | Country of the business. | `'AU'` | ISO 3166-1 alpha-2 |
+| address.addressLocality | City/locality. | `'Melbourne'` | Plain text |
+| address.addressRegion | State/region. | `'VIC'` | Abbreviation or name |
+| address.postalCode | Postal/ZIP code. | `'3000'` | String |
+| address.streetAddress | Street address. | `'456 Creative Lane'` | Plain text |
+| geo.latitude | Geographic latitude. | `-37.8136` | Number |
+| geo.longitude | Geographic longitude. | `144.9631` | Number |
+| image | Business image URL (for schema). | `"https://rainwilds.github.io/img/logo.jpg"` | Valid URL |
+| logo | Business logo URL (for schema). | `"https://rainwilds.github.io/img/logo.jpg"` | Valid URL |
+| name | Business name. | `'Behive'` | Plain text |
+| openingHours | Operating hours in schema format. | `'Mo-Fr 09:00-18:00'` | Schema.org format |
+| sameAs | Array of social profile URLs. | `["https://www.facebook.com/behive", "https://www.instagram.com/behive"]` | Array of URLs |
+| telephone | Contact phone number. | `'+61-3-9876-5432'` | E.164 format recommended |
+| url | Canonical business URL. | `'https://rainwilds.github.io'` | Valid URL |
+
+---
 
 ## Fonts Section
 
-The `fonts` section defines font resources to be preloaded for performance optimization.
+The `fonts` section defines font resources to be **preloaded** for performance.
 
-| Property Name | Description | Default Value | Expected Format |
-|---------------|-------------|---------------|-----------------|
-| crossorigin | Specifies the CORS mode for font preloading. | `'anonymous'` | String (`'anonymous'`) |
-| href | Specifies the URL of the font file to preload. | `''` (empty) | Valid font file URL (e.g., `'../fonts/Futura_PT_Demi.woff2'`) |
-| type | Defines the MIME type of the font file. | `'font/woff2'` | Valid MIME type (e.g., `'font/woff2'`, `'font/ttf'`) |
-
-**Note**: Each font is an object in an array (e.g., `[{ "href": "../fonts/Futura_PT_Demi.woff2", "type": "font/woff2", "crossorigin": "anonymous" }]`).
-
-## Font Faces Section
-
-The `font_faces` section defines `@font-face` rules for custom fonts, injected dynamically into a `<style data-font-faces>` tag by `head-generator.js`.
-
-| Property Name | Description | Default Value | Expected Format |
-|---------------|-------------|---------------|-----------------|
-| family | Specifies the font family name used in CSS (e.g., in `font-family`). | `''` (empty) | String (e.g., `'Futura_PT_Demi'`) |
-| src | Specifies the URL of the font file. | `''` (empty) | Valid font file URL (e.g., `'../fonts/Futura_PT_Demi.woff2'`) |
-| format | Defines the font file format. | `''` (empty) | String (e.g., `'woff2'`, `'woff'`, `'ttf'`) |
-| weight | Sets the font weight. | `'normal'` | CSS font weight (e.g., `'normal'`, `'bold'`, `400`, `700`) |
-| style | Sets the font style. | `'normal'` | CSS font style (e.g., `'normal'`, `'italic'`) |
-| display | Specifies the font display strategy to control rendering behavior. | `'swap'` | One of: `'auto'`, `'block'`, `'swap'`, `'fallback'`, `'optional'` |
-
-**Note**: Each font face is an object in an array (e.g., `[{ "family": "Futura_PT_Demi", "src": "../fonts/Futura_PT_Demi.woff2", "format": "woff2", "weight": "normal", "style": "normal", "display
+```json
+"fonts": [
+  {
+    "href": "./fonts/Futura_PT_Demi.woff2",
+    "as": "font",
+    "type": "font/woff2",
+    "crossorigin": "anonymous"
+  },
+  {
+    "href": "./fonts/futura_pt_book.woff2",
+    "as": "font",
+    "type": "font/woff2",
+    "crossorigin": "anonymous"
+  }
+]
