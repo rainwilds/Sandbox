@@ -1,27 +1,93 @@
 # Custom Logo Documentation
 
-The `<custom-logo>` is a Web Component designed to display a customizable logo image with support for responsive sources across different screen sizes and light/dark modes. It integrates with the `generateLogoMarkup` function from an external module (`image-generator.js`) to render the logo markup. The component provides attributes to control the logo's source, alternate text, and positioning. Below is a detailed explanation of all attributes, grouped into Logo Attributes, presented in alphabetical order.
+The `<custom-logo>` is a Web Component designed to display a customizable logo with support for **responsive breakpoints** and **light/dark mode switching** using the `<picture>` element and `prefers-color-scheme`. It supports **two logo variants**:
+- **Full logo** (default for larger screens)
+- **Icon logo** (used below a configurable breakpoint)
+
+The component **does not** use `generatePictureMarkup` from `image-generator.js` — instead, it **generates the `<picture>` markup internally** with full control over media queries, fallbacks, and accessibility.
+
+---
 
 ## Logo Attributes
 
+All attributes are **prefixed** and grouped into **full logo**, **icon logo**, and **layout** controls.
+
+### Full Logo (Default / Large Screens)
+
 | Attribute Name | Description | Default Value | Expected Format |
 |----------------|-------------|---------------|-----------------|
-| logo-dark-alt | Provides the alt text for the logo image in dark mode for accessibility. | `''` (empty) | Plain text (e.g., `Dark mode logo`) |
-| logo-dark-src | Specifies the source URL for the logo image in dark mode. Must be paired with `logo-light-src`. | `''` (empty) | Valid image URL (e.g., `logo-dark.jpg`) |
-| logo-light-alt | Provides the alt text for the logo image in light mode for accessibility. | `''` (empty) | Plain text (e.g., `Light mode logo`) |
-| logo-light-src | Specifies the source URL for the logo image in light mode. Must be paired with `logo-dark-src`. | `''` (empty) | Valid image URL (e.g., `logo-light.jpg`) |
-| logo-mobile-dark-src | Specifies the source URL for the logo image in dark mode on mobile screens. Must be paired with `logo-mobile-light-src`. | `''` (empty) | Valid image URL (e.g., `logo-mobile-dark.jpg`) |
-| logo-mobile-light-src | Specifies the source URL for the logo image in light mode on mobile screens. Must be paired with `logo-mobile-dark-src`. | `''` (empty) | Valid image URL (e.g., `logo-mobile-light.jpg`) |
-| logo-mobile-src | Specifies the source URL for the logo image on mobile screens. | `''` (empty) | Valid image URL (e.g., `logo-mobile.jpg`) |
-| logo-position | Controls the alignment of the logo within its container. | `''` (empty) | One of: `center`, `top`, `bottom`, `left`, `right`, `top-left`, `top-center`, `top-right`, `bottom-left`, `bottom-center`, `bottom-right`, `center-left`, `center-right` |
-| logo-primary-alt | Provides the alt text for the default logo image for accessibility. | `''` (empty) | Plain text (e.g., `Default logo`) |
-| logo-primary-src | Specifies the default source URL for the logo image. | `''` (empty) | Valid image URL (e.g., `logo.jpg`) |
-| logo-tablet-dark-src | Specifies the source URL for the logo image in dark mode on tablet screens. Must be paired with `logo-tablet-light-src`. | `''` (empty) | Valid image URL (e.g., `logo-tablet-dark.jpg`) |
-| logo-tablet-light-src | Specifies the source URL for the logo image in light mode on tablet screens. Must be paired with `logo-tablet-dark-src`. | `''` (empty) | Valid image URL (e.g., `logo-tablet-light.jpg`) |
-| logo-tablet-src | Specifies the source URL for the logo image on tablet screens. | `''` (empty) | Valid image URL (e.g., `logo-tablet.jpg`) |
+| `logo-full-primary-src` | Default full logo image (used when no light/dark variants are provided). | `''` | Valid image URL (e.g., `/assets/logo-full.svg`) |
+| `logo-full-light-src` | Full logo for **light mode**. Must be paired with `logo-full-dark-src`. | `''` | Valid image URL |
+| `logo-full-dark-src` | Full logo for **dark mode**. Must be paired with `logo-full-light-src`. | `''` | Valid image URL |
+| `logo-full-primary-alt` | Alt text for the primary full logo. Required if `logo-full-primary-src` is used and logo is not decorative. | `''` | Plain text |
+| `logo-full-light-alt` | Alt text for light mode full logo. Required with `logo-full-light-src`. | `''` | Plain text |
+| `logo-full-dark-alt` | Alt text for dark mode full logo. Required with `logo-full-dark-src`. | `''` | Plain text |
+| `logo-full-position` | Alignment of the full logo within its container. | `center` | One of: `center`, `top`, `bottom`, `left`, `right`, `top-left`, `top-center`, `top-right`, `bottom-left`, `bottom-center`, `bottom-right`, `center-left`, `center-right` |
 
-## Notes
-- The `<custom-logo>` component relies on the `generateLogoMarkup` function from `image-generator.js` to generate the logo's HTML markup, which supports responsive images and light/dark mode switching.
-- The logo is wrapped in an `<a>` tag with `href="/"`, making it a clickable link to the homepage.
-- If no valid logo sources are provided (e.g., `logo-primary-src`, `logo-light-src`, `logo-dark-src`, `logo-mobile-src`, or `logo-tablet-src`), a placeholder div with the message "No logo sources provided" is rendered, and a console warning is logged.
-- The `logo-light-src` and `logo-dark-src` attributes must be provided together, as must `logo-mobile-light-src` and `logo-mobile
+### Icon Logo (Small Screens)
+
+| Attribute Name | Description | Default Value | Expected Format |
+|----------------|-------------|---------------|-----------------|
+| `logo-icon-primary-src` | Default icon logo (used when no light/dark variants are provided). | `''` | Valid image URL (e.g., `/assets/logo-icon.svg`) |
+| `logo-icon-light-src` | Icon logo for **light mode**. Must be paired with `logo-icon-dark-src`. | `''` | Valid image URL |
+| `logo-icon-dark-src` | Icon logo for **dark mode**. Must be paired with `logo-icon-light-src`. | `''` | Valid image URL |
+| `logo-icon-primary-alt` | Alt text for primary icon logo. Required if `logo-icon-primary-src` is used and not decorative. | `''` | Plain text |
+| `logo-icon-light-alt` | Alt text for light mode icon. Required with `logo-icon-light-src`. | `''` | Plain text |
+| `logo-icon-dark-alt` | Alt text for dark mode icon. Required with `logo-icon-dark-src`. | `''` | Plain text |
+| `logo-icon-position` | Alignment of the **icon logo** on small screens. | `center` | Same as `logo-full-position` |
+
+### Layout & Behavior
+
+| Attribute Name | Description | Default Value | Expected Format |
+|----------------|-------------|---------------|-----------------|
+| `logo-breakpoint` | Screen width (in pixels) **below which the icon logo is shown**. | `''` (no breakpoint) | Positive integer (e.g., `768`) |
+| `logo-height` | Fixed height for the logo (applies to `<img>`). | `''` | CSS length (e.g., `40px`, `2.5rem`, `10vh`) |
+
+---
+
+## Key Features
+
+### 1. **Responsive Breakpoint Switching**
+- If `logo-breakpoint="768"` and `logo-icon-*` sources are provided:
+  - **Below 768px**: Uses **icon logo** with `logo-icon-position`
+  - **768px and above**: Uses **full logo** with `logo-full-position`
+
+### 2. **Light/Dark Mode Support**
+- Uses `prefers-color-scheme` media queries.
+- Supports **paired** light/dark sources:
+  - `logo-full-light-src` + `logo-full-dark-src`
+  - `logo-icon-light-src` + `logo-icon-dark-src`
+- Falls back to `*-primary-src` if light/dark pair is incomplete.
+
+### 3. **Accessibility**
+- **Decorative logos**: If **all alt attributes are empty**, `alt=""` and `role="presentation"` are applied.
+- **Required alt text**:
+  - `logo-full-primary-alt` required if `logo-full-primary-src` is used
+  - Both `logo-full-light-alt` and `logo-full-dark-alt` required if light/dark pair is used
+  - Same rules apply to icon variants
+
+### 4. **Validation & Fallbacks**
+- Validates image URLs via `HEAD` request (skipped in debug mode).
+- Invalid or missing sources → renders placeholder (`placehold.co/300x40`).
+- Caches rendered markup based on **critical attributes** to avoid unnecessary re-renders.
+
+### 5. **Performance**
+- Uses `IntersectionObserver` to defer initialization until visible.
+- `loading="lazy"` and `fetchpriority="high"` on `<img>`.
+- `onerror` fallback to placeholder.
+
+---
+
+## Example Usage
+
+```html
+<custom-logo
+  logo-full-primary-src="/assets/logo-full.svg"
+  logo-full-primary-alt="My Company"
+  logo-icon-primary-src="/assets/logo-icon.svg"
+  logo-icon-primary-alt="My Company"
+  logo-breakpoint="640"
+  logo-height="40px"
+  logo-full-position="center"
+  logo-icon-position="center-left">
+</custom-logo>
