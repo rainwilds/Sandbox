@@ -284,7 +284,6 @@ class CustomSlider extends HTMLElement {
                 ? iElement.className.split(/\s+/)
                 : decodedIcon.split(/\s+/);
 
-            // Accept: any fa-*, fa-chisel, fa-utility, fa-utility-fill, fa-semibold
             const validClasses = rawClasses.filter(cls =>
                 /^fa-/.test(cls) || cls === 'fa-chisel' || cls === 'fa-utility' || cls === 'fa-utility-fill' || cls === 'fa-semibold'
             );
@@ -393,8 +392,35 @@ class CustomSlider extends HTMLElement {
         };
     }
 
-    // ... [ALL OTHER METHODS UNCHANGED — KEEP YOUR ORIGINAL CODE] ...
-    // (getCurrentBreakpoint, getSlidesPerView, applySlidesPerView, etc.)
+    // ——— RESTORED: Required for render() ———
+    #getCurrentBreakpoint() {
+        if (!this.#attrs || !this.#attrs.useBreakpoints) {
+            return null;
+        }
+        const width = window.innerWidth;
+        let selectedBreakpoint = 'large';
+        if (!VIEWPORT_BREAKPOINTS || !Array.isArray(VIEWPORT_BREAKPOINTS)) {
+            return selectedBreakpoint;
+        }
+        for (const bp of VIEWPORT_BREAKPOINTS) {
+            if (width <= bp.maxWidth) {
+                selectedBreakpoint = bp.name;
+                break;
+            }
+        }
+        return selectedBreakpoint;
+    }
+
+    #getSlidesPerView() {
+        if (!this.#attrs) {
+            return 1;
+        }
+        if (!this.#attrs.useBreakpoints) {
+            return this.#attrs.defaultSlidesPerView;
+        }
+        const bp = this.#getCurrentBreakpoint();
+        return this.#attrs.slidesPerViewConfig[bp] ?? this.#attrs.defaultSlidesPerView;
+    }
 
     async render(attrs) {
         const sliderWrapper = document.createElement('div');
@@ -520,7 +546,82 @@ class CustomSlider extends HTMLElement {
         return sliderWrapper;
     }
 
-    // ... [ALL OTHER METHODS UNCHANGED — KEEP YOUR ORIGINAL CODE] ...
+    async initialize() {
+        if (this.isInitialized || !this.isVisible) {
+            this.#log('Initialization skipped', { isInitialized: this.isInitialized, isVisible: this.isVisible, elementId: this.#uniqueId });
+            return;
+        }
+        this.isInitialized = true;
+        this.#log('Initialization started', { elementId: this.#uniqueId });
+        try {
+            const attrs = await this.getAttributes();
+            if (!attrs.useBreakpoints && !this.hasAttribute('slides-per-view')) {
+                this.#error('slides-per-view attribute is required when not using breakpoint-specific attributes', { elementId: this.#uniqueId });
+                attrs.defaultSlidesPerView = 1;
+                attrs.slidesPerView = 1;
+            }
+            this.#attrs = attrs;
+            this.#attrs.slidesPerView = this.#getSlidesPerView();
+            const sliderElement = await this.render(attrs);
+            if (sliderElement) {
+                this.replaceWith(sliderElement);
+                this.#setupSlider();
+                this.#log('Initialization completed', { elementId: this.#uniqueId });
+            } else {
+                this.#error('Render returned null, using fallback', { elementId: this.#uniqueId });
+                const fallback = await this.render({
+                    autoplayType: 'none',
+                    autoplayDelay: 0,
+                    continuousSpeed: 0,
+                    defaultSlidesPerView: 1,
+                    slidesPerViewConfig: {},
+                    useBreakpoints: false,
+                    navigation: false,
+                    gap: '0',
+                    pagination: false,
+                    paginationIconActive: '<i class="fa-solid fa-circle"></i>',
+                    paginationIconInactive: '<i class="fa-regular fa-circle"></i>',
+                    iconSizeBackground: '',
+                    iconSizeForeground: '',
+                    paginationIconSizeActive: '',
+                    paginationIconSizeInactive: '',
+                    crossFade: false,
+                    infiniteScrolling: false,
+                    pauseOnHover: false
+                });
+                this.replaceWith(fallback);
+            }
+        } catch (error) {
+            this.#error('Initialization failed', {
+                error: error.message,
+                stack: error.stack,
+                elementId: this.#uniqueId
+            });
+            const fallback = await this.render({
+                autoplayType: 'none',
+                autoplayDelay: 0,
+                continuousSpeed: 0,
+                defaultSlidesPerView: 1,
+                slidesPerViewConfig: {},
+                useBreakpoints: false,
+                navigation: false,
+                gap: '0',
+                pagination: false,
+                paginationIconActive: '<i class="fa-solid fa-circle"></i>',
+                paginationIconInactive: '<i class="fa-regular fa-circle"></i>',
+                iconSizeBackground: '',
+                iconSizeForeground: '',
+                paginationIconSizeActive: '',
+                paginationIconSizeInactive: '',
+                crossFade: false,
+                infiniteScrolling: false,
+                pauseOnHover: false
+            });
+            this.replaceWith(fallback);
+        }
+    }
+
+    // ... [ALL OTHER METHODS — KEEP YOUR ORIGINAL CODE] ...
 
     async connectedCallback() {
         this.#childElements = Array.from(this.children)
