@@ -2088,6 +2088,7 @@ div#products {
         grid-area: 1 / 1;
         cursor: pointer;
         color: light-dark(var(--color-accent-opaque-dark-scale-6), var(--color-accent-opaque-light-scale-6));
+        font-size: inherit;
     }
 
     &> :is(i:first-child, svg:first-of-type) {
