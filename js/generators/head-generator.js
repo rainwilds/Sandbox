@@ -3,7 +3,6 @@
 'use strict';
 
 import { getConfig } from '../config.js';
-import { VIEWPORT_BREAKPOINTS } from '../shared.js';
 
 const isDev = window.location.pathname.includes('/dev/') || new URLSearchParams(window.location.search).get('debug') === 'true';
 
@@ -18,7 +17,7 @@ const createLogger = (prefix) => ({
   },
   warn: (message, data = null) => {
     if (isDev) {
-      console.groupCollapsed(`%c[${prefix}] Warning: ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
+      console.groupCollapsed(`%c[${prefix}] ⚠️ ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
       if (data) console.log('%cData:', 'color: #4CAF50;', data);
       console.trace();
       console.groupEnd();
@@ -26,7 +25,7 @@ const createLogger = (prefix) => ({
   },
   error: (message, data = null) => {
     if (isDev) {
-      console.groupCollapsed(`%c[${prefix}] Error: ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
+      console.groupCollapsed(`%c[${prefix}] ❌ ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
       if (data) console.log('%cData:', 'color: #4CAF50;', data);
       console.trace();
       console.groupEnd();
@@ -46,8 +45,7 @@ const DEPENDENCIES = {
   'custom-nav': ['shared'],
   'custom-logo': ['image-generator', 'shared'],
   'custom-header': ['image-generator', 'shared'],
-  'custom-slider': ['custom-block'],
-  'custom-filter': ['shared']
+  'custom-slider': ['custom-block']  // New: Depends on custom-block
 };
 
 const PATH_MAP = {
@@ -59,8 +57,7 @@ const PATH_MAP = {
   'custom-nav': '../components/custom-nav.js',
   'custom-logo': '../components/custom-logo.js',
   'custom-header': '../components/custom-header.js',
-  'custom-slider': '../components/custom-slider.js',
-  'custom-filter': '../components/custom-filter.js'
+  'custom-slider': '../components/custom-slider.js'  // New
 };
 
 async function loadModule(moduleName) {
@@ -96,6 +93,28 @@ async function loadComponentWithDependencies(componentName) {
   collectDependencies(componentName);
   const loadOrder = [...allDependencies, componentName];
   logger.log(`Load order for ${componentName}:`, loadOrder);
+  
+  // New: Load SwiperJS CDN scripts/styles before custom-slider
+  if (componentName === 'custom-slider') {
+    const head = document.head;
+    const criticalFrag = document.createDocumentFragment();
+    
+    // Core Swiper CSS
+    const swiperCss = document.createElement('link');
+    swiperCss.rel = 'stylesheet';
+    swiperCss.href = 'https://unpkg.com/swiper@10/swiper-bundle.min.css';
+    criticalFrag.appendChild(swiperCss);
+    logger.log('Added Swiper CSS', { href: swiperCss.href });
+
+    // Core Swiper JS
+    const swiperJs = document.createElement('script');
+    swiperJs.src = 'https://unpkg.com/swiper@10/swiper-bundle.min.js';
+    swiperJs.defer = true;
+    criticalFrag.appendChild(swiperJs);
+    logger.log('Added Swiper JS', { src: swiperJs.src });
+
+    head.appendChild(criticalFrag);
+  }
 
   const loadPromises = loadOrder.map(moduleName => loadModule(moduleName));
   const results = await Promise.all(loadPromises);
@@ -141,10 +160,9 @@ async function loadComponents(componentList) {
 async function updateHead(attributes, setup) {
   logger.log('updateHead called with attributes', attributes);
   const head = document.head;
+  logger.log('Head before update:', Array.from(head.children).map(el => el.outerHTML));
   const criticalFrag = document.createDocumentFragment();
   const deferredFrag = document.createDocumentFragment();
-
-  // ——— FONT PRELOAD ———
   const validFonts = (setup.fonts || []).filter(font => font.href || font.url);
   if (validFonts.length > 0) {
     validFonts.forEach(font => {
@@ -158,150 +176,39 @@ async function updateHead(attributes, setup) {
       criticalFrag.appendChild(link);
       logger.log(`Added font preload: ${fontUrl}`);
     });
+  } else {
+    logger.warn('No valid fonts in setup.json; relying on CSS @font-face');
   }
-
-  // ——— STYLESHEETS ———
   const styleLink = document.createElement('link');
   styleLink.rel = 'stylesheet';
   styleLink.href = './styles.css';
   criticalFrag.appendChild(styleLink);
+  logger.log('Applied stylesheet: ./styles.css');
 
+  // Add custom.css after styles.css
   const customStyleLink = document.createElement('link');
   customStyleLink.rel = 'stylesheet';
   customStyleLink.href = './custom.css';
   criticalFrag.appendChild(customStyleLink);
+  logger.log('Applied custom stylesheet: ./custom.css');
 
-  // ——— FONT AWESOME: OPTIMIZED (CORE FOR REPLACEMENT, NO 180KB CSS) ———
-  const fa = setup.font_awesome;
-  if (fa && fa.base_path) {
-    const base = (setup.general?.basePath || '') + fa.base_path.replace(/\/+$/, '') + '/';
-
-    const makeScript = (file, defer = true) => {
-      const script = document.createElement('script');
-      script.src = base + file;
-      script.crossOrigin = 'anonymous';
-      if (defer && fa.defer !== false) script.defer = true;
-      if (fa.async === true) script.async = true;
-      return script;
-    };
-
-    // 1. Disable the massive CSS injection (still ~4 KB total CSS from packages)
-    const disableCssScript = document.createElement('script');
-    disableCssScript.textContent = `window.FontAwesomeConfig = { autoAddCss: false };`;
-    criticalFrag.appendChild(disableCssScript);
-    logger.log('Font Awesome: autoAddCss disabled → no 180 KB bloat');
-
-    // 2. Load core FIRST (for auto-replacement observer)
-    if (fa.core) {
-      criticalFrag.appendChild(makeScript(fa.core));
-      logger.log(`Added FA core (light): ${base}${fa.core}`);
-    } else {
-      logger.warn('No FA core defined — auto-replacement may not work');
-    }
-
-    // 3. Load packages AFTER core
-    if (Array.isArray(fa.packages) && fa.packages.length) {
-      fa.packages.forEach(pkg => {
-        criticalFrag.appendChild(makeScript(pkg));
-        logger.log(`Added FA package: ${base}${pkg}`);
-      });
-    } else {
-      logger.warn('Font Awesome enabled but no packages defined in setup.json');
-    }
+  const faKitUrl = setup.font_awesome?.kit_url ?? setup.font_awesome?.kitUrl;
+  if (faKitUrl) {
+    const script = document.createElement('script');
+    script.src = faKitUrl;
+    script.crossOrigin = 'anonymous';
+    script.async = true;
+    criticalFrag.appendChild(script);
+    logger.log(`Added Font Awesome Kit script: ${faKitUrl}`);
+  } else {
+    logger.warn('No Font Awesome kit URL found; icons may not load');
   }
-
-  // ——— HERO IMAGE PRELOAD ———
-  if (attributes.heroImage && attributes.heroCount) {
-    const count = Math.max(1, parseInt(attributes.heroCount) || 0);
-    if (count === 0) {
-      logger.log('Hero preload skipped: hero-count=0');
-    } else {
-      const imageTemplates = attributes.heroImage
-        .split(',')
-        .map(s => s.trim())
-        .filter(Boolean);
-
-      if (imageTemplates.length > 0) {
-        const actualCount = Math.min(count, imageTemplates.length);
-
-        const defaultWidths = VIEWPORT_BREAKPOINTS
-          .map(bp => bp.maxWidth)
-          .filter(w => Number.isFinite(w));
-        const widths = attributes.heroWidths
-          ? attributes.heroWidths.split(',').map(w => parseInt(w.trim())).filter(w => w > 0)
-          : defaultWidths;
-
-        const sizes = attributes.heroSize || '100vw';
-        const format = attributes.heroFormat || 'avif';
-
-        // Load paths from config (same as image-generator.js)
-        const [responsivePath, primaryPath] = await Promise.all([
-          import('../config.js').then(m => m.getImageResponsivePath()),
-          import('../config.js').then(m => m.getImagePrimaryPath())
-        ]);
-
-        const largestWidth = Math.max(...widths);
-        const isJpg = format === 'jpg';
-        const usePrimary = isJpg && largestWidth === 3840;
-
-        for (let i = 0; i < actualCount; i++) {
-          let raw = imageTemplates[i];
-
-          // Normalize input: remove path, extension, and any existing -XXXX
-          const hasFullPath = raw.startsWith('/');
-          const cleanName = raw
-            .replace(/^\/+/, '')
-            .replace(/-\d+$/, '')
-            .replace(/\.[^/.]+$/, '');
-
-          // Build srcset: ALL sizes get -WIDTH except the largest (unless primary JPG)
-          const srcset = widths
-            .map(w => {
-              const isLargest = w === largestWidth;
-              const filename = isLargest && !usePrimary
-                ? `${cleanName}.${format}`  // ← largest AVIF/WebP: NO suffix
-                : `${cleanName}-${w}.${format}`;
-              const path = (isLargest && usePrimary) ? primaryPath : responsivePath;
-              return `${path}${filename} ${w}w`;
-            })
-            .join(', ');
-
-          // href = largest image
-          const hrefFilename = usePrimary
-            ? `${cleanName}.${format}`  // primary JPG: no suffix
-            : `${cleanName}.${format}`; // ← largest AVIF: NO -3840
-
-          const hrefPath = usePrimary ? primaryPath : responsivePath;
-          const finalHref = `${hrefPath}${hrefFilename}`;
-
-          const link = document.createElement('link');
-          link.rel = 'preload';
-          link.as = 'image';
-          link.href = finalHref;
-          link.imagesrcset = srcset;
-          link.imagesizes = sizes;
-          link.importance = 'high';
-          criticalFrag.appendChild(link);
-
-          logger.log(`HERO SLIDE ${i + 1}/${actualCount} PRELOADED`, {
-            href: finalHref,
-            srcset,
-            format,
-            largest: largestWidth,
-            usePrimary,
-            hasFullPath,
-            cleanName
-          });
-        }
-      }
-    }
-  }
-
-  // ——— META TAGS ———
+  // Updated: Conditional OG meta tags based on presence of page attributes
   let metaTags = [];
   const hasPageAttributes = Object.keys(attributes).length > 0;
 
   if (hasPageAttributes) {
+    // Full set with overrides and fallbacks
     metaTags = [
       { name: 'robots', content: setup.general?.robots },
       { name: 'title', content: attributes.title ?? setup.general?.title },
@@ -323,6 +230,7 @@ async function updateHead(attributes, setup) {
       { name: 'twitter:image', content: setup.business?.image }
     ].filter(tag => tag.content?.trim());
   } else {
+    // Minimal set: Critical, non-page-specific OG properties from setup.json
     metaTags = [
       { name: 'og:locale', property: true, content: setup.general?.og?.locale ?? setup.general?.ogLocale },
       { name: 'og:site_name', property: true, content: setup.general?.og?.site_name ?? setup.general?.siteName },
@@ -340,38 +248,47 @@ async function updateHead(attributes, setup) {
     else meta.name = name;
     meta.content = content;
     criticalFrag.appendChild(meta);
+    logger.log(`Added ${property ? 'property' : 'name'} "${name}" with content: ${content}`);
   });
-
-  // ——— CANONICAL ———
   const canonicalUrl = attributes.canonical ?? setup.general?.canonical ?? window.location.href;
   const canonicalLink = document.createElement('link');
   canonicalLink.rel = 'canonical';
   canonicalLink.href = canonicalUrl;
   criticalFrag.appendChild(canonicalLink);
+  logger.log('Added canonical link: ' + canonicalUrl);
 
-  // ——— THEME COLOR ———
+  // Delayed: Query CSS vars for theme colors after a microtask (to ensure CSS is parsed)
   setTimeout(() => {
     const rootStyles = getComputedStyle(document.documentElement);
     const lightTheme = rootStyles.getPropertyValue('--color-light-scale-1').trim();
     const darkTheme = rootStyles.getPropertyValue('--color-dark-scale-1').trim();
 
+    // Fallback: If CSS vars are empty, skip adding meta tags (browser defaults)
     if (lightTheme) {
       const themeMetaLight = document.createElement('meta');
       themeMetaLight.name = 'theme-color';
       themeMetaLight.content = lightTheme;
       themeMetaLight.media = '(prefers-color-scheme: light)';
       head.appendChild(themeMetaLight);
+      logger.log(`Updated theme-color (light): ${lightTheme}`);
+    } else {
+      logger.log('Light theme CSS var empty; skipping meta tag for browser defaults');
     }
+
     if (darkTheme && darkTheme !== lightTheme) {
       const themeMetaDark = document.createElement('meta');
       themeMetaDark.name = 'theme-color';
       themeMetaDark.content = darkTheme;
       themeMetaDark.media = '(prefers-color-scheme: dark)';
       head.appendChild(themeMetaDark);
+      logger.log(`Updated theme-color (dark): ${darkTheme}`);
+    } else if (darkTheme) {
+      logger.log('Dark theme same as light; no additional meta tag needed');
+    } else {
+      logger.log('Dark theme CSS var empty; skipping meta tag for browser defaults');
     }
   }, 0);
 
-  // ——— JSON-LD ———
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
@@ -402,9 +319,14 @@ async function updateHead(attributes, setup) {
     script.type = 'application/ld+json';
     script.textContent = JSON.stringify(cleanedJsonLd, null, 2);
     deferredFrag.appendChild(script);
+    logger.log('Added Organization JSON-LD schema (deferred)', {
+      name: cleanedJsonLd.name,
+      url: cleanedJsonLd.url,
+      sameAsCount: cleanedJsonLd.sameAs?.length || 0
+    });
+  } else {
+    logger.log('Skipped empty JSON-LD schema');
   }
-
-  // ——— FAVICONS ———
   const favicons = (setup.general?.favicons || []).filter(f => f.href?.trim());
   favicons.forEach(favicon => {
     const link = document.createElement('link');
@@ -413,49 +335,28 @@ async function updateHead(attributes, setup) {
     if (favicon.sizes) link.sizes = favicon.sizes;
     if (favicon.type) link.type = favicon.type;
     criticalFrag.appendChild(link);
+    logger.log(`Added favicon: ${favicon.href}`);
   });
-
-  // ——— SNIPCART ———
   if (setup.general?.include_e_commerce && setup.general?.snipcart) {
-    const snip = setup.general.snipcart;
-
-    const settings = {
-      publicApiKey: snip.publicApiKey,
-      loadStrategy: snip.loadStrategy || 'on-user-interaction',
-      modalStyle: snip.modalStyle,
-      templatesUrl: snip.templatesUrl,
-      currency: snip.currency?.toLowerCase(),
-      ...(snip.version && snip.version.trim() ? { version: snip.version.trim() } : {}),
-      ...(snip.loadCSS === false ? { loadCSS: false } : {})
-    };
-
+    const snipcart = setup.general.snipcart;
     const script = document.createElement('script');
-    script.textContent = `
-    window.SnipcartSettings = ${JSON.stringify(settings)};
-    (function(){var c,d;(d=(c=window.SnipcartSettings).version)!=null||(c.version="3.0");var s,S;(S=(s=window.SnipcartSettings).timeoutDuration)!=null||(s.timeoutDuration=2750);var l,p;(p=(l=window.SnipcartSettings).domain)!=null||(l.domain="cdn.snipcart.com");var w,u;(u=(w=window.SnipcartSettings).protocol)!=null||(w.protocol="https");var m,g;(g=(m=window.SnipcartSettings).loadCSS)!=null||(m.loadCSS=!0);var y=window.SnipcartSettings.version.includes("v3.0.0-ci")||window.SnipcartSettings.version!="3.0"&&window.SnipcartSettings.version.localeCompare("3.4.0",void 0,{numeric:!0,sensitivity:"base"})===-1,f=["focus","mouseover","touchmove","scroll","keydown"];window.LoadSnipcart=o;document.readyState==="loading"?document.addEventListener("DOMContentLoaded",r):r();function r(){window.SnipcartSettings.loadStrategy?window.SnipcartSettings.loadStrategy==="on-user-interaction"&&(f.forEach(function(t){return document.addEventListener(t,o)}),setTimeout(o,window.SnipcartSettings.timeoutDuration)):o()}var a=!1;function o(){if(a)return;a=!0;let t=document.getElementsByTagName("head")[0],n=document.querySelector("#snipcart"),i=document.querySelector('src[src^="'.concat(window.SnipcartSettings.protocol,"://").concat(window.SnipcartSettings.domain,'"][src$="snipcart.js"]')),e=document.querySelector('link[href^="'.concat(window.SnipcartSettings.protocol,"://").concat(window.SnipcartSettings.domain,'"][href$="snipcart.css"]'));n||(n=document.createElement("div"),n.id="snipcart",n.setAttribute("hidden","true"),document.body.appendChild(n)),h(n),i||(i=document.createElement("script"),i.src="".concat(window.SnipcartSettings.protocol,"://").concat(window.SnipcartSettings.domain,"/themes/v").concat(window.SnipcartSettings.version,"/default/snipcart.js"),i.async=!0,t.appendChild(i)),!e&&window.SnipcartSettings.loadCSS&&(e=document.createElement("link"),e.rel="stylesheet",e.type="text/css",e.href="".concat(window.SnipcartSettings.protocol,"://").concat(window.SnipcartSettings.domain,"/themes/v").concat(window.SnipcartSettings.version,"/default/snipcart.css"),t.prepend(e)),f.forEach(function(v){return document.removeEventListener(v,o)})}function h(t){!y||(t.dataset.apiKey=window.SnipcartSettings.publicApiKey,window.SnipcartSettings.addProductBehavior&&(t.dataset.configAddProductBehavior=window.SnipcartSettings.addProductBehavior),window.SnipcartSettings.modalStyle&&(t.dataset.configModalStyle=window.SnipcartSettings.modalStyle),window.SnipcartSettings.currency&&(t.dataset.currency=window.SnipcartSettings.currency),window.SnipcartSettings.templatesUrl&&(t.dataset.templatesUrl=window.SnipcartSettings.templatesUrl))}})();
-
-    // ——— MOVE #snipcart INTO YOUR #snipcart-container ———
-    document.addEventListener('snipcart.ready', () => {
-      const container = document.getElementById('snipcart-container');
-      const snipcartDiv = document.getElementById('snipcart');
-
-      if (container && snipcartDiv && !container.contains(snipcartDiv)) {
-        container.appendChild(snipcartDiv);
-        snipcartDiv.removeAttribute('hidden');
-      }
-    });
-  `;
-
+    script.id = 'snipcart';
+    script.src = `https://cdn.snipcart.com/themes/v${snipcart.version}/default/snipcart.${snipcart.version}.js`;
+    script.setAttribute('data-api-key', snipcart.publicApiKey);
+    script.setAttribute('data-config-modal-style', snipcart.modalStyle);
+    script.setAttribute('data-config-load-strategy', snipcart.loadStrategy);
+    if (snipcart.templatesUrl) script.setAttribute('data-templates-url', snipcart.templatesUrl);
     deferredFrag.appendChild(script);
-    logger.log('Snipcart + #snipcart-container mover injected', settings);
+    logger.log('Added Snipcart script (deferred)', { version: snipcart.version });
   }
-
   head.appendChild(criticalFrag);
-  logger.log('Appended critical elements to head');
-
+  logger.log('Appended critical elements to head', { count: criticalFrag.childNodes.length });
+  logger.log('Head after critical append:', Array.from(head.children).map(el => el.outerHTML));
+  logger.log('Body children:', Array.from(document.body.children).map(el => el.outerHTML));
   const appendDeferred = () => {
     head.appendChild(deferredFrag);
-    logger.log('Appended deferred elements to head');
+    logger.log('Appended deferred elements to head', { count: deferredFrag.childNodes.length });
+    logger.log('Head after deferred append:', Array.from(head.children).map(el => el.outerHTML));
   };
   if (window.requestIdleCallback) {
     requestIdleCallback(appendDeferred, { timeout: 2000 });
@@ -464,7 +365,6 @@ async function updateHead(attributes, setup) {
   }
 }
 
-// ——— MAIN IIFE ———
 (async () => {
   try {
     logger.log('Starting HeadGenerator');
@@ -474,36 +374,157 @@ async function updateHead(attributes, setup) {
       logger.warn('No data-custom-head element found');
       return;
     }
-
     const attributes = {};
     for (const [key, value] of Object.entries(customHead.dataset)) {
       const trimmed = value?.trim();
       if (trimmed) attributes[key] = trimmed;
     }
     logger.log('Merged attributes', attributes);
-
     if (attributes.components) {
       await loadComponents(attributes.components);
     }
-
     const setup = await setupPromise;
     await updateHead(attributes, setup);
     customHead.remove();
     logger.log('Removed data-custom-head element');
 
-    // Cleanup: move styles/links/scripts
-    ['style', 'link', 'script'].forEach(tag => {
-      document.querySelectorAll(tag).forEach(el => {
-        if (el.parentNode !== document.head && el.parentNode !== null) {
-          if (tag === 'script' && el.src && !el.defer && !el.async) el.defer = true;
-          document.head.appendChild(el);
-        }
-      });
+    // Ensure all <style> elements are in <head>
+    const styles = document.querySelectorAll('style');
+    let movedStyleCount = 0;
+    styles.forEach(style => {
+      if (style.parentNode !== document.head && style.parentNode !== null) {
+        logger.log(`Moving <style> from ${style.parentNode.tagName} to <head>`);
+        document.head.appendChild(style);
+        movedStyleCount++;
+      }
     });
+    if (movedStyleCount > 0) {
+      logger.log(`Moved ${movedStyleCount} <style> element(s) to <head>`);
+    } else {
+      logger.log('All <style> elements already in <head>');
+    }
+
+    // Ensure all <link> elements are in <head>
+    const links = document.querySelectorAll('link');
+    let movedLinkCount = 0;
+    links.forEach(link => {
+      if (link.parentNode !== document.head && link.parentNode !== null) {
+        logger.log(`Moving <link> from ${link.parentNode.tagName} to <head> (rel="${link.rel}")`);
+        document.head.appendChild(link);
+        movedLinkCount++;
+      }
+    });
+    if (movedLinkCount > 0) {
+      logger.log(`Moved ${movedLinkCount} <link> element(s) to <head>`);
+    } else {
+      logger.log('All <link> elements already in <head>');
+    }
+
+    // Ensure all <script> elements are properly placed
+    const scripts = document.querySelectorAll('script');
+    logger.log('Found scripts before processing:', Array.from(scripts).map(s => ({
+      tagName: s.tagName,
+      src: s.src || 'inline',
+      parent: s.parentNode?.tagName || 'null',
+      outerHTML: (s.outerHTML || s.textContent || '').substring(0, 150) + '...'
+    })));
+    let movedScriptCount = 0;
+    let deferredScriptCount = 0;
+    scripts.forEach(script => {
+      const isExternal = script.src;
+      const targetParent = isExternal ? document.head : document.body;
+      if (script.parentNode !== targetParent && script.parentNode !== null) {
+        logger.log(`Moving <script> from ${script.parentNode.tagName} to ${targetParent.tagName} (external: ${isExternal ? 'yes' : 'no'})`);
+        if (isExternal && !script.hasAttribute('defer') && !script.hasAttribute('async')) {
+          script.defer = true;
+          logger.log('Added defer to external <script> for head placement');
+        }
+        targetParent.appendChild(script);
+        movedScriptCount++;
+        if (isExternal) deferredScriptCount++;
+      }
+    });
+    if (movedScriptCount > 0) {
+      logger.log(`Moved ${movedScriptCount} <script> element(s): ${deferredScriptCount} external to <head> (deferred), ${movedScriptCount - deferredScriptCount} inline to <body>`);
+    } else {
+      logger.log('All <script> elements already in valid positions');
+    }
+
+    // Rescue misparsed <script> content
+    logger.log('Scanning body for text nodes resembling scripts...');
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+    let node;
+    let rescuedScriptCount = 0;
+    const rescuedScripts = [];
+    while ((node = walker.nextNode())) {
+      const text = node.textContent || '';
+      const scriptMatch = text.match(/<script\b[^>]*>[\s\S]*?<\/script>/i);
+      if (scriptMatch) {
+        const scriptText = scriptMatch[0];
+        logger.log(`Found potential misparsed script in text node (parent: ${node.parentNode.tagName}):`, { snippet: scriptText.substring(0, 100) + '...' });
+        const innerMatch = scriptText.match(/<script\b[^>]*>([\s\S]*?)<\/script>/i);
+        if (innerMatch) {
+          const jsCode = innerMatch[1].trim();
+          if (jsCode) {
+            const newScript = document.createElement('script');
+            newScript.textContent = jsCode;
+            document.body.appendChild(newScript);
+            if (text === scriptText) {
+              node.parentNode.removeChild(node);
+            } else {
+              node.textContent = text.replace(scriptMatch[0], '').trim();
+            }
+            rescuedScripts.push({ codeSnippet: jsCode.substring(0, 100) + '...', parent: node.parentNode.tagName });
+            rescuedScriptCount++;
+            logger.log(`Rescued and appended script:`, { codeSnippet: jsCode.substring(0, 100) + '...' });
+          }
+        }
+      }
+    }
+    if (rescuedScriptCount > 0) {
+      logger.log(`Rescued ${rescuedScriptCount} misparsed script(s) from text nodes`, { details: rescuedScripts });
+    } else {
+      logger.log('No misparsed scripts found in text nodes');
+    }
+
+    // Rescue misparsed <style> content
+    logger.log('Scanning body for text nodes resembling styles...');
+    const walkerStyle = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null, false);
+    let nodeStyle;
+    let rescuedStyleCount = 0;
+    const rescuedStyles = [];
+    while ((nodeStyle = walkerStyle.nextNode())) {
+      const text = nodeStyle.textContent || '';
+      const styleMatch = text.match(/<style\b[^>]*>[\s\S]*?<\/style>/i);
+      if (styleMatch) {
+        const styleText = styleMatch[0];
+        logger.log(`Found potential misparsed style in text node (parent: ${nodeStyle.parentNode.tagName}):`, { snippet: styleText.substring(0, 100) + '...' });
+        const innerMatch = styleText.match(/<style\b[^>]*>([\s\S]*?)<\/style>/i);
+        if (innerMatch) {
+          const cssCode = innerMatch[1].trim();
+          if (cssCode) {
+            const newStyle = document.createElement('style');
+            newStyle.textContent = cssCode;
+            document.head.appendChild(newStyle);
+            if (text === styleText) {
+              nodeStyle.parentNode.removeChild(nodeStyle);
+            } else {
+              nodeStyle.textContent = text.replace(styleMatch[0], '').trim();
+            }
+            rescuedStyles.push({ codeSnippet: cssCode.substring(0, 100) + '...', parent: nodeStyle.parentNode.tagName });
+            rescuedStyleCount++;
+            logger.log(`Rescued and appended style:`, { codeSnippet: cssCode.substring(0, 100) + '...' });
+          }
+        }
+      }
+    }
+    if (rescuedStyleCount > 0) {
+      logger.log(`Rescued ${rescuedStyleCount} misparsed style(s) from text nodes`, { details: rescuedStyles });
+    } else {
+      logger.log('No misparsed styles found in text nodes');
+    }
 
     logger.log('HeadGenerator completed successfully');
-    window.__PAGE_FULLY_RENDERED__ = true;
-    document.documentElement.setAttribute('data-page-ready', 'true');
   } catch (err) {
     logger.error('Error in HeadGenerator', { error: err.message, stack: err.stack });
   }
