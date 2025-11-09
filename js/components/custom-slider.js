@@ -1361,24 +1361,48 @@ class CustomSlider extends HTMLElement {
             navPrev.id = `${this.#uniqueId}-prev`;
             navPrev.className = 'slider-nav-prev';
             navPrev.innerHTML = attrs.navigationIconLeft;
+
             const navNext = document.createElement('div');
             navNext.id = `${this.#uniqueId}-next`;
             navNext.className = 'slider-nav-next';
             navNext.innerHTML = attrs.navigationIconRight;
-            [navPrev, navNext].forEach((nav) => {
-                const icons = nav.querySelectorAll('i');
-                const isStacked = icons.length === 2;
-                icons.forEach((icon, index) => {
-                    if (!icon.classList.contains('icon')) {
-                        icon.classList.add('icon');
-                    }
-                    if (attrs.iconSizeBackground && attrs.iconSizeForeground && isStacked) {
-                        icon.style.fontSize = index === 0 ? attrs.iconSizeBackground : attrs.iconSizeForeground;
-                    } else if (attrs.iconSizeBackground) {
-                        icon.style.fontSize = attrs.iconSizeBackground;
-                    }
-                });
-            });
+
+            // ——— DYNAMIC NAVIGATION ICON SIZING (supports 2rem 1rem) ———
+            if (attrs.iconSizeBackground && attrs.iconSizeForeground) {
+                const bgSize = attrs.iconSizeBackground;
+                const fgSize = attrs.iconSizeForeground;
+
+                // Set container to background size (e.g. 2rem)
+                navPrev.style.width = bgSize;
+                navPrev.style.height = bgSize;
+                navNext.style.width = bgSize;
+                navNext.style.height = bgSize;
+
+                // Apply font-size to SVGs after FA replacement
+                const applySizes = (container) => {
+                    // Wait for FA to replace <i> with <svg>
+                    const check = () => {
+                        const svgs = container.querySelectorAll('svg');
+                        if (svgs.length === 2) {
+                            svgs[0].style.fontSize = bgSize;  // background (square)
+                            svgs[1].style.fontSize = fgSize;  // foreground (arrow)
+                        } else {
+                            setTimeout(check, 10);
+                        }
+                    };
+                    check();
+                };
+
+                applySizes(navPrev);
+                applySizes(navNext);
+            } else if (attrs.iconSizeBackground) {
+                // Single size fallback
+                navPrev.style.width = attrs.iconSizeBackground;
+                navPrev.style.height = attrs.iconSizeBackground;
+                navNext.style.width = attrs.iconSizeBackground;
+                navNext.style.height = attrs.iconSizeBackground;
+            }
+
             sliderWrapper.appendChild(navPrev);
             sliderWrapper.appendChild(navNext);
         }
@@ -1390,14 +1414,29 @@ class CustomSlider extends HTMLElement {
             const totalDots = attrs.infiniteScrolling
                 ? this.#originalLength
                 : Math.max(1, totalSlides - attrs.slidesPerView + 1);
+
             for (let i = 0; i < totalDots; i++) {
                 const dot = document.createElement('span');
                 dot.className = 'icon';
                 dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
-                const icon = dot.querySelector('i');
-                if (icon && (attrs.paginationIconSizeActive || attrs.paginationIconSizeInactive)) {
-                    icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
+
+                // ——— DYNAMIC PAGINATION ICON SIZE (SVG+JS) ———
+                if (attrs.paginationIconSizeActive) {
+                    const applySize = () => {
+                        const svg = dot.querySelector('svg');
+                        if (svg) {
+                            const size = i === 0
+                                ? attrs.paginationIconSizeActive
+                                : (attrs.paginationIconSizeInactive || attrs.paginationIconSizeActive);
+                            svg.style.fontSize = size;
+                        } else {
+                            // FA hasn't replaced <i> with <svg> yet — retry
+                            setTimeout(applySize, 10);
+                        }
+                    };
+                    applySize();
                 }
+
                 dot.addEventListener('click', () => {
                     if (this.#isProcessingClick) return;
                     this.#isProcessingClick = true;
