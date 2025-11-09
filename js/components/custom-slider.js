@@ -304,28 +304,6 @@ class CustomSlider extends HTMLElement {
             return result;
         };
 
-        // ——— processIconStack – uses the new validator (no changes needed) ———
-        const processIconStack = (icon, backgroundIcon, position) => {
-            const foreground = validateIcon(icon, position);
-            const background = validateIcon(backgroundIcon, position, true);
-
-            if (!foreground) {
-                this.#warn(`No valid foreground icon for ${position}, navigation disabled`, {
-                    icon,
-                    backgroundIcon,
-                    elementId: this.#uniqueId
-                });
-                return { valid: false, markup: '' };
-            }
-
-            if (!background) return { valid: true, markup: foreground };
-
-            return {
-                valid: true,
-                markup: `<span class="icon-stack icon">${background}${foreground}</span>`
-            };
-        };
-
         const processIconStack = (icon, backgroundIcon, position) => {
             const foreground = validateIcon(icon, position);
             const background = validateIcon(backgroundIcon, position, true);
