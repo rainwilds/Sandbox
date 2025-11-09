@@ -217,6 +217,40 @@
         --color-static-dark: black;
 
 
+
+        /* --color-light-scale-1: #daccbf;
+        --color-light-scale-2: #e0c9c5;
+        --color-light-scale-3: #e0c8ce;
+        --color-light-scale-4: #d8cad8;
+        --color-light-scale-5: #cccddf;
+        --color-light-scale-6: #bfd0df;
+        --color-dark-scale-1: #34251d;
+        --color-dark-scale-2: #331f1e;
+        --color-dark-scale-3: #2e1a21;
+        --color-dark-scale-4: #251825;
+        --color-dark-scale-5: #181626;
+        --color-dark-scale-6: #051524;
+        --color-accent-opaque-light-scale-1: rgba(218, 204, 191, 0.2);
+        --color-accent-opaque-light-scale-2: rgba(224, 201, 197, 0.2);
+        --color-accent-opaque-light-scale-3: rgba(224, 200, 206, 0.2);
+        --color-accent-opaque-light-scale-4: rgba(216, 202, 216, 0.2);
+        --color-accent-opaque-light-scale-5: rgba(204, 205, 223, 0.2);
+        --color-accent-opaque-light-scale-6: rgba(191, 208, 223, 0.2);
+        --color-accent-opaque-dark-scale-1: rgba(52, 37, 29, 0.5);
+        --color-accent-opaque-dark-scale-2: rgba(51, 31, 30, 0.5);
+        --color-accent-opaque-dark-scale-3: rgba(46, 26, 33, 0.5);
+        --color-accent-opaque-dark-scale-4: rgba(37, 24, 37, 0.5);
+        --color-accent-opaque-dark-scale-5: rgba(24, 22, 38, 0.5);
+        --color-accent-opaque-dark-scale-6: rgba(5, 21, 36, 0.5);
+        --color-static-light: white;
+        --color-static-dark: black; */
+
+
+
+
+
+
+
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
 
@@ -2084,19 +2118,17 @@ div#products {
     display: grid;
     place-items: center;
 
-    &> :is(i, svg) {
+    &>i {
         grid-area: 1 / 1;
         cursor: pointer;
         color: light-dark(var(--color-accent-opaque-dark-scale-6), var(--color-accent-opaque-light-scale-6));
-        font-size: inherit !important;
-        display: inline-block;
     }
 
-    &> :is(i:first-child, svg:first-of-type) {
+    &>i:first-child {
         width: auto;
     }
 
-    &> :is(i:last-child, svg:last-of-type) {
+    &>i:last-child {
         color: light-dark(var(--color-dark-scale-6), var(--color-light-scale-6));
     }
 
@@ -2141,19 +2173,19 @@ div#products {
 
 
 .item {
-    width: 100%;
-    border: 1px solid #ddd;
-    padding: 1rem;
-    text-align: center;
+  width: 100%;
+  border: 1px solid #ddd;
+  padding: 1rem;
+  text-align: center;
 }
 
 .item img {
-    max-width: 100%;
-    height: auto;
+  max-width: 100%;
+  height: auto;
 }
 
 .item[style*="display: none"] {
-    display: none !important;
+  display: none !important;
 }
 
 
