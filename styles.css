@@ -1817,6 +1817,7 @@ header {
     >* {
 
         grid-column: gutter-left / gutter-right;
+        height: auto;
 
     }
 
