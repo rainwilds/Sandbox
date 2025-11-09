@@ -2119,17 +2119,17 @@ div#products {
     display: grid;
     place-items: center;
 
-    &>i {
+    &>:is(i, svg) {
         grid-area: 1 / 1;
         cursor: pointer;
         color: light-dark(var(--color-accent-opaque-dark-scale-6), var(--color-accent-opaque-light-scale-6));
     }
 
-    &>i:first-child {
+    &>:is(i:first-child, svg:first-child) {
         width: auto;
     }
 
-    &>i:last-child {
+    &>:is(i:last-child, svg:first-child) {
         color: light-dark(var(--color-dark-scale-6), var(--color-light-scale-6));
     }
 
@@ -2174,19 +2174,19 @@ div#products {
 
 
 .item {
-  width: 100%;
-  border: 1px solid #ddd;
-  padding: 1rem;
-  text-align: center;
+    width: 100%;
+    border: 1px solid #ddd;
+    padding: 1rem;
+    text-align: center;
 }
 
 .item img {
-  max-width: 100%;
-  height: auto;
+    max-width: 100%;
+    height: auto;
 }
 
 .item[style*="display: none"] {
-  display: none !important;
+    display: none !important;
 }
 
 
