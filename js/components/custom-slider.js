@@ -1356,177 +1356,167 @@ class CustomSlider extends HTMLElement {
 
         sliderWrapper.appendChild(innerWrapper);
 
-        if (attrs.navigation && attrs.navigationIconLeft && attrs.navigationIconRight) {
-            const navPrev = document.createElement('div');
-            navPrev.id = `${this.#uniqueId}-prev`;
-            navPrev.className = 'slider-nav-prev';
-            navPrev.innerHTML = attrs.navigationIconLeft;
+        // ——— DYNAMIC NAVIGATION ICON SIZING (USE width/height) ———
+        if (attrs.iconSizeBackground && attrs.iconSizeForeground) {
+            const bgSize = attrs.iconSizeBackground;
+            const fgSize = attrs.iconSizeForeground;
 
-            const navNext = document.createElement('div');
-            navNext.id = `${this.#uniqueId}-next`;
-            navNext.className = 'slider-nav-next';
-            navNext.innerHTML = attrs.navigationIconRight;
+            // Set container to background size
+            navPrev.style.width = bgSize;
+            navPrev.style.height = bgSize;
+            navNext.style.width = bgSize;
+            navNext.style.height = bgSize;
 
-            // ——— DYNAMIC NAVIGATION ICON SIZING (supports 2rem 1rem) ———
-            if (attrs.iconSizeBackground && attrs.iconSizeForeground) {
-                const bgSize = attrs.iconSizeBackground;
-                const fgSize = attrs.iconSizeForeground;
-
-                // Set container to background size (e.g. 2rem)
-                navPrev.style.width = bgSize;
-                navPrev.style.height = bgSize;
-                navNext.style.width = bgSize;
-                navNext.style.height = bgSize;
-
-                // Apply font-size to SVGs after FA replacement
-                const applySizes = (container) => {
-                    // Wait for FA to replace <i> with <svg>
-                    const check = () => {
-                        const svgs = container.querySelectorAll('svg');
-                        if (svgs.length === 2) {
-                            svgs[0].style.fontSize = bgSize;  // background (square)
-                            svgs[1].style.fontSize = fgSize;  // foreground (arrow)
-                        } else {
-                            setTimeout(check, 10);
-                        }
-                    };
-                    check();
-                };
-
-                applySizes(navPrev);
-                applySizes(navNext);
-            } else if (attrs.iconSizeBackground) {
-                // Single size fallback
-                navPrev.style.width = attrs.iconSizeBackground;
-                navPrev.style.height = attrs.iconSizeBackground;
-                navNext.style.width = attrs.iconSizeBackground;
-                navNext.style.height = attrs.iconSizeBackground;
-            }
-
-            sliderWrapper.appendChild(navPrev);
-            sliderWrapper.appendChild(navNext);
-        }
-
-        if (attrs.pagination) {
-            const pagination = document.createElement('div');
-            pagination.className = 'slider-pagination';
-            const totalSlides = this.#childElements.length;
-            const totalDots = attrs.infiniteScrolling
-                ? this.#originalLength
-                : Math.max(1, totalSlides - attrs.slidesPerView + 1);
-
-            for (let i = 0; i < totalDots; i++) {
-                const dot = document.createElement('span');
-                dot.className = 'icon';
-                dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
-
-                // ——— DYNAMIC PAGINATION ICON SIZE (SVG+JS) ———
-                if (attrs.paginationIconSizeActive) {
-                    const applySize = () => {
-                        const svg = dot.querySelector('svg');
-                        if (svg) {
-                            const size = i === 0
-                                ? attrs.paginationIconSizeActive
-                                : (attrs.paginationIconSizeInactive || attrs.paginationIconSizeActive);
-                            svg.style.fontSize = size;
-                        } else {
-                            // FA hasn't replaced <i> with <svg> yet — retry
-                            setTimeout(applySize, 10);
-                        }
-                    };
-                    applySize();
-                }
-
-                dot.addEventListener('click', () => {
-                    if (this.#isProcessingClick) return;
-                    this.#isProcessingClick = true;
-                    if (this.#continuousAnimationId) {
-                        cancelAnimationFrame(this.#continuousAnimationId);
-                        this.#continuousAnimationId = null;
-                    }
-                    this.#stopAutoplay();
-                    if (this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1) {
-                        this.#currentIndex = i + this.#bufferSize;
+            // Apply width/height to SVGs
+            const applySizes = (container) => {
+                const check = () => {
+                    const svgs = container.querySelectorAll('svg');
+                    if (svgs.length === 2) {
+                        svgs[0].style.width = bgSize;
+                        svgs[0].style.height = bgSize;
+                        svgs[1].style.width = fgSize;
+                        svgs[1].style.height = fgSize;
                     } else {
-                        this.#currentIndex = i;
+                        setTimeout(check, 10);
                     }
-                    this.#currentTranslate = this.#calculateTranslate();
-                    this.#prevTranslate = this.#currentTranslate;
-                    this.#setSliderPosition('0s');
-                    setTimeout(() => {
-                        this.#updateSlider(true);
-                        this.#isProcessingClick = false;
-                        if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
-                            this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
-                        }
-                        this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${i + 1}, translate=${this.#currentTranslate}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
-                    }, 50);
-                });
-                pagination.appendChild(dot);
-            }
-            sliderWrapper.appendChild(pagination);
-            this.#log(`[Pagination Added] totalDots=${totalDots}, originalLength=${this.#originalLength}, totalSlides=${totalSlides}`, { elementId: this.#uniqueId });
-        } else {
-            this.#log('Pagination not added', { pagination: attrs.pagination, elementId: this.#uniqueId });
+                };
+                check();
+            };
+
+            applySizes(navPrev);
+            applySizes(navNext);
+        } else if (attrs.iconSizeBackground) {
+            // Single size fallback
+            navPrev.style.width = attrs.iconSizeBackground;
+            navPrev.style.height = attrs.iconSizeBackground;
+            navNext.style.width = attrs.iconSizeBackground;
+            navNext.style.height = attrs.iconSizeBackground;
         }
 
-        return sliderWrapper;
+        sliderWrapper.appendChild(navPrev);
+        sliderWrapper.appendChild(navNext);
+    }
+
+    if(attrs.pagination) {
+        const pagination = document.createElement('div');
+        pagination.className = 'slider-pagination';
+        const totalSlides = this.#childElements.length;
+        const totalDots = attrs.infiniteScrolling
+            ? this.#originalLength
+            : Math.max(1, totalSlides - attrs.slidesPerView + 1);
+
+        for (let i = 0; i < totalDots; i++) {
+            const dot = document.createElement('span');
+            dot.className = 'icon';
+            dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
+
+            // ——— DYNAMIC PAGINATION ICON SIZE ———
+            if (attrs.paginationIconSizeActive) {
+                const applySize = () => {
+                    const svg = dot.querySelector('svg');
+                    if (svg) {
+                        const size = i === 0
+                            ? attrs.paginationIconSizeActive
+                            : (attrs.paginationIconSizeInactive || attrs.paginationIconSizeActive);
+                        svg.style.width = size;
+                        svg.style.height = size;
+                    } else {
+                        setTimeout(applySize, 10);
+                    }
+                };
+                applySize();
+            }
+
+            dot.addEventListener('click', () => {
+                if (this.#isProcessingClick) return;
+                this.#isProcessingClick = true;
+                if (this.#continuousAnimationId) {
+                    cancelAnimationFrame(this.#continuousAnimationId);
+                    this.#continuousAnimationId = null;
+                }
+                this.#stopAutoplay();
+                if (this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1) {
+                    this.#currentIndex = i + this.#bufferSize;
+                } else {
+                    this.#currentIndex = i;
+                }
+                this.#currentTranslate = this.#calculateTranslate();
+                this.#prevTranslate = this.#currentTranslate;
+                this.#setSliderPosition('0s');
+                setTimeout(() => {
+                    this.#updateSlider(true);
+                    this.#isProcessingClick = false;
+                    if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
+                        this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
+                    }
+                    this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${i + 1}, translate=${this.#currentTranslate}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
+                }, 50);
+            });
+            pagination.appendChild(dot);
+        }
+        sliderWrapper.appendChild(pagination);
+        this.#log(`[Pagination Added] totalDots=${totalDots}, originalLength=${this.#originalLength}, totalSlides=${totalSlides}`, { elementId: this.#uniqueId });
+    } else {
+    this.#log('Pagination not added', { pagination: attrs.pagination, elementId: this.#uniqueId });
+}
+
+return sliderWrapper;
     }
 
     async connectedCallback() {
+    this.#childElements = Array.from(this.children)
+        .filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block'))
+        .map(child => child.cloneNode(true));
+    this.#log('Connected to DOM', { childElementsCount: this.#childElements.length, elementId: this.#uniqueId });
+    if (this.isVisible) {
+        await this.initialize();
+    }
+}
+
+disconnectedCallback() {
+    this.#stopAutoplay();
+    if (this.#animationID) {
+        cancelAnimationFrame(this.#animationID);
+        this.#animationID = null;
+    }
+    if (this.#debouncedHandleResize) {
+        window.removeEventListener('resize', this.#debouncedHandleResize);
+    }
+    if (CustomSlider.#observedInstances.has(this)) {
+        CustomSlider.#observer.unobserve(this);
+        CustomSlider.#observedInstances.delete(this);
+    }
+    this.#childElements = [];
+    this.#log('Disconnected from DOM', { elementId: this.#uniqueId });
+}
+
+    static get observedAttributes() {
+    return [
+        'autoplay', 'slides-per-view', 'slides-per-view-mobile', 'slides-per-view-tablet',
+        'slides-per-view-laptop', 'slides-per-view-desktop', 'slides-per-view-large',
+        'navigation', 'navigation-icon-left', 'navigation-icon-right',
+        'navigation-icon-left-background', 'navigation-icon-right-background', 'gap', 'pagination',
+        'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size', 'pagination-icon-size',
+        'draggable', 'cross-fade', 'infinite-scrolling', 'pause-on-hover'
+    ];
+}
+
+attributeChangedCallback(name, oldValue, newValue) {
+    if (!this.isInitialized || !this.isVisible) {
+        this.#ignoredChangeCount++;
+        this.#log('Attribute change ignored', { name, oldValue, newValue, ignoredCount: this.#ignoredChangeCount, elementId: this.#uniqueId });
+        return;
+    }
+    if (oldValue !== newValue) {
+        this.#log('Attribute changed, reinitializing', { name, oldValue, newValue, elementId: this.#uniqueId });
+        this.isInitialized = false;
+        this.#stopAutoplay();
         this.#childElements = Array.from(this.children)
             .filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block'))
             .map(child => child.cloneNode(true));
-        this.#log('Connected to DOM', { childElementsCount: this.#childElements.length, elementId: this.#uniqueId });
-        if (this.isVisible) {
-            await this.initialize();
-        }
+        this.initialize();
     }
-
-    disconnectedCallback() {
-        this.#stopAutoplay();
-        if (this.#animationID) {
-            cancelAnimationFrame(this.#animationID);
-            this.#animationID = null;
-        }
-        if (this.#debouncedHandleResize) {
-            window.removeEventListener('resize', this.#debouncedHandleResize);
-        }
-        if (CustomSlider.#observedInstances.has(this)) {
-            CustomSlider.#observer.unobserve(this);
-            CustomSlider.#observedInstances.delete(this);
-        }
-        this.#childElements = [];
-        this.#log('Disconnected from DOM', { elementId: this.#uniqueId });
-    }
-
-    static get observedAttributes() {
-        return [
-            'autoplay', 'slides-per-view', 'slides-per-view-mobile', 'slides-per-view-tablet',
-            'slides-per-view-laptop', 'slides-per-view-desktop', 'slides-per-view-large',
-            'navigation', 'navigation-icon-left', 'navigation-icon-right',
-            'navigation-icon-left-background', 'navigation-icon-right-background', 'gap', 'pagination',
-            'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size', 'pagination-icon-size',
-            'draggable', 'cross-fade', 'infinite-scrolling', 'pause-on-hover'
-        ];
-    }
-
-    attributeChangedCallback(name, oldValue, newValue) {
-        if (!this.isInitialized || !this.isVisible) {
-            this.#ignoredChangeCount++;
-            this.#log('Attribute change ignored', { name, oldValue, newValue, ignoredCount: this.#ignoredChangeCount, elementId: this.#uniqueId });
-            return;
-        }
-        if (oldValue !== newValue) {
-            this.#log('Attribute changed, reinitializing', { name, oldValue, newValue, elementId: this.#uniqueId });
-            this.isInitialized = false;
-            this.#stopAutoplay();
-            this.#childElements = Array.from(this.children)
-                .filter(child => child.tagName.toLowerCase() === 'custom-block' || child.classList.contains('block'))
-                .map(child => child.cloneNode(true));
-            this.initialize();
-        }
-    }
+}
 }
 
 try {

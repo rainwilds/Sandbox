@@ -28,7 +28,7 @@
       "domain": "rainwilds.github.io",
       "site": "@behive"
     },
-    "include_e_commerce": true,
+    "include_e_commerce": false,
     "favicons": [
       {
         "rel": "icon",
