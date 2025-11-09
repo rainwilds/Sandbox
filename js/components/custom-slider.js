@@ -1324,7 +1324,6 @@ class CustomSlider extends HTMLElement {
         sliderWrapper.className = 'custom-slider';
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
-
         if (!attrs.crossFade || attrs.slidesPerView !== 1) {
             const spv = this.#getSlidesPerView();
             innerWrapper.style.setProperty('--slider-columns', `repeat(${this.#childElements.length}, ${100 / spv}%)`);
@@ -1333,7 +1332,6 @@ class CustomSlider extends HTMLElement {
                 sliderWrapper.setAttribute('gap', '');
             }
         }
-
         if (this.#childElements.length === 0) {
             this.#warn('No valid slides found', { elementId: this.#uniqueId });
             const fallbackSlide = document.createElement('div');
@@ -1353,115 +1351,126 @@ class CustomSlider extends HTMLElement {
                 innerWrapper.appendChild(slideWrapper);
             });
         }
-
         sliderWrapper.appendChild(innerWrapper);
 
-        // ——— DYNAMIC NAVIGATION ICON SIZING (USE width/height) ———
-        if (attrs.iconSizeBackground && attrs.iconSizeForeground) {
-            const bgSize = attrs.iconSizeBackground;
-            const fgSize = attrs.iconSizeForeground;
+        // ——— NAVIGATION WITH DYNAMIC SIZING ———
+        if (attrs.navigation && attrs.navigationIconLeft && attrs.navigationIconRight) {
+            const navPrev = document.createElement('div');
+            navPrev.id = `${this.#uniqueId}-prev`;
+            navPrev.className = 'slider-nav-prev';
+            navPrev.innerHTML = attrs.navigationIconLeft;
 
-            // Set container to background size
-            navPrev.style.width = bgSize;
-            navPrev.style.height = bgSize;
-            navNext.style.width = bgSize;
-            navNext.style.height = bgSize;
+            const navNext = document.createElement('div');
+            navNext.id = `${this.#uniqueId}-next`;
+            navNext.className = 'slider-nav-next';
+            navNext.innerHTML = attrs.navigationIconRight;
 
-            // Apply width/height to SVGs
-            const applySizes = (container) => {
-                const check = () => {
-                    const svgs = container.querySelectorAll('svg');
-                    if (svgs.length === 2) {
-                        svgs[0].style.width = bgSize;
-                        svgs[0].style.height = bgSize;
-                        svgs[1].style.width = fgSize;
-                        svgs[1].style.height = fgSize;
-                    } else {
-                        setTimeout(check, 10);
-                    }
+            // ——— DYNAMIC NAVIGATION ICON SIZING (USE width/height) ———
+            if (attrs.iconSizeBackground && attrs.iconSizeForeground) {
+                const bgSize = attrs.iconSizeBackground;
+                const fgSize = attrs.iconSizeForeground;
+
+                // Set container to background size
+                navPrev.style.width = bgSize;
+                navPrev.style.height = bgSize;
+                navNext.style.width = bgSize;
+                navNext.style.height = bgSize;
+
+                const applySizes = (container) => {
+                    const check = () => {
+                        const svgs = container.querySelectorAll('svg');
+                        if (svgs.length === 2) {
+                            svgs[0].style.width = bgSize;
+                            svgs[0].style.height = bgSize;
+                            svgs[1].style.width = fgSize;
+                            svgs[1].style.height = fgSize;
+                        } else {
+                            setTimeout(check, 10);
+                        }
+                    };
+                    check();
                 };
-                check();
-            };
 
-            applySizes(navPrev);
-            applySizes(navNext);
-        } else if (attrs.iconSizeBackground) {
-            // Single size fallback
-            navPrev.style.width = attrs.iconSizeBackground;
-            navPrev.style.height = attrs.iconSizeBackground;
-            navNext.style.width = attrs.iconSizeBackground;
-            navNext.style.height = attrs.iconSizeBackground;
-        }
-
-        sliderWrapper.appendChild(navPrev);
-        sliderWrapper.appendChild(navNext);
-    }
-
-    if(attrs.pagination) {
-        const pagination = document.createElement('div');
-        pagination.className = 'slider-pagination';
-        const totalSlides = this.#childElements.length;
-        const totalDots = attrs.infiniteScrolling
-            ? this.#originalLength
-            : Math.max(1, totalSlides - attrs.slidesPerView + 1);
-
-        for (let i = 0; i < totalDots; i++) {
-            const dot = document.createElement('span');
-            dot.className = 'icon';
-            dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
-
-            // ——— DYNAMIC PAGINATION ICON SIZE ———
-            if (attrs.paginationIconSizeActive) {
-                const applySize = () => {
-                    const svg = dot.querySelector('svg');
-                    if (svg) {
-                        const size = i === 0
-                            ? attrs.paginationIconSizeActive
-                            : (attrs.paginationIconSizeInactive || attrs.paginationIconSizeActive);
-                        svg.style.width = size;
-                        svg.style.height = size;
-                    } else {
-                        setTimeout(applySize, 10);
-                    }
-                };
-                applySize();
+                applySizes(navPrev);
+                applySizes(navNext);
+            } else if (attrs.iconSizeBackground) {
+                navPrev.style.width = attrs.iconSizeBackground;
+                navPrev.style.height = attrs.iconSizeBackground;
+                navNext.style.width = attrs.iconSizeBackground;
+                navNext.style.height = attrs.iconSizeBackground;
             }
 
-            dot.addEventListener('click', () => {
-                if (this.#isProcessingClick) return;
-                this.#isProcessingClick = true;
-                if (this.#continuousAnimationId) {
-                    cancelAnimationFrame(this.#continuousAnimationId);
-                    this.#continuousAnimationId = null;
-                }
-                this.#stopAutoplay();
-                if (this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1) {
-                    this.#currentIndex = i + this.#bufferSize;
-                } else {
-                    this.#currentIndex = i;
-                }
-                this.#currentTranslate = this.#calculateTranslate();
-                this.#prevTranslate = this.#currentTranslate;
-                this.#setSliderPosition('0s');
-                setTimeout(() => {
-                    this.#updateSlider(true);
-                    this.#isProcessingClick = false;
-                    if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
-                        this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
-                    }
-                    this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${i + 1}, translate=${this.#currentTranslate}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
-                }, 50);
-            });
-            pagination.appendChild(dot);
+            sliderWrapper.appendChild(navPrev);
+            sliderWrapper.appendChild(navNext);
         }
-        sliderWrapper.appendChild(pagination);
-        this.#log(`[Pagination Added] totalDots=${totalDots}, originalLength=${this.#originalLength}, totalSlides=${totalSlides}`, { elementId: this.#uniqueId });
-    } else {
-    this.#log('Pagination not added', { pagination: attrs.pagination, elementId: this.#uniqueId });
-}
 
-return sliderWrapper;
+        // ——— PAGINATION WITH DYNAMIC SIZING ———
+        if (attrs.pagination) {
+            const pagination = document.createElement('div');
+            pagination.className = 'slider-pagination';
+            const totalSlides = this.#childElements.length;
+            const totalDots = attrs.infiniteScrolling
+                ? this.#originalLength
+                : Math.max(1, totalSlides - attrs.slidesPerView + 1);
+
+            for (let i = 0; i < totalDots; i++) {
+                const dot = document.createElement('span');
+                dot.className = 'icon';
+                dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
+
+                // ——— DYNAMIC PAGINATION ICON SIZE ———
+                if (attrs.paginationIconSizeActive) {
+                    const applySize = () => {
+                        const svg = dot.querySelector('svg');
+                        if (svg) {
+                            const size = i === 0
+                                ? attrs.paginationIconSizeActive
+                                : (attrs.paginationIconSizeInactive || attrs.paginationIconSizeActive);
+                            svg.style.width = size;
+                            svg.style.height = size;
+                        } else {
+                            setTimeout(applySize, 10);
+                        }
+                    };
+                    applySize();
+                }
+
+                dot.addEventListener('click', () => {
+                    if (this.#isProcessingClick) return;
+                    this.#isProcessingClick = true;
+                    if (this.#continuousAnimationId) {
+                        cancelAnimationFrame(this.#continuousAnimationId);
+                        this.#continuousAnimationId = null;
+                    }
+                    this.#stopAutoplay();
+                    if (this.#attrs.infiniteScrolling && this.#attrs.slidesPerView > 1) {
+                        this.#currentIndex = i + this.#bufferSize;
+                    } else {
+                        this.#currentIndex = i;
+                    }
+                    this.#currentTranslate = this.#calculateTranslate();
+                    this.#prevTranslate = this.#currentTranslate;
+                    this.#setSliderPosition('0s');
+                    setTimeout(() => {
+                        this.#updateSlider(true);
+                        this.#isProcessingClick = false;
+                        if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
+                            this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
+                        }
+                        this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${i + 1}, translate=${this.#currentTranslate}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
+                    }, 50);
+                });
+                pagination.appendChild(dot);
+            }
+            sliderWrapper.appendChild(pagination);
+            this.#log(`[Pagination Added] totalDots=${totalDots}, originalLength=${this.#originalLength}, totalSlides=${totalSlides}`, { elementId: this.#uniqueId });
+        } else {
+            this.#log('Pagination not added', { pagination: attrs.pagination, elementId: this.#uniqueId });
+        }
+
+        return sliderWrapper;
     }
+}
 
     async connectedCallback() {
     this.#childElements = Array.from(this.children)
