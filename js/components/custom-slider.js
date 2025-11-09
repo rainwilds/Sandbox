@@ -266,28 +266,64 @@ class CustomSlider extends HTMLElement {
         const infiniteScrolling = this.hasAttribute('infinite-scrolling');
         const pauseOnHover = this.hasAttribute('pause-on-hover');
 
+        // ——— ROBUST validateIcon – accepts ANY Font Awesome style/class ———
         const validateIcon = (icon, position, isBackground = false) => {
             if (!icon) {
                 this.#warn(`No ${position} icon provided`, { elementId: this.#uniqueId });
                 return isBackground ? '' : '<i class="fa-solid fa-circle"></i>';
             }
+
             const parser = new DOMParser();
-            const decodedIcon = icon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+            const decodedIcon = icon
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&quot;/g, '"');
+
             const doc = parser.parseFromString(decodedIcon, 'text/html');
             const iElement = doc.body.querySelector('i');
-            let classes = iElement ? iElement.className.split(' ').filter(cls => cls) : icon.split(/\s+/).filter(cls => cls);
-            const validClasses = classes.filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel' || cls === 'fa-utility' || cls === 'fa-utility-fill' || cls === 'fa-semibold');
+            const rawClasses = iElement
+                ? iElement.className.split(/\s+/)
+                : decodedIcon.split(/\s+/);
+
+            // Keep ANY class that starts with 'fa-' OR is 'fa-chisel'
+            const validClasses = rawClasses.filter(cls =>
+                /^fa-/.test(cls) || cls === 'fa-chisel'
+            );
+
             if (validClasses.length === 0) {
                 this.#warn(`No valid Font Awesome classes in ${position} icon`, {
-                    classes,
+                    rawClasses,
                     elementId: this.#uniqueId
                 });
                 return isBackground ? '' : '<i class="fa-solid fa-circle"></i>';
             }
+
             validClasses.push('icon');
             const result = `<i class="${validClasses.join(' ')}"></i>`;
-            this.#log(`Validated ${position} icon`, { icon: result, elementId: this.#uniqueId });
+            this.#log(`Validated ${position} icon`, { result, elementId: this.#uniqueId });
             return result;
+        };
+
+        // ——— processIconStack – uses the new validator (no changes needed) ———
+        const processIconStack = (icon, backgroundIcon, position) => {
+            const foreground = validateIcon(icon, position);
+            const background = validateIcon(backgroundIcon, position, true);
+
+            if (!foreground) {
+                this.#warn(`No valid foreground icon for ${position}, navigation disabled`, {
+                    icon,
+                    backgroundIcon,
+                    elementId: this.#uniqueId
+                });
+                return { valid: false, markup: '' };
+            }
+
+            if (!background) return { valid: true, markup: foreground };
+
+            return {
+                valid: true,
+                markup: `<span class="icon-stack icon">${background}${foreground}</span>`
+            };
         };
 
         const processIconStack = (icon, backgroundIcon, position) => {
