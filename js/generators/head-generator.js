@@ -171,29 +171,34 @@ async function updateHead(attributes, setup) {
   customStyleLink.href = './custom.css';
   criticalFrag.appendChild(customStyleLink);
 
-  // ——— FONT AWESOME (self-hosted) ———
+  // ——— FONT AWESOME: ULTRA-LIGHT MODE (NO CORE, NO 180KB CSS) ———
   const fa = setup.font_awesome;
-  if (fa && fa.core && fa.base_path) {
+  if (fa && fa.base_path) {
     const base = (setup.general?.basePath || '') + fa.base_path.replace(/\/+$/, '') + '/';
-    const makeScript = (file) => {
+
+    const makeScript = (file, defer = true) => {
       const script = document.createElement('script');
       script.src = base + file;
       script.crossOrigin = 'anonymous';
-      if (fa.defer !== false) script.defer = true;
+      if (defer && fa.defer !== false) script.defer = true;
       if (fa.async === true) script.async = true;
       return script;
     };
 
-    // Core
-    criticalFrag.appendChild(makeScript(fa.core));
-    logger.log(`Added FA core: ${base}${fa.core}`);
+    // 1. Disable the massive CSS injection (180 KB → ~4 KB)
+    const disableCssScript = document.createElement('script');
+    disableCssScript.textContent = `window.FontAwesomeConfig = { autoAddCss: false };`;
+    criticalFrag.appendChild(disableCssScript);
+    logger.log('Font Awesome: autoAddCss disabled → no 180 KB bloat');
 
-    // Packages
+    // 2. Load ONLY the packages you actually use — skip core entirely
     if (Array.isArray(fa.packages) && fa.packages.length) {
       fa.packages.forEach(pkg => {
         criticalFrag.appendChild(makeScript(pkg));
-        logger.log(`Added FA package: ${base}${pkg}`);
+        logger.log(`Added FA package (no core): ${base}${pkg}`);
       });
+    } else {
+      logger.warn('Font Awesome enabled but no packages defined in setup.json');
     }
   }
 

@@ -82,7 +82,6 @@
   },
   "font_awesome": {
     "base_path": "img/icons/fontawesome/",
-    "core": "js/fontawesome.min.js",
     "packages": [
       "utility-fill-semibold.min.js",
       "utility-semibold.min.js"
