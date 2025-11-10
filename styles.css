@@ -130,31 +130,79 @@
         --max-width-medium: 40vw;
         --max-width-large: 60vw;
 
-        /* --color-light-scale-: #faf9f3;
-        --color-dark-scale-6: #141b32;
+        /* ——— SOLID LIGHT SCALE (6) ——— */
+        --color-light-1: #92c676;
+        --color-light-2: #79cb96;
+        --color-light-3: #6aceb4;
+        --color-light-4: #6ccfcc;
+        --color-light-5: #7fcddb;
+        --color-light-6: #99cbe1;
 
-        --color-light-scale-1: #cacdd6;
-        --color-light-scale-3: #ebe8de;
-        --color-dark-scale-1: #868eaa;
-        --color-dark-scale-3: #414f89;
+        /* ——— SOLID DARK SCALE (6) ——— */
+        --color-dark-1: #393632;
+        --color-dark-2: #372f2b;
+        --color-dark-3: #342729;
+        --color-dark-4: #2d2129;
+        --color-dark-5: #211d2a;
+        --color-dark-6: #0e1a28;
 
-        --color-accent-opaque-light-scale-1: rgba(159, 54, 140, 0.2);
-        --color-accent-opaque-light-scale-3: rgba(218, 175, 217, 0.2);
-        --color-accent-opaque-dark-scale-1: rgba(69, 15, 59, 0.5);
-        --color-accent-opaque-dark-scale-3: rgba(40, 12, 35, 0.5);
+        /* ——— LIGHT 1 ALPHA (6) ——— */
+        --color-light-1-alpha-1: rgba(146, 198, 118, 0.14);
+        --color-light-1-alpha-2: rgba(146, 198, 118, 0.29);
+        --color-light-1-alpha-3: rgba(146, 198, 118, 0.43);
+        --color-light-1-alpha-4: rgba(146, 198, 118, 0.57);
+        --color-light-1-alpha-5: rgba(146, 198, 118, 0.71);
+        --color-light-1-alpha-6: rgba(146, 198, 118, 0.86);
 
-        --color-static-light: white;
-        --color-static-dark: black;
-        --color-static-dark-1: rgba(0, 0, 0, 0.1);
-        --color-static-light-1: rgba(255, 255, 255, 0.1);
-        --color-static-dark-2: rgba(0, 0, 0, 0.2);
-        --color-static-light-2: rgba(255, 255, 255, 0.2);
-        --color-static-dark-4: rgba(0, 0, 0, 0.4);
-        --color-static-light-4: rgba(255, 255, 255, 0.4);
-        --color-static-dark-6: rgba(0, 0, 0, 0.6);
-        --color-static-light-6: rgba(255, 255, 255, 0.6);
-        --color-static-dark-8: rgba(0, 0, 0, 0.8);
-        --color-static-light-8: rgba(255, 255, 255, 0.8); */
+        /* ——— LIGHT 6 ALPHA (6) ——— */
+        --color-light-6-alpha-1: rgba(153, 203, 225, 0.14);
+        --color-light-6-alpha-2: rgba(153, 203, 225, 0.29);
+        --color-light-6-alpha-3: rgba(153, 203, 225, 0.43);
+        --color-light-6-alpha-4: rgba(153, 203, 225, 0.57);
+        --color-light-6-alpha-5: rgba(153, 203, 225, 0.71);
+        --color-light-6-alpha-6: rgba(153, 203, 225, 0.86);
+
+        /* ——— DARK 1 ALPHA (6) ——— */
+        --color-dark-1-alpha-1: rgba(57, 54, 50, 0.14);
+        --color-dark-1-alpha-2: rgba(57, 54, 50, 0.29);
+        --color-dark-1-alpha-3: rgba(57, 54, 50, 0.43);
+        --color-dark-1-alpha-4: rgba(57, 54, 50, 0.57);
+        --color-dark-1-alpha-5: rgba(57, 54, 50, 0.71);
+        --color-dark-1-alpha-6: rgba(57, 54, 50, 0.86);
+
+        /* ——— DARK 6 ALPHA (6) ——— */
+        --color-dark-6-alpha-1: rgba(14, 26, 40, 0.14);
+        --color-dark-6-alpha-2: rgba(14, 26, 40, 0.29);
+        --color-dark-6-alpha-3: rgba(14, 26, 40, 0.43);
+        --color-dark-6-alpha-4: rgba(14, 26, 40, 0.57);
+        --color-dark-6-alpha-5: rgba(14, 26, 40, 0.71);
+        --color-dark-6-alpha-6: rgba(14, 26, 40, 0.86);
+
+        /* ——— BLACK ALPHA (6) ——— */
+        --color-black-alpha-1: rgba(0, 0, 0, 0.14);
+        --color-black-alpha-2: rgba(0, 0, 0, 0.29);
+        --color-black-alpha-3: rgba(0, 0, 0, 0.43);
+        --color-black-alpha-4: rgba(0, 0, 0, 0.57);
+        --color-black-alpha-5: rgba(0, 0, 0, 0.71);
+        --color-black-alpha-6: rgba(0, 0, 0, 0.86);
+
+        /* ——— WHITE ALPHA (6) ——— */
+        --color-white-alpha-1: rgba(255, 255, 255, 0.14);
+        --color-white-alpha-2: rgba(255, 255, 255, 0.29);
+        --color-white-alpha-3: rgba(255, 255, 255, 0.43);
+        --color-white-alpha-4: rgba(255, 255, 255, 0.57);
+        --color-white-alpha-5: rgba(255, 255, 255, 0.71);
+        --color-white-alpha-6: rgba(255, 255, 255, 0.86);
+
+        /* ——— STATIC COLORS (2) ——— */
+        --color-white: white;
+        --color-black: black;
+
+
+
+
+
+
 
 
 
@@ -218,100 +266,7 @@
 
 
 
-        /* --color-light-scale-1: #daccbf;
-        --color-light-scale-2: #e0c9c5;
-        --color-light-scale-3: #e0c8ce;
-        --color-light-scale-4: #d8cad8;
-        --color-light-scale-5: #cccddf;
-        --color-light-scale-6: #bfd0df;
-        --color-dark-scale-1: #34251d;
-        --color-dark-scale-2: #331f1e;
-        --color-dark-scale-3: #2e1a21;
-        --color-dark-scale-4: #251825;
-        --color-dark-scale-5: #181626;
-        --color-dark-scale-6: #051524;
-        --color-accent-opaque-light-scale-1: rgba(218, 204, 191, 0.2);
-        --color-accent-opaque-light-scale-2: rgba(224, 201, 197, 0.2);
-        --color-accent-opaque-light-scale-3: rgba(224, 200, 206, 0.2);
-        --color-accent-opaque-light-scale-4: rgba(216, 202, 216, 0.2);
-        --color-accent-opaque-light-scale-5: rgba(204, 205, 223, 0.2);
-        --color-accent-opaque-light-scale-6: rgba(191, 208, 223, 0.2);
-        --color-accent-opaque-dark-scale-1: rgba(52, 37, 29, 0.5);
-        --color-accent-opaque-dark-scale-2: rgba(51, 31, 30, 0.5);
-        --color-accent-opaque-dark-scale-3: rgba(46, 26, 33, 0.5);
-        --color-accent-opaque-dark-scale-4: rgba(37, 24, 37, 0.5);
-        --color-accent-opaque-dark-scale-5: rgba(24, 22, 38, 0.5);
-        --color-accent-opaque-dark-scale-6: rgba(5, 21, 36, 0.5);
-        --color-static-light: white;
-        --color-static-dark: black; */
-
-
-
-        /*
-previous varibale names was like: --color-light-scale-1 etc.
-the rgba values should be derived from --color-light-1
-*/
-        --color-light-1: #b839f7;
-        --color-light-2: #9471ff;
-        --color-light-3: #7c92ff;
-        --color-light-4: #7dacff;
-        --color-light-5: #97c0f1;
-        --color-light-6: #bfd0df;
-
-        /*
-previous varibale names was like: --color-dark-scale-1 etc.
-the rgba values should be derived from --color-dark-1
-*/
-        --color-dark-1: #34251d;
-        --color-dark-2: #331f1e;
-        --color-dark-3: #2e1a21;
-        --color-dark-4: #251825;
-        --color-dark-5: #181626;
-        --color-dark-6: #051524;
-
-        /*
-previous varibale names was like: --color-accent-opaque-light-scale-1 etc.
-the rgba values should be derived from --color-light-1
-*/
-        --color-light-transparent-1: rgba(184, 57, 247, 0.1);
-        --color-light-transparent-2: rgba(148, 113, 255, 0.2);
-        --color-light-transparent-3: rgba(124, 146, 255, 0.3);
-        --color-light-transparent-4: rgba(125, 172, 255, 0.4);
-        --color-light-transparent-5: rgba(151, 192, 241, 0.5);
-        --color-light-transparent-6: rgba(191, 208, 223, 0.6);
-
-        /*
-previous varibale names was like: --color-accent-opaque-dark-scale-1 etc.
-the rgba values should be derived from --color-dark-1
-*/
-        --color-dark-transparent-1: rgba(52, 37, 29, 0.1);
-        --color-dark-transparent-2: rgba(51, 31, 30, 0.2);
-        --color-dark-transparent-3: rgba(46, 26, 33, 0.3);
-        --color-dark-transparent-4: rgba(37, 24, 37, 0.4);
-        --color-dark-transparent-5: rgba(24, 22, 38, 0.5);
-        --color-dark-transparent-6: rgba(5, 21, 36, 0.6);
-
-        /*
-the rgba values should be derived from --color-black
-*/
-        --color-black: black;
-        --color-black-transparent-1: rgba(184, 57, 247, 0.1);
-        --color-black-transparent-2: rgba(148, 113, 255, 0.2);
-        --color-black-transparent-3: rgba(124, 146, 255, 0.3);
-        --color-black-transparent-4: rgba(125, 172, 255, 0.4);
-        --color-black-transparent-5: rgba(151, 192, 241, 0.5);
-        --color-black-transparent-6: rgba(191, 208, 223, 0.6);
-
-        /*
-the rgba values should be derived from --color-white
-*/
-        --color-white: white;
-        --color-white-transparent-1: rgba(184, 57, 247, 0.1);
-        --color-white-transparent-2: rgba(148, 113, 255, 0.2);
-        --color-white-transparent-3: rgba(124, 146, 255, 0.3);
-        --color-white-transparent-4: rgba(125, 172, 255, 0.4);
-        --color-white-transparent-5: rgba(151, 192, 241, 0.5);
-        --color-white-transparent-6: rgba(191, 208, 223, 0.6);
+      
 
 
 
