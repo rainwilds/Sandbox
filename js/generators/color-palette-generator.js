@@ -24,6 +24,13 @@ function setupColorPalette() {
     /* ---------- helpers ---------- */
     const roundAlpha = (num) => parseFloat(num.toFixed(2));
 
+    const rgbToHex = (rgb) => {
+        if (rgb.startsWith('#')) return rgb;
+        const match = rgb.match(/\d+/g);
+        if (!match || match.length < 3) return '#ffffff';
+        return '#' + match.map(x => parseInt(x).toString(16).padStart(2, '0')).join('');
+    };
+
     const normalizeCssColor = str => {
         str = str.trim();
         if (!str.startsWith('rgb')) return str;
@@ -210,6 +217,17 @@ function setupColorPalette() {
             'dark-6': '--color-dark-6'
         };
 
+        const bodyBgInput = document.getElementById('body-bg');
+        if (bodyBgInput) {
+            // Set initial value from CSS
+            const currentBg = getComputedStyle(document.body).backgroundColor || '#ffffff';
+            bodyBgInput.value = rgbToHex(currentBg) || '#ffffff';
+
+            bodyBgInput.addEventListener('input', (e) => {
+                document.body.style.backgroundColor = e.target.value;
+            });
+        }
+
         Object.entries(colorInputs).forEach(([id, varName]) => {
             const input = document.getElementById(id);
             if (!input) return;
@@ -245,10 +263,12 @@ function setupColorPalette() {
     /* ---------- copy button – perfectly formatted ---------- */
     document.getElementById('copy-css-vars')?.addEventListener('click', () => {
         const styles = getComputedStyle(root);
+        const bodyStyles = getComputedStyle(document.body);
 
-        const formatGroup = (title, vars) => {
+        const formatGroup = (title, vars, element = root) => {
+            const s = getComputedStyle(element);
             const lines = vars.map(v => {
-                const val = styles.getPropertyValue(v).trim() || '/* not set */';
+                const val = s.getPropertyValue(v).trim() || '/* not set */';
                 return `${v}: ${val};`;
             }).join('\n');
             return `/* ——— ${title} ——— */\n${lines}\n`;
@@ -287,14 +307,12 @@ function setupColorPalette() {
                 '--color-white-alpha-1', '--color-white-alpha-2', '--color-white-alpha-3',
                 '--color-white-alpha-4', '--color-white-alpha-5', '--color-white-alpha-6'
             ]),
-            formatGroup('STATIC COLORS (2)', ['--color-white', '--color-black'])
+            formatGroup('STATIC COLORS (2)', ['--color-white', '--color-black']),
+            formatGroup('BODY BACKGROUND', ['background-color'], document.body)
         ].join('\n');
 
         navigator.clipboard.writeText(output).then(() => {
-            alert('CSS variables copied – with values!');
-        }).catch(err => {
-            console.error('Copy failed:', err);
-            alert('Copy failed – check console');
+            alert('CSS variables + body background copied!');
         });
     });
 
