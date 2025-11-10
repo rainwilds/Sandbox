@@ -138,26 +138,6 @@ async function loadComponents(componentList) {
   return allResults;
 }
 
-// ——— SNIPCART HELPER (NEW) ———
-// Builds the correct script src or triggers auto-injection for latest version
-async function getSnipcartScript(snipcart) {
-  const version = snipcart.version?.trim();
-  
-  if (version) {
-    // Pinned version: Build explicit URL (e.g., v3.7.1/default/snipcart.3.7.1.js)
-    return {
-      src: `https://cdn.snipcart.com/themes/v${version}/default/snipcart.${version}.js`,
-      strategy: 'manual'  // Use our <script src>
-    };
-  } else {
-    // Empty version: Let Snipcart auto-inject latest (no src, just trigger via settings)
-    return {
-      src: null,
-      strategy: 'auto'  // Snipcart handles URL + latest version
-    };
-  }
-}
-
 async function updateHead(attributes, setup) {
   logger.log('updateHead called with attributes', attributes);
   const head = document.head;
@@ -204,11 +184,9 @@ async function updateHead(attributes, setup) {
       return script;
     };
 
-    // Core
     criticalFrag.appendChild(makeScript(fa.core));
     logger.log(`Added FA core: ${base}${fa.core}`);
 
-    // Packages
     if (Array.isArray(fa.packages) && fa.packages.length) {
       fa.packages.forEach(pkg => {
         criticalFrag.appendChild(makeScript(pkg));
@@ -230,9 +208,8 @@ async function updateHead(attributes, setup) {
 
       if (imageTemplates.length > 0) {
         const actualCount = Math.min(count, imageTemplates.length);
-
         const defaultWidths = VIEWPORT_BREAKPOINTS
-          .map(bp => bp.maxWidth)
+          .map(bp => Bp.maxWidth)
           .filter(w => Number.isFinite(w));
         const widths = attributes.heroWidths
           ? attributes.heroWidths.split(',').map(w => parseInt(w.trim())).filter(w => w > 0)
@@ -241,7 +218,6 @@ async function updateHead(attributes, setup) {
         const sizes = attributes.heroSize || '100vw';
         const format = attributes.heroFormat || 'avif';
 
-        // Load paths from config (same as image-generator.js)
         const [responsivePath, primaryPath] = await Promise.all([
           import('../config.js').then(m => m.getImageResponsivePath()),
           import('../config.js').then(m => m.getImagePrimaryPath())
@@ -253,31 +229,23 @@ async function updateHead(attributes, setup) {
 
         for (let i = 0; i < actualCount; i++) {
           let raw = imageTemplates[i];
-
-          // Normalize input: remove path, extension, and any existing -XXXX
-          const hasFullPath = raw.startsWith('/');
           const cleanName = raw
             .replace(/^\/+/, '')
             .replace(/-\d+$/, '')
             .replace(/\.[^/.]+$/, '');
 
-          // Build srcset: ALL sizes get -WIDTH except the largest (unless primary JPG)
           const srcset = widths
             .map(w => {
               const isLargest = w === largestWidth;
               const filename = isLargest && !usePrimary
-                ? `${cleanName}.${format}`  // ← largest AVIF/WebP: NO suffix
+                ? `${cleanName}.${format}`
                 : `${cleanName}-${w}.${format}`;
               const path = (isLargest && usePrimary) ? primaryPath : responsivePath;
               return `${path}${filename} ${w}w`;
             })
             .join(', ');
 
-          // href = largest image
-          const hrefFilename = usePrimary
-            ? `${cleanName}.${format}`  // primary JPG: no suffix
-            : `${cleanName}.${format}`; // ← largest AVIF: NO -3840
-
+          const hrefFilename = usePrimary ? `${cleanName}.${format}` : `${cleanName}.${format}`;
           const hrefPath = usePrimary ? primaryPath : responsivePath;
           const finalHref = `${hrefPath}${hrefFilename}`;
 
@@ -296,7 +264,6 @@ async function updateHead(attributes, setup) {
             format,
             largest: largestWidth,
             usePrimary,
-            hasFullPath,
             cleanName
           });
         }
@@ -422,57 +389,54 @@ async function updateHead(attributes, setup) {
     criticalFrag.appendChild(link);
   });
 
-  // ——— SNIPCART (UPDATED) ———
+  // ——— SNIPCART (OFFICIAL AUTO-LOADER) ———
   if (setup.general?.include_e_commerce && setup.general?.snipcart) {
     const snipcart = setup.general.snipcart;
-    const scriptConfig = await getSnipcartScript(snipcart);  // NEW: Get src/strategy
+    const version = snipcart.version?.trim();
 
-    if (scriptConfig.strategy === 'auto') {
-      // Latest: Set window.SnipcartSettings (omits version) → Snipcart auto-injects <script src=latest>
-      window.SnipcartSettings = {
-        publicApiKey: snipcart.publicApiKey,
-        loadStrategy: snipcart.loadStrategy,
-        modalStyle: snipcart.modalStyle,
-        templatesUrl: snipcart.templatesUrl,
-        currency: snipcart.currency,
-        loadCSS: snipcart.loadCSS !== false  // Docs: true by default
-        // version intentionally omitted → Snipcart loads latest
-      };
-
-      // Trigger auto-injection with a minimal <script> (no src)
-      const triggerScript = document.createElement('script');
-      triggerScript.id = 'snipcart';
-      triggerScript.textContent = '(function(){window.Snipcart || (window.Snipcart = {});})();';  // Init if needed
-      deferredFrag.appendChild(triggerScript);
-      logger.log('Snipcart auto-injection triggered for latest version', {
-        strategy: 'auto',
-        settings: window.SnipcartSettings
-      });
-    } else {
-      // Pinned: Manual <script src>
+    if (version) {
+      // Pinned version
       const script = document.createElement('script');
       script.id = 'snipcart';
       script.defer = true;
+      script.src = `https://cdn.snipcart.com/themes/v${version}/default/snipcart.${version}.js`;
 
-      script.src = scriptConfig.src;
-
-      // Core required attributes
-      script.setAttribute('data-api-key', snipcart.publicApiKey);
-
-      // Optional config attributes
-      if (snipcart.modalStyle) script.setAttribute('data-config-modal-style', snipcart.modalStyle);
-      if (snipcart.loadStrategy) script.setAttribute('data-config-load-strategy', snipcart.loadStrategy);
-      if (snipcart.templatesUrl) script.setAttribute('data-templates-url', snipcart.templatesUrl);
-      if (snipcart.currency) script.setAttribute('data-currency', snipcart.currency);
-      if (snipcart.loadCSS === false) {
-        script.setAttribute('data-config-load-css', 'false');
-      }
+      script.dataset.apiKey = snipcart.publicApiKey;
+      if (snipcart.modalStyle) script.dataset.configModalStyle = snipcart.modalStyle;
+      if (snipcart.loadStrategy) script.dataset.configLoadStrategy = snipcart.loadStrategy;
+      if (snipcart.templatesUrl) script.dataset.templatesUrl = snipcart.templatesUrl;
+      if (snipcart.currency) script.dataset.currency = snipcart.currency;
+      if (snipcart.loadCSS === false) script.dataset.configLoadCss = 'false';
 
       deferredFrag.appendChild(script);
-      logger.log('Snipcart pinned version loaded', {
-        version,
-        src: script.src,
-        strategy: 'manual'
+      logger.log('Snipcart pinned version loaded', { version, src: script.src });
+    } else {
+      // Latest version: Official auto-loader
+      const loaderScript = document.createElement('script');
+      loaderScript.id = 'snipcart';
+      loaderScript.defer = true;
+      loaderScript.textContent = `
+        (function(){
+          var s = document.createElement('script');
+          s.src = 'https://cdn.snipcart.com/themes/latest/default/snipcart.js';
+          s.async = true;
+          document.head.appendChild(s);
+        })();
+      `;
+
+      // Settings must be set BEFORE the loader runs
+      window.SnipcartSettings = {
+        publicApiKey: snipcart.publicApiKey,
+        loadStrategy: snipcart.loadStrategy || 'on-user-interaction',
+        modalStyle: snipcart.modalStyle,
+        templatesUrl: snipcart.templatesUrl,
+        currency: snipcart.currency,
+        loadCSS: snipcart.loadCSS !== false
+      };
+
+      deferredFrag.appendChild(loaderScript);
+      logger.log('Snipcart auto-loader injected for latest version', {
+        settings: window.SnipcartSettings
       });
     }
   }
