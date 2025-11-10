@@ -250,6 +250,30 @@ function setupColorPalette() {
             });
         }
 
+        // Text color toggle
+        const textToggleBtn = document.getElementById('toggle-text-color');
+        if (textToggleBtn) {
+            // Detect current mode
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            let isDarkText = prefersDark; // start with white text in dark mode
+
+            const updateTextColor = () => {
+                const colorValue = isDarkText
+                    ? 'light-dark(black, white)'
+                    : 'light-dark(white, black)';
+                root.style.setProperty('color', colorValue);
+                textToggleBtn.textContent = `Toggle Text: ${isDarkText ? 'White' : 'Black'}`;
+            };
+
+            textToggleBtn.addEventListener('click', () => {
+                isDarkText = !isDarkText;
+                updateTextColor();
+            });
+
+            // Initialize
+            updateTextColor();
+        }
+
         // Even button: 100/7 → 6th = 0.86
         document.getElementById('alpha-even')?.addEventListener('click', () => {
             alphaStep = 1 / 7;
