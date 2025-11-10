@@ -3,6 +3,11 @@
 index.html
 img/primary/tourism-*
 img/responsive/tourism-*
+img/gallery/gallery*
+img/icons/*.png
+img/icons/favicon.ico
+img/icons/site.webmanifest
+img/logos/logo*
 JSON/setup.json
 fonts/Futura_PT_Demi.woff2
 fonts/futura_pt_book.woff2
