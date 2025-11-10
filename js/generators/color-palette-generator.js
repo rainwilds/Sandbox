@@ -1,10 +1,21 @@
 /* --------------------------------------------------------------
-   Color palette generator – ALPHA only (no transparent)
+   Color Palette Generator – Final Version
+   • Alpha step control (0.01–1.00)
+   • Even button = 100/7 → 6th alpha = ~0.86
+   • All "transparent" → "alpha"
+   • No scale-transparent
+   • Perfect copy formatting
+   • 50 CSS variables
    -------------------------------------------------------------- */
 let isInitialized = false;
 
 function setupColorPalette() {
     if (isInitialized) return;
+    if (typeof chroma === 'undefined') {
+        console.warn('Chroma.js not loaded. Retrying...');
+        setTimeout(setupColorPalette, 100);
+        return;
+    }
     isInitialized = true;
 
     const root = document.documentElement;
@@ -71,16 +82,24 @@ function setupColorPalette() {
 
         const l1 = styles.getPropertyValue('--color-light-1').trim();
         const l6 = styles.getPropertyValue('--color-light-6').trim();
-        if ((changed === '--color-light-1' || changed === '--color-light-6') && l1 && l6) {
-            const scale = chroma.scale([l1, l6]).mode('lch').colors(6);
-            for (let i = 2; i <= 5; i++) root.style.setProperty(`--color-light-${i}`, scale[i - 1]);
+        if ((changed === '--color-light-1' || changed === '--color-light-6') && l1 && l6 && chroma.valid(l1) && chroma.valid(l6)) {
+            try {
+                const scale = chroma.scale([l1, l6]).mode('lch').colors(6);
+                for (let i = 2; i <= 5; i++) root.style.setProperty(`--color-light-${i}`, scale[i - 1]);
+            } catch (e) {
+                console.error('Light scale failed:', e);
+            }
         }
 
         const d1 = styles.getPropertyValue('--color-dark-1').trim();
         const d6 = styles.getPropertyValue('--color-dark-6').trim();
-        if ((changed === '--color-dark-1' || changed === '--color-dark-6') && d1 && d6) {
-            const scale = chroma.scale([d1, d6]).mode('lch').colors(6);
-            for (let i = 2; i <= 5; i++) root.style.setProperty(`--color-dark-${i}`, scale[i - 1]);
+        if ((changed === '--color-dark-1' || changed === '--color-dark-6') && d1 && d6 && chroma.valid(d1) && chroma.valid(d6)) {
+            try {
+                const scale = chroma.scale([d1, d6]).mode('lch').colors(6);
+                for (let i = 2; i <= 5; i++) root.style.setProperty(`--color-dark-${i}`, scale[i - 1]);
+            } catch (e) {
+                console.error('Dark scale failed:', e);
+            }
         }
 
         generateAllAlpha();
@@ -183,14 +202,25 @@ function setupColorPalette() {
             staticDark:  document.getElementById('color-static-dark')
         };
 
-        ['light-1', 'light-6', 'dark-1', 'dark-6'].forEach(id => {
+        // Input listeners
+        const colorInputs = {
+            'light-1': '--color-light-1',
+            'light-6': '--color-light-6',
+            'dark-1': '--color-dark-1',
+            'dark-6': '--color-dark-6'
+        };
+
+        Object.entries(colorInputs).forEach(([id, varName]) => {
             const input = document.getElementById(id);
-            if (input) {
-                const varName = `--color-${id.replace(/-\d$/, '')}-${id.match(/\d+$/)[0]}`;
-                input.value = styles.getPropertyValue(varName).trim();
-            }
+            if (!input) return;
+            input.value = styles.getPropertyValue(varName).trim();
+            input.addEventListener('input', (e) => {
+                root.style.setProperty(varName, e.target.value);
+                updateScales(varName);
+            });
         });
 
+        // Alpha controls
         const alphaInput = document.getElementById('alpha-step');
         if (alphaInput) {
             alphaInput.value = alphaStep;
@@ -202,8 +232,9 @@ function setupColorPalette() {
             });
         }
 
+        // Even button: 100/7 → 6th = 0.86
         document.getElementById('alpha-even')?.addEventListener('click', () => {
-            alphaStep = 1 / 6;
+            alphaStep = 1 / 7;
             if (alphaInput) alphaInput.value = alphaStep.toFixed(4);
             updateScales();
         });
@@ -211,7 +242,7 @@ function setupColorPalette() {
         updateScales();
     };
 
-    /* ---------- copy button – clean & formatted ---------- */
+    /* ---------- copy button – perfectly formatted ---------- */
     document.getElementById('copy-css-vars')?.addEventListener('click', () => {
         const styles = getComputedStyle(root);
 
@@ -237,6 +268,9 @@ function setupColorPalette() {
 
         navigator.clipboard.writeText(output).then(() => {
             alert('CSS variables copied – clean & ready!');
+        }).catch(err => {
+            console.error('Copy failed:', err);
+            alert('Copy failed – check console');
         });
     });
 
@@ -263,6 +297,7 @@ function setupColorPalette() {
                     'color-dark-1-alpha','color-dark-6-alpha',
                     'color-black-alpha','color-white-alpha',
                     'color-static-light','color-static-dark',
+                    'light-1','light-6','dark-1','dark-6',
                     'alpha-step','alpha-even','copy-css-vars'
                 ];
                 domReady = ids.every(id => document.getElementById(id));
