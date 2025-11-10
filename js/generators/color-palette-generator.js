@@ -28,7 +28,7 @@ function setupColorPalette() {
             const c = chroma(normalizeCssColor(value));
             const text = c.luminance() > 0.5 ? 'black' : 'white';
             swatch.querySelectorAll('span').forEach(s => s.style.color = text);
-        } catch (_) { }
+        } catch (_) {}
     };
 
     /* ---------- generate transparent series ---------- */
@@ -78,18 +78,12 @@ function setupColorPalette() {
     };
 
     /* ---------- swatch rendering ---------- */
-    const paletteGroups = {
-        light: document.getElementById('color-accent-light'),
-        dark: document.getElementById('color-accent-dark'),
-        lightTrans: document.getElementById('color-light-transparent'),
-        darkTrans: document.getElementById('color-dark-transparent'),
-        blackTrans: document.getElementById('color-black-transparent'),
-        whiteTrans: document.getElementById('color-white-transparent'),
-        staticLight: document.getElementById('color-static-light'),
-        staticDark: document.getElementById('color-static-dark')
-    };
+    let paletteGroups = null;
 
-    const clearPalettes = () => Object.values(paletteGroups).forEach(p => p && (p.innerHTML = ''));
+    const clearPalettes = () => {
+        if (!paletteGroups) return;
+        Object.values(paletteGroups).forEach(p => p && (p.innerHTML = ''));
+    };
 
     const createSwatch = (varName, value) => {
         const div = document.createElement('div');
@@ -108,37 +102,38 @@ function setupColorPalette() {
     };
 
     const refreshSwatches = () => {
+        if (!paletteGroups) return;
         const styles = getComputedStyle(root);
         clearPalettes();
 
         for (let i = 1; i <= 6; i++) {
             const v = styles.getPropertyValue(`--color-light-${i}`).trim();
-            paletteGroups.light.appendChild(createSwatch(`--color-light-${i}`, v));
+            if (paletteGroups.light) paletteGroups.light.appendChild(createSwatch(`--color-light-${i}`, v));
         }
         for (let i = 1; i <= 6; i++) {
             const v = styles.getPropertyValue(`--color-dark-${i}`).trim();
-            paletteGroups.dark.appendChild(createSwatch(`--color-dark-${i}`, v));
+            if (paletteGroups.dark) paletteGroups.dark.appendChild(createSwatch(`--color-dark-${i}`, v));
         }
         for (let i = 1; i <= 6; i++) {
             const v = styles.getPropertyValue(`--color-light-transparent-${i}`).trim();
-            paletteGroups.lightTrans.appendChild(createSwatch(`--color-light-transparent-${i}`, v));
+            if (paletteGroups.lightTrans) paletteGroups.lightTrans.appendChild(createSwatch(`--color-light-transparent-${i}`, v));
         }
         for (let i = 1; i <= 6; i++) {
             const v = styles.getPropertyValue(`--color-dark-transparent-${i}`).trim();
-            paletteGroups.darkTrans.appendChild(createSwatch(`--color-dark-transparent-${i}`, v));
+            if (paletteGroups.darkTrans) paletteGroups.darkTrans.appendChild(createSwatch(`--color-dark-transparent-${i}`, v));
         }
         for (let i = 1; i <= 6; i++) {
             const v = styles.getPropertyValue(`--color-black-transparent-${i}`).trim();
-            paletteGroups.blackTrans.appendChild(createSwatch(`--color-black-transparent-${i}`, v));
+            if (paletteGroups.blackTrans) paletteGroups.blackTrans.appendChild(createSwatch(`--color-black-transparent-${i}`, v));
         }
         for (let i = 1; i <= 6; i++) {
             const v = styles.getPropertyValue(`--color-white-transparent-${i}`).trim();
-            paletteGroups.whiteTrans.appendChild(createSwatch(`--color-white-transparent-${i}`, v));
+            if (paletteGroups.whiteTrans) paletteGroups.whiteTrans.appendChild(createSwatch(`--color-white-transparent-${i}`, v));
         }
         ['--color-white', '--color-black'].forEach(v => {
             const val = styles.getPropertyValue(v).trim();
             const target = v.includes('white') ? paletteGroups.staticLight : paletteGroups.staticDark;
-            target.appendChild(createSwatch(v, val));
+            if (target) target.appendChild(createSwatch(v, val));
         });
     };
 
@@ -146,7 +141,7 @@ function setupColorPalette() {
     const init = () => {
         const styles = getComputedStyle(root);
 
-        // Set fallbacks
+        // Fallbacks
         const defaults = {
             '--color-light-1': '#b839f7',
             '--color-light-6': '#bfd0df',
@@ -158,6 +153,18 @@ function setupColorPalette() {
         Object.entries(defaults).forEach(([k, v]) => {
             if (!styles.getPropertyValue(k).trim()) root.style.setProperty(k, v);
         });
+
+        // Create paletteGroups AFTER DOM is ready
+        paletteGroups = {
+            light: document.getElementById('color-accent-light'),
+            dark: document.getElementById('color-accent-dark'),
+            lightTrans: document.getElementById('color-light-transparent'),
+            darkTrans: document.getElementById('color-dark-transparent'),
+            blackTrans: document.getElementById('color-black-transparent'),
+            whiteTrans: document.getElementById('color-white-transparent'),
+            staticLight: document.getElementById('color-static-light'),
+            staticDark: document.getElementById('color-static-dark')
+        };
 
         // Init inputs
         ['light-1', 'light-6', 'dark-1', 'dark-6'].forEach(id => {
@@ -199,7 +206,7 @@ function setupColorPalette() {
     });
 
     /* ---------- wait for CSS + DOM ---------- */
-    const waitForCssAndDom = (href, cb, timeout = 10000) => {
+    const waitForCssAndDom = (cb, timeout = 10000) => {
         let cssLoaded = false;
         let domReady = false;
         const start = Date.now();
@@ -212,7 +219,7 @@ function setupColorPalette() {
 
             if (!cssLoaded) {
                 const found = Array.from(document.styleSheets).some(s =>
-                    s.href && (s.href.includes(href) || s.href.includes('styles.css'))
+                    s.href && s.href.includes('styles.css')
                 );
                 if (found) cssLoaded = true;
             }
@@ -240,11 +247,7 @@ function setupColorPalette() {
         check();
     };
 
-    waitForCssAndDom('styles.css', init);
-
-    document.addEventListener('DOMContentLoaded', () => {
-        if (!isInitialized) waitForCssAndDom('styles.css', init);
-    });
+    waitForCssAndDom(init);
 }
 
 /* -------------------------------------------------------------- */
