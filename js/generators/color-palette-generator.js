@@ -34,7 +34,7 @@ function setupColorPalette() {
     /* ---------- generate transparent series ---------- */
     const generateTransparent = (baseVar, prefix, index) => {
         const base = getComputedStyle(root).getPropertyValue(baseVar).trim();
-        if (!base) return;
+        if (!base || !chroma.valid(base)) return;
         const col = chroma(base);
         const alphas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6];
         const alpha = alphas[index - 1];
@@ -43,22 +43,15 @@ function setupColorPalette() {
     };
 
     const generateAllTransparent = () => {
-        // light
         for (let i = 1; i <= 6; i++) {
             generateTransparent(`--color-light-${i}`, 'color-light-transparent', i);
-        }
-        // dark
-        for (let i = 1; i <= 6; i++) {
             generateTransparent(`--color-dark-${i}`, 'color-dark-transparent', i);
         }
-        // black & white (use full array)
-        const fullAlphas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6];
-        fullAlphas.forEach((a, i) => {
+        const alphas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6];
+        alphas.forEach((a, i) => {
             const idx = i + 1;
-            const black = chroma('black').alpha(a).css();
-            const white = chroma('white').alpha(a).css();
-            root.style.setProperty(`--color-black-transparent-${idx}`, black);
-            root.style.setProperty(`--color-white-transparent-${idx}`, white);
+            root.style.setProperty(`--color-black-transparent-${idx}`, `rgba(0, 0, 0, ${a})`);
+            root.style.setProperty(`--color-white-transparent-${idx}`, `rgba(255, 255, 255, ${a})`);
         });
     };
 
@@ -66,7 +59,6 @@ function setupColorPalette() {
     const updateScales = (changed = null) => {
         const styles = getComputedStyle(root);
 
-        // ---- light scale ----
         const l1 = styles.getPropertyValue('--color-light-1').trim();
         const l6 = styles.getPropertyValue('--color-light-6').trim();
         if ((changed === '--color-light-1' || changed === '--color-light-6') && l1 && l6) {
@@ -74,7 +66,6 @@ function setupColorPalette() {
             for (let i = 2; i <= 5; i++) root.style.setProperty(`--color-light-${i}`, scale[i - 1]);
         }
 
-        // ---- dark scale ----
         const d1 = styles.getPropertyValue('--color-dark-1').trim();
         const d6 = styles.getPropertyValue('--color-dark-6').trim();
         if ((changed === '--color-dark-1' || changed === '--color-dark-6') && d1 && d6) {
@@ -88,8 +79,8 @@ function setupColorPalette() {
 
     /* ---------- swatch rendering ---------- */
     const paletteGroups = {
-        light: document.getElementById('color-accent-light'),          // solid light
-        dark: document.getElementById('color-accent-dark'),           // solid dark
+        light: document.getElementById('color-accent-light'),
+        dark: document.getElementById('color-accent-dark'),
         lightTrans: document.getElementById('color-light-transparent'),
         darkTrans: document.getElementById('color-dark-transparent'),
         blackTrans: document.getElementById('color-black-transparent'),
@@ -120,37 +111,30 @@ function setupColorPalette() {
         const styles = getComputedStyle(root);
         clearPalettes();
 
-        // solid light
         for (let i = 1; i <= 6; i++) {
             const v = styles.getPropertyValue(`--color-light-${i}`).trim();
             paletteGroups.light.appendChild(createSwatch(`--color-light-${i}`, v));
         }
-        // solid dark
         for (let i = 1; i <= 6; i++) {
             const v = styles.getPropertyValue(`--color-dark-${i}`).trim();
             paletteGroups.dark.appendChild(createSwatch(`--color-dark-${i}`, v));
         }
-        // transparent light
         for (let i = 1; i <= 6; i++) {
             const v = styles.getPropertyValue(`--color-light-transparent-${i}`).trim();
             paletteGroups.lightTrans.appendChild(createSwatch(`--color-light-transparent-${i}`, v));
         }
-        // transparent dark
         for (let i = 1; i <= 6; i++) {
             const v = styles.getPropertyValue(`--color-dark-transparent-${i}`).trim();
             paletteGroups.darkTrans.appendChild(createSwatch(`--color-dark-transparent-${i}`, v));
         }
-        // black transparent
         for (let i = 1; i <= 6; i++) {
             const v = styles.getPropertyValue(`--color-black-transparent-${i}`).trim();
             paletteGroups.blackTrans.appendChild(createSwatch(`--color-black-transparent-${i}`, v));
         }
-        // white transparent
         for (let i = 1; i <= 6; i++) {
             const v = styles.getPropertyValue(`--color-white-transparent-${i}`).trim();
             paletteGroups.whiteTrans.appendChild(createSwatch(`--color-white-transparent-${i}`, v));
         }
-        // static
         ['--color-white', '--color-black'].forEach(v => {
             const val = styles.getPropertyValue(v).trim();
             const target = v.includes('white') ? paletteGroups.staticLight : paletteGroups.staticDark;
@@ -158,11 +142,11 @@ function setupColorPalette() {
         });
     };
 
-    /* ---------- initialise ---------- */
+    /* ---------- init ---------- */
     const init = () => {
         const styles = getComputedStyle(root);
 
-        // set fallback values if nothing is defined in CSS
+        // Set fallbacks
         const defaults = {
             '--color-light-1': '#b839f7',
             '--color-light-6': '#bfd0df',
@@ -175,14 +159,15 @@ function setupColorPalette() {
             if (!styles.getPropertyValue(k).trim()) root.style.setProperty(k, v);
         });
 
-        // initialise inputs
+        // Init inputs
         ['light-1', 'light-6', 'dark-1', 'dark-6'].forEach(id => {
             const input = document.getElementById(id);
-            const varName = `--color-${id.replace(/-\d$/, '')}-${id.match(/\d+$/)[0]}`;
-            input.value = styles.getPropertyValue(varName).trim();
+            if (input) {
+                const varName = `--color-${id.replace(/-\d$/, '')}-${id.match(/\d+$/)[0]}`;
+                input.value = styles.getPropertyValue(varName).trim();
+            }
         });
 
-        // first scale + transparent generation
         updateScales();
     };
 
@@ -201,22 +186,23 @@ function setupColorPalette() {
     document.getElementById('copy-css-vars')?.addEventListener('click', () => {
         const styles = getComputedStyle(root);
         const vars = [
-            ...Array.from({ length: 6 }, (_, i) => `--color-light-${i + 1}`),
-            ...Array.from({ length: 6 }, (_, i) => `--color-dark-${i + 1}`),
-            ...Array.from({ length: 6 }, (_, i) => `--color-light-transparent-${i + 1}`),
-            ...Array.from({ length: 6 }, (_, i) => `--color-dark-transparent-${i + 1}`),
-            ...Array.from({ length: 6 }, (_, i) => `--color-black-transparent-${i + 1}`),
-            ...Array.from({ length: 6 }, (_, i) => `--color-white-transparent-${i + 1}`),
+            ...Array.from({length:6}, (_,i) => `--color-light-${i+1}`),
+            ...Array.from({length:6}, (_,i) => `--color-dark-${i+1}`),
+            ...Array.from({length:6}, (_,i) => `--color-light-transparent-${i+1}`),
+            ...Array.from({length:6}, (_,i) => `--color-dark-transparent-${i+1}`),
+            ...Array.from({length:6}, (_,i) => `--color-black-transparent-${i+1}`),
+            ...Array.from({length:6}, (_,i) => `--color-white-transparent-${i+1}`),
             '--color-white', '--color-black'
         ];
         const txt = vars.map(v => `${v}: ${styles.getPropertyValue(v).trim()};`).join('\n');
         navigator.clipboard.writeText(txt).then(() => alert('CSS variables copied!'));
     });
 
-    /* ---------- start ---------- */
+    /* ---------- wait for CSS + DOM ---------- */
     const waitForCssAndDom = (href, cb, timeout = 10000) => {
         let cssLoaded = false;
         let domReady = false;
+        const start = Date.now();
 
         const check = () => {
             if (cssLoaded && domReady) {
@@ -224,36 +210,26 @@ function setupColorPalette() {
                 return;
             }
 
-            // Check CSS
             if (!cssLoaded) {
                 const found = Array.from(document.styleSheets).some(s =>
                     s.href && (s.href.includes(href) || s.href.includes('styles.css'))
                 );
-                if (found) {
-                    console.log('CSS loaded');
-                    cssLoaded = true;
-                }
+                if (found) cssLoaded = true;
             }
 
-            // Check DOM (all required palette containers exist)
             if (!domReady) {
-                const requiredIds = [
-                    'color-accent-light',
-                    'color-accent-dark',
-                    'color-light-transparent',
-                    'color-dark-transparent',
-                    'color-black-transparent',
-                    'color-white-transparent',
-                    'color-static-light',
-                    'color-static-dark'
+                const ids = [
+                    'color-accent-light', 'color-accent-dark',
+                    'color-light-transparent', 'color-dark-transparent',
+                    'color-black-transparent', 'color-white-transparent',
+                    'color-static-light', 'color-static-dark'
                 ];
-                domReady = requiredIds.every(id => document.getElementById(id));
-                if (domReady) console.log('DOM ready');
+                domReady = ids.every(id => document.getElementById(id));
             }
 
             if (!cssLoaded || !domReady) {
                 if (Date.now() - start > timeout) {
-                    console.warn('Timeout waiting for CSS/DOM, proceeding anyway...');
+                    console.warn('Timeout, proceeding...');
                     cb();
                 } else {
                     setTimeout(check, 50);
@@ -261,12 +237,14 @@ function setupColorPalette() {
             }
         };
 
-        const start = Date.now();
         check();
     };
 
-    // Replace the old waitForCss call with this:
     waitForCssAndDom('styles.css', init);
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!isInitialized) waitForCssAndDom('styles.css', init);
+    });
 }
 
 /* -------------------------------------------------------------- */
