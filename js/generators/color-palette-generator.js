@@ -214,18 +214,59 @@ function setupColorPalette() {
     });
 
     /* ---------- start ---------- */
-    const waitForCss = (href, cb, timeout = 10000) => {
-        const start = Date.now();
-        const poll = () => {
-            const found = Array.from(document.styleSheets).some(s => s.href && s.href.includes(href));
-            if (found) return cb();
-            if (Date.now() - start > timeout) return cb();
-            setTimeout(poll, 100);
+    const waitForCssAndDom = (href, cb, timeout = 10000) => {
+        let cssLoaded = false;
+        let domReady = false;
+
+        const check = () => {
+            if (cssLoaded && domReady) {
+                cb();
+                return;
+            }
+
+            // Check CSS
+            if (!cssLoaded) {
+                const found = Array.from(document.styleSheets).some(s =>
+                    s.href && (s.href.includes(href) || s.href.includes('styles.css'))
+                );
+                if (found) {
+                    console.log('CSS loaded');
+                    cssLoaded = true;
+                }
+            }
+
+            // Check DOM (all required palette containers exist)
+            if (!domReady) {
+                const requiredIds = [
+                    'color-accent-light',
+                    'color-accent-dark',
+                    'color-light-transparent',
+                    'color-dark-transparent',
+                    'color-black-transparent',
+                    'color-white-transparent',
+                    'color-static-light',
+                    'color-static-dark'
+                ];
+                domReady = requiredIds.every(id => document.getElementById(id));
+                if (domReady) console.log('DOM ready');
+            }
+
+            if (!cssLoaded || !domReady) {
+                if (Date.now() - start > timeout) {
+                    console.warn('Timeout waiting for CSS/DOM, proceeding anyway...');
+                    cb();
+                } else {
+                    setTimeout(check, 50);
+                }
+            }
         };
-        poll();
+
+        const start = Date.now();
+        check();
     };
 
-    waitForCss('styles.css', init);
+    // Replace the old waitForCss call with this:
+    waitForCssAndDom('styles.css', init);
 }
 
 /* -------------------------------------------------------------- */
