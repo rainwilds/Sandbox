@@ -42,13 +42,13 @@ function setupColorPalette() {
             const c = chroma(normalizeCssColor(value));
             const text = c.luminance() > 0.5 ? 'black' : 'white';
             swatch.querySelectorAll('span').forEach(s => s.style.color = text);
-        } catch (_) {}
+        } catch (_) { }
     };
 
     /* ---------- alpha generator ---------- */
     const generateAlphas = () => {
         const step = parseFloat(alphaStep) || 0.1;
-        return Array.from({length: 6}, (_, i) => roundAlpha(step * (i + 1)));
+        return Array.from({ length: 6 }, (_, i) => roundAlpha(step * (i + 1)));
     };
 
     /* ---------- generate alpha series ---------- */
@@ -66,8 +66,8 @@ function setupColorPalette() {
     const generateAllAlpha = () => {
         generatePerColorAlpha('--color-light-1', 'color-light-1');
         generatePerColorAlpha('--color-light-6', 'color-light-6');
-        generatePerColorAlpha('--color-dark-1',  'color-dark-1');
-        generatePerColorAlpha('--color-dark-6',  'color-dark-6');
+        generatePerColorAlpha('--color-dark-1', 'color-dark-1');
+        generatePerColorAlpha('--color-dark-6', 'color-dark-6');
 
         generateAlphas().forEach((a, i) => {
             const idx = i + 1;
@@ -154,8 +154,8 @@ function setupColorPalette() {
         };
         addPerColor('color-light-1', paletteGroups.light1Alpha);
         addPerColor('color-light-6', paletteGroups.light6Alpha);
-        addPerColor('color-dark-1',  paletteGroups.dark1Alpha);
-        addPerColor('color-dark-6',  paletteGroups.dark6Alpha);
+        addPerColor('color-dark-1', paletteGroups.dark1Alpha);
+        addPerColor('color-dark-6', paletteGroups.dark6Alpha);
 
         // black / white alpha
         for (let i = 1; i <= 6; i++) {
@@ -180,26 +180,26 @@ function setupColorPalette() {
         const defaults = {
             '--color-light-1': '#b839f7',
             '--color-light-6': '#bfd0df',
-            '--color-dark-1' : '#34251d',
-            '--color-dark-6' : '#051524',
-            '--color-white'  : 'white',
-            '--color-black'  : 'black'
+            '--color-dark-1': '#34251d',
+            '--color-dark-6': '#051524',
+            '--color-white': 'white',
+            '--color-black': 'black'
         };
         Object.entries(defaults).forEach(([k, v]) => {
             if (!styles.getPropertyValue(k).trim()) root.style.setProperty(k, v);
         });
 
         paletteGroups = {
-            light:       document.getElementById('color-accent-light'),
-            dark:        document.getElementById('color-accent-dark'),
+            light: document.getElementById('color-accent-light'),
+            dark: document.getElementById('color-accent-dark'),
             light1Alpha: document.getElementById('color-light-1-alpha'),
             light6Alpha: document.getElementById('color-light-6-alpha'),
-            dark1Alpha:  document.getElementById('color-dark-1-alpha'),
-            dark6Alpha:  document.getElementById('color-dark-6-alpha'),
-            blackAlpha:  document.getElementById('color-black-alpha'),
-            whiteAlpha:  document.getElementById('color-white-alpha'),
+            dark1Alpha: document.getElementById('color-dark-1-alpha'),
+            dark6Alpha: document.getElementById('color-dark-6-alpha'),
+            blackAlpha: document.getElementById('color-black-alpha'),
+            whiteAlpha: document.getElementById('color-white-alpha'),
             staticLight: document.getElementById('color-static-light'),
-            staticDark:  document.getElementById('color-static-dark')
+            staticDark: document.getElementById('color-static-dark')
         };
 
         // Input listeners
@@ -248,26 +248,50 @@ function setupColorPalette() {
 
         const formatGroup = (title, vars) => {
             const lines = vars.map(v => {
-                const val = styles.getPropertyValue(v).trim();
-                return `--${v.replace(/^--/, '')}: ${val};`;
+                const val = styles.getPropertyValue(v).trim() || '/* not set */';
+                return `${v}: ${val};`;
             }).join('\n');
             return `/* ——— ${title} ——— */\n${lines}\n`;
         };
 
         const output = [
-            formatGroup('SOLID LIGHT SCALE (6)', Array.from({length:6}, (_,i) => `color-light-${i+1}`)),
-            formatGroup('SOLID DARK SCALE (6)', Array.from({length:6}, (_,i) => `color-dark-${i+1}`)),
-            formatGroup('LIGHT 1 ALPHA (6)', Array.from({length:6}, (_,i) => `color-light-1-alpha-${i+1}`)),
-            formatGroup('LIGHT 6 ALPHA (6)', Array.from({length:6}, (_,i) => `color-light-6-alpha-${i+1}`)),
-            formatGroup('DARK 1 ALPHA (6)', Array.from({length:6}, (_,i) => `color-dark-1-alpha-${i+1}`)),
-            formatGroup('DARK 6 ALPHA (6)', Array.from({length:6}, (_,i) => `color-dark-6-alpha-${i+1}`)),
-            formatGroup('BLACK ALPHA (6)', Array.from({length:6}, (_,i) => `color-black-alpha-${i+1}`)),
-            formatGroup('WHITE ALPHA (6)', Array.from({length:6}, (_,i) => `color-white-alpha-${i+1}`)),
-            formatGroup('STATIC COLORS (2)', ['color-white', 'color-black'])
+            formatGroup('SOLID LIGHT SCALE (6)', [
+                '--color-light-1', '--color-light-2', '--color-light-3',
+                '--color-light-4', '--color-light-5', '--color-light-6'
+            ]),
+            formatGroup('SOLID DARK SCALE (6)', [
+                '--color-dark-1', '--color-dark-2', '--color-dark-3',
+                '--color-dark-4', '--color-dark-5', '--color-dark-6'
+            ]),
+            formatGroup('LIGHT 1 ALPHA (6)', [
+                '--color-light-1-alpha-1', '--color-light-1-alpha-2', '--color-light-1-alpha-3',
+                '--color-light-1-alpha-4', '--color-light-1-alpha-5', '--color-light-1-alpha-6'
+            ]),
+            formatGroup('LIGHT 6 ALPHA (6)', [
+                '--color-light-6-alpha-1', '--color-light-6-alpha-2', '--color-light-6-alpha-3',
+                '--color-light-6-alpha-4', '--color-light-6-alpha-5', '--color-light-6-alpha-6'
+            ]),
+            formatGroup('DARK 1 ALPHA (6)', [
+                '--color-dark-1-alpha-1', '--color-dark-1-alpha-2', '--color-dark-1-alpha-3',
+                '--color-dark-1-alpha-4', '--color-dark-1-alpha-5', '--color-dark-1-alpha-6'
+            ]),
+            formatGroup('DARK 6 ALPHA (6)', [
+                '--color-dark-6-alpha-1', '--color-dark-6-alpha-2', '--color-dark-6-alpha-3',
+                '--color-dark-6-alpha-4', '--color-dark-6-alpha-5', '--color-dark-6-alpha-6'
+            ]),
+            formatGroup('BLACK ALPHA (6)', [
+                '--color-black-alpha-1', '--color-black-alpha-2', '--color-black-alpha-3',
+                '--color-black-alpha-4', '--color-black-alpha-5', '--color-black-alpha-6'
+            ]),
+            formatGroup('WHITE ALPHA (6)', [
+                '--color-white-alpha-1', '--color-white-alpha-2', '--color-white-alpha-3',
+                '--color-white-alpha-4', '--color-white-alpha-5', '--color-white-alpha-6'
+            ]),
+            formatGroup('STATIC COLORS (2)', ['--color-white', '--color-black'])
         ].join('\n');
 
         navigator.clipboard.writeText(output).then(() => {
-            alert('CSS variables copied – clean & ready!');
+            alert('CSS variables copied – with values!');
         }).catch(err => {
             console.error('Copy failed:', err);
             alert('Copy failed – check console');
@@ -275,7 +299,7 @@ function setupColorPalette() {
     });
 
     /* ---------- wait for CSS + DOM ---------- */
-    const waitForCssAndDom = (cb, timeout = 10000) => {
+    const waitForCssAndDom = (cb, timeout = 5000) => {
         let cssLoaded = false;
         let domReady = false;
         const start = Date.now();
@@ -292,13 +316,13 @@ function setupColorPalette() {
 
             if (!domReady) {
                 const ids = [
-                    'color-accent-light','color-accent-dark',
-                    'color-light-1-alpha','color-light-6-alpha',
-                    'color-dark-1-alpha','color-dark-6-alpha',
-                    'color-black-alpha','color-white-alpha',
-                    'color-static-light','color-static-dark',
-                    'light-1','light-6','dark-1','dark-6',
-                    'alpha-step','alpha-even','copy-css-vars'
+                    'color-accent-light', 'color-accent-dark',
+                    'color-light-1-alpha', 'color-light-6-alpha',
+                    'color-dark-1-alpha', 'color-dark-6-alpha',
+                    'color-black-alpha', 'color-white-alpha',
+                    'color-static-light', 'color-static-dark',
+                    'light-1', 'light-6', 'dark-1', 'dark-6',
+                    'alpha-step', 'alpha-even', 'copy-css-vars'
                 ];
                 domReady = ids.every(id => document.getElementById(id));
             }
