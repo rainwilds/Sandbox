@@ -1196,6 +1196,7 @@ the rgba values should be derived from --color-white
 
     .palette-grid {
         display: grid;
+        grid-column: 1 / -1;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: var(--space-medium);
         margin-top: var(--space-medium);
