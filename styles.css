@@ -247,71 +247,71 @@
 
 
 
-/*
+        /*
 previous varibale names was like: --color-light-scale-1 etc.
 the rgba values should be derived from --color-light-1
 */
---color-light-1: #b839f7;
---color-light-2: #9471ff;
---color-light-3: #7c92ff;
---color-light-4: #7dacff;
---color-light-5: #97c0f1;
---color-light-6: #bfd0df;
+        --color-light-1: #b839f7;
+        --color-light-2: #9471ff;
+        --color-light-3: #7c92ff;
+        --color-light-4: #7dacff;
+        --color-light-5: #97c0f1;
+        --color-light-6: #bfd0df;
 
-/*
+        /*
 previous varibale names was like: --color-dark-scale-1 etc.
 the rgba values should be derived from --color-dark-1
 */
---color-dark-1: #34251d;
---color-dark-2: #331f1e;
---color-dark-3: #2e1a21;
---color-dark-4: #251825;
---color-dark-5: #181626;
---color-dark-6: #051524;
+        --color-dark-1: #34251d;
+        --color-dark-2: #331f1e;
+        --color-dark-3: #2e1a21;
+        --color-dark-4: #251825;
+        --color-dark-5: #181626;
+        --color-dark-6: #051524;
 
-/*
+        /*
 previous varibale names was like: --color-accent-opaque-light-scale-1 etc.
 the rgba values should be derived from --color-light-1
 */
---color-light-transparent-1: rgba(184, 57, 247, 0.1);
---color-light-transparent-2: rgba(148, 113, 255, 0.2);
---color-light-transparent-3: rgba(124, 146, 255, 0.3);
---color-light-transparent-4: rgba(125, 172, 255, 0.4);
---color-light-transparent-5: rgba(151, 192, 241, 0.5);
---color-light-transparent-6: rgba(191, 208, 223, 0.6);
+        --color-light-transparent-1: rgba(184, 57, 247, 0.1);
+        --color-light-transparent-2: rgba(148, 113, 255, 0.2);
+        --color-light-transparent-3: rgba(124, 146, 255, 0.3);
+        --color-light-transparent-4: rgba(125, 172, 255, 0.4);
+        --color-light-transparent-5: rgba(151, 192, 241, 0.5);
+        --color-light-transparent-6: rgba(191, 208, 223, 0.6);
 
-/*
+        /*
 previous varibale names was like: --color-accent-opaque-dark-scale-1 etc.
 the rgba values should be derived from --color-dark-1
 */
---color-dark-transparent-1: rgba(52, 37, 29, 0.1);
---color-dark-transparent-2: rgba(51, 31, 30, 0.2);
---color-dark-transparent-3: rgba(46, 26, 33, 0.3);
---color-dark-transparent-4: rgba(37, 24, 37, 0.4);
---color-dark-transparent-5: rgba(24, 22, 38, 0.5);
---color-dark-transparent-6: rgba(5, 21, 36, 0.6);
+        --color-dark-transparent-1: rgba(52, 37, 29, 0.1);
+        --color-dark-transparent-2: rgba(51, 31, 30, 0.2);
+        --color-dark-transparent-3: rgba(46, 26, 33, 0.3);
+        --color-dark-transparent-4: rgba(37, 24, 37, 0.4);
+        --color-dark-transparent-5: rgba(24, 22, 38, 0.5);
+        --color-dark-transparent-6: rgba(5, 21, 36, 0.6);
 
-/*
+        /*
 the rgba values should be derived from --color-black
 */
---color-black: black;
---color-black-transparent-1: rgba(184, 57, 247, 0.1);
---color-black-transparent-2: rgba(148, 113, 255, 0.2);
---color-black-transparent-3: rgba(124, 146, 255, 0.3);
---color-black-transparent-4: rgba(125, 172, 255, 0.4);
---color-black-transparent-5: rgba(151, 192, 241, 0.5);
---color-black-transparent-6: rgba(191, 208, 223, 0.6);        
+        --color-black: black;
+        --color-black-transparent-1: rgba(184, 57, 247, 0.1);
+        --color-black-transparent-2: rgba(148, 113, 255, 0.2);
+        --color-black-transparent-3: rgba(124, 146, 255, 0.3);
+        --color-black-transparent-4: rgba(125, 172, 255, 0.4);
+        --color-black-transparent-5: rgba(151, 192, 241, 0.5);
+        --color-black-transparent-6: rgba(191, 208, 223, 0.6);
 
-/*
+        /*
 the rgba values should be derived from --color-white
 */
---color-white: white;
---color-white-transparent-1: rgba(184, 57, 247, 0.1);
---color-white-transparent-2: rgba(148, 113, 255, 0.2);
---color-white-transparent-3: rgba(124, 146, 255, 0.3);
---color-white-transparent-4: rgba(125, 172, 255, 0.4);
---color-white-transparent-5: rgba(151, 192, 241, 0.5);
---color-white-transparent-6: rgba(191, 208, 223, 0.6);
+        --color-white: white;
+        --color-white-transparent-1: rgba(184, 57, 247, 0.1);
+        --color-white-transparent-2: rgba(148, 113, 255, 0.2);
+        --color-white-transparent-3: rgba(124, 146, 255, 0.3);
+        --color-white-transparent-4: rgba(125, 172, 255, 0.4);
+        --color-white-transparent-5: rgba(151, 192, 241, 0.5);
+        --color-white-transparent-6: rgba(191, 208, 223, 0.6);
 
 
 
@@ -1193,6 +1193,27 @@ the rgba values should be derived from --color-white
 }
 
 @layer components {
+
+    .palette-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: var(--space-medium);
+        margin-top: var(--space-medium);
+        padding: 0 var(--side-gutter);
+    }
+
+    /* Optional: make swatches inside grid more compact */
+    .palette-grid .color-palette {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+
+    .palette-grid .color-swatch {
+        font-size: 0.85rem;
+        padding: 0.6rem;
+        min-height: 80px;
+    }
 
     button[aria-controls="nav-menu"] {
         background: none;
