@@ -389,7 +389,7 @@ async function updateHead(attributes, setup) {
     criticalFrag.appendChild(link);
   });
 
-  // ——— SNIPCART (OFFICIAL AUTO-LOADER) ———
+  // ——— SNIPCART (OFFICIAL v3/latest) ———
   if (setup.general?.include_e_commerce && setup.general?.snipcart) {
     const snipcart = setup.general.snipcart;
     const version = snipcart.version?.trim();
@@ -411,33 +411,21 @@ async function updateHead(attributes, setup) {
       deferredFrag.appendChild(script);
       logger.log('Snipcart pinned version loaded', { version, src: script.src });
     } else {
-      // Latest version: Official auto-loader
-      const loaderScript = document.createElement('script');
-      loaderScript.id = 'snipcart';
-      loaderScript.defer = true;
-      loaderScript.textContent = `
-        (function(){
-          var s = document.createElement('script');
-          s.src = 'https://cdn.snipcart.com/themes/latest/default/snipcart.js';
-          s.async = true;
-          document.head.appendChild(s);
-        })();
-      `;
+      // Latest version: OFFICIAL v3/latest
+      const script = document.createElement('script');
+      script.id = 'snipcart';
+      script.defer = true;
+      script.src = 'https://cdn.snipcart.com/themes/v3/latest/snipcart.js';
 
-      // Settings must be set BEFORE the loader runs
-      window.SnipcartSettings = {
-        publicApiKey: snipcart.publicApiKey,
-        loadStrategy: snipcart.loadStrategy || 'on-user-interaction',
-        modalStyle: snipcart.modalStyle,
-        templatesUrl: snipcart.templatesUrl,
-        currency: snipcart.currency,
-        loadCSS: snipcart.loadCSS !== false
-      };
+      script.dataset.apiKey = snipcart.publicApiKey;
+      if (snipcart.modalStyle) script.dataset.configModalStyle = snipcart.modalStyle;
+      if (snipcart.loadStrategy) script.dataset.configLoadStrategy = snipcart.loadStrategy;
+      if (snipcart.templatesUrl) script.dataset.templatesUrl = snipcart.templatesUrl;
+      if (snipcart.currency) script.dataset.currency = snipcart.currency;
+      if (snipcart.loadCSS === false) script.dataset.configLoadCss = 'false';
 
-      deferredFrag.appendChild(loaderScript);
-      logger.log('Snipcart auto-loader injected for latest version', {
-        settings: window.SnipcartSettings
-      });
+      deferredFrag.appendChild(script);
+      logger.log('Snipcart latest version loaded via v3/latest', { src: script.src });
     }
   }
 
