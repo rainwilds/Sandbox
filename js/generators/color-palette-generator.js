@@ -28,33 +28,38 @@ function setupColorPalette() {
             const c = chroma(normalizeCssColor(value));
             const text = c.luminance() > 0.5 ? 'black' : 'white';
             swatch.querySelectorAll('span').forEach(s => s.style.color = text);
-        } catch (_) {}
+        } catch (_) { }
     };
 
     /* ---------- generate transparent series ---------- */
-    const generateTransparent = (baseVar, prefix, alphas) => {
+    const generateTransparent = (baseVar, prefix, index) => {
         const base = getComputedStyle(root).getPropertyValue(baseVar).trim();
         if (!base) return;
         const col = chroma(base);
-        alphas.forEach((a, i) => {
-            const varName = `--${prefix}-${i + 1}`;
-            root.style.setProperty(varName, col.alpha(a).css());
-        });
+        const alphas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6];
+        const alpha = alphas[index - 1];
+        const varName = `--${prefix}-${index}`;
+        root.style.setProperty(varName, col.alpha(alpha).css());
     };
 
     const generateAllTransparent = () => {
         // light
         for (let i = 1; i <= 6; i++) {
-            generateTransparent(`--color-light-${i}`, 'color-light-transparent', [0.1, 0.2, 0.3, 0.4, 0.5, 0.6][i - 1]);
+            generateTransparent(`--color-light-${i}`, 'color-light-transparent', i);
         }
         // dark
         for (let i = 1; i <= 6; i++) {
-            generateTransparent(`--color-dark-${i}`, 'color-dark-transparent', [0.1, 0.2, 0.3, 0.4, 0.5, 0.6][i - 1]);
+            generateTransparent(`--color-dark-${i}`, 'color-dark-transparent', i);
         }
-        // black
-        generateTransparent('--color-black', 'color-black-transparent', [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]);
-        // white
-        generateTransparent('--color-white', 'color-white-transparent', [0.1, 0.2, 0.3, 0.4, 0.5, 0.6]);
+        // black & white (use full array)
+        const fullAlphas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6];
+        fullAlphas.forEach((a, i) => {
+            const idx = i + 1;
+            const black = chroma('black').alpha(a).css();
+            const white = chroma('white').alpha(a).css();
+            root.style.setProperty(`--color-black-transparent-${idx}`, black);
+            root.style.setProperty(`--color-white-transparent-${idx}`, white);
+        });
     };
 
     /* ---------- scale interpolation ---------- */
@@ -83,14 +88,14 @@ function setupColorPalette() {
 
     /* ---------- swatch rendering ---------- */
     const paletteGroups = {
-        light:          document.getElementById('color-accent-light'),          // solid light
-        dark:           document.getElementById('color-accent-dark'),           // solid dark
-        lightTrans:     document.getElementById('color-light-transparent'),
-        darkTrans:      document.getElementById('color-dark-transparent'),
-        blackTrans:     document.getElementById('color-black-transparent'),
-        whiteTrans:     document.getElementById('color-white-transparent'),
-        staticLight:    document.getElementById('color-static-light'),
-        staticDark:     document.getElementById('color-static-dark')
+        light: document.getElementById('color-accent-light'),          // solid light
+        dark: document.getElementById('color-accent-dark'),           // solid dark
+        lightTrans: document.getElementById('color-light-transparent'),
+        darkTrans: document.getElementById('color-dark-transparent'),
+        blackTrans: document.getElementById('color-black-transparent'),
+        whiteTrans: document.getElementById('color-white-transparent'),
+        staticLight: document.getElementById('color-static-light'),
+        staticDark: document.getElementById('color-static-dark')
     };
 
     const clearPalettes = () => Object.values(paletteGroups).forEach(p => p && (p.innerHTML = ''));
@@ -161,10 +166,10 @@ function setupColorPalette() {
         const defaults = {
             '--color-light-1': '#b839f7',
             '--color-light-6': '#bfd0df',
-            '--color-dark-1' : '#34251d',
-            '--color-dark-6' : '#051524',
-            '--color-white'  : 'white',
-            '--color-black'  : 'black'
+            '--color-dark-1': '#34251d',
+            '--color-dark-6': '#051524',
+            '--color-white': 'white',
+            '--color-black': 'black'
         };
         Object.entries(defaults).forEach(([k, v]) => {
             if (!styles.getPropertyValue(k).trim()) root.style.setProperty(k, v);
@@ -196,12 +201,12 @@ function setupColorPalette() {
     document.getElementById('copy-css-vars')?.addEventListener('click', () => {
         const styles = getComputedStyle(root);
         const vars = [
-            ...Array.from({length:6}, (_,i) => `--color-light-${i+1}`),
-            ...Array.from({length:6}, (_,i) => `--color-dark-${i+1}`),
-            ...Array.from({length:6}, (_,i) => `--color-light-transparent-${i+1}`),
-            ...Array.from({length:6}, (_,i) => `--color-dark-transparent-${i+1}`),
-            ...Array.from({length:6}, (_,i) => `--color-black-transparent-${i+1}`),
-            ...Array.from({length:6}, (_,i) => `--color-white-transparent-${i+1}`),
+            ...Array.from({ length: 6 }, (_, i) => `--color-light-${i + 1}`),
+            ...Array.from({ length: 6 }, (_, i) => `--color-dark-${i + 1}`),
+            ...Array.from({ length: 6 }, (_, i) => `--color-light-transparent-${i + 1}`),
+            ...Array.from({ length: 6 }, (_, i) => `--color-dark-transparent-${i + 1}`),
+            ...Array.from({ length: 6 }, (_, i) => `--color-black-transparent-${i + 1}`),
+            ...Array.from({ length: 6 }, (_, i) => `--color-white-transparent-${i + 1}`),
             '--color-white', '--color-black'
         ];
         const txt = vars.map(v => `${v}: ${styles.getPropertyValue(v).trim()};`).join('\n');
