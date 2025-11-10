@@ -1,5 +1,5 @@
 /* --------------------------------------------------------------
-   Color palette generator – new naming scheme
+   Color palette generator – with alpha control + formatted copy
    -------------------------------------------------------------- */
 let isInitialized = false;
 
@@ -8,6 +8,7 @@ function setupColorPalette() {
     isInitialized = true;
 
     const root = document.documentElement;
+    let alphaStep = 0.1; // default
 
     /* ---------- helpers ---------- */
     const normalizeCssColor = str => {
@@ -31,27 +32,53 @@ function setupColorPalette() {
         } catch (_) {}
     };
 
+    /* ---------- alpha generator ---------- */
+    const generateAlphas = () => {
+        const step = parseFloat(alphaStep) || 0.1;
+        return Array.from({length: 6}, (_, i) => step * (i + 1));
+    };
+
     /* ---------- generate transparent series ---------- */
-    const generateTransparent = (baseVar, prefix, index) => {
+    const generatePerColorTransparent = (baseVar, prefix) => {
         const base = getComputedStyle(root).getPropertyValue(baseVar).trim();
         if (!base || !chroma.valid(base)) return;
         const col = chroma(base);
-        const alphas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6];
-        const alpha = alphas[index - 1];
-        const varName = `--${prefix}-${index}`;
-        root.style.setProperty(varName, col.alpha(alpha).css());
+        generateAlphas().forEach((a, i) => {
+            const idx = i + 1;
+            const varName = `--${prefix}-transparent-${idx}`;
+            root.style.setProperty(varName, col.alpha(a).css());
+        });
+    };
+
+    const generateScaleTransparent = (baseVar, prefix) => {
+        const base = getComputedStyle(root).getPropertyValue(baseVar).trim();
+        if (!base || !chroma.valid(base)) return;
+        const col = chroma(base);
+        generateAlphas().forEach((a, i) => {
+            const idx = i + 1;
+            const varName = `--${prefix}-transparent-${idx}`;
+            root.style.setProperty(varName, col.alpha(a).css());
+        });
     };
 
     const generateAllTransparent = () => {
+        // per-color
+        generatePerColorTransparent('--color-light-1', 'color-light-1');
+        generatePerColorTransparent('--color-light-6', 'color-light-6');
+        generatePerColorTransparent('--color-dark-1',  'color-dark-1');
+        generatePerColorTransparent('--color-dark-6',  'color-dark-6');
+
+        // scale
         for (let i = 1; i <= 6; i++) {
-            generateTransparent(`--color-light-${i}`, 'color-light-transparent', i);
-            generateTransparent(`--color-dark-${i}`, 'color-dark-transparent', i);
+            generateScaleTransparent(`--color-light-${i}`, 'color-light');
+            generateScaleTransparent(`--color-dark-${i}`,  'color-dark');
         }
-        const alphas = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6];
-        alphas.forEach((a, i) => {
+
+        // black/white
+        generateAlphas().forEach((a, i) => {
             const idx = i + 1;
-            root.style.setProperty(`--color-black-transparent-${idx}`, `rgba(0, 0, 0, ${a})`);
-            root.style.setProperty(`--color-white-transparent-${idx}`, `rgba(255, 255, 255, ${a})`);
+            root.style.setProperty(`--color-black-transparent-${idx}`, `rgba(0,0,0,${a})`);
+            root.style.setProperty(`--color-white-transparent-${idx}`, `rgba(255,255,255,${a})`);
         });
     };
 
@@ -114,6 +141,18 @@ function setupColorPalette() {
             const v = styles.getPropertyValue(`--color-dark-${i}`).trim();
             if (paletteGroups.dark) paletteGroups.dark.appendChild(createSwatch(`--color-dark-${i}`, v));
         }
+
+        const addPerColor = (base, container) => {
+            for (let i = 1; i <= 6; i++) {
+                const v = styles.getPropertyValue(`--${base}-transparent-${i}`).trim();
+                if (container) container.appendChild(createSwatch(`--${base}-transparent-${i}`, v));
+            }
+        };
+        addPerColor('color-light-1', paletteGroups.light1Trans);
+        addPerColor('color-light-6', paletteGroups.light6Trans);
+        addPerColor('color-dark-1',  paletteGroups.dark1Trans);
+        addPerColor('color-dark-6',  paletteGroups.dark6Trans);
+
         for (let i = 1; i <= 6; i++) {
             const v = styles.getPropertyValue(`--color-light-transparent-${i}`).trim();
             if (paletteGroups.lightTrans) paletteGroups.lightTrans.appendChild(createSwatch(`--color-light-transparent-${i}`, v));
@@ -122,14 +161,14 @@ function setupColorPalette() {
             const v = styles.getPropertyValue(`--color-dark-transparent-${i}`).trim();
             if (paletteGroups.darkTrans) paletteGroups.darkTrans.appendChild(createSwatch(`--color-dark-transparent-${i}`, v));
         }
+
         for (let i = 1; i <= 6; i++) {
-            const v = styles.getPropertyValue(`--color-black-transparent-${i}`).trim();
-            if (paletteGroups.blackTrans) paletteGroups.blackTrans.appendChild(createSwatch(`--color-black-transparent-${i}`, v));
+            const vb = styles.getPropertyValue(`--color-black-transparent-${i}`).trim();
+            const vw = styles.getPropertyValue(`--color-white-transparent-${i}`).trim();
+            if (paletteGroups.blackTrans) paletteGroups.blackTrans.appendChild(createSwatch(`--color-black-transparent-${i}`, vb));
+            if (paletteGroups.whiteTrans) paletteGroups.whiteTrans.appendChild(createSwatch(`--color-white-transparent-${i}`, vw));
         }
-        for (let i = 1; i <= 6; i++) {
-            const v = styles.getPropertyValue(`--color-white-transparent-${i}`).trim();
-            if (paletteGroups.whiteTrans) paletteGroups.whiteTrans.appendChild(createSwatch(`--color-white-transparent-${i}`, v));
-        }
+
         ['--color-white', '--color-black'].forEach(v => {
             const val = styles.getPropertyValue(v).trim();
             const target = v.includes('white') ? paletteGroups.staticLight : paletteGroups.staticDark;
@@ -141,32 +180,36 @@ function setupColorPalette() {
     const init = () => {
         const styles = getComputedStyle(root);
 
-        // Fallbacks
+        // fallbacks
         const defaults = {
             '--color-light-1': '#b839f7',
             '--color-light-6': '#bfd0df',
-            '--color-dark-1': '#34251d',
-            '--color-dark-6': '#051524',
-            '--color-white': 'white',
-            '--color-black': 'black'
+            '--color-dark-1' : '#34251d',
+            '--color-dark-6' : '#051524',
+            '--color-white'  : 'white',
+            '--color-black'  : 'black'
         };
         Object.entries(defaults).forEach(([k, v]) => {
             if (!styles.getPropertyValue(k).trim()) root.style.setProperty(k, v);
         });
 
-        // Create paletteGroups AFTER DOM is ready
+        // create paletteGroups
         paletteGroups = {
-            light: document.getElementById('color-accent-light'),
-            dark: document.getElementById('color-accent-dark'),
-            lightTrans: document.getElementById('color-light-transparent'),
-            darkTrans: document.getElementById('color-dark-transparent'),
-            blackTrans: document.getElementById('color-black-transparent'),
-            whiteTrans: document.getElementById('color-white-transparent'),
+            light:       document.getElementById('color-accent-light'),
+            dark:        document.getElementById('color-accent-dark'),
+            light1Trans: document.getElementById('color-light-1-transparent'),
+            light6Trans: document.getElementById('color-light-6-transparent'),
+            dark1Trans:  document.getElementById('color-dark-1-transparent'),
+            dark6Trans:  document.getElementById('color-dark-6-transparent'),
+            lightTrans:  document.getElementById('color-light-transparent'),
+            darkTrans:   document.getElementById('color-dark-transparent'),
+            blackTrans:  document.getElementById('color-black-transparent'),
+            whiteTrans:  document.getElementById('color-white-transparent'),
             staticLight: document.getElementById('color-static-light'),
-            staticDark: document.getElementById('color-static-dark')
+            staticDark:  document.getElementById('color-static-dark')
         };
 
-        // Init inputs
+        // init inputs
         ['light-1', 'light-6', 'dark-1', 'dark-6'].forEach(id => {
             const input = document.getElementById(id);
             if (input) {
@@ -175,34 +218,56 @@ function setupColorPalette() {
             }
         });
 
+        // alpha input
+        const alphaInput = document.getElementById('alpha-step');
+        if (alphaInput) {
+            alphaInput.value = alphaStep;
+            alphaInput.addEventListener('input', () => {
+                alphaStep = parseFloat(alphaInput.value) || 0.1;
+                if (alphaStep < 0.01) alphaStep = 0.01;
+                if (alphaStep > 1) alphaStep = 1;
+                updateScales();
+            });
+        }
+
+        // even button
+        document.getElementById('alpha-even')?.addEventListener('click', () => {
+            alphaStep = 1 / 6; // ~0.1667
+            if (alphaInput) alphaInput.value = alphaStep.toFixed(4);
+            updateScales();
+        });
+
         updateScales();
     };
 
-    /* ---------- input listeners ---------- */
-    ['light-1', 'light-6', 'dark-1', 'dark-6'].forEach(id => {
-        const input = document.getElementById(id);
-        if (!input) return;
-        const varName = `--color-${id.replace(/-\d$/, '')}-${id.match(/\d+$/)[0]}`;
-        input.addEventListener('input', () => {
-            root.style.setProperty(varName, input.value);
-            updateScales(varName);
-        });
-    });
-
-    /* ---------- copy button ---------- */
+    /* ---------- copy button with formatting ---------- */
     document.getElementById('copy-css-vars')?.addEventListener('click', () => {
         const styles = getComputedStyle(root);
-        const vars = [
-            ...Array.from({length:6}, (_,i) => `--color-light-${i+1}`),
-            ...Array.from({length:6}, (_,i) => `--color-dark-${i+1}`),
-            ...Array.from({length:6}, (_,i) => `--color-light-transparent-${i+1}`),
-            ...Array.from({length:6}, (_,i) => `--color-dark-transparent-${i+1}`),
-            ...Array.from({length:6}, (_,i) => `--color-black-transparent-${i+1}`),
-            ...Array.from({length:6}, (_,i) => `--color-white-transparent-${i+1}`),
-            '--color-white', '--color-black'
-        ];
-        const txt = vars.map(v => `${v}: ${styles.getPropertyValue(v).trim()};`).join('\n');
-        navigator.clipboard.writeText(txt).then(() => alert('CSS variables copied!'));
+        const step = parseFloat(alphaStep) || 0.1;
+        const alphas = generateAlphas();
+
+        const formatGroup = (title, vars) => {
+            const lines = vars.map(v => `${v}: ${styles.getPropertyValue(v).trim()};`).join(' ');
+            return `/* ——— ${title} ——— */ ${lines}`;
+        };
+
+        const output = [
+            formatGroup('SOLID LIGHT SCALE (6)', Array.from({length:6}, (_,i) => `--color-light-${i+1}`)),
+            formatGroup('SOLID DARK SCALE (6)', Array.from({length:6}, (_,i) => `--color-dark-${i+1}`)),
+            formatGroup('PER-COLOR TRANSPARENT: LIGHT-1 (6)', Array.from({length:6}, (_,i) => `--color-light-1-transparent-${i+1}`)),
+            formatGroup('PER-COLOR TRANSPARENT: LIGHT-6 (6)', Array.from({length:6}, (_,i) => `--color-light-6-transparent-${i+1}`)),
+            formatGroup('PER-COLOR TRANSPARENT: DARK-1 (6)', Array.from({length:6}, (_,i) => `--color-dark-1-transparent-${i+1}`)),
+            formatGroup('PER-COLOR TRANSPARENT: DARK-6 (6)', Array.from({length:6}, (_,i) => `--color-dark-6-transparent-${i+1}`)),
+            formatGroup('SCALE TRANSPARENT: LIGHT (6)', Array.from({length:6}, (_,i) => `--color-light-transparent-${i+1}`)),
+            formatGroup('SCALE TRANSPARENT: DARK (6)', Array.from({length:6}, (_,i) => `--color-dark-transparent-${i+1}`)),
+            formatGroup('BLACK TRANSPARENT (6)', Array.from({length:6}, (_,i) => `--color-black-transparent-${i+1}`)),
+            formatGroup('WHITE TRANSPARENT (6)', Array.from({length:6}, (_,i) => `--color-white-transparent-${i+1}`)),
+            formatGroup('STATIC COLORS (2)', ['--color-white', '--color-black'])
+        ].join('\n');
+
+        navigator.clipboard.writeText(output).then(() => {
+            alert('CSS variables copied with formatting!');
+        });
     });
 
     /* ---------- wait for CSS + DOM ---------- */
@@ -212,10 +277,7 @@ function setupColorPalette() {
         const start = Date.now();
 
         const check = () => {
-            if (cssLoaded && domReady) {
-                cb();
-                return;
-            }
+            if (cssLoaded && domReady) { cb(); return; }
 
             if (!cssLoaded) {
                 const found = Array.from(document.styleSheets).some(s =>
@@ -226,10 +288,13 @@ function setupColorPalette() {
 
             if (!domReady) {
                 const ids = [
-                    'color-accent-light', 'color-accent-dark',
-                    'color-light-transparent', 'color-dark-transparent',
-                    'color-black-transparent', 'color-white-transparent',
-                    'color-static-light', 'color-static-dark'
+                    'color-accent-light','color-accent-dark',
+                    'color-light-1-transparent','color-light-6-transparent',
+                    'color-dark-1-transparent','color-dark-6-transparent',
+                    'color-light-transparent','color-dark-transparent',
+                    'color-black-transparent','color-white-transparent',
+                    'color-static-light','color-static-dark',
+                    'alpha-step','alpha-even','copy-css-vars'
                 ];
                 domReady = ids.every(id => document.getElementById(id));
             }
@@ -243,7 +308,6 @@ function setupColorPalette() {
                 }
             }
         };
-
         check();
     };
 
