@@ -5,22 +5,16 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="preconnect" href="https://kit.fontawesome.com" crossorigin="anonymous">
-
     <link rel="preload" href="./JSON/setup.json" as="fetch" crossorigin="anonymous">
-    <link rel="preload" href="./styles.css" as="style">    
+    <link rel="preload" href="./styles.css" as="style">
 
     <script src="https://cdn.jsdelivr.net/npm/chroma-js@2/chroma.min.js"></script>
 
     <script src="js/generators/head-generator.js" type="module"></script>
-    <script src="js/color.js" defer></script>
+    <script src="js/generators/color-palette-generator.js" defer></script>
 
-    <data-custom-head
-        data-components="custom-block"
-        data-title="Colors"
-        data-description="Color palette test page"
-        data-canonical="https://rainwilds.github.io/Sandbox/color.html"
-        >
+    <data-custom-head data-components="custom-block" data-title="Color palette generator" data-description="Color palette generator"
+        data-canonical="https://rainwilds.github.io/Sandbox/color.html">
     </data-custom-head>
 </head>
 
@@ -28,74 +22,45 @@
     <main>
         <section>
             <div>
-                <custom-block
-                    heading="Color Picker"
-                    heading-tag="h2"
-                    text="Select colors to update the palette">
+                <custom-block heading="Color Picker" heading-tag="h2" text="Select colors to update the palette">
                 </custom-block>
                 <div class="color-inputs">
-                    <label>Light Scale 1: <input type="color" id="light-scale-1"></label>
-                    <label>Light Scale 6: <input type="color" id="light-scale-6"></label>
-                    <label>Dark Scale 1: <input type="color" id="dark-scale-1"></label>
-                    <label>Dark Scale 6: <input type="color" id="dark-scale-6"></label>
+                    <label>Light 1: <input type="color" id="light-1"></label>
+                    <label>Light 6: <input type="color" id="light-6"></label>
+                    <label>Dark 1: <input type="color" id="dark-1"></label>
+                    <label>Dark 6: <input type="color" id="dark-6"></label>
                     <button id="copy-css-vars">Copy CSS Variables</button>
                 </div>
             </div>
         </section>
         <section>
             <div>
-                <custom-block
-                    heading="Color Accent Light"
-                    heading-tag="h3">
-                </custom-block>
-                <div class="color-palette" id="color-accent-light"></div>
+                <custom-block heading="Light Transparent" heading-tag="h3"></custom-block>
+                <div class="color-palette" id="color-light-transparent"></div>
             </div>
         </section>
+
         <section>
             <div>
-                <custom-block
-                    heading="Color Accent Dark"
-                    heading-tag="h3">
-                </custom-block>
-                <div class="color-palette" id="color-accent-dark"></div>
+                <custom-block heading="Dark Transparent" heading-tag="h3"></custom-block>
+                <div class="color-palette" id="color-dark-transparent"></div>
             </div>
         </section>
+
         <section>
             <div>
-                <custom-block
-                    heading="Color Accent Opaque Light"
-                    heading-tag="h3">
-                </custom-block>
-                <div class="color-palette" id="color-accent-opaque-light"></div>
+                <custom-block heading="Black Transparent" heading-tag="h3"></custom-block>
+                <div class="color-palette" id="color-black-transparent"></div>
             </div>
         </section>
+
         <section>
             <div>
-                <custom-block
-                    heading="Color Accent Opaque Dark"
-                    heading-tag="h3">
-                </custom-block>
-                <div class="color-palette" id="color-accent-opaque-dark"></div>
-            </div>
-        </section>
-        <section>
-            <div>
-                <custom-block
-                    heading="Color Static Light"
-                    heading-tag="h3">
-                </custom-block>
-                <div class="color-palette" id="color-static-light"></div>
-            </div>
-        </section>
-        <section>
-            <div>
-                <custom-block
-                    heading="Color Static Dark"
-                    heading-tag="h3">
-                </custom-block>
-                <div class="color-palette" id="color-static-dark"></div>
+                <custom-block heading="White Transparent" heading-tag="h3"></custom-block>
+                <div class="color-palette" id="color-white-transparent"></div>
             </div>
         </section>
     </main>
 </body>
+
 </html>
