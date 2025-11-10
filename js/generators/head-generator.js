@@ -209,7 +209,7 @@ async function updateHead(attributes, setup) {
       if (imageTemplates.length > 0) {
         const actualCount = Math.min(count, imageTemplates.length);
         const defaultWidths = VIEWPORT_BREAKPOINTS
-          .map(bp => Bp.maxWidth)
+          .map(bp => bp.maxWidth)
           .filter(w => Number.isFinite(w));
         const widths = attributes.heroWidths
           ? attributes.heroWidths.split(',').map(w => parseInt(w.trim())).filter(w => w > 0)
