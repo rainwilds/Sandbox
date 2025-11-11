@@ -129,6 +129,9 @@
         --max-width-small: 20vw;
         --max-width-medium: 40vw;
         --max-width-large: 60vw;
+        
+
+        
 
         /* ——— SOLID LIGHT SCALE (6) ——— */
         --color-light-1: #92c676;
@@ -197,76 +200,6 @@
         /* ——— STATIC COLORS (2) ——— */
         --color-white: white;
         --color-black: black;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        --color-static-light: white;
-        --color-static-dark: black;
-        --color-static-dark-1: rgba(0, 0, 0, 0.1);
-        --color-static-light-1: rgba(255, 255, 255, 0.1);
-        --color-static-dark-2: rgba(0, 0, 0, 0.2);
-        --color-static-light-2: rgba(255, 255, 255, 0.2);
-        --color-static-dark-4: rgba(0, 0, 0, 0.4);
-        --color-static-light-4: rgba(255, 255, 255, 0.4);
-        --color-static-dark-6: rgba(0, 0, 0, 0.6);
-        --color-static-light-6: rgba(255, 255, 255, 0.6);
-        --color-static-dark-8: rgba(0, 0, 0, 0.8);
-        --color-static-light-8: rgba(255, 255, 255, 0.8);
-
-
-
-
-
-
-
-        --color-light-scale-1: #b839f7;
-        --color-light-scale-2: #9471ff;
-        --color-light-scale-3: #7c92ff;
-        --color-light-scale-4: #7dacff;
-        --color-light-scale-5: #97c0f1;
-        --color-light-scale-6: #bfd0df;
-        --color-dark-scale-1: #34251d;
-        --color-dark-scale-2: #331f1e;
-        --color-dark-scale-3: #2e1a21;
-        --color-dark-scale-4: #251825;
-        --color-dark-scale-5: #181626;
-        --color-dark-scale-6: #051524;
-        --color-accent-opaque-light-scale-1: rgba(184, 57, 247, 0.2);
-        --color-accent-opaque-light-scale-2: rgba(148, 113, 255, 0.2);
-        --color-accent-opaque-light-scale-3: rgba(124, 146, 255, 0.2);
-        --color-accent-opaque-light-scale-4: rgba(125, 172, 255, 0.2);
-        --color-accent-opaque-light-scale-5: rgba(151, 192, 241, 0.2);
-        --color-accent-opaque-light-scale-6: rgba(191, 208, 223, 0.2);
-        --color-accent-opaque-dark-scale-1: rgba(52, 37, 29, 0.5);
-        --color-accent-opaque-dark-scale-2: rgba(51, 31, 30, 0.5);
-        --color-accent-opaque-dark-scale-3: rgba(46, 26, 33, 0.5);
-        --color-accent-opaque-dark-scale-4: rgba(37, 24, 37, 0.5);
-        --color-accent-opaque-dark-scale-5: rgba(24, 22, 38, 0.5);
-        --color-accent-opaque-dark-scale-6: rgba(5, 21, 36, 0.5);
-        --color-static-light: white;
-        --color-static-dark: black;
-
-
-
-      
 
 
 
@@ -364,34 +297,34 @@
         }
 
 
-        color: light-dark(var(--color-dark-scale-6), var(--color-light-scale-6));
+        color: light-dark(var(--color-dark-scale-6), var(--color-light-6));
 
         .color-invert {
-            color: light-dark(var(--color-light-scale-3), var(--color-dark-scale-6));
+            color: light-dark(var(--color-light-3), var(--color-dark-scale-6));
         }
 
         .background-color-1 {
-            background-color: light-dark(var(--color-dark-scale-1), var(--color-light-scale-1));
+            background-color: light-dark(var(--color-dark-scale-1), var(--color-light-1));
         }
 
         .background-color-2 {
-            background-color: light-dark(var(--color-dark-scale-3), var(--color-light-scale-3));
+            background-color: light-dark(var(--color-dark-scale-3), var(--color-light-3));
         }
 
         .background-color-3 {
-            background-color: light-dark(var(--color-accent-opaque-dark-scale-1), var(--color-accent-opaque-light-scale-1));
+            background-color: light-dark(var(--color-dark-1-alpha-1), var(--color-light-1-alpha-1));
         }
 
         .background-overlay-1 {
-            background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
+            background-color: light-dark(var(--color-white-4), var(--color-black-2));
         }
 
         .background-overlay-2 {
-            background-color: light-dark(var(--color-static-light-6), var(--color-static-dark-4));
+            background-color: light-dark(var(--color-white-6), var(--color-black-4));
         }
 
         .background-overlay-3 {
-            background-color: light-dark(var(--color-static-light-8), var(--color-static-dark-6));
+            background-color: light-dark(var(--color-white-8), var(--color-black-6));
         }
 
 
@@ -416,11 +349,11 @@
         }
 
         .mask-image-top-bottom {
-            mask-image: linear-gradient(to bottom, transparent, light-dark(var(--color-dark-scale-6), var(--color-light-scale-6)) 15%, light-dark(var(--color-dark-scale-6), var(--color-light-scale-6)) 85%, transparent);
+            mask-image: linear-gradient(to bottom, transparent, light-dark(var(--color-dark-scale-6), var(--color-light-6)) 15%, light-dark(var(--color-dark-scale-6), var(--color-light-6)) 85%, transparent);
         }
 
         .mask-image-left-right {
-            mask-image: linear-gradient(to right, transparent, light-dark(var(--color-dark-scale-6), var(--color-light-scale-6)) 15%, light-dark(var(--color-dark-scale-6), var(--color-light-scale-6)) 85%, transparent);
+            mask-image: linear-gradient(to right, transparent, light-dark(var(--color-dark-scale-6), var(--color-light-6)) 15%, light-dark(var(--color-dark-scale-6), var(--color-light-6)) 85%, transparent);
         }
 
         .background-image-noise {
@@ -428,13 +361,13 @@
         }
 
         .shadow-light {
-            /* box-shadow: 0 2px 4px light-dark(var(--color-dark-scale-6), var(--color-light-scale-3)); */
+            /* box-shadow: 0 2px 4px light-dark(var(--color-dark-scale-6), var(--color-light-3)); */
             box-shadow:
                 0.5px 1px 1px rgba(65, 79, 137, 0.7);
         }
 
         .shadow-medium {
-            /* box-shadow: 0 4px 8px light-dark(var(--color-dark-scale-6), var(--color-light-scale-3)); */
+            /* box-shadow: 0 4px 8px light-dark(var(--color-dark-scale-6), var(--color-light-3)); */
             box-shadow:
                 1px 2px 2px rgba(65, 79, 137, 0.33),
                 2px 4px 4px rgba(65, 79, 137, 0.33),
@@ -442,7 +375,7 @@
         }
 
         .shadow-heavy {
-            /* box-shadow: 0 8px 16px light-dark(var(--color-dark-scale-6), var(--color-light-scale-3)); */
+            /* box-shadow: 0 8px 16px light-dark(var(--color-dark-scale-6), var(--color-light-3)); */
             box-shadow:
                 1px 2px 2px rgba(65, 79, 137, 0.2),
                 2px 4px 4px rgba(65, 79, 137, 0.2),
@@ -469,21 +402,21 @@
         /* font-weight: var(--font-2-weight-light); */
         /* font-style: normal; */
 
-        /* --background-pattern-1: repeating-linear-gradient(to right, var(--color-accent-opaque-light-scale-1), var(--color-accent-opaque-light-scale-1) 10px, transparent 10px, transparent); */
+        /* --background-pattern-1: repeating-linear-gradient(to right, var(--color-light-1-alpha-1), var(--color-light-1-alpha-1) 10px, transparent 10px, transparent); */
         /* --background-pattern-1-size: 32px 32px; PLACEHOLDER */
 
 
 
         .border-small {
-            border: solid var(--border-size-small) light-dark(var(--color-dark-scale-6), var(--color-light-scale-3));
+            border: solid var(--border-size-small) light-dark(var(--color-dark-scale-6), var(--color-light-3));
         }
 
         .border-medium {
-            border: solid var(--border-size-medium) light-dark(var(--color-dark-scale-6), var(--color-light-scale-3));
+            border: solid var(--border-size-medium) light-dark(var(--color-dark-scale-6), var(--color-light-3));
         }
 
         .border-large {
-            border: solid var(--border-size-large) light-dark(var(--color-dark-scale-6), var(--color-light-scale-3));
+            border: solid var(--border-size-large) light-dark(var(--color-dark-scale-6), var(--color-light-3));
         }
 
         .border-radius-small {
@@ -573,15 +506,15 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: light-dark(var(--color-dark-scale-1), var(--color-light-scale-3));
+            background: light-dark(var(--color-dark-scale-1), var(--color-light-3));
         }
 
         ::-webkit-scrollbar-thumb {
-            background: light-dark(var(--color-light-scale-3), var(--color-dark-scale-1));
+            background: light-dark(var(--color-light-3), var(--color-dark-scale-1));
         }
 
         @supports selector(scrollbar-color) {
-            scrollbar-color: light-dark(var(--color-dark-scale-1), var(--color-light-scale-3)) light-dark(var(--color-light-scale-3), var(--color-dark-scale-1));
+            scrollbar-color: light-dark(var(--color-dark-scale-1), var(--color-light-3)) light-dark(var(--color-light-3), var(--color-dark-scale-1));
         }
 
         ::-webkit-scrollbar {
@@ -818,7 +751,7 @@
 
         a:any-link {
 
-            color: light-dark(var(--color-dark-scale-1), var(--color-light-scale-3));
+            color: light-dark(var(--color-dark-scale-1), var(--color-light-3));
             /* text-decoration: none; */
             /* text-underline-offset: -0.4rem; */
 
@@ -827,7 +760,7 @@
 
             &:hover {
 
-                color: light-dark(var(--color-static-dark-4), var(--color-static-light-4));
+                color: light-dark(var(--color-black-4), var(--color-white-4));
                 text-decoration: none;
                 transition: color 0.4s;
 
@@ -838,10 +771,10 @@
         input,
         select,
         textarea {
-            background-color: light-dark(var(--color-light-scale-3), var(--color-dark-scale-3));
+            background-color: light-dark(var(--color-light-3), var(--color-dark-scale-3));
             padding: var(--space-tiny);
             border: solid 1px;
-            border-color: light-dark(var(--color-dark-scale-1), var(--color-light-scale-1));
+            border-color: light-dark(var(--color-dark-scale-1), var(--color-light-1));
             /* border-radius: var(--border-radius-small); PLACEHOLDER */
             background-size: 32px 32px;
         }
@@ -857,9 +790,9 @@
             padding: calc(var(--space-tiny)/2) var(--space-tiny);
 
             &:hover {
-                background-color: light-dark(var(--color-light-scale-1), var(--color-light-scale-3));
+                background-color: light-dark(var(--color-light-1), var(--color-light-3));
                 transition: all 0.4s;
-                color: light-dark(var(--color-static-light-8), var(--color-static-dark-8));
+                color: light-dark(var(--color-white-8), var(--color-black-8));
             }
         }
 
@@ -878,14 +811,14 @@
         input:focus-visible,
         select:focus-visible,
         textarea:focus-visible {
-            outline-color: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
+            outline-color: light-dark(var(--color-black-2), var(--color-white-2));
             outline-offset: 0.15rem;
             transition: outline 1s;
             background-image: none;
         }
 
         hr {
-            background: var(--color-static-light);
+            background: var(--color-white);
         }
 
         h1,
@@ -945,7 +878,7 @@
         blockquote {
 
             font-size: var(--font-2-size-large);
-            background-color: light-dark(var(--color-light-scale-3), var(--color-dark-scale-3));
+            background-color: light-dark(var(--color-light-3), var(--color-dark-scale-3));
             padding: var(--space-medium);
 
             >p {
@@ -957,7 +890,7 @@
         i:has(+blockquote) {
             font-size: 3rem;
             position: absolute;
-            color: light-dark(var(--color-accent-opaque-dark-scale-1), var(--color-accent-opaque-light-scale-3));
+            color: light-dark(var(--color-dark-1-alpha-1), var(--color-accent-opaque-light-scale-3));
         }
 
         img,
@@ -1045,7 +978,7 @@
         body {
 
             display: grid;
-            background-color: light-dark(var(--color-light-scale-6), var(--color-dark-scale-6));
+            background-color: light-dark(var(--color-light-6), var(--color-dark-scale-6));
 
             @media (min-width: 550px) and (max-width: 980px) and (orientation: landscape) {
 
@@ -1179,20 +1112,20 @@
 
     a:has(> button.secondary) {
 
-        color: light-dark(var(--color-static-dark-8), var(--color-static-light-8));
+        color: light-dark(var(--color-black-8), var(--color-white-8));
 
         &:hover {
-            color: light-dark(var(--color-static-dark-4), var(--color-static-light-4));
+            color: light-dark(var(--color-black-4), var(--color-white-4));
             transition: color 0.4s;
         }
 
         >button {
-            background-color: light-dark(var(--color-static-light-6), var(--color-static-dark-6));
-            border-color: light-dark(var(--color-static-dark-8), var(--color-static-light-8));
+            background-color: light-dark(var(--color-white-6), var(--color-black-6));
+            border-color: light-dark(var(--color-black-8), var(--color-white-8));
             backdrop-filter: var(--blur-medium);
 
             &:hover {
-                background-color: light-dark(var(--color-dark-scale-3), var(--color-light-scale-3));
+                background-color: light-dark(var(--color-dark-scale-3), var(--color-light-3));
                 transition: background-color 0.4s;
             }
         }
@@ -1201,9 +1134,9 @@
 
     a.button {
 
-        background-color: light-dark(var(--color-light-scale-3), var(--color-dark-scale-3));
+        background-color: light-dark(var(--color-light-3), var(--color-dark-scale-3));
         border: solid 1px;
-        border-color: light-dark(var(--color-dark-scale-1), var(--color-light-scale-1));
+        border-color: light-dark(var(--color-dark-scale-1), var(--color-light-1));
         width: max-content;
         background-image: var(--background-noise);
         padding: calc(var(--space-tiny) / 2) var(--space-tiny);
@@ -1211,16 +1144,16 @@
         backdrop-filter: var(--blur-medium);
 
         &:hover {
-            background-color: light-dark(var(--color-light-scale-1), var(--color-light-scale-3));
+            background-color: light-dark(var(--color-light-1), var(--color-light-3));
             transition: all 0.4s;
-            color: light-dark(var(--color-static-light-8), var(--color-static-dark-8));
+            color: light-dark(var(--color-white-8), var(--color-black-8));
         }
 
         &.secondary {
             background-color: transparent;
 
             &:hover {
-                color: light-dark(var(--color-accent-opaque-light-scale-1), var(--color-accent-opaque-dark-scale-1));
+                color: light-dark(var(--color-light-1-alpha-1), var(--color-dark-1-alpha-1));
             }
         }
     }
@@ -1278,7 +1211,7 @@
         } */
 
         &>.background-overlay {
-            background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
+            background-color: light-dark(var(--color-white-4), var(--color-black-2));
             margin: 0 !important;
         }
 
@@ -1412,7 +1345,7 @@
             margin: var(--space-small);
 
             &:hover {
-                color: var(--color-light-scale-1);
+                color: var(--color-light-1);
                 transition: color 0.3s;
             }
         }
@@ -1476,7 +1409,7 @@
             padding: var(--space-medium);
             max-width: var(--max-width-medium);
             border-radius: var(--border-radius-medium);
-            box-shadow: 0 4px 8px var(--color-static-dark-4);
+            box-shadow: 0 4px 8px var(--color-black-4);
             backdrop-filter: var(--blur-small);
         }
 
@@ -1490,10 +1423,10 @@
             background: transparent;
             font-size: 1.5rem;
             cursor: pointer;
-            color: light-dark(var(--color-static-dark), var(--color-static-light));
+            color: light-dark(var(--color-black), var(--color-white));
 
             &:hover {
-                color: var(--color-light-scale-1);
+                color: var(--color-light-1);
                 transition: color 0.3s;
             }
         }
@@ -1505,7 +1438,7 @@
         gap: var(--space-tiny);
 
         & .accordion-item {
-            border: solid 1px light-dark(var(--color-dark-scale-1), var(--color-light-scale-1));
+            border: solid 1px light-dark(var(--color-dark-scale-1), var(--color-light-1));
 
             &.active .accordion-content {
                 display: block;
@@ -1514,7 +1447,7 @@
         }
 
         & .accordion-trigger {
-            background: light-dark(var(--color-light-scale-3), var(--color-dark-scale-3));
+            background: light-dark(var(--color-light-3), var(--color-dark-scale-3));
             padding: var(--space-tiny);
             border: none;
             width: 100%;
@@ -1524,7 +1457,7 @@
             font: inherit;
 
             &:hover {
-                background: light-dark(var(--color-static-light-2), var(--color-static-dark-2));
+                background: light-dark(var(--color-white-2), var(--color-black-2));
                 transition: background 0.3s;
             }
         }
@@ -1562,10 +1495,10 @@
             background: transparent;
             font-size: 1.2rem;
             cursor: pointer;
-            color: light-dark(var(--color-static-dark), var(--color-static-light));
+            color: light-dark(var(--color-black), var(--color-white));
 
             &:hover {
-                color: var(--color-light-scale-1);
+                color: var(--color-light-1);
                 transition: color 0.3s;
             }
         }
@@ -1583,7 +1516,7 @@
 
         & label {
             font-weight: var(--font-2-weight-light);
-            color: light-dark(var(--color-static-dark), var(--color-static-light));
+            color: light-dark(var(--color-black), var(--color-white));
         }
 
         & input,
@@ -1591,7 +1524,7 @@
             width: 100%;
             background-image: var(--background-pattern-1);
             padding: var(--space-tiny);
-            border: solid 1px light-dark(var(--color-dark-scale-1), var(--color-light-scale-1));
+            border: solid 1px light-dark(var(--color-dark-scale-1), var(--color-light-1));
             border-radius: var(--border-radius-small);
 
             &:user-invalid {
@@ -1603,7 +1536,7 @@
             }
 
             &:focus-visible {
-                outline-color: light-dark(var(--color-static-dark-2), var(--color-static-light-2));
+                outline-color: light-dark(var(--color-black-2), var(--color-white-2));
                 outline-offset: 0.15rem;
                 transition: outline 0.3s;
             }
@@ -1618,13 +1551,13 @@
 
         & a {
             text-decoration: none;
-            color: light-dark(var(--color-dark-scale-1), var(--color-light-scale-1));
+            color: light-dark(var(--color-dark-scale-1), var(--color-light-1));
 
             &::after {
                 content: " > ";
                 margin-inline-start: var(--space-tiny);
                 /* Logical property */
-                color: light-dark(var(--color-static-dark-4), var(--color-static-light-4));
+                color: light-dark(var(--color-black-4), var(--color-white-4));
             }
 
             &:last-child::after {
@@ -1632,7 +1565,7 @@
             }
 
             &:hover {
-                color: light-dark(var(--color-static-dark-6), var(--color-static-light-6));
+                color: light-dark(var(--color-black-6), var(--color-white-6));
                 transition: color 0.3s;
             }
         }
@@ -1651,8 +1584,8 @@
             inset-inline-start: 50%;
             /* Logical property */
             transform: translateX(-50%);
-            background: light-dark(var(--color-static-dark-8), var(--color-static-light-8));
-            color: light-dark(var(--color-static-light), var(--color-static-dark));
+            background: light-dark(var(--color-black-8), var(--color-white-8));
+            color: light-dark(var(--color-white), var(--color-black));
             padding: var(--space-tiny);
             border-radius: var(--border-radius-small);
             font-size: var(--font-2-size-small);
@@ -1695,7 +1628,7 @@
                 appearance: none;
                 width: var(--space-tiny, 20px);
                 height: var(--space-medium, 50px);
-                border: 1px solid light-dark(var(--color-light-scale-3, #ccc), var(--color-dark-scale-6, #333));
+                border: 1px solid light-dark(var(--color-light-3, #ccc), var(--color-dark-scale-6, #333));
                 cursor: ew-resize;
                 backdrop-filter: var(--blur-small, blur(4px));
             }
@@ -1703,7 +1636,7 @@
             &::-moz-range-thumb {
                 width: var(--space-tiny, 20px);
                 height: var(--space-medium, 50px);
-                border: 1px solid light-dark(var(--color-light-scale-3, #ccc), var(--color-dark-scale-6, #333));
+                border: 1px solid light-dark(var(--color-light-3, #ccc), var(--color-dark-scale-6, #333));
                 cursor: ew-resize;
                 background: light-dark(rgba(255, 255, 255, 0.8), rgba(51, 51, 51, 0.8));
                 /* Fallback */
@@ -1713,7 +1646,7 @@
                 appearance: none;
                 width: var(--space-tiny, 20px);
                 height: var(--space-medium, 50px);
-                border: 1px solid light-dark(var(--color-light-scale-3, #ccc), var(--color-dark-scale-6, #333));
+                border: 1px solid light-dark(var(--color-light-3, #ccc), var(--color-dark-scale-6, #333));
                 cursor: ew-resize;
                 background: light-dark(rgba(255, 255, 255, 0.8), rgba(51, 51, 51, 0.8));
                 /* Fallback */
@@ -1993,8 +1926,8 @@ div#products {
     display: grid;
     grid-template-rows: auto auto 1fr auto;
     padding: 16px;
-    background-color: light-dark(var(--color-static-light-4), var(--color-static-dark-2));
-    border: var(--border-size-small) solid light-dark(var(--color-dark-scale-1), var(--color-light-scale-1));
+    background-color: light-dark(var(--color-white-4), var(--color-black-2));
+    border: var(--border-size-small) solid light-dark(var(--color-dark-scale-1), var(--color-light-1));
     border-radius: 8px;
     text-align: center;
     transition: transform 0.2s;
@@ -2163,7 +2096,7 @@ div#products {
     &>:is(i, svg) {
         grid-area: 1 / 1;
         cursor: pointer;
-        color: light-dark(var(--color-accent-opaque-dark-scale-6), var(--color-accent-opaque-light-scale-6));
+        color: light-dark(var(--color-dark-6-alpha-1), var(--color-light-6-alpha-1));
     }
 
     &>:is(i:first-child, svg:first-child) {
@@ -2171,7 +2104,7 @@ div#products {
     }
 
     &>:is(i:last-child, svg:first-child) {
-        color: light-dark(var(--color-dark-scale-6), var(--color-light-scale-6));
+        color: light-dark(var(--color-dark-scale-6), var(--color-light-6));
     }
 
 }
@@ -2250,43 +2183,43 @@ div#products {
 
 /* Light theme animated gradients */
 .light-gradient-1 {
-    background: linear-gradient(135deg, var(--color-light-scale-1) 0%, var(--color-light-scale-2) 30%, var(--color-light-scale-3) 60%, var(--color-light-scale-4) 100%);
+    background: linear-gradient(135deg, var(--color-light-1) 0%, var(--color-light-2) 30%, var(--color-light-3) 60%, var(--color-light-4) 100%);
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
 }
 
 .light-gradient-2 {
-    background: linear-gradient(to bottom, var(--color-light-scale-3) 0%, var(--color-light-scale-4) 40%, var(--color-light-scale-5) 70%, var(--color-light-scale-6) 100%);
+    background: linear-gradient(to bottom, var(--color-light-3) 0%, var(--color-light-4) 40%, var(--color-light-5) 70%, var(--color-light-6) 100%);
     background-size: 100% 200%;
     animation: slideGradientVertical 8s ease infinite;
 }
 
 .light-gradient-3 {
-    background: linear-gradient(45deg, var(--color-light-scale-5) 0%, var(--color-light-scale-6) 50%, var(--color-light-scale-1) 100%);
+    background: linear-gradient(45deg, var(--color-light-5) 0%, var(--color-light-6) 50%, var(--color-light-1) 100%);
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
 }
 
 .light-gradient-opaque-1 {
-    background: linear-gradient(135deg, var(--color-accent-opaque-light-scale-1) 0%, var(--color-accent-opaque-light-scale-2) 25%, var(--color-accent-opaque-light-scale-3) 75%, var(--color-accent-opaque-light-scale-4) 100%);
+    background: linear-gradient(135deg, var(--color-light-1-alpha-1) 0%, var(--color-accent-opaque-light-scale-2) 25%, var(--color-accent-opaque-light-scale-3) 75%, var(--color-accent-opaque-light-scale-4) 100%);
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
 }
 
 .light-gradient-opaque-2 {
-    background: linear-gradient(to bottom, var(--color-accent-opaque-light-scale-3) 0%, var(--color-accent-opaque-light-scale-4) 33%, var(--color-accent-opaque-light-scale-5) 66%, var(--color-accent-opaque-light-scale-6) 100%);
+    background: linear-gradient(to bottom, var(--color-accent-opaque-light-scale-3) 0%, var(--color-accent-opaque-light-scale-4) 33%, var(--color-accent-opaque-light-scale-5) 66%, var(--color-light-6-alpha-1) 100%);
     background-size: 100% 200%;
     animation: slideGradientVertical 8s ease infinite;
 }
 
 .light-gradient-opaque-3 {
-    background: linear-gradient(45deg, var(--color-accent-opaque-light-scale-5) 0%, var(--color-accent-opaque-light-scale-6) 50%, var(--color-accent-opaque-light-scale-1) 100%);
+    background: linear-gradient(45deg, var(--color-accent-opaque-light-scale-5) 0%, var(--color-light-6-alpha-1) 50%, var(--color-light-1-alpha-1) 100%);
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
 }
 
 .light-gradient-blend {
-    background: linear-gradient(to bottom, var(--color-accent-opaque-light-scale-1), var(--color-accent-opaque-light-scale-2));
+    background: linear-gradient(to bottom, var(--color-light-1-alpha-1), var(--color-accent-opaque-light-scale-2));
     mix-blend-mode: multiply;
     animation: gradientBlendAnimLight 28s linear infinite;
 }
@@ -2311,25 +2244,25 @@ div#products {
 }
 
 .dark-gradient-opaque-1 {
-    background: linear-gradient(135deg, var(--color-accent-opaque-dark-scale-1) 0%, var(--color-accent-opaque-dark-scale-2) 25%, var(--color-accent-opaque-dark-scale-3) 75%, var(--color-accent-opaque-dark-scale-4) 100%);
+    background: linear-gradient(135deg, var(--color-dark-1-alpha-1) 0%, var(--color-accent-opaque-dark-scale-2) 25%, var(--color-accent-opaque-dark-scale-3) 75%, var(--color-accent-opaque-dark-scale-4) 100%);
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
 }
 
 .dark-gradient-opaque-2 {
-    background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-3) 0%, var(--color-accent-opaque-dark-scale-4) 33%, var(--color-accent-opaque-dark-scale-5) 66%, var(--color-accent-opaque-dark-scale-6) 100%);
+    background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-3) 0%, var(--color-accent-opaque-dark-scale-4) 33%, var(--color-accent-opaque-dark-scale-5) 66%, var(--color-dark-6-alpha-1) 100%);
     background-size: 100% 200%;
     animation: slideGradientVertical 8s ease infinite;
 }
 
 .dark-gradient-opaque-3 {
-    background: linear-gradient(45deg, var(--color-accent-opaque-dark-scale-5) 0%, var(--color-accent-opaque-dark-scale-6) 50%, var(--color-accent-opaque-dark-scale-1) 100%);
+    background: linear-gradient(45deg, var(--color-accent-opaque-dark-scale-5) 0%, var(--color-dark-6-alpha-1) 50%, var(--color-dark-1-alpha-1) 100%);
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
 }
 
 .dark-gradient-blend {
-    background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-1), var(--color-accent-opaque-dark-scale-2));
+    background: linear-gradient(to bottom, var(--color-dark-1-alpha-1), var(--color-accent-opaque-dark-scale-2));
     mix-blend-mode: multiply;
     animation: gradientBlendAnimDark 28s linear infinite;
 }
@@ -2395,7 +2328,7 @@ div#products {
 /* Keyframes for light gradient color blending animation */
 @keyframes gradientBlendAnimLight {
     0% {
-        background: linear-gradient(to bottom, var(--color-accent-opaque-light-scale-1), var(--color-accent-opaque-light-scale-2));
+        background: linear-gradient(to bottom, var(--color-light-1-alpha-1), var(--color-accent-opaque-light-scale-2));
     }
 
     25% {
@@ -2403,7 +2336,7 @@ div#products {
     }
 
     50% {
-        background: linear-gradient(to bottom, var(--color-accent-opaque-light-scale-5), var(--color-accent-opaque-light-scale-6));
+        background: linear-gradient(to bottom, var(--color-accent-opaque-light-scale-5), var(--color-light-6-alpha-1));
     }
 
     75% {
@@ -2411,14 +2344,14 @@ div#products {
     }
 
     100% {
-        background: linear-gradient(to bottom, var(--color-accent-opaque-light-scale-1), var(--color-accent-opaque-light-scale-2));
+        background: linear-gradient(to bottom, var(--color-light-1-alpha-1), var(--color-accent-opaque-light-scale-2));
     }
 }
 
 /* Keyframes for dark gradient color blending animation */
 @keyframes gradientBlendAnimDark {
     0% {
-        background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-1), var(--color-accent-opaque-dark-scale-2));
+        background: linear-gradient(to bottom, var(--color-dark-1-alpha-1), var(--color-accent-opaque-dark-scale-2));
     }
 
     25% {
@@ -2426,7 +2359,7 @@ div#products {
     }
 
     50% {
-        background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-5), var(--color-accent-opaque-dark-scale-6));
+        background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-5), var(--color-dark-6-alpha-1));
     }
 
     75% {
@@ -2434,7 +2367,7 @@ div#products {
     }
 
     100% {
-        background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-1), var(--color-accent-opaque-dark-scale-2));
+        background: linear-gradient(to bottom, var(--color-dark-1-alpha-1), var(--color-accent-opaque-dark-scale-2));
     }
 }
 
