@@ -24,7 +24,7 @@ class CustomBlock extends HTMLElement {
     static #renderCacheMap = new WeakMap();
 
     static #criticalAttributes = [
-        'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
+        'content-type', 'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
         'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
         'button-href', 'button-icon', 'button-icon-offset', 'button-icon-position', 'button-icon-size',
         'button-rel', 'button-style', 'button-target', 'button-text', 'button-type', 'class', 'effects',
@@ -466,6 +466,40 @@ class CustomBlock extends HTMLElement {
                 });
             }
         }
+        /* -------------------------------------------------
+           MULTIPLE CONTENT-TYPE SUPPORT (NO LEGACY TEXT)
+           ------------------------------------------------- */
+        const contentBlocks = [];
+
+        // Read every attribute that starts with "content-type"
+        for (const attr of this.attributes) {
+            if (!attr.name.startsWith('content-type')) continue;
+
+            // Skip empty or generic content-type
+            const type = (attr.value || '').trim().toLowerCase();
+            if (!type) continue;
+
+            // Get data
+            let data = '';
+            if (type === 'ul' || type === 'ol') {
+                const listAttr = this.getAttribute('list-items');
+                data = listAttr ? listAttr.split(',').map(i => i.trim()).filter(Boolean) : [];
+            } else {
+                data = this.getAttribute(type) || '';
+            }
+
+            // Extra attributes: e.g. start="10", quote-author="..."
+            const extra = {};
+            const prefix = `${type}-`;
+            for (const a of this.attributes) {
+                if (a.name.startsWith(prefix) && a.name !== 'content-type') {
+                    const key = a.name.slice(prefix.length);
+                    extra[key] = a.value;
+                }
+            }
+
+            contentBlocks.push({ type, data, extra });
+        }
         this.cachedAttributes = {
             effects: sanitizedEffects,
             sectionTitle: this.hasAttribute('heading') && !this.hasAttribute('button-text'),
@@ -495,6 +529,7 @@ class CustomBlock extends HTMLElement {
             innerBackgroundOverlayClass,
             backgroundGradientClass,
             innerBackgroundGradientClass,
+            contentBlocks,
             backgroundImageNoise: this.hasAttribute('background-image-noise'),
             backdropFilterClasses,
             backgroundColorClass: this.getAttribute('background-color') || '',
@@ -677,6 +712,7 @@ class CustomBlock extends HTMLElement {
             buttonIconPosition: '',
             buttonIconOffset: '',
             buttonIconSize: '',
+            contentBlocks: [],
             hasBackgroundOverlay: false,
             backgroundOverlayClass: '',
             innerBackgroundOverlayClass: '',
@@ -1163,11 +1199,40 @@ class CustomBlock extends HTMLElement {
             groupDiv.appendChild(headingElement);
             this.#log('Heading appended', { text: attrs.heading });
         }
-        if (attrs.text) {
-            const textElement = document.createElement('p');
-            textElement.textContent = attrs.text;
-            groupDiv.appendChild(textElement);
-            this.#log('Text appended', { text: attrs.text });
+        /* -------------------------------------------------
+           RENDER MULTIPLE CONTENT BLOCKS (first = first)
+           ------------------------------------------------- */
+        if (attrs.contentBlocks && attrs.contentBlocks.length) {
+            for (const block of attrs.contentBlocks) {
+                let el;
+                switch (block.type) {
+                    case 'paragraph':
+                        el = document.createElement('p');
+                        el.textContent = block.data;
+                        break;
+
+                    case 'ul':
+                    case 'ol':
+                        el = document.createElement(block.type);
+                        (block.data || []).forEach(item => {
+                            const li = document.createElement('li');
+                            li.textContent = item;
+                            el.appendChild(li);
+                        });
+                        Object.entries(block.extra || {}).forEach(([k, v]) => {
+                            el.setAttribute(k, v);
+                        });
+                        break;
+
+                    default:
+                        el = document.createElement('div');
+                        el.textContent = block.data;
+                        el.className = `content-${block.type}`;
+                        break;
+                }
+                groupDiv.appendChild(el);
+                this.#log('Content block appended', { type: block.type, data: block.data });
+            }
         }
         if (attrs.buttonText) {
             const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
@@ -1388,7 +1453,7 @@ class CustomBlock extends HTMLElement {
 
     static get observedAttributes() {
         return [
-            'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
+            'content-type', 'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
             'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
             'button-href', 'button-icon', 'button-icon-offset', 'button-icon-position', 'button-icon-size',
             'button-rel', 'button-style', 'button-target', 'button-text', 'button-type', 'class', 'effects',
