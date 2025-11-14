@@ -467,33 +467,40 @@ class CustomBlock extends HTMLElement {
             }
         }
         /* -------------------------------------------------
-           MULTIPLE CONTENT-TYPE SUPPORT (NO LEGACY TEXT)
+           MULTIPLE CONTENT-TYPE SUPPORT (FIXED: per-block data)
            ------------------------------------------------- */
         const contentBlocks = [];
 
-        // Read every attribute that starts with "content-type"
-        for (const attr of this.attributes) {
-            if (!attr.name.startsWith('content-type')) continue;
+        // Group attributes by their content-type index
+        const contentTypeAttrs = Array.from(this.attributes).filter(a => a.name.startsWith('content-type'));
+        const seenTypes = new Set();
 
-            // Skip empty or generic content-type
+        for (const attr of contentTypeAttrs) {
             const type = (attr.value || '').trim().toLowerCase();
-            if (!type) continue;
+            if (!type || seenTypes.has(type)) continue; // Skip empty or duplicates
+            seenTypes.add(type);
 
-            // Get data
             let data = '';
-            if (type === 'ul' || type === 'ol') {
-                const listAttr = this.getAttribute('list-items');
-                data = listAttr ? listAttr.split(',').map(i => i.trim()).filter(Boolean) : [];
-            } else {
-                data = this.getAttribute(type) || '';
+            let extra = {};
+
+            // Find all attributes that belong to this type
+            const typePrefix = `${type}-`;
+            const dataAttrName = type === 'ul' || type === 'ol' ? 'list-items' : type;
+
+            // Get the correct data for THIS block
+            const dataAttr = Array.from(this.attributes).find(a => a.name === dataAttrName);
+            if (dataAttr) {
+                if (type === 'ul' || type === 'ol') {
+                    data = dataAttr.value.split(',').map(i => i.trim()).filter(Boolean);
+                } else {
+                    data = dataAttr.value;
+                }
             }
 
-            // Extra attributes: e.g. start="10", quote-author="..."
-            const extra = {};
-            const prefix = `${type}-`;
+            // Get extra attributes (e.g. start="2")
             for (const a of this.attributes) {
-                if (a.name.startsWith(prefix) && a.name !== 'content-type') {
-                    const key = a.name.slice(prefix.length);
+                if (a.name.startsWith(typePrefix) && a.name !== 'content-type') {
+                    const key = a.name.slice(typePrefix.length);
                     extra[key] = a.value;
                 }
             }
