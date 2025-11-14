@@ -523,7 +523,7 @@ class CustomBlock extends HTMLElement {
 
         this.#log('Final contentBlocks array', { length: contentBlocks.length, blocks: contentBlocks });
         this.cachedAttributes = {
-            
+
             effects: sanitizedEffects,
             sectionTitle: this.hasAttribute('heading') && !this.hasAttribute('button-text'),
             heading: this.getAttribute('heading') || '',
@@ -534,7 +534,7 @@ class CustomBlock extends HTMLElement {
             iconStyle: sanitizedIconStyle,
             iconClass: sanitizedIconClass,
             iconSize: sanitizedIconSize,
-           
+
             buttonHref: this.getAttribute('button-href') || '#',
             buttonText: this.hasAttribute('button-text') ? (this.getAttribute('button-text') || 'Default') : '',
             buttonClass: sanitizedButtonClass,
@@ -854,14 +854,14 @@ class CustomBlock extends HTMLElement {
             !attrs.heading &&
             !attrs.subHeading &&
             !attrs.icon &&
-           
+
             !attrs.buttonText &&
             (hasBackgroundImage || hasVideoBackground || hasVideoPrimary);
         const isButtonOnly = !isFallback &&
             !attrs.heading &&
             !attrs.subHeading &&
             !attrs.icon &&
-            
+
             !hasBackgroundImage &&
             !hasVideoBackground &&
             !hasPrimaryImage &&
@@ -1242,7 +1242,13 @@ class CustomBlock extends HTMLElement {
                             el.appendChild(li);
                         });
                         Object.entries(block.extra || {}).forEach(([k, v]) => {
-                            el.setAttribute(k, v);
+                            if (k === 'ol-start') {
+                                el.setAttribute('start', v);
+                            } else if (k === 'ul-type') {
+                                el.setAttribute('type', v);
+                            } else {
+                                el.setAttribute(k, v);
+                            }
                         });
                         break;
 
