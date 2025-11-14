@@ -490,7 +490,7 @@ class CustomBlock extends HTMLElement {
             if (!type) continue;
 
             // ----- data attribute (list-items for ul/ol, otherwise same name) -----
-            const dataAttrName = (type === 'ul' || type === 'ol') ? 'whole list-items' : type;
+            const dataAttrName = (type === 'ul' || type === 'ol') ? 'list-items' : type;
             const dataAttr = Array.from(this.attributes).find(a =>
                 a.name === dataAttrName &&
                 Array.from(this.attributes).indexOf(a) > Array.from(this.attributes).indexOf(attr)
