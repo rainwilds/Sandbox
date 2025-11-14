@@ -24,6 +24,9 @@ class CustomBlock extends HTMLElement {
     static #renderCacheMap = new WeakMap();
 
     static #criticalAttributes = [
+        'list-items',
+        'ol-start',
+        'ul-type',
         'content-type', 'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
         'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
         'button-href', 'button-icon', 'button-icon-offset', 'button-icon-position', 'button-icon-size',
@@ -35,7 +38,7 @@ class CustomBlock extends HTMLElement {
         'inner-background-color', 'inner-background-gradient', 'inner-background-image-noise',
         'inner-background-overlay', 'inner-border', 'inner-border-radius', 'inner-class',
         'inner-shadow', 'inner-style', 'section-title', 'style', 'sub-heading', 'sub-heading-tag',
-        'text', 'text-alignment', 'video-background-alt', 'video-background-autoplay',
+        'text-alignment', 'video-background-alt', 'video-background-autoplay',
         'video-background-dark-poster', 'video-background-dark-src', 'video-background-disable-pip',
         'video-background-light-poster', 'video-background-light-src', 'video-background-loading',
         'video-background-loop', 'video-background-muted', 'video-background-playsinline',
@@ -467,15 +470,11 @@ class CustomBlock extends HTMLElement {
             }
         }
         /* -------------------------------------------------
-                   2. MULTIPLE CONTENT-TYPE SUPPORT – WITH DEBUG
-                   ------------------------------------------------- */
+        2. MULTIPLE CONTENT-TYPE SUPPORT – ONLY content-type
+        ------------------------------------------------- */
         const contentBlocks = [];
 
-        // ---- DEBUG: dump every attribute we see -----------------
-        this.#log('All raw attributes', {
-            list: Array.from(this.attributes).map(a => `${a.name}="${a.value}"`)
-        });
-
+        // ---- 1. All `content-type*` attributes (in DOM order) ----
         const contentTypeAttrs = Array.from(this.attributes).filter(a =>
             a.name.startsWith('content-type')
         );
@@ -488,54 +487,43 @@ class CustomBlock extends HTMLElement {
         for (let i = 0; i < contentTypeAttrs.length; i++) {
             const attr = contentTypeAttrs[i];
             const type = (attr.value || '').trim().toLowerCase();
+            if (!type) continue;
 
-            if (!type) {
-                this.#log('Skipping empty content-type', { index: i, attr });
-                continue;
-            }
-
-            this.#log(`Processing block #${i + 1}`, { type, rawValue: attr.value });
-
-            let data = '';
-            let extra = {};
-
-            // ---- Find the *matching* data attribute ----------------
-            const dataAttrName = type === 'ul' || type === 'ol' ? 'list-items' : type;
-
-            // Look **after** the current content-type attribute in DOM order
+            // ----- data attribute (list-items for ul/ol, otherwise same name) -----
+            const dataAttrName = (type === 'ul' || type === 'ol') ? 'whole list-items' : type;
             const dataAttr = Array.from(this.attributes).find(a =>
                 a.name === dataAttrName &&
                 Array.from(this.attributes).indexOf(a) > Array.from(this.attributes).indexOf(attr)
             );
 
+            let data = '';
             if (dataAttr) {
                 if (type === 'ul' || type === 'ol') {
-                    data = dataAttr.value.split(',').map(i => i.trim()).filter(Boolean);
+                    data = dataAttr.value.split(',').map(s => s.trim()).filter(Boolean);
                 } else {
                     data = dataAttr.value;
                 }
-                this.#log(`Found data for ${type}`, { dataAttrName, data });
             } else {
-                this.#warn(`No data attribute found for ${type}`, { dataAttrName });
+                this.#warn(`No data attribute for ${type}`, { dataAttrName });
             }
 
-            // ---- Extra attributes (start="2", quote-author, …) -----
+            // ----- extra attributes (ol-start, ul-type, quote-author, …) -----
+            const extra = {};
             const typePrefix = `${type}-`;
             for (const a of this.attributes) {
                 if (a.name.startsWith(typePrefix) && a.name !== 'content-type') {
                     const key = a.name.slice(typePrefix.length);
                     extra[key] = a.value;
-                    this.#log(`Extra attr for ${type}`, { key, value: a.value });
                 }
             }
 
-            const block = { type, data, extra };
-            contentBlocks.push(block);
-            this.#log('Block built', block);
+            contentBlocks.push({ type, data, extra });
+            this.#log('Content block built', { type, data, extra });
         }
 
         this.#log('Final contentBlocks array', { length: contentBlocks.length, blocks: contentBlocks });
         this.cachedAttributes = {
+            
             effects: sanitizedEffects,
             sectionTitle: this.hasAttribute('heading') && !this.hasAttribute('button-text'),
             heading: this.getAttribute('heading') || '',
@@ -546,7 +534,7 @@ class CustomBlock extends HTMLElement {
             iconStyle: sanitizedIconStyle,
             iconClass: sanitizedIconClass,
             iconSize: sanitizedIconSize,
-            text: this.getAttribute('text') || '',
+           
             buttonHref: this.getAttribute('button-href') || '#',
             buttonText: this.hasAttribute('button-text') ? (this.getAttribute('button-text') || 'Default') : '',
             buttonClass: sanitizedButtonClass,
@@ -829,7 +817,6 @@ class CustomBlock extends HTMLElement {
             isFallback,
             attrs: {
                 heading: attrs.heading,
-                text: attrs.text,
                 imgPrimarySrc: attrs.primarySrc,
                 buttonText: attrs.buttonText,
                 buttonHref: attrs.buttonHref
@@ -867,14 +854,14 @@ class CustomBlock extends HTMLElement {
             !attrs.heading &&
             !attrs.subHeading &&
             !attrs.icon &&
-            !attrs.text &&
+           
             !attrs.buttonText &&
             (hasBackgroundImage || hasVideoBackground || hasVideoPrimary);
         const isButtonOnly = !isFallback &&
             !attrs.heading &&
             !attrs.subHeading &&
             !attrs.icon &&
-            !attrs.text &&
+            
             !hasBackgroundImage &&
             !hasVideoBackground &&
             !hasPrimaryImage &&
@@ -884,7 +871,7 @@ class CustomBlock extends HTMLElement {
             elementId: this.id || 'no-id',
             isMediaOnly,
             isButtonOnly,
-            hasContent: !!(attrs.heading || attrs.subHeading || attrs.text || attrs.buttonText || attrs.icon)
+            hasContent: !!(attrs.heading || attrs.subHeading || attrs.buttonText || attrs.icon)
         });
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
         const borderClasses = ['border-small', 'border-medium', 'border-large', 'border-radius-small', 'border-radius-medium', 'border-radius-large'];
@@ -1174,7 +1161,7 @@ class CustomBlock extends HTMLElement {
             }
             return blockElement;
         }
-        this.#log('Rendering content block', { elementId: this.id || 'no-id', hasContent: !!(attrs.heading || attrs.text || attrs.buttonText) });
+        this.#log('Rendering content block', { elementId: this.id || 'no-id', hasContent: !!(attrs.heading || attrs.buttonText) });
         const innerPaddingClasses = attrs.innerCustomClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
         const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-') && !paddingClasses.includes(cls))];
         if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
@@ -1488,6 +1475,9 @@ class CustomBlock extends HTMLElement {
 
     static get observedAttributes() {
         return [
+            'list-items',
+            'ol-start',
+            'ul-type',
             'content-type', 'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
             'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
             'button-href', 'button-icon', 'button-icon-offset', 'button-icon-position', 'button-icon-size',
@@ -1504,7 +1494,7 @@ class CustomBlock extends HTMLElement {
             'inner-background-color', 'inner-background-gradient', 'inner-background-image-noise',
             'inner-background-overlay', 'inner-border', 'inner-border-radius', 'inner-class',
             'inner-shadow', 'inner-style', 'section-title', 'shadow', 'style', 'sub-heading',
-            'sub-heading-tag', 'text', 'text-alignment', 'video-background-alt',
+            'sub-heading-tag', 'text-alignment', 'video-background-alt',
             'video-background-autoplay', 'video-background-dark-poster', 'video-background-dark-src',
             'video-background-disable-pip', 'video-background-light-poster', 'video-background-light-src',
             'video-background-loading', 'video-background-loop', 'video-background-muted',
