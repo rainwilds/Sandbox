@@ -467,28 +467,28 @@ class CustomBlock extends HTMLElement {
             }
         }
         /* -------------------------------------------------
-           MULTIPLE CONTENT-TYPE SUPPORT (FIXED: per-block data)
+           MULTIPLE CONTENT-TYPE SUPPORT (CORRECT: per-block data)
            ------------------------------------------------- */
         const contentBlocks = [];
 
-        // Group attributes by their content-type index
+        // Get all content-type attributes
         const contentTypeAttrs = Array.from(this.attributes).filter(a => a.name.startsWith('content-type'));
-        const seenTypes = new Set();
 
         for (const attr of contentTypeAttrs) {
             const type = (attr.value || '').trim().toLowerCase();
-            if (!type || seenTypes.has(type)) continue; // Skip empty or duplicates
-            seenTypes.add(type);
+            if (!type) continue;
 
             let data = '';
             let extra = {};
 
-            // Find all attributes that belong to this type
-            const typePrefix = `${type}-`;
+            // Find data attribute that matches this block
             const dataAttrName = type === 'ul' || type === 'ol' ? 'list-items' : type;
+            const dataAttr = Array.from(this.attributes).find(a =>
+                a.name === dataAttrName &&
+                // Ensure it's the one *after* this content-type in DOM order
+                Array.from(this.attributes).indexOf(a) > Array.from(this.attributes).indexOf(attr)
+            );
 
-            // Get the correct data for THIS block
-            const dataAttr = Array.from(this.attributes).find(a => a.name === dataAttrName);
             if (dataAttr) {
                 if (type === 'ul' || type === 'ol') {
                     data = dataAttr.value.split(',').map(i => i.trim()).filter(Boolean);
@@ -497,7 +497,8 @@ class CustomBlock extends HTMLElement {
                 }
             }
 
-            // Get extra attributes (e.g. start="2")
+            // Extra attributes: start="2", etc.
+            const typePrefix = `${type}-`;
             for (const a of this.attributes) {
                 if (a.name.startsWith(typePrefix) && a.name !== 'content-type') {
                     const key = a.name.slice(typePrefix.length);
