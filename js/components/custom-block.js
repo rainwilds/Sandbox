@@ -7,9 +7,10 @@ import { getConfig, getImagePrimaryPath } from '../config.js';
 class CustomBlock extends HTMLElement {
     #ignoredChangeCount;
     #basePath = null;
+
     constructor() {
         super();
-        this.isVisible = true;
+        this.isVisible = true; // Always consider visible for immediate init
         this.isInitialized = false;
         this.callbacks = [];
         this.renderCache = null;
@@ -21,6 +22,7 @@ class CustomBlock extends HTMLElement {
     }
 
     static #renderCacheMap = new WeakMap();
+
     static #criticalAttributes = [
         'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
         'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
@@ -41,9 +43,7 @@ class CustomBlock extends HTMLElement {
         'video-primary-autoplay', 'video-primary-dark-poster', 'video-primary-dark-src',
         'video-primary-disable-pip', 'video-primary-light-poster', 'video-primary-light-src',
         'video-primary-loading', 'video-primary-loop', 'video-primary-muted',
-        'video-primary-playsinline', 'video-primary-poster', 'video-primary-src',
-        // === NEW: content-type, list-items, start ===
-        'content-type', 'list-items', 'start'
+        'video-primary-playsinline', 'video-primary-poster', 'video-primary-src'
     ];
 
     #log(message, data = null) {
@@ -57,7 +57,7 @@ class CustomBlock extends HTMLElement {
 
     #warn(message, data = null) {
         if (this.debug) {
-            console.groupCollapsed(`%c[CustomBlock] Warning: ${message}`, 'color: #FF9800; font-weight: bold;');
+            console.groupCollapsed(`%c[CustomBlock] ⚠️ ${message}`, 'color: #FF9800; font-weight: bold;');
             if (data) console.log('%cData:', 'color: #4CAF50;', data);
             console.trace();
             console.groupEnd();
@@ -66,7 +66,7 @@ class CustomBlock extends HTMLElement {
 
     #error(message, data = null) {
         if (this.debug) {
-            console.groupCollapsed(`%c[CustomBlock] Error: ${message}`, 'color: #F44336; font-weight: bold;');
+            console.groupCollapsed(`%c[CustomBlock] ❌ ${message}`, 'color: #F44336; font-weight: bold;');
             if (data) console.log('%cData:', 'color: #4CAF50;', data);
             console.trace();
             console.groupEnd();
@@ -106,56 +106,15 @@ class CustomBlock extends HTMLElement {
             this.#log('Using cached attributes', { elementId: this.id || 'no-id' });
             return this.cachedAttributes;
         }
-
         this.#log('Parsing new attributes', { elementId: this.id || 'no-id', outerHTML: this.outerHTML.substring(0, 200) + '...' });
         const basePath = await this.#getBasePath();
         const primaryPath = await getImagePrimaryPath();
-
         const resolveImageSrc = (attrName) => {
             const path = this.getAttribute(attrName) || '';
             if (!path) return '';
             if (path.startsWith('http')) return path;
             return primaryPath + (path.startsWith('/') ? path.slice(1) : path);
         };
-
-        const resolvePath = (path) => path ? (path.startsWith('http') ? path : basePath + (path.startsWith('/') ? path.slice(1) : path)) : '';
-
-        // === MULTI CONTENT-TYPE SUPPORT ===
-        const contentTypeAttrs = this.getAttributeNames()
-            .filter(name => name === 'content-type')
-            .map(name => {
-                const type = this.getAttribute(name);
-                if (!['paragraph', 'ul', 'ol'].includes(type)) {
-                    this.#warn('Invalid content-type', { value: type, valid: ['paragraph', 'ul', 'ol'] });
-                    return null;
-                }
-                return { type };
-            })
-            .filter(Boolean);
-
-        const contentBlocks = contentTypeAttrs.map(block => {
-            if (block.type === 'paragraph') {
-                block.text = this.getAttribute('text') || '';
-            } else if (block.type === 'ul' || block.type === 'ol') {
-                block.listItems = (this.getAttribute('list-items') || '')
-                    .split(',')
-                    .map(i => i.trim())
-                    .filter(i => i);
-                block.start = this.getAttribute('start');
-                block.hasSlotted = this.querySelectorAll('li').length > 0;
-            }
-            return block;
-        });
-
-        // Backward compatibility: if no content-type, use legacy `text`
-        if (contentBlocks.length === 0 && this.hasAttribute('text')) {
-            contentBlocks.push({
-                type: 'paragraph',
-                text: this.getAttribute('text') || ''
-            });
-        }
-
-        // === Rest of attribute parsing (unchanged) ===
         const backgroundFetchPriority = this.getAttribute('img-background-fetchpriority') || '';
         const primaryFetchPriority = this.getAttribute('img-primary-fetchpriority') || '';
         const validFetchPriorities = ['high', 'low', 'auto', ''];
@@ -165,7 +124,6 @@ class CustomBlock extends HTMLElement {
         if (!validFetchPriorities.includes(primaryFetchPriority)) {
             this.#warn('Invalid primary fetch priority', { value: primaryFetchPriority, element: this.id || 'no-id', validValues: validFetchPriorities });
         }
-
         let primaryPosition = this.getAttribute('img-primary-position') || 'top';
         if (primaryPosition === 'above') primaryPosition = 'top';
         if (primaryPosition === 'below') primaryPosition = 'bottom';
@@ -174,7 +132,6 @@ class CustomBlock extends HTMLElement {
             this.#warn('Invalid primary position', { value: primaryPosition, element: this.id || 'no-id', default: 'top', validValues: validPositions });
             primaryPosition = 'top';
         }
-
         const backgroundOverlay = this.getAttribute('background-overlay') || '';
         let backgroundOverlayClass = '';
         if (backgroundOverlay) {
@@ -182,7 +139,6 @@ class CustomBlock extends HTMLElement {
             if (match) backgroundOverlayClass = `background-overlay-${match[1]}`;
             else this.#warn('Invalid background overlay', { value: backgroundOverlay, element: this.id || 'no-id', expected: 'background-overlay-N (N = number)' });
         }
-
         const innerBackgroundOverlay = this.getAttribute('inner-background-overlay') || '';
         let innerBackgroundOverlayClass = '';
         if (innerBackgroundOverlay) {
@@ -190,7 +146,6 @@ class CustomBlock extends HTMLElement {
             if (match) innerBackgroundOverlayClass = `background-overlay-${match[1]}`;
             else this.#warn('Invalid inner background overlay', { value: innerBackgroundOverlay, element: this.id || 'no-id', expected: 'background-overlay-N (N = number)' });
         }
-
         const backgroundGradient = this.getAttribute('background-gradient') || '';
         let backgroundGradientClass = '';
         if (backgroundGradient) {
@@ -198,7 +153,6 @@ class CustomBlock extends HTMLElement {
             if (match) backgroundGradientClass = `background-gradient-${match[1]}`;
             else this.#warn('Invalid background gradient', { value: backgroundGradient, element: this.id || 'no-id', expected: 'background-gradient-N (N = number)' });
         }
-
         const innerBackgroundGradient = this.getAttribute('inner-background-gradient') || '';
         let innerBackgroundGradientClass = '';
         if (innerBackgroundGradient) {
@@ -206,10 +160,8 @@ class CustomBlock extends HTMLElement {
             if (match) innerBackgroundGradientClass = `background-gradient-${match[1]}`;
             else this.#warn('Invalid inner background gradient', { value: innerBackgroundGradient, element: this.id || 'no-id', expected: 'background-gradient-N (N = number)' });
         }
-
         const backdropFilterClasses = this.getAttribute('backdrop-filter')?.split(' ').filter(cls => cls) || [];
         const innerBackdropFilterClasses = this.getAttribute('inner-backdrop-filter')?.split(' ').filter(cls => cls) || [];
-
         const headingTag = this.getAttribute('heading-tag') || 'h2';
         const subHeadingTag = this.getAttribute('sub-heading-tag') || 'h3';
         const validHeadingTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
@@ -219,18 +171,15 @@ class CustomBlock extends HTMLElement {
         if (!validHeadingTags.includes(subHeadingTag.toLowerCase())) {
             this.#warn('Invalid sub-heading tag', { value: subHeadingTag, element: this.id || 'no-id', default: 'h3', validValues: validHeadingTags });
         }
-
         const innerAlignment = this.getAttribute('inner-alignment') || '';
         if (innerAlignment && !VALID_ALIGNMENTS.includes(innerAlignment)) {
             this.#warn('Invalid inner alignment', { value: innerAlignment, element: this.id || 'no-id', validValues: VALID_ALIGNMENTS });
         }
-
         const textAlignment = this.getAttribute('text-alignment') || '';
         const validTextAlignments = ['left', 'center', 'right'];
         if (textAlignment && !validTextAlignments.includes(textAlignment)) {
             this.#warn('Invalid text alignment', { value: textAlignment, element: this.id || 'no-id', validValues: validTextAlignments });
         }
-
         const innerBackgroundColor = this.getAttribute('inner-background-color') || '';
         let innerBackgroundColorClass = '';
         if (innerBackgroundColor) {
@@ -238,7 +187,6 @@ class CustomBlock extends HTMLElement {
             if (match) innerBackgroundColorClass = `background-color-${match[1]}`;
             else this.#warn('Invalid inner background color', { value: innerBackgroundColor, element: this.id || 'no-id', expected: 'background-color-N (N = number)' });
         }
-
         const shadow = this.getAttribute('shadow') || '';
         let shadowClass = '';
         const validShadowClasses = ['shadow-light', 'shadow-medium', 'shadow-heavy'];
@@ -247,7 +195,6 @@ class CustomBlock extends HTMLElement {
         } else if (shadow) {
             this.#warn('Invalid shadow class', { value: shadow, element: this.id || 'no-id', validValues: validShadowClasses });
         }
-
         const innerShadow = this.getAttribute('inner-shadow') || '';
         let innerShadowClass = '';
         if (innerShadow && validShadowClasses.includes(innerShadow)) {
@@ -255,12 +202,11 @@ class CustomBlock extends HTMLElement {
         } else if (innerShadow) {
             this.#warn('Invalid inner shadow class', { value: innerShadow, element: this.id || 'no-id', validValues: validShadowClasses });
         }
-
+        const resolvePath = (path) => path ? (path.startsWith('http') ? path : basePath + (path.startsWith('/') ? path.slice(1) : path)) : '';
         const backgroundSrc = resolveImageSrc('img-background-src');
         const backgroundLightSrc = resolveImageSrc('img-background-light-src');
         const backgroundDarkSrc = resolveImageSrc('img-background-dark-src');
         const backgroundAlt = this.getAttribute('img-background-alt') || '';
-
         if ((backgroundLightSrc || backgroundDarkSrc) && !(backgroundLightSrc && backgroundDarkSrc) && !backgroundSrc) {
             this.#error('Invalid background source configuration', {
                 backgroundSrc, backgroundLightSrc, backgroundDarkSrc,
@@ -269,11 +215,9 @@ class CustomBlock extends HTMLElement {
             });
             throw new Error('Both img-background-light-src and img-background-dark-src must be present or use img-background-src alone.');
         }
-
         const primarySrc = resolveImageSrc('img-primary-src');
         const primaryLightSrc = resolveImageSrc('img-primary-light-src');
         const primaryDarkSrc = resolveImageSrc('img-primary-dark-src');
-
         if ((primaryLightSrc || primaryDarkSrc) && !(primaryLightSrc && primaryDarkSrc) && !primarySrc) {
             this.#error('Invalid primary image source configuration', {
                 primarySrc, primaryLightSrc, primaryDarkSrc,
@@ -282,11 +226,9 @@ class CustomBlock extends HTMLElement {
             });
             throw new Error('Both img-primary-light-src and img-primary-dark-src must be present or use img-primary-src alone.');
         }
-
         const videoBackgroundSrc = resolvePath(this.getAttribute('video-background-src') || '');
         const videoBackgroundLightSrc = resolvePath(this.getAttribute('video-background-light-src') || '');
         const videoBackgroundDarkSrc = resolvePath(this.getAttribute('video-background-dark-src') || '');
-
         if ((videoBackgroundLightSrc || videoBackgroundDarkSrc) && !(videoBackgroundLightSrc && videoBackgroundDarkSrc) && !videoBackgroundSrc) {
             this.#error('Invalid video background source configuration', {
                 videoBackgroundSrc, videoBackgroundLightSrc, videoBackgroundDarkSrc,
@@ -295,11 +237,9 @@ class CustomBlock extends HTMLElement {
             });
             throw new Error('Both video-background-light-src and video-background-dark-src must be present or use video-background-src alone.');
         }
-
         const videoPrimarySrc = resolvePath(this.getAttribute('video-primary-src') || '');
         const videoPrimaryLightSrc = resolvePath(this.getAttribute('video-primary-light-src') || '');
         const videoPrimaryDarkSrc = resolvePath(this.getAttribute('video-primary-dark-src') || '');
-
         if ((videoPrimaryLightSrc || videoPrimaryDarkSrc) && !(videoPrimaryLightSrc && videoPrimaryDarkSrc) && !videoPrimarySrc) {
             this.#error('Invalid video primary source configuration', {
                 videoPrimarySrc, videoPrimaryLightSrc, videoPrimaryDarkSrc,
@@ -308,7 +248,6 @@ class CustomBlock extends HTMLElement {
             });
             throw new Error('Both video-primary-light-src and video-primary-dark-src must be present or use video-primary-src alone.');
         }
-
         const backgroundPosition = this.getAttribute('img-background-position') || '';
         let sanitizedBackgroundPosition = '';
         if (backgroundPosition) {
@@ -332,7 +271,6 @@ class CustomBlock extends HTMLElement {
                 });
             }
         }
-
         let icon = this.getAttribute('icon') || '';
         if (icon) {
             icon = icon.replace(/['"]/g, '&quot;');
@@ -360,7 +298,6 @@ class CustomBlock extends HTMLElement {
                 }
             }
         }
-
         const iconStyle = this.getAttribute('icon-style') || '';
         let sanitizedIconStyle = '';
         if (iconStyle) {
@@ -382,7 +319,6 @@ class CustomBlock extends HTMLElement {
                 });
             }
         }
-
         const iconClass = this.getAttribute('icon-class') || '';
         let sanitizedIconClass = '';
         if (iconClass) {
@@ -395,7 +331,6 @@ class CustomBlock extends HTMLElement {
                 });
             }
         }
-
         const iconSize = this.getAttribute('icon-size') || '';
         let sanitizedIconSize = '';
         if (iconSize) {
@@ -403,7 +338,6 @@ class CustomBlock extends HTMLElement {
             if (remMatch) sanitizedIconSize = iconSize;
             else this.#warn('Invalid icon size', { value: iconSize, element: this.id || 'no-id', expected: 'Nrem format' });
         }
-
         const buttonClass = this.getAttribute('button-class') || '';
         let sanitizedButtonClass = '';
         if (buttonClass) {
@@ -416,7 +350,6 @@ class CustomBlock extends HTMLElement {
                 });
             }
         }
-
         const buttonStyle = this.getAttribute('button-style') || '';
         let sanitizedButtonStyle = '';
         if (buttonStyle) {
@@ -434,7 +367,6 @@ class CustomBlock extends HTMLElement {
                 });
             }
         }
-
         const buttonRel = this.getAttribute('button-rel') || '';
         let sanitizedButtonRel = '';
         if (buttonRel) {
@@ -449,7 +381,6 @@ class CustomBlock extends HTMLElement {
                 });
             }
         }
-
         const buttonType = this.getAttribute('button-type') || '';
         const buttonHref = this.getAttribute('button-href') || '';
         const validButtonTypes = ['button', 'submit', 'reset'];
@@ -464,7 +395,6 @@ class CustomBlock extends HTMLElement {
                 validValues: validButtonTypes
             });
         }
-
         let buttonIcon = this.getAttribute('button-icon') || '';
         if (buttonIcon) {
             buttonIcon = buttonIcon.replace(/['"]/g, '&quot;');
@@ -492,7 +422,6 @@ class CustomBlock extends HTMLElement {
                 }
             }
         }
-
         const buttonIconPosition = this.getAttribute('button-icon-position') || '';
         let sanitizedButtonIconPosition = '';
         if (buttonIconPosition) {
@@ -507,7 +436,6 @@ class CustomBlock extends HTMLElement {
                 });
             }
         }
-
         const buttonIconOffset = this.getAttribute('button-icon-offset') || '';
         let sanitizedButtonIconOffset = '';
         if (buttonIconOffset && sanitizedButtonIconPosition) {
@@ -519,7 +447,6 @@ class CustomBlock extends HTMLElement {
                 expected: 'var(--space-*) format'
             });
         }
-
         const buttonIconSize = this.getAttribute('button-icon-size') || '';
         let sanitizedButtonIconSize = '';
         if (buttonIconSize) {
@@ -527,7 +454,6 @@ class CustomBlock extends HTMLElement {
             if (remMatch) sanitizedButtonIconSize = buttonIconSize;
             else this.#warn('Invalid button icon size', { value: buttonIconSize, element: this.id || 'no-id', expected: 'Nrem format' });
         }
-
         const effects = this.getAttribute('effects') || '';
         let sanitizedEffects = '';
         if (effects) {
@@ -540,7 +466,6 @@ class CustomBlock extends HTMLElement {
                 });
             }
         }
-
         this.cachedAttributes = {
             effects: sanitizedEffects,
             sectionTitle: this.hasAttribute('heading') && !this.hasAttribute('button-text'),
@@ -552,7 +477,7 @@ class CustomBlock extends HTMLElement {
             iconStyle: sanitizedIconStyle,
             iconClass: sanitizedIconClass,
             iconSize: sanitizedIconSize,
-            contentBlocks, // <-- NEW
+            text: this.getAttribute('text') || '',
             buttonHref: this.getAttribute('button-href') || '#',
             buttonText: this.hasAttribute('button-text') ? (this.getAttribute('button-text') || 'Default') : '',
             buttonClass: sanitizedButtonClass,
@@ -645,17 +570,14 @@ class CustomBlock extends HTMLElement {
             shadowClass,
             innerShadowClass
         };
-
         const criticalAttrs = {};
         CustomBlock.#criticalAttributes.forEach(attr => {
             criticalAttrs[attr] = this.getAttribute(attr) || '';
         });
         this.criticalAttributesHash = JSON.stringify(criticalAttrs);
-
         this.#log('Attributes parsed successfully', {
             elementId: this.id || 'no-id',
             criticalHashLength: this.criticalAttributesHash.length,
-            contentBlocks: contentBlocks.map(b => b.type),
             hasMedia: !!(this.cachedAttributes.backgroundSrc || this.cachedAttributes.primarySrc || this.cachedAttributes.videoBackgroundSrc || this.cachedAttributes.videoPrimarySrc)
         });
         return this.cachedAttributes;
@@ -731,7 +653,6 @@ class CustomBlock extends HTMLElement {
                 return CustomBlock.#renderCacheMap.get(this).cloneNode(true);
             }
         }
-
         const attrs = isFallback ? {
             effects: '',
             sectionTitle: false,
@@ -743,7 +664,7 @@ class CustomBlock extends HTMLElement {
             iconStyle: '',
             iconClass: '',
             iconSize: '',
-            contentBlocks: [],
+            text: '',
             buttonHref: '#',
             buttonText: '',
             buttonClass: '',
@@ -832,19 +753,17 @@ class CustomBlock extends HTMLElement {
             shadowClass: '',
             innerShadowClass: ''
         } : await this.getAttributes();
-
         this.#log('Render attributes prepared', {
             elementId: this.id || 'no-id',
             isFallback,
             attrs: {
                 heading: attrs.heading,
-                contentBlocks: attrs.contentBlocks.map(b => b.type),
+                text: attrs.text,
                 imgPrimarySrc: attrs.primarySrc,
                 buttonText: attrs.buttonText,
                 buttonHref: attrs.buttonHref
             }
         });
-
         if (!attrs.backgroundAlt && !attrs.backgroundIsDecorative && (attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc)) {
             this.#error('Missing background alt text', {
                 backgroundSrc: attrs.backgroundSrc || 'not provided',
@@ -861,12 +780,10 @@ class CustomBlock extends HTMLElement {
                 element: this.id || 'no-id'
             });
         }
-
         const hasVideoBackground = !isFallback && !!(attrs.videoBackgroundSrc || attrs.videoBackgroundLightSrc || attrs.videoBackgroundDarkSrc);
         const hasBackgroundImage = !isFallback && !!(attrs.backgroundSrc || attrs.backgroundLightSrc || attrs.backgroundDarkSrc) && !hasVideoBackground;
         const hasPrimaryImage = !isFallback && !!(attrs.primarySrc || attrs.primaryLightSrc || attrs.primaryDarkSrc);
         const hasVideoPrimary = !isFallback && !!(attrs.videoPrimarySrc || attrs.videoPrimaryLightSrc || attrs.videoPrimaryDarkSrc);
-
         this.#log('Media detection complete', {
             elementId: this.id || 'no-id',
             hasVideoBackground,
@@ -875,33 +792,29 @@ class CustomBlock extends HTMLElement {
             hasVideoPrimary,
             primaryPosition: attrs.primaryPosition
         });
-
         const isMediaOnly = !isFallback &&
             !attrs.heading &&
             !attrs.subHeading &&
             !attrs.icon &&
-            attrs.contentBlocks.length === 0 &&
+            !attrs.text &&
             !attrs.buttonText &&
             (hasBackgroundImage || hasVideoBackground || hasVideoPrimary);
-
         const isButtonOnly = !isFallback &&
             !attrs.heading &&
             !attrs.subHeading &&
             !attrs.icon &&
-            attrs.contentBlocks.length === 0 &&
+            !attrs.text &&
             !hasBackgroundImage &&
             !hasVideoBackground &&
             !hasPrimaryImage &&
             !hasVideoPrimary &&
             attrs.buttonText;
-
         this.#log('Content type detection', {
             elementId: this.id || 'no-id',
             isMediaOnly,
             isButtonOnly,
-            hasContent: !!(attrs.heading || attrs.subHeading || attrs.contentBlocks.length || attrs.buttonText || attrs.icon)
+            hasContent: !!(attrs.heading || attrs.subHeading || attrs.text || attrs.buttonText || attrs.icon)
         });
-
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
         const borderClasses = ['border-small', 'border-medium', 'border-large', 'border-radius-small', 'border-radius-medium', 'border-radius-large'];
         const borderRadiusClasses = attrs.customClasses
@@ -914,11 +827,9 @@ class CustomBlock extends HTMLElement {
             .filter(cls => cls && !paddingClasses.includes(cls) && !borderClasses.includes(cls))
             .join(' ')
             .trim();
-
         const fragment = document.createDocumentFragment();
         const blockElement = document.createElement('div');
         fragment.appendChild(blockElement);
-
         const mainDivClassList = ['block'];
         if (hasBackgroundImage) mainDivClassList.push('background-image');
         else if (hasVideoBackground || hasVideoPrimary) mainDivClassList.push('background-video');
@@ -926,13 +837,11 @@ class CustomBlock extends HTMLElement {
         mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass);
         if (attrs.effects) mainDivClassList.push(attrs.effects);
         blockElement.className = mainDivClassList.filter(cls => cls).join(' ').trim();
-
         this.#log('Block element created', {
             elementId: this.id || 'no-id',
             classes: blockElement.className,
             classCount: mainDivClassList.length
         });
-
         if (attrs.styleAttribute && !isFallback) {
             let outerStyles = attrs.styleAttribute;
             const paddingRegex = /(padding[^:]*:[^;]+;?)/gi;
@@ -948,21 +857,164 @@ class CustomBlock extends HTMLElement {
                 }
             }
         }
-
         if (!isFallback && (hasPrimaryImage || hasVideoPrimary)) {
             blockElement.setAttribute('data-primary-position', attrs.primaryPosition);
         }
         if (!isFallback && attrs.sectionTitle && !attrs.buttonText) {
             blockElement.setAttribute('data-section-title', 'true');
         }
-
-        // === Background Video / Image Rendering (unchanged) ===
         if (hasVideoBackground) {
-            // ... [same as original]
+            this.#log('Rendering video background', {
+                elementId: this.id || 'no-id',
+                sources: [attrs.videoBackgroundSrc, attrs.videoBackgroundLightSrc, attrs.videoBackgroundDarkSrc].filter(Boolean)
+            });
+            const videoAttrs = {
+                videoBackgroundSrc: attrs.videoBackgroundSrc?.trim() || '',
+                videoBackgroundLightSrc: attrs.videoBackgroundLightSrc?.trim() || '',
+                videoBackgroundDarkSrc: attrs.videoBackgroundDarkSrc?.trim() || '',
+                videoBackgroundPoster: attrs.videoBackgroundPoster?.trim() || '',
+                videoBackgroundLightPoster: attrs.videoBackgroundLightPoster?.trim() || '',
+                videoBackgroundDarkPoster: attrs.videoBackgroundDarkPoster?.trim() || '',
+                videoBackgroundAlt: attrs.videoBackgroundAlt?.trim() || 'Video content',
+                videoBackgroundLoading: attrs.videoBackgroundLoading || 'lazy',
+                videoBackgroundAutoplay: attrs.videoBackgroundAutoplay,
+                videoBackgroundMuted: attrs.videoBackgroundMuted,
+                videoBackgroundLoop: attrs.videoBackgroundLoop,
+                videoBackgroundPlaysinline: attrs.videoBackgroundPlaysinline,
+                videoBackgroundDisablePip: attrs.videoBackgroundDisablePip,
+            };
+            const sources = [videoAttrs.videoBackgroundSrc, videoAttrs.videoBackgroundLightSrc, videoAttrs.videoBackgroundDarkSrc].filter(Boolean);
+            const validations = await Promise.all(sources.map(src => this.validateSrc(src)));
+            if (validations.every(v => v)) {
+                try {
+                    const videoMarkup = await generateVideoMarkup({
+                        src: videoAttrs.videoBackgroundSrc,
+                        lightSrc: videoAttrs.videoBackgroundLightSrc,
+                        darkSrc: videoAttrs.videoBackgroundDarkSrc,
+                        poster: videoAttrs.videoBackgroundPoster,
+                        lightPoster: videoAttrs.videoBackgroundLightPoster,
+                        darkPoster: videoAttrs.videoBackgroundDarkPoster,
+                        alt: videoAttrs.videoBackgroundAlt,
+                        customClasses: mediaClasses,
+                        extraClasses: borderRadiusClasses ? [borderRadiusClasses] : [],
+                        loading: videoAttrs.videoBackgroundLoading,
+                        autoplay: videoAttrs.videoBackgroundAutoplay,
+                        muted: videoAttrs.videoBackgroundMuted,
+                        loop: videoAttrs.videoBackgroundLoop,
+                        playsinline: videoAttrs.videoBackgroundPlaysinline,
+                        disablePip: videoAttrs.videoBackgroundDisablePip,
+                        preload: videoAttrs.videoBackgroundLoading === 'lazy' ? 'metadata' : videoAttrs.videoBackgroundLoading,
+                        controls: false
+                    });
+                    this.#log('Video markup generated successfully', {
+                        elementId: this.id || 'no-id',
+                        markupLength: videoMarkup.length,
+                        markupPreview: videoMarkup.substring(0, 100)
+                    });
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = videoMarkup;
+                    const videoElement = tempDiv.querySelector('video');
+                    if (videoElement) {
+                        blockElement.appendChild(videoElement);
+                        this.#log('Video background element appended', { elementId: this.id || 'no-id' });
+                    } else {
+                        this.#warn('Failed to parse video markup', {
+                            markup: videoMarkup,
+                            elementId: this.id || 'no-id'
+                        });
+                        blockElement.appendChild(document.createElement('p')).textContent = 'Video unavailable';
+                    }
+                } catch (error) {
+                    this.#error('Video markup generation failed', {
+                        error: error.message,
+                        sources,
+                        elementId: this.id || 'no-id'
+                    });
+                    blockElement.appendChild(document.createElement('p')).textContent = 'Video unavailable';
+                }
+            } else {
+                this.#warn('Video validation failed', {
+                    sources: sources.filter((_, i) => !validations[i]),
+                    elementId: this.id || 'no-id'
+                });
+                blockElement.appendChild(document.createElement('p')).textContent = 'Video unavailable';
+            }
         } else if (hasBackgroundImage) {
-            // ... [same as original]
+            this.#log('Rendering background image', {
+                elementId: this.id || 'no-id',
+                sources: [attrs.backgroundSrc, attrs.backgroundLightSrc, attrs.backgroundDarkSrc].filter(Boolean)
+            });
+            const sources = [attrs.backgroundSrc, attrs.backgroundLightSrc, attrs.backgroundDarkSrc].filter(Boolean);
+            const validations = await Promise.all(sources.map(src => this.validateSrc(src)));
+            if (sources.length && validations.every(v => v)) {
+                try {
+                    const extraStyles = attrs.backgroundPosition ? `object-position: ${attrs.backgroundPosition};` : '';
+                    const pictureMarkup = await generatePictureMarkup({
+                        src: attrs.backgroundSrc,
+                        lightSrc: attrs.backgroundLightSrc,
+                        darkSrc: attrs.backgroundDarkSrc,
+                        alt: attrs.backgroundAlt,
+                        lightAlt: attrs.backgroundLightAlt,
+                        darkAlt: attrs.backgroundDarkAlt,
+                        isDecorative: attrs.backgroundIsDecorative,
+                        customClasses: mediaClasses,
+                        extraClasses: borderRadiusClasses ? [borderRadiusClasses] : [],
+                        loading: attrs.backgroundLoading,
+                        fetchPriority: attrs.backgroundFetchPriority,
+                        mobileWidth: attrs.backgroundMobileWidth,
+                        tabletWidth: attrs.backgroundTabletWidth,
+                        desktopWidth: attrs.backgroundDesktopWidth,
+                        noResponsive: attrs.backgroundSrc?.endsWith('.svg') || attrs.backgroundLightSrc?.endsWith('.svg') || attrs.backgroundDarkSrc?.endsWith('.svg'),
+                        aspectRatio: attrs.backgroundAspectRatio,
+                        includeSchema: attrs.backgroundIncludeSchema,
+                        extraStyles,
+                        isBackground: true
+                    });
+                    this.#log('Background image markup generated', {
+                        elementId: this.id || 'no-id',
+                        markupLength: pictureMarkup.length,
+                        markupPreview: pictureMarkup.substring(0, 100)
+                    });
+                    const pictureDiv = document.createElement('div');
+                    pictureDiv.innerHTML = pictureMarkup;
+                    const pictureElement = pictureDiv.querySelector('picture');
+                    if (pictureElement) {
+                        blockElement.appendChild(pictureElement);
+                        this.#log('Background image appended successfully');
+                    } else {
+                        this.#warn('Failed to parse picture markup', { markup: pictureMarkup.substring(0, 200) });
+                        const fallbackImg = document.createElement('img');
+                        fallbackImg.src = 'https://placehold.co/3000x2000';
+                        fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                        fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
+                        if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
+                        fallbackImg.style.width = '100%';
+                        blockElement.appendChild(fallbackImg);
+                        this.#log('Fallback background image appended', { src: fallbackImg.src });
+                    }
+                } catch (error) {
+                    this.#error('Error generating picture markup', { error, sources });
+                    const fallbackImg = document.createElement('img');
+                    fallbackImg.src = 'https://placehold.co/3000x2000';
+                    fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                    fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
+                    if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
+                    fallbackImg.style.width = '100%';
+                    blockElement.appendChild(fallbackImg);
+                    this.#log('Fallback background image appended', { src: fallbackImg.src });
+                }
+            } else {
+                this.#warn('Invalid background image sources', { invalidSources: sources.filter((_, i) => !validations[i]) });
+                const fallbackImg = document.createElement('img');
+                fallbackImg.src = 'https://placehold.co/3000x2000';
+                fallbackImg.alt = attrs.backgroundAlt || 'Error loading background image';
+                fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
+                if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
+                fallbackImg.style.width = '100%';
+                blockElement.appendChild(fallbackImg);
+                this.#log('Fallback background image appended', { src: fallbackImg.src });
+            }
         }
-
         if (attrs.hasBackgroundOverlay && (hasBackgroundImage || hasVideoBackground)) {
             const overlayClasses = [attrs.backgroundOverlayClass];
             if (attrs.backgroundImageNoise) overlayClasses.push('background-image-noise');
@@ -986,7 +1038,6 @@ class CustomBlock extends HTMLElement {
             }
             blockElement.appendChild(overlayDiv);
         }
-
         if (isMediaOnly && !hasPrimaryImage && !hasVideoPrimary) {
             this.#log('Media-only block detected', { elementId: this.id || 'no-id' });
             if (!isFallback && !blockElement.hasChildNodes()) {
@@ -999,7 +1050,6 @@ class CustomBlock extends HTMLElement {
             }
             return blockElement;
         }
-
         if (isButtonOnly) {
             this.#log('Button-only block detected', { elementId: this.id || 'no-id' });
             const buttonClasses = ['button', attrs.buttonClass].filter(cls => cls).join(' ').trim();
@@ -1016,13 +1066,11 @@ class CustomBlock extends HTMLElement {
             if (attrs.buttonTarget) buttonElement.setAttribute(attrs.buttonType === 'button' ? 'formtarget' : 'target', attrs.buttonTarget);
             if (attrs.buttonRel) buttonElement.setAttribute('rel', attrs.buttonRel);
             if (attrs.buttonAriaLabel) buttonElement.setAttribute('aria-label', attrs.buttonAriaLabel);
-
             let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
             if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
                 const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
                 buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
             }
-
             if (attrs.buttonIcon && attrs.buttonIconPosition === 'left') {
                 const iconSpan = document.createElement('span');
                 iconSpan.className = 'button-icon';
@@ -1040,7 +1088,6 @@ class CustomBlock extends HTMLElement {
             } else {
                 buttonElement.textContent = attrs.buttonText;
             }
-
             if (attrs.innerCustomClasses) {
                 const innerDiv = document.createElement('div');
                 const innerDivClassList = attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-'));
@@ -1050,16 +1097,13 @@ class CustomBlock extends HTMLElement {
             } else {
                 blockElement.appendChild(buttonElement);
             }
-
             if (!isFallback) {
                 CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
                 this.lastAttributes = newCriticalAttrsHash;
             }
             return blockElement;
         }
-
-        this.#log('Rendering content block', { elementId: this.id || 'no-id', hasContent: !!(attrs.heading || attrs.contentBlocks.length || attrs.buttonText) });
-
+        this.#log('Rendering content block', { elementId: this.id || 'no-id', hasContent: !!(attrs.heading || attrs.text || attrs.buttonText) });
         const innerPaddingClasses = attrs.innerCustomClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
         const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-') && !paddingClasses.includes(cls))];
         if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
@@ -1077,7 +1121,6 @@ class CustomBlock extends HTMLElement {
         const filteredInnerBackdropClasses = attrs.innerBackdropFilterClasses
             .filter(cls => !cls.startsWith('backdrop-filter'));
         innerDivClassList.push(...filteredInnerBackdropClasses);
-
         const innerDiv = document.createElement('div');
         if (innerDivClassList.length) innerDiv.className = innerDivClassList.join(' ').trim();
         if (attrs.innerStyle || innerBackdropFilterValues.length) {
@@ -1097,11 +1140,9 @@ class CustomBlock extends HTMLElement {
             innerDiv.classList.add(VALID_ALIGN_MAP[attrs.innerAlignment]);
         }
         innerDiv.setAttribute('aria-live', 'polite');
-
         const groupDiv = document.createElement('div');
         groupDiv.setAttribute('role', 'group');
         if (attrs.textAlignment) groupDiv.style.textAlign = attrs.textAlignment;
-
         if (attrs.icon) {
             const iconSpan = document.createElement('span');
             iconSpan.className = `icon${attrs.iconClass ? ` ${attrs.iconClass}` : ''}`;
@@ -1111,52 +1152,23 @@ class CustomBlock extends HTMLElement {
             iconSpan.innerHTML = attrs.icon;
             groupDiv.appendChild(iconSpan);
         }
-
         if (attrs.subHeading) {
             const subHeadingElement = document.createElement(attrs.subHeadingTag);
             subHeadingElement.textContent = attrs.subHeading;
             groupDiv.appendChild(subHeadingElement);
         }
-
         if (attrs.heading) {
             const headingElement = document.createElement(attrs.headingTag);
             headingElement.textContent = attrs.heading;
             groupDiv.appendChild(headingElement);
             this.#log('Heading appended', { text: attrs.heading });
         }
-
-        // === RENDER CONTENT BLOCKS IN ORDER ===
-        for (const block of attrs.contentBlocks) {
-            if (block.type === 'paragraph' && block.text) {
-                const textElement = document.createElement('p');
-                textElement.textContent = block.text;
-                groupDiv.appendChild(textElement);
-                this.#log('Text appended', { text: block.text });
-            } else if ((block.type === 'ul' || block.type === 'ol')) {
-                const listElement = document.createElement(block.type);
-                if (block.type === 'ol' && block.start && !isNaN(block.start)) {
-                    listElement.setAttribute('start', block.start);
-                }
-
-                if (block.hasSlotted) {
-                    this.querySelectorAll('li').forEach(li => {
-                        listElement.appendChild(li.cloneNode(true));
-                    });
-                } else if (block.listItems.length > 0) {
-                    block.listItems.forEach(text => {
-                        const li = document.createElement('li');
-                        li.textContent = text;
-                        listElement.appendChild(li);
-                    });
-                }
-
-                if (listElement.children.length > 0) {
-                    groupDiv.appendChild(listElement);
-                    this.#log('List appended', { type: block.type, items: listElement.children.length });
-                }
-            }
+        if (attrs.text) {
+            const textElement = document.createElement('p');
+            textElement.textContent = attrs.text;
+            groupDiv.appendChild(textElement);
+            this.#log('Text appended', { text: attrs.text });
         }
-
         if (attrs.buttonText) {
             const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
             buttonElement.className = `button ${attrs.buttonClass}`.trim();
@@ -1171,13 +1183,11 @@ class CustomBlock extends HTMLElement {
             if (attrs.buttonTarget) buttonElement.setAttribute(attrs.buttonType === 'button' ? 'formtarget' : 'target', attrs.buttonTarget);
             if (attrs.buttonRel) buttonElement.setAttribute('rel', attrs.buttonRel);
             if (attrs.buttonAriaLabel) buttonElement.setAttribute('aria-label', attrs.buttonAriaLabel);
-
             let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
             if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
                 const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
                 buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
             }
-
             if (attrs.buttonIcon && attrs.buttonIconPosition === 'left') {
                 const iconSpan = document.createElement('span');
                 iconSpan.className = 'button-icon';
@@ -1198,20 +1208,127 @@ class CustomBlock extends HTMLElement {
             groupDiv.appendChild(buttonElement);
             this.#log('Button appended', { text: attrs.buttonText, href: attrs.buttonHref });
         }
-
         innerDiv.appendChild(groupDiv);
-
         const appendMedia = async (position) => {
             if (!(hasPrimaryImage || hasVideoPrimary)) {
                 this.#log('No primary media to append', { elementId: this.id || 'no-id' });
                 blockElement.appendChild(innerDiv);
                 return;
             }
-            // ... [same as original appendMedia logic]
+            const mediaDiv = document.createElement('div');
+            const sources = [attrs.primarySrc, attrs.primaryLightSrc, attrs.primaryDarkSrc, attrs.videoPrimarySrc, attrs.videoPrimaryLightSrc, attrs.videoPrimaryDarkSrc].filter(Boolean);
+            this.#log('Primary media sources', { sources, elementId: this.id || 'no-id' });
+            const validations = await Promise.all(sources.map(src => this.validateSrc(src)));
+            if (sources.length && validations.every(v => v)) {
+                try {
+                    if (hasPrimaryImage) {
+                        const pictureMarkup = await generatePictureMarkup({
+                            src: attrs.primarySrc,
+                            lightSrc: attrs.primaryLightSrc,
+                            darkSrc: attrs.primaryDarkSrc,
+                            alt: attrs.primaryAlt,
+                            lightAlt: attrs.primaryLightAlt,
+                            darkAlt: attrs.primaryDarkAlt,
+                            isDecorative: attrs.primaryIsDecorative,
+                            customClasses: mediaClasses,
+                            extraClasses: borderRadiusClasses ? [borderRadiusClasses] : [],
+                            loading: attrs.primaryLoading,
+                            fetchPriority: attrs.primaryFetchPriority,
+                            mobileWidth: attrs.primaryMobileWidth,
+                            tabletWidth: attrs.primaryTabletWidth,
+                            desktopWidth: attrs.primaryDesktopWidth,
+                            noResponsive: attrs.primarySrc?.endsWith('.svg') || attrs.primaryLightSrc?.endsWith('.svg') || attrs.primaryDarkSrc?.endsWith('.svg'),
+                            aspectRatio: attrs.primaryAspectRatio,
+                            includeSchema: attrs.primaryIncludeSchema
+                        });
+                        this.#log('Primary picture markup generated', { markup: pictureMarkup.substring(0, 100) });
+                        mediaDiv.innerHTML = pictureMarkup;
+                        const pictureElement = mediaDiv.querySelector('picture');
+                        if (pictureElement) {
+                            if (position === 'left' || position === 'right') {
+                                if (position === 'left') blockElement.appendChild(pictureElement);
+                                blockElement.appendChild(innerDiv);
+                                if (position === 'right') blockElement.appendChild(pictureElement);
+                            } else {
+                                blockElement.appendChild(position === 'top' ? pictureElement : innerDiv);
+                                blockElement.appendChild(position === 'top' ? innerDiv : pictureElement);
+                            }
+                            this.#log(`Primary image (${position}) appended successfully`);
+                        } else {
+                            this.#warn('Failed to parse primary picture markup', { markup: pictureMarkup.substring(0, 200) });
+                            const fallbackImg = document.createElement('img');
+                            fallbackImg.src = 'https://placehold.co/3000x2000';
+                            fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                            fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
+                            if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
+                            fallbackImg.style.width = '100%';
+                            blockElement.appendChild(fallbackImg);
+                            this.#log('Fallback primary image appended', { src: fallbackImg.src });
+                        }
+                    } else if (hasVideoPrimary) {
+                        const videoMarkup = await generateVideoMarkup({
+                            src: attrs.videoPrimarySrc,
+                            lightSrc: attrs.videoPrimaryLightSrc,
+                            darkSrc: attrs.videoPrimaryDarkSrc,
+                            poster: attrs.videoPrimaryPoster,
+                            lightPoster: attrs.videoPrimaryLightPoster,
+                            darkPoster: attrs.videoPrimaryDarkPoster,
+                            alt: attrs.videoPrimaryAlt,
+                            customClasses: mediaClasses,
+                            extraClasses: borderRadiusClasses ? [borderRadiusClasses] : [],
+                            loading: attrs.videoPrimaryLoading,
+                            autoplay: attrs.videoPrimaryAutoplay,
+                            muted: attrs.videoPrimaryMuted,
+                            loop: attrs.videoPrimaryLoop,
+                            playsinline: attrs.videoPrimaryPlaysinline,
+                            disablePip: attrs.videoPrimaryDisablePip,
+                            preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                            controls: false
+                        });
+                        this.#log('Primary video markup generated', { markup: videoMarkup.substring(0, 100) });
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = videoMarkup;
+                        const videoElement = tempDiv.querySelector('video');
+                        if (videoElement) {
+                            if (position === 'left' || position === 'right') {
+                                if (position === 'left') blockElement.appendChild(videoElement);
+                                blockElement.appendChild(innerDiv);
+                                if (position === 'right') blockElement.appendChild(videoElement);
+                            } else {
+                                blockElement.appendChild(position === 'top' ? videoElement : innerDiv);
+                                blockElement.appendChild(position === 'top' ? innerDiv : videoElement);
+                            }
+                            this.#log(`Primary video (${position}) appended successfully`);
+                        } else {
+                            this.#warn('Failed to parse primary video markup', { markup: videoMarkup.substring(0, 200) });
+                            blockElement.appendChild(innerDiv);
+                        }
+                    }
+                } catch (error) {
+                    this.#error(`Error generating ${hasPrimaryImage ? 'picture' : 'video'} markup (${position})`, { error: error.message, sources });
+                    const fallbackImg = document.createElement('img');
+                    fallbackImg.src = 'https://placehold.co/3000x2000';
+                    fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                    fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
+                    if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
+                    fallbackImg.style.width = '100%';
+                    blockElement.appendChild(fallbackImg);
+                    this.#log('Fallback primary image appended', { src: fallbackImg.src });
+                }
+            } else {
+                this.#warn('Invalid primary sources', { invalidSources: sources.filter((_, i) => !validations[i]) });
+                blockElement.appendChild(innerDiv);
+                const fallbackImg = document.createElement('img');
+                fallbackImg.src = 'https://placehold.co/3000x2000';
+                fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
+                if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
+                fallbackImg.style.width = '100%';
+                blockElement.appendChild(fallbackImg);
+                this.#log('Fallback primary image appended', { src: fallbackImg.src });
+            }
         };
-
         await appendMedia(attrs.primaryPosition);
-
         if (!isFallback && blockElement.querySelector('img')) {
             const images = blockElement.querySelectorAll('img');
             images.forEach(img => {
@@ -1240,17 +1357,14 @@ class CustomBlock extends HTMLElement {
                 img.removeAttribute('img-primary-position');
             });
         }
-
         if (!isFallback && !blockElement.hasChildNodes()) {
             this.#error('Block has no valid content, falling back', { outerHTML: this.outerHTML });
             return await this.render(true);
         }
-
         if (!isFallback) {
             CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
             this.lastAttributes = newCriticalAttrsHash;
         }
-
         this.#log('Render completed', { elementId: this.id || 'no-id', html: blockElement.outerHTML.substring(0, 200) });
         return blockElement;
     }
@@ -1273,7 +1387,34 @@ class CustomBlock extends HTMLElement {
     }
 
     static get observedAttributes() {
-        return CustomBlock.#criticalAttributes;
+        return [
+            'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
+            'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
+            'button-href', 'button-icon', 'button-icon-offset', 'button-icon-position', 'button-icon-size',
+            'button-rel', 'button-style', 'button-target', 'button-text', 'button-type', 'class', 'effects',
+            'heading', 'heading-tag', 'icon', 'icon-class', 'icon-size', 'icon-style',
+            'img-background-alt', 'img-background-aspect-ratio', 'img-background-dark-src',
+            'img-background-decorative', 'img-background-desktop-width', 'img-background-fetchpriority',
+            'img-background-light-src', 'img-background-loading', 'img-background-mobile-width',
+            'img-background-position', 'img-background-src', 'img-background-tablet-width',
+            'img-primary-alt', 'img-primary-aspect-ratio', 'img-primary-dark-src', 'img-primary-decorative',
+            'img-primary-desktop-width', 'img-primary-fetchpriority', 'img-primary-light-src',
+            'img-primary-loading', 'img-primary-mobile-width', 'img-primary-position', 'img-primary-src',
+            'img-primary-tablet-width', 'inner-alignment', 'inner-backdrop-filter',
+            'inner-background-color', 'inner-background-gradient', 'inner-background-image-noise',
+            'inner-background-overlay', 'inner-border', 'inner-border-radius', 'inner-class',
+            'inner-shadow', 'inner-style', 'section-title', 'shadow', 'style', 'sub-heading',
+            'sub-heading-tag', 'text', 'text-alignment', 'video-background-alt',
+            'video-background-autoplay', 'video-background-dark-poster', 'video-background-dark-src',
+            'video-background-disable-pip', 'video-background-light-poster', 'video-background-light-src',
+            'video-background-loading', 'video-background-loop', 'video-background-muted',
+            'video-background-playsinline', 'video-background-poster', 'video-background-src',
+            'video-primary-alt', 'video-primary-autoplay', 'video-primary-dark-poster',
+            'video-primary-dark-src', 'video-primary-disable-pip', 'video-primary-light-poster',
+            'video-primary-light-src', 'video-primary-loading', 'video-primary-loop',
+            'video-primary-muted', 'video-primary-playsinline', 'video-primary-poster',
+            'video-primary-src'
+        ];
     }
 }
 
@@ -1283,5 +1424,5 @@ try {
     console.error('Error defining CustomBlock element:', error);
 }
 
-console.log('CustomBlock version: 2025-11-14 — Multi-content-type support added');
+console.log('CustomBlock version: 2025-09-27');
 export { CustomBlock };
