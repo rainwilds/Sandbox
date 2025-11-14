@@ -467,25 +467,44 @@ class CustomBlock extends HTMLElement {
             }
         }
         /* -------------------------------------------------
-           MULTIPLE CONTENT-TYPE SUPPORT (CORRECT: per-block data)
-           ------------------------------------------------- */
+                   2. MULTIPLE CONTENT-TYPE SUPPORT – WITH DEBUG
+                   ------------------------------------------------- */
         const contentBlocks = [];
 
-        // Get all content-type attributes
-        const contentTypeAttrs = Array.from(this.attributes).filter(a => a.name.startsWith('content-type'));
+        // ---- DEBUG: dump every attribute we see -----------------
+        this.#log('All raw attributes', {
+            list: Array.from(this.attributes).map(a => `${a.name}="${a.value}"`)
+        });
 
-        for (const attr of contentTypeAttrs) {
+        const contentTypeAttrs = Array.from(this.attributes).filter(a =>
+            a.name.startsWith('content-type')
+        );
+
+        this.#log('Found content-type attributes', {
+            count: contentTypeAttrs.length,
+            names: contentTypeAttrs.map(a => a.name)
+        });
+
+        for (let i = 0; i < contentTypeAttrs.length; i++) {
+            const attr = contentTypeAttrs[i];
             const type = (attr.value || '').trim().toLowerCase();
-            if (!type) continue;
+
+            if (!type) {
+                this.#log('Skipping empty content-type', { index: i, attr });
+                continue;
+            }
+
+            this.#log(`Processing block #${i + 1}`, { type, rawValue: attr.value });
 
             let data = '';
             let extra = {};
 
-            // Find data attribute that matches this block
+            // ---- Find the *matching* data attribute ----------------
             const dataAttrName = type === 'ul' || type === 'ol' ? 'list-items' : type;
+
+            // Look **after** the current content-type attribute in DOM order
             const dataAttr = Array.from(this.attributes).find(a =>
                 a.name === dataAttrName &&
-                // Ensure it's the one *after* this content-type in DOM order
                 Array.from(this.attributes).indexOf(a) > Array.from(this.attributes).indexOf(attr)
             );
 
@@ -495,19 +514,27 @@ class CustomBlock extends HTMLElement {
                 } else {
                     data = dataAttr.value;
                 }
+                this.#log(`Found data for ${type}`, { dataAttrName, data });
+            } else {
+                this.#warn(`No data attribute found for ${type}`, { dataAttrName });
             }
 
-            // Extra attributes: start="2", etc.
+            // ---- Extra attributes (start="2", quote-author, …) -----
             const typePrefix = `${type}-`;
             for (const a of this.attributes) {
                 if (a.name.startsWith(typePrefix) && a.name !== 'content-type') {
                     const key = a.name.slice(typePrefix.length);
                     extra[key] = a.value;
+                    this.#log(`Extra attr for ${type}`, { key, value: a.value });
                 }
             }
 
-            contentBlocks.push({ type, data, extra });
+            const block = { type, data, extra };
+            contentBlocks.push(block);
+            this.#log('Block built', block);
         }
+
+        this.#log('Final contentBlocks array', { length: contentBlocks.length, blocks: contentBlocks });
         this.cachedAttributes = {
             effects: sanitizedEffects,
             sectionTitle: this.hasAttribute('heading') && !this.hasAttribute('button-text'),
