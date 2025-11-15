@@ -24,10 +24,7 @@ class CustomBlock extends HTMLElement {
     static #renderCacheMap = new WeakMap();
 
     static #criticalAttributes = [
-        'list-items',
-        'ol-start',
-        'ul-type',
-        'content-type', 'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
+        'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
         'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
         'button-href', 'button-icon', 'button-icon-offset', 'button-icon-position', 'button-icon-size',
         'button-rel', 'button-style', 'button-target', 'button-text', 'button-type', 'class', 'effects',
@@ -38,7 +35,7 @@ class CustomBlock extends HTMLElement {
         'inner-background-color', 'inner-background-gradient', 'inner-background-image-noise',
         'inner-background-overlay', 'inner-border', 'inner-border-radius', 'inner-class',
         'inner-shadow', 'inner-style', 'section-title', 'style', 'sub-heading', 'sub-heading-tag',
-        'text-alignment', 'video-background-alt', 'video-background-autoplay',
+        'text', 'text-alignment', 'video-background-alt', 'video-background-autoplay',
         'video-background-dark-poster', 'video-background-dark-src', 'video-background-disable-pip',
         'video-background-light-poster', 'video-background-light-src', 'video-background-loading',
         'video-background-loop', 'video-background-muted', 'video-background-playsinline',
@@ -469,61 +466,7 @@ class CustomBlock extends HTMLElement {
                 });
             }
         }
-        /* -------------------------------------------------
-        2. MULTIPLE CONTENT-TYPE SUPPORT – ONLY content-type
-        ------------------------------------------------- */
-        const contentBlocks = [];
-
-        // ---- 1. All `content-type*` attributes (in DOM order) ----
-        const contentTypeAttrs = Array.from(this.attributes).filter(a =>
-            a.name.startsWith('content-type')
-        );
-
-        this.#log('Found content-type attributes', {
-            count: contentTypeAttrs.length,
-            names: contentTypeAttrs.map(a => a.name)
-        });
-
-        for (let i = 0; i < contentTypeAttrs.length; i++) {
-            const attr = contentTypeAttrs[i];
-            const type = (attr.value || '').trim().toLowerCase();
-            if (!type) continue;
-
-            // ----- data attribute (list-items for ul/ol, otherwise same name) -----
-            const dataAttrName = (type === 'ul' || type === 'ol') ? 'list-items' : type;
-            const dataAttr = Array.from(this.attributes).find(a =>
-                a.name === dataAttrName &&
-                Array.from(this.attributes).indexOf(a) > Array.from(this.attributes).indexOf(attr)
-            );
-
-            let data = '';
-            if (dataAttr) {
-                if (type === 'ul' || type === 'ol') {
-                    data = dataAttr.value.split(',').map(s => s.trim()).filter(Boolean);
-                } else {
-                    data = dataAttr.value;
-                }
-            } else {
-                this.#warn(`No data attribute for ${type}`, { dataAttrName });
-            }
-
-            // ----- extra attributes (ol-start, ul-type, quote-author, …) -----
-            const extra = {};
-            const typePrefix = `${type}-`;
-            for (const a of this.attributes) {
-                if (a.name.startsWith(typePrefix) && a.name !== 'content-type') {
-                    const key = a.name.slice(typePrefix.length);
-                    extra[key] = a.value;
-                }
-            }
-
-            contentBlocks.push({ type, data, extra });
-            this.#log('Content block built', { type, data, extra });
-        }
-
-        this.#log('Final contentBlocks array', { length: contentBlocks.length, blocks: contentBlocks });
         this.cachedAttributes = {
-
             effects: sanitizedEffects,
             sectionTitle: this.hasAttribute('heading') && !this.hasAttribute('button-text'),
             heading: this.getAttribute('heading') || '',
@@ -534,7 +477,7 @@ class CustomBlock extends HTMLElement {
             iconStyle: sanitizedIconStyle,
             iconClass: sanitizedIconClass,
             iconSize: sanitizedIconSize,
-
+            text: this.getAttribute('text') || '',
             buttonHref: this.getAttribute('button-href') || '#',
             buttonText: this.hasAttribute('button-text') ? (this.getAttribute('button-text') || 'Default') : '',
             buttonClass: sanitizedButtonClass,
@@ -552,7 +495,6 @@ class CustomBlock extends HTMLElement {
             innerBackgroundOverlayClass,
             backgroundGradientClass,
             innerBackgroundGradientClass,
-            contentBlocks,
             backgroundImageNoise: this.hasAttribute('background-image-noise'),
             backdropFilterClasses,
             backgroundColorClass: this.getAttribute('background-color') || '',
@@ -735,7 +677,6 @@ class CustomBlock extends HTMLElement {
             buttonIconPosition: '',
             buttonIconOffset: '',
             buttonIconSize: '',
-            contentBlocks: [],
             hasBackgroundOverlay: false,
             backgroundOverlayClass: '',
             innerBackgroundOverlayClass: '',
@@ -817,6 +758,7 @@ class CustomBlock extends HTMLElement {
             isFallback,
             attrs: {
                 heading: attrs.heading,
+                text: attrs.text,
                 imgPrimarySrc: attrs.primarySrc,
                 buttonText: attrs.buttonText,
                 buttonHref: attrs.buttonHref
@@ -854,14 +796,14 @@ class CustomBlock extends HTMLElement {
             !attrs.heading &&
             !attrs.subHeading &&
             !attrs.icon &&
-
+            !attrs.text &&
             !attrs.buttonText &&
             (hasBackgroundImage || hasVideoBackground || hasVideoPrimary);
         const isButtonOnly = !isFallback &&
             !attrs.heading &&
             !attrs.subHeading &&
             !attrs.icon &&
-
+            !attrs.text &&
             !hasBackgroundImage &&
             !hasVideoBackground &&
             !hasPrimaryImage &&
@@ -871,7 +813,7 @@ class CustomBlock extends HTMLElement {
             elementId: this.id || 'no-id',
             isMediaOnly,
             isButtonOnly,
-            hasContent: !!(attrs.heading || attrs.subHeading || attrs.buttonText || attrs.icon)
+            hasContent: !!(attrs.heading || attrs.subHeading || attrs.text || attrs.buttonText || attrs.icon)
         });
         const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
         const borderClasses = ['border-small', 'border-medium', 'border-large', 'border-radius-small', 'border-radius-medium', 'border-radius-large'];
@@ -1161,7 +1103,7 @@ class CustomBlock extends HTMLElement {
             }
             return blockElement;
         }
-        this.#log('Rendering content block', { elementId: this.id || 'no-id', hasContent: !!(attrs.heading || attrs.buttonText) });
+        this.#log('Rendering content block', { elementId: this.id || 'no-id', hasContent: !!(attrs.heading || attrs.text || attrs.buttonText) });
         const innerPaddingClasses = attrs.innerCustomClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
         const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-') && !paddingClasses.includes(cls))];
         if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
@@ -1182,28 +1124,30 @@ class CustomBlock extends HTMLElement {
         const innerDiv = document.createElement('div');
         if (innerDivClassList.length) innerDiv.className = innerDivClassList.join(' ').trim();
         if (attrs.innerStyle || innerBackdropFilterValues.length) {
-            let styleContent = attrs.innerStyle?.trim() || '';
-            if (innerBackdropFilterValues.length) {
-                styleContent += (styleContent ? '; ' : '') + `backdrop-filter: ${innerBackdropFilterValues.join(' ')}`;
+            let styleContent = '';
+            if (attrs.innerStyle && attrs.innerStyle.trim()) {
+                styleContent += attrs.innerStyle.trim();
             }
-            if (styleContent) innerDiv.setAttribute('style', styleContent);
+            if (innerBackdropFilterValues.length) {
+                if (styleContent) styleContent += '; ';
+                styleContent += `backdrop-filter: ${innerBackdropFilterValues.join(' ')}`;
+            }
+            if (styleContent.trim()) {
+                innerDiv.setAttribute('style', styleContent.trim());
+            }
         }
         if (attrs.innerAlignment) {
             innerDiv.classList.add(VALID_ALIGN_MAP[attrs.innerAlignment]);
         }
         innerDiv.setAttribute('aria-live', 'polite');
-
-        // CREATE groupDiv EARLY
         const groupDiv = document.createElement('div');
         groupDiv.setAttribute('role', 'group');
         if (attrs.textAlignment) groupDiv.style.textAlign = attrs.textAlignment;
-
-        // Append icon, subheading, heading
         if (attrs.icon) {
             const iconSpan = document.createElement('span');
             iconSpan.className = `icon${attrs.iconClass ? ` ${attrs.iconClass}` : ''}`;
             let iconStyles = attrs.iconStyle || '';
-            if (attrs.iconSize) iconStyles += (iconStyles ? '; ' : '') + `font-size: ${attrs.iconSize}`;
+            if (attrs.iconSize) iconStyles = iconStyles ? `${iconStyles}; font-size: ${attrs.iconSize}` : `font-size: ${attrs.iconSize}`;
             if (iconStyles) iconSpan.setAttribute('style', iconStyles);
             iconSpan.innerHTML = attrs.icon;
             groupDiv.appendChild(iconSpan);
@@ -1219,42 +1163,12 @@ class CustomBlock extends HTMLElement {
             groupDiv.appendChild(headingElement);
             this.#log('Heading appended', { text: attrs.heading });
         }
-
-        // RENDER ALL CONTENT BLOCKS (ul, ol, p)
-        if (attrs.contentBlocks && attrs.contentBlocks.length) {
-            for (const block of attrs.contentBlocks) {
-                let el;
-                switch (block.type) {
-                    case 'paragraph':
-                        el = document.createElement('p');
-                        el.textContent = block.data;
-                        break;
-                    case 'ul':
-                    case 'ol':
-                        el = document.createElement(block.type);
-                        (block.data || []).forEach(item => {
-                            const li = document.createElement('li');
-                            li.textContent = item;
-                            el.appendChild(li);
-                        });
-                        Object.entries(block.extra || {}).forEach(([k, v]) => {
-                            if (k === 'ol-start') el.setAttribute('start', v);
-                            else if (k === 'ul-type') el.setAttribute('type', v);
-                            else el.setAttribute(k, v);
-                        });
-                        break;
-                    default:
-                        el = document.createElement('div');
-                        el.textContent = block.data;
-                        el.className = `content-${block.type}`;
-                        break;
-                }
-                groupDiv.appendChild(el);
-                this.#log('Content block appended', { type: block.type, data: block.data });
-            }
+        if (attrs.text) {
+            const textElement = document.createElement('p');
+            textElement.textContent = attrs.text;
+            groupDiv.appendChild(textElement);
+            this.#log('Text appended', { text: attrs.text });
         }
-
-        // Append button
         if (attrs.buttonText) {
             const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
             buttonElement.className = `button ${attrs.buttonClass}`.trim();
@@ -1269,13 +1183,11 @@ class CustomBlock extends HTMLElement {
             if (attrs.buttonTarget) buttonElement.setAttribute(attrs.buttonType === 'button' ? 'formtarget' : 'target', attrs.buttonTarget);
             if (attrs.buttonRel) buttonElement.setAttribute('rel', attrs.buttonRel);
             if (attrs.buttonAriaLabel) buttonElement.setAttribute('aria-label', attrs.buttonAriaLabel);
-
             let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
             if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
                 const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
-                buttonIconStyle += (buttonIconStyle ? '; ' : '') + `${marginProperty}: ${attrs.buttonIconOffset}`;
+                buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
             }
-
             if (attrs.buttonIcon && attrs.buttonIconPosition === 'left') {
                 const iconSpan = document.createElement('span');
                 iconSpan.className = 'button-icon';
@@ -1296,20 +1208,126 @@ class CustomBlock extends HTMLElement {
             groupDiv.appendChild(buttonElement);
             this.#log('Button appended', { text: attrs.buttonText, href: attrs.buttonHref });
         }
-
-        // NOW append groupDiv to innerDiv
         innerDiv.appendChild(groupDiv);
-
-        // THEN call appendMedia
         const appendMedia = async (position) => {
             if (!(hasPrimaryImage || hasVideoPrimary)) {
-                this.#log('No primary media to append');
+                this.#log('No primary media to append', { elementId: this.id || 'no-id' });
                 blockElement.appendChild(innerDiv);
                 return;
             }
-            // ... rest of appendMedia
+            const mediaDiv = document.createElement('div');
+            const sources = [attrs.primarySrc, attrs.primaryLightSrc, attrs.primaryDarkSrc, attrs.videoPrimarySrc, attrs.videoPrimaryLightSrc, attrs.videoPrimaryDarkSrc].filter(Boolean);
+            this.#log('Primary media sources', { sources, elementId: this.id || 'no-id' });
+            const validations = await Promise.all(sources.map(src => this.validateSrc(src)));
+            if (sources.length && validations.every(v => v)) {
+                try {
+                    if (hasPrimaryImage) {
+                        const pictureMarkup = await generatePictureMarkup({
+                            src: attrs.primarySrc,
+                            lightSrc: attrs.primaryLightSrc,
+                            darkSrc: attrs.primaryDarkSrc,
+                            alt: attrs.primaryAlt,
+                            lightAlt: attrs.primaryLightAlt,
+                            darkAlt: attrs.primaryDarkAlt,
+                            isDecorative: attrs.primaryIsDecorative,
+                            customClasses: mediaClasses,
+                            extraClasses: borderRadiusClasses ? [borderRadiusClasses] : [],
+                            loading: attrs.primaryLoading,
+                            fetchPriority: attrs.primaryFetchPriority,
+                            mobileWidth: attrs.primaryMobileWidth,
+                            tabletWidth: attrs.primaryTabletWidth,
+                            desktopWidth: attrs.primaryDesktopWidth,
+                            noResponsive: attrs.primarySrc?.endsWith('.svg') || attrs.primaryLightSrc?.endsWith('.svg') || attrs.primaryDarkSrc?.endsWith('.svg'),
+                            aspectRatio: attrs.primaryAspectRatio,
+                            includeSchema: attrs.primaryIncludeSchema
+                        });
+                        this.#log('Primary picture markup generated', { markup: pictureMarkup.substring(0, 100) });
+                        mediaDiv.innerHTML = pictureMarkup;
+                        const pictureElement = mediaDiv.querySelector('picture');
+                        if (pictureElement) {
+                            if (position === 'left' || position === 'right') {
+                                if (position === 'left') blockElement.appendChild(pictureElement);
+                                blockElement.appendChild(innerDiv);
+                                if (position === 'right') blockElement.appendChild(pictureElement);
+                            } else {
+                                blockElement.appendChild(position === 'top' ? pictureElement : innerDiv);
+                                blockElement.appendChild(position === 'top' ? innerDiv : pictureElement);
+                            }
+                            this.#log(`Primary image (${position}) appended successfully`);
+                        } else {
+                            this.#warn('Failed to parse primary picture markup', { markup: pictureMarkup.substring(0, 200) });
+                            const fallbackImg = document.createElement('img');
+                            fallbackImg.src = 'https://placehold.co/3000x2000';
+                            fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                            fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
+                            if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
+                            fallbackImg.style.width = '100%';
+                            blockElement.appendChild(fallbackImg);
+                            this.#log('Fallback primary image appended', { src: fallbackImg.src });
+                        }
+                    } else if (hasVideoPrimary) {
+                        const videoMarkup = await generateVideoMarkup({
+                            src: attrs.videoPrimarySrc,
+                            lightSrc: attrs.videoPrimaryLightSrc,
+                            darkSrc: attrs.videoPrimaryDarkSrc,
+                            poster: attrs.videoPrimaryPoster,
+                            lightPoster: attrs.videoPrimaryLightPoster,
+                            darkPoster: attrs.videoPrimaryDarkPoster,
+                            alt: attrs.videoPrimaryAlt,
+                            customClasses: mediaClasses,
+                            extraClasses: borderRadiusClasses ? [borderRadiusClasses] : [],
+                            loading: attrs.videoPrimaryLoading,
+                            autoplay: attrs.videoPrimaryAutoplay,
+                            muted: attrs.videoPrimaryMuted,
+                            loop: attrs.videoPrimaryLoop,
+                            playsinline: attrs.videoPrimaryPlaysinline,
+                            disablePip: attrs.videoPrimaryDisablePip,
+                            preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
+                            controls: false
+                        });
+                        this.#log('Primary video markup generated', { markup: videoMarkup.substring(0, 100) });
+                        const tempDiv = document.createElement('div');
+                        tempDiv.innerHTML = videoMarkup;
+                        const videoElement = tempDiv.querySelector('video');
+                        if (videoElement) {
+                            if (position === 'left' || position === 'right') {
+                                if (position === 'left') blockElement.appendChild(videoElement);
+                                blockElement.appendChild(innerDiv);
+                                if (position === 'right') blockElement.appendChild(videoElement);
+                            } else {
+                                blockElement.appendChild(position === 'top' ? videoElement : innerDiv);
+                                blockElement.appendChild(position === 'top' ? innerDiv : videoElement);
+                            }
+                            this.#log(`Primary video (${position}) appended successfully`);
+                        } else {
+                            this.#warn('Failed to parse primary video markup', { markup: videoMarkup.substring(0, 200) });
+                            blockElement.appendChild(innerDiv);
+                        }
+                    }
+                } catch (error) {
+                    this.#error(`Error generating ${hasPrimaryImage ? 'picture' : 'video'} markup (${position})`, { error: error.message, sources });
+                    const fallbackImg = document.createElement('img');
+                    fallbackImg.src = 'https://placehold.co/3000x2000';
+                    fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                    fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
+                    if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
+                    fallbackImg.style.width = '100%';
+                    blockElement.appendChild(fallbackImg);
+                    this.#log('Fallback primary image appended', { src: fallbackImg.src });
+                }
+            } else {
+                this.#warn('Invalid primary sources', { invalidSources: sources.filter((_, i) => !validations[i]) });
+                blockElement.appendChild(innerDiv);
+                const fallbackImg = document.createElement('img');
+                fallbackImg.src = 'https://placehold.co/3000x2000';
+                fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
+                fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
+                if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
+                fallbackImg.style.width = '100%';
+                blockElement.appendChild(fallbackImg);
+                this.#log('Fallback primary image appended', { src: fallbackImg.src });
+            }
         };
-
         await appendMedia(attrs.primaryPosition);
         if (!isFallback && blockElement.querySelector('img')) {
             const images = blockElement.querySelectorAll('img');
@@ -1370,10 +1388,7 @@ class CustomBlock extends HTMLElement {
 
     static get observedAttributes() {
         return [
-            'list-items',
-            'ol-start',
-            'ul-type',
-            'content-type', 'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
+            'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
             'background-overlay', 'border', 'border-radius', 'button-aria-label', 'button-class',
             'button-href', 'button-icon', 'button-icon-offset', 'button-icon-position', 'button-icon-size',
             'button-rel', 'button-style', 'button-target', 'button-text', 'button-type', 'class', 'effects',
@@ -1389,7 +1404,7 @@ class CustomBlock extends HTMLElement {
             'inner-background-color', 'inner-background-gradient', 'inner-background-image-noise',
             'inner-background-overlay', 'inner-border', 'inner-border-radius', 'inner-class',
             'inner-shadow', 'inner-style', 'section-title', 'shadow', 'style', 'sub-heading',
-            'sub-heading-tag', 'text-alignment', 'video-background-alt',
+            'sub-heading-tag', 'text', 'text-alignment', 'video-background-alt',
             'video-background-autoplay', 'video-background-dark-poster', 'video-background-dark-src',
             'video-background-disable-pip', 'video-background-light-poster', 'video-background-light-src',
             'video-background-loading', 'video-background-loop', 'video-background-muted',
