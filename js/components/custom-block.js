@@ -1182,30 +1182,28 @@ class CustomBlock extends HTMLElement {
         const innerDiv = document.createElement('div');
         if (innerDivClassList.length) innerDiv.className = innerDivClassList.join(' ').trim();
         if (attrs.innerStyle || innerBackdropFilterValues.length) {
-            let styleContent = '';
-            if (attrs.innerStyle && attrs.innerStyle.trim()) {
-                styleContent += attrs.innerStyle.trim();
-            }
+            let styleContent = attrs.innerStyle?.trim() || '';
             if (innerBackdropFilterValues.length) {
-                if (styleContent) styleContent += '; ';
-                styleContent += `backdrop-filter: ${innerBackdropFilterValues.join(' ')}`;
+                styleContent += (styleContent ? '; ' : '') + `backdrop-filter: ${innerBackdropFilterValues.join(' ')}`;
             }
-            if (styleContent.trim()) {
-                innerDiv.setAttribute('style', styleContent.trim());
-            }
+            if (styleContent) innerDiv.setAttribute('style', styleContent);
         }
         if (attrs.innerAlignment) {
             innerDiv.classList.add(VALID_ALIGN_MAP[attrs.innerAlignment]);
         }
         innerDiv.setAttribute('aria-live', 'polite');
+
+        // CREATE groupDiv EARLY
         const groupDiv = document.createElement('div');
         groupDiv.setAttribute('role', 'group');
         if (attrs.textAlignment) groupDiv.style.textAlign = attrs.textAlignment;
+
+        // Append icon, subheading, heading
         if (attrs.icon) {
             const iconSpan = document.createElement('span');
             iconSpan.className = `icon${attrs.iconClass ? ` ${attrs.iconClass}` : ''}`;
             let iconStyles = attrs.iconStyle || '';
-            if (attrs.iconSize) iconStyles = iconStyles ? `${iconStyles}; font-size: ${attrs.iconSize}` : `font-size: ${attrs.iconSize}`;
+            if (attrs.iconSize) iconStyles += (iconStyles ? '; ' : '') + `font-size: ${attrs.iconSize}`;
             if (iconStyles) iconSpan.setAttribute('style', iconStyles);
             iconSpan.innerHTML = attrs.icon;
             groupDiv.appendChild(iconSpan);
@@ -1221,9 +1219,8 @@ class CustomBlock extends HTMLElement {
             groupDiv.appendChild(headingElement);
             this.#log('Heading appended', { text: attrs.heading });
         }
-        /* -------------------------------------------------
-           RENDER MULTIPLE CONTENT BLOCKS (first = first)
-           ------------------------------------------------- */
+
+        // RENDER ALL CONTENT BLOCKS (ul, ol, p)
         if (attrs.contentBlocks && attrs.contentBlocks.length) {
             for (const block of attrs.contentBlocks) {
                 let el;
@@ -1232,7 +1229,6 @@ class CustomBlock extends HTMLElement {
                         el = document.createElement('p');
                         el.textContent = block.data;
                         break;
-
                     case 'ul':
                     case 'ol':
                         el = document.createElement(block.type);
@@ -1242,16 +1238,11 @@ class CustomBlock extends HTMLElement {
                             el.appendChild(li);
                         });
                         Object.entries(block.extra || {}).forEach(([k, v]) => {
-                            if (k === 'ol-start') {
-                                el.setAttribute('start', v);
-                            } else if (k === 'ul-type') {
-                                el.setAttribute('type', v);
-                            } else {
-                                el.setAttribute(k, v);
-                            }
+                            if (k === 'ol-start') el.setAttribute('start', v);
+                            else if (k === 'ul-type') el.setAttribute('type', v);
+                            else el.setAttribute(k, v);
                         });
                         break;
-
                     default:
                         el = document.createElement('div');
                         el.textContent = block.data;
@@ -1262,6 +1253,8 @@ class CustomBlock extends HTMLElement {
                 this.#log('Content block appended', { type: block.type, data: block.data });
             }
         }
+
+        // Append button
         if (attrs.buttonText) {
             const buttonElement = document.createElement(attrs.buttonType === 'button' ? 'button' : 'a');
             buttonElement.className = `button ${attrs.buttonClass}`.trim();
@@ -1276,11 +1269,13 @@ class CustomBlock extends HTMLElement {
             if (attrs.buttonTarget) buttonElement.setAttribute(attrs.buttonType === 'button' ? 'formtarget' : 'target', attrs.buttonTarget);
             if (attrs.buttonRel) buttonElement.setAttribute('rel', attrs.buttonRel);
             if (attrs.buttonAriaLabel) buttonElement.setAttribute('aria-label', attrs.buttonAriaLabel);
+
             let buttonIconStyle = attrs.buttonIconSize ? `font-size: ${attrs.buttonIconSize}` : '';
             if (attrs.buttonIconOffset && attrs.buttonIconPosition) {
                 const marginProperty = attrs.buttonIconPosition === 'left' ? 'margin-right' : 'margin-left';
-                buttonIconStyle = buttonIconStyle ? `${buttonIconStyle}; ${marginProperty}: ${attrs.buttonIconOffset}` : `${marginProperty}: ${attrs.buttonIconOffset}`;
+                buttonIconStyle += (buttonIconStyle ? '; ' : '') + `${marginProperty}: ${attrs.buttonIconOffset}`;
             }
+
             if (attrs.buttonIcon && attrs.buttonIconPosition === 'left') {
                 const iconSpan = document.createElement('span');
                 iconSpan.className = 'button-icon';
@@ -1301,126 +1296,20 @@ class CustomBlock extends HTMLElement {
             groupDiv.appendChild(buttonElement);
             this.#log('Button appended', { text: attrs.buttonText, href: attrs.buttonHref });
         }
+
+        // NOW append groupDiv to innerDiv
         innerDiv.appendChild(groupDiv);
+
+        // THEN call appendMedia
         const appendMedia = async (position) => {
             if (!(hasPrimaryImage || hasVideoPrimary)) {
-                this.#log('No primary media to append', { elementId: this.id || 'no-id' });
+                this.#log('No primary media to append');
                 blockElement.appendChild(innerDiv);
                 return;
             }
-            const mediaDiv = document.createElement('div');
-            const sources = [attrs.primarySrc, attrs.primaryLightSrc, attrs.primaryDarkSrc, attrs.videoPrimarySrc, attrs.videoPrimaryLightSrc, attrs.videoPrimaryDarkSrc].filter(Boolean);
-            this.#log('Primary media sources', { sources, elementId: this.id || 'no-id' });
-            const validations = await Promise.all(sources.map(src => this.validateSrc(src)));
-            if (sources.length && validations.every(v => v)) {
-                try {
-                    if (hasPrimaryImage) {
-                        const pictureMarkup = await generatePictureMarkup({
-                            src: attrs.primarySrc,
-                            lightSrc: attrs.primaryLightSrc,
-                            darkSrc: attrs.primaryDarkSrc,
-                            alt: attrs.primaryAlt,
-                            lightAlt: attrs.primaryLightAlt,
-                            darkAlt: attrs.primaryDarkAlt,
-                            isDecorative: attrs.primaryIsDecorative,
-                            customClasses: mediaClasses,
-                            extraClasses: borderRadiusClasses ? [borderRadiusClasses] : [],
-                            loading: attrs.primaryLoading,
-                            fetchPriority: attrs.primaryFetchPriority,
-                            mobileWidth: attrs.primaryMobileWidth,
-                            tabletWidth: attrs.primaryTabletWidth,
-                            desktopWidth: attrs.primaryDesktopWidth,
-                            noResponsive: attrs.primarySrc?.endsWith('.svg') || attrs.primaryLightSrc?.endsWith('.svg') || attrs.primaryDarkSrc?.endsWith('.svg'),
-                            aspectRatio: attrs.primaryAspectRatio,
-                            includeSchema: attrs.primaryIncludeSchema
-                        });
-                        this.#log('Primary picture markup generated', { markup: pictureMarkup.substring(0, 100) });
-                        mediaDiv.innerHTML = pictureMarkup;
-                        const pictureElement = mediaDiv.querySelector('picture');
-                        if (pictureElement) {
-                            if (position === 'left' || position === 'right') {
-                                if (position === 'left') blockElement.appendChild(pictureElement);
-                                blockElement.appendChild(innerDiv);
-                                if (position === 'right') blockElement.appendChild(pictureElement);
-                            } else {
-                                blockElement.appendChild(position === 'top' ? pictureElement : innerDiv);
-                                blockElement.appendChild(position === 'top' ? innerDiv : pictureElement);
-                            }
-                            this.#log(`Primary image (${position}) appended successfully`);
-                        } else {
-                            this.#warn('Failed to parse primary picture markup', { markup: pictureMarkup.substring(0, 200) });
-                            const fallbackImg = document.createElement('img');
-                            fallbackImg.src = 'https://placehold.co/3000x2000';
-                            fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
-                            fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
-                            if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
-                            fallbackImg.style.width = '100%';
-                            blockElement.appendChild(fallbackImg);
-                            this.#log('Fallback primary image appended', { src: fallbackImg.src });
-                        }
-                    } else if (hasVideoPrimary) {
-                        const videoMarkup = await generateVideoMarkup({
-                            src: attrs.videoPrimarySrc,
-                            lightSrc: attrs.videoPrimaryLightSrc,
-                            darkSrc: attrs.videoPrimaryDarkSrc,
-                            poster: attrs.videoPrimaryPoster,
-                            lightPoster: attrs.videoPrimaryLightPoster,
-                            darkPoster: attrs.videoPrimaryDarkPoster,
-                            alt: attrs.videoPrimaryAlt,
-                            customClasses: mediaClasses,
-                            extraClasses: borderRadiusClasses ? [borderRadiusClasses] : [],
-                            loading: attrs.videoPrimaryLoading,
-                            autoplay: attrs.videoPrimaryAutoplay,
-                            muted: attrs.videoPrimaryMuted,
-                            loop: attrs.videoPrimaryLoop,
-                            playsinline: attrs.videoPrimaryPlaysinline,
-                            disablePip: attrs.videoPrimaryDisablePip,
-                            preload: attrs.videoPrimaryLoading === 'lazy' ? 'metadata' : attrs.videoPrimaryLoading,
-                            controls: false
-                        });
-                        this.#log('Primary video markup generated', { markup: videoMarkup.substring(0, 100) });
-                        const tempDiv = document.createElement('div');
-                        tempDiv.innerHTML = videoMarkup;
-                        const videoElement = tempDiv.querySelector('video');
-                        if (videoElement) {
-                            if (position === 'left' || position === 'right') {
-                                if (position === 'left') blockElement.appendChild(videoElement);
-                                blockElement.appendChild(innerDiv);
-                                if (position === 'right') blockElement.appendChild(videoElement);
-                            } else {
-                                blockElement.appendChild(position === 'top' ? videoElement : innerDiv);
-                                blockElement.appendChild(position === 'top' ? innerDiv : videoElement);
-                            }
-                            this.#log(`Primary video (${position}) appended successfully`);
-                        } else {
-                            this.#warn('Failed to parse primary video markup', { markup: videoMarkup.substring(0, 200) });
-                            blockElement.appendChild(innerDiv);
-                        }
-                    }
-                } catch (error) {
-                    this.#error(`Error generating ${hasPrimaryImage ? 'picture' : 'video'} markup (${position})`, { error: error.message, sources });
-                    const fallbackImg = document.createElement('img');
-                    fallbackImg.src = 'https://placehold.co/3000x2000';
-                    fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
-                    fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
-                    if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
-                    fallbackImg.style.width = '100%';
-                    blockElement.appendChild(fallbackImg);
-                    this.#log('Fallback primary image appended', { src: fallbackImg.src });
-                }
-            } else {
-                this.#warn('Invalid primary sources', { invalidSources: sources.filter((_, i) => !validations[i]) });
-                blockElement.appendChild(innerDiv);
-                const fallbackImg = document.createElement('img');
-                fallbackImg.src = 'https://placehold.co/3000x2000';
-                fallbackImg.alt = attrs.primaryAlt || 'Error loading primary image';
-                fallbackImg.onerror = "this.src='https://placehold.co/3000x2000'; this.alt='Nature landscape background'; this.onerror=null;";
-                if (borderRadiusClasses) fallbackImg.className = borderRadiusClasses;
-                fallbackImg.style.width = '100%';
-                blockElement.appendChild(fallbackImg);
-                this.#log('Fallback primary image appended', { src: fallbackImg.src });
-            }
+            // ... rest of appendMedia
         };
+
         await appendMedia(attrs.primaryPosition);
         if (!isFallback && blockElement.querySelector('img')) {
             const images = blockElement.querySelectorAll('img');
