@@ -534,7 +534,7 @@ class CustomBlock extends HTMLElement {
         let sanitizedUlStyle = '';
         if (ulStyle) {
             const allowedStyles = [
-                'color', 'background-color', 'border', 'border-radius', 'padding', 'margin', 'font-size', 'font-weight',
+                'color', 'background-color', 'border', 'border-radius', 'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'font-size', 'font-weight',
                 'text-align', 'display', 'width', 'height', 'list-style', 'list-style-position', 'list-style-type'
             ];
             const styleParts = ulStyle.split(';').map(s => s.trim()).filter(s => s);
@@ -554,7 +554,7 @@ class CustomBlock extends HTMLElement {
         let sanitizedOlStyle = '';
         if (olStyle) {
             const allowedStyles = [
-                'color', 'background-color', 'border', 'border-radius', 'padding', 'margin', 'font-size', 'font-weight',
+                'color', 'background-color', 'border', 'border-radius', 'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'font-size', 'font-weight',
                 'text-align', 'display', 'width', 'height', 'list-style', 'list-style-position', 'list-style-type'
             ];
             const styleParts = olStyle.split(';').map(s => s.trim()).filter(s => s);
