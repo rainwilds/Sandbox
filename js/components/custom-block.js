@@ -41,7 +41,7 @@ class CustomBlock extends HTMLElement {
         'video-primary-loading', 'video-primary-loop', 'video-primary-muted',
         'video-primary-playsinline', 'video-primary-poster', 'video-primary-src',
         'paragraph', 'ul-items', 'ol-items', 'content-order', 'ul-icon', 'ol-icon', 'ul-icon-position', 'ol-icon-position',
-        'ul-style', 'ol-style'
+        'ul-style', 'ol-style', 'ul-icon-offset', 'ol-icon-offset'
     ];
     #log(message, data = null) {
         if (this.debug) {
@@ -530,6 +530,28 @@ class CustomBlock extends HTMLElement {
                 });
             }
         }
+        const ulIconOffset = this.getAttribute('ul-icon-offset') || '';
+        let sanitizedUlIconOffset = '';
+        if (ulIconOffset && sanitizedUlIconPosition) {
+            const validOffset = ulIconOffset.match(/^var\(--space-[a-z]+\)$/);
+            if (validOffset) sanitizedUlIconOffset = ulIconOffset;
+            else this.#warn('Invalid ul icon offset', {
+                value: ulIconOffset,
+                element: this.id || 'no-id',
+                expected: 'var(--space-*) format'
+            });
+        }
+        const olIconOffset = this.getAttribute('ol-icon-offset') || '';
+        let sanitizedOlIconOffset = '';
+        if (olIconOffset && sanitizedOlIconPosition) {
+            const validOffset = olIconOffset.match(/^var\(--space-[a-z]+\)$/);
+            if (validOffset) sanitizedOlIconOffset = olIconOffset;
+            else this.#warn('Invalid ol icon offset', {
+                value: olIconOffset,
+                element: this.id || 'no-id',
+                expected: 'var(--space-*) format'
+            });
+        }
         const ulStyle = this.getAttribute('ul-style') || '';
         let sanitizedUlStyle = '';
         if (ulStyle) {
@@ -692,6 +714,8 @@ class CustomBlock extends HTMLElement {
             olIcon,
             ulIconPosition: sanitizedUlIconPosition,
             olIconPosition: sanitizedOlIconPosition,
+            ulIconOffset: sanitizedUlIconOffset,
+            olIconOffset: sanitizedOlIconOffset,
             ulStyle: sanitizedUlStyle,
             olStyle: sanitizedOlStyle
         };
@@ -879,6 +903,8 @@ class CustomBlock extends HTMLElement {
             olIcon: '',
             ulIconPosition: 'left',
             olIconPosition: 'left',
+            ulIconOffset: '',
+            olIconOffset: '',
             ulStyle: '',
             olStyle: ''
         } : await this.getAttributes();
@@ -1314,6 +1340,12 @@ class CustomBlock extends HTMLElement {
                     if (attrs.ulIcon) {
                         const iconSpan = document.createElement('span');
                         iconSpan.className = 'list-bullet';
+                        let listIconStyle = '';
+                        if (attrs.ulIconOffset) {
+                            const marginProperty = attrs.ulIconPosition === 'left' ? 'margin-right' : 'margin-left';
+                            listIconStyle = `${marginProperty}: ${attrs.ulIconOffset}`;
+                        }
+                        if (listIconStyle) iconSpan.setAttribute('style', listIconStyle);
                         iconSpan.innerHTML = attrs.ulIcon;
                         if (attrs.ulIconPosition === 'left') {
                             li.appendChild(iconSpan);
@@ -1341,6 +1373,12 @@ class CustomBlock extends HTMLElement {
                     if (attrs.olIcon) {
                         const iconSpan = document.createElement('span');
                         iconSpan.className = 'list-bullet';
+                        let listIconStyle = '';
+                        if (attrs.olIconOffset) {
+                            const marginProperty = attrs.olIconPosition === 'left' ? 'margin-right' : 'margin-left';
+                            listIconStyle = `${marginProperty}: ${attrs.olIconOffset}`;
+                        }
+                        if (listIconStyle) iconSpan.setAttribute('style', listIconStyle);
                         iconSpan.innerHTML = attrs.olIcon;
                         if (attrs.olIconPosition === 'left') {
                             li.appendChild(iconSpan);
@@ -1601,7 +1639,7 @@ class CustomBlock extends HTMLElement {
             'video-primary-light-src', 'video-primary-loading', 'video-primary-loop',
             'video-primary-muted', 'video-primary-playsinline', 'video-primary-poster',
             'video-primary-src', 'paragraph', 'ul-items', 'ol-items', 'content-order', 'ul-icon', 'ol-icon', 'ul-icon-position', 'ol-icon-position',
-            'ul-style', 'ol-style'
+            'ul-style', 'ol-style', 'ul-icon-offset', 'ol-icon-offset'
         ];
     }
 }
