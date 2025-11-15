@@ -296,7 +296,7 @@ class CustomBlock extends HTMLElement {
             const allowedStyles = [
                 'color', 'font-size', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
                 'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
-                'display', 'text-align', 'vertical-align', 'line-height', 'width', 'height'
+                'display', 'text-align', 'vertical-align', 'line-height', 'width', 'height', 'grid-template-columns', 'justify-content'
             ];
             const styleParts = iconStyle.split(';').map(s => s.trim()).filter(s => s);
             sanitizedIconStyle = styleParts.filter(part => {
