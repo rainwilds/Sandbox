@@ -321,11 +321,11 @@
         }
 
         .background-overlay-1 {
-            background-color: light-dark(var(--color-white-4), var(--color-black-2));
+            background-color: light-dark(var(--color-white-4), var(--color-black-alpha-2));
         }
 
         .background-overlay-2 {
-            background-color: light-dark(var(--color-white-6), var(--color-black-4));
+            background-color: light-dark(var(--color-white-alpha-6), var(--color-black-alpha-4));
         }
 
         .background-overlay-3 {
@@ -765,7 +765,7 @@
 
             &:hover {
 
-                color: light-dark(var(--color-black-4), var(--color-white-4));
+                color: light-dark(var(--color-black-alpha-4), var(--color-white-4));
                 text-decoration: none;
                 transition: color 0.4s;
 
@@ -816,7 +816,7 @@
         input:focus-visible,
         select:focus-visible,
         textarea:focus-visible {
-            outline-color: light-dark(var(--color-black-2), var(--color-white-2));
+            outline-color: light-dark(var(--color-black-alpha-2), var(--color-white-2));
             outline-offset: 0.15rem;
             transition: outline 1s;
             background-image: none;
@@ -878,6 +878,10 @@
         ol,
         ul {
             list-style: none;
+
+            &>li:not(:last-of-type) {
+                margin-bottom: var(--space-micro);
+            }
         }
 
         blockquote {
@@ -1120,12 +1124,12 @@
         color: light-dark(var(--color-black-8), var(--color-white-8));
 
         &:hover {
-            color: light-dark(var(--color-black-4), var(--color-white-4));
+            color: light-dark(var(--color-black-alpha-4), var(--color-white-4));
             transition: color 0.4s;
         }
 
         >button {
-            background-color: light-dark(var(--color-white-6), var(--color-black-6));
+            background-color: light-dark(var(--color-white-alpha-6), var(--color-black-6));
             border-color: light-dark(var(--color-black-8), var(--color-white-8));
             backdrop-filter: var(--blur-medium);
 
@@ -1216,7 +1220,7 @@
         } */
 
         &>.background-overlay {
-            background-color: light-dark(var(--color-white-4), var(--color-black-2));
+            background-color: light-dark(var(--color-white-4), var(--color-black-alpha-2));
             margin: 0 !important;
         }
 
@@ -1414,7 +1418,7 @@
             padding: var(--space-medium);
             max-width: var(--max-width-medium);
             border-radius: var(--border-radius-medium);
-            box-shadow: 0 4px 8px var(--color-black-4);
+            box-shadow: 0 4px 8px var(--color-black-alpha-4);
             backdrop-filter: var(--blur-small);
         }
 
@@ -1462,7 +1466,7 @@
             font: inherit;
 
             &:hover {
-                background: light-dark(var(--color-white-2), var(--color-black-2));
+                background: light-dark(var(--color-white-2), var(--color-black-alpha-2));
                 transition: background 0.3s;
             }
         }
@@ -1541,7 +1545,7 @@
             }
 
             &:focus-visible {
-                outline-color: light-dark(var(--color-black-2), var(--color-white-2));
+                outline-color: light-dark(var(--color-black-alpha-2), var(--color-white-2));
                 outline-offset: 0.15rem;
                 transition: outline 0.3s;
             }
@@ -1562,7 +1566,7 @@
                 content: " > ";
                 margin-inline-start: var(--space-tiny);
                 /* Logical property */
-                color: light-dark(var(--color-black-4), var(--color-white-4));
+                color: light-dark(var(--color-black-alpha-4), var(--color-white-4));
             }
 
             &:last-child::after {
@@ -1570,7 +1574,7 @@
             }
 
             &:hover {
-                color: light-dark(var(--color-black-6), var(--color-white-6));
+                color: light-dark(var(--color-black-6), var(--color-white-alpha-6));
                 transition: color 0.3s;
             }
         }
@@ -1931,7 +1935,7 @@ div#products {
     display: grid;
     grid-template-rows: auto auto 1fr auto;
     padding: 16px;
-    background-color: light-dark(var(--color-white-4), var(--color-black-2));
+    background-color: light-dark(var(--color-white-4), var(--color-black-alpha-2));
     border: var(--border-size-small) solid light-dark(var(--color-dark-1), var(--color-light-1));
     border-radius: 8px;
     text-align: center;
