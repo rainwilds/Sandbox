@@ -41,7 +41,7 @@ class CustomBlock extends HTMLElement {
         'video-primary-loading', 'video-primary-loop', 'video-primary-muted',
         'video-primary-playsinline', 'video-primary-poster', 'video-primary-src',
         'paragraph', 'ul-items', 'ol-items', 'content-order', 'ul-icon', 'ol-icon', 'ul-icon-position', 'ol-icon-position',
-        'ul-icon-position-style', 'ol-icon-position-style'
+        'ul-style', 'ol-style'
     ];
     #log(message, data = null) {
         if (this.debug) {
@@ -530,42 +530,42 @@ class CustomBlock extends HTMLElement {
                 });
             }
         }
-        const ulIconPositionStyle = this.getAttribute('ul-icon-position-style') || '';
-        let sanitizedUlIconPositionStyle = '';
-        if (ulIconPositionStyle) {
+        const ulStyle = this.getAttribute('ul-style') || '';
+        let sanitizedUlStyle = '';
+        if (ulStyle) {
             const allowedStyles = [
                 'color', 'background-color', 'border', 'border-radius', 'padding', 'margin', 'font-size', 'font-weight',
                 'text-align', 'display', 'width', 'height', 'list-style', 'list-style-position', 'list-style-type'
             ];
-            const styleParts = ulIconPositionStyle.split(';').map(s => s.trim()).filter(s => s);
-            sanitizedUlIconPositionStyle = styleParts.filter(part => {
+            const styleParts = ulStyle.split(';').map(s => s.trim()).filter(s => s);
+            sanitizedUlStyle = styleParts.filter(part => {
                 const [property] = part.split(':').map(s => s.trim());
                 return allowedStyles.includes(property);
             }).join('; ');
-            if (sanitizedUlIconPositionStyle !== ulIconPositionStyle) {
-                this.#warn('Unsafe CSS in ul-icon-position-style sanitized', {
-                    original: ulIconPositionStyle,
-                    sanitized: sanitizedUlIconPositionStyle,
+            if (sanitizedUlStyle !== ulStyle) {
+                this.#warn('Unsafe CSS in ul-style sanitized', {
+                    original: ulStyle,
+                    sanitized: sanitizedUlStyle,
                     element: this.id || 'no-id'
                 });
             }
         }
-        const olIconPositionStyle = this.getAttribute('ol-icon-position-style') || '';
-        let sanitizedOlIconPositionStyle = '';
-        if (olIconPositionStyle) {
+        const olStyle = this.getAttribute('ol-style') || '';
+        let sanitizedOlStyle = '';
+        if (olStyle) {
             const allowedStyles = [
                 'color', 'background-color', 'border', 'border-radius', 'padding', 'margin', 'font-size', 'font-weight',
                 'text-align', 'display', 'width', 'height', 'list-style', 'list-style-position', 'list-style-type'
             ];
-            const styleParts = olIconPositionStyle.split(';').map(s => s.trim()).filter(s => s);
-            sanitizedOlIconPositionStyle = styleParts.filter(part => {
+            const styleParts = olStyle.split(';').map(s => s.trim()).filter(s => s);
+            sanitizedOlStyle = styleParts.filter(part => {
                 const [property] = part.split(':').map(s => s.trim());
                 return allowedStyles.includes(property);
             }).join('; ');
-            if (sanitizedOlIconPositionStyle !== olIconPositionStyle) {
-                this.#warn('Unsafe CSS in ol-icon-position-style sanitized', {
-                    original: olIconPositionStyle,
-                    sanitized: sanitizedOlIconPositionStyle,
+            if (sanitizedOlStyle !== olStyle) {
+                this.#warn('Unsafe CSS in ol-style sanitized', {
+                    original: olStyle,
+                    sanitized: sanitizedOlStyle,
                     element: this.id || 'no-id'
                 });
             }
@@ -692,8 +692,8 @@ class CustomBlock extends HTMLElement {
             olIcon,
             ulIconPosition: sanitizedUlIconPosition,
             olIconPosition: sanitizedOlIconPosition,
-            ulIconPositionStyle: sanitizedUlIconPositionStyle,
-            olIconPositionStyle: sanitizedOlIconPositionStyle
+            ulStyle: sanitizedUlStyle,
+            olStyle: sanitizedOlStyle
         };
         const criticalAttrs = {};
         CustomBlock.#criticalAttributes.forEach(attr => {
@@ -879,8 +879,8 @@ class CustomBlock extends HTMLElement {
             olIcon: '',
             ulIconPosition: 'left',
             olIconPosition: 'left',
-            ulIconPositionStyle: '',
-            olIconPositionStyle: ''
+            ulStyle: '',
+            olStyle: ''
         } : await this.getAttributes();
         this.#log('Render attributes prepared', {
             elementId: this.id || 'no-id',
@@ -1304,7 +1304,7 @@ class CustomBlock extends HTMLElement {
                 this.#log('Paragraph appended', { text: attrs.paragraph });
             } else if (type === 'ul' && attrs.ulItems) {
                 const ul = document.createElement('ul');
-                if (attrs.ulIconPositionStyle) ul.setAttribute('style', attrs.ulIconPositionStyle);
+                if (attrs.ulStyle) ul.setAttribute('style', attrs.ulStyle);
                 attrs.ulItems.split(',').forEach(item => {
                     const li = document.createElement('li');
                     li.classList.add('flex-list-item');
@@ -1331,7 +1331,7 @@ class CustomBlock extends HTMLElement {
                 this.#log('UL appended', { items: attrs.ulItems });
             } else if (type === 'ol' && attrs.olItems) {
                 const ol = document.createElement('ol');
-                if (attrs.olIconPositionStyle) ol.setAttribute('style', attrs.olIconPositionStyle);
+                if (attrs.olStyle) ol.setAttribute('style', attrs.olStyle);
                 attrs.olItems.split(',').forEach(item => {
                     const li = document.createElement('li');
                     li.classList.add('flex-list-item');
@@ -1601,7 +1601,7 @@ class CustomBlock extends HTMLElement {
             'video-primary-light-src', 'video-primary-loading', 'video-primary-loop',
             'video-primary-muted', 'video-primary-playsinline', 'video-primary-poster',
             'video-primary-src', 'paragraph', 'ul-items', 'ol-items', 'content-order', 'ul-icon', 'ol-icon', 'ul-icon-position', 'ol-icon-position',
-            'ul-icon-position-style', 'ol-icon-position-style'
+            'ul-style', 'ol-style'
         ];
     }
 }
