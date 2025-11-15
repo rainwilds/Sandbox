@@ -118,6 +118,7 @@
 
     :root {
 
+        --space-micro: 0.4rem;
         --space-tiny: 1rem;
         --space-small: 2rem;
         --space-medium: 2.8rem;
@@ -246,6 +247,10 @@
 @layer defaults {
 
     :root {
+
+        .padding-micro {
+            padding: var(--space-micro);
+        }
 
         .padding-tiny {
             padding: var(--space-tiny);
@@ -1165,7 +1170,7 @@
         height: 100%;
         /* align-content: stretch; */
         width: stretch;
-        grid-template-rows: 100%;
+        /* grid-template-rows: 100%; */
         /* ensure content spans all vertical space of parent */
         /* max-height: 100vh; */
 
