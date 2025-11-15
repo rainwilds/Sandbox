@@ -40,7 +40,8 @@ class CustomBlock extends HTMLElement {
         'video-primary-disable-pip', 'video-primary-light-poster', 'video-primary-light-src',
         'video-primary-loading', 'video-primary-loop', 'video-primary-muted',
         'video-primary-playsinline', 'video-primary-poster', 'video-primary-src',
-        'paragraph', 'ul-items', 'ol-items', 'content-order', 'ul-icon', 'ol-icon', 'ul-icon-position', 'ol-icon-position'
+        'paragraph', 'ul-items', 'ol-items', 'content-order', 'ul-icon', 'ol-icon', 'ul-icon-position', 'ol-icon-position',
+        'ul-icon-position-style', 'ol-icon-position-style'
     ];
     #log(message, data = null) {
         if (this.debug) {
@@ -529,6 +530,46 @@ class CustomBlock extends HTMLElement {
                 });
             }
         }
+        const ulIconPositionStyle = this.getAttribute('ul-icon-position-style') || '';
+        let sanitizedUlIconPositionStyle = '';
+        if (ulIconPositionStyle) {
+            const allowedStyles = [
+                'color', 'background-color', 'border', 'border-radius', 'padding', 'margin', 'font-size', 'font-weight',
+                'text-align', 'display', 'width', 'height', 'list-style', 'list-style-position', 'list-style-type'
+            ];
+            const styleParts = ulIconPositionStyle.split(';').map(s => s.trim()).filter(s => s);
+            sanitizedUlIconPositionStyle = styleParts.filter(part => {
+                const [property] = part.split(':').map(s => s.trim());
+                return allowedStyles.includes(property);
+            }).join('; ');
+            if (sanitizedUlIconPositionStyle !== ulIconPositionStyle) {
+                this.#warn('Unsafe CSS in ul-icon-position-style sanitized', {
+                    original: ulIconPositionStyle,
+                    sanitized: sanitizedUlIconPositionStyle,
+                    element: this.id || 'no-id'
+                });
+            }
+        }
+        const olIconPositionStyle = this.getAttribute('ol-icon-position-style') || '';
+        let sanitizedOlIconPositionStyle = '';
+        if (olIconPositionStyle) {
+            const allowedStyles = [
+                'color', 'background-color', 'border', 'border-radius', 'padding', 'margin', 'font-size', 'font-weight',
+                'text-align', 'display', 'width', 'height', 'list-style', 'list-style-position', 'list-style-type'
+            ];
+            const styleParts = olIconPositionStyle.split(';').map(s => s.trim()).filter(s => s);
+            sanitizedOlIconPositionStyle = styleParts.filter(part => {
+                const [property] = part.split(':').map(s => s.trim());
+                return allowedStyles.includes(property);
+            }).join('; ');
+            if (sanitizedOlIconPositionStyle !== olIconPositionStyle) {
+                this.#warn('Unsafe CSS in ol-icon-position-style sanitized', {
+                    original: olIconPositionStyle,
+                    sanitized: sanitizedOlIconPositionStyle,
+                    element: this.id || 'no-id'
+                });
+            }
+        }
         const effects = this.getAttribute('effects') || '';
         let sanitizedEffects = '';
         if (effects) {
@@ -650,7 +691,9 @@ class CustomBlock extends HTMLElement {
             ulIcon,
             olIcon,
             ulIconPosition: sanitizedUlIconPosition,
-            olIconPosition: sanitizedOlIconPosition
+            olIconPosition: sanitizedOlIconPosition,
+            ulIconPositionStyle: sanitizedUlIconPositionStyle,
+            olIconPositionStyle: sanitizedOlIconPositionStyle
         };
         const criticalAttrs = {};
         CustomBlock.#criticalAttributes.forEach(attr => {
@@ -835,7 +878,9 @@ class CustomBlock extends HTMLElement {
             ulIcon: '',
             olIcon: '',
             ulIconPosition: 'left',
-            olIconPosition: 'left'
+            olIconPosition: 'left',
+            ulIconPositionStyle: '',
+            olIconPositionStyle: ''
         } : await this.getAttributes();
         this.#log('Render attributes prepared', {
             elementId: this.id || 'no-id',
@@ -1259,6 +1304,7 @@ class CustomBlock extends HTMLElement {
                 this.#log('Paragraph appended', { text: attrs.paragraph });
             } else if (type === 'ul' && attrs.ulItems) {
                 const ul = document.createElement('ul');
+                if (attrs.ulIconPositionStyle) ul.setAttribute('style', attrs.ulIconPositionStyle);
                 attrs.ulItems.split(',').forEach(item => {
                     const li = document.createElement('li');
                     li.classList.add('flex-list-item');
@@ -1285,6 +1331,7 @@ class CustomBlock extends HTMLElement {
                 this.#log('UL appended', { items: attrs.ulItems });
             } else if (type === 'ol' && attrs.olItems) {
                 const ol = document.createElement('ol');
+                if (attrs.olIconPositionStyle) ol.setAttribute('style', attrs.olIconPositionStyle);
                 attrs.olItems.split(',').forEach(item => {
                     const li = document.createElement('li');
                     li.classList.add('flex-list-item');
@@ -1553,7 +1600,8 @@ class CustomBlock extends HTMLElement {
             'video-primary-dark-src', 'video-primary-disable-pip', 'video-primary-light-poster',
             'video-primary-light-src', 'video-primary-loading', 'video-primary-loop',
             'video-primary-muted', 'video-primary-playsinline', 'video-primary-poster',
-            'video-primary-src', 'paragraph', 'ul-items', 'ol-items', 'content-order', 'ul-icon', 'ol-icon', 'ul-icon-position', 'ol-icon-position'
+            'video-primary-src', 'paragraph', 'ul-items', 'ol-items', 'content-order', 'ul-icon', 'ol-icon', 'ul-icon-position', 'ol-icon-position',
+            'ul-icon-position-style', 'ol-icon-position-style'
         ];
     }
 }
