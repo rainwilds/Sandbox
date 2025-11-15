@@ -40,7 +40,7 @@ class CustomBlock extends HTMLElement {
         'video-primary-disable-pip', 'video-primary-light-poster', 'video-primary-light-src',
         'video-primary-loading', 'video-primary-loop', 'video-primary-muted',
         'video-primary-playsinline', 'video-primary-poster', 'video-primary-src',
-        'paragraph', 'ul-items', 'ol-items', 'ol-start', 'content-order'
+        'paragraph', 'ul-items', 'ol-items', 'content-order', 'ul-icon', 'ol-icon'
     ];
     #log(message, data = null) {
         if (this.debug) {
@@ -445,6 +445,60 @@ class CustomBlock extends HTMLElement {
             if (remMatch) sanitizedButtonIconSize = buttonIconSize;
             else this.#warn('Invalid button icon size', { value: buttonIconSize, element: this.id || 'no-id', expected: 'Nrem format' });
         }
+        let ulIcon = this.getAttribute('ul-icon') || '';
+        if (ulIcon) {
+            ulIcon = ulIcon.replace(/['"]/g, '&quot;');
+            const parser = new DOMParser();
+            const decodedIcon = ulIcon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+            const doc = parser.parseFromString(decodedIcon, 'text/html');
+            const iElement = doc.body.querySelector('i');
+            if (!iElement || !iElement.className.includes('fa-')) {
+                this.#warn('Invalid ul icon format', {
+                    value: ulIcon,
+                    element: this.id || 'no-id',
+                    expected: 'Font Awesome <i> tag with fa- classes'
+                });
+                ulIcon = '';
+            } else {
+                const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
+                if (validClasses.length === 0) {
+                    this.#warn('No valid Font Awesome classes in ul icon', {
+                        classes: iElement.className,
+                        element: this.id || 'no-id'
+                    });
+                    ulIcon = '';
+                } else {
+                    ulIcon = `<i class="${validClasses.join(' ')}"></i>`;
+                }
+            }
+        }
+        let olIcon = this.getAttribute('ol-icon') || '';
+        if (olIcon) {
+            olIcon = olIcon.replace(/['"]/g, '&quot;');
+            const parser = new DOMParser();
+            const decodedIcon = olIcon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
+            const doc = parser.parseFromString(decodedIcon, 'text/html');
+            const iElement = doc.body.querySelector('i');
+            if (!iElement || !iElement.className.includes('fa-')) {
+                this.#warn('Invalid ol icon format', {
+                    value: olIcon,
+                    element: this.id || 'no-id',
+                    expected: 'Font Awesome <i> tag with fa- classes'
+                });
+                olIcon = '';
+            } else {
+                const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
+                if (validClasses.length === 0) {
+                    this.#warn('No valid Font Awesome classes in ol icon', {
+                        classes: iElement.className,
+                        element: this.id || 'no-id'
+                    });
+                    olIcon = '';
+                } else {
+                    olIcon = `<i class="${validClasses.join(' ')}"></i>`;
+                }
+            }
+        }
         const effects = this.getAttribute('effects') || '';
         let sanitizedEffects = '';
         if (effects) {
@@ -562,8 +616,9 @@ class CustomBlock extends HTMLElement {
             paragraph: this.getAttribute('paragraph') || '',
             ulItems: this.getAttribute('ul-items') || '',
             olItems: this.getAttribute('ol-items') || '',
-            olStart: this.getAttribute('ol-start') || '',
-            contentOrder: this.getAttribute('content-order') || 'paragraph,ul,ol'
+            contentOrder: this.getAttribute('content-order') || 'paragraph,ul,ol',
+            ulIcon,
+            olIcon
         };
         const criticalAttrs = {};
         CustomBlock.#criticalAttributes.forEach(attr => {
@@ -744,8 +799,9 @@ class CustomBlock extends HTMLElement {
             paragraph: '',
             ulItems: '',
             olItems: '',
-            olStart: '',
-            contentOrder: 'paragraph,ul,ol'
+            contentOrder: 'paragraph,ul,ol',
+            ulIcon: '',
+            olIcon: ''
         } : await this.getAttributes();
         this.#log('Render attributes prepared', {
             elementId: this.id || 'no-id',
@@ -1171,24 +1227,32 @@ class CustomBlock extends HTMLElement {
                 const ul = document.createElement('ul');
                 attrs.ulItems.split(',').forEach(item => {
                     const li = document.createElement('li');
-                    li.textContent = item.trim();
+                    if (attrs.ulIcon) {
+                        const iconSpan = document.createElement('span');
+                        iconSpan.className = 'list-bullet';
+                        iconSpan.innerHTML = attrs.ulIcon;
+                        li.appendChild(iconSpan);
+                    }
+                    li.appendChild(document.createTextNode(item.trim()));
                     ul.appendChild(li);
                 });
                 groupDiv.appendChild(ul);
                 this.#log('UL appended', { items: attrs.ulItems });
             } else if (type === 'ol' && attrs.olItems) {
                 const ol = document.createElement('ol');
-                if (attrs.olStart) {
-                    const start = parseInt(attrs.olStart, 10);
-                    if (!isNaN(start)) ol.start = start;
-                }
                 attrs.olItems.split(',').forEach(item => {
                     const li = document.createElement('li');
-                    li.textContent = item.trim();
+                    if (attrs.olIcon) {
+                        const iconSpan = document.createElement('span');
+                        iconSpan.className = 'list-bullet';
+                        iconSpan.innerHTML = attrs.olIcon;
+                        li.appendChild(iconSpan);
+                    }
+                    li.appendChild(document.createTextNode(item.trim()));
                     ol.appendChild(li);
                 });
                 groupDiv.appendChild(ol);
-                this.#log('OL appended', { items: attrs.olItems, start: attrs.olStart });
+                this.#log('OL appended', { items: attrs.olItems });
             }
         });
         if (attrs.buttonText) {
@@ -1433,7 +1497,7 @@ class CustomBlock extends HTMLElement {
             'video-primary-dark-src', 'video-primary-disable-pip', 'video-primary-light-poster',
             'video-primary-light-src', 'video-primary-loading', 'video-primary-loop',
             'video-primary-muted', 'video-primary-playsinline', 'video-primary-poster',
-            'video-primary-src', 'paragraph', 'ul-items', 'ol-items', 'ol-start', 'content-order'
+            'video-primary-src', 'paragraph', 'ul-items', 'ol-items', 'content-order', 'ul-icon', 'ol-icon'
         ];
     }
 }
