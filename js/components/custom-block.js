@@ -1,8 +1,8 @@
-/* global HTMLElement, document, window, JSON, console */
 import { generatePictureMarkup } from '../generators/image-generator.js';
 import { generateVideoMarkup } from '../generators/video-generator.js';
-import { VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } from '../shared.js';
+import { ALLOWED_ICON_STYLES, ALLOWED_BUTTON_STYLES, ALLOWED_LIST_STYLES, VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } from '../shared.js';
 import { getConfig, getImagePrimaryPath } from '../config.js';
+
 class CustomBlock extends HTMLElement {
     #ignoredChangeCount;
     #basePath = null;
@@ -293,15 +293,10 @@ class CustomBlock extends HTMLElement {
         const iconStyle = this.getAttribute('icon-style') || '';
         let sanitizedIconStyle = '';
         if (iconStyle) {
-            const allowedStyles = [
-                'color', 'font-size', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
-                'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
-                'display', 'text-align', 'vertical-align', 'line-height', 'width', 'height', 'grid-template-columns', 'justify-content'
-            ];
             const styleParts = iconStyle.split(';').map(s => s.trim()).filter(s => s);
             sanitizedIconStyle = styleParts.filter(part => {
                 const [property] = part.split(':').map(s => s.trim());
-                return allowedStyles.includes(property);
+                return ALLOWED_ICON_STYLES.includes(property);
             }).join('; ');
             if (sanitizedIconStyle !== iconStyle) {
                 this.#warn('Unsafe CSS in icon-style sanitized', {
@@ -345,11 +340,10 @@ class CustomBlock extends HTMLElement {
         const buttonStyle = this.getAttribute('button-style') || '';
         let sanitizedButtonStyle = '';
         if (buttonStyle) {
-            const allowedStyles = ['color', 'background-color', 'border', 'border-radius', 'padding', 'margin', 'font-size', 'font-weight', 'text-align', 'display', 'width', 'height'];
             const styleParts = buttonStyle.split(';').map(s => s.trim()).filter(s => s);
             sanitizedButtonStyle = styleParts.filter(part => {
                 const [property] = part.split(':').map(s => s.trim());
-                return allowedStyles.includes(property);
+                return ALLOWED_BUTTON_STYLES.includes(property);
             }).join('; ');
             if (sanitizedButtonStyle !== buttonStyle) {
                 this.#warn('Unsafe CSS in button-style sanitized', {
@@ -555,14 +549,10 @@ class CustomBlock extends HTMLElement {
         const ulStyle = this.getAttribute('ul-style') || '';
         let sanitizedUlStyle = '';
         if (ulStyle) {
-            const allowedStyles = [
-                'color', 'background-color', 'border', 'border-radius', 'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'font-size', 'font-weight',
-                'text-align', 'display', 'width', 'height', 'list-style', 'list-style-position', 'list-style-type'
-            ];
             const styleParts = ulStyle.split(';').map(s => s.trim()).filter(s => s);
             sanitizedUlStyle = styleParts.filter(part => {
                 const [property] = part.split(':').map(s => s.trim());
-                return allowedStyles.includes(property);
+                return ALLOWED_LIST_STYLES.includes(property);
             }).join('; ');
             if (sanitizedUlStyle !== ulStyle) {
                 this.#warn('Unsafe CSS in ul-style sanitized', {
@@ -575,14 +565,10 @@ class CustomBlock extends HTMLElement {
         const olStyle = this.getAttribute('ol-style') || '';
         let sanitizedOlStyle = '';
         if (olStyle) {
-            const allowedStyles = [
-                'color', 'background-color', 'border', 'border-radius', 'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'font-size', 'font-weight',
-                'text-align', 'display', 'width', 'height', 'list-style', 'list-style-position', 'list-style-type'
-            ];
             const styleParts = olStyle.split(';').map(s => s.trim()).filter(s => s);
             sanitizedOlStyle = styleParts.filter(part => {
                 const [property] = part.split(':').map(s => s.trim());
-                return allowedStyles.includes(property);
+                return ALLOWED_LIST_STYLES.includes(property);
             }).join('; ');
             if (sanitizedOlStyle !== olStyle) {
                 this.#warn('Unsafe CSS in ol-style sanitized', {

@@ -50,3 +50,22 @@ export const BACKDROP_FILTER_MAP = {
     'backdrop-filter-grayscale-medium': 'grayscale(var(--grayscale-medium))',
     'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))'
 };
+
+// Allowed styles for icons (semantic, text/layout-focused)
+export const ALLOWED_ICON_STYLES = [
+    'color', 'font-size', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+    'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+    'display', 'text-align', 'vertical-align', 'line-height', 'width', 'height'
+];
+
+// Allowed styles for buttons (includes background/border, shorthands for padding/margin)
+export const ALLOWED_BUTTON_STYLES = [
+    'color', 'background-color', 'border', 'border-radius', 'padding', 'margin', 'font-size', 'font-weight', 'text-align', 'display', 'width', 'height'
+];
+
+// Allowed styles for lists (ul/ol) - includes list-specific props and grid layout additions
+export const ALLOWED_LIST_STYLES = [
+    'color', 'background-color', 'border', 'border-radius', 'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'font-size', 'font-weight',
+    'text-align', 'display', 'width', 'height', 'list-style', 'list-style-position', 'list-style-type',
+    'grid-template-columns', 'justify-content'  // Added for grid support as per your update
+];
