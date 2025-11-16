@@ -2,7 +2,6 @@ import { generatePictureMarkup } from '../generators/image-generator.js';
 import { generateVideoMarkup } from '../generators/video-generator.js';
 import { ALLOWED_ICON_STYLES, ALLOWED_BUTTON_STYLES, ALLOWED_LIST_STYLES, VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } from '../shared.js';
 import { getConfig, getImagePrimaryPath } from '../config.js';
-
 class CustomBlock extends HTMLElement {
     #ignoredChangeCount;
     #basePath = null;
@@ -769,6 +768,27 @@ class CustomBlock extends HTMLElement {
         this.#log('Callback added', { callbackName: callback.name || 'anonymous', elementId: this.id || 'no-id' });
         this.callbacks.push(callback);
     }
+    #splitListItems(str) {
+        const result = [];
+        let current = '';
+        let depth = 0;
+        for (const char of str) {
+            if (char === '(') {
+                depth++;
+            } else if (char === ')') {
+                depth--;
+            } else if (char === ',' && depth === 0) {
+                result.push(current.trim());
+                current = '';
+                continue;
+            }
+            current += char;
+        }
+        if (current) {
+            result.push(current.trim());
+        }
+        return result;
+    }
     async render(isFallback = false) {
         this.#log(`Starting render ${isFallback ? '(fallback)' : ''}`, { elementId: this.id || 'no-id' });
         let newCriticalAttrsHash;
@@ -1317,7 +1337,8 @@ class CustomBlock extends HTMLElement {
             } else if (type === 'ul' && attrs.ulItems) {
                 const ul = document.createElement('ul');
                 if (attrs.ulStyle) ul.setAttribute('style', attrs.ulStyle);
-                attrs.ulItems.split(',').forEach(item => {
+                const ulItemList = this.#splitListItems(attrs.ulItems);
+                ulItemList.forEach(item => {
                     const li = document.createElement('li');
                     li.classList.add('flex-list-item');
                     const textSpan = document.createElement('span');
@@ -1350,7 +1371,8 @@ class CustomBlock extends HTMLElement {
             } else if (type === 'ol' && attrs.olItems) {
                 const ol = document.createElement('ol');
                 if (attrs.olStyle) ol.setAttribute('style', attrs.olStyle);
-                attrs.olItems.split(',').forEach(item => {
+                const olItemList = this.#splitListItems(attrs.olItems);
+                olItemList.forEach(item => {
                     const li = document.createElement('li');
                     li.classList.add('flex-list-item');
                     const textSpan = document.createElement('span');
