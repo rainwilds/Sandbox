@@ -67,5 +67,5 @@ export const ALLOWED_BUTTON_STYLES = [
 export const ALLOWED_LIST_STYLES = [
     'color', 'background-color', 'border', 'border-radius', 'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'font-size', 'font-weight',
     'text-align', 'display', 'width', 'height', 'list-style', 'list-style-position', 'list-style-type',
-    'grid-template-columns', 'justify-content'  // Added for grid support as per your update
+    'grid-template-columns', 'justify-content', 'text-align'  // Added for grid support as per your update
 ];
