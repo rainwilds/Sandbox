@@ -2077,6 +2077,35 @@ div#products {
     z-index: 1;
 }
 
+/* 2. "Below" Behavior Override 
+   Triggered when you add pagination-position="below" to the HTML tag */
+
+.custom-slider[pagination-position="below"] {
+    display: flex;
+    flex-direction: column;
+    /* Allows stacking of wrapper and pagination */
+}
+
+.custom-slider[pagination-position="below"] .slider-wrapper {
+    flex: 1;
+    /* Takes up remaining space */
+    height: auto;
+    /* Override 100% height to prevent overflow/cutting off */
+}
+
+.custom-slider[pagination-position="below"] .slider-pagination {
+    position: relative;
+    /* Remove absolute positioning */
+    bottom: auto;
+    left: auto;
+    transform: none;
+    padding-top: var(--space-small);
+    /* Add space between image and dots */
+    padding-bottom: 0;
+    justify-content: center;
+    /* Center dots via flexbox */
+}
+
 
 
 .slider-nav-prev {
@@ -2118,7 +2147,7 @@ div#products {
 
 }
 
-.slider-pagination {
+/* .slider-pagination {
     position: absolute;
     bottom: 0px;
     left: 50%;
@@ -2133,6 +2162,26 @@ div#products {
         cursor: pointer;
     }
 
+} */
+
+/* =========================================
+   Pagination Styles
+   ========================================= */
+
+.slider-pagination {
+    position: absolute;
+    bottom: 0px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding-bottom: var(--space-small);
+    display: flex;
+    gap: var(--space-tiny);
+    font-size: 0.5rem;
+    z-index: 1;
+
+    &>span.icon {
+        cursor: pointer;
+    }
 }
 
 

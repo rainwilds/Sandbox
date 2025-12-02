@@ -249,6 +249,13 @@ class CustomSlider extends HTMLElement {
         const gapAttr = this.getAttribute('gap') || '0';
         let gap = gapAttr;
         let pagination = this.hasAttribute('pagination');
+        
+        // NEW: Pagination Position Logic
+        let paginationPosition = this.getAttribute('pagination-position') || 'overlay';
+        if (!['overlay', 'below'].includes(paginationPosition)) {
+            paginationPosition = 'overlay';
+        }
+
         let paginationIconActive = this.getAttribute('pagination-icon-active') || '<i class="fa-solid fa-circle"></i>';
         let paginationIconInactive = this.getAttribute('pagination-icon-inactive') || '<i class="fa-regular fa-circle"></i>';
         const crossFade = this.hasAttribute('cross-fade');
@@ -350,6 +357,7 @@ class CustomSlider extends HTMLElement {
         paginationIconInactive = validateIcon(paginationIconInactive, 'inactive');
         this.#log('Pagination attributes validated', {
             pagination,
+            paginationPosition,
             paginationIconActive,
             paginationIconInactive,
             elementId: this.#uniqueId
@@ -367,6 +375,7 @@ class CustomSlider extends HTMLElement {
             navigationIconRight: rightIconResult.markup,
             gap,
             pagination,
+            paginationPosition,
             paginationIconActive,
             paginationIconInactive,
             iconSizeBackground,
@@ -630,6 +639,7 @@ class CustomSlider extends HTMLElement {
                     navigation: false,
                     gap: '0',
                     pagination: false,
+                    paginationPosition: 'overlay',
                     paginationIconActive: '<i class="fa-solid fa-circle"></i>',
                     paginationIconInactive: '<i class="fa-regular fa-circle"></i>',
                     iconSizeBackground: '',
@@ -658,6 +668,7 @@ class CustomSlider extends HTMLElement {
                 navigation: false,
                 gap: '0',
                 pagination: false,
+                paginationPosition: 'overlay',
                 paginationIconActive: '<i class="fa-solid fa-circle"></i>',
                 paginationIconInactive: '<i class="fa-regular fa-circle"></i>',
                 iconSizeBackground: '',
@@ -1308,6 +1319,12 @@ class CustomSlider extends HTMLElement {
         const sliderWrapper = document.createElement('div');
         sliderWrapper.id = this.#uniqueId;
         sliderWrapper.className = 'custom-slider';
+        
+        // Pass the position attribute to the main DOM element for CSS targeting
+        if (attrs.pagination && attrs.paginationPosition) {
+            sliderWrapper.setAttribute('pagination-position', attrs.paginationPosition);
+        }
+
         const innerWrapper = document.createElement('div');
         innerWrapper.className = 'slider-wrapper';
 
@@ -1454,7 +1471,7 @@ class CustomSlider extends HTMLElement {
             'navigation', 'navigation-icon-left', 'navigation-icon-right',
             'navigation-icon-left-background', 'navigation-icon-right-background', 'gap', 'pagination',
             'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size', 'pagination-icon-size',
-            'draggable', 'cross-fade', 'infinite-scrolling', 'pause-on-hover'
+            'draggable', 'cross-fade', 'infinite-scrolling', 'pause-on-hover', 'pagination-position'
         ];
     }
 
@@ -1483,6 +1500,6 @@ try {
     console.error('Error defining CustomSlider element:', error);
 }
 
-console.log('CustomSlider version: 2025-10-29 (responsive slides-per-view with strict breakpoint validation, infinite-scrolling animation fix, navigation clamping, cross-fade loop, enhanced continuous autoplay with seamless loop, drag resumption, pagination restoration, fixed pagination dots for infinite scrolling with unique slide navigation, fixed pagination clicks during autoplay, optional pause-on-hover, fixed pagination navigation during active autoplay, mobile breakpoint fix, gap attribute fix, dynamic pagination update on resize, enhanced error handling, fixed validateIcon typo, fixed pagination dot count on viewport resize, fixed navigationIconRight typo)');
+console.log('CustomSlider version: 2025-10-30 (responsive slides-per-view, pagination-position supported)');
 
 export { CustomSlider };
