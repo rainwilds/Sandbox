@@ -1,61 +1,92 @@
-# Custom Nav Documentation
+# Custom Navigation (<custom-nav>)
 
-The `<custom-nav>` is a Web Component designed to create a customizable, responsive navigation menu with support for mobile toggling, accessibility, and dynamic content. It supports **local JSON via the `nav` attribute** or **global navigation via config** (header/footer). The component sanitizes inputs, validates icons, and caches rendering for performance. It integrates with `BACKDROP_FILTER_MAP` from `shared.js`.
+The `<custom-nav>` is a smart, responsive Web Component that generates navigation menus. It supports **hybrid data sourcing** (local JSON or global config), **lazy initialization**, **input sanitization**, and **rendering caching**. It includes a built-in accessible mobile toggle and supports advanced styling like glassmorphism (backdrop filters).
 
----
+## Features
 
-## Key Features
-
-- **Lazy initialization** via `IntersectionObserver` (loads only when visible + 50px root margin)
-- **Render caching** based on critical attribute hash
-- **Global navigation support** (via `getConfig()` when `nav` attribute is absent)
-- **Responsive toggle** with accessible hamburger menu
-- **Input sanitization & validation** (XSS-safe HTML, valid URLs, Font Awesome icons)
-- **Debug mode** (`?debug=true` in URL)
-- **Event-driven updates** for global nav changes
+* **⚡ Hybrid Data:** Define links inline via attributes OR fetch them automatically from a global configuration file.
+* **📱 Responsive & Accessible:** Built-in hamburger menu logic with correct ARIA attributes (`aria-expanded`, `aria-controls`).
+* **🛡️ Secure:** Auto-sanitizes HTML inputs and URLs to prevent XSS.
+* **🎨 Styleable:** Supports inline CSS, utility classes, and specific hooks for container vs. inner nav styling.
+* **🚀 Performance:** Uses `IntersectionObserver` to load only when visible and caches rendered HTML to prevent expensive repaints.
 
 ---
 
-## Navigation Attributes
+## 1. Setup & Usage
 
-| Attribute Name | Description | Default Value | Expected Format |
-|----------------|-------------|---------------|-----------------|
-| `nav` | Specifies navigation links as a JSON array of `{href, text}` objects. If absent, attempts to load from global config (`headerNavigation` or `footerNavigation`). | `null` (falls back to global) | JSON string: `[{"href": "/home", "text": "Home"}]` |
-| `nav-type` | Defines whether this is a `header` or `footer` nav. Affects global config key and event listening. | `'header'` | `header` or `footer` |
-| `nav-aria-label` | ARIA label for the `<nav>` element. | `'Main navigation'` | Plain text |
-| `nav-background-color` | Inline background color (not class-based). | `''` | Valid CSS color: `#fff`, `#1a1a1a`, `rgb(255,0,0)` |
-| `nav-background-image-noise` | Adds noise texture background when present. | `false` | Boolean attribute (presence = `true`) |
-| `nav-backdrop-filter` | Applies backdrop filter effects. Uses `BACKDROP_FILTER_MAP` for values. Non-matching classes are added as-is. | `[]` | Space-separated: `backdrop-filter-blur-small backdrop-filter-saturate-high` |
-| `nav-border` | Adds border utility classes. | `''` | Space-separated class names (alphanumeric, `-`, `_` only) |
-| `nav-border-radius` | Adds border-radius utility classes. | `''` | Space-separated class names |
-| `nav-class` | Custom classes for the `<nav>` element. | `''` | Sanitized space-separated class names |
-| `nav-container-class` | Classes for the outer container `<div>`. | `''` | Sanitized space-separated class names |
-| `nav-container-style` | Inline styles for container. Limited to safe properties. | `''` | CSS: `display: flex; padding: 1rem;` (allowed: `display`, `justify-content`, `align-items`, `padding`, `margin`, `width`, `height`) |
-| `nav-style` | Inline styles for `<nav>`. Limited to safe properties. | `''` | CSS: `padding: 10px; font-size: 1rem;` (allowed: `color`, `background-color`, `border`, `border-radius`, `padding`, `margin`, `font-size`, `font-weight`, `text-align`, `display`, `width`, `height`, `position`) |
-| `nav-orientation` | Layout direction of links. | `'horizontal'` | `horizontal` or `vertical` |
-| `nav-position` | Alignment within container. Maps to `VALID_ALIGN_MAP`. | `''` | One of: `center`, `top`, `bottom`, `left`, `right`, `top-left`, `top-center`, `top-right`, `bottom-left`, `bottom-center`, `bottom-right`, `center-left`, `center-right` |
-| `nav-toggle-class` | Custom classes for toggle button. | `''` | Sanitized space-separated class names |
-| `nav-toggle-icon` | **Font Awesome `<i>` tag only**. Must include `fa-` class. Sanitized and validated. | `'<i class="fa-solid fa-bars"></i>'` | Valid FA icon: `<i class="fa-solid fa-bars"></i>` |
+### Requirements
+1.  Import the component class.
+2.  Ensure `BACKDROP_FILTER_MAP` and `VALID_ALIGN_MAP` are defined in `../shared.js`.
+3.  Ensure `getConfig()` is available in `../config.js` (if using Global Mode).
 
----
+### Method A: Global Configuration (Simplest)
+If you omit the `nav` attribute, the component fetches links from your global config based on `nav-type`.
 
-## Global Navigation
+```html
+<custom-nav nav-type="header"></custom-nav>
 
-- If `nav` attribute is **missing**, the component loads from global config:
-  - `nav-type="header"` → `config.headerNavigation`
-  - `nav-type="footer"` → `config.footerNavigation`
-- Listens to custom events:
-  - `header-navigation-updated`
-  - `footer-navigation-updated`
-- Re-renders automatically on config update **if visible and initialized**
+<custom-nav nav-type="footer"></custom-nav>
+```
+
+### Method B: Local Data (Manual)
+You can provide links directly using a JSON string.
+
+```html
+<custom-nav 
+    nav='[{"text": "Home", "href": "/"}, {"text": "About", "href": "/about"}]'
+    nav-position="right">
+</custom-nav>
+```
 
 ---
 
-## Rendering & Caching
+## 2. Configuration Attributes
 
-- **Critical attributes** trigger re-render:
-  ```js
-  ['nav', 'nav-type', 'nav-position', 'nav-class', 'nav-style', 'nav-aria-label',
-   'nav-toggle-class', 'nav-toggle-icon', 'nav-orientation', 'nav-container-class',
-   'nav-container-style', 'nav-background-color', 'nav-background-image-noise',
-   'nav-border', 'nav-border-radius', 'nav-backdrop-filter']
+### 🔗 Data & Source
+
+| Attribute | Description | Default | Format |
+| :--- | :--- | :--- | :--- |
+| `nav` | **Local Mode:** JSON array of links. If omitted, Global Mode is active. | `null` | `[{"text":"Name","href":"/url"}]` |
+| `nav-type` | **Global Mode:** Selects which config key to use. | `header` | `header` or `footer` |
+| `nav-orientation` | Layout direction of the links. | `horizontal` | `horizontal` or `vertical` |
+
+### 📐 Layout & Alignment
+
+| Attribute | Description | Example Values |
+| :--- | :--- | :--- |
+| `nav-position` | Align within container. | `center`, `right`, `top-right`, `bottom-center` |
+| `nav-container-class` | Classes for the outer wrapper `<div>`. | `container-fluid`, `wrapper` |
+| `nav-container-style` | Inline style for the outer wrapper. | `padding: 2rem; width: 100%;` |
+| `nav-class` | Classes for the `<nav>` element. | `navbar`, `my-custom-nav` |
+| `nav-style` | Inline style for the `<nav>` element. | `border-bottom: 1px solid #ccc;` |
+
+### 🎨 Visuals & Effects
+
+| Attribute | Description | Default |
+| :--- | :--- | :--- |
+| `nav-background-color` | Sets the background color. | — |
+| `nav-background-image-noise` | Adds a noise texture overlay. | Boolean |
+| `nav-backdrop-filter` | CSS backdrop filters (Glassmorphism). | `backdrop-filter-blur-md` |
+| `nav-border` | Utility classes for borders. | e.g., `border-bottom` |
+| `nav-border-radius` | Utility classes for radius. | e.g., `rounded-lg` |
+
+### 📱 Mobile Toggle
+
+| Attribute | Description | Default |
+| :--- | :--- | :--- |
+| `nav-toggle-icon` | HTML for the mobile menu button. | `<i class="fa-solid fa-bars"></i>` |
+| `nav-toggle-class` | Custom class for the toggle button. | — |
+
+---
+
+## 3. Technical Behavior
+
+### Global Event Listeners
+When in **Global Mode** (no `nav` attribute), the component listens for specific events on the `document` to trigger re-renders. This allows you to update the navigation dynamically without reloading the page.
+* `header-navigation-updated`
+* `footer-navigation-updated`
+
+### Caching Strategy
+The component hashes specific "Critical Attributes" (like `nav`, `nav-type`, `nav-class`, etc.). If `attributeChangedCallback` fires but the calculated hash matches the previous render, the component skips the expensive HTML generation step.
+
+---
