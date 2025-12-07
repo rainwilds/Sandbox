@@ -988,67 +988,22 @@
 
             display: grid;
             background-color: light-dark(var(--color-light-6), var(--color-dark-6));
+            grid-template-areas:
+                "gutter-left header header header header header header header header header header header header gutter-right"
+                "gutter-left main main main main main main main main main main main main gutter-right"
+                "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
+ 
+            grid-template-rows: if(
+                media((min-width: 550px) and (max-width: 980px) and (orientation: landscape)): 100vh;
+                media(max-width: 768px): 100vh;
+                media(max-width: 1200px): 100vh;
+                media(min-width: 1201px) and (max-width: 1919px): 60vh;
+                else: 60vh
 
-            @media (min-width: 550px) and (max-width: 980px) and (orientation: landscape) {
+            );
 
-                & {
-                    grid-template: 100vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter) !important;
-                    grid-template-areas:
-                        "gutter-left header header header header header header header header header header header header gutter-right"
-                        "gutter-left main main main main main main main main main main main main gutter-right"
-                        "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right" !important;
-                }
-
-            }
-
-            @media (max-width: 768px) {
-
-                & {
-                    grid-template: 100vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter) !important;
-                    grid-template-areas:
-                        "gutter-left header header header header header header header header header header header header gutter-right"
-                        "gutter-left main main main main main main main main main main main main gutter-right"
-                        "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right" !important;
-                }
-
-            }
-
-            @media (max-width: 1200px) {
-
-                & {
-                    grid-template: 100vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
-                    grid-template-areas:
-                        "gutter-left header header header header header header header header header header header header gutter-right"
-                        "gutter-left main main main main main main main main main main main main gutter-right"
-                        "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
-                }
-
-            }
-
-            @media (min-width: 1201px) and (max-width: 1919px) {
-
-                & {
-                    grid-template: 60vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
-                    grid-template-areas:
-                        "gutter-left header header header header header header header header header header header header gutter-right"
-                        "gutter-left main main main main main main main main main main main main gutter-right"
-                        "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
-                }
-
-            }
-
-            @media (min-width: 1920px) {
-
-                & {
-                    grid-template: 60vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
-                    grid-template-areas:
-                        "gutter-left header header header header header header header header header header header header gutter-right"
-                        "gutter-left main main main main main main main main main main main main gutter-right"
-                        "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
-                }
-
-            }
-
+            grid-template-columns: var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
+            
         }
 
         @media (max-width: 768px) {
