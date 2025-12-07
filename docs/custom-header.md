@@ -1,93 +1,128 @@
-# Custom Header Documentation
+# Custom Header (<custom-header>)
 
-The `<custom-header>` is a Web Component that extends the `CustomBlock` base class to create a highly customizable header with support for a logo (`<custom-logo>`) and navigation (`<custom-nav>`). It provides fine-grained control over positioning, backdrop effects, logo placement, and navigation alignment. Below is a detailed explanation of all attributes, grouped into **General Attributes**, presented in alphabetical order.
+The `<custom-header>` is a Web Component that extends the `CustomBlock` base class to create a highly customizable header with support for a logo (`<custom-logo>`) and navigation (`<custom-nav>`). It provides fine-grained control over positioning, backdrop effects, logo placement, and navigation alignment.
 
-## General Attributes
+## Features
 
-| Attribute Name | Description | Default Value | Expected Format |
-|----------------|-------------|---------------|-----------------|
-| **backdrop-filter** | Applies a backdrop filter effect (e.g., blur) to the header background. Uses predefined mapping from `shared.js`. | `''` (none) | One of: `blur-sm`, `blur-md`, `blur-lg`, `blur-xl` (or any key in `BACKDROP_FILTER_MAP`) |
-| **background-color** | Sets the background color of the header using a predefined class (inherited from `CustomBlock`). | `''` (empty) | `background-color-[number]` (e.g., `background-color-1`) |
-| **border** | Sets the border style for the header (inherited from `CustomBlock`). | `''` (empty) | CSS class name (e.g., `border-small`) |
-| **border-radius** | Sets the border radius for the header; requires `border` to be set (inherited from `CustomBlock`). | `''` (empty) | CSS class name (e.g., `border-radius-small`) |
-| **logo-placement** | Determines whether the logo is rendered independently or inside the navigation container. | `'independent'` | One of: `independent`, `nav` |
-| **nav-alignment** | Controls the alignment of the navigation within its container when `logo-placement="nav"`. Uses `VALID_ALIGN_MAP` for CSS grid placement. | `'center'` | One of: `center`, `top`, `bottom`, `left`, `right`, `top-left`, `top-center`, `top-right`, `bottom-left`, `bottom-center`, `bottom-right`, `center-left`, `center-right` |
-| **nav-logo-container-class** | Adds custom CSS classes to the wrapper `<div>` that contains both logo and nav when `logo-placement="nav"`. | `''` (empty) | Space-separated class names (e.g., `my-header-container gap-4`) |
-| **nav-logo-container-style** | Applies inline styles to the wrapper `<div>` when `logo-placement="nav"`. Automatically includes `z-index: 2`. | `''` (empty) | Valid CSS (e.g., `padding: 1rem; gap: 2rem;`) |
-| **position** | Controls the CSS positioning of the header. Replaces the deprecated `sticky` attribute. | `null` (static/none) | One of: `sticky-top`, `sticky-bottom`, `absolute`, `fixed` |
-| **shadow** | Applies a shadow effect to the header (inherited from `CustomBlock`). | `''` (empty) | One of: `shadow-light`, `shadow-medium`, `shadow-heavy` |
-
-> **Note**: The `sticky` attribute is **deprecated and no longer supported**. Use `position="sticky-top"` or `position="sticky-bottom"` instead.
+* **🧩 Extensible:** Inherits all styling capabilities (backgrounds, borders, shadows) from `CustomBlock`.
+* **📍 Positioning:** Supports `sticky`, `fixed`, and `absolute` positioning.
+* **🌫️ Glassmorphism:** Native support for `backdrop-filter` blur effects.
+* **📐 Flexible Layouts:** Choose between independent logo/nav rendering or a unified container with grid alignment.
+* **📱 Responsive Defaults:** Automatically handles mobile logo centering when using integrated layouts.
 
 ---
 
-## Key Features & Behavior
+## 1. Setup & Usage
 
-### Positioning (`position`)
-- **`sticky-top`**: Header sticks to the top of the viewport as the user scrolls.
-- **`sticky-bottom`**: Header sticks to the bottom of the viewport.
-- **`fixed`**: Header remains fixed in the viewport (does not scroll).
-- **`absolute`**: Positioned absolutely within its nearest positioned ancestor.
-- Invalid values are ignored with a warning; falls back to normal document flow.
+### Requirements
+1.  Import the component file.
+2.  Ensure `CustomBlock`, `CustomLogo`, and `CustomNav` are imported and defined.
+3.  Ensure `shared.js` maps are available.
 
-### Backdrop Filter
-- Applied via `backdrop-filter` attribute.
-- Value must match a key in `BACKDROP_FILTER_MAP` (e.g., `blur-md` → `blur(8px)`).
-- Invalid values are cleared with a console warning.
-
-### Logo & Navigation Integration
-- **Independent Mode** (`logo-placement="independent"`):  
-  Logo and nav are rendered separately in sequence.
-- **Nav-Integrated Mode** (`logo-placement="nav"`):  
-  Logo and nav are wrapped in a shared container with:
-  - Custom classes via `nav-logo-container-class`
-  - Custom styles via `nav-logo-container-style`
-  - Navigation aligned using `nav-alignment` (mapped via `VALID_ALIGN_MAP`)
-  - Responsive override: logo centered on mobile (`max-width: 1023px`)
-
-### Content Handling
-- If any content attributes are present (`heading`, `sub-heading`, `text`, `button-text`, `icon`), the base `CustomBlock` content is preserved **below** the logo/nav.
-- The `aria-live="polite"` region is styled as `display: grid` when content exists.
-- `text-align-*` classes are converted to `place-self-*` for better grid alignment.
-
-### Rendering & Caching
-- Uses **render caching** based on a hash of all critical attributes.
-- Re-renders on any `observedAttributes` change.
-- Fallback rendering ensures a valid `<header>` element even if `super.render()` fails.
-
-### Validation & Debugging
-- Invalid attribute values trigger **colored console warnings** (orange) with stack traces in debug mode.
-- Errors during child rendering (`custom-logo`, `custom-nav`) are caught and replaced with error placeholders.
-- Debug mode enabled via URL: `/dev/` or `?debug=true`
-
----
-
-## Notes
-- Requires `<custom-logo>` and `<custom-nav>` to be **defined** before use. Undefined components result in error placeholders.
-- Uses `customElements.upgrade()` to ensure child components are initialized.
-- All inherited `CustomBlock` attributes (background, border, effects, etc.) are fully supported.
-- The component sets `role="banner"` on the root `<header>` for accessibility.
-- Caching is cleared on `disconnectedCallback` to prevent memory leaks.
-
----
-
-## Example Usage
-
+### Basic Example
 ```html
 <custom-header 
     position="sticky-top"
     backdrop-filter="blur-md"
-    logo-placement="nav"
-    nav-alignment="center"
-    nav-logo-container-class="px-6 py-4"
-    nav-logo-container-style="background: rgba(255,255,255,0.1);">
+    background-color="background-color-1"
+    shadow="shadow-light">
     
-    <custom-logo src="logo.svg" alt="My Brand"></custom-logo>
+    <custom-logo src="/logo.svg" alt="Brand"></custom-logo>
+    
     <custom-nav>
         <a href="/">Home</a>
-        <a href="/about">About</a>
+        <a href="/products">Products</a>
     </custom-nav>
-
-    <h1 slot="heading">Welcome</h1>
-    <p slot="text">This is a sticky header with blur backdrop.</p>
 </custom-header>
+```
+
+---
+
+## 2. Configuration Attributes
+
+### General Attributes
+
+| Attribute Name | Description | Default Value | Expected Format |
+|----------------|-------------|---------------|-----------------|
+| **position** | Controls CSS positioning. | `null` (static) | `sticky-top`, `sticky-bottom`, `absolute`, `fixed` |
+| **backdrop-filter** | Applies a blur effect to the background. | `''` | `blur-sm`, `blur-md`, `blur-lg`, `blur-xl` |
+| **logo-placement** | Layout strategy for logo and nav. | `'independent'` | `independent`, `nav` |
+| **nav-alignment** | Alignment of nav within container (only if `logo-placement="nav"`). | `'center'` | `center`, `left`, `right`, `top-center`, etc. |
+| **nav-logo-container-class** | CSS classes for the wrapper div (only if `logo-placement="nav"`). | `''` | Space-separated classes |
+| **nav-logo-container-style** | Inline styles for the wrapper div (only if `logo-placement="nav"`). | `''` | CSS string |
+
+### Inherited Attributes (from CustomBlock)
+Since this extends `CustomBlock`, you can also use:
+* `background-color`, `background-gradient`, `background-image-noise`
+* `border`, `border-radius`, `shadow`
+* `heading`, `text`, `button-text` (Content appears *below* the nav/logo)
+
+> **Note**: The `sticky` attribute is **deprecated**. Use `position="sticky-top"` instead.
+
+---
+
+## 3. Key Features & Behavior
+
+### Positioning logic
+* **`sticky-top` / `sticky-bottom`**: Uses CSS `position: sticky`. Requires a parent container with defined height/overflow to work correctly in some contexts.
+* **`fixed`**: Fixes header relative to the viewport.
+* **`absolute`**: Absolute positioning relative to the nearest positioned ancestor.
+
+### Logo & Navigation Integration
+* **Independent Mode (`independent`)**: The `<custom-logo>` is rendered first, followed immediately by `<custom-nav>`. They are siblings in the DOM.
+* **Integrated Mode (`nav`)**: Both components are wrapped in a shared `<div>`.
+    * This wrapper receives `z-index: 2` automatically.
+    * This mode enables the `nav-alignment` attribute to control the grid placement of the navigation relative to the logo.
+
+### Content Injection
+If you provide `CustomBlock` content attributes (like `heading="Welcome"`), this content is rendered **after** the navigation elements. The internal layout engine switches the content container to `display: grid` and converts text-alignment classes to `place-self` properties to ensure proper centering.
+
+---
+
+## 4. Styling Reference (Internals)
+
+
+
+Understanding the internal structure helps when applying custom CSS.
+
+### 🏗️ Structural Hierarchy
+
+1.  **Root Element (`header`)**
+    * **Role:** `banner`
+    * **Classes:** Receives `position-*`, `background-color-*`, `shadow-*`, etc.
+    * **Styles:** Receives the `backdrop-filter` inline style.
+
+2.  **Logo/Nav Container (Conditional)**
+    * *Only exists if `logo-placement="nav"`*
+    * **Style:** `z-index: 2` is forced inline.
+    * **Classes:** Receives `nav-logo-container-class`.
+
+3.  **Content Container (`div[aria-live="polite"]`)**
+    * *Only exists if text/heading attributes are present.*
+    * **Style:** `display: grid` is applied via JS to handle content alignment.
+    * **Classes:** Content alignment classes (`text-align-center`) are converted to Grid alignment (`place-self-center`).
+
+### 📱 Injected Styles (Mobile Override)
+When using `logo-placement="nav"`, the component injects an internal `<style>` block:
+
+```css
+@media (max-width: 1023px) {
+    .logo-container {
+        place-self: center !important;
+    }
+}
+```
+This ensures that on mobile devices (Tablet Portrait and below), the logo is forced to the center regardless of the desktop alignment settings.
+
+---
+
+## 5. Troubleshooting
+
+* **Sticky positioning not working?**
+    Ensure the parent container of `<custom-header>` does not have `overflow: hidden` or `overflow: auto`, as this breaks sticky behavior.
+* **Nav overlapping Logo?**
+    If using `logo-placement="independent"`, they are block-level siblings. Switch to `logo-placement="nav"` to manage them in a unified flex/grid context, or use `nav-logo-container-class="d-flex"` to align them manually.
+* **Missing Child Components?**
+    If the header renders "Error rendering logo" or "Error rendering nav", ensure that `<custom-logo>` and `<custom-nav>` are imported and defined in your JavaScript bundle *before* the header tries to render.
+* **Z-Index Issues?**
+    When `logo-placement="nav"` is used, the container is set to `z-index: 2`. If you need the background content (like a video in `CustomBlock`) to be above the nav, you will need to override this via `nav-logo-container-style`.

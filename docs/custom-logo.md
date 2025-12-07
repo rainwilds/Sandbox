@@ -1,4 +1,4 @@
-# Custom Logo Documentation
+# Custom Logo (<custom-logo>)
 
 The `<custom-logo>` is a Web Component designed to display a customizable logo with support for **responsive breakpoints** and **light/dark mode switching** using the `<picture>` element and `prefers-color-scheme`. It supports **two logo variants**:
 - **Full logo** (default for larger screens)
@@ -8,7 +8,7 @@ The component **does not** use `generatePictureMarkup` from `image-generator.js`
 
 ---
 
-## Logo Attributes
+## 1. Logo Attributes
 
 All attributes are **prefixed** and grouped into **full logo**, **icon logo**, and **layout** controls.
 
@@ -45,40 +45,67 @@ All attributes are **prefixed** and grouped into **full logo**, **icon logo**, a
 
 ---
 
-## Key Features
+## 2. Key Features
 
-### 1. **Responsive Breakpoint Switching**
+### Responsive Breakpoint Switching
 - If `logo-breakpoint="768"` and `logo-icon-*` sources are provided:
   - **Below 768px**: Uses **icon logo** with `logo-icon-position`
   - **768px and above**: Uses **full logo** with `logo-full-position`
 
-### 2. **Light/Dark Mode Support**
+### Light/Dark Mode Support
 - Uses `prefers-color-scheme` media queries.
 - Supports **paired** light/dark sources:
   - `logo-full-light-src` + `logo-full-dark-src`
   - `logo-icon-light-src` + `logo-icon-dark-src`
 - Falls back to `*-primary-src` if light/dark pair is incomplete.
 
-### 3. **Accessibility**
+### Accessibility
 - **Decorative logos**: If **all alt attributes are empty**, `alt=""` and `role="presentation"` are applied.
 - **Required alt text**:
   - `logo-full-primary-alt` required if `logo-full-primary-src` is used
   - Both `logo-full-light-alt` and `logo-full-dark-alt` required if light/dark pair is used
   - Same rules apply to icon variants
 
-### 4. **Validation & Fallbacks**
-- Validates image URLs via `HEAD` request (skipped in debug mode).
-- Invalid or missing sources → renders placeholder (`placehold.co/300x40`).
-- Caches rendered markup based on **critical attributes** to avoid unnecessary re-renders.
-
-### 5. **Performance**
+### Performance
 - Uses `IntersectionObserver` to defer initialization until visible.
 - `loading="lazy"` and `fetchpriority="high"` on `<img>`.
-- `onerror` fallback to placeholder.
+- `onerror` fallback to placeholder (`placehold.co/300x40`).
 
 ---
 
-## Example Usage
+## 3. Styling Reference (Internals)
+
+
+
+The component generates a specific DOM structure to handle the responsive image switching and positioning.
+
+### 🏗️ Structural Hierarchy
+
+1.  **Container (`div.logo-container`)**
+    * **Purpose:** Handles alignment within the host element.
+    * **Classes:** Receives utility classes based on `logo-full-position` (e.g., `place-self-center`).
+    * **Dynamic Styles:** If a breakpoint is defined, the component injects an internal `<style>` block to forcefully change the alignment of this container on mobile screens based on `logo-icon-position`.
+
+2.  **Anchor (`a`)**
+    * **Purpose:** Links the logo to the homepage (`/`).
+    * **Note:** The href is currently hardcoded to `/`.
+
+3.  **Picture Element (`picture`)**
+    * **Purpose:** logic container for source switching.
+    * **Internals:** Contains multiple `<source>` tags for media queries (breakpoints and color schemes).
+
+4.  **Image (`img`)**
+    * **Purpose:** The visible element.
+    * **Style:** Receives the `height` from `logo-height` inline (e.g., `style="height: 40px;"`).
+
+### ⚠️ Important Styling Notes
+
+* **Height Control:** Use the `logo-height` attribute rather than external CSS to ensure the height is applied directly to the image element across all responsive states.
+* **Positioning:** The component uses Grid alignment logic (`place-self-*`). Ensure the parent of `<custom-logo>` allows for this positioning if you are encountering layout issues.
+
+---
+
+## 4. Example Usage
 
 ```html
 <custom-logo

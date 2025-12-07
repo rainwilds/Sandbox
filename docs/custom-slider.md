@@ -149,7 +149,52 @@ Here is a complex setup using continuous scrolling, stacked navigation icons, an
 </custom-slider>
 ```
 
-## 4. Troubleshooting
+---
+
+## 4. Styling Reference (Internals)
+
+The component injects specific CSS variables, classes, and inline styles to handle layout and animation. You can use these to hook into the slider for custom styling.
+
+### 🎨 CSS Variables (Injected)
+
+These variables are calculated via JavaScript and applied to `.slider-wrapper`.
+
+| CSS Variable | Source Attribute | Description |
+| :--- | :--- | :--- |
+| `--slider-columns` | Calculated from `slides-per-view` | Defines the grid layout columns. E.g., `repeat(5, 20%)`. |
+| `--slider-gap` | `gap` | Passes the gap value (e.g., `20px`) to the CSS grid layout. |
+
+### 🏷️ Dynamic Classes
+
+These classes are added/removed from elements based on user interaction or configuration.
+
+| Class | Element | Trigger |
+| :--- | :--- | :--- |
+| `.dragging` | `.slider-wrapper` | Added while the user is actively clicking/touching and dragging the slider. Useful for disabling `transition` or changing cursor styles. |
+| `.active` | `.slider-slide` | **Only in Cross-Fade mode.** Added to the currently visible slide to handle opacity transitions. |
+| `.icon-stack` | `<span>` inside nav | Added automatically when a navigation background icon is provided to wrap both icons. |
+| `.icon` | `<i>` or `<span>` | Added to navigation/pagination elements if the Font Awesome class list doesn't explicitly contain it. |
+
+### ⚓ State Attributes
+
+The component reflects certain configuration states onto the main host element (`<custom-slider>`) to allow for CSS targeting.
+
+| Attribute Selector | Description |
+| :--- | :--- |
+| `[pagination-position="below"]` | Added if `pagination-position` is set. Use this to style the container to accommodate dots outside the slider area. |
+| `[gap]` | Added if a `gap` > 0 is present. |
+| `[cross-fade]` | Added if cross-fade mode is active. |
+| `[draggable]` | Added if the `draggable` attribute is present. |
+
+### ⚠️ Important Styling Notes
+
+1.  **Transform:** The `.slider-wrapper` uses inline `transform: translate3d(...)` for movement. **Do not** override the `transform` property in your external CSS, or the slider will stop moving.
+2.  **Opacity:** In `cross-fade` mode, the component controls inline `opacity`. Avoid overriding opacity on `.slider-slide` via CSS !important.
+3.  **Transitions:** The component manages `transition` inline (e.g., setting it to `none` during a drag).
+
+---
+
+## 5. Troubleshooting
 
 * **Slides not appearing?**
     Ensure your child elements are either `<custom-block>` tags or `div`s with the class `block`.

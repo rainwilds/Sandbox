@@ -90,3 +90,62 @@ When in **Global Mode** (no `nav` attribute), the component listens for specific
 The component hashes specific "Critical Attributes" (like `nav`, `nav-type`, `nav-class`, etc.). If `attributeChangedCallback` fires but the calculated hash matches the previous render, the component skips the expensive HTML generation step.
 
 ---
+
+## 4. Styling Reference (Internals)
+
+Understanding the internal HTML structure is key to applying custom styles effectively.
+
+### 🏗️ Structural Hierarchy
+
+1.  **Outer Container (`div`)**
+    * **Purpose:** Handles positioning within the parent (e.g., centering, full width).
+    * **Target:** `nav-container-class`, `nav-container-style`.
+    * **Auto-Classes:** Receives alignment classes mapped from `nav-position` (e.g., `.d-flex .justify-content-center`).
+
+2.  **Nav Element (`nav`)**
+    * **Purpose:** The main visible bar. Handles background, borders, and glassmorphism.
+    * **Target:** `nav-class`, `nav-style`.
+    * **Auto-Classes:**
+        * `.nav-horizontal` or `.nav-vertical` (based on `nav-orientation`).
+        * `.background-image-noise` (if attribute is present).
+
+3.  **Toggle Button (`button`)**
+    * **Purpose:** The mobile hamburger menu trigger.
+    * **Target:** `nav-toggle-class`.
+    * **Attributes:** `aria-expanded` (toggles true/false on click).
+    * **Internal:** Contains a `<span class="hamburger-icon">`.
+
+4.  **Links List (`ul.nav-links`)**
+    * **Purpose:** Holds the actual navigation items.
+    * **Behavior:** Toggles `display: none/block` when the button is clicked.
+
+### 🎨 Dynamic Styling Logic
+
+The JS applies styles in a specific order of precedence:
+
+1.  **Backdrop Filters:** If `nav-backdrop-filter` is set, the JS looks up the value in `BACKDROP_FILTER_MAP` and applies `backdrop-filter: ...` inline to the `<nav>`.
+2.  **Background Color:** Applied inline via `background-color`.
+3.  **User Styles:** `nav-style` is appended last, allowing you to override defaults if necessary (though inline styles generally win).
+
+### 🔍 State Selectors
+
+You can use these selectors in your CSS to target specific states:
+
+| Selector | Description |
+| :--- | :--- |
+| `button[aria-expanded="true"]` | Target the toggle button when the menu is **open**. |
+| `a[aria-disabled="true"]` | Target links that have been sanitized to `#` (invalid hrefs). |
+| `.background-image-noise` | Target the nav when noise texture is enabled. |
+
+---
+
+## 5. Troubleshooting
+
+* **Menu not opening?**
+    Check if `nav-toggle-icon` is valid HTML. The component requires a button to exist for the toggle listener to attach.
+* **Styles looking wrong?**
+    Remember that `nav-container-class` goes on the *wrapper* `<div>`, while `nav-class` goes on the *inner* `<nav>`. If you are trying to use Flexbox utilities, ensure they are applied to the correct container.
+* **Global Nav empty?**
+    Ensure `nav-type` matches a key in your global config (e.g., `headerNavigation` or `footerNavigation`). Check the console logs with `?debug=true` to see if the config fetch failed.
+* **Icons missing?**
+    The component enforces strict validation on icons. They must contain `fa-` classes. Plain text or invalid HTML tags in `nav-toggle-icon` will be rejected.
