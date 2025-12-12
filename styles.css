@@ -119,7 +119,10 @@
     :root {
 
         --space-micro: 0.4rem;
-        --space-tiny: 1rem;
+        --space-tiny: if(
+            media(max-width: 768px): 0.7em;
+            else: 1rem
+        );
         --space-small: 2rem;
         --space-medium: 2.8rem;
         --space-large: 6.7rem;
@@ -130,6 +133,17 @@
         --max-width-small: 20vw;
         --max-width-medium: 40vw;
         --max-width-large: 60vw;
+
+
+        /* --space-tiny: 0.6rem;
+        --space-small: 1.5rem;
+        --space-medium: 2rem;
+        --space-large: 6rem;
+        --space-huge: 7rem;
+
+        --font-2-size-small: 12px;
+        --font-2-size-medium: 16px;
+        --font-2-size-large: 20px; */        
         
 
         
@@ -1009,18 +1023,6 @@
         @media (max-width: 768px) {
 
             &:root {
-
-                /* --space-tiny: 0.6rem;
-                --space-small: 1.5rem;
-                --space-medium: 2rem;
-                --space-large: 6rem;
-                --space-huge: 7rem;
-
-                --font-2-size-small: 12px;
-                --font-2-size-medium: 16px;
-                --font-2-size-large: 20px; */
-
-
 
                 .max-width-small,
                 .max-width-medium,
