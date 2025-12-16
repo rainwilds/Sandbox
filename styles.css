@@ -118,35 +118,23 @@
 
     :root {
 
-        --space-micro: if(
-            media(max-width: 768px): 0.28rem;
-            else: 0.4rem
-        );
+        --space-micro: if(media(width <=768px): 0.28rem;
+                else: 0.4rem);
 
-        --space-tiny: if(
-            media(max-width: 768px): 0.7rem;
-            else: 1rem
-        );
+        --space-tiny: if(media(width <=768px): 0.7rem;
+                else: 1rem);
 
-        --space-small: if(
-            media(max-width: 768px): 1.4rem;
-            else: 2rem
-        );
+        --space-small: if(media(width <=768px): 1.4rem;
+                else: 2rem);
 
-        --space-medium: if(
-            media(max-width: 768px): 1.96rem;
-            else: 2.8rem
-        );
+        --space-medium: if(media(width <=768px): 1.96rem;
+                else: 2.8rem);
 
-        --space-large: if(
-            media(max-width: 768px): 4.69rem;
-            else: 6.7rem
-        );
+        --space-large: if(media(width <=768px): 4.69rem;
+                else: 6.7rem);
 
-        --space-huge: if(
-            media(max-width: 768px): 6.3rem;
-            else: 9rem
-        );
+        --space-huge: if(media(width <=768px): 6.3rem;
+                else: 9rem);
 
         --side-gutter: 5vw;
 
