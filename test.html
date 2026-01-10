@@ -1,387 +1,92 @@
 <head>
-    <!-- Google tag (gtag.js) -->
-    <script type="text/javascript" async="" id="tmr-code" src="https://top-fwz1.mail.ru/js/code.js"></script>
-    <script async="" src="https://cdn.jsdelivr.net/npm/yandex-metrica-watch/tag.js"></script>
-    <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-XHEWQXF2SQ"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-
-        function gtag() {
-            dataLayer.push(arguments);
-        }
-
-        gtag('js', new Date());
-
-        gtag('config', 'G-XHEWQXF2SQ');
-    </script>
-    <title>Escape from Tarkov official page</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <meta name="apple-mobile-web-app-title" content="Escape from Tarkov">
-    <meta name="application-name" content="Escape from Tarkov">
-    <meta name="msapplication-TileColor" content="#da532c">
-    <meta name="msapplication-TileImage" content="/mstile-144x144.png?v=kPPzp2moQ2">
-    <meta name="msapplication-config" content="/browserconfig.xml?v=kPPzp2moQ2">
-    <meta name="theme-color" content="#090809">
-    <meta name="google-site-verification" content="5op7E5bnGj135ZPFeW7hrlLIfbLePKFa7EIeldCi7Hs">
+    <link rel="preload" href="./JSON/setup.json" as="fetch" crossorigin="anonymous">
+    <link rel="preload" href="./styles.css" as="style">
+    <link rel="preload" href="./custom.css" as="style">
 
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    <link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png?v=kPPzp2moQ2">
-    <link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon-60x60.png?v=kPPzp2moQ2">
-    <link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-72x72.png?v=kPPzp2moQ2">
-    <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon-76x76.png?v=kPPzp2moQ2">
-    <link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-114x114.png?v=kPPzp2moQ2">
-    <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png?v=kPPzp2moQ2">
-    <link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon-144x144.png?v=kPPzp2moQ2">
-    <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png?v=kPPzp2moQ2">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png?v=kPPzp2moQ2">
-    <link rel="icon" type="image/png" href="/favicon-32x32.png?v=kPPzp2moQ2" sizes="32x32">
-    <link rel="icon" type="image/png" href="/android-chrome-192x192.png?v=kPPzp2moQ2" sizes="192x192">
-    <link rel="icon" type="image/png" href="/favicon-96x96.png?v=kPPzp2moQ2" sizes="96x96">
-    <link rel="icon" type="image/png" href="/favicon-16x16.png?v=kPPzp2moQ2" sizes="16x16">
-    <link rel="manifest" href="/manifest.json?v=kPPzp2moQ2">
-    <link rel="mask-icon" href="/safari-pinned-tab.svg?v=kPPzp2moQ2">
-    <link rel="shortcut icon" href="/favicon.ico?v=kPPzp2moQ2">
-    <link href="https://plus.google.com/109129626995459343541" rel="publisher">
+    <script src="js/generators/head-generator.js" type="module"></script>
 
+    <data-custom-head
+        data-components="custom-block custom-header custom-logo custom-nav"
+        data-title="Masonry Gallery Test"
+        data-description="Testing experimental grid-lanes masonry layout."
+        data-canonical="https://rainwilds.github.io/Sandbox/masonry-test.html"       
+        >
+    </data-custom-head>
 
+    <style>
+        @layer components {
+            .masonry-container {
+                padding: var(--space-large) var(--side-gutter);
+                background-color: light-dark(var(--color-white), var(--color-dark-6));
+            }
 
-    <link rel="stylesheet" href="/build-eft-site/_nuxt/entry.dtPONtf9.css" crossorigin="">
-    <link rel="modulepreload" as="script" crossorigin="" href="/build-eft-site/_nuxt/DIqP0I6F.js">
-    <link rel="prefetch" as="image" type="image/webp" href="/build-eft-site/_nuxt/404.DEnlYcSq.webp">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/ad.CIfEhclW.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/ad.qYbAAoSh.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/af.BuMBUgKS.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/af.tPgUcn__.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/as.B62a7WAl.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/as.CbXv4jzJ.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/aw.W0PWLK5p.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/aw.CLCX8uk5.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/bm.BvR3egAp.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/bm.-cEKCVOn.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/bn.ChzTadRh.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/bn.BSuaq1Wb.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/bo.6ClBJX69.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/bo.BuzOw5h1.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/br.PVuHDLSp.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/br.Dr5rMAMb.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/bt.BTo4qm10.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/bt.BVgHscRH.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/bz.UeIMOdYC.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/bz.CLHtXBeg.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/cy.bZuP8hmf.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/cy.BcNgb04z.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/dm.Cbhezfe1.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/dm.DPPHwW2M.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/do.BLjaam8q.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/do.CYuBDYHN.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/ec.CaVOFQ3t.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/ec.cwfBJlvF.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/eg.DoP9inAL.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/eg.CN2tu5fg.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/es.ByLEL5u9.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/es.BbeAXIxn.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/fj.cXjcl0Fp.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/fj.DDs3CkjB.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/fk.D8T6Bfyo.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/fk.BSxkPvcy.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/gq.Cag8QTk2.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/gq.CPnMO1hT.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/gs.BGaO-uAi.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/gs.Dhhdhm-N.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/gt.yQJojBBZ.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/gt.LfEoDgMu.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/gu.Di1JYREk.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/gu.SbvrH0uZ.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/hr.Dk1jfI3h.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/hr.CrDyIZ9c.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/ht.CJRwLnD5.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/ht.OaXW6Ckh.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/im.DYDp4oLw.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/im.BZvIo3_m.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/io.13HOfeJD.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/io.BImhNBcd.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/ir.cCIgaNf6.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/ir.Q03Mij62.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/je.Bq_hazPl.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/je.B8TEOR8T.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/kg.CLcIyImU.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/kg.DE1OcCNa.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/kh.BeWfuE30.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/kh.BBvObpUS.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/ki.p_fAQGbS.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/ki.fuIMkEYQ.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/ky.Bl4EUcuf.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/ky.CNNivbEu.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/kz.fSbQQwqU.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/kz.BhJ_sx4z.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/li.D--sPAzE.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/li.nRBCb42X.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/lk.DUkgV9Tq.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/lk.DSQoDxn_.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/md.DRlxvNwm.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/md.DTi94M3M.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/me.DN-JqxqQ.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/me.C4rJAeaB.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/mp.CrOApEqW.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/mp.CuaQmCLf.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/ms.DxciGbUu.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/ms.B-w7hFKu.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/mt.CCEaFgc1.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/mt.CptT5Up5.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/mx.CgANr7Hc.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/mx.BKTT9Zsn.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/nf.Dl00mlk2.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/nf.DGrQb42O.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/ni.CuGv--Gp.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/ni.BYCxSj-P.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/om.BGRA2mJE.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/om.DzR0by_O.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/pn.Bc8nPEwi.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/pn.BKudj2S6.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/pt.CQVtB-Le.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/pt.DYRGW68h.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/py.CUzV776d.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/py.DVcr39IT.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/rs.ZwZi-SR6.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/rs.BvFrCUNm.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/sa.DMELvfVN.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/sa.CwDtCY_e.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/sm.DGBIRFB_.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/sm.CfuSEhAf.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/sv.DwXt4tfO.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/sv.B3Xyu71P.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/sx.BCb2l4FV.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/sx.BV89-FB1.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/sz.qxMwa2gs.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/sz.D39eIL5d.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/tc.dtelpZmc.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/tc.CJHJmJj1.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/tm.C_WSgUcv.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/tm.DGBJvQay.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/va.B1737jVh.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/va.BcsDw49H.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/vg.9wqmkANB.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/vg.CIMyeXjw.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/vi.BC_zcciE.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/vi.BSdsyIxY.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/zm.BmsW91ne.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/zm.D8B-0kdx.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/zw.BsTZ3ABm.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/zw.C6mc_0DL.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/arab.BKFOg4OI.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/arab.ChR_bGdP.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/dg.CJPJrjiZ.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/dg.DqkWLbnk.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/eac.C2q2INia.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/eac.5Fo6OcTF.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/es-ga.DgBiTHPZ.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/es-ga.DHM04YZf.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/gb-nir.D4gikpNq.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/gb-nir.C71_G4bk.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/gb-wls.Bxz9hxvX.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/gb-wls.CK0XlKT-.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/sh-ac.ZZIgADsm.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/sh-ac.BZX-YwYa.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/sh-hl.auMKbIRo.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/sh-hl.ypSwBFIf.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/sh-ta.COZj1_Fv.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/sh-ta.euBwJYlc.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/un.BZVtxNUo.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/un.Bzc8jJt-.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/xk.BKj_MEGI.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/xk.C19ckn1k.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/VinSansPro-Regular.BJ4T9TGV.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/VinSansPro-Light.Do4ACDab.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/Bender.BCzI3ivo.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/Bender-Bold.Bt7vZGuf.svg">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/Bender-Black.CshYpYpi.svg">
-    <link rel="prefetch" as="image" type="image/jpeg" href="/build-eft-site/_nuxt/bg-error.BKCv5X-m.jpg">
-    <link rel="prefetch" as="image" type="image/png" href="/build-eft-site/_nuxt/bg-parallax.o0RmobwQ.png">
-    <link rel="prefetch" as="image" type="image/png" href="/build-eft-site/_nuxt/bg-font.BY3Xn2Ui.png">
-    <link rel="prefetch" as="image" type="image/svg+xml" href="/build-eft-site/_nuxt/border-medium.BMNpaqYW.svg">
-    <link rel="prefetch" as="style" crossorigin="" href="/build-eft-site/_nuxt/index.DIqDADTU.css">
-    <link rel="prefetch" as="style" crossorigin="" href="/build-eft-site/_nuxt/AppLink.BClwPO73.css">
-    <link rel="prefetch" as="style" crossorigin="" href="/build-eft-site/_nuxt/IconX.DkKeSHwp.css">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/Bwk7YTXF.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/4ikmm6P8.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/2AYDRmQF.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/CEp2lruK.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/Cf0QCT13.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/l0sNRNKZ.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/hQo6KbAm.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/MWsmev_e.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/BfJ50v1H.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/CGtSEl3I.js">
-    <link rel="prefetch" as="style" crossorigin="" href="/build-eft-site/_nuxt/default.Ds0tz04C.css">
-    <link rel="prefetch" as="style" crossorigin="" href="/build-eft-site/_nuxt/BorderButton.DyyRipDg.css">
-    <link rel="prefetch" as="style" crossorigin="" href="/build-eft-site/_nuxt/SquareButton.Cvmn-gpa.css">
-    <link rel="prefetch" as="style" crossorigin="" href="/build-eft-site/_nuxt/BaseModal.BIt0_bXo.css">
-    <link rel="prefetch" as="style" crossorigin="" href="/build-eft-site/_nuxt/LegalsContent.jSnK49uz.css">
-    <link rel="prefetch" as="style" crossorigin="" href="/build-eft-site/_nuxt/LegalsModal.CPygeq9K.css">
-    <link rel="prefetch" as="style" crossorigin="" href="/build-eft-site/_nuxt/TopLine.DiiC8bCu.css">
-    <link rel="prefetch" as="style" crossorigin="" href="/build-eft-site/_nuxt/IconDownload.RYK8IqrQ.css">
-    <link rel="prefetch" as="style" crossorigin="" href="/build-eft-site/_nuxt/IconBuyStroked.BzR5C_xc.css">
-    <link rel="prefetch" as="style" crossorigin="" href="/build-eft-site/_nuxt/AppFooter.Da-qU6hh.css">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/DAF3a0NH.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/B2e2hsB1.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/BxcfhQfu.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/BKIJkA-w.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/C-vAJoGE.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/D1CnfH8R.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/CYOH1sYn.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/TltFiBbx.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/CBj6btNt.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/cf9PfvAw.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/4LcmRuYg.js">
-    <link rel="prefetch" as="style" crossorigin="" href="/build-eft-site/_nuxt/error.DOjVouXh.css">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/C0P26F0w.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/nq3k2knO.js">
-    <link rel="prefetch" as="script" crossorigin="" href="/build-eft-site/_nuxt/RD6T1e-u.js">
-    <script type="module" src="/build-eft-site/_nuxt/DIqP0I6F.js" crossorigin=""></script>
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/AppLink.BClwPO73.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/IconX.DkKeSHwp.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/index.DIqDADTU.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/IconDownload.RYK8IqrQ.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/IconBuyStroked.BzR5C_xc.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/BorderButton.DyyRipDg.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/SquareButton.Cvmn-gpa.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/TopLine.DiiC8bCu.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/BaseModal.BIt0_bXo.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/LegalsContent.jSnK49uz.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/LegalsModal.CPygeq9K.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/AppFooter.Da-qU6hh.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/default.Ds0tz04C.css">
-    <meta property="itemprop" name="name" content="Escape from Tarkov">
-    <meta property="itemprop" name="datePublished" content="2015-11-05">
-    <meta name="description"
-        content="Escape from Tarkov is a hardcore story-driven online shooter combining FPS, TPS, and RPG elements. Survive the chaos of Tarkov, fight in a gritty, realistic environment, and uncover its secrets. An intense combat simulator with deep mechanics and total immersion for the most dedicated players.">
-    <meta property="og:title" content="Escape from Tarkov official page">
-    <meta property="og:description"
-        content="Escape from Tarkov is a hardcore story-driven online shooter combining FPS, TPS, and RPG elements. Survive the chaos of Tarkov, fight in a gritty, realistic environment, and uncover its secrets. An intense combat simulator with deep mechanics and total immersion for the most dedicated players.">
-    <meta property="og:image" content="/themes/eft-site/images/main_image.jpg">
-    <meta property="og:url" content="https://www.escapefromtarkov.com/">
-    <meta property="og:site_name" content="www.escapefromtarkov.com">
-    <meta property="og:type" content="website">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Escape from Tarkov official page">
-    <meta name="twitter:description"
-        content="Escape from Tarkov is a hardcore story-driven online shooter combining FPS, TPS, and RPG elements. Survive the chaos of Tarkov, fight in a gritty, realistic environment, and uncover its secrets. An intense combat simulator with deep mechanics and total immersion for the most dedicated players.">
-    <meta name="twitter:image" content="/themes/eft-site/images/main_image.jpg">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/KyL7iO3f.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/xu2GKNuU.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/CeePBLjz.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/iqnLPbNy.js">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/expansions.BRk47i3X.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/AppMarketingBanners.DnGU6KCQ.css">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/DDW3Zcg3.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/4cSi3_Qp.js">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/AppContentScreen.-cd5u3CN.css">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/BFD8xBTL.js">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/AppAboutScreen.DasCbfg3.css">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/DoO3zBG2.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/B922BuxO.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/DElEjEg5.js">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/click-goal.BTVOEdLL.css">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/CihJaz4p.js">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/ExpansionsTypePage.zYDWsm8i.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/PageHeader.6z_5y-0m.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/BaseCheckboxInput.BNJkK1Wz.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/BaseRadioInput.Bh3Glglh.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/AppPurchaseRegionPicker.CrRp_b5J.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/AppImage.DA2T6PTC.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/AppPurchaseFooter.C7ZNxHFV.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/Preloader.BtV-qwHY.css">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/Dgwo2vzO.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/BoWgyX0v.js">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/NewsPage.B4ORKI7T.css">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/BNykICWp.js">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/DottedLoader.BLUPNPE8.css">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/CUqj_-9C.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/BPSq22VQ.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/Bik3bLB1.js">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/SupportFeedbackPage.B4cx6vNM.css">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/24xBMnOT.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/DvLRcFMZ.js">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/BaseSelect.DHXqaH4_.css">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/BaseTextarea.r4-uBl9i.css">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/BXlkmX9c.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/BgyKGRD9.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/9ZmWs8rL.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/DcXxunPw.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/mXaXAELv.js">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/IconUpgrade.CZFQDequ.css">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/Bd0Wye7W.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/eNDCmdsJ.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/Ck_ltpk-.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/Bn7K0qnm.js">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/purchase.CoevT30z.css">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/BPDAUHvC.js">
-    <link rel="modulepreload" as="script" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/DP-gxkW5.js">
-    <link rel="stylesheet" crossorigin=""
-        href="https://www.escapefromtarkov.com/build-eft-site/_nuxt/index.BOmrGEfe.css">
+            .masonry-grid {
+                /* The 2026 Masonry implementation */
+                display: grid-lanes; 
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: var(--space-medium);
+                
+                /* Prevents items from stretching vertically to fill the lane */
+                align-items: start; 
+            }
+
+            .masonry-item {
+                background-color: light-dark(var(--color-light-1-alpha-1), var(--color-dark-1-alpha-2));
+                border: var(--border-size-small) solid var(--color-light-3);
+                padding: var(--space-small);
+                border-radius: var(--border-radius-small);
+                
+                /* Smooth transition for your hover effects */
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+                &:hover {
+                    transform: translateY(-4px);
+                    box-shadow: var(--shadow-medium);
+                    border-color: var(--color-light-1);
+                }
+
+                & h3 {
+                    margin-bottom: var(--space-tiny);
+                    color: var(--color-light-3);
+                }
+
+                & p {
+                    font-size: var(--font-2-size-small);
+                    line-height: 1.4;
+                }
+            }
+        }
+    </style>
 </head>
+
+<body>
+    <main>
+        <section class="masonry-container">
+            <div class="masonry-grid">
+                <article class="masonry-item">
+                    <h3>Short Item</h3>
+                    <p>Just a small amount of text here.</p>
+                </article>
+
+                <article class="masonry-item">
+                    <h3>Tall Item</h3>
+                    <p>This item has significantly more content. In a standard CSS Grid, this would force the entire row to be this tall, leaving a gap under the 'Short Item'. With grid-lanes, the next item will slot directly into that empty space.</p>
+                    <p>It creates a much tighter, more organic feel for galleries and dashboards.</p>
+                </article>
+
+                <article class="masonry-item">
+                    <h3>Medium Item</h3>
+                    <p>Moderate amount of information for testing the layout flow.</p>
+                </article>
+
+                <article class="masonry-item">
+                    <h3>Dynamic Item</h3>
+                    <p>Another snippet of text to see how the lanes shift as the viewport scales.</p>
+                </article>
+            </div>
+        </section>
+    </main>
+</body>
