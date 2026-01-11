@@ -2,17 +2,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="preload" href="./JSON/setup.json" as="fetch" crossorigin="anonymous">
     <link rel="preload" href="./styles.css" as="style">
-    <link rel="preload" href="./custom.css" as="style">
-
     <script src="js/generators/head-generator.js" type="module"></script>
 
     <data-custom-head
-        data-components="custom-block custom-header custom-logo custom-nav"
-        data-title="Masonry Gallery Test"
-        data-description="Testing experimental grid-lanes masonry layout."
-        data-canonical="https://rainwilds.github.io/Sandbox/masonry-test.html"       
+        data-components="custom-block custom-header"
+        data-title="Advanced Masonry & Scroll Blur"
+        data-description="Testing masonry packing with scroll-driven blur effects."
         >
     </data-custom-head>
 
@@ -20,17 +16,18 @@
         @layer components {
             .masonry-container {
                 padding: var(--space-large) var(--side-gutter);
+                /* Ensure enough scroll height to see the effect */
+                min-height: 200vh; 
                 background-color: light-dark(var(--color-white), var(--color-dark-6));
             }
 
             .masonry-grid {
-                /* The 2026 Masonry implementation */
-                display: grid-lanes; 
+                display: grid;
+                /* Active in Brave with experimental flag */
+                grid-template-rows: masonry; 
                 grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
                 gap: var(--space-medium);
-                
-                /* Prevents items from stretching vertically to fill the lane */
-                align-items: start; 
+                align-items: start;
             }
 
             .masonry-item {
@@ -39,25 +36,46 @@
                 padding: var(--space-small);
                 border-radius: var(--border-radius-small);
                 
-                /* Smooth transition for your hover effects */
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                /* --- SCROLL-DRIVEN ANIMATION LOGIC --- */
+                view-timeline-name: --card-fade;
+                view-timeline-axis: block;
 
-                &:hover {
-                    transform: translateY(-4px);
-                    box-shadow: var(--shadow-medium);
-                    border-color: var(--color-light-1);
+                animation: reveal-and-blur linear both;
+                animation-timeline: --card-fade;
+                /* Starts blurring 10% from bottom, clears by 30% up. 
+                   Starts blurring again 70% up, finishes at 90% (top). */
+                animation-range: entry 10% cover 30%, exit 70% exit 90%;
+
+                transition: transform 0.3s ease;
+            }
+
+            @keyframes reveal-and-blur {
+                entry 0% {
+                    filter: blur(15px);
+                    opacity: 0;
+                    transform: scale(0.9) translateY(30px);
                 }
-
-                & h3 {
-                    margin-bottom: var(--space-tiny);
-                    color: var(--color-light-3);
+                entry 100% {
+                    filter: blur(0);
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
                 }
-
-                & p {
-                    font-size: var(--font-2-size-small);
-                    line-height: 1.4;
+                exit 0% {
+                    filter: blur(0);
+                    opacity: 1;
+                    transform: scale(1) translateY(0);
+                }
+                exit 100% {
+                    filter: blur(15px);
+                    opacity: 0;
+                    transform: scale(0.9) translateY(-30px);
                 }
             }
+
+            /* Varying heights for Masonry demo */
+            .masonry-item:nth-child(3n) { min-height: 150px; }
+            .masonry-item:nth-child(3n+1) { min-height: 250px; }
+            .masonry-item:nth-child(3n+2) { min-height: 100px; }
         }
     </style>
 </head>
@@ -66,26 +84,20 @@
     <main>
         <section class="masonry-container">
             <div class="masonry-grid">
-                <article class="masonry-item">
-                    <h3>Short Item</h3>
-                    <p>Just a small amount of text here.</p>
-                </article>
+                <article class="masonry-item"><h3>Item 1</h3><p>Entry and exit blur test.</p></article>
+                <article class="masonry-item"><h3>Item 2</h3><p>Masonry will pack this tight.</p></article>
+                <article class="masonry-item"><h3>Item 3</h3><p>Scroll to see me fade.</p></article>
+                <article class="masonry-item"><h3>Item 4</h3><p>Budget data point A.</p></article>
+                
+                <article class="masonry-item"><h3>Item 5</h3><p>Dynamic height content here.</p></article>
+                <article class="masonry-item"><h3>Item 6</h3><p>Brave flag: Masonry Enabled.</p></article>
+                <article class="masonry-item"><h3>Item 7</h3><p>CSS is becoming logic-aware.</p></article>
+                <article class="masonry-item"><h3>Item 8</h3><p>Budget data point B.</p></article>
 
-                <article class="masonry-item">
-                    <h3>Tall Item</h3>
-                    <p>This item has significantly more content. In a standard CSS Grid, this would force the entire row to be this tall, leaving a gap under the 'Short Item'. With grid-lanes, the next item will slot directly into that empty space.</p>
-                    <p>It creates a much tighter, more organic feel for galleries and dashboards.</p>
-                </article>
-
-                <article class="masonry-item">
-                    <h3>Medium Item</h3>
-                    <p>Moderate amount of information for testing the layout flow.</p>
-                </article>
-
-                <article class="masonry-item">
-                    <h3>Dynamic Item</h3>
-                    <p>Another snippet of text to see how the lanes shift as the viewport scales.</p>
-                </article>
+                <article class="masonry-item"><h3>Item 9</h3><p>Almost at the bottom.</p></article>
+                <article class="masonry-item"><h3>Item 10</h3><p>Packing logic check.</p></article>
+                <article class="masonry-item"><h3>Item 11</h3><p>Triple the items!</p></article>
+                <article class="masonry-item"><h3>Item 12</h3><p>Final scroll test card.</p></article>
             </div>
         </section>
     </main>
