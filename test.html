@@ -32,54 +32,87 @@
                 padding: var(--space-small);
                 border-radius: var(--border-radius-small);
 
-                /* Scroll-Driven Animation */
-                view-timeline-name: --card-fade;
-                view-timeline-axis: block;
+                .masonry-item {
+                    /* Define the timeline */
+                    view-timeline-name: --card-fade;
+                    view-timeline-axis: block;
 
-                animation: reveal-and-blur linear both;
-                animation-timeline: --card-fade;
-                animation-range: entry 10% cover 30%, exit 70% exit 90%;
-            }
+                    /* Link the animation */
+                    animation: symmetrical-blur linear both;
+                    animation-timeline: --card-fade;
 
-            @keyframes reveal-and-blur {
-                entry 0% {
-                    filter: blur(15px);
-                    opacity: 0;
-                    transform: scale(0.9) translateY(30px);
+                    /* 'cover' tracks the element from the moment it touches the bottom 
+           until it completely leaves the top.
+        */
+                    animation-range: cover 0% cover 100%;
                 }
 
-                entry 100% {
-                    filter: blur(0);
-                    opacity: 1;
-                    transform: scale(1) translateY(0);
+                @keyframes reveal-and-blur {
+                    entry 0% {
+                        filter: blur(15px);
+                        opacity: 0;
+                        transform: scale(0.9) translateY(30px);
+                    }
+
+                    entry 100% {
+                        filter: blur(0);
+                        opacity: 1;
+                        transform: scale(1) translateY(0);
+                    }
+
+                    exit 0% {
+                        filter: blur(0);
+                        opacity: 1;
+                        transform: scale(1) translateY(0);
+                    }
+
+                    exit 100% {
+                        filter: blur(15px);
+                        opacity: 0;
+                        transform: scale(0.9) translateY(-30px);
+                    }
                 }
 
-                exit 0% {
-                    filter: blur(0);
-                    opacity: 1;
-                    transform: scale(1) translateY(0);
+                @keyframes symmetrical-blur {
+
+                    /* AT THE BOTTOM EDGE (Entering from bottom or leaving toward bottom) */
+                    0%,
+                    10% {
+                        filter: blur(15px);
+                        opacity: 0;
+                        transform: scale(0.9);
+                    }
+
+                    /* IN THE CENTER VIEWPORT (Fully visible and sharp) */
+                    30%,
+                    70% {
+                        filter: blur(0);
+                        opacity: 1;
+                        transform: scale(1);
+                    }
+
+                    /* AT THE TOP EDGE (Leaving through top or entering from top) */
+                    90%,
+                    100% {
+                        filter: blur(15px);
+                        opacity: 0;
+                        transform: scale(0.9);
+                    }
                 }
 
-                exit 100% {
-                    filter: blur(15px);
-                    opacity: 0;
-                    transform: scale(0.9) translateY(-30px);
+                /* Heights to trigger the masonry packing */
+                .masonry-item:nth-child(3n) {
+                    min-height: 150px;
+                }
+
+                .masonry-item:nth-child(3n+1) {
+                    min-height: 250px;
+                }
+
+                .masonry-item:nth-child(3n+2) {
+                    min-height: 100px;
                 }
             }
-
-            /* Heights to trigger the masonry packing */
-            .masonry-item:nth-child(3n) {
-                min-height: 150px;
-            }
-
-            .masonry-item:nth-child(3n+1) {
-                min-height: 250px;
-            }
-
-            .masonry-item:nth-child(3n+2) {
-                min-height: 100px;
-            }
-        }
     </style>
 </head>
 
