@@ -9,111 +9,70 @@
         data-description="Testing masonry packing with scroll-driven blur effects.">
     </data-custom-head>
 
-    <style>
-        @layer components {
-            .masonry-container {
-                padding: var(--space-large) var(--side-gutter);
-                min-height: 200vh;
-                background-color: light-dark(var(--color-white), var(--color-dark-6));
+<style>
+    @layer components {
+        .masonry-container {
+            padding: var(--space-large) var(--side-gutter);
+            /* min-height ensures you have room to scroll and see the top/bottom blur */
+            min-height: 300vh; 
+            background-color: light-dark(var(--color-white), var(--color-dark-6));
+        }
+
+        .masonry-grid {
+            /* Active in Brave with experimental flag */
+            display: masonry;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: var(--space-medium);
+            align-items: start;
+        }
+
+        .masonry-item {
+            background-color: light-dark(var(--color-light-1-alpha-1), var(--color-dark-1-alpha-2));
+            border: var(--border-size-small) solid var(--color-light-3);
+            padding: var(--space-small);
+            border-radius: var(--border-radius-small);
+
+            /* --- SCROLL ANIMATION CONFIG --- */
+            view-timeline-name: --card-fade;
+            view-timeline-axis: block;
+
+            /* Call the symmetrical-blur animation */
+            animation: symmetrical-blur linear both;
+            animation-timeline: --card-fade;
+
+            /* Track the card from bottom entry to top exit */
+            animation-range: cover 0% cover 100%;
+        }
+
+        @keyframes symmetrical-blur {
+            /* BOTTOM EDGE: Blur as it enters or leaves the bottom */
+            0%, 10% {
+                filter: blur(15px);
+                opacity: 0;
+                transform: scale(0.9);
             }
 
-            .masonry-grid {
-                /* Use the property that Brave currently recognizes */
-                display: masonry;
-
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-                gap: var(--space-medium);
-                align-items: start;
+            /* CENTER ZONE: Sharp and fully visible */
+            30%, 70% {
+                filter: blur(0);
+                opacity: 1;
+                transform: scale(1);
             }
 
-            .masonry-item {
-                background-color: light-dark(var(--color-light-1-alpha-1), var(--color-dark-1-alpha-2));
-                border: var(--border-size-small) solid var(--color-light-3);
-                padding: var(--space-small);
-                border-radius: var(--border-radius-small);
-
-                .masonry-item {
-                    /* Define the timeline */
-                    view-timeline-name: --card-fade;
-                    view-timeline-axis: block;
-
-                    /* Link the animation */
-                    animation: symmetrical-blur linear both;
-                    animation-timeline: --card-fade;
-
-                    /* 'cover' tracks the element from the moment it touches the bottom 
-           until it completely leaves the top.
-        */
-                    animation-range: cover 0% cover 100%;
-                }
-
-                @keyframes reveal-and-blur {
-                    entry 0% {
-                        filter: blur(15px);
-                        opacity: 0;
-                        transform: scale(0.9) translateY(30px);
-                    }
-
-                    entry 100% {
-                        filter: blur(0);
-                        opacity: 1;
-                        transform: scale(1) translateY(0);
-                    }
-
-                    exit 0% {
-                        filter: blur(0);
-                        opacity: 1;
-                        transform: scale(1) translateY(0);
-                    }
-
-                    exit 100% {
-                        filter: blur(15px);
-                        opacity: 0;
-                        transform: scale(0.9) translateY(-30px);
-                    }
-                }
-
-                @keyframes symmetrical-blur {
-
-                    /* AT THE BOTTOM EDGE (Entering from bottom or leaving toward bottom) */
-                    0%,
-                    10% {
-                        filter: blur(15px);
-                        opacity: 0;
-                        transform: scale(0.9);
-                    }
-
-                    /* IN THE CENTER VIEWPORT (Fully visible and sharp) */
-                    30%,
-                    70% {
-                        filter: blur(0);
-                        opacity: 1;
-                        transform: scale(1);
-                    }
-
-                    /* AT THE TOP EDGE (Leaving through top or entering from top) */
-                    90%,
-                    100% {
-                        filter: blur(15px);
-                        opacity: 0;
-                        transform: scale(0.9);
-                    }
-                }
-
-                /* Heights to trigger the masonry packing */
-                .masonry-item:nth-child(3n) {
-                    min-height: 150px;
-                }
-
-                .masonry-item:nth-child(3n+1) {
-                    min-height: 250px;
-                }
-
-                .masonry-item:nth-child(3n+2) {
-                    min-height: 100px;
-                }
+            /* TOP EDGE: Blur as it enters or leaves the top */
+            90%, 100% {
+                filter: blur(15px);
+                opacity: 0;
+                transform: scale(0.9);
             }
-    </style>
+        }
+
+        /* Heights to trigger the masonry packing logic */
+        .masonry-item:nth-child(3n) { min-height: 150px; }
+        .masonry-item:nth-child(3n+1) { min-height: 250px; }
+        .masonry-item:nth-child(3n+2) { min-height: 100px; }
+    }
+</style>
 </head>
 
 <body>
