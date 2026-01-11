@@ -45,18 +45,19 @@
         }
 
 @keyframes symmetrical-blur {
-    0% {
-        filter: hue-rotate(-45deg) blur(5px);
-        opacity: 0;
+    0%, 10% {
+        filter: brightness(0.5) contrast(0.8);
+        box-shadow: none;
     }
-    /* Center zone: Original brand colors */
     30%, 70% {
-        filter: hue-rotate(0deg) blur(0);
-        opacity: 1;
+        filter: brightness(1) contrast(1.1);
+        /* Using your existing shadow variable */
+        box-shadow: var(--shadow-heavy);
+        border-color: var(--color-light-3);
     }
-    100% {
-        filter: hue-rotate(45deg) blur(5px);
-        opacity: 0;
+    90%, 100% {
+        filter: brightness(0.5) contrast(0.8);
+        box-shadow: none;
     }
 }
 
