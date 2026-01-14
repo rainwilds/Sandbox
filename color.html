@@ -7,9 +7,9 @@
     <link rel="preload" href="./custom.css" as="style">
 
     <script src="js/generators/head-generator.js" type="module"></script>
-    
 
-<style>
+
+    <style>
         /* 1. THE ENGINE - Stable Functions */
         @function --shade(--color, --step) {
             result: oklch(from var(--color) calc(l + (var(--step) * var(--theme-direction) * 0.08)) c h);
@@ -34,7 +34,9 @@
         }
 
         @media (prefers-color-scheme: dark) {
-            :root { --theme-direction: -1; }
+            :root {
+                --theme-direction: -1;
+            }
         }
 
         /* --- 3. COMPONENT STYLES --- */
@@ -56,16 +58,32 @@
         }
 
         /* Using the function for background only */
-        .primary-up-2 { background: --shade(var(--color-primary), 2); }
-        .primary-up-1 { background: --shade(var(--color-primary), 1); }
-        .primary-base { 
-            background: var(--color-primary); 
-            outline: 3px solid --alpha(var(--color-text-main), 0.3); 
+        .primary-up-2 {
+            background: --shade(var(--color-primary), 2);
         }
-        .primary-down-1 { background: --shade(var(--color-primary), -1); }
-        .primary-down-2 { background: --shade(var(--color-primary), -2); }
 
-        .swatch span { font-family: monospace; opacity: 0.7; font-weight: normal; }
+        .primary-up-1 {
+            background: --shade(var(--color-primary), 1);
+        }
+
+        .primary-base {
+            background: var(--color-primary);
+            outline: 3px solid --alpha(var(--color-text-main), 0.3);
+        }
+
+        .primary-down-1 {
+            background: --shade(var(--color-primary), -1);
+        }
+
+        .primary-down-2 {
+            background: --shade(var(--color-primary), -2);
+        }
+
+        .swatch span {
+            font-family: monospace;
+            opacity: 0.7;
+            font-weight: normal;
+        }
     </style>
 
 </head>
