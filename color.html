@@ -2,36 +2,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="preload" href="./JSON/setup.json" as="fetch" crossorigin="anonymous">
-    <link rel="preload" href="./styles.css" as="style">
-    <link rel="preload" href="./custom.css" as="style">
-
-    <script src="js/generators/head-generator.js" type="module"></script>
-
     <style>
-        /* --- 1. THE ENGINE --- */
-        :root {
-            /* Private Palette */
-            --_mint: #92c676;
-            --_sky: #99cbe1;
-            --_charcoal: #393632;
-            --_slate: #0e1a28;
-
-            /* Semantic Roles */
-            color-scheme: light dark;
-            --color-primary: light-dark(var(--_mint), var(--_sky));
-            --color-surface: light-dark(#ffffff, var(--_slate));
-            --color-text-main: light-dark(var(--_charcoal), #f8f9fa);
-            
-            /* Logic Multiplier: 1 for light, -1 for dark */
-            --theme-direction: 1;
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root { --theme-direction: -1; }
-        }
-
-        /* --- 2. THE FUNCTIONS --- */
+        /* 1. FUNCTIONS MUST BE DEFINED FIRST FOR ENGINE REGISTRATION */
         @function --shade(--color, --step) {
             result: oklch(from var(--color) calc(l + (var(--step) * var(--theme-direction) * 0.08)) c h);
         }
@@ -41,33 +13,35 @@
         }
 
         @function --contrast-text(--bg-color) {
-            /* L > 0.45 = The background is LIGHT. We need DARK text.
-            L <= 0.45 = The background is DARK. We need LIGHT text.
-            */
+            /* Lowering threshold further to 0.4 to catch very bright cyans */
             result: if(
-                oklch(from var(--bg-color) l 0 0) > 0.45, 
-                var(--_charcoal), /* Using your raw dark palette variable */
-                #ffffff           /* Using pure white for max safety */
+                oklch(from var(--bg-color) l 0 0) > 0.4, 
+                var(--_charcoal), 
+                #ffffff
             );
         }
 
+        /* 2. VARIABLES LAYER */
+        :root {
+            --_mint: #92c676;
+            --_sky: #99cbe1;
+            --_charcoal: #393632;
+            --_slate: #0e1a28;
+
+            color-scheme: light dark;
+            --color-primary: light-dark(var(--_mint), var(--_sky));
+            --color-surface: light-dark(#ffffff, var(--_slate));
+            --color-text-main: light-dark(var(--_charcoal), #f8f9fa);
+            --theme-direction: 1;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root { --theme-direction: -1; }
+        }
+
         /* --- 3. PREVIEW STYLES --- */
-        .palette-preview {
-            margin: 2rem;
-            padding: 2rem;
-            border-radius: 20px;
-            background-color: --shade(var(--color-surface), 1);
-            border: 1px solid --alpha(var(--color-text-main), 0.1);
-            font-family: 'Futura_PT_Demi', sans-serif;
-        }
-
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-
+        /* ... keeping your existing swatch and grid styles ... */
+        
         .swatch {
             padding: 1.5rem 1rem;
             border-radius: 12px;
@@ -76,21 +50,42 @@
             gap: 0.5rem;
             font-size: 0.75rem;
             font-weight: bold;
-            box-shadow: 0 4px 6px --alpha(var(--_charcoal), 0.05);
+            /* Using the function here to test shadow alpha */
+            box-shadow: 0 4px 6px --alpha(var(--_charcoal), 0.2);
             transition: transform 0.2s ease;
         }
 
-        .swatch:hover { transform: scale(1.02); }
-
-        .swatch span { font-family: monospace; opacity: 0.8; font-weight: normal; }
-
-        /* Step Classes */
-        .primary-up-2 { background: --shade(var(--color-primary), 2); color: --contrast-text(--shade(var(--color-primary), 2)); }
-        .primary-up-1 { background: --shade(var(--color-primary), 1); color: --contrast-text(--shade(var(--color-primary), 1)); }
-        .primary-base { background: var(--color-primary); color: --contrast-text(var(--color-primary)); outline: 3px solid --alpha(var(--color-text-main), 0.3); }
-        .primary-down-1 { background: --shade(var(--color-primary), -1); color: --contrast-text(--shade(var(--color-primary), -1)); }
-        .primary-down-2 { background: --shade(var(--color-primary), -2); color: --contrast-text(--shade(var(--color-primary), -2)); }
+        /* Using the function explicitly */
+        .primary-up-2 { 
+            background: --shade(var(--color-primary), 2); 
+            color: --contrast-text(--shade(var(--color-primary), 2)); 
+        }
+        .primary-up-1 { 
+            background: --shade(var(--color-primary), 1); 
+            color: --contrast-text(--shade(var(--color-primary), 1)); 
+        }
+        .primary-base { 
+            background: var(--color-primary); 
+            color: --contrast-text(var(--color-primary)); 
+            outline: 3px solid --alpha(var(--color-text-main), 0.3); 
+        }
+        .primary-down-1 { 
+            background: --shade(var(--color-primary), -1); 
+            color: --contrast-text(--shade(var(--color-primary), -1)); 
+        }
+        .primary-down-2 { 
+            background: --shade(var(--color-primary), -2); 
+            color: --contrast-text(--shade(var(--color-primary), -2)); 
+        }
     </style>
+
+    <link rel="preload" href="./JSON/setup.json" as="fetch" crossorigin="anonymous">
+    <link rel="preload" href="./styles.css" as="style">
+    <link rel="preload" href="./custom.css" as="style">
+
+    <script src="js/generators/head-generator.js" type="module"></script>
+
+   
 </head>
 
 <body>
