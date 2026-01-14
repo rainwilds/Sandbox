@@ -41,16 +41,13 @@
         }
 
 @function --contrast-text(--bg-color) {
-    /* We lower the threshold to 0.4.
-       If the background Lightness is > 0.4 (It's a light color):
-       We want DARK text.
-       If the background Lightness is <= 0.4 (It's a dark color):
-       We want LIGHT text.
+    /* L > 0.45 = The background is LIGHT. We need DARK text.
+       L <= 0.45 = The background is DARK. We need LIGHT text.
     */
     result: if(
-        oklch(from var(--bg-color) l 0 0) > 0.4, 
-        var(--_charcoal), /* Force your darkest palette color */
-        #ffffff           /* Force pure white for maximum safety */
+        oklch(from var(--bg-color) l 0 0) > 0.45, 
+        var(--_charcoal), /* Using your raw dark palette variable */
+        #ffffff           /* Using pure white for max safety */
     );
 }
 
