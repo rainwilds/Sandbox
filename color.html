@@ -40,13 +40,18 @@
             result: rgb(from var(--color) r g b / var(--opacity));
         }
 
-        @function --contrast-text(--bg-color) {
-            result: if(
-                oklch(from var(--bg-color) l 0 0) > 0.6, 
-                var(--color-text-main), 
-                var(--color-surface)
-            );
-        }
+@function --contrast-text(--bg-color) {
+    /* 1. We extract the Lightness (L).
+       2. We lower the threshold to 0.45.
+       3. If background is Lighter than 0.45 -> use Main Dark Text.
+       4. If background is Darker than 0.45 -> use Surface (White).
+    */
+    result: if(
+        oklch(from var(--bg-color) l 0 0) > 0.45, 
+        var(--color-text-main), 
+        var(--color-surface)
+    );
+}
 
         /* --- 3. PREVIEW STYLES --- */
         .palette-preview {
