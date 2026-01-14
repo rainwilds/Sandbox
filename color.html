@@ -8,28 +8,30 @@
 
     <script src="js/generators/head-generator.js" type="module"></script>
 
-
     <style>
-        /* 1. THE ENGINE - Stable Functions */
-        @function --shade(--color, --step) {
-            result: oklch(from var(--color) calc(l + (var(--step) * var(--theme-direction) * 0.08)) c h);
-        }
-
-        @function --alpha(--color, --opacity) {
-            result: rgb(from var(--color) r g b / var(--opacity));
-        }
-
-        /* 2. THE SYSTEM VARIABLES */
+        /* --- 1. THE ENGINE --- */
         :root {
+            /* Private Palette (The Sources) */
             --_mint: #92c676;
             --_sky: #99cbe1;
             --_charcoal: #393632;
             --_slate: #0e1a28;
+            --_bone: #f8f9fa;
 
+            /* Semantic Roles */
             color-scheme: light dark;
             --color-primary: light-dark(var(--_mint), var(--_sky));
-            --color-surface: light-dark(#ffffff, var(--_slate));
-            --color-text-main: light-dark(var(--_charcoal), #f8f9fa);
+            --color-secondary: light-dark(var(--_sky), var(--_mint));
+
+            /* Pure Dark/Light Roles */
+            --color-dark: light-dark(var(--_charcoal), #000000);
+            --color-light: light-dark(#ffffff, var(--_bone));
+
+            /* THE INTENSITY ENGINE 
+               Theme Direction: 1 (Light Mode) or -1 (Dark Mode).
+               We multiply by -1 so that a POSITIVE step always 
+               moves the color AWAY from the background (Invert).
+            */
             --theme-direction: 1;
         }
 
@@ -39,7 +41,39 @@
             }
         }
 
-        /* --- 3. COMPONENT STYLES --- */
+        /* --- 2. THE FUNCTIONS --- */
+
+        /* --shade: A positive step now means "more intensity".
+           Light Mode: subtracts lightness (darker).
+           Dark Mode: adds lightness (highlight).
+        */
+        @function --shade(--color, --step) {
+            result: oklch(from var(--color) calc(l + (var(--step) * var(--theme-direction) * -0.08)) c h);
+        }
+
+        @function --alpha(--color, --opacity) {
+            result: rgb(from var(--color) r g b / var(--opacity));
+        }
+
+        /* --- 3. PREVIEW STYLES --- */
+        .palette-preview {
+            margin: 2rem;
+            padding: 2rem;
+            border-radius: 20px;
+            /* Using intensity step 1 for the container background */
+            background-color: --shade(var(--color-light), 1);
+            border: 1px solid --alpha(var(--color-dark), 0.1);
+            font-family: 'Futura_PT_Demi', sans-serif;
+            color: var(--color-dark);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
         .swatch {
             padding: 1.5rem 1rem;
             border-radius: 12px;
@@ -48,35 +82,15 @@
             gap: 0.5rem;
             font-size: 0.75rem;
             font-weight: bold;
-            box-shadow: 0 4px 6px --alpha(var(--_charcoal), 0.2);
+            box-shadow: 0 4px 6px --alpha(var(--color-dark), 0.1);
             transition: transform 0.2s ease;
 
-            /* NATIVE CONTRAST ENGINE 
-               We pass it our brand charcoal and white as preferred options. 
-               The 'max' keyword ensures it picks the most readable one. */
-            color: contrast-color(currentcolor max var(--_charcoal), #ffffff);
+            /* NATIVE CONTRAST: Picks best legibility color automatically */
+            color: contrast-color(currentcolor max var(--color-dark), var(--color-light));
         }
 
-        /* Using the function for background only */
-        .primary-up-2 {
-            background: --shade(var(--color-primary), 2);
-        }
-
-        .primary-up-1 {
-            background: --shade(var(--color-primary), 1);
-        }
-
-        .primary-base {
-            background: var(--color-primary);
-            outline: 3px solid --alpha(var(--color-text-main), 0.3);
-        }
-
-        .primary-down-1 {
-            background: --shade(var(--color-primary), -1);
-        }
-
-        .primary-down-2 {
-            background: --shade(var(--color-primary), -2);
+        .swatch:hover {
+            transform: scale(1.02);
         }
 
         .swatch span {
@@ -84,43 +98,64 @@
             opacity: 0.7;
             font-weight: normal;
         }
-    </style>
 
+        /* Step Classes (Now using positive integers for darker/highlight) */
+        .step-0 {
+            background: var(--color-primary);
+            outline: 3px solid --alpha(var(--color-dark), 0.2);
+        }
+
+        .step-1 {
+            background: --shade(var(--color-primary), 1);
+        }
+
+        .step-2 {
+            background: --shade(var(--color-primary), 2);
+        }
+
+        .step-3 {
+            background: --shade(var(--color-primary), 3);
+        }
+
+        .step-4 {
+            background: --shade(var(--color-primary), 4);
+        }
+    </style>
 </head>
 
 <body>
     <section class="palette-preview">
         <header>
-            <h2 style="margin: 0;">Smart Design System Preview</h2>
-            <p style="color: --alpha(var(--color-text-main), 0.6); margin-top: 0.5rem;">
-                This component uses <strong>OKLCH</strong> logic to adapt shades and text contrast automatically.
+            <h2 style="margin: 0;">Adaptive Intensity Preview</h2>
+            <p style="margin-top: 0.5rem;">
+                Positive integers (1-4) now increase <strong>shade intensity</strong>.
             </p>
         </header>
 
         <div class="grid">
-            <div class="swatch primary-up-2">
-                Step +2 (Lighter)
-                <span>--shade(primary, 2)</span>
-            </div>
-
-            <div class="swatch primary-up-1">
-                Step +1 (Lighter)
-                <span>--shade(primary, 1)</span>
-            </div>
-
-            <div class="swatch primary-base">
+            <div class="swatch step-0">
                 Primary Base
                 <span>var(--color-primary)</span>
             </div>
 
-            <div class="swatch primary-down-1">
-                Step -1 (Darker)
-                <span>--shade(primary, -1)</span>
+            <div class="swatch step-1">
+                Intensity Step 1
+                <span>--shade(primary, 1)</span>
             </div>
 
-            <div class="swatch primary-down-2">
-                Step -2 (Darker)
-                <span>--shade(primary, -2)</span>
+            <div class="swatch step-2">
+                Intensity Step 2
+                <span>--shade(primary, 2)</span>
+            </div>
+
+            <div class="swatch step-3">
+                Intensity Step 3
+                <span>--shade(primary, 3)</span>
+            </div>
+
+            <div class="swatch step-4">
+                Intensity Step 4
+                <span>--shade(primary, 4)</span>
             </div>
         </div>
     </section>
