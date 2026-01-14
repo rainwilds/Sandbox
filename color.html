@@ -9,9 +9,8 @@
     <script src="js/generators/head-generator.js" type="module"></script>
 
 <style>
-        /* 1. THE ENGINE - Minimalist 2026 Logic */
+        /* 1. THE ENGINE - Stable Functions */
         @function --shade(--color, --step) {
-            /* theme-direction: 1 (Light) or -1 (Dark) */
             result: oklch(from var(--color) calc(l + (var(--step) * var(--theme-direction) * 0.08)) c h);
         }
 
@@ -19,7 +18,7 @@
             result: rgb(from var(--color) r g b / var(--opacity));
         }
 
-        /* 2. VARIABLES LAYER */
+        /* 2. THE SYSTEM VARIABLES */
         :root {
             --_mint: #92c676;
             --_sky: #99cbe1;
@@ -48,13 +47,14 @@
             font-weight: bold;
             box-shadow: 0 4px 6px --alpha(var(--_charcoal), 0.2);
             transition: transform 0.2s ease;
-            
-            /* GLOBAL ACCESSIBILITY RULE: 
-               The 'max' keyword forces the browser to find the 
-               highest contrast relative to the background. */
-            color: contrast-color(currentcolor max);
+
+            /* NATIVE CONTRAST ENGINE 
+               We pass it our brand charcoal and white as preferred options. 
+               The 'max' keyword ensures it picks the most readable one. */
+            color: contrast-color(currentcolor max var(--_charcoal), #ffffff);
         }
 
+        /* Using the function for background only */
         .primary-up-2 { background: --shade(var(--color-primary), 2); }
         .primary-up-1 { background: --shade(var(--color-primary), 1); }
         .primary-base { 
@@ -64,7 +64,7 @@
         .primary-down-1 { background: --shade(var(--color-primary), -1); }
         .primary-down-2 { background: --shade(var(--color-primary), -2); }
 
-        .swatch span { font-family: monospace; opacity: 0.8; font-weight: normal; }
+        .swatch span { font-family: monospace; opacity: 0.7; font-weight: normal; }
     </style>
 </head>
 
