@@ -1,118 +1,129 @@
-<!DOCTYPE html>
-<html lang="en">
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="preload" href="./JSON/setup.json" as="fetch" crossorigin="anonymous">
     <link rel="preload" href="./styles.css" as="style">
-
-    <script src="https://cdn.jsdelivr.net/npm/chroma-js@2/chroma.min.js"></script>
+    <link rel="preload" href="./custom.css" as="style">
 
     <script src="js/generators/head-generator.js" type="module"></script>
-    <script src="js/generators/color-palette-generator.js" defer></script>
 
-    <data-custom-head data-components="custom-block" data-title="Color palette generator"
-        data-description="Color palette generator" data-canonical="https://rainwilds.github.io/Sandbox/color.html">
-    </data-custom-head>
+    <style>
+        /* --- 1. THE ENGINE --- */
+        :root {
+            /* Private Palette */
+            --_mint: #92c676;
+            --_sky: #99cbe1;
+            --_charcoal: #393632;
+            --_slate: #0e1a28;
+
+            /* Semantic Roles */
+            color-scheme: light dark;
+            --color-primary: light-dark(var(--_mint), var(--_sky));
+            --color-surface: light-dark(#ffffff, var(--_slate));
+            --color-text-main: light-dark(var(--_charcoal), #f8f9fa);
+            
+            /* Logic Multiplier: 1 for light, -1 for dark */
+            --theme-direction: 1;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root { --theme-direction: -1; }
+        }
+
+        /* --- 2. THE FUNCTIONS --- */
+        @function --shade(--color, --step) {
+            result: oklch(from var(--color) calc(l + (var(--step) * var(--theme-direction) * 0.08)) c h);
+        }
+
+        @function --alpha(--color, --opacity) {
+            result: rgb(from var(--color) r g b / var(--opacity));
+        }
+
+        @function --contrast-text(--bg-color) {
+            result: if(
+                oklch(from var(--bg-color) l 0 0) > 0.6, 
+                var(--color-text-main), 
+                var(--color-surface)
+            );
+        }
+
+        /* --- 3. PREVIEW STYLES --- */
+        .palette-preview {
+            margin: 2rem;
+            padding: 2rem;
+            border-radius: 20px;
+            background-color: --shade(var(--color-surface), 1);
+            border: 1px solid --alpha(var(--color-text-main), 0.1);
+            font-family: 'Futura_PT_Demi', sans-serif;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .swatch {
+            padding: 1.5rem 1rem;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+            box-shadow: 0 4px 6px --alpha(var(--_charcoal), 0.05);
+            transition: transform 0.2s ease;
+        }
+
+        .swatch:hover { transform: scale(1.02); }
+
+        .swatch span { font-family: monospace; opacity: 0.8; font-weight: normal; }
+
+        /* Step Classes */
+        .primary-up-2 { background: --shade(var(--color-primary), 2); color: --contrast-text(--shade(var(--color-primary), 2)); }
+        .primary-up-1 { background: --shade(var(--color-primary), 1); color: --contrast-text(--shade(var(--color-primary), 1)); }
+        .primary-base { background: var(--color-primary); color: --contrast-text(var(--color-primary)); outline: 3px solid --alpha(var(--color-text-main), 0.3); }
+        .primary-down-1 { background: --shade(var(--color-primary), -1); color: --contrast-text(--shade(var(--color-primary), -1)); }
+        .primary-down-2 { background: --shade(var(--color-primary), -2); color: --contrast-text(--shade(var(--color-primary), -2)); }
+    </style>
 </head>
 
 <body>
-    <main>
-        <!-- COLOR PICKER -->
-        <section style="margin-top: var(--space-medium);">
-            <div>
-                <custom-block heading="Color Picker" heading-tag="h2" text="Select colors to update the palette">
-                </custom-block>
-                <div class="color-inputs" style="display: flex; gap: var(--space-small); flex-wrap: wrap;">
-                    <label>Light 1: <input style="padding: 0; height: 50px;" type="color" id="light-1"></label>
-                    <label>Light 6: <input style="padding: 0; height: 50px;" type="color" id="light-6"></label>
-                    <label>Dark 1: <input style="padding: 0; height: 50px;" type="color" id="dark-1"></label>
-                    <label>Dark 6: <input style="padding: 0; height: 50px;" type="color" id="dark-6"></label>
+    <section class="palette-preview">
+        <header>
+            <h2 style="margin: 0;">Smart Design System Preview</h2>
+            <p style="color: --alpha(var(--color-text-main), 0.6); margin-top: 0.5rem;">
+                This component uses <strong>OKLCH</strong> logic to adapt shades and text contrast automatically.
+            </p>
+        </header>
 
-
-                    <div class="alpha-controls">
-                        <label>Alpha Step: <input style="margin-right: var(--space-tiny);" type="number" id="alpha-step"
-                                min="0.01" max="1" step="0.01" value="0.1"></label>
-                        <button id="alpha-even">Even</button>
-                    </div>
-                    <label>
-                        Body Background:
-                        <input style="padding: 0; height: 50px;" type="color" id="body-bg" value="#ffffff">
-                    </label>
-                    <button id="toggle-text-color">Toggle Text: Black/White</button>
-                    <button id="copy-css-vars">Copy CSS Variables</button>
-                </div>
+        <div class="grid">
+            <div class="swatch primary-up-2">
+                Step +2 (Lighter)
+                <span>--shade(primary, 2)</span>
             </div>
-        </section>
-        <div class="palette-grid">
-            <!-- SOLID LIGHT -->
-            <section>
-                <div>
-                    <custom-block heading="Color Accent Light" heading-tag="h3"></custom-block>
-                    <div class="color-palette" id="color-accent-light"></div>
-                </div>
-            </section>
 
-            <!-- SOLID DARK -->
-            <section>
-                <div>
-                    <custom-block heading="Color Accent Dark" heading-tag="h3"></custom-block>
-                    <div class="color-palette" id="color-accent-dark"></div>
-                </div>
-            </section>
+            <div class="swatch primary-up-1">
+                Step +1 (Lighter)
+                <span>--shade(primary, 1)</span>
+            </div>
 
-            <!-- LIGHT 1 ALPHA -->
-            <section>
-                <div>
-                    <custom-block heading="Light 1 Alpha (6)" heading-tag="h3"></custom-block>
-                    <div class="color-palette" id="color-light-1-alpha"></div>
-                </div>
-            </section>
+            <div class="swatch primary-base">
+                Primary Base
+                <span>var(--color-primary)</span>
+            </div>
 
-            <!-- LIGHT 6 ALPHA -->
-            <section>
-                <div>
-                    <custom-block heading="Light 6 Alpha (6)" heading-tag="h3"></custom-block>
-                    <div class="color-palette" id="color-light-6-alpha"></div>
-                </div>
-            </section>
+            <div class="swatch primary-down-1">
+                Step -1 (Darker)
+                <span>--shade(primary, -1)</span>
+            </div>
 
-            <!-- DARK 1 ALPHA -->
-            <section>
-                <div>
-                    <custom-block heading="Dark 1 Alpha (6)" heading-tag="h3"></custom-block>
-                    <div class="color-palette" id="color-dark-1-alpha"></div>
-                </div>
-            </section>
-
-            <!-- DARK 6 ALPHA -->
-            <section>
-                <div>
-                    <custom-block heading="Dark 6 Alpha (6)" heading-tag="h3"></custom-block>
-                    <div class="color-palette" id="color-dark-6-alpha"></div>
-                </div>
-            </section>
-
-            <!-- BLACK ALPHA -->
-            <section>
-                <div>
-                    <custom-block heading="Black Alpha (6)" heading-tag="h3"></custom-block>
-                    <div class="color-palette" id="color-black-alpha"></div>
-                </div>
-            </section>
-
-            <!-- WHITE ALPHA -->
-            <section>
-                <div>
-                    <custom-block heading="White Alpha (6)" heading-tag="h3"></custom-block>
-                    <div class="color-palette" id="color-white-alpha"></div>
-                </div>
-            </section>
+            <div class="swatch primary-down-2">
+                Step -2 (Darker)
+                <span>--shade(primary, -2)</span>
+            </div>
         </div>
-    </main>
-
+    </section>
 </body>
-
-</html>
