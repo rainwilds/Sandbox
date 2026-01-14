@@ -9,47 +9,89 @@
     <script src="js/generators/head-generator.js" type="module"></script>
 
 <style>
-/* 1. THE REFINED ENGINE */
-@function --shade(--color, --step) {
-    /* Step 0 is base. Positive is Darker. Negative is Lighter. */
-    result: oklch(from var(--color) calc(l - (var(--step) * 0.08)) c h);
-}
+    /* --- 1. THE ENGINE --- */
+    :root {
+        /* Private Palette */
+        --_mint: #92c676;
+        --_sky: #99cbe1;
+        --_charcoal: #393632;
+        --_slate: #0e1a28;
 
-/* 2. THE SEMANTIC VARIABLES */
-:root {
-    --_mint: #92c676;
-    --_sky: #99cbe1;
-    --_charcoal: #393632;
-    --_bone: #f8f9fa;
+        /* Semantic Roles */
+        color-scheme: light dark;
+        --color-primary: light-dark(var(--_mint), var(--_sky));
+        --color-secondary: light-dark(var(--_sky), var(--_mint));
+        
+        /* Fixed Dark/Light variables */
+        --color-dark: light-dark(var(--_charcoal), #0a0a0a);
+        --color-light: light-dark(#ffffff, #f0f0f0);
+    }
 
-    color-scheme: light dark;
-    --color-primary: light-dark(var(--_mint), var(--_sky));
-    --color-dark: light-dark(var(--_charcoal), #0a0a0a);
-    --color-light: light-dark(#ffffff, var(--_bone));
-}
+    /* --- 2. THE REFINED FUNCTIONS --- */
 
-/* 3. THE SWATCH LOGIC */
-.swatch {
-    padding: 1.5rem 1rem;
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    font-size: 0.75rem;
-    font-weight: bold;
-    
-    /* NATIVE BROWSER CONTRAST ENGINE */
-    /* This looks at the background (currentcolor) and picks 
-       the best contrast between your dark and light variables. */
-    color: contrast-color(currentcolor max var(--color-dark), var(--color-light));
-}
+    /* Logic: Base Lightness - (Step * 8%)
+       Step  0: No change.
+       Step  1: -8% Lightness (Darker).
+       Step -1: +8% Lightness (Lighter).
+    */
+    @function --shade(--color, --step) {
+        result: oklch(from var(--color) calc(l - (var(--step) * 0.08)) c h);
+    }
 
-/* Step Assignments (using your requested integers) */
-.step-neg-4 { background: --shade(var(--color-primary), -4); }
-.step-neg-2 { background: --shade(var(--color-primary), -2); }
-.step-zero  { background: var(--color-primary); outline: 2px solid var(--color-dark); }
-.step-pos-2 { background: --shade(var(--color-primary), 2); }
-.step-pos-4 { background: --shade(var(--color-primary), 4); }
+    @function --alpha(--color, --opacity) {
+        result: rgb(from var(--color) r g b / var(--opacity));
+    }
+
+    /* --- 3. PREVIEW STYLES --- */
+    .palette-preview {
+        margin: 2rem;
+        padding: 2rem;
+        border-radius: 20px;
+        background-color: var(--color-light);
+        border: 1px solid --alpha(var(--color-dark), 0.1);
+        font-family: 'Futura_PT_Demi', sans-serif;
+        color: var(--color-dark);
+    }
+
+.grid {
+        display: grid;
+        /* Updated for 9 columns */
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+    }
+
+    .swatch {
+        padding: 1.5rem 1rem;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        font-size: 0.75rem;
+        font-weight: bold;
+        box-shadow: 0 4px 6px --alpha(var(--color-dark), 0.05);
+        
+        /* Native Contrast ensures the text is always readable 
+           on the resulting shade */
+        color: contrast-color(currentcolor max var(--color-dark), var(--color-light));
+    }
+
+/* LIGHTER RANGE (Negative) */
+    .step-neg-4 { background: --shade(var(--color-primary), -4); }
+    .step-neg-3 { background: --shade(var(--color-primary), -3); }
+    .step-neg-2 { background: --shade(var(--color-primary), -2); }
+    .step-neg-1 { background: --shade(var(--color-primary), -1); }
+
+    /* BASE */
+    .step-zero  { background: var(--color-primary); outline: 2px solid var(--color-dark); z-index: 1; }
+
+    /* DARKER RANGE (Positive) */
+    .step-pos-1 { background: --shade(var(--color-primary), 1); }
+    .step-pos-2 { background: --shade(var(--color-primary), 2); }
+    .step-pos-3 { background: --shade(var(--color-primary), 3); }
+    .step-pos-4 { background: --shade(var(--color-primary), 4); }
+
+    .swatch span { font-family: monospace; opacity: 0.7; font-weight: normal; }
 </style>
 </head>
 
