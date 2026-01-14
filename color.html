@@ -41,14 +41,8 @@
         }
 
 @function --contrast-text(--bg-color) {
-    /* L > 0.45 = The background is LIGHT. We need DARK text.
-       L <= 0.45 = The background is DARK. We need LIGHT text.
-    */
-    result: if(
-        oklch(from var(--bg-color) l 0 0) > 0.45, 
-        var(--_charcoal), /* Using your raw dark palette variable */
-        #ffffff           /* Using pure white for max safety */
-    );
+    /* 'max' tells the browser to find the highest contrast possible */
+    result: contrast-color(var(--bg-color) max);
 }
 
         /* --- 3. PREVIEW STYLES --- */
