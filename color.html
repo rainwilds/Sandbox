@@ -3,19 +3,42 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Design System - Native Contrast Scale</title>
+    <title>Design System - High Compatibility Scale</title>
 
     <style>
         /* --- 1. THE ENGINE --- */
         
-        /* SHADE: Linear math remains consistent */
+        /* SHADE: Base Lightness - (Step * 8%) 
+           Step 0 is base. Positive is Darker. Negative is Lighter. */
         @function --shade(--color, --step) {
             result: oklch(from var(--color) calc(l - (var(--step) * 0.08)) c h);
         }
 
-        /* ALPHA: Quick transparency helper */
+        /* ALPHA: Transparency helper */
         @function --alpha(--color, --opacity) {
             result: rgb(from var(--color) r g b / var(--opacity));
+        }
+
+        /* THE MATH-SWITCH (Cross-Browser Contrast Logic)
+           Calculates background lightness and 'slams' the result 
+           to either --color-dark or --color-light. */
+        @function --contrast-text(--bg-color) {
+            /* 1. Extract the background lightness */
+            --l-bg: oklch(from var(--bg-color) l 0 0);
+            
+            /* 2. Threshold: If L > 0.45, use dark text. */
+            --threshold: 0.45;
+
+            /* 3. The Switch: Multiplying by -1000 forces a binary 0 or 1 result */
+            --switch: calc((var(--l-bg) - var(--threshold)) * -1000);
+
+            /* 4. Clamp and Apply: Slams lightness to 0% or 100% */
+            result: oklch(
+                from var(--color-dark) 
+                calc(l + clamp(0%, var(--switch), 100%)) 
+                0 
+                h
+            );
         }
 
         /* --- 2. THE VARIABLES --- */
@@ -38,6 +61,7 @@
             color: var(--color-dark);
             font-family: 'Futura_PT_Demi', sans-serif;
             padding: 2rem;
+            margin: 0;
         }
 
         .palette-preview {
@@ -51,7 +75,7 @@
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             gap: 1rem;
             margin-top: 2rem;
         }
@@ -65,38 +89,63 @@
             font-size: 0.8rem;
             font-weight: bold;
             box-shadow: 0 4px 10px --alpha(var(--color-dark), 0.05);
+            transition: transform 0.2s ease;
+        }
 
-            /* --- THE NATIVE FLIP --- */
-            /* We use 'max' to find the highest contrast between 
-               our dark and light brand variables. */
-            color: contrast-color(currentcolor max var(--color-dark), var(--color-light));
+        .swatch:hover {
+            transform: translateY(-4px);
         }
 
         .swatch span { font-family: monospace; opacity: 0.6; font-weight: normal; font-size: 0.7rem; }
 
-        /* Step Assignments (Simplified - no more 'color' calls needed here) */
-        .step-neg-4 { background: --shade(var(--color-primary), -4); }
-        .step-neg-3 { background: --shade(var(--color-primary), -3); }
-        .step-neg-2 { background: --shade(var(--color-primary), -2); }
-        .step-neg-1 { background: --shade(var(--color-primary), -1); }
+        /* Step Assignments with the Math-Switch contrast call */
+        .step-neg-4 { 
+            background: --shade(var(--color-primary), -4); 
+            color: --contrast-text(--shade(var(--color-primary), -4)); 
+        }
+        .step-neg-3 { 
+            background: --shade(var(--color-primary), -3); 
+            color: --contrast-text(--shade(var(--color-primary), -3)); 
+        }
+        .step-neg-2 { 
+            background: --shade(var(--color-primary), -2); 
+            color: --contrast-text(--shade(var(--color-primary), -2)); 
+        }
+        .step-neg-1 { 
+            background: --shade(var(--color-primary), -1); 
+            color: --contrast-text(--shade(var(--color-primary), -1)); 
+        }
         
         .step-zero  { 
             background: var(--color-primary); 
+            color: --contrast-text(var(--color-primary));
             outline: 2px solid var(--color-dark);
             outline-offset: 2px;
         }
 
-        .step-pos-1 { background: --shade(var(--color-primary), 1); }
-        .step-pos-2 { background: --shade(var(--color-primary), 2); }
-        .step-pos-3 { background: --shade(var(--color-primary), 3); }
-        .step-pos-4 { background: --shade(var(--color-primary), 4); }
+        .step-pos-1 { 
+            background: --shade(var(--color-primary), 1); 
+            color: --contrast-text(--shade(var(--color-primary), 1)); 
+        }
+        .step-pos-2 { 
+            background: --shade(var(--color-primary), 2); 
+            color: --contrast-text(--shade(var(--color-primary), 2)); 
+        }
+        .step-pos-3 { 
+            background: --shade(var(--color-primary), 3); 
+            color: --contrast-text(--shade(var(--color-primary), 3)); 
+        }
+        .step-pos-4 { 
+            background: --shade(var(--color-primary), 4); 
+            color: --contrast-text(--shade(var(--color-primary), 4)); 
+        }
     </style>
 </head>
 <body>
     <section class="palette-preview">
         <header>
-            <h1 style="margin: 0;">Native Contrast Engine</h1>
-            <p>9-step linear scale using the browser's native contrast-color() property.</p>
+            <h1 style="margin: 0;">Math-Switch Contrast Engine</h1>
+            <p>9-step linear scale with cross-browser compatible contrast logic.</p>
         </header>
 
         <div class="grid">
