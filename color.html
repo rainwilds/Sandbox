@@ -3,50 +3,29 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Design System - High Compatibility Scale</title>
+    <title>Design System - Native Contrast Scale</title>
 
     <style>
         /* --- 1. THE ENGINE --- */
         
-        /* SHADE: Positive = Darker, Negative = Lighter. 
-           Math: Base Lightness - (Step * 8%) */
+        /* SHADE: Linear math remains consistent */
         @function --shade(--color, --step) {
             result: oklch(from var(--color) calc(l - (var(--step) * 0.08)) c h);
         }
 
-        /* ALPHA: Quick transparency generator */
+        /* ALPHA: Quick transparency helper */
         @function --alpha(--color, --opacity) {
             result: rgb(from var(--color) r g b / var(--opacity));
         }
 
-        /* CONTRAST: The Math-Switch for Cross-Browser Support.
-           Threshold is 0.45. If L > 0.45, it uses --color-dark. 
-           If L < 0.45, it uses --color-light. */
-        @function --contrast-text(--bg-color) {
-            --l-bg: oklch(from var(--bg-color) l 0 0);
-            --threshold: 0.45;
-            /* Multiplying by -1000 creates a massive flip between 0 and 1 */
-            --contrast-switch: clamp(0, (var(--l-bg) - var(--threshold)) * -1000, 1);
-            
-            result: oklch(
-                from var(--color-dark) 
-                calc(l + (var(--contrast-switch) * 100)) 
-                0 
-                h
-            );
-        }
-
         /* --- 2. THE VARIABLES --- */
         :root {
-            /* Palette Sources */
             --_mint: #92c676;
             --_sky: #99cbe1;
             --_charcoal: #393632;
-            --_slate: #0e1a28;
 
             color-scheme: light dark;
             --color-primary: light-dark(var(--_mint), var(--_sky));
-            --color-secondary: light-dark(var(--_sky), var(--_mint));
             
             /* Structural Roles */
             --color-dark: light-dark(var(--_charcoal), #0a0a0a);
@@ -59,7 +38,6 @@
             color: var(--color-dark);
             font-family: 'Futura_PT_Demi', sans-serif;
             padding: 2rem;
-            margin: 0;
         }
 
         .palette-preview {
@@ -86,64 +64,51 @@
             gap: 0.5rem;
             font-size: 0.8rem;
             font-weight: bold;
-            box-shadow: 0 4px 12px --alpha(var(--color-dark), 0.08);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 10px --alpha(var(--color-dark), 0.05);
+
+            /* --- THE NATIVE FLIP --- */
+            /* We use 'max' to find the highest contrast between 
+               our dark and light brand variables. */
+            color: contrast-color(currentcolor max var(--color-dark), var(--color-light));
         }
 
-        .swatch:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 16px --alpha(var(--color-dark), 0.12);
-        }
+        .swatch span { font-family: monospace; opacity: 0.6; font-weight: normal; font-size: 0.7rem; }
 
-        .swatch span {
-            font-family: monospace;
-            opacity: 0.6;
-            font-weight: normal;
-            font-size: 0.7rem;
-        }
-
-        /* Applying the logic to classes */
-        .step-neg-4 { background: --shade(var(--color-primary), -4); color: --contrast-text(--shade(var(--color-primary), -4)); }
-        .step-neg-3 { background: --shade(var(--color-primary), -3); color: --contrast-text(--shade(var(--color-primary), -3)); }
-        .step-neg-2 { background: --shade(var(--color-primary), -2); color: --contrast-text(--shade(var(--color-primary), -2)); }
-        .step-neg-1 { background: --shade(var(--color-primary), -1); color: --contrast-text(--shade(var(--color-primary), -1)); }
+        /* Step Assignments (Simplified - no more 'color' calls needed here) */
+        .step-neg-4 { background: --shade(var(--color-primary), -4); }
+        .step-neg-3 { background: --shade(var(--color-primary), -3); }
+        .step-neg-2 { background: --shade(var(--color-primary), -2); }
+        .step-neg-1 { background: --shade(var(--color-primary), -1); }
         
         .step-zero  { 
             background: var(--color-primary); 
-            color: --contrast-text(var(--color-primary));
-            outline: 3px solid --alpha(var(--color-dark), 0.2);
+            outline: 2px solid var(--color-dark);
             outline-offset: 2px;
         }
 
-        .step-pos-1 { background: --shade(var(--color-primary), 1); color: --contrast-text(--shade(var(--color-primary), 1)); }
-        .step-pos-2 { background: --shade(var(--color-primary), 2); color: --contrast-text(--shade(var(--color-primary), 2)); }
-        .step-pos-3 { background: --shade(var(--color-primary), 3); color: --contrast-text(--shade(var(--color-primary), 3)); }
-        .step-pos-4 { background: --shade(var(--color-primary), 4); color: --contrast-text(--shade(var(--color-primary), 4)); }
+        .step-pos-1 { background: --shade(var(--color-primary), 1); }
+        .step-pos-2 { background: --shade(var(--color-primary), 2); }
+        .step-pos-3 { background: --shade(var(--color-primary), 3); }
+        .step-pos-4 { background: --shade(var(--color-primary), 4); }
     </style>
 </head>
-
 <body>
     <section class="palette-preview">
         <header>
-            <h1 style="margin: 0; font-size: 2rem;">Design Engine v2.0</h1>
-            <p style="margin: 0.5rem 0 0; opacity: 0.7;">
-                9-Step Linear Scale. Lighter (-4) to Darker (+4). 
-                <strong>Cross-browser contrast math enabled.</strong>
-            </p>
+            <h1 style="margin: 0;">Native Contrast Engine</h1>
+            <p>9-step linear scale using the browser's native contrast-color() property.</p>
         </header>
 
         <div class="grid">
-            <div class="swatch step-neg-4">Step -4 <span>Pastel</span></div>
-            <div class="swatch step-neg-3">Step -3 <span>Pale</span></div>
-            <div class="swatch step-neg-2">Step -2 <span>Light</span></div>
-            <div class="swatch step-neg-1">Step -1 <span>Soft</span></div>
-
-            <div class="swatch step-zero">Step 0 <span>Base</span></div>
-
-            <div class="swatch step-pos-1">Step 1 <span>Muted</span></div>
-            <div class="swatch step-pos-2">Step 2 <span>Dark</span></div>
-            <div class="swatch step-pos-3">Step 3 <span>Deep</span></div>
-            <div class="swatch step-pos-4">Step 4 <span>Shadow</span></div>
+            <div class="swatch step-neg-4">Step -4<span>Pastel</span></div>
+            <div class="swatch step-neg-3">Step -3<span>Pale</span></div>
+            <div class="swatch step-neg-2">Step -2<span>Light</span></div>
+            <div class="swatch step-neg-1">Step -1<span>Soft</span></div>
+            <div class="swatch step-zero">Step 0<span>Base</span></div>
+            <div class="swatch step-pos-1">Step 1<span>Muted</span></div>
+            <div class="swatch step-pos-2">Step 2<span>Dark</span></div>
+            <div class="swatch step-pos-3">Step 3<span>Deep</span></div>
+            <div class="swatch step-pos-4">Step 4<span>Shadow</span></div>
         </div>
     </section>
 </body>
