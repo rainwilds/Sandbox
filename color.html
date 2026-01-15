@@ -3,42 +3,20 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Design System - High Compatibility Scale</title>
+    <title>Design System - Manual Contrast Scale</title>
 
     <style>
         /* --- 1. THE ENGINE --- */
         
-        /* SHADE: Base Lightness - (Step * 8%) 
+        /* SHADE: Linear math. 
            Step 0 is base. Positive is Darker. Negative is Lighter. */
         @function --shade(--color, --step) {
             result: oklch(from var(--color) calc(l - (var(--step) * 0.08)) c h);
         }
 
-        /* ALPHA: Transparency helper */
+        /* ALPHA: Quick transparency helper */
         @function --alpha(--color, --opacity) {
             result: rgb(from var(--color) r g b / var(--opacity));
-        }
-
-        /* THE MATH-SWITCH (Cross-Browser Contrast Logic)
-           Calculates background lightness and 'slams' the result 
-           to either --color-dark or --color-light. */
-        @function --contrast-text(--bg-color) {
-            /* 1. Extract the background lightness */
-            --l-bg: oklch(from var(--bg-color) l 0 0);
-            
-            /* 2. Threshold: If L > 0.45, use dark text. */
-            --threshold: 0.45;
-
-            /* 3. The Switch: Multiplying by -1000 forces a binary 0 or 1 result */
-            --switch: calc((var(--l-bg) - var(--threshold)) * -1000);
-
-            /* 4. Clamp and Apply: Slams lightness to 0% or 100% */
-            result: oklch(
-                from var(--color-dark) 
-                calc(l + clamp(0%, var(--switch), 100%)) 
-                0 
-                h
-            );
         }
 
         /* --- 2. THE VARIABLES --- */
@@ -46,9 +24,11 @@
             --_mint: #92c676;
             --_sky: #99cbe1;
             --_charcoal: #393632;
+            --_slate: #0e1a28;
 
             color-scheme: light dark;
             --color-primary: light-dark(var(--_mint), var(--_sky));
+            --color-secondary: light-dark(var(--_sky), var(--_mint));
             
             /* Structural Roles */
             --color-dark: light-dark(var(--_charcoal), #0a0a0a);
@@ -69,13 +49,14 @@
             margin: 0 auto;
             padding: 2.5rem;
             border-radius: 24px;
-            background-color: --shade(var(--color-light), 1);
+            /* Using step 1 of light for a subtle container background */
+            background-color: oklch(from var(--color-light) calc(l - 0.03) c h);
             border: 1px solid --alpha(var(--color-dark), 0.1);
         }
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
             gap: 1rem;
             margin-top: 2rem;
         }
@@ -88,7 +69,7 @@
             gap: 0.5rem;
             font-size: 0.8rem;
             font-weight: bold;
-            box-shadow: 0 4px 10px --alpha(var(--color-dark), 0.05);
+            box-shadow: 0 4px 12px --alpha(var(--color-dark), 0.08);
             transition: transform 0.2s ease;
         }
 
@@ -96,56 +77,43 @@
             transform: translateY(-4px);
         }
 
-        .swatch span { font-family: monospace; opacity: 0.6; font-weight: normal; font-size: 0.7rem; }
+        .swatch span { 
+            font-family: monospace; 
+            opacity: 0.7; 
+            font-weight: normal; 
+            font-size: 0.7rem; 
+        }
 
-        /* Step Assignments with the Math-Switch contrast call */
-        .step-neg-4 { 
-            background: --shade(var(--color-primary), -4); 
-            color: --contrast-text(--shade(var(--color-primary), -4)); 
-        }
-        .step-neg-3 { 
-            background: --shade(var(--color-primary), -3); 
-            color: --contrast-text(--shade(var(--color-primary), -3)); 
-        }
-        .step-neg-2 { 
-            background: --shade(var(--color-primary), -2); 
-            color: --contrast-text(--shade(var(--color-primary), -2)); 
-        }
-        .step-neg-1 { 
-            background: --shade(var(--color-primary), -1); 
-            color: --contrast-text(--shade(var(--color-primary), -1)); 
-        }
+        /* --- 4. STEP ASSIGNMENTS (Manual Contrast) --- */
+
+        /* LIGHTER RANGE: Uses Dark Text */
+        .step-neg-4 { background: --shade(var(--color-primary), -4); color: var(--color-dark); }
+        .step-neg-3 { background: --shade(var(--color-primary), -3); color: var(--color-dark); }
+        .step-neg-2 { background: --shade(var(--color-primary), -2); color: var(--color-dark); }
+        .step-neg-1 { background: --shade(var(--color-primary), -1); color: var(--color-dark); }
         
+        /* BASE: Uses Dark Text (Assuming Mint/Sky brightness) */
         .step-zero  { 
             background: var(--color-primary); 
-            color: --contrast-text(var(--color-primary));
+            color: var(--color-dark);
             outline: 2px solid var(--color-dark);
             outline-offset: 2px;
         }
 
-        .step-pos-1 { 
-            background: --shade(var(--color-primary), 1); 
-            color: --contrast-text(--shade(var(--color-primary), 1)); 
-        }
-        .step-pos-2 { 
-            background: --shade(var(--color-primary), 2); 
-            color: --contrast-text(--shade(var(--color-primary), 2)); 
-        }
-        .step-pos-3 { 
-            background: --shade(var(--color-primary), 3); 
-            color: --contrast-text(--shade(var(--color-primary), 3)); 
-        }
-        .step-pos-4 { 
-            background: --shade(var(--color-primary), 4); 
-            color: --contrast-text(--shade(var(--color-primary), 4)); 
-        }
+        /* DARKER RANGE: Transitioning to Light Text */
+        .step-pos-1 { background: --shade(var(--color-primary), 1); color: var(--color-dark); }
+        .step-pos-2 { background: --shade(var(--color-primary), 2); color: var(--color-light); }
+        .step-pos-3 { background: --shade(var(--color-primary), 3); color: var(--color-light); }
+        .step-pos-4 { background: --shade(var(--color-primary), 4); color: var(--color-light); }
     </style>
 </head>
 <body>
     <section class="palette-preview">
         <header>
-            <h1 style="margin: 0;">Math-Switch Contrast Engine</h1>
-            <p>9-step linear scale with cross-browser compatible contrast logic.</p>
+            <h1 style="margin: 0;">Manual Contrast Scale</h1>
+            <p style="margin: 0.5rem 0 0; opacity: 0.7;">
+                9-step linear scale (-4 to +4) with manually paired text colors for 100% reliability.
+            </p>
         </header>
 
         <div class="grid">
@@ -153,7 +121,9 @@
             <div class="swatch step-neg-3">Step -3<span>Pale</span></div>
             <div class="swatch step-neg-2">Step -2<span>Light</span></div>
             <div class="swatch step-neg-1">Step -1<span>Soft</span></div>
+
             <div class="swatch step-zero">Step 0<span>Base</span></div>
+
             <div class="swatch step-pos-1">Step 1<span>Muted</span></div>
             <div class="swatch step-pos-2">Step 2<span>Dark</span></div>
             <div class="swatch step-pos-3">Step 3<span>Deep</span></div>
