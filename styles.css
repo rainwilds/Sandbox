@@ -385,918 +385,100 @@
     }
 }
 
+/* ============================================================
+   @layer custom (The Animated Logic)
+   ============================================================ */
+@layer custom {
 
-
-
-div.scroll {
-    width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-
-    -webkit-overflow-scrolling: touch;
-
-    ::-webkit-scrollbar {
-        display: none;
+    /* --- SEMANTIC ANIMATED GRADIENTS --- */
+    /* Light Mode Variants using Brand 1 & 2 */
+    .light-gradient-1 {
+        background: linear-gradient(135deg, var(--color-primary) 0%, --shade(var(--color-primary), 1) 30%, var(--color-secondary) 60%, --shade(var(--color-secondary), 1) 100%);
+        background-size: 200% 100%;
+        animation: slideGradient 8s ease infinite;
     }
 
-    @supports selector(scrollbar-width) {
-        scrollbar-width: none;
+    .light-gradient-blend {
+        mix-blend-mode: multiply;
+        animation: gradientBlendAnimLight 28s linear infinite;
     }
 
-    >div {
-
-        display: flex;
-        /* required to make it flow into a single row */
-        gap: var(--space-tiny);
-        min-width: max-content;
-        /* renders the entire row */
-
-        >* {
-            -ms-user-select: none;
-            -webkit-user-select: none;
-
-            max-width: 300px;
-
-            @supports selector(user-select) {
-                user-select: none;
-            }
-        }
-
-        >*:has(h2, h3, h4, h5) {
-            max-width: 250px;
-            display: grid;
-            gap: var(--space-tiny);
-            max-width: 250px;
-            background: beige;
-        }
-
+    /* Dark Mode Variants using Brand 3 & 4 */
+    .dark-gradient-1 {
+        background: linear-gradient(135deg, var(--color-tertiary) 0%, --shade(var(--color-tertiary), 1) 30%, --shade(var(--color-primary), 2) 60%, --shade(var(--color-secondary), 2) 100%);
+        background-size: 200% 100%;
+        animation: slideGradient 8s ease infinite;
     }
 
-    /* >div[class*="gallery"] {
-
-            >* {
-                width: 300px;
-                height: 200px;
-                display: flex;
-            }
-        } */
-
-    @supports (scroll-snap-align: start) {
-        scroll-snap-type: x mandatory;
-
-        >div>* {
-            scroll-snap-align: start;
-        }
+    .dark-gradient-blend {
+        mix-blend-mode: multiply;
+        animation: gradientBlendAnimDark 28s linear infinite;
     }
 
-    @media (max-width: 768px) {
-        .scroll>div>* {
-            width: 65vw;
-        }
+    /* --- DYNAMIC GRADIENT BLENDING --- */
+    @keyframes gradientBlendAnimLight {
+        0%   { background: linear-gradient(to bottom, --alpha(var(--color-primary), 0.2), --alpha(var(--color-secondary), 0.2)); }
+        50%  { background: linear-gradient(to bottom, --alpha(var(--color-secondary), 0.4), --alpha(var(--color-primary), 0.4)); }
+        100% { background: linear-gradient(to bottom, --alpha(var(--color-primary), 0.2), --alpha(var(--color-secondary), 0.2)); }
     }
 
+    @keyframes gradientBlendAnimDark {
+        0%   { background: linear-gradient(to bottom, --alpha(var(--color-tertiary), 0.2), --alpha(var(--color-primary), 0.1)); }
+        50%  { background: linear-gradient(to bottom, --alpha(var(--color-primary), 0.2), --alpha(var(--color-tertiary), 0.1)); }
+        100% { background: linear-gradient(to bottom, --alpha(var(--color-tertiary), 0.2), --alpha(var(--color-primary), 0.1)); }
+    }
+
+    @keyframes slideGradient {
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
 }
 
+/* ============================================================
+   LOOSE STRUCTURAL ENGINE (Highest Priority)
+   Keep outside of layers to maintain Subgrid and Scroll Snap.
+   ============================================================ */
 
-body>*:not(script) {
-
+/* 1. THE SUBGRID ENGINE */
+body > *:not(script) {
     display: grid;
     grid-template-columns: subgrid;
     grid-column: gutter-left / gutter-right;
-    /* grid-auto-rows: 1fr; */
     transition: all ease-in-out 0.25s;
 
-    >section {
-
+    & > section {
         grid-column: 1 / -1;
         display: grid;
         grid-template-columns: subgrid;
-        /* margin-bottom: var(--space-large); */
-        /* min-height: 50vh; */
-
-
-
-        >div {
-
+        & > div {
             grid-column: 2 / -2;
             display: grid;
-            /* grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); */
             gap: var(--space-medium);
-
-            &.grid-container-1 {
-                grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-
-                @media (max-width: 768px) {
-                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-                }
-
-
-
-            }
-
-            /* for when custom-block is used for text headings/paragraphs */
-            >div:is([data-section-title="true"]) {
-
-                /* margin: var(--space-large) 0 var(--space-medium) 0; */
-                min-height: initial;
-
-            }
-
-        }
-
-    }
-
-
-
-
-
-
-}
-
-header {
-
-    >* {
-
-        grid-column: gutter-left / gutter-right;
-        height: auto;
-
-    }
-
-    >div {
-        div.block {
-            min-height: initial;
-            max-height: 100vh;
-        }
-
-    }
-
-    picture.logo {
-        width: 100px;
-    }
-
-
-
-
-
-    >section {
-
-        z-index: 2;
-        height: 100%;
-
-        >div {
-            grid-column: 1/-1;
-        }
-
-    }
-
-}
-
-main {
-
-    /* row-gap: var(--space-large); */
-    margin: var(--space-medium) 0 var(--space-medium) 0;
-
-    >section:has([data-section-title]):not(:has(video)) {
-        margin: var(--space-large) 0 var(--space-medium) 0;
-    }
-
-
-
-
-}
-
-footer {
-    background: #79554899;
-}
-
-
-
-
-body {
-
-
-
-    transition: filter 0.3s ease;
-
-    /* Dull <main> when hovering the Portfolio <li> */
-    &:has(nav.dropdown li:hover)>*>* {
-        filter: brightness(0.8) opacity(0.8) saturate(0);
-    }
-
-    /* Nested nav styles */
-    & nav.dropdown {
-        padding: 10px;
-
-        & ul {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            /* Horizontal nav */
-            gap: 20px;
-            /* Space between items */
-        }
-
-        & li {
-            position: relative;
-            /* Anchor for dropdown */
-            padding: 10px;
-            cursor: pointer;
-
-            & a {
-                text-decoration: none;
-                color: #333;
-            }
-
-            /* Dropdown menu */
-            & .dropdown-menu {
-                position: absolute;
-                top: 100%;
-                left: 0;
-                background: white;
-                border: 1px solid #ccc;
-                transform: scaleY(0);
-                transform-origin: top;
-                transition: transform 0.3s ease, opacity 0.3s ease;
-                opacity: 0;
-                display: flex;
-                flex-direction: column;
-                padding: 10px;
-            }
-
-            /* Show dropdown on hover */
-            &:hover .dropdown-menu {
-                transform: scaleY(1);
-                opacity: 1;
-            }
+            &.grid-container-1 { grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); }
         }
     }
 }
 
-
-
-/* Too convert into the .block Web Component */
-div#products {
-    display: grid !important;
-    /* Ensure grid applies, for debugging */
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
-    gap: 24px !important;
-    padding: 24px !important;
-    justify-content: center !important;
-    max-width: 1200px !important;
-    margin: 0 auto !important;
-    border: 2px solid red;
-    /* Temporary border for debugging */
-}
-
-.product-card {
-    display: grid;
-    grid-template-rows: auto auto 1fr auto;
-    padding: 16px;
-    background-color: light-dark(var(--color-white-4), var(--color-black-alpha-2));
-    border: var(--border-size-small) solid light-dark(var(--color-dark-1), var(--color-light-1));
-    border-radius: 8px;
-    text-align: center;
-    transition: transform 0.2s;
-}
-
-.product-card:hover {
-    transform: translateY(-4px);
-}
-
-.product-card h3 {
-    margin: 0 0 var(--space-small);
-    font-size: 1.5em;
-}
-
-.product-card img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 4px;
-    margin-bottom: var(--space-small);
-}
-
-.product-card p {
-    margin: 0 0 var(--space-small);
-    font-size: 1em;
-    color: light-dark(#555, #aaa);
-}
-
-.product-card .snipcart-add-item {
-    padding: 10px 20px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 1em;
-    margin-top: var(--space-tiny);
-}
-
-.product-card .snipcart-add-item:hover {
-    background-color: #0056b3;
-}
-
-
-
-.color-palette {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-}
-
-.color-swatch {
-    padding: 1rem;
-    border-radius: 8px;
-    text-align: center;
-    min-height: 100px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    font-family: monospace;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.color-swatch span {
-    margin: 0.25rem 0;
-}
-
-
-
-/* Base styles for .custom-slider */
-.custom-slider {
-    overflow: hidden;
-    position: relative;
-    user-select: none;
-    touch-action: pan-y;
-    height: stretch;
-}
-
-/* Base styles for .slider-wrapper */
-.custom-slider .slider-wrapper {
-    height: 100%;
-    user-select: none;
-    touch-action: pan-y;
-    will-change: transform;
-    transition: transform 0.5s ease-out;
-    /* Default transition for sliding */
-}
-
-/* Draggable cursor styles */
-.custom-slider[draggable] .slider-wrapper {
-    cursor: grab;
-}
-
-.custom-slider[draggable] .slider-wrapper.dragging {
-    cursor: grabbing;
-    transition: none;
-    /* Disable transition during drag */
-}
-
-/* Non-cross-fade styles */
-.custom-slider:not([cross-fade]) .slider-wrapper {
-    display: grid;
-    grid-template-rows: 1fr;
-    grid-auto-flow: column;
-    align-content: center;
-    grid-template-columns: var(--slider-columns);
-    /* Set dynamically in JS */
-}
-
-.custom-slider:not([cross-fade])[gap] .slider-wrapper {
-    column-gap: var(--slider-gap);
-    /* Set dynamically in JS */
-}
-
-/* Cross-fade styles */
-.custom-slider[cross-fade] .slider-wrapper {
-    position: relative;
-    overflow: hidden;
-    transition: none;
-    /* No transform transition for cross-fade */
-}
-
-.custom-slider[cross-fade] .slider-slide {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    transition: opacity 1s ease-in-out;
-    /* 1-second cross-fade */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.custom-slider[cross-fade] .slider-slide.active {
-    opacity: 1;
-    z-index: 1;
-}
-
-/* 2. "Below" Behavior Override 
-   Triggered when you add pagination-position="below" to the HTML tag */
-
-.custom-slider[pagination-position="below"] {
-    display: flex;
-    flex-direction: column;
-    /* Allows stacking of wrapper and pagination */
-}
-
-.custom-slider[pagination-position="below"] .slider-wrapper {
-    flex: 1;
-    /* Takes up remaining space */
-    height: auto;
-    /* Override 100% height to prevent overflow/cutting off */
-}
-
-.custom-slider[pagination-position="below"] .slider-pagination {
-    position: relative;
-    /* Remove absolute positioning */
-    bottom: auto;
-    left: auto;
-    transform: none;
-    padding-top: var(--space-small);
-    /* Add space between image and dots */
-    padding-bottom: 0;
-    justify-content: center;
-    /* Center dots via flexbox */
-}
-
-
-
-.slider-nav-prev {
-    position: absolute;
-    z-index: 10;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    margin-left: var(--space-tiny);
-}
-
-.slider-nav-next {
-    position: absolute;
-    z-index: 10;
-    right: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    margin-right: var(--space-tiny);
-}
-
-.icon-stack {
-
-    display: grid;
-    place-items: center;
-
-    &>:is(i, svg) {
-        grid-area: 1 / 1;
-        cursor: pointer;
-        color: light-dark(var(--color-dark-6-alpha-1), var(--color-light-6-alpha-1));
-    }
-
-    &>:is(i:first-child, svg:first-child) {
-        width: auto;
-    }
-
-    &>:is(i:last-child, svg:first-child) {
-        color: light-dark(var(--color-dark-6), var(--color-light-6));
-    }
-
-}
-
-/* .slider-pagination {
-    position: absolute;
-    bottom: 0px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding-bottom: var(--space-small);
-    display: flex;
-    gap: var(--space-tiny);
-    font-size: 0.5rem;
-    z-index: 1;
-
-    &>span.icon {
-        cursor: pointer;
-    }
-
-} */
-
-/* =========================================
-   Pagination Styles
-   ========================================= */
-
-.slider-pagination {
-    position: absolute;
-    bottom: 0px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding-bottom: var(--space-small);
-    display: flex;
-    gap: var(--space-tiny);
-    font-size: 0.5rem;
-    z-index: 1;
-
-    &>span.icon {
-        cursor: pointer;
-    }
-}
-
-
-.animate.animate-fade-in img {
-    animation: fadeIn 1s ease-in;
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-
-
-
-
-.item {
-    width: 100%;
-    border: 1px solid #ddd;
-    padding: 1rem;
-    text-align: center;
-}
-
-.item img {
-    max-width: 100%;
-    height: auto;
-}
-
-.item[style*="display: none"] {
-    display: none !important;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/* Light theme animated gradients */
-.light-gradient-1 {
-    background: linear-gradient(135deg, var(--color-light-1) 0%, var(--color-light-2) 30%, var(--color-light-3) 60%, var(--color-light-4) 100%);
-    background-size: 200% 100%;
-    animation: slideGradient 8s ease infinite;
-}
-
-.light-gradient-2 {
-    background: linear-gradient(to bottom, var(--color-light-3) 0%, var(--color-light-4) 40%, var(--color-light-5) 70%, var(--color-light-6) 100%);
-    background-size: 100% 200%;
-    animation: slideGradientVertical 8s ease infinite;
-}
-
-.light-gradient-3 {
-    background: linear-gradient(45deg, var(--color-light-5) 0%, var(--color-light-6) 50%, var(--color-light-1) 100%);
-    background-size: 200% 100%;
-    animation: slideGradient 8s ease infinite;
-}
-
-.light-gradient-opaque-1 {
-    background: linear-gradient(135deg, var(--color-light-1-alpha-1) 0%, var(--color-light-1-alpha-2) 25%, var(--color-light-1-alpha-3) 75%, var(--color-light-1-alpha-4) 100%);
-    background-size: 200% 100%;
-    animation: slideGradient 8s ease infinite;
-}
-
-.light-gradient-opaque-2 {
-    background: linear-gradient(to bottom, var(--color-light-1-alpha-3) 0%, var(--color-light-1-alpha-4) 33%, var(--color-light-1-alpha-5) 66%, var(--color-light-6-alpha-1) 100%);
-    background-size: 100% 200%;
-    animation: slideGradientVertical 8s ease infinite;
-}
-
-.light-gradient-opaque-3 {
-    background: linear-gradient(45deg, var(--color-light-1-alpha-5) 0%, var(--color-light-6-alpha-1) 50%, var(--color-light-1-alpha-1) 100%);
-    background-size: 200% 100%;
-    animation: slideGradient 8s ease infinite;
-}
-
-.light-gradient-blend {
-    background: linear-gradient(to bottom, var(--color-light-1-alpha-1), var(--color-light-1-alpha-2));
-    mix-blend-mode: multiply;
-    animation: gradientBlendAnimLight 28s linear infinite;
-}
-
-/* Dark theme animated gradients */
-.dark-gradient-1 {
-    background: linear-gradient(135deg, var(--color-dark-1) 0%, var(--color-dark-2) 30%, var(--color-dark-3) 60%, var(--color-dark-4) 100%);
-    background-size: 200% 100%;
-    animation: slideGradient 8s ease infinite;
-}
-
-.dark-gradient-2 {
-    background: linear-gradient(to bottom, var(--color-dark-3) 0%, var(--color-dark-4) 40%, var(--color-dark-5) 70%, var(--color-dark-6) 100%);
-    background-size: 100% 200%;
-    animation: slideGradientVertical 8s ease infinite;
-}
-
-.dark-gradient-3 {
-    background: linear-gradient(45deg, var(--color-dark-scale-5) 0%, var(--color-dark-6) 50%, var(--color-dark-1) 100%);
-    background-size: 200% 100%;
-    animation: slideGradient 8s ease infinite;
-}
-
-.dark-gradient-opaque-1 {
-    background: linear-gradient(135deg, var(--color-dark-1-alpha-1) 0%, var(--color-dark-1-alpha-2) 25%, var(--color-dark-1-alpha-3) 75%, var(--color-accent-opaque-dark-scale-4) 100%);
-    background-size: 200% 100%;
-    animation: slideGradient 8s ease infinite;
-}
-
-.dark-gradient-opaque-2 {
-    background: linear-gradient(to bottom, var(--color-dark-1-alpha-3) 0%, var(--color-dark-1-alpha-4) 33%, var(--color-dark-1-alpha-5) 66%, var(--color-dark-1-alpha-1) 100%);
-    background-size: 100% 200%;
-    animation: slideGradientVertical 8s ease infinite;
-}
-
-.dark-gradient-opaque-3 {
-    background: linear-gradient(45deg, var(--color-dark-1-alpha-5) 0%, var(--color-dark-6-alpha-1) 50%, var(--color-dark-1-alpha-1) 100%);
-    background-size: 200% 100%;
-    animation: slideGradient 8s ease infinite;
-}
-
-.dark-gradient-blend {
-    background: linear-gradient(to bottom, var(--color-dark-1-alpha-1), var(--color-dark-1-alpha-2));
-    mix-blend-mode: multiply;
-    animation: gradientBlendAnimDark 28s linear infinite;
-}
-
-/* Keyframes for horizontal sliding effect */
-@keyframes slideGradient {
-    0% {
-        background-position: 0% 50%;
-    }
-
-    50% {
-        background-position: 100% 50%;
-    }
-
-    100% {
-        background-position: 0% 50%;
-    }
-}
-
-/* Keyframes for vertical sliding effect */
-@keyframes slideGradientVertical {
-    0% {
-        background-position: 50% 0%;
-    }
-
-    50% {
-        background-position: 50% 100%;
-    }
-
-    100% {
-        background-position: 50% 0%;
-    }
-}
-
-
-/* Keyframes for sliding animation */
-@keyframes slide {
-    0% {
-        transform: translateX(0);
-    }
-
-    33% {
-        transform: translateX(0);
-    }
-
-    33.1% {
-        transform: translateX(-100%);
-    }
-
-    66% {
-        transform: translateX(-100%);
-    }
-
-    66.1% {
-        transform: translateX(-200%);
-    }
-
-    100% {
-        transform: translateX(-200%);
-    }
-}
-
-/* Keyframes for light gradient color blending animation */
-@keyframes gradientBlendAnimLight {
-    0% {
-        background: linear-gradient(to bottom, var(--color-light-1-alpha-1), var(--color-light-1-alpha-2));
-    }
-
-    25% {
-        background: linear-gradient(to bottom, var(--color-light-1-alpha-3), var(--color-light-1-alpha-4));
-    }
-
-    50% {
-        background: linear-gradient(to bottom, var(--color-light-1-alpha-5), var(--color-light-6-alpha-1));
-    }
-
-    75% {
-        background: linear-gradient(to bottom, var(--color-light-1-alpha-4), var(--color-light-1-alpha-3));
-    }
-
-    100% {
-        background: linear-gradient(to bottom, var(--color-light-1-alpha-1), var(--color-light-1-alpha-2));
-    }
-}
-
-/* Keyframes for dark gradient color blending animation */
-@keyframes gradientBlendAnimDark {
-    0% {
-        background: linear-gradient(to bottom, var(--color-dark-1-alpha-1), var(--color-accent-opaque-dark-scale-2));
-    }
-
-    25% {
-        background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-3), var(--color-accent-opaque-dark-scale-4));
-    }
-
-    50% {
-        background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-5), var(--color-dark-6-alpha-1));
-    }
-
-    75% {
-        background: linear-gradient(to bottom, var(--color-accent-opaque-dark-scale-4), var(--color-accent-opaque-dark-scale-3));
-    }
-
-    100% {
-        background: linear-gradient(to bottom, var(--color-dark-1-alpha-1), var(--color-accent-opaque-dark-scale-2));
-    }
-}
-
-
-
-@media (min-width: 1px) {
-
-    @keyframes image-reveal {
-
-        from {
-            border-left-width: 0;
+/* 2. THE SCROLL SNAP ENGINE */
+div.scroll {
+    width: 100%; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
+    &::-webkit-scrollbar { display: none; }
+    & > div {
+        display: flex; gap: var(--space-tiny); min-width: max-content;
+        & > *:has(h2, h3, h4, h5) {
+            max-width: 250px; display: grid; gap: var(--space-tiny);
+            background: --shade(var(--color-light), 1); padding: var(--space-small);
         }
-
-        to {
-            border-left-width: 50vw;
-        }
-
     }
-
-}
-
-@media (max-width: 980px) {
-
-    @keyframes text-scroll {
-
-        0% {
-            visibility: visible;
-            opacity: 0;
-            transform: translateX(-80vw);
-        }
-
-        20% {
-            opacity: 0.2;
-        }
-
-        100% {
-            transform: translateX(5vw);
-        }
-
-    }
-
-}
-
-@media (min-width: 981px) {
-
-    @keyframes text-scroll {
-
-        0% {
-            visibility: visible;
-            opacity: 0;
-            transform: translateX(-20vw);
-        }
-
-        20% {
-            opacity: 0.2;
-        }
-
-        100% {
-            transform: translateX(5vw);
-        }
-
-    }
-
-}
-
-@media (max-width: 768px) {
-
-    @keyframes gallery-scroll {
-
-        0% {
-            transform: translateX(calc(((((100vw / 2) * 10) - 100vw) + (11 * var(--space-tiny))) * -1)) !important;
-        }
-
-        100% {
-            transform: translateX(0);
-        }
-
-    }
-
-}
-
-@media (max-width: 980px) {
-
-    @keyframes gallery-scroll {
-
-        0% {
-            transform: translateX(calc(((((100vw / 4) * 10) - 100vw) + (11 * var(--space-tiny))) * -1));
-        }
-
-        100% {
-            transform: translateX(0);
-        }
-
-    }
-
-}
-
-@media (min-width: 981px) {
-
-    @keyframes gallery-scroll {
-
-        0% {
-            transform: translateX(calc(((((100vw / 7) * 10) - 100vw) + (11 * var(--space-tiny))) * -1));
-        }
-
-        100% {
-            transform: translateX(0);
-        }
-
-    }
-
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
+    @supports (scroll-snap-align: start) {
+        scroll-snap-type: x mandatory;
+        & > div > * { scroll-snap-align: start; }
     }
 }
 
-@keyframes fadeInTopDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-
-/* Cross-fade keyframes */
-@keyframes crossFadeIn {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes crossFadeOut {
-    from {
-        opacity: 1;
-    }
-
-    to {
-        opacity: 0;
-    }
-}
+/* 3. ALIGNMENT & SPACING */
+header, main, footer { grid-column: gutter-left / gutter-right; }
+header > * { grid-column: gutter-left / gutter-right; height: auto; }
+main { margin: var(--space-medium) 0; }
+footer { background: --alpha(var(--color-tertiary), 0.4); padding: var(--space-medium); }
