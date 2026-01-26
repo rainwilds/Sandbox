@@ -179,101 +179,109 @@
 
 @layer defaults {
 
-    /* --- 1. THE BODY GRID (Foundation) --- */
-    body {
-        display: grid;
-        background-color: var(--color-light);
-        color: var(--color-dark);
+    :root {
+        /* --- 1. GLOBAL INHERITANCE --- */
+        /* These must be inside a selector to apply to the page */
+        font-family: var(--font-2-family);
+        font-size: var(--font-2-size-medium);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
         
-        grid-template-areas:
-            "gutter-left header header header header header header header header header header header header gutter-right"
-            "gutter-left main main main main main main main main main main main main gutter-right"
-            "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
-
-        grid-template-rows: if(
-            media((min-width: 550px) and (max-width: 980px) and (orientation: landscape)): 100vh;
-            media(max-width: 768px): 100vh;
-            media(max-width: 1200px): 100vh;
-            media(min-width: 1201px) and (max-width: 1919px): 60vh;
-            else: 60vh
-        );
-
-        grid-template-columns: var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
-        transition: filter 0.3s ease;
-    }
-
-    /* --- 2. CORE TYPOGRAPHY --- */
-    font-family: var(--font-2-family);
-    font-size: var(--font-2-size-medium);
-
-    h1, h2, h3, h4, h5, h6 {
-        font-family: var(--font-1-family);
-        line-height: 1;
-        margin-bottom: var(--space-tiny);
+        /* Base text and background colors */
         color: var(--color-dark);
-        font-weight: normal; 
-    }
 
-    h1 { font-size: 3.5rem; }
-    h2 { font-size: 1.76rem; }
-    p:not(:last-of-type) { margin-bottom: var(--space-tiny); }
+        /* --- 2. THE BODY GRID (The Structural Engine) --- */
+        body {
+            display: grid;
+            background-color: var(--color-light);
+            
+            grid-template-areas:
+                "gutter-left header header header header header header header header header header header header gutter-right"
+                "gutter-left main main main main main main main main main main main main gutter-right"
+                "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
 
-    /* --- 3. BACKGROUND & OVERLAY UTILITIES (Restored) --- */
-    .background-color-1 { background-color: var(--color-primary); }
-    .background-color-2 { background-color: var(--color-secondary); }
-    /* Using engine for subtle tint */
-    .background-color-3 { background-color: --alpha(var(--color-primary), 0.15); }
+            grid-template-rows: if(
+                media((min-width: 550px) and (max-width: 980px) and (orientation: landscape)): 100vh;
+                media(max-width: 768px): 100vh;
+                media(max-width: 1200px): 100vh;
+                media(min-width: 1201px) and (max-width: 1919px): 60vh;
+                else: 60vh
+            );
 
-    .background-overlay-1 { background-color: --alpha(var(--color-light), 0.4); }
-    .background-overlay-2 { background-color: --alpha(var(--color-light), 0.6); }
-    .background-overlay-3 { background-color: --alpha(var(--color-dark), 0.6); }
+            grid-template-columns: var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
+            transition: filter 0.3s ease;
+        }
 
-    .background-image-noise { background-image: var(--background-noise); }
+        /* --- 3. TYPOGRAPHY DETAILS --- */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-1-family);
+            line-height: 1;
+            margin-bottom: var(--space-tiny);
+            color: var(--color-dark);
+            font-weight: normal; 
+        }
 
-    /* --- 4. INTERACTIVE ELEMENTS --- */
-    a:any-link {
-        color: var(--color-primary);
-        transition: color 0.4s;
-        &:hover {
-            color: --shade(var(--color-primary), 1);
-            text-decoration: none;
+        h1 { font-size: 3.5rem; }
+        h2 { font-size: 1.76rem; }
+        p:not(:last-of-type) { margin-bottom: var(--space-tiny); }
+
+        article p:nth-child(1)::first-line {
+            font-size: var(--font-2-size-large);
+            font-weight: bold;
+        }
+
+        /* --- 4. BACKGROUND UTILITIES (Semantic Upgrade) --- */
+        .background-color-1 { background-color: var(--color-primary); }
+        .background-color-2 { background-color: var(--color-secondary); }
+        .background-color-3 { background-color: --alpha(var(--color-primary), 0.15); }
+
+        .background-overlay-1 { background-color: --alpha(var(--color-light), 0.4); }
+        .background-overlay-2 { background-color: --alpha(var(--color-light), 0.6); }
+        .background-overlay-3 { background-color: --alpha(var(--color-dark), 0.6); }
+
+        .background-image-noise { background-image: var(--background-noise); }
+
+        /* --- 5. INTERACTIVE ELEMENTS --- */
+        a:any-link {
+            color: var(--color-primary);
+            transition: color 0.4s;
+            &:hover {
+                color: --shade(var(--color-primary), 1);
+                text-decoration: none;
+            }
+        }
+
+        button {
+            background-color: var(--color-primary);
+            background-image: var(--background-noise);
+            color: var(--color-dark); 
+            padding: calc(var(--space-tiny)/2) var(--space-tiny);
+            border: solid 1px --shade(var(--color-primary), 1);
+            transition: all 0.4s;
+
+            &:hover {
+                background-color: --shade(var(--color-primary), 1);
+                color: light-dark(var(--color-dark), var(--color-light));
+            }
+        }
+
+        /* --- 6. SPACING & SHADOW UTILITIES --- */
+        .padding-micro  { padding: var(--space-micro); }
+        .padding-tiny   { padding: var(--space-tiny); }
+        .padding-small  { padding: var(--space-small); }
+        .padding-medium { padding: var(--space-medium); }
+        .padding-large  { padding: var(--space-large); }
+
+        .max-width-small  { max-width: var(--max-width-small); }
+        .max-width-medium { max-width: var(--max-width-medium); }
+        .max-width-large  { max-width: var(--max-width-large); }
+
+        .shadow-light  { box-shadow: 0.5px 1px 1px --alpha(var(--color-tertiary), 0.5); }
+        .shadow-medium { 
+            box-shadow: 1px 2px 2px --alpha(var(--color-tertiary), 0.3), 
+                        2px 4px 4px --alpha(var(--color-tertiary), 0.3); 
         }
     }
-
-    button {
-        background-color: var(--color-primary);
-        background-image: var(--background-noise);
-        color: var(--color-dark); 
-        padding: calc(var(--space-tiny)/2) var(--space-tiny);
-        border: solid 1px --shade(var(--color-primary), 1);
-        transition: all 0.4s;
-
-        &:hover {
-            background-color: --shade(var(--color-primary), 1);
-            color: light-dark(var(--color-dark), var(--color-light));
-        }
-    }
-
-    /* --- 5. DECORATIVE UTILITIES --- */
-    .shadow-light  { box-shadow: 0.5px 1px 1px --alpha(var(--color-tertiary), 0.5); }
-    .shadow-medium { 
-        box-shadow: 1px 2px 2px --alpha(var(--color-tertiary), 0.3), 
-                    2px 4px 4px --alpha(var(--color-tertiary), 0.3); 
-    }
-
-    /* --- 6. SPACING & SIZE UTILITIES --- */
-    .padding-micro  { padding: var(--space-micro); }
-    .padding-tiny   { padding: var(--space-tiny); }
-    .padding-small  { padding: var(--space-small); }
-    .padding-medium { padding: var(--space-medium); }
-    .padding-large  { padding: var(--space-large); }
-    .padding-huge   { padding: var(--space-huge); }
-
-    .max-width-small  { max-width: var(--max-width-small); }
-    .max-width-medium { max-width: var(--max-width-medium); }
-    .max-width-large  { max-width: var(--max-width-large); }
-    
-    .space-between { place-content: space-between; }
 }
 
 @layer components {
