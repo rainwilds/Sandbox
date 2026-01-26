@@ -179,790 +179,93 @@
 
 @layer defaults {
 
-    :root {
-
-        .padding-micro {
-            padding: var(--space-micro);
-        }
-
-        .padding-tiny {
-            padding: var(--space-tiny);
-        }
-
-        .padding-small {
-            padding: var(--space-small);
-        }
-
-        .padding-medium {
-            padding: var(--space-medium);
-        }
-
-        .padding-large {
-            padding: var(--space-large);
-        }
-
-        .padding-huge {
-            padding: var(--space-huge);
-        }
-
-        .space-between {
-            place-content: space-between;
-        }
-
-
-        .position-absolute {
-            position: absolute;
-            width: 100%;
-        }
-
-        .position-sticky-top {
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 2;
-        }
-
-        .position-sticky-bottom {
-            position: fixed;
-            width: 100%;
-            bottom: 0;
-            z-index: 2;
-        }
-
-        .position-fixed {
-            position: fixed;
-            width: 100%;
-        }
-
-
-        color: light-dark(var(--color-dark-6), var(--color-light-6));
-
-        .color-invert {
-            color: light-dark(var(--color-light-3), var(--color-dark-6));
-        }
-
-        .background-color-1 {
-            background-color: light-dark(var(--color-light-1), var(--color-dark-1));
-        }
-
-        .background-color-2 {
-            background-color: light-dark(var(--color-light-3), var(--color-dark-3));
-        }
-
-        .background-color-3 {
-            background-color: light-dark(var(--color-light-1-alpha-1), var(--color-dark-1-alpha-1));
-        }
-
-        .background-overlay-1 {
-            background-color: light-dark(var(--color-white-4), var(--color-black-alpha-2));
-        }
-
-        .background-overlay-2 {
-            background-color: light-dark(var(--color-white-alpha-6), var(--color-black-alpha-4));
-        }
-
-        .background-overlay-3 {
-            background-color: light-dark(var(--color-white-8), var(--color-black-6));
-        }
-
-
-        .background-gradient-1 {
-
-            background-image: linear-gradient(180deg, transparent 0%, var(--color-dark-6) 100%);
-            transform: scale(1.003);
-            /* fixes edge blending */
-
-        }
-
-        .background-gradient-2 {
-            background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--ff-primary-background-color-dark) 100%);
-            transform: scale(1.003);
-            /* fixes edge blending */
-        }
-
-        .background-gradient-3 {
-            background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--ff-primary-background-color-dark) 100%);
-            transform: scale(1.003);
-            /* fixes edge blending */
-        }
-
-        .mask-image-top-bottom {
-            mask-image: linear-gradient(to bottom, transparent, light-dark(var(--color-dark-6), var(--color-light-6)) 15%, light-dark(var(--color-dark-6), var(--color-light-6)) 85%, transparent);
-        }
-
-        .mask-image-left-right {
-            mask-image: linear-gradient(to right, transparent, light-dark(var(--color-dark-6), var(--color-light-6)) 15%, light-dark(var(--color-dark-6), var(--color-light-6)) 85%, transparent);
-        }
-
-        .background-image-noise {
-            background-image: var(--background-noise);
-        }
-
-        .shadow-light {
-            /* box-shadow: 0 2px 4px light-dark(var(--color-dark-6), var(--color-light-3)); */
-            box-shadow:
-                0.5px 1px 1px rgba(65, 79, 137, 0.7);
-        }
-
-        .shadow-medium {
-            /* box-shadow: 0 4px 8px light-dark(var(--color-dark-6), var(--color-light-3)); */
-            box-shadow:
-                1px 2px 2px rgba(65, 79, 137, 0.33),
-                2px 4px 4px rgba(65, 79, 137, 0.33),
-                3px 6px 6px rgba(65, 79, 137, 0.33);
-        }
-
-        .shadow-heavy {
-            /* box-shadow: 0 8px 16px light-dark(var(--color-dark-6), var(--color-light-3)); */
-            box-shadow:
-                1px 2px 2px rgba(65, 79, 137, 0.2),
-                2px 4px 4px rgba(65, 79, 137, 0.2),
-                4px 8px 8px rgba(65, 79, 137, 0.2),
-                8px 16px 16px rgba(65, 79, 137, 0.2),
-                16px 32px 32px rgba(65, 79, 137, 0.2);
-        }
-
-
-        /* --font-1-weight-light: 400; PLACEHOLDER */
-        /* --font-1-weight-medium: 500; */
-        /* --font-1-weight-heavy: 700 PLACEHOLDER; */
-
-
-        /* --font-2-weight-light: 300; */
-        /* --font-2-weight-medium: 400 PLACEHOLDER; */
-        /* --font-2-weight-heavy: 600 PLACEHOLDER; */
-
-
-        font-family: var(--font-2-family);
-        font-size: var(--font-2-size-medium);
-
-        /* adobe font requirements */
-        /* font-weight: var(--font-2-weight-light); */
-        /* font-style: normal; */
-
-        /* --background-pattern-1: repeating-linear-gradient(to right, var(--color-light-1-alpha-1), var(--color-light-1-alpha-1) 10px, transparent 10px, transparent); */
-        /* --background-pattern-1-size: 32px 32px; PLACEHOLDER */
-
-
-
-        .border-small {
-            border: solid var(--border-size-small) light-dark(var(--color-dark-6), var(--color-light-3));
-        }
-
-        .border-medium {
-            border: solid var(--border-size-medium) light-dark(var(--color-dark-6), var(--color-light-3));
-        }
-
-        .border-large {
-            border: solid var(--border-size-large) light-dark(var(--color-dark-6), var(--color-light-3));
-        }
-
-        .border-radius-small {
-            border-radius: var(--border-radius-small);
-        }
-
-        .border-radius-medium {
-            border-radius: var(--border-radius-medium);
-        }
-
-        .border-radius-large {
-            border-radius: var(--border-radius-large);
-        }
-
-
-
-        /* .backdrop-filter-blur-small {
-            --blur-filter: blur(var(--blur-small));
-        }
-
-        .backdrop-filter-blur-medium {
-            --blur-filter: blur(var(--blur-medium));
-        }
-
-        .backdrop-filter-blur-large {
-            --blur-filter: blur(var(--blur-large));
-        }
-
-        .backdrop-filter-grayscale-small {
-            --grayscale-filter: grayscale(var(--grayscale-small));
-        }
-
-        .backdrop-filter-grayscale-medium {
-            --grayscale-filter: grayscale(var(--grayscale-medium));
-        }
-
-        .backdrop-filter-grayscale-large {
-            --grayscale-filter: grayscale(var(--grayscale-large));
-        } */
-
-        .backdrop-filter-blur-small {
-            backdrop-filter: blur(var(--blur-small));
-        }
-
-        .backdrop-filter-blur-medium {
-            backdrop-filter: blur(var(--blur-medium));
-        }
-
-        .backdrop-filter-blur-large {
-            backdrop-filter: blur(var(--blur-large));
-        }
-
-        .backdrop-filter-grayscale-small {
-            backdrop-filter: grayscale(var(--grayscale-small));
-        }
-
-        .backdrop-filter-grayscale-medium {
-            backdrop-filter: grayscale(var(--grayscale-medium));
-        }
-
-        .backdrop-filter-grayscale-large {
-            backdrop-filter: grayscale(var(--grayscale-large));
-        }
-
-        /* [class*="backdrop-filter-"] {
-            backdrop-filter: var(--blur-filter) var(--grayscale-filter);
-        } */
-
-        ::backdrop {
-
-            -webkit-backdrop-filter: brightness(0.1) opacity(0.5) saturate(0);
-
-            @supports selector(backdrop-filter) {
-                backdrop-filter: brightness(0.1) opacity(0.5) saturate(0);
-            }
-
-        }
-
-        :modal {
-
-            -webkit-backdrop-filter: var(--blur-large);
-
-            @supports selector(backdrop-filter) {
-                backdrop-filter: var(--blur-large);
-            }
-
-        }
-
-        ::-webkit-scrollbar-track {
-            background: light-dark(var(--color-dark-1), var(--color-light-3));
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: light-dark(var(--color-light-3), var(--color-dark-1));
-        }
-
-        @supports selector(scrollbar-color) {
-            scrollbar-color: light-dark(var(--color-dark-1), var(--color-light-3)) light-dark(var(--color-light-3), var(--color-dark-1));
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        @supports selector(scrollbar-width) {
-            scrollbar-width: thin;
-        }
-
-        @supports selector(scrollbar-gutter) {
-            scrollbar-gutter: stable both-edges;
-        }
-
-        .animate {
-            opacity: 0;
-            transition: opacity 1s ease-out;
-        }
-
-
-
-        .animate-top-down {
-            animation: fadeInTopDown 2s forwards;
-        }
-
-        .animate-fade-in {
-            animation: fadeIn 3s forwards;
-        }
-
-
-
-        .place-content-center {
-            place-content: center;
-        }
-
-        .place-content-top {
-            place-content: start;
-        }
-
-        .place-content-bottom {
-            place-content: end;
-        }
-
-        /* .place-content-left {
-            place-content: start;
-        }
-
-        .place-content-right {
-            place-content: end;
-        } */
-
-        .place-content-top-left {
-            place-content: start start;
-        }
-
-        .place-content-top-center {
-            place-content: start center;
-        }
-
-        .place-content-top-right {
-            place-content: start end;
-        }
-
-        .place-content-bottom-left {
-            place-content: end start;
-        }
-
-        .place-content-bottom-center {
-            place-content: end center;
-        }
-
-        .place-content-bottom-right {
-            place-content: end end;
-        }
-
-        .place-content-center-left {
-            place-content: center start;
-        }
-
-        .place-content-center-right {
-            place-content: center end;
-        }
-
-
-
-
-        .flex-column-left {
-            display: flex;
-            flex-direction: column;
-            align-items: start;
-        }
-
-        .flex-column-center {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .flex-column-right {
-            display: flex;
-            flex-direction: column;
-            align-items: end;
-        }
-
-        .text-align-left {
-            text-align: left;
-        }
-
-        .text-align-center {
-            text-align: center;
-        }
-
-        .text-align-right {
-            text-align: right;
-        }
-
-        .font-size-small {
-            font-size: 0.8rem;
-        }
-
-        .font-size-medium {
-            font-size: 1.3rem;
-        }
-
-        .font-size-large {
-            font-size: 1.8rem;
-        }
-
-
-
-        .max-width-small {
-            max-width: var(--max-width-small);
-        }
-
-        .max-width-medium {
-            max-width: var(--max-width-medium);
-        }
-
-        .max-width-large {
-            max-width: var(--max-width-large);
-        }
-
-        .height-quater {
-            height: 25vh;
-        }
-
-        .height-third {
-            height: 33vh;
-        }
-
-        .height-half {
-            height: 50vh;
-        }
-
-        .height-two-thirds {
-            height: 66vh;
-        }
-
-        .height-viewport {
-            height: 100vh;
-        }
-
-        .min-height-quater {
-            min-height: 25vh;
-        }
-
-        .min-height-third {
-            min-height: 33vh;
-        }
-
-        .min-height-half {
-            min-height: 50vh;
-        }
-
-        .min-height-two-thirds {
-            min-height: 66vh;
-        }
-
-        .min-height-viewport {
-            min-height: 100vh;
-        }
-
-        .backdrop-blur-small {
-            backdrop-filter: var(--blur-small);
-        }
-
-        .backdrop-blur-medium {
-            backdrop-filter: var(--blur-medium);
-        }
-
-        .backdrop-blur-large {
-            backdrop-filter: var(--blur-large);
-        }
-
-        .object-fit-contain {
-            object-fit: contain;
-        }
-
-        .object-fit-fill {
-            object-fit: fill;
-        }
-
-        .object-position-top {
-            object-position: top;
-        }
-
-        .object-position-bottom {
-            object-position: bottom;
-        }
-
-        .aspect-ratio-21-9 {
-            aspect-ratio: 21/9;
-        }
-
-        .aspect-ratio-16-9 {
-            aspect-ratio: 16/9;
-        }
-
-        .aspect-ratio-9-16 {
-            aspect-ratio: 9/16;
-        }
-
-        .aspect-ratio-3-2 {
-            aspect-ratio: 3/2;
-        }
-
-        .aspect-ratio-2-3 {
-            aspect-ratio: 2/3;
-        }
-
-        .aspect-ratio-1-1 {
-            aspect-ratio: 1/1;
-        }
-
-        a:any-link {
-
-            color: light-dark(var(--color-dark-1), var(--color-light-3));
-            /* text-decoration: none; */
-            /* text-underline-offset: -0.4rem; */
-
-            /* adobe font requirements */
-            /* font-weight: var(--font-2-weight-light); test */
-
-            &:hover {
-
-                color: light-dark(var(--color-black-alpha-4), var(--color-white-4));
-                text-decoration: none;
-                transition: color 0.4s;
-
-            }
-        }
-
-        button,
-        input,
-        select,
-        textarea {
-            background-color: light-dark(var(--color-light-3), var(--color-dark-3));
-            padding: var(--space-tiny);
-            border: solid 1px;
-            border-color: light-dark(var(--color-dark-1), var(--color-light-1));
-            /* border-radius: var(--border-radius-small); PLACEHOLDER */
-            background-size: 32px 32px;
-        }
-
-        input,
-        select,
-        textarea {
-            background-image: var(--background-pattern-1);
-        }
-
-        button {
-            background-image: var(--background-noise);
-            padding: calc(var(--space-tiny)/2) var(--space-tiny);
-
-            &:hover {
-                background-color: light-dark(var(--color-light-1), var(--color-light-3));
-                transition: all 0.4s;
-                color: light-dark(var(--color-white-8), var(--color-black-8));
-            }
-        }
-
-        input:user-valid,
-        select:user-valid,
-        textarea:user-valid {
-            border-color: green;
-        }
-
-        input:user-invalid,
-        select:user-invalid,
-        textarea:user-invalid {
-            border-color: red;
-        }
-
-        input:focus-visible,
-        select:focus-visible,
-        textarea:focus-visible {
-            outline-color: light-dark(var(--color-black-alpha-2), var(--color-white-2));
-            outline-offset: 0.15rem;
-            transition: outline 1s;
-            background-image: none;
-        }
-
-        hr {
-            background: var(--color-white);
-        }
-
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        h6 {
-            font-family: var(--font-1-family);
-            line-height: 1;
-
-            /* adobe font requirements */
-            font-weight: var(--font-1-weight-medium);
-            /* font-style: normal; */
-
-            margin-bottom: var(--space-tiny);
-        }
-
-        h1 {
-            font-size: 3.5rem;
-        }
-
-        h2 {
-            font-size: 1.76rem;
-        }
-
-        h3 {
-            font-size: 1.4rem;
-        }
-
-        h4 {
-            font-size: 1.4rem;
-        }
-
-        h5 {
-            font-size: 1.2rem;
-        }
-
-        h6 {
-            font-size: 1.2rem;
-        }
-
-        p:not(:last-of-type) {
-            margin-bottom: var(--space-tiny);
-        }
-
-        article p:nth-child(1)::first-line {
-            font-size: var(--font-2-size-large);
-            font-weight: var(--font-2-weight-heavy);
-        }
-
-        ol,
-        ul {
-            list-style: none;
-
-            &>li:not(:last-of-type) {
-                margin-bottom: var(--space-micro);
-            }
-        }
-
-        blockquote {
-
-            font-size: var(--font-2-size-large);
-            background-color: light-dark(var(--color-light-3), var(--color-dark-3));
-            padding: var(--space-medium);
-
-            >p {
-                font-size: var(--font-2-size-small);
-                margin-top: var(--space-small);
-            }
-        }
-
-        i:has(+blockquote) {
-            font-size: 3rem;
-            position: absolute;
-            color: light-dark(var(--color-dark-1-alpha-1), var(--color-light-1-alpha-3));
-        }
-
-        img,
-        picture {
-
-            object-fit: cover;
-
-            @media (prefers-color-scheme: dark) {
-
-                &:not(div[id^="gallery-item-"] picture, div[id^="gallery-item-"] img) {
-
-                    /* filter: opacity(0.9) saturate(0.8); */
-
-                }
-            }
-        }
-
-        /* body {
-
-            display: grid;
-            background-color: light-dark(var(--color-light-1), var(--color-dark-6));
-
-            @media (min-width: 550px) and (max-width: 980px) and (orientation: landscape) {
-
-                & {
-                    grid-template: min-content / var(--side-gutter) repeat(12, 1fr) var(--side-gutter) !important;
-                    grid-template-areas:
-                        "gutter-left header header header header header header header header header header header header gutter-right"
-                        "gutter-left main main main main main main main main main main main main gutter-right"
-                        "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right" !important;
-                }
-
-            }
-
-            @media (max-width: 768px) {
-
-                & {
-                    grid-template: 100svh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter) !important;
-                    grid-template-areas:
-                        "gutter-left header header header header header header header header header header header header gutter-right"
-                        "gutter-left main main main main main main main main main main main main gutter-right"
-                        "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right" !important;
-                }
-
-            }
-
-            @media (max-width: 1200px) {
-
-                & {
-                    grid-template: 100svh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
-                    grid-template-areas:
-                        "gutter-left header header header header header header header header header header header header gutter-right"
-                        "gutter-left main main main main main main main main main main main main gutter-right"
-                        "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
-                }
-
-            }
-
-            @media (min-width: 1201px) and (max-width: 1919px) {
-
-                & {
-                    grid-template: 100vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
-                    grid-template-areas:
-                        "gutter-left header header header header header header header header header header header header gutter-right"
-                        "gutter-left main main main main main main main main main main main main gutter-right"
-                        "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
-                }
-
-            }
-
-            @media (min-width: 1920px) {
-
-                & {
-                    grid-template: 50vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
-                    grid-template-areas:
-                        "gutter-left header header header header header header header header header header header header gutter-right"
-                        "gutter-left main main main main main main main main main main main main gutter-right"
-                        "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
-                }
-
-            }
-
-        } */
-
-        body {
-
-            display: grid;
-            background-color: light-dark(var(--color-light-6), var(--color-dark-6));
-            grid-template-areas:
-                "gutter-left header header header header header header header header header header header header gutter-right"
-                "gutter-left main main main main main main main main main main main main gutter-right"
-                "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
- 
-            grid-template-rows: if(
-                media((min-width: 550px) and (max-width: 980px) and (orientation: landscape)): 100vh;
-                media(max-width: 768px): 100vh;
-                media(max-width: 1200px): 100vh;
-                media(min-width: 1201px) and (max-width: 1919px): 60vh;
-                else: 60vh
-
-            );
-
-            grid-template-columns: var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
-            
-        }
-
-        @media (max-width: 768px) {
-
-            &:root {
-
-                .max-width-small,
-                .max-width-medium,
-                .max-width-large {
-                    max-width: initial;
-                }
-
-            }
-
-        }
-
-        /* @media (min-width: 2560px) {
-
-            &:root {
-                --side-gutter: 10vw
-            }
-
-        } */
-
+    /* --- THE BODY GRID (Original Layout Foundation) --- */
+    body {
+        display: grid;
+        /* Using semantic light/dark foundation */
+        background-color: var(--color-light);
+        color: var(--color-dark);
+        
+        grid-template-areas:
+            "gutter-left header header header header header header header header header header header header gutter-right"
+            "gutter-left main main main main main main main main main main main main gutter-right"
+            "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
+
+        grid-template-rows: if(
+            media((min-width: 550px) and (max-width: 980px) and (orientation: landscape)): 100vh;
+            media(max-width: 768px): 100vh;
+            media(max-width: 1200px): 100vh;
+            media(min-width: 1201px) and (max-width: 1919px): 60vh;
+            else: 60vh
+        );
+
+        grid-template-columns: var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
+        transition: filter 0.3s ease;
     }
 
+    /* --- GLOBAL TEXT & TYPOGRAPHY --- */
+    font-family: var(--font-2-family);
+    font-size: var(--font-2-size-medium);
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: var(--font-1-family);
+        line-height: 1;
+        margin-bottom: var(--space-tiny);
+        color: var(--color-dark);
+    }
+
+    h1 { font-size: 3.5rem; }
+    h2 { font-size: 1.76rem; }
+    p:not(:last-of-type) { margin-bottom: var(--space-tiny); }
+
+    /* --- INTERACTIVE ELEMENTS (The Semantic Upgrade) --- */
+    a:any-link {
+        color: var(--color-primary);
+        text-decoration: underline;
+        text-underline-offset: 0.2rem;
+        transition: color 0.4s;
+
+        &:hover {
+            /* Using the engine to darken the brand color slightly */
+            color: --shade(var(--color-primary), 1);
+            text-decoration: none;
+        }
+    }
+
+    button {
+        background-color: var(--color-primary);
+        background-image: var(--background-noise);
+        /* Manual contrast pairing: Brand Mint/Sky usually needs dark text */
+        color: var(--color-dark); 
+        padding: calc(var(--space-tiny)/2) var(--space-tiny);
+        border: solid 1px --shade(var(--color-primary), 1);
+        transition: all 0.4s;
+
+        &:hover {
+            background-color: --shade(var(--color-primary), 1);
+            /* Ensure text stays readable on hover */
+            color: light-dark(var(--color-dark), var(--color-light));
+        }
+    }
+
+    /* --- UTILITY CLASSES (Updated to Semantic Roles) --- */
+    .color-invert { color: var(--color-light); }
+    
+    .background-color-1 { background-color: var(--color-primary); }
+    .background-color-2 { background-color: var(--color-secondary); }
+    .background-color-3 { background-color: --alpha(var(--color-primary), 0.15); }
+
+    .shadow-light  { box-shadow: 0.5px 1px 1px --alpha(var(--color-tertiary), 0.5); }
+    .shadow-medium { box-shadow: 1px 2px 2px --alpha(var(--color-tertiary), 0.3); }
+
+    /* Keep existing layout utilities */
+    .padding-micro { padding: var(--space-micro); }
+    .padding-tiny  { padding: var(--space-tiny); }
+    .padding-small { padding: var(--space-small); }
+    .padding-medium{ padding: var(--space-medium); }
+    .padding-large { padding: var(--space-large); }
+    .padding-huge  { padding: var(--space-huge); }
+    .space-between { place-content: space-between; }
 }
 
 @layer components {
