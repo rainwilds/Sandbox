@@ -141,10 +141,40 @@
         --max-width-small: 20vw;
         --max-width-medium: 40vw;
         --max-width-large: 60vw;
-      
-        
 
-        
+
+        /* LIGHT BRAND (Bright & Airy) */
+        --_l-1: #92c676;
+        /* Mint */
+        --_l-2: #99cbe1;
+        /* Sky */
+        --_l-3: #393632;
+        /* Charcoal */
+
+        /* DARK BRAND (Rich & Moody) */
+        --_d-1: #2d5a27;
+        /* Forest */
+        --_d-2: #1e3a5f;
+        /* Navy */
+        --_d-3: #0a0a0a;
+        /* Obsidian */
+
+        /* Creates shades of a color */
+        @function --shade(--color, --step) {
+            result: oklch(from var(--color) calc(l - (var(--step) * 0.08)));
+        }
+
+        /* Creates transparency of a color */
+        @function --alpha(--color, --opacity) {
+            result: rgb(from var(--color) r g b / var(--opacity));
+        }
+
+        --color-primary: light-dark(var(--_l-1), var(--_d-1));
+        --color-secondary: light-dark(var(--_l-2), var(--_d-2));
+        --color-tertiary: light-dark(var(--_l-3), var(--_d-3));
+
+        --color-dark: light-dark(var(--_l-3), #f8f9fa);
+        --color-light: light-dark(#ffffff, var(--_d-3));
 
         /* ——— SOLID LIGHT SCALE (6) ——— */
         --color-light-1: #92c676;
@@ -220,27 +250,21 @@
         -moz-osx-font-smoothing: grayscale;
 
         --font-1-family: Futura_PT_Demi,
-            Arial,
-            sans-serif;
+        Arial,
+        sans-serif;
 
         --font-2-family: futura_ptbook,
-            Arial,
-            sans-serif;
+        Arial,
+        sans-serif;
 
-        --font-2-size-small: if(
-            media(max-width: 768px): 11px;
-            else: 16px
-        );
+        --font-2-size-small: if(media(max-width: 768px): 11px;
+            else: 16px);
 
-        --font-2-size-medium: if(
-            media(max-width: 768px): 14px;
-            else: 20px
-        );
+        --font-2-size-medium: if(media(max-width: 768px): 14px;
+            else: 20px);
 
-        --font-2-size-large: if(
-            media(max-width: 768px): 17px;
-            else: 24px
-        );
+        --font-2-size-large: if(media(max-width: 768px): 17px;
+            else: 24px);
 
         --background-noise: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAATv0lEQVRoQ02aZaws1RKFe3rTTDNwCR7kBxbcgntwt6DB3YMFJ7jbxZ3gEgjuFjR4sOAWPEjwIEMPTTd8X73pmzfJyZ1zpmfv2lWrVq2qfXv//vtvMeOMM5aPPPJIte6665YLL7xwPddccxUrrrhi9vzzz2ebbrpps+GGG45+/PHHAc8Nl1xyyf4aa6yR5p577mbeeedtP/roo+a1117LrrjiirTVVlvVb7311oC16sMPP7w+66yzijnmmCPr9XoF+9RPP/10dumll9Zbbrll9vjjj+fLL798mnLKKespppiiv9dee2X33XdfPfvss5d33XVXdcstt6SnnnqqyXgttdRS2auvvlp8++232THHHJOuvvrq+rrrrsuuuuqqosfnxWeffZZOP/305oQTTih4pS+++KJyQQ7STjvttDlGZ3vuuWfL3/qPPfZY+8ILL+TffPNNhuE1P4WbXHnllR6iPvfcc8tdd901W2aZZWo2K9Zaa63m/vvvr++4447EYfLZZpstmzBhQvrggw8qv8v3atZMr7zySnH00Uc300wzTXriiSea4447TkOzDTbYoMKGFucVrJ3vsMMOozPPPDMveV1wwQVV77bbbkt4pfj999+bn376KU0//fQNm5R4Y4iRfRZOG2+88VDj11xzzRFe1hv9N998M2Fog3ezH374IbFBhqHN/vvv3y666KLF9ttvP/zzzz+LE088MTv++OOziy++ONeDvl977bVbjM4nn3zy1gj88ssvfRxU64SXX365xMh6lllmKUQATqyJRoMTCx22zTbbpL333rtgj+Gnn36a9zBycOCBB474GRDy7Ouvv64WWWSRRHgbT37QQQf1DS2HLOebb77sk08+qf7+++9ECGsPyKbt559/nl177bXNaqutlti8mGGGGTI2qLfYYgs3NlIFXm9POeWU+Ayo1joKqJV4vcLr5a+//tpwkNHtt99e4NRaR+28887Fxx9/XCy00EIV0W1ZJ5911lkLDpCWWGKJ5ssvv0w98Jj40gAY1UJBnL744ou5HnnggQfSu+++W+P5HK8JAR/JiUZ96qmnlvvuu+/QDYlIzgETeZLde++9QzAbsMPjBR6vp5pqqpLwV/5OPtWbbbZZKUw5hNCpdRLrtc8884w5V4BtDx6O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);
 
@@ -325,22 +349,22 @@
         }
 
 
-        color: light-dark(var(--color-dark-6), var(--color-light-6));
+        color: var(--color-primary);
 
         .color-invert {
-            color: light-dark(var(--color-light-3), var(--color-dark-6));
+            color:  var(--color-tertiary);
         }
 
         .background-color-1 {
-            background-color: light-dark(var(--color-light-1), var(--color-dark-1));
+            background-color:  var(--color-primary);
         }
 
         .background-color-2 {
-            background-color: light-dark(var(--color-light-3), var(--color-dark-3));
+            background-color:  var(--color-secondary);
         }
 
         .background-color-3 {
-            background-color: light-dark(var(--color-light-1-alpha-1), var(--color-dark-1-alpha-1));
+            background-color:  var(--color-tertiary);
         }
 
         .background-overlay-1 {
@@ -358,7 +382,7 @@
 
         .background-gradient-1 {
 
-            background-image: linear-gradient(180deg, transparent 0%, var(--color-dark-6) 100%);
+            background-image: linear-gradient(180deg, transparent 0%, var(--color-secondary) 100%);
             transform: scale(1.003);
             /* fixes edge blending */
 
@@ -377,11 +401,11 @@
         }
 
         .mask-image-top-bottom {
-            mask-image: linear-gradient(to bottom, transparent, light-dark(var(--color-dark-6), var(--color-light-6)) 15%, light-dark(var(--color-dark-6), var(--color-light-6)) 85%, transparent);
+            mask-image: linear-gradient(to bottom, transparent, light-dark(var(--color-secondary), var(--color-secondary)) 15%, light-dark(var(--color-secondary), var(--color-secondary)) 85%, transparent);
         }
 
         .mask-image-left-right {
-            mask-image: linear-gradient(to right, transparent, light-dark(var(--color-dark-6), var(--color-light-6)) 15%, light-dark(var(--color-dark-6), var(--color-light-6)) 85%, transparent);
+            mask-image: linear-gradient(to right, transparent, light-dark(var(--color-secondary), var(--color-secondary)) 15%, light-dark(var(--color-secondary), var(--color-secondary)) 85%, transparent);
         }
 
         .background-image-noise {
@@ -389,13 +413,13 @@
         }
 
         .shadow-light {
-            /* box-shadow: 0 2px 4px light-dark(var(--color-dark-6), var(--color-light-3)); */
+            /* box-shadow: 0 2px 4px light-dark(var(--color-secondary), var(--color-tertiary)); */
             box-shadow:
                 0.5px 1px 1px rgba(65, 79, 137, 0.7);
         }
 
         .shadow-medium {
-            /* box-shadow: 0 4px 8px light-dark(var(--color-dark-6), var(--color-light-3)); */
+            /* box-shadow: 0 4px 8px light-dark(var(--color-secondary), var(--color-tertiary)); */
             box-shadow:
                 1px 2px 2px rgba(65, 79, 137, 0.33),
                 2px 4px 4px rgba(65, 79, 137, 0.33),
@@ -403,7 +427,7 @@
         }
 
         .shadow-heavy {
-            /* box-shadow: 0 8px 16px light-dark(var(--color-dark-6), var(--color-light-3)); */
+            /* box-shadow: 0 8px 16px light-dark(var(--color-secondary), var(--color-tertiary)); */
             box-shadow:
                 1px 2px 2px rgba(65, 79, 137, 0.2),
                 2px 4px 4px rgba(65, 79, 137, 0.2),
@@ -436,15 +460,15 @@
 
 
         .border-small {
-            border: solid var(--border-size-small) light-dark(var(--color-dark-6), var(--color-light-3));
+            border: solid var(--border-size-small) light-dark(var(--color-secondary), var(--color-tertiary));
         }
 
         .border-medium {
-            border: solid var(--border-size-medium) light-dark(var(--color-dark-6), var(--color-light-3));
+            border: solid var(--border-size-medium) light-dark(var(--color-secondary), var(--color-tertiary));
         }
 
         .border-large {
-            border: solid var(--border-size-large) light-dark(var(--color-dark-6), var(--color-light-3));
+            border: solid var(--border-size-large) light-dark(var(--color-secondary), var(--color-tertiary));
         }
 
         .border-radius-small {
@@ -534,15 +558,15 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: light-dark(var(--color-dark-1), var(--color-light-3));
+            background: light-dark(var(--color-primary), var(--color-tertiary));
         }
 
         ::-webkit-scrollbar-thumb {
-            background: light-dark(var(--color-light-3), var(--color-dark-1));
+            background: light-dark(var(--color-tertiary), var(--color-primary));
         }
 
         @supports selector(scrollbar-color) {
-            scrollbar-color: light-dark(var(--color-dark-1), var(--color-light-3)) light-dark(var(--color-light-3), var(--color-dark-1));
+            scrollbar-color: light-dark(var(--color-primary), var(--color-tertiary)) light-dark(var(--color-tertiary), var(--color-primary));
         }
 
         ::-webkit-scrollbar {
@@ -779,7 +803,7 @@
 
         a:any-link {
 
-            color: light-dark(var(--color-dark-1), var(--color-light-3));
+            color: light-dark(var(--color-primary), var(--color-tertiary));
             /* text-decoration: none; */
             /* text-underline-offset: -0.4rem; */
 
@@ -799,10 +823,10 @@
         input,
         select,
         textarea {
-            background-color: light-dark(var(--color-light-3), var(--color-dark-3));
+            background-color: light-dark(var(--color-tertiary), var(--color-tertiary));
             padding: var(--space-tiny);
             border: solid 1px;
-            border-color: light-dark(var(--color-dark-1), var(--color-light-1));
+            border-color: light-dark(var(--color-primary), var(--color-primary));
             /* border-radius: var(--border-radius-small); PLACEHOLDER */
             background-size: 32px 32px;
         }
@@ -818,7 +842,7 @@
             padding: calc(var(--space-tiny)/2) var(--space-tiny);
 
             &:hover {
-                background-color: light-dark(var(--color-light-1), var(--color-light-3));
+                background-color: light-dark(var(--color-primary), var(--color-tertiary));
                 transition: all 0.4s;
                 color: light-dark(var(--color-white-8), var(--color-black-8));
             }
@@ -910,7 +934,7 @@
         blockquote {
 
             font-size: var(--font-2-size-large);
-            background-color: light-dark(var(--color-light-3), var(--color-dark-3));
+            background-color: light-dark(var(--color-tertiary), var(--color-tertiary));
             padding: var(--space-medium);
 
             >p {
@@ -943,7 +967,7 @@
         /* body {
 
             display: grid;
-            background-color: light-dark(var(--color-light-1), var(--color-dark-6));
+            background-color: light-dark(var(--color-primary), var(--color-secondary));
 
             @media (min-width: 550px) and (max-width: 980px) and (orientation: landscape) {
 
@@ -1010,22 +1034,32 @@
         body {
 
             display: grid;
-            background-color: light-dark(var(--color-light-6), var(--color-dark-6));
+            background-color: light-dark(var(--color-secondary), var(--color-secondary));
             grid-template-areas:
                 "gutter-left header header header header header header header header header header header header gutter-right"
                 "gutter-left main main main main main main main main main main main main gutter-right"
                 "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
- 
-            grid-template-rows: if(
-                media((min-width: 550px) and (max-width: 980px) and (orientation: landscape)): 100vh;
-                media(max-width: 768px): 100vh;
-                media(max-width: 1200px): 100vh;
-                media(min-width: 1201px) and (max-width: 1919px): 60vh;
-                else: 60vh
 
-            );
+            grid-template-rows: if(media((min-width: 550px) and (max-width: 980px) and (orientation: landscape)): 100vh;
+                    media(max-width: 768px): 100vh;
+                    media(max-width: 1200px): 100vh;
+                    media(min-width: 1201px) and (max-width: 1919px): 60vh;
+                    else: 60vh);
 
             grid-template-columns: var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
+
+            
+                &:has[data-theme="cyberpunk"] {
+                    --color-primary: #ff00ff;
+                    --color-secondary: #00ffff;
+                    --color-tertiary: #120458;
+                }
+
+                &:has[data-theme="earthy"] {
+                    --color-primary: #8b4513;
+                    --color-secondary: #556b2f;
+                    --color-tertiary: #2e1b0b;
+                }
             
         }
 
@@ -1100,7 +1134,7 @@
             backdrop-filter: var(--blur-medium);
 
             &:hover {
-                background-color: light-dark(var(--color-dark-3), var(--color-light-3));
+                background-color: light-dark(var(--color-tertiary), var(--color-tertiary));
                 transition: background-color 0.4s;
             }
         }
@@ -1109,9 +1143,9 @@
 
     a.button {
 
-        background-color: light-dark(var(--color-light-3), var(--color-dark-3));
+        background-color: light-dark(var(--color-tertiary), var(--color-tertiary));
         border: solid 1px;
-        border-color: light-dark(var(--color-dark-1), var(--color-light-1));
+        border-color: light-dark(var(--color-primary), var(--color-primary));
         width: max-content;
         background-image: var(--background-noise);
         padding: calc(var(--space-tiny) / 2) var(--space-tiny);
@@ -1119,7 +1153,7 @@
         backdrop-filter: var(--blur-medium);
 
         &:hover {
-            background-color: light-dark(var(--color-light-1), var(--color-light-3));
+            background-color: light-dark(var(--color-primary), var(--color-tertiary));
             transition: all 0.4s;
             color: light-dark(var(--color-white-8), var(--color-black-8));
         }
@@ -1320,7 +1354,7 @@
             margin: var(--space-small);
 
             &:hover {
-                color: var(--color-light-1);
+                color: var(--color-primary);
                 transition: color 0.3s;
             }
         }
@@ -1380,7 +1414,7 @@
         }
 
         & .modal-content {
-            background: light-dark(var(--color-light-1), var(--color-dark-6));
+            background: light-dark(var(--color-primary), var(--color-secondary));
             padding: var(--space-medium);
             max-width: var(--max-width-medium);
             border-radius: var(--border-radius-medium);
@@ -1401,7 +1435,7 @@
             color: light-dark(var(--color-black), var(--color-white));
 
             &:hover {
-                color: var(--color-light-1);
+                color: var(--color-primary);
                 transition: color 0.3s;
             }
         }
@@ -1413,7 +1447,7 @@
         gap: var(--space-tiny);
 
         & .accordion-item {
-            border: solid 1px light-dark(var(--color-dark-1), var(--color-light-1));
+            border: solid 1px light-dark(var(--color-primary), var(--color-primary));
 
             &.active .accordion-content {
                 display: block;
@@ -1422,7 +1456,7 @@
         }
 
         & .accordion-trigger {
-            background: light-dark(var(--color-light-3), var(--color-dark-3));
+            background: light-dark(var(--color-tertiary), var(--color-tertiary));
             padding: var(--space-tiny);
             border: none;
             width: 100%;
@@ -1440,7 +1474,7 @@
         & .accordion-content {
             display: none;
             padding: var(--space-tiny);
-            background: light-dark(var(--color-light-1), var(--color-dark-6));
+            background: light-dark(var(--color-primary), var(--color-secondary));
         }
     }
 
@@ -1453,7 +1487,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: light-dark(var(--color-light-1), var(--color-dark-6));
+        background: light-dark(var(--color-primary), var(--color-secondary));
 
         &.success {
             border-color: light-dark(#00cc00, #66ff66);
@@ -1473,7 +1507,7 @@
             color: light-dark(var(--color-black), var(--color-white));
 
             &:hover {
-                color: var(--color-light-1);
+                color: var(--color-primary);
                 transition: color 0.3s;
             }
         }
@@ -1499,7 +1533,7 @@
             width: 100%;
             background-image: var(--background-pattern-1);
             padding: var(--space-tiny);
-            border: solid 1px light-dark(var(--color-dark-1), var(--color-light-1));
+            border: solid 1px light-dark(var(--color-primary), var(--color-primary));
             border-radius: var(--border-radius-small);
 
             &:user-invalid {
@@ -1526,7 +1560,7 @@
 
         & a {
             text-decoration: none;
-            color: light-dark(var(--color-dark-1), var(--color-light-1));
+            color: light-dark(var(--color-primary), var(--color-primary));
 
             &::after {
                 content: " > ";
@@ -1902,7 +1936,7 @@ div#products {
     grid-template-rows: auto auto 1fr auto;
     padding: 16px;
     background-color: light-dark(var(--color-white-4), var(--color-black-alpha-2));
-    border: var(--border-size-small) solid light-dark(var(--color-dark-1), var(--color-light-1));
+    border: var(--border-size-small) solid light-dark(var(--color-primary), var(--color-primary));
     border-radius: 8px;
     text-align: center;
     transition: transform 0.2s;
@@ -2108,7 +2142,7 @@ div#products {
     }
 
     &>:is(i:last-child, svg:first-child) {
-        color: light-dark(var(--color-dark-6), var(--color-light-6));
+        color: light-dark(var(--color-secondary), var(--color-secondary));
     }
 
 }
@@ -2207,19 +2241,19 @@ div#products {
 
 /* Light theme animated gradients */
 .light-gradient-1 {
-    background: linear-gradient(135deg, var(--color-light-1) 0%, var(--color-light-2) 30%, var(--color-light-3) 60%, var(--color-light-4) 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-light-2) 30%, var(--color-tertiary) 60%, var(--color-light-4) 100%);
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
 }
 
 .light-gradient-2 {
-    background: linear-gradient(to bottom, var(--color-light-3) 0%, var(--color-light-4) 40%, var(--color-light-5) 70%, var(--color-light-6) 100%);
+    background: linear-gradient(to bottom, var(--color-tertiary) 0%, var(--color-light-4) 40%, var(--color-light-5) 70%, var(--color-secondary) 100%);
     background-size: 100% 200%;
     animation: slideGradientVertical 8s ease infinite;
 }
 
 .light-gradient-3 {
-    background: linear-gradient(45deg, var(--color-light-5) 0%, var(--color-light-6) 50%, var(--color-light-1) 100%);
+    background: linear-gradient(45deg, var(--color-light-5) 0%, var(--color-secondary) 50%, var(--color-primary) 100%);
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
 }
@@ -2250,19 +2284,19 @@ div#products {
 
 /* Dark theme animated gradients */
 .dark-gradient-1 {
-    background: linear-gradient(135deg, var(--color-dark-1) 0%, var(--color-dark-2) 30%, var(--color-dark-3) 60%, var(--color-dark-4) 100%);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-dark-2) 30%, var(--color-tertiary) 60%, var(--color-dark-4) 100%);
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
 }
 
 .dark-gradient-2 {
-    background: linear-gradient(to bottom, var(--color-dark-3) 0%, var(--color-dark-4) 40%, var(--color-dark-5) 70%, var(--color-dark-6) 100%);
+    background: linear-gradient(to bottom, var(--color-tertiary) 0%, var(--color-dark-4) 40%, var(--color-dark-5) 70%, var(--color-secondary) 100%);
     background-size: 100% 200%;
     animation: slideGradientVertical 8s ease infinite;
 }
 
 .dark-gradient-3 {
-    background: linear-gradient(45deg, var(--color-dark-scale-5) 0%, var(--color-dark-6) 50%, var(--color-dark-1) 100%);
+    background: linear-gradient(45deg, var(--color-dark-scale-5) 0%, var(--color-secondary) 50%, var(--color-primary) 100%);
     background-size: 200% 100%;
     animation: slideGradient 8s ease infinite;
 }
