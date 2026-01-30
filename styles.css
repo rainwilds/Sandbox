@@ -143,28 +143,26 @@
         --max-width-large: 60vw;
 
 
-        /* LIGHT BRAND (Bright & Airy) */
-        --_l-1: #92c676;
-        /* Mint */
-        --_l-2: #99cbe1;
-        /* Sky */
-        --_l-3: #393632;
-        /* Charcoal */
+        /* --- NEUTRAL LIGHT BRAND (Desaturated & Professional) --- */
+        --_l-1: #7a8c71;
+        /* Muted Sage (Primary) */
+        --_l-2: #8da1ab;
+        /* Steel Blue (Secondary) */
+        --_l-3: #4a4744;
+        /* Warm Stone (Tertiary) */
 
-        /* DARK BRAND (Rich & Moody) */
-        --_d-1: #2d5a27;
-        /* Forest */
-        --_d-2: #1e3a5f;
-        /* Navy */
-        --_d-3: #0a0a0a;
-        /* Obsidian */
+        /* --- EARTHY DARK BRAND (Warm & Organic) --- */
+        --_d-1: #4a5d45;
+        /* Deep Moss (Primary) */
+        --_d-2: #5c4d42;
+        /* Burnt Umber (Secondary) */
+        --_d-3: #1a1c18;
+        /* Dark Bark (Tertiary/Background) */
 
-        /* Creates shades of a color */
         @function --shade(--color, --step) {
-            result: oklch(from var(--color) calc(l - (var(--step) * 0.08)));
+            result: oklch(from var(--color) calc(l - (var(--step) * 0.08)) c h);
         }
 
-        /* Creates transparency of a color */
         @function --alpha(--color, --opacity) {
             result: rgb(from var(--color) r g b / var(--opacity));
         }
@@ -173,8 +171,12 @@
         --color-secondary: light-dark(var(--_l-2), var(--_d-2));
         --color-tertiary: light-dark(var(--_l-3), var(--_d-3));
 
-        --color-dark: light-dark(var(--_l-3), #f8f9fa);
+        /* Foundation colors mapped to your new brand neutrals */
+        --color-dark: light-dark(var(--_l-3), #f2f2f0);
         --color-light: light-dark(#ffffff, var(--_d-3));
+
+        --color-dark: light-dark(#000000, #ffffff);
+        --color-light: light-dark(#ffffff, #000000);
 
         /* ——— SOLID LIGHT SCALE (6) ——— */
         --color-light-1: #92c676;
@@ -352,19 +354,19 @@
         color: var(--color-primary);
 
         .color-invert {
-            color:  var(--color-tertiary);
+            color: var(--color-tertiary);
         }
 
         .background-color-1 {
-            background-color:  var(--color-primary);
+            background-color: var(--color-primary);
         }
 
         .background-color-2 {
-            background-color:  var(--color-secondary);
+            background-color: var(--color-secondary);
         }
 
         .background-color-3 {
-            background-color:  var(--color-tertiary);
+            background-color: var(--color-tertiary);
         }
 
         .background-overlay-1 {
@@ -1048,19 +1050,19 @@
 
             grid-template-columns: var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
 
-            
-                &:has[data-theme="cyberpunk"] {
-                    --color-primary: #ff00ff;
-                    --color-secondary: #00ffff;
-                    --color-tertiary: #120458;
-                }
 
-                &:has[data-theme="earthy"] {
-                    --color-primary: #8b4513;
-                    --color-secondary: #556b2f;
-                    --color-tertiary: #2e1b0b;
-                }
-            
+            &:has[data-theme="cyberpunk"] {
+                --color-primary: #ff00ff;
+                --color-secondary: #00ffff;
+                --color-tertiary: #120458;
+            }
+
+            &:has[data-theme="earthy"] {
+                --color-primary: #8b4513;
+                --color-secondary: #556b2f;
+                --color-tertiary: #2e1b0b;
+            }
+
         }
 
         @media (max-width: 768px) {
