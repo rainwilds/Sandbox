@@ -288,11 +288,28 @@
         }
 
         .position-sticky-top {
-            position: fixed;
+            position: sticky;
             width: 100%;
             top: 0;
             z-index: 2;
         }
+
+        container-type: scroll-state;
+
+/* 2. THE 'STUCK' STATE LOGIC */
+    @container scroll-state(stuck: top) {
+        :scope {
+            /* Apply your shadow variable from styles.css */
+            box-shadow: var(--shadow-medium);
+            
+            /* Use your custom --alpha function to make the 
+               background slightly transparent when scrolling */
+            background-color: --alpha(var(--color-light), 0.85);
+            
+            /* Add focus with backdrop blur */
+            backdrop-filter: saturate(180%) blur(15px);
+        }
+    }        
 
         .position-sticky-bottom {
             position: fixed;
