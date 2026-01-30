@@ -122,120 +122,58 @@
                 else: 0.4rem);
 
         --space-tiny: if(media(width <=768px): 0.7rem;
-                else: 1rem);
-
+    else: 1rem);
+    
         --space-small: if(media(width <=768px): 1.4rem;
                 else: 2rem);
-
+    
         --space-medium: if(media(width <=768px): 1.96rem;
                 else: 2.8rem);
-
+    
         --space-large: if(media(width <=768px): 4.69rem;
                 else: 6.7rem);
-
+    
         --space-huge: if(media(width <=768px): 6.3rem;
                 else: 9rem);
-
+    
         --side-gutter: 5vw;
-
+    
         --max-width-small: 20vw;
         --max-width-medium: 40vw;
         --max-width-large: 60vw;
-
-
-/* Light Mode Brand (Bone & Graphite) */
-        --_l-1: #333333; /* Graphite (Primary Action) */
-        --_l-2: #666666; /* Medium Gray (Secondary) */
-        --_l-3: #1a1a1a; /* Near Black (Tertiary/Text) */
-
+    
+    
+        /* Light Mode Brand (Bone & Graphite) */
+        --_l-1: #333333;
+        /* Graphite (Primary Action) */
+        --_l-2: #666666;
+        /* Medium Gray (Secondary) */
+        --_l-3: #1a1a1a;
+        /* Near Black (Tertiary/Text) */
+    
         /* Dark Mode Brand (Obsidian & Silver) */
-        --_d-1: #f2f2f2; /* Off-White (Primary Action) */
-        --_d-2: #cccccc; /* Silver Gray (Secondary) */
-        --_d-3: #0d0d0d; /* Obsidian (Tertiary/Background) */
-
+        --_d-1: #3b3b3b;
+        /* Off-White (Primary Action) */
+        --_d-2: #cccccc;
+        /* Silver Gray (Secondary) */
+        --_d-3: #0d0d0d;
+        /* Obsidian (Tertiary/Background) */
+    
         @function --shade(--color, --step) {
             result: oklch(from var(--color) calc(l - (var(--step) * 0.08)) c h);
         }
-
+    
         @function --alpha(--color, --opacity) {
             result: rgb(from var(--color) r g b / var(--opacity));
         }
-
---color-primary:   light-dark(var(--_l-1), var(--_d-1));
+    
+        --color-primary: light-dark(var(--_l-1), var(--_d-1));
         --color-secondary: light-dark(var(--_l-2), var(--_d-2));
-        --color-tertiary:  light-dark(var(--_l-3), var(--_d-3));
-
+        --color-tertiary: light-dark(var(--_l-3), var(--_d-3));
+    
         /* Foundation colors mapped to your new brand neutrals */
-  --color-light: light-dark(#ffffff, var(--_d-3));
-        --color-dark:  light-dark(var(--_l-3), #f8f9fa);
-
-        /* ——— SOLID LIGHT SCALE (6) ——— */
-        --color-light-1: #92c676;
-        --color-light-2: #79cb96;
-        --color-light-3: #6aceb4;
-        --color-light-4: #6ccfcc;
-        --color-light-5: #7fcddb;
-        --color-light-6: #99cbe1;
-
-        /* ——— SOLID DARK SCALE (6) ——— */
-        --color-dark-1: #393632;
-        --color-dark-2: #372f2b;
-        --color-dark-3: #342729;
-        --color-dark-4: #2d2129;
-        --color-dark-5: #211d2a;
-        --color-dark-6: #0e1a28;
-
-        /* ——— LIGHT 1 ALPHA (6) ——— */
-        --color-light-1-alpha-1: rgba(146, 198, 118, 0.14);
-        --color-light-1-alpha-2: rgba(146, 198, 118, 0.29);
-        --color-light-1-alpha-3: rgba(146, 198, 118, 0.43);
-        --color-light-1-alpha-4: rgba(146, 198, 118, 0.57);
-        --color-light-1-alpha-5: rgba(146, 198, 118, 0.71);
-        --color-light-1-alpha-6: rgba(146, 198, 118, 0.86);
-
-        /* ——— LIGHT 6 ALPHA (6) ——— */
-        --color-light-6-alpha-1: rgba(153, 203, 225, 0.14);
-        --color-light-6-alpha-2: rgba(153, 203, 225, 0.29);
-        --color-light-6-alpha-3: rgba(153, 203, 225, 0.43);
-        --color-light-6-alpha-4: rgba(153, 203, 225, 0.57);
-        --color-light-6-alpha-5: rgba(153, 203, 225, 0.71);
-        --color-light-6-alpha-6: rgba(153, 203, 225, 0.86);
-
-        /* ——— DARK 1 ALPHA (6) ——— */
-        --color-dark-1-alpha-1: rgba(57, 54, 50, 0.14);
-        --color-dark-1-alpha-2: rgba(57, 54, 50, 0.29);
-        --color-dark-1-alpha-3: rgba(57, 54, 50, 0.43);
-        --color-dark-1-alpha-4: rgba(57, 54, 50, 0.57);
-        --color-dark-1-alpha-5: rgba(57, 54, 50, 0.71);
-        --color-dark-1-alpha-6: rgba(57, 54, 50, 0.86);
-
-        /* ——— DARK 6 ALPHA (6) ——— */
-        --color-dark-6-alpha-1: rgba(14, 26, 40, 0.14);
-        --color-dark-6-alpha-2: rgba(14, 26, 40, 0.29);
-        --color-dark-6-alpha-3: rgba(14, 26, 40, 0.43);
-        --color-dark-6-alpha-4: rgba(14, 26, 40, 0.57);
-        --color-dark-6-alpha-5: rgba(14, 26, 40, 0.71);
-        --color-dark-6-alpha-6: rgba(14, 26, 40, 0.86);
-
-        /* ——— BLACK ALPHA (6) ——— */
-        --color-black-alpha-1: rgba(0, 0, 0, 0.14);
-        --color-black-alpha-2: rgba(0, 0, 0, 0.29);
-        --color-black-alpha-3: rgba(0, 0, 0, 0.43);
-        --color-black-alpha-4: rgba(0, 0, 0, 0.57);
-        --color-black-alpha-5: rgba(0, 0, 0, 0.71);
-        --color-black-alpha-6: rgba(0, 0, 0, 0.86);
-
-        /* ——— WHITE ALPHA (6) ——— */
-        --color-white-alpha-1: rgba(255, 255, 255, 0.14);
-        --color-white-alpha-2: rgba(255, 255, 255, 0.29);
-        --color-white-alpha-3: rgba(255, 255, 255, 0.43);
-        --color-white-alpha-4: rgba(255, 255, 255, 0.57);
-        --color-white-alpha-5: rgba(255, 255, 255, 0.71);
-        --color-white-alpha-6: rgba(255, 255, 255, 0.86);
-
-        /* ——— STATIC COLORS (2) ——— */
-        --color-white: white;
-        --color-black: black;
+        --color-light: light-dark(#ffffff, var(--_d-3));
+        --color-dark: light-dark(var(--_l-3), #f8f9fa);
 
 
 
