@@ -122,27 +122,27 @@
                 else: 0.4rem);
 
         --space-tiny: if(media(width <=768px): 0.7rem;
-    else: 1rem);
-    
+                else: 1rem);
+
         --space-small: if(media(width <=768px): 1.4rem;
                 else: 2rem);
-    
+
         --space-medium: if(media(width <=768px): 1.96rem;
                 else: 2.8rem);
-    
+
         --space-large: if(media(width <=768px): 4.69rem;
                 else: 6.7rem);
-    
+
         --space-huge: if(media(width <=768px): 6.3rem;
                 else: 9rem);
-    
+
         --side-gutter: 5vw;
-    
+
         --max-width-small: 20vw;
         --max-width-medium: 40vw;
         --max-width-large: 60vw;
-    
-    
+
+
         /* Light Mode Brand (Bone & Graphite) */
         --_l-1: #333333;
         /* Graphite (Primary Action) */
@@ -150,7 +150,7 @@
         /* Medium Gray (Secondary) */
         --_l-3: #1a1a1a;
         /* Near Black (Tertiary/Text) */
-    
+
         /* Dark Mode Brand (Obsidian & Silver) */
         --_d-1: #3b3b3b;
         /* Off-White (Primary Action) */
@@ -158,19 +158,19 @@
         /* Silver Gray (Secondary) */
         --_d-3: #0d0d0d;
         /* Obsidian (Tertiary/Background) */
-    
+
         @function --shade(--color, --step) {
             result: oklch(from var(--color) calc(l - (var(--step) * 0.08)) c h);
         }
-    
+
         @function --alpha(--color, --opacity) {
             result: rgb(from var(--color) r g b / var(--opacity));
         }
-    
+
         --color-primary: light-dark(var(--_l-1), var(--_d-1));
         --color-secondary: light-dark(var(--_l-2), var(--_d-2));
         --color-tertiary: light-dark(var(--_l-3), var(--_d-3));
-    
+
         /* Foundation colors mapped to your new brand neutrals */
         --color-light: light-dark(#ffffff, var(--_d-3));
         --color-dark: light-dark(var(--_l-3), #f8f9fa);
@@ -227,30 +227,42 @@
     :root {
 
 
-/* 1. CYBERPUNK THEME OVERRIDE */
+        /* 1. CYBERPUNK THEME OVERRIDE */
         &:has([data-theme="cyberpunk"]) {
             /* Light Variants (Used in System Light Mode) */
-            --_l-1: #ff00ff; /* Neon Pink */
-            --_l-2: #00ffff; /* Cyan */
-            --_l-3: #120458; /* Deep Purple */
+            --_l-1: #ff00ff;
+            /* Neon Pink */
+            --_l-2: #00ffff;
+            /* Cyan */
+            --_l-3: #120458;
+            /* Deep Purple */
 
             /* Dark Variants (Used in System Dark Mode) */
-            --_d-1: #bc00bc; /* Magenta */
-            --_d-2: #008b8b; /* Dark Cyan */
-            --_d-3: #080121; /* Midnight Purple */
+            --_d-1: #bc00bc;
+            /* Magenta */
+            --_d-2: #008b8b;
+            /* Dark Cyan */
+            --_d-3: #080121;
+            /* Midnight Purple */
         }
 
         /* 2. EARTHY THEME OVERRIDE */
         &:has([data-theme="earthy"]) {
             /* Light Variants (Used in System Light Mode) */
-            --_l-1: #8b4513; /* Saddle Brown */
-            --_l-2: #556b2f; /* Olive Green */
-            --_l-3: #2e1b0b; /* Deep Earth */
+            --_l-1: #8b4513;
+            /* Saddle Brown */
+            --_l-2: #556b2f;
+            /* Olive Green */
+            --_l-3: #2e1b0b;
+            /* Deep Earth */
 
             /* Dark Variants (Used in System Dark Mode) */
-            --_d-1: #5d2e0d; /* Burnt Sienna */
-            --_d-2: #3a481f; /* Forest Floor */
-            --_d-3: #1a0f06; /* Dark Bark */
+            --_d-1: #5d2e0d;
+            /* Burnt Sienna */
+            --_d-2: #3a481f;
+            /* Forest Floor */
+            --_d-3: #1a0f06;
+            /* Dark Bark */
         }
 
         .padding-micro {
@@ -293,23 +305,6 @@
             top: 0;
             z-index: 2;
         }
-
-        container-type: scroll-state;
-
-/* 2. THE 'STUCK' STATE LOGIC */
-    @container scroll-state(stuck: top) {
-        :scope {
-            /* Apply your shadow variable from styles.css */
-            box-shadow: var(--shadow-medium);
-            
-            /* Use your custom --alpha function to make the 
-               background slightly transparent when scrolling */
-            background-color: --alpha(var(--color-light), 0.85);
-            
-            /* Add focus with backdrop blur */
-            backdrop-filter: saturate(180%) blur(15px);
-        }
-    }        
 
         .position-sticky-bottom {
             position: fixed;
@@ -1054,6 +1049,22 @@
 }
 
 @layer components {
+
+
+    header {
+        &:has(.position-sticky-top) {
+            container-type: scroll-state;         
+        }
+    }
+
+    /* 2. THE 'STUCK' STATE LOGIC */
+    @container scroll-state(stuck: top) {
+        :scope {
+            box-shadow: var(--shadow-medium);
+            background-color: --alpha(var(--color-light), 0.85);
+            backdrop-filter: saturate(180%) blur(15px);
+        }
+    }   
 
     .palette-grid {
         display: grid;
