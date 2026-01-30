@@ -298,16 +298,30 @@
     :root {
 
 
-&:has([data-theme="cyberpunk"]) {
-            --_l-1: #ff00ff;
-            --_l-2: #00ffff;
-            --_l-3: #120458;
+/* 1. CYBERPUNK THEME OVERRIDE */
+        &:has([data-theme="cyberpunk"]) {
+            /* Light Variants (Used in System Light Mode) */
+            --_l-1: #ff00ff; /* Neon Pink */
+            --_l-2: #00ffff; /* Cyan */
+            --_l-3: #120458; /* Deep Purple */
+
+            /* Dark Variants (Used in System Dark Mode) */
+            --_d-1: #bc00bc; /* Magenta */
+            --_d-2: #008b8b; /* Dark Cyan */
+            --_d-3: #080121; /* Midnight Purple */
         }
 
+        /* 2. EARTHY THEME OVERRIDE */
         &:has([data-theme="earthy"]) {
-            --_l-1: #8b4513;
-            --_l-2: #556b2f;
-            --_l-3: #2e1b0b;
+            /* Light Variants (Used in System Light Mode) */
+            --_l-1: #8b4513; /* Saddle Brown */
+            --_l-2: #556b2f; /* Olive Green */
+            --_l-3: #2e1b0b; /* Deep Earth */
+
+            /* Dark Variants (Used in System Dark Mode) */
+            --_d-1: #5d2e0d; /* Burnt Sienna */
+            --_d-2: #3a481f; /* Forest Floor */
+            --_d-3: #1a0f06; /* Dark Bark */
         }
 
         .padding-micro {
