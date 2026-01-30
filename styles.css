@@ -960,10 +960,14 @@
         "gutter-left main main main main main main main main main main main main gutter-right"
         "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
 
-      grid-template-rows: if(
-        media((min-width: 550px) and (max-width: 980px) and (orientation: landscape)): 100vh; media(max-width: 768px): 100vh;
-          media(max-width: 1200px): 100vh; media(min-width: 1201px) and (max-width: 1919px): 60vh; else: 60vh
-      );
+      /* grid-template-rows: if(
+        media((min-width: 550px) and (max-width: 980px) and (orientation: landscape)): 100vh;
+        media(max-width: 768px): 100vh;
+        media(max-width: 1200px): 100vh;
+        media(min-width: 1201px) and (max-width: 1919px): 60vh; else: 60vh
+      ); */
+
+        /* grid-template-rows: min-content; */
 
       grid-template-columns: var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
     }
@@ -1680,7 +1684,8 @@ header {
 
 main {
   /* row-gap: var(--space-large); */
-  margin: var(--space-medium) 0 var(--space-medium) 0;
+  /* margin: var(--space-medium) 0 var(--space-medium) 0; */
+  /* removed after moving hero to it's own main header  */
 
   > section:has([data-section-title]):not(:has(video)) {
     margin: var(--space-large) 0 var(--space-medium) 0;
