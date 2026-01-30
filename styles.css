@@ -1050,17 +1050,34 @@
 
             grid-template-columns: var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
 
+            /* --- 1. CYBERPUNK THEME --- */
+            &[data-theme="cyberpunk"] {
+                /* Swapping the 'Ingredients' */
+                --_l-1: #ff00ff;
+                /* Neon Pink */
+                --_l-2: #00ffff;
+                /* Cyan */
+                --_l-3: #120458;
+                /* Deep Purple */
 
-            &:has[data-theme="cyberpunk"] {
-                --color-primary: #ff00ff;
-                --color-secondary: #00ffff;
-                --color-tertiary: #120458;
+                /* Optional: Also override the Dark Mode variants for this theme */
+                --_d-1: #bc00bc;
+                --_d-2: #009b9b;
+                --_d-3: #09022d;
             }
 
-            &:has[data-theme="earthy"] {
-                --color-primary: #8b4513;
-                --color-secondary: #556b2f;
-                --color-tertiary: #2e1b0b;
+            /* --- 2. EARTHY THEME --- */
+            &[data-theme="earthy"] {
+                --_l-1: #8b4513;
+                /* Saddle Brown */
+                --_l-2: #556b2f;
+                /* Olive Green */
+                --_l-3: #2e1b0b;
+                /* Deep Earth */
+
+                --_d-1: #5d2e0d;
+                --_d-2: #3a481f;
+                --_d-3: #1a0f06;
             }
 
         }
