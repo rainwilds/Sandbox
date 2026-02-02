@@ -149,9 +149,8 @@
     --color-secondary: light-dark(var(--light-color-2), var(--dark-color-2));
     --color-tertiary: light-dark(var(--light-color-3), var(--dark-color-3));
 
-    /* Foundation colors mapped to your new brand neutrals */
-    --color-light: light-dark(#ffffff, var(--dark-color-3));
-    --color-dark: light-dark(var(--light-color-3), #f8f9fa);
+    --color-light: light-dark(#ffffff, #c3c3c3);
+    --color-dark: light-dark(#2d2d2d, #000000);
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -246,7 +245,7 @@
     color: var(--color-primary);
 
     .color-invert {
-      color: var(--color-tertiary);
+      color: var(--color-secondary);
     }
 
     .background-color-1 {
@@ -262,15 +261,15 @@
     }
 
     .background-overlay-1 {
-      background-color: light-dark(var(--color-white-4), var(--color-black-alpha-2));
+      background-color: --alpha(var(--color-primary), 0.4);
     }
 
     .background-overlay-2 {
-      background-color: light-dark(var(--color-white-alpha-6), var(--color-black-alpha-4));
+      background-color: --alpha(var(--color-secondary), 0.4);
     }
 
     .background-overlay-3 {
-      background-color: light-dark(var(--color-white-8), var(--color-black-6));
+      background-color: --alpha(var(--color-tertiary), 0.4);
     }
 
     .background-gradient-1 {
