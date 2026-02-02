@@ -129,21 +129,13 @@
     --max-width-medium: 40vw;
     --max-width-large: 60vw;
 
-    /* Light Mode Brand (Bone & Graphite) */
-    --_l-1: #333333;
-    /* Graphite (Primary Action) */
-    --_l-2: #666666;
-    /* Medium Gray (Secondary) */
-    --_l-3: #1a1a1a;
-    /* Near Black (Tertiary/Text) */
+    --light-color-1: #45C4B0;
+    --light-color-2: #9AEBA3;
+    --light-color-3: #DAFDBA;
 
-    /* Dark Mode Brand (Obsidian & Silver) */
-    --_d-1: #3b3b3b;
-    /* Off-White (Primary Action) */
-    --_d-2: #cccccc;
-    /* Silver Gray (Secondary) */
-    --_d-3: #0d0d0d;
-    /* Obsidian (Tertiary/Background) */
+    --dark-color-3: #027333;
+    --dark-color-2: #025959;
+    --dark-color-3: #012340;
 
     @function --shade(--color, --step) {
       result: oklch(from var(--color) calc(l - (var(--step) * 0.08)) c h);
@@ -153,13 +145,13 @@
       result: rgb(from var(--color) r g b / var(--opacity));
     }
 
-    --color-primary: light-dark(var(--_l-1), var(--_d-1));
-    --color-secondary: light-dark(var(--_l-2), var(--_d-2));
-    --color-tertiary: light-dark(var(--_l-3), var(--_d-3));
+    --color-primary: light-dark(var(--light-color-1), var(--dark-color-1));
+    --color-secondary: light-dark(var(--light-color-2), var(--dark-color-2));
+    --color-tertiary: light-dark(var(--light-color-3), var(--dark-color-3));
 
     /* Foundation colors mapped to your new brand neutrals */
-    --color-light: light-dark(#ffffff, var(--_d-3));
-    --color-dark: light-dark(var(--_l-3), #f8f9fa);
+    --color-light: light-dark(#ffffff, var(--dark-color-3));
+    --color-dark: light-dark(var(--light-color-3), #f8f9fa);
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -1519,23 +1511,23 @@
 
   :root {
     &:has([data-theme="cyberpunk"]) {
-      --_l-1: #ff00ff;
-      --_l-2: #00ffff;
-      --_l-3: #120458;
+      --light-color-1: #ff00ff;
+      --light-color-2: #00ffff;
+      --light-color-3: #120458;
 
-      --_d-1: #bc00bc;
-      --_d-2: #008b8b;
-      --_d-3: #080121;
+      --dark-color-3: #bc00bc;
+      --dark-color-2: #008b8b;
+      --dark-color-3: #080121;
     }
 
     &:has([data-theme="earthy"]) {
-      --_l-1: #8b4513;
-      --_l-2: #556b2f;
-      --_l-3: #2e1b0b;
+      --light-color-1: #8b4513;
+      --light-color-2: #556b2f;
+      --light-color-3: #2e1b0b;
 
-      --_d-1: #5d2e0d;
-      --_d-2: #3a481f;
-      --_d-3: #1a0f06;
+      --dark-color-3: #5d2e0d;
+      --dark-color-2: #3a481f;
+      --dark-color-3: #1a0f06;
     }
   }
 }
