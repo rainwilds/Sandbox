@@ -255,7 +255,7 @@
     color: var(--color-primary);
 
     .color-invert {
-      color: var(--color-secondary);
+      color: var(--color-primary);
     }
 
     .background-color-1 {
