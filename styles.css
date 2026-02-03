@@ -16,7 +16,7 @@
 
 @function --shade(--color, --step) {
   /* result: oklch(from var(--color) calc(l - (var(--step) * 0.1)) c h); */
-  result: color-mix(in oklch, var(--color), light-dark(black, white) calc(var(--step) * 10%));
+  result: color-mix(in oklch, var(--color), light-dark(white, black) calc(var(--step) * 10%));
 }
 
 @function --alpha(--color, --opacity) {
