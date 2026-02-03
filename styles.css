@@ -688,7 +688,7 @@
     }
 
     a:any-link {
-      color: light-dark(var(--color-primary), var(--color-tertiary));
+      color: var(--color-primary);
       /* text-decoration: none; */
       /* text-underline-offset: -0.4rem; */
 
