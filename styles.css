@@ -129,17 +129,17 @@
     --max-width-medium: 40vw;
     --max-width-large: 60vw;
 
-    /* Primary: Royal Blue / Soft Blue */
-    --light-color-1: #2563EB;
-    --dark-color-1: #60A5FA;
+    /* Primary: Steel Blue / Desaturated Indigo */
+    --light-color-1: #5e81ac;
+    --dark-color-1: #81a1c1;
 
-    /* Secondary: Cyan / Teal */
-    --light-color-2: #0891B2;
-    --dark-color-2: #22D3EE;
+    /* Secondary: Sage Teal / Grey-Cyan */
+    --light-color-2: #88c0d0;
+    --dark-color-2: #8fbcbb;
 
-    /* Tertiary: Navy / Slate (Good for neutral elements) */
-    --light-color-3: #1E293B;
-    --dark-color-3: #94A3B8;
+    /* Tertiary: Gunmetal / Blue-Grey base */
+    --light-color-3: #2e3440;
+    --dark-color-3: #4c566a;
 
     @function --shade(--color, --step) {
       result: oklch(from var(--color) calc(l - (var(--step) * 0.08)) c h);
@@ -1510,27 +1510,104 @@
 }
 
 @layer custom {
-  /* Custom layer should not be used. Use the custom stylesheet instead. Code here is for reference. */
-
   :root {
-    &:has([data-theme="cyberpunk"]) {
-      --light-color-1: #ff00ff;
-      --light-color-2: #00ffff;
-      --light-color-3: #120458;
 
-      --dark-color-3: #bc00bc;
-      --dark-color-2: #008b8b;
-      --dark-color-3: #080121;
+    /* --- Cyberpunk (Muted/Pastel Neon) --- */
+    &:has([data-theme="cyberpunk"]) {
+      --light-color-1: #c678dd;
+      /* Dusty Orchid */
+      --light-color-2: #56b6c2;
+      /* Muted Cyan */
+      --light-color-3: #282c34;
+      /* Soft Black-Blue */
+
+      --dark-color-1: #a658bd;
+      --dark-color-2: #3e8e96;
+      --dark-color-3: #1a1d23;
     }
 
+    /* --- Earthy (Desaturated Clay/Olive) --- */
     &:has([data-theme="earthy"]) {
-      --light-color-1: #8b4513;
-      --light-color-2: #556b2f;
-      --light-color-3: #2e1b0b;
+      --light-color-1: #a08c75;
+      /* Sandstone */
+      --light-color-2: #7d8570;
+      /* Olive Grey */
+      --light-color-3: #453e35;
+      /* Umber */
 
-      --dark-color-3: #5d2e0d;
-      --dark-color-2: #3a481f;
-      --dark-color-3: #1a0f06;
+      --dark-color-1: #8f7a63;
+      --dark-color-2: #656d59;
+      --dark-color-3: #2b2620;
+    }
+
+    /* --- Oceanic (Stormy Sea) --- */
+    &:has([data-theme="oceanic"]) {
+      --light-color-1: #6b9ac4;
+      /* Storm Blue */
+      --light-color-2: #7caea8;
+      /* Seafoam Grey */
+      --light-color-3: #2d3e50;
+      /* Deep Slate */
+
+      --dark-color-1: #547aa0;
+      --dark-color-2: #5f8a85;
+      --dark-color-3: #1b2631;
+    }
+
+    /* --- Sunset (Terra Cotta/Dusty Rose) --- */
+    &:has([data-theme="sunset"]) {
+      --light-color-1: #d98e73;
+      /* Terra Cotta */
+      --light-color-2: #d48c98;
+      /* Old Rose */
+      --light-color-3: #594039;
+      /* Warm Espresso */
+
+      --dark-color-1: #b57056;
+      --dark-color-2: #b06d79;
+      --dark-color-3: #3b2a26;
+    }
+
+    /* --- Botanical (Sage/Moss) --- */
+    &:has([data-theme="botanical"]) {
+      --light-color-1: #78997a;
+      /* Sage */
+      --light-color-2: #aebd8c;
+      /* Dried Grass */
+      --light-color-3: #3a4a3b;
+      /* Dark Moss */
+
+      --dark-color-1: #5e7a60;
+      --dark-color-2: #8c9b6e;
+      --dark-color-3: #233024;
+    }
+
+    /* --- Berry (Mauve/Wine) --- */
+    &:has([data-theme="berry"]) {
+      --light-color-1: #9f6ba0;
+      /* Muted Plum */
+      --light-color-2: #8c7db3;
+      /* Hazy Lavender */
+      --light-color-3: #4a3b4a;
+      /* Dark Grape */
+
+      --dark-color-1: #7d527e;
+      --dark-color-2: #6b5f8a;
+      --dark-color-3: #2e242e;
+    }
+
+    /* --- Slate (Concrete/Ash) --- */
+    &:has([data-theme="slate"]) {
+      --light-color-1: #7e8796;
+      /* Concrete */
+      --light-color-2: #a0aab5;
+      /* Ash */
+      --light-color-3: #272b33;
+      /* Charcoal */
+
+      --dark-color-1: #5f6673;
+      --dark-color-2: #7d8691;
+      --dark-color-3: #15171c;
     }
   }
 }
