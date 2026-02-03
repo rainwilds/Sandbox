@@ -1017,7 +1017,7 @@
     backdrop-filter: var(--blur-medium);
 
     &:hover {
-      background-color: --shade(var(--color-tertiary), 1);
+      background-color: --shade(var(--color-tertiary), 9);
       transition: all 0.4s;
       color: var(--color-primary);
     }
