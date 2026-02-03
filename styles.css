@@ -718,7 +718,7 @@
       padding: calc(var(--space-tiny) / 2) var(--space-tiny);
 
       &:hover {
-        background-color: --shade(var(--color-secondary), 3);
+        background-color: --shade(var(--color-secondary), 2);
         transition: all 0.4s;
         color: var(--color-primary);
       }
@@ -1018,7 +1018,7 @@
     /* backdrop-filter: var(--blur-medium); */
 
     &:hover {
-      background-color: --shade(var(--color-secondary), 3);
+      background-color: --shade(var(--color-secondary), 2);
       transition: all 0.4s;
       color: var(--color-primary);
     }
