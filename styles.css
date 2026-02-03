@@ -129,17 +129,17 @@
     --max-width-medium: 40vw;
     --max-width-large: 60vw;
 
-/* Text Colors (Primary) -> Must be very dark (Light Mode) or very light (Dark Mode) */
+    /* Text Colors (Primary) -> Must be very dark (Light Mode) or very light (Dark Mode) */
     --light-color-1: #3b4252; /* Deep Charcoal Blue */
-    --dark-color-1: #e5e9f0;  /* Off-White Blue */
+    --dark-color-1: #e5e9f0; /* Off-White Blue */
 
     /* Background Colors (Secondary) -> Must be very light (Light Mode) or very dark (Dark Mode) */
     --light-color-2: #eceff4; /* Very Pale Blue-Grey (Snow) */
-    --dark-color-2: #242933;  /* Deep Gunmetal */
+    --dark-color-2: #242933; /* Deep Gunmetal */
 
     /* Accent/UI Colors (Tertiary) -> Mid-tones for buttons/borders */
     --light-color-3: #88c0d0; /* Muted Frozen Blue */
-    --dark-color-3: #434c5e;  /* Slate */
+    --dark-color-3: #434c5e; /* Slate */
 
     @function --shade(--color, --step) {
       result: oklch(from var(--color) calc(l - (var(--step) * 0.08)) c h);
@@ -159,13 +159,9 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
-    --font-1-family: Futura_PT_Demi,
-    Arial,
-    sans-serif;
+    --font-1-family: Futura_PT_Demi, Arial, sans-serif;
 
-    --font-2-family: futura_ptbook,
-    Arial,
-    sans-serif;
+    --font-2-family: futura_ptbook, Arial, sans-serif;
 
     --font-2-size-small: if(media(max-width: 768px): 11px; else: 16px);
 
@@ -299,19 +295,23 @@
     }
 
     .mask-image-top-bottom {
-      mask-image: linear-gradient(to bottom,
-          transparent,
-          light-dark(var(--color-secondary), var(--color-secondary)) 15%,
-          light-dark(var(--color-secondary), var(--color-secondary)) 85%,
-          transparent);
+      mask-image: linear-gradient(
+        to bottom,
+        transparent,
+        light-dark(var(--color-secondary), var(--color-secondary)) 15%,
+        light-dark(var(--color-secondary), var(--color-secondary)) 85%,
+        transparent
+      );
     }
 
     .mask-image-left-right {
-      mask-image: linear-gradient(to right,
-          transparent,
-          light-dark(var(--color-secondary), var(--color-secondary)) 15%,
-          light-dark(var(--color-secondary), var(--color-secondary)) 85%,
-          transparent);
+      mask-image: linear-gradient(
+        to right,
+        transparent,
+        light-dark(var(--color-secondary), var(--color-secondary)) 15%,
+        light-dark(var(--color-secondary), var(--color-secondary)) 85%,
+        transparent
+      );
     }
 
     .background-image-noise {
@@ -460,7 +460,8 @@
     }
 
     @supports selector(scrollbar-color) {
-      scrollbar-color: light-dark(var(--color-primary), var(--color-tertiary)) light-dark(var(--color-tertiary), var(--color-primary));
+      scrollbar-color: light-dark(var(--color-primary), var(--color-tertiary))
+        light-dark(var(--color-tertiary), var(--color-primary));
     }
 
     ::-webkit-scrollbar {
@@ -808,7 +809,7 @@
     ul {
       list-style: none;
 
-      &>li:not(:last-of-type) {
+      & > li:not(:last-of-type) {
         margin-bottom: var(--space-micro);
       }
     }
@@ -818,7 +819,7 @@
       background-color: light-dark(var(--color-tertiary), var(--color-tertiary));
       padding: var(--space-medium);
 
-      >p {
+      > p {
         font-size: var(--font-2-size-small);
         margin-top: var(--space-small);
       }
@@ -930,7 +931,6 @@
 
     @media (max-width: 768px) {
       &:root {
-
         .max-width-small,
         .max-width-medium,
         .max-width-large {
@@ -1001,7 +1001,7 @@
       transition: color 0.4s;
     }
 
-    >button {
+    > button {
       background-color: light-dark(var(--color-white-alpha-6), var(--color-black-6));
       border-color: light-dark(var(--color-black-8), var(--color-white-8));
       backdrop-filter: var(--blur-medium);
@@ -1047,7 +1047,7 @@
     /* ensure content spans all vertical space of parent */
     /* max-height: 100vh; */
 
-    &:has(nav)>div {
+    &:has(nav) > div {
       z-index: 1;
     }
 
@@ -1055,17 +1055,17 @@
       grid-template-columns: 1fr 1fr;
     }
 
-    &.background-image>* {
+    &.background-image > * {
       grid-row: 1;
       grid-column: 1;
       max-height: inherit;
     }
 
-    &.background-image>*:not(picture):not(:has(nav)) {
+    &.background-image > *:not(picture):not(:has(nav)) {
       z-index: 1;
     }
 
-    &.background-video>* {
+    &.background-video > * {
       grid-column: 1;
       grid-row: 1;
       max-height: inherit;
@@ -1075,7 +1075,7 @@
       display: inline-block;
     }
 
-    &>div:not(.background-overlay):has(p) {
+    & > div:not(.background-overlay):has(p) {
       z-index: 2;
       height: 100%;
       width: 100%;
@@ -1086,7 +1086,7 @@
             z-index: 2;
         } */
 
-    &>.background-overlay {
+    & > .background-overlay {
       background-color: light-dark(var(--color-white-4), var(--color-black-alpha-2));
       margin: 0 !important;
     }
@@ -1109,7 +1109,7 @@
       gap: var(--space-small);
     }
 
-    &>ul {
+    & > ul {
       list-style: none;
       display: flex;
       gap: var(--space-small);
@@ -1124,7 +1124,7 @@
       }
     }
 
-    &>button {
+    & > button {
       @media (min-width: 769px) {
         display: none;
       }
@@ -1138,10 +1138,10 @@
     grid-auto-flow: dense;
     grid-auto-rows: 20vmax;
 
-    >picture {
+    > picture {
       overflow: hidden;
 
-      >img {
+      > img {
         transition: transform 0.6s ease;
         /* Smooth transition for scaling */
 
@@ -1184,12 +1184,12 @@
       animation: fadeIn 0.3s ease-in;
     }
 
-    >* {
+    > * {
       grid-area: content;
     }
 
     /* Rest of your styles for .close, .prev, .next, .lightbox-content remain unchanged */
-    &>.close {
+    & > .close {
       position: absolute;
       top: 0;
       right: 0;
@@ -1211,8 +1211,8 @@
       }
     }
 
-    &>.prev,
-    &>.next {
+    & > .prev,
+    & > .next {
       border: none;
       color: white;
       font-size: 2rem;
@@ -1229,19 +1229,19 @@
       }
     }
 
-    &>.prev {
+    & > .prev {
       justify-self: left;
     }
 
-    &>.next {
+    & > .next {
       justify-self: right;
     }
 
-    &>.lightbox-content {
+    & > .lightbox-content {
       max-height: 100vh;
 
-      &>picture>img,
-      &>video {
+      & > picture > img,
+      & > video {
         object-fit: contain;
       }
     }
@@ -1455,7 +1455,7 @@
     position: relative;
     height: 60vh;
 
-    &>img {
+    & > img {
       position: absolute;
 
       &:first-of-type {
@@ -1468,7 +1468,7 @@
       }
     }
 
-    &>input[type="range"] {
+    & > input[type="range"] {
       position: absolute;
       z-index: 3;
       width: 100%;
@@ -1511,110 +1511,109 @@
 
 @layer custom {
   :root {
-
     /* --- Cyberpunk (Muted Pastel Goth) --- */
     &:has([data-theme="cyberpunk"]) {
       /* Text */
       --light-color-1: #2a2135; /* Deep Purple-Grey */
-      --dark-color-1: #e0dce6;  /* Pale Lavender Grey */
+      --dark-color-1: #e0dce6; /* Pale Lavender Grey */
 
       /* Background */
       --light-color-2: #f4f0f8; /* Very Light Lavender tint */
-      --dark-color-2: #1e1b24;  /* Deepest Plum-Black */
+      --dark-color-2: #1e1b24; /* Deepest Plum-Black */
 
       /* Accent */
       --light-color-3: #bfaac7; /* Dusty Orchid */
-      --dark-color-3: #4a3b52;  /* Muted Grape */
+      --dark-color-3: #4a3b52; /* Muted Grape */
     }
 
     /* --- Earthy (Sand & Clay) --- */
     &:has([data-theme="earthy"]) {
       /* Text */
       --light-color-1: #3d342b; /* Dark Bark */
-      --dark-color-1: #ebe5ce;  /* Bone White */
+      --dark-color-1: #ebe5ce; /* Bone White */
 
       /* Background */
       --light-color-2: #f2f0eb; /* Oatmeal */
-      --dark-color-2: #26221d;  /* Deep Loam */
+      --dark-color-2: #26221d; /* Deep Loam */
 
       /* Accent */
       --light-color-3: #a09383; /* Taupe */
-      --dark-color-3: #5c5042;  /* Muted Bronze */
+      --dark-color-3: #5c5042; /* Muted Bronze */
     }
 
     /* --- Oceanic (Mist & Deep Sea) --- */
     &:has([data-theme="oceanic"]) {
       /* Text */
       --light-color-1: #1f2933; /* Deep Sea Navy */
-      --dark-color-1: #cbd5e1;  /* Cloud Grey */
+      --dark-color-1: #cbd5e1; /* Cloud Grey */
 
       /* Background */
       --light-color-2: #f0f4f8; /* Alice Blue (almost white) */
-      --dark-color-2: #0f172a;  /* Midnight */
+      --dark-color-2: #0f172a; /* Midnight */
 
       /* Accent */
       --light-color-3: #7caea8; /* Muted Seafoam */
-      --dark-color-3: #334e68;  /* Storm Blue */
+      --dark-color-3: #334e68; /* Storm Blue */
     }
 
     /* --- Sunset (Blush & Ash) --- */
     &:has([data-theme="sunset"]) {
       /* Text */
       --light-color-1: #4a2c2a; /* Cocoa */
-      --dark-color-1: #faddd7;  /* Pale Peach */
+      --dark-color-1: #faddd7; /* Pale Peach */
 
       /* Background */
       --light-color-2: #fff5f5; /* Very Light Blush */
-      --dark-color-2: #2a1515;  /* Deep Maroon-Black */
+      --dark-color-2: #2a1515; /* Deep Maroon-Black */
 
       /* Accent */
       --light-color-3: #d99a8c; /* Dusty Coral */
-      --dark-color-3: #703e38;  /* Muted Rust */
+      --dark-color-3: #703e38; /* Muted Rust */
     }
 
     /* --- Botanical (Linen & Forest) --- */
     &:has([data-theme="botanical"]) {
       /* Text */
       --light-color-1: #1a2f1a; /* Dark Pine */
-      --dark-color-1: #e2e8e2;  /* Mist Green */
+      --dark-color-1: #e2e8e2; /* Mist Green */
 
       /* Background */
       --light-color-2: #f1f7f1; /* Mint Cream */
-      --dark-color-2: #111c11;  /* Deep Forest Black */
+      --dark-color-2: #111c11; /* Deep Forest Black */
 
       /* Accent */
       --light-color-3: #8da38d; /* Sage */
-      --dark-color-3: #3a523a;  /* Moss */
+      --dark-color-3: #3a523a; /* Moss */
     }
 
     /* --- Berry (Mauve & Ink) --- */
     &:has([data-theme="berry"]) {
       /* Text */
       --light-color-1: #3d283d; /* Dark Blackberry */
-      --dark-color-1: #eadd ea; /* Pale Thistle */
+      --dark-color-1: #f3e6f5; /* Very Pale Lavender (High Contrast for Dark Mode) */
 
       /* Background */
       --light-color-2: #faf5fa; /* Snow White (Mauve tint) */
-      --dark-color-2: #1f101f;  /* Deep Ink */
+      --dark-color-2: #1a0f1a; /* Deepest Plum/Black */
 
       /* Accent */
       --light-color-3: #9e829e; /* Muted Plum */
-      --dark-color-3: #523052;  /* Eggplant */
+      --dark-color-3: #523052; /* Eggplant */
     }
 
     /* --- Slate (Paper & Ink) --- */
     &:has([data-theme="slate"]) {
       /* Text */
       --light-color-1: #1a202c; /* Near Black */
-      --dark-color-1: #e2e8f0;  /* High Contrast Grey */
+      --dark-color-1: #e2e8f0; /* High Contrast Grey */
 
       /* Background */
       --light-color-2: #f8fafc; /* Vapor White */
-      --dark-color-2: #0f1115;  /* Abyss */
+      --dark-color-2: #0f1115; /* Abyss */
 
       /* Accent */
       --light-color-3: #94a3b8; /* Stone */
-      --dark-color-3: #334155;  /* Asphalt */
+      --dark-color-3: #334155; /* Asphalt */
     }
   }
 }
@@ -1634,14 +1633,14 @@ div.scroll {
     scrollbar-width: none;
   }
 
-  >div {
+  > div {
     display: flex;
     /* required to make it flow into a single row */
     gap: var(--space-tiny);
     min-width: max-content;
     /* renders the entire row */
 
-    >* {
+    > * {
       -ms-user-select: none;
       -webkit-user-select: none;
 
@@ -1652,7 +1651,7 @@ div.scroll {
       }
     }
 
-    >*:has(h2, h3, h4, h5) {
+    > *:has(h2, h3, h4, h5) {
       max-width: 250px;
       display: grid;
       gap: var(--space-tiny);
@@ -1673,33 +1672,33 @@ div.scroll {
   @supports (scroll-snap-align: start) {
     scroll-snap-type: x mandatory;
 
-    >div>* {
+    > div > * {
       scroll-snap-align: start;
     }
   }
 
   @media (max-width: 768px) {
-    .scroll>div>* {
+    .scroll > div > * {
       width: 65vw;
     }
   }
 }
 
-body>*:not(script) {
+body > *:not(script) {
   display: grid;
   grid-template-columns: subgrid;
   grid-column: gutter-left / gutter-right;
   /* grid-auto-rows: 1fr; */
   transition: all ease-in-out 0.25s;
 
-  >section {
+  > section {
     grid-column: 1 / -1;
     display: grid;
     grid-template-columns: subgrid;
     /* margin-bottom: var(--space-large); */
     /* min-height: 50vh; */
 
-    >div {
+    > div {
       grid-column: 2 / -2;
       display: grid;
       /* grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); */
@@ -1714,7 +1713,7 @@ body>*:not(script) {
       }
 
       /* for when custom-block is used for text headings/paragraphs */
-      >div:is([data-section-title="true"]) {
+      > div:is([data-section-title="true"]) {
         /* margin: var(--space-large) 0 var(--space-medium) 0; */
         min-height: initial;
       }
@@ -1723,12 +1722,12 @@ body>*:not(script) {
 }
 
 header {
-  >* {
+  > * {
     grid-column: gutter-left / gutter-right;
     height: auto;
   }
 
-  >div {
+  > div {
     div.block {
       min-height: initial;
       max-height: 100vh;
@@ -1739,11 +1738,11 @@ header {
     width: 100px;
   }
 
-  >section {
+  > section {
     z-index: 2;
     height: 100%;
 
-    >div {
+    > div {
       grid-column: 1/-1;
     }
   }
@@ -1754,7 +1753,7 @@ main {
   /* margin: var(--space-medium) 0 var(--space-medium) 0; */
   /* removed after moving hero to it's own main header  */
 
-  >section:has([data-section-title]):not(:has(video)) {
+  > section:has([data-section-title]):not(:has(video)) {
     margin: var(--space-large) 0 var(--space-medium) 0;
   }
 }
@@ -1767,7 +1766,7 @@ body {
   transition: filter 0.3s ease;
 
   /* Dull <main> when hovering the Portfolio <li> */
-  &:has(nav.dropdown li:hover)>*>* {
+  &:has(nav.dropdown li:hover) > * > * {
     filter: brightness(0.8) opacity(0.8) saturate(0);
   }
 
@@ -2030,17 +2029,17 @@ div#products {
   display: grid;
   place-items: center;
 
-  &> :is(i, svg) {
+  & > :is(i, svg) {
     grid-area: 1 / 1;
     cursor: pointer;
     color: light-dark(var(--color-dark-6-alpha-1), var(--color-light-6-alpha-1));
   }
 
-  &> :is(i:first-child, svg:first-child) {
+  & > :is(i:first-child, svg:first-child) {
     width: auto;
   }
 
-  &> :is(i:last-child, svg:first-child) {
+  & > :is(i:last-child, svg:first-child) {
     color: light-dark(var(--color-secondary), var(--color-secondary));
   }
 }
@@ -2077,7 +2076,7 @@ div#products {
   font-size: 0.5rem;
   z-index: 1;
 
-  &>span.icon {
+  & > span.icon {
     cursor: pointer;
   }
 }
@@ -2114,21 +2113,25 @@ div#products {
 
 /* Light theme animated gradients */
 .light-gradient-1 {
-  background: linear-gradient(135deg,
-      var(--color-primary) 0%,
-      var(--color-light-2) 30%,
-      var(--color-tertiary) 60%,
-      var(--color-light-4) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-light-2) 30%,
+    var(--color-tertiary) 60%,
+    var(--color-light-4) 100%
+  );
   background-size: 200% 100%;
   animation: slideGradient 8s ease infinite;
 }
 
 .light-gradient-2 {
-  background: linear-gradient(to bottom,
-      var(--color-tertiary) 0%,
-      var(--color-light-4) 40%,
-      var(--color-light-5) 70%,
-      var(--color-secondary) 100%);
+  background: linear-gradient(
+    to bottom,
+    var(--color-tertiary) 0%,
+    var(--color-light-4) 40%,
+    var(--color-light-5) 70%,
+    var(--color-secondary) 100%
+  );
   background-size: 100% 200%;
   animation: slideGradientVertical 8s ease infinite;
 }
@@ -2140,30 +2143,36 @@ div#products {
 }
 
 .light-gradient-opaque-1 {
-  background: linear-gradient(135deg,
-      var(--color-light-1-alpha-1) 0%,
-      var(--color-light-1-alpha-2) 25%,
-      var(--color-light-1-alpha-3) 75%,
-      var(--color-light-1-alpha-4) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-light-1-alpha-1) 0%,
+    var(--color-light-1-alpha-2) 25%,
+    var(--color-light-1-alpha-3) 75%,
+    var(--color-light-1-alpha-4) 100%
+  );
   background-size: 200% 100%;
   animation: slideGradient 8s ease infinite;
 }
 
 .light-gradient-opaque-2 {
-  background: linear-gradient(to bottom,
-      var(--color-light-1-alpha-3) 0%,
-      var(--color-light-1-alpha-4) 33%,
-      var(--color-light-1-alpha-5) 66%,
-      var(--color-light-6-alpha-1) 100%);
+  background: linear-gradient(
+    to bottom,
+    var(--color-light-1-alpha-3) 0%,
+    var(--color-light-1-alpha-4) 33%,
+    var(--color-light-1-alpha-5) 66%,
+    var(--color-light-6-alpha-1) 100%
+  );
   background-size: 100% 200%;
   animation: slideGradientVertical 8s ease infinite;
 }
 
 .light-gradient-opaque-3 {
-  background: linear-gradient(45deg,
-      var(--color-light-1-alpha-5) 0%,
-      var(--color-light-6-alpha-1) 50%,
-      var(--color-light-1-alpha-1) 100%);
+  background: linear-gradient(
+    45deg,
+    var(--color-light-1-alpha-5) 0%,
+    var(--color-light-6-alpha-1) 50%,
+    var(--color-light-1-alpha-1) 100%
+  );
   background-size: 200% 100%;
   animation: slideGradient 8s ease infinite;
 }
@@ -2176,21 +2185,25 @@ div#products {
 
 /* Dark theme animated gradients */
 .dark-gradient-1 {
-  background: linear-gradient(135deg,
-      var(--color-primary) 0%,
-      var(--color-dark-2) 30%,
-      var(--color-tertiary) 60%,
-      var(--color-dark-4) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary) 0%,
+    var(--color-dark-2) 30%,
+    var(--color-tertiary) 60%,
+    var(--color-dark-4) 100%
+  );
   background-size: 200% 100%;
   animation: slideGradient 8s ease infinite;
 }
 
 .dark-gradient-2 {
-  background: linear-gradient(to bottom,
-      var(--color-tertiary) 0%,
-      var(--color-dark-4) 40%,
-      var(--color-dark-5) 70%,
-      var(--color-secondary) 100%);
+  background: linear-gradient(
+    to bottom,
+    var(--color-tertiary) 0%,
+    var(--color-dark-4) 40%,
+    var(--color-dark-5) 70%,
+    var(--color-secondary) 100%
+  );
   background-size: 100% 200%;
   animation: slideGradientVertical 8s ease infinite;
 }
@@ -2202,30 +2215,36 @@ div#products {
 }
 
 .dark-gradient-opaque-1 {
-  background: linear-gradient(135deg,
-      var(--color-dark-1-alpha-1) 0%,
-      var(--color-dark-1-alpha-2) 25%,
-      var(--color-dark-1-alpha-3) 75%,
-      var(--color-accent-opaque-dark-scale-4) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--color-dark-1-alpha-1) 0%,
+    var(--color-dark-1-alpha-2) 25%,
+    var(--color-dark-1-alpha-3) 75%,
+    var(--color-accent-opaque-dark-scale-4) 100%
+  );
   background-size: 200% 100%;
   animation: slideGradient 8s ease infinite;
 }
 
 .dark-gradient-opaque-2 {
-  background: linear-gradient(to bottom,
-      var(--color-dark-1-alpha-3) 0%,
-      var(--color-dark-1-alpha-4) 33%,
-      var(--color-dark-1-alpha-5) 66%,
-      var(--color-dark-1-alpha-1) 100%);
+  background: linear-gradient(
+    to bottom,
+    var(--color-dark-1-alpha-3) 0%,
+    var(--color-dark-1-alpha-4) 33%,
+    var(--color-dark-1-alpha-5) 66%,
+    var(--color-dark-1-alpha-1) 100%
+  );
   background-size: 100% 200%;
   animation: slideGradientVertical 8s ease infinite;
 }
 
 .dark-gradient-opaque-3 {
-  background: linear-gradient(45deg,
-      var(--color-dark-1-alpha-5) 0%,
-      var(--color-dark-6-alpha-1) 50%,
-      var(--color-dark-1-alpha-1) 100%);
+  background: linear-gradient(
+    45deg,
+    var(--color-dark-1-alpha-5) 0%,
+    var(--color-dark-6-alpha-1) 50%,
+    var(--color-dark-1-alpha-1) 100%
+  );
   background-size: 200% 100%;
   animation: slideGradient 8s ease infinite;
 }

@@ -449,6 +449,11 @@ async function updateHead(attributes, setup) {
     }
     logger.log('Merged attributes', attributes);
 
+    if (attributes.theme) {
+      document.body.setAttribute('data-theme', attributes.theme);
+      logger.log(`Applied page theme: ${attributes.theme}`);
+    }
+
     if (attributes.components) {
       await loadComponents(attributes.components);
     }
