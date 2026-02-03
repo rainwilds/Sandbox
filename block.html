@@ -1,202 +1,214 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1" />
 
-<head>
+    <link
+      rel="preload"
+      href="./JSON/setup.json"
+      as="fetch"
+      crossorigin="anonymous" />
+    <link
+      rel="preload"
+      href="./styles.css"
+      as="style" />
 
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <link rel="preload" href="./JSON/setup.json" as="fetch" crossorigin="anonymous">
-    <link rel="preload" href="./styles.css" as="style">
-
-    <script src="js/generators/head-generator.js" type="module"></script>
+    <script
+      src="js/generators/head-generator.js"
+      type="module"></script>
 
     <data-custom-head
-        data-components="custom-block"
-        data-title="Block"
-        data-description="Custom block web component"
-        data-canonical="https://rainwilds.github.io/Sandbox/block.html"
-        >
-    </data-custom-head>
+      data-components="custom-block"
+      data-title="Block"
+      data-description="Custom block web component"
+      data-canonical="https://rainwilds.github.io/Sandbox/block.html"></data-custom-head>
+  </head>
 
-</head>
-
-<body>
-
+  <body>
     <main>
+      <section>
+        <div
+          class="theme-switcher"
+          style="display: flex; gap: 10px; padding: 20px; flex-wrap: wrap">
+          <button onclick="document.body.removeAttribute('data-theme')">Default Theme</button>
 
-        <section>
+          <button onclick="document.body.setAttribute('data-theme', 'earthy')">Earthy</button>
+          <button onclick="document.body.setAttribute('data-theme', 'cyberpunk')">Cyberpunk</button>
 
-            <div>
-                <custom-block
-                    heading="Background Colours"
-                    content-type="paragraph" paragraph="Cards with background colours">
-                </custom-block>
-            </div>
-        </section>
+          <button onclick="document.body.setAttribute('data-theme', 'oceanic')">Oceanic</button>
+          <button onclick="document.body.setAttribute('data-theme', 'sunset')">Sunset</button>
+          <button onclick="document.body.setAttribute('data-theme', 'botanical')">Botanical</button>
+          <button onclick="document.body.setAttribute('data-theme', 'berry')">Berry</button>
+          <button onclick="document.body.setAttribute('data-theme', 'slate')">Slate</button>
+        </div>
+      </section>
 
-        <section>
-            <div class="grid-container-1">
-                <custom-block
-                    icon='<i class="fa-utility-fill fa-semibold fa-cloud"></i>'
-                    icon-size="2rem"
-                    icon-style="margin-bottom: var(--space-tiny)"                    
-                    heading="Background Colour 1"
-                    content-type="paragraph" paragraph="Card with background-color-1, color-invert and padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    background-color="background-color-1"
-                    class="padding-medium color-invert">
-                </custom-block>
+      <section>
+        <div>
+          <custom-block
+            heading="Background Colours"
+            content-type="paragraph"
+            paragraph="Cards with background colours"></custom-block>
+        </div>
+      </section>
 
-                <custom-block
-                    heading="Background Colour 2"
-                    content-type="paragraph" paragraph="Card with background-color-2, color-invert and padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    background-color="background-color-2"
-                    class="padding-medium color-invert">
-                </custom-block>
+      <section>
+        <div class="grid-container-1">
+          <custom-block
+            icon='<i class="fa-utility-fill fa-semibold fa-cloud"></i>'
+            icon-size="2rem"
+            icon-style="margin-bottom: var(--space-tiny)"
+            heading="Background Colour 1"
+            content-type="paragraph"
+            paragraph="Card with background-color-1, color-invert and padding-medium."
+            button-text="Action"
+            button-href="#"
+            background-color="background-color-1"
+            class="padding-medium color-invert"></custom-block>
 
-                <custom-block
-                    heading="Background Colour 3"
-                    content-type="paragraph" paragraph="Card with background-color-3 and padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    background-color="background-color-3"
-                    class="padding-medium">
-                </custom-block>
-            </div>
-        </section>
+          <custom-block
+            heading="Background Colour 2"
+            content-type="paragraph"
+            paragraph="Card with background-color-2, color-invert and padding-medium."
+            button-text="Action"
+            button-href="#"
+            background-color="background-color-2"
+            class="padding-medium color-invert"></custom-block>
 
-        <section>
-            <div class="grid-container-1">
-                <custom-block
-                    heading="Borders"
-                    content-type="paragraph" paragraph="Cards with borders only">
-                </custom-block>
-            </div>
-        </section>
+          <custom-block
+            heading="Background Colour 3"
+            content-type="paragraph"
+            paragraph="Card with background-color-3 and padding-medium."
+            button-text="Action"
+            button-href="#"
+            background-color="background-color-3"
+            class="padding-medium"></custom-block>
+        </div>
+      </section>
 
-        <section>
-            <div>
-                <custom-block
-                    heading="Border Small"
-                    content-type="paragraph" paragraph="Card with border-small, space-between and padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    class="padding-medium border-small space-between">
-                </custom-block>
+      <section>
+        <div class="grid-container-1">
+          <custom-block
+            heading="Borders"
+            content-type="paragraph"
+            paragraph="Cards with borders only"></custom-block>
+        </div>
+      </section>
 
-                <custom-block
-                    heading="Border Small with Border Radius"
-                    content-type="paragraph" paragraph="Card with border-small, space-between, border-radius-medium padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    class="padding-medium border-small border-radius-medium space-between">
-                </custom-block>
+      <section>
+        <div>
+          <custom-block
+            heading="Border Small"
+            content-type="paragraph"
+            paragraph="Card with border-small, space-between and padding-medium."
+            button-text="Action"
+            button-href="#"
+            class="padding-medium border-small space-between"></custom-block>
 
-                <custom-block
-                    heading="Border Medium with Border Radius"
-                    content-type="paragraph" paragraph="Card with border-medium, border-radius-small, and padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    class="padding-medium border-medium border-radius-small">
-                </custom-block>
-            </div>
-        </section>
+          <custom-block
+            heading="Border Small with Border Radius"
+            content-type="paragraph"
+            paragraph="Card with border-small, space-between, border-radius-medium padding-medium."
+            button-text="Action"
+            button-href="#"
+            class="padding-medium border-small border-radius-medium space-between"></custom-block>
 
-        <section>
-            <div>
-                <custom-block
-                    heading="Plain"
-                    content-type="paragraph" paragraph="Cards with just text">
-                </custom-block>
-            </div>
-        </section>
+          <custom-block
+            heading="Border Medium with Border Radius"
+            content-type="paragraph"
+            paragraph="Card with border-medium, border-radius-small, and padding-medium."
+            button-text="Action"
+            button-href="#"
+            class="padding-medium border-medium border-radius-small"></custom-block>
+        </div>
+      </section>
 
-        <section>
-            <div class="grid-container-1">
-                <custom-block
-                    heading="Plain Card"
-                    content-type="paragraph" paragraph="Card with no additional classes."
-                    button-text="Action"
-                    button-href="#">
-                </custom-block>
+      <section>
+        <div>
+          <custom-block
+            heading="Plain"
+            content-type="paragraph"
+            paragraph="Cards with just text"></custom-block>
+        </div>
+      </section>
 
-                <custom-block
-                    heading="Plain Card"
-                    content-type="paragraph" paragraph="Card with no additional classes."
-                    button-text="Action"
-                    button-href="#">
-                </custom-block>
+      <section>
+        <div class="grid-container-1">
+          <custom-block
+            heading="Plain Card"
+            content-type="paragraph"
+            paragraph="Card with no additional classes."
+            button-text="Action"
+            button-href="#"></custom-block>
 
-                <custom-block
-                    heading="Plain Card with place-self."
-                    content-type="paragraph" paragraph="Card with custom style place flex-end."
-                    button-text="Action"
-                    button-href="#">
-                </custom-block>
-            </div>
-        </section>
+          <custom-block
+            heading="Plain Card"
+            content-type="paragraph"
+            paragraph="Card with no additional classes."
+            button-text="Action"
+            button-href="#"></custom-block>
 
-        <section>
-            <div>
-                <custom-block
-                    heading="Background Image"
-                    content-type="paragraph" paragraph="Background image pictures">
-                </custom-block>
-            </div>
-        </section>
+          <custom-block
+            heading="Plain Card with place-self."
+            content-type="paragraph"
+            paragraph="Card with custom style place flex-end."
+            button-text="Action"
+            button-href="#"></custom-block>
+        </div>
+      </section>
 
-<section>
-    <div class="grid-container-1">
-        <!-- Block 1: Background Image with Centered Text and Button -->
-<custom-block
-    heading="Explore Nature"
-    heading-tag="h2"
+      <section>
+        <div>
+          <custom-block
+            heading="Background Image"
+            content-type="paragraph"
+            paragraph="Background image pictures"></custom-block>
+        </div>
+      </section>
 
-   
-    paragraph="Discover breathtaking landscapes."
-    ul-items="Apple, Banana, Cherry"
-    ol-items="Ten, Eleven, Twelve"
-    content-order="ul,ol,paragraph"
-    ul-icon='<i class="fa-utility-fill fa-semibold fa-compass"></i>'
-    ul-icon-position="right"
-    ul-style="padding: var(--space-tiny) 0 var(--space-tiny) 0; display: grid; grid-template-columns: max-content; justify-content: center;
+      <section>
+        <div class="grid-container-1">
+          <!-- Block 1: Background Image with Centered Text and Button -->
+          <custom-block
+            heading="Explore Nature"
+            heading-tag="h2"
+            paragraph="Discover breathtaking landscapes."
+            ul-items="Apple, Banana, Cherry"
+            ol-items="Ten, Eleven, Twelve"
+            content-order="ul,ol,paragraph"
+            ul-icon='<i class="fa-utility-fill fa-semibold fa-compass"></i>'
+            ul-icon-position="right"
+            ul-style="padding: var(--space-tiny) 0 var(--space-tiny) 0; display: grid; grid-template-columns: max-content; justify-content: center;
     text-align: right;"
-    ul-icon-offset="var(--space-micro)"
-    ol-icon='<i class="fa-utility-fill fa-semibold fa-building"></i>'
-    ol-icon-position="left"
-    ol-style="display: grid; grid-template-columns: max-content; justify-content: center; text-align: left;"  
-    ol-icon-offset="var(--space-micro)"  
+            ul-icon-offset="var(--space-micro)"
+            ol-icon='<i class="fa-utility-fill fa-semibold fa-building"></i>'
+            ol-icon-position="left"
+            ol-style="display: grid; grid-template-columns: max-content; justify-content: center; text-align: left;"
+            ol-icon-offset="var(--space-micro)"
+            button-text="Learn More"
+            button-href="#nature"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-leaf"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-micro)"
+            background-overlay="background-overlay-1"
+            img-background-src="tourism-photography-light-1.jpg"
+            img-background-alt="Nature landscape background"
+            img-background-position="center"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="80vw"
+            img-background-desktop-width="1200px"
+            text-alignment="center"
+            inner-alignment="center"></custom-block>
 
-    button-text="Learn More"
-    button-href="#nature"
-    button-icon='<i class="fa-utility-fill fa-semibold fa-leaf"></i>'
-    button-icon-position="left"
-    button-icon-offset="var(--space-micro)"
-
-
-    background-overlay="background-overlay-1"
-    img-background-src="tourism-photography-light-1.jpg"
-    img-background-alt="Nature landscape background"
-    img-background-position="center"
-    img-background-mobile-width="100vw"
-    img-background-tablet-width="80vw"
-    img-background-desktop-width="1200px"
-
-
-    text-alignment="center"
-    inner-alignment="center"
-    >
-</custom-block>
-
-        <!-- Block 2: Video Background with Right-Aligned Content -->
-        <custom-block
+          <!-- Block 2: Video Background with Right-Aligned Content -->
+          <custom-block
             heading="Adventure Awaits"
             heading-tag="h3"
-            content-type="paragraph" paragraph="Thrilling adventures with video."
+            content-type="paragraph"
+            paragraph="Thrilling adventures with video."
             button-text="Join Now"
             button-href="#adventure"
             button-icon='<i class="fa-utility-fill fa-semibold fa-compass"></i>'
@@ -212,13 +224,13 @@
             video-background-loop
             text-alignment="right"
             inner-alignment="center-right"
-            inner-class="padding-small">
-        </custom-block>
+            inner-class="padding-small"></custom-block>
 
-        <!-- Block 3: Primary Image on Right with Text -->
-        <custom-block
+          <!-- Block 3: Primary Image on Right with Text -->
+          <custom-block
             heading="City Vibes"
-            content-type="paragraph" paragraph="Urban exploration with an image."
+            content-type="paragraph"
+            paragraph="Urban exploration with an image."
             icon='<i class="fa-utility-fill fa-semibold fa-building"></i>'
             icon-size="2rem"
             icon-style="padding-bottom: var(--space-small)"
@@ -236,11 +248,10 @@
             img-primary-desktop-width="600px"
             inner-alignment="center-left"
             inner-background-color="background-color-1"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 4: Media-Only Block with Background Image -->
-        <custom-block
+          <!-- Block 4: Media-Only Block with Background Image -->
+          <custom-block
             background-overlay="background-overlay-3"
             background-image-noise
             img-background-src="tourism-photography-dark-2.jpg"
@@ -248,14 +259,14 @@
             img-background-position="bottom-center"
             img-background-mobile-width="100vw"
             img-background-tablet-width="80vw"
-            img-background-desktop-width="1200px">
-        </custom-block>
+            img-background-desktop-width="1200px"></custom-block>
 
-        <!-- Block 5: Text with Background Color and Button -->
-        <custom-block
+          <!-- Block 5: Text with Background Color and Button -->
+          <custom-block
             heading="Start Your Journey"
             heading-tag="h2"
-            content-type="paragraph" paragraph="Begin your adventure today."
+            content-type="paragraph"
+            paragraph="Begin your adventure today."
             button-text="Start Now"
             button-href="#start-now"
             button-icon='<i class="fa-utility-fill fa-semibold fa-star"></i>'
@@ -265,29 +276,29 @@
             inner-background-color="background-color-1"
             text-alignment="center"
             inner-alignment="center"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 6: Text-Only with Background Color -->
-        <custom-block
+          <!-- Block 6: Text-Only with Background Color -->
+          <custom-block
             heading="Our Story"
             heading-tag="h1"
             sub-heading="A Journey of Passion"
             sub-heading-tag="h4"
-            content-type="paragraph" paragraph="Inspiring through storytelling."
+            content-type="paragraph"
+            paragraph="Inspiring through storytelling."
             icon='<i class="fa-utility-fill fa-semibold fa-book"></i>'
             icon-size="2.5rem"
             icon-style="padding-bottom: var(--space-small)"
             inner-background-color="background-color-2"
             text-alignment="left"
             inner-alignment="center-left"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 7: Primary Video with Top Position and Border -->
-        <custom-block
+          <!-- Block 7: Primary Video with Top Position and Border -->
+          <custom-block
             heading="Experience the Journey"
-            content-type="paragraph" paragraph="Video of incredible destinations."
+            content-type="paragraph"
+            paragraph="Video of incredible destinations."
             button-text="Watch Now"
             button-href="#video"
             button-icon='<i class="fa-utility-fill fa-semibold fa-video"></i>'
@@ -302,13 +313,13 @@
             video-primary-muted
             inner-backdrop-filter="backdrop-filter-blur-10"
             inner-alignment="center"
-            inner-class="padding-medium">
-        </custom-block>
+            inner-class="padding-medium"></custom-block>
 
-        <!-- Block 8: Background Image with Right-Aligned Content -->
-        <custom-block
+          <!-- Block 8: Background Image with Right-Aligned Content -->
+          <custom-block
             heading="Dream Destinations"
-            content-type="paragraph" paragraph="Plan your next getaway."
+            content-type="paragraph"
+            paragraph="Plan your next getaway."
             button-text="Plan Trip"
             button-href="#plan"
             button-icon='<i class="fa-utility-fill fa-semibold fa-plane"></i>'
@@ -323,14 +334,14 @@
             img-background-desktop-width="1200px"
             text-alignment="right"
             inner-alignment="center-right"
-            inner-class="padding-medium">
-        </custom-block>
+            inner-class="padding-medium"></custom-block>
 
-        <!-- Block 9: Background Image with Left-Aligned Text -->
-        <custom-block
+          <!-- Block 9: Background Image with Left-Aligned Text -->
+          <custom-block
             heading="Mountain Retreat"
             heading-tag="h2"
-            content-type="paragraph" paragraph="Escape to serene landscapes."
+            content-type="paragraph"
+            paragraph="Escape to serene landscapes."
             button-text="Book Now"
             button-href="#mountain"
             button-icon='<i class="fa-utility-fill fa-semibold fa-tree"></i>'
@@ -342,13 +353,13 @@
             img-background-position="top-left"
             text-alignment="left"
             inner-alignment="center-left"
-            inner-class="padding-medium">
-        </custom-block>
+            inner-class="padding-medium"></custom-block>
 
-        <!-- Block 10: Primary Image on Left -->
-        <custom-block
+          <!-- Block 10: Primary Image on Left -->
+          <custom-block
             heading="Coastal Bliss"
-            content-type="paragraph" paragraph="Relax by the sea."
+            content-type="paragraph"
+            paragraph="Relax by the sea."
             icon='<i class="fa-utility-fill fa-semibold fa-water"></i>'
             icon-size="2rem"
             icon-style="padding-bottom: var(--space-small)"
@@ -361,14 +372,14 @@
             img-primary-desktop-width="600px"
             inner-alignment="center-right"
             inner-background-color="background-color-1"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 11: Video Background with Center Content -->
-        <custom-block
+          <!-- Block 11: Video Background with Center Content -->
+          <custom-block
             heading="Wild Safari"
             heading-tag="h3"
-            content-type="paragraph" paragraph="Thrilling safari adventure."
+            content-type="paragraph"
+            paragraph="Thrilling safari adventure."
             button-text="Discover More"
             button-href="#safari"
             button-icon='<i class="fa-utility-fill fa-semibold fa-magnifying-glass"></i>'
@@ -383,27 +394,27 @@
             video-background-loop
             text-alignment="center"
             inner-alignment="center"
-            inner-class="padding-small">
-        </custom-block>
+            inner-class="padding-small"></custom-block>
 
-        <!-- Block 12: Text-Only with Background Color -->
-        <custom-block
+          <!-- Block 12: Text-Only with Background Color -->
+          <custom-block
             heading="Our Vision"
             heading-tag="h2"
-            content-type="paragraph" paragraph="Sustainable travel future."
+            content-type="paragraph"
+            paragraph="Sustainable travel future."
             icon='<i class="fa-utility-fill fa-semibold fa-globe"></i>'
             icon-size="2.5rem"
             icon-style="padding-bottom: var(--space-small)"
             inner-background-color="background-color-2"
             text-alignment="center"
             inner-alignment="center"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 13: Primary Video on Bottom with Border -->
-        <custom-block
+          <!-- Block 13: Primary Video on Bottom with Border -->
+          <custom-block
             heading="Cultural Journey"
-            content-type="paragraph" paragraph="Immerse in vibrant cultures."
+            content-type="paragraph"
+            paragraph="Immerse in vibrant cultures."
             button-text="Explore Culture"
             button-href="#culture"
             button-icon='<i class="fa-utility-fill fa-semibold fa-music"></i>'
@@ -417,11 +428,10 @@
             video-primary-autoplay
             video-primary-muted
             inner-alignment="center"
-            inner-class="padding-medium">
-        </custom-block>
+            inner-class="padding-medium"></custom-block>
 
-        <!-- Block 14: Media-Only Block with Background Image -->
-        <custom-block
+          <!-- Block 14: Media-Only Block with Background Image -->
+          <custom-block
             background-overlay="background-overlay-1"
             background-image-noise
             img-background-src="tourism-photography-light-3.jpg"
@@ -429,14 +439,14 @@
             img-background-position="center-right"
             img-background-mobile-width="100vw"
             img-background-tablet-width="80vw"
-            img-background-desktop-width="1000px">
-        </custom-block>
+            img-background-desktop-width="1000px"></custom-block>
 
-        <!-- Block 15: Text with Background Color and Button -->
-        <custom-block
+          <!-- Block 15: Text with Background Color and Button -->
+          <custom-block
             heading="Join the Adventure"
             heading-tag="h3"
-            content-type="paragraph" paragraph="Start your journey today."
+            content-type="paragraph"
+            paragraph="Start your journey today."
             button-text="Sign Up"
             button-href="#signup"
             button-icon='<i class="fa-utility-fill fa-semibold fa-user-plus"></i>'
@@ -445,16 +455,16 @@
             inner-background-color="background-color-1"
             text-alignment="center"
             inner-alignment="center"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 16: Background Image with Sub-Heading and Border -->
-        <custom-block
+          <!-- Block 16: Background Image with Sub-Heading and Border -->
+          <custom-block
             heading="Urban Adventure"
             heading-tag="h2"
             sub-heading="Discover the City"
             sub-heading-tag="h3"
-            content-type="paragraph" paragraph="Experience urban life."
+            content-type="paragraph"
+            paragraph="Experience urban life."
             button-text="Start Exploring"
             button-href="#urban"
             button-icon='<i class="fa-utility-fill fa-semibold fa-building"></i>'
@@ -468,29 +478,29 @@
             img-background-position="bottom-left"
             text-alignment="left"
             inner-alignment="center-left"
-            inner-class="padding-medium">
-        </custom-block>
+            inner-class="padding-medium"></custom-block>
 
-        <!-- Block 17: Text with Background Color -->
-        <custom-block
+          <!-- Block 17: Text with Background Color -->
+          <custom-block
             heading="Travel Dreams"
             heading-tag="h2"
             sub-heading="Plan Your Journey"
             sub-heading-tag="h3"
-            content-type="paragraph" paragraph="Curated travel experiences."
+            content-type="paragraph"
+            paragraph="Curated travel experiences."
             icon='<i class="fa-utility-fill fa-semibold fa-map"></i>'
             icon-size="2rem"
             icon-style="padding-bottom: var(--space-small)"
             inner-background-color="background-color-1"
             text-alignment="left"
             inner-alignment="center-left"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 18: Primary Image on Top -->
-        <custom-block
+          <!-- Block 18: Primary Image on Top -->
+          <custom-block
             heading="Forest Escape"
-            content-type="paragraph" paragraph="Discover serene forests."
+            content-type="paragraph"
+            paragraph="Discover serene forests."
             button-text="Explore Now"
             button-href="#forest"
             button-icon='<i class="fa-utility-fill fa-semibold fa-tree"></i>'
@@ -503,14 +513,14 @@
             img-primary-tablet-width="80vw"
             img-primary-desktop-width="1200px"
             inner-alignment="center"
-            inner-class="padding-medium">
-        </custom-block>
+            inner-class="padding-medium"></custom-block>
 
-        <!-- Block 19: Video Background with Left Content -->
-        <custom-block
+          <!-- Block 19: Video Background with Left Content -->
+          <custom-block
             heading="Desert Quest"
             heading-tag="h3"
-            content-type="paragraph" paragraph="Adventure in the dunes."
+            content-type="paragraph"
+            paragraph="Adventure in the dunes."
             button-text="Join Quest"
             button-href="#desert"
             button-icon='<i class="fa-utility-fill fa-semibold fa-sun"></i>'
@@ -525,14 +535,14 @@
             video-background-loop
             text-alignment="left"
             inner-alignment="center-left"
-            inner-class="padding-small">
-        </custom-block>
+            inner-class="padding-small"></custom-block>
 
-        <!-- Block 20: Text with Background Color and Border -->
-        <custom-block
+          <!-- Block 20: Text with Background Color and Border -->
+          <custom-block
             heading="Book Your Trip"
             heading-tag="h2"
-            content-type="paragraph" paragraph="Plan your adventure now."
+            content-type="paragraph"
+            paragraph="Plan your adventure now."
             button-text="Book Now"
             button-href="#book"
             button-icon='<i class="fa-utility-fill fa-semibold fa-ticket"></i>'
@@ -542,13 +552,13 @@
             inner-background-color="background-color-1"
             text-alignment="center"
             inner-alignment="center"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 21: Background Image with Center Content -->
-        <custom-block
+          <!-- Block 21: Background Image with Center Content -->
+          <custom-block
             heading="Island Paradise"
-            content-type="paragraph" paragraph="Relax in tropical bliss."
+            content-type="paragraph"
+            paragraph="Relax in tropical bliss."
             button-text="Visit Now"
             button-href="#island"
             button-icon='<i class="fa-utility-fill fa-semibold fa-umbrella"></i>'
@@ -563,13 +573,13 @@
             img-background-desktop-width="1200px"
             text-alignment="center"
             inner-alignment="center"
-            inner-class="padding-medium">
-        </custom-block>
+            inner-class="padding-medium"></custom-block>
 
-        <!-- Block 22: Primary Image on Bottom -->
-        <custom-block
+          <!-- Block 22: Primary Image on Bottom -->
+          <custom-block
             heading="Mountain Hike"
-            content-type="paragraph" paragraph="Trek through stunning peaks."
+            content-type="paragraph"
+            paragraph="Trek through stunning peaks."
             icon='<i class="fa-utility-fill fa-semibold fa-tree"></i>'
             icon-size="2rem"
             icon-style="padding-bottom: var(--space-small)"
@@ -581,27 +591,27 @@
             img-primary-desktop-width="600px"
             inner-alignment="center"
             inner-background-color="background-color-1"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 23: Text with Background Color -->
-        <custom-block
+          <!-- Block 23: Text with Background Color -->
+          <custom-block
             heading="Eco Travel"
             heading-tag="h2"
-            content-type="paragraph" paragraph="Sustainable adventures await."
+            content-type="paragraph"
+            paragraph="Sustainable adventures await."
             icon='<i class="fa-utility-fill fa-semibold fa-leaf"></i>'
             icon-size="2.5rem"
             icon-style="padding-bottom: var(--space-small)"
             inner-background-color="background-color-2"
             text-alignment="right"
             inner-alignment="center-right"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 24: Primary Video with Left Position and Border -->
-        <custom-block
+          <!-- Block 24: Primary Video with Left Position and Border -->
+          <custom-block
             heading="City Lights"
-            content-type="paragraph" paragraph="Experience urban nights."
+            content-type="paragraph"
+            paragraph="Experience urban nights."
             button-text="Explore Nightlife"
             button-href="#nightlife"
             button-icon='<i class="fa-utility-fill fa-semibold fa-lightbulb"></i>'
@@ -615,11 +625,10 @@
             video-primary-autoplay
             video-primary-muted
             inner-alignment="center-right"
-            inner-class="padding-medium">
-        </custom-block>
+            inner-class="padding-medium"></custom-block>
 
-        <!-- Block 25: Media-Only Block with Background Image -->
-        <custom-block
+          <!-- Block 25: Media-Only Block with Background Image -->
+          <custom-block
             background-overlay="background-overlay-2"
             background-image-noise
             img-background-src="tourism-photography-dark-4.jpg"
@@ -627,14 +636,14 @@
             img-background-position="bottom-right"
             img-background-mobile-width="100vw"
             img-background-tablet-width="80vw"
-            img-background-desktop-width="1000px">
-        </custom-block>
+            img-background-desktop-width="1000px"></custom-block>
 
-        <!-- Block 26: Text with Background Color and Button -->
-        <custom-block
+          <!-- Block 26: Text with Background Color and Button -->
+          <custom-block
             heading="Join the Journey"
             heading-tag="h3"
-            content-type="paragraph" paragraph="Start your adventure now."
+            content-type="paragraph"
+            paragraph="Start your adventure now."
             button-text="Join Us"
             button-href="#join"
             button-icon='<i class="fa-utility-fill fa-semibold fa-heart"></i>'
@@ -643,14 +652,14 @@
             inner-background-color="background-color-1"
             text-alignment="center"
             inner-alignment="center"
-            inner-class="padding-small color-invert">
-        </custom-block>
+            inner-class="padding-small color-invert"></custom-block>
 
-        <!-- Block 27: Background Image with Top Content -->
-        <custom-block
+          <!-- Block 27: Background Image with Top Content -->
+          <custom-block
             heading="Sky High"
             heading-tag="h3"
-            content-type="paragraph" paragraph="Soar above the clouds."
+            content-type="paragraph"
+            paragraph="Soar above the clouds."
             button-text="Fly Now"
             button-href="#sky"
             button-icon='<i class="fa-utility-fill fa-semibold fa-plane"></i>'
@@ -665,13 +674,13 @@
             img-background-desktop-width="1200px"
             text-alignment="center"
             inner-alignment="center"
-            inner-class="padding-medium">
-        </custom-block>
+            inner-class="padding-medium"></custom-block>
 
-        <!-- Block 28: Primary Image on Right with Border -->
-        <custom-block
+          <!-- Block 28: Primary Image on Right with Border -->
+          <custom-block
             heading="Rural Charm"
-            content-type="paragraph" paragraph="Discover countryside beauty."
+            content-type="paragraph"
+            paragraph="Discover countryside beauty."
             icon='<i class="fa-utility-fill fa-semibold fa-truck"></i>'
             icon-size="2rem"
             icon-style="padding-bottom: var(--space-small)"
@@ -684,14 +693,14 @@
             img-primary-desktop-width="600px"
             inner-alignment="center-left"
             inner-background-color="background-color-1"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 29: Video Background with Bottom Content -->
-        <custom-block
+          <!-- Block 29: Video Background with Bottom Content -->
+          <custom-block
             heading="Ocean Waves"
             heading-tag="h3"
-            content-type="paragraph" paragraph="Sail the open seas."
+            content-type="paragraph"
+            paragraph="Sail the open seas."
             button-text="Set Sail"
             button-href="#ocean"
             button-icon='<i class="fa-utility-fill fa-semibold fa-ship"></i>'
@@ -706,29 +715,29 @@
             video-background-loop
             text-alignment="center"
             inner-alignment="center"
-            inner-class="padding-small">
-        </custom-block>
+            inner-class="padding-small"></custom-block>
 
-        <!-- Block 30: Text with Background Color -->
-        <custom-block
+          <!-- Block 30: Text with Background Color -->
+          <custom-block
             heading="Travel Smart"
             heading-tag="h2"
             sub-heading="Plan Efficiently"
             sub-heading-tag="h3"
-            content-type="paragraph" paragraph="Smart travel solutions."
+            content-type="paragraph"
+            paragraph="Smart travel solutions."
             icon='<i class="fa-utility-fill fa-semibold fa-briefcase"></i>'
             icon-size="2.5rem"
             icon-style="padding-bottom: var(--space-small)"
             inner-background-color="background-color-2"
             text-alignment="left"
             inner-alignment="center-left"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 31: Primary Video on Top -->
-        <custom-block
+          <!-- Block 31: Primary Video on Top -->
+          <custom-block
             heading="Night Sky"
-            content-type="paragraph" paragraph="Stargaze in remote locations."
+            content-type="paragraph"
+            paragraph="Stargaze in remote locations."
             button-text="Stargaze Now"
             button-href="#stars"
             button-icon='<i class="fa-utility-fill fa-semibold fa-star"></i>'
@@ -741,14 +750,14 @@
             video-primary-autoplay
             video-primary-muted
             inner-alignment="center"
-            inner-class="padding-medium">
-        </custom-block>
+            inner-class="padding-medium"></custom-block>
 
-        <!-- Block 32: Background Image with Left Content and Border -->
-        <custom-block
+          <!-- Block 32: Background Image with Left Content and Border -->
+          <custom-block
             heading="Historic Sites"
             heading-tag="h2"
-            content-type="paragraph" paragraph="Explore ancient history."
+            content-type="paragraph"
+            paragraph="Explore ancient history."
             button-text="Visit History"
             button-href="#history"
             button-icon='<i class="fa-utility-fill fa-semibold fa-landmark"></i>'
@@ -764,27 +773,27 @@
             img-background-desktop-width="1200px"
             text-alignment="left"
             inner-alignment="center-left"
-            inner-class="padding-medium">
-        </custom-block>
+            inner-class="padding-medium"></custom-block>
 
-        <!-- Block 33: Text with Background Color -->
-        <custom-block
+          <!-- Block 33: Text with Background Color -->
+          <custom-block
             heading="Adventure Hub"
             heading-tag="h2"
-            content-type="paragraph" paragraph="Your base for exploration."
+            content-type="paragraph"
+            paragraph="Your base for exploration."
             icon='<i class="fa-utility fa-semibold fa-image"></i>'
             icon-size="2rem"
             icon-style="padding-bottom: var(--space-small)"
             inner-background-color="background-color-1"
             text-alignment="center"
             inner-alignment="center"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 34: Primary Image on Left -->
-        <custom-block
+          <!-- Block 34: Primary Image on Left -->
+          <custom-block
             heading="Sunset Views"
-            content-type="paragraph" paragraph="Breathtaking evening vistas."
+            content-type="paragraph"
+            paragraph="Breathtaking evening vistas."
             button-text="See Now"
             button-href="#sunset"
             button-icon='<i class="fa-utility-fill fa-semibold fa-sun"></i>'
@@ -798,14 +807,14 @@
             img-primary-tablet-width="50vw"
             img-primary-desktop-width="600px"
             inner-alignment="center-right"
-            inner-class="padding-medium">
-        </custom-block>
+            inner-class="padding-medium"></custom-block>
 
-        <!-- Block 35: Video Background with Right Content -->
-        <custom-block
+          <!-- Block 35: Video Background with Right Content -->
+          <custom-block
             heading="Jungle Trek"
             heading-tag="h3"
-            content-type="paragraph" paragraph="Explore lush rainforests."
+            content-type="paragraph"
+            paragraph="Explore lush rainforests."
             button-text="Trek Now"
             button-href="#jungle"
             button-icon='<i class="fa-utility-fill fa-semibold fa-tree"></i>'
@@ -820,14 +829,14 @@
             video-background-loop
             text-alignment="right"
             inner-alignment="center-right"
-            inner-class="padding-small">
-        </custom-block>
+            inner-class="padding-small"></custom-block>
 
-        <!-- Block 36: Text with Background Color and Border -->
-        <custom-block
+          <!-- Block 36: Text with Background Color and Border -->
+          <custom-block
             heading="Discover More"
             heading-tag="h3"
-            content-type="paragraph" paragraph="Uncover new destinations."
+            content-type="paragraph"
+            paragraph="Uncover new destinations."
             button-text="Explore"
             button-href="#discover"
             button-icon='<i class="fa-utility-fill fa-semibold fa-magnifying-glass"></i>'
@@ -837,13 +846,13 @@
             inner-background-color="background-color-1"
             text-alignment="center"
             inner-alignment="center"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 37: Background Image with Center Content -->
-        <custom-block
+          <!-- Block 37: Background Image with Center Content -->
+          <custom-block
             heading="Arctic Wonders"
-            content-type="paragraph" paragraph="Discover icy landscapes."
+            content-type="paragraph"
+            paragraph="Discover icy landscapes."
             button-text="Explore Arctic"
             button-href="#arctic"
             button-icon='<i class="fa-utility-fill fa-semibold fa-snowflake"></i>'
@@ -858,13 +867,13 @@
             img-background-desktop-width="1200px"
             text-alignment="center"
             inner-alignment="center"
-            inner-class="padding-medium">
-        </custom-block>
+            inner-class="padding-medium"></custom-block>
 
-        <!-- Block 38: Primary Image on Top -->
-        <custom-block
+          <!-- Block 38: Primary Image on Top -->
+          <custom-block
             heading="Canyon Adventure"
-            content-type="paragraph" paragraph="Explore majestic canyons."
+            content-type="paragraph"
+            paragraph="Explore majestic canyons."
             icon='<i class="fa-utility-fill fa-semibold fa-tree"></i>'
             icon-size="2rem"
             icon-style="padding-bottom: var(--space-small)"
@@ -876,29 +885,29 @@
             img-primary-desktop-width="1200px"
             inner-alignment="center"
             inner-background-color="background-color-1"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 39: Text with Background Color -->
-        <custom-block
+          <!-- Block 39: Text with Background Color -->
+          <custom-block
             heading="Cultural Gems"
             heading-tag="h2"
             sub-heading="Hidden Treasures"
             sub-heading-tag="h3"
-            content-type="paragraph" paragraph="Discover cultural wonders."
+            content-type="paragraph"
+            paragraph="Discover cultural wonders."
             icon='<i class="fa-utility-fill fa-semibold fa-diamond"></i>'
             icon-size="2.5rem"
             icon-style="padding-bottom: var(--space-small)"
             inner-background-color="background-color-2"
             text-alignment="left"
             inner-alignment="center-left"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 40: Primary Video with Right Position and Border -->
-        <custom-block
+          <!-- Block 40: Primary Video with Right Position and Border -->
+          <custom-block
             heading="Urban Pulse"
-            content-type="paragraph" paragraph="Feel the city’s energy."
+            content-type="paragraph"
+            paragraph="Feel the city’s energy."
             button-text="Explore City"
             button-href="#urban-pulse"
             button-icon='<i class="fa-utility-fill fa-semibold fa-building"></i>'
@@ -912,11 +921,10 @@
             video-primary-autoplay
             video-primary-muted
             inner-alignment="center-left"
-            inner-class="padding-medium">
-        </custom-block>
+            inner-class="padding-medium"></custom-block>
 
-        <!-- Block 41: Media-Only Block with Background Image -->
-        <custom-block
+          <!-- Block 41: Media-Only Block with Background Image -->
+          <custom-block
             background-overlay="background-overlay-3"
             background-image-noise
             img-background-src="tourism-photography-dark-4.jpg"
@@ -924,14 +932,14 @@
             img-background-position="top-right"
             img-background-mobile-width="100vw"
             img-background-tablet-width="80vw"
-            img-background-desktop-width="1000px">
-        </custom-block>
+            img-background-desktop-width="1000px"></custom-block>
 
-        <!-- Block 42: Text with Background Color and Button -->
-        <custom-block
+          <!-- Block 42: Text with Background Color and Button -->
+          <custom-block
             heading="Plan Your Trip"
             heading-tag="h3"
-            content-type="paragraph" paragraph="Start your adventure today."
+            content-type="paragraph"
+            paragraph="Start your adventure today."
             button-text="Plan Now"
             button-href="#plan-now"
             button-icon='<i class="fa-utility-fill fa-semibold fa-calendar"></i>'
@@ -940,14 +948,14 @@
             inner-background-color="background-color-1"
             text-alignment="center"
             inner-alignment="center"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 43: Background Image with Left Content -->
-        <custom-block
+          <!-- Block 43: Background Image with Left Content -->
+          <custom-block
             heading="Beach Getaway"
             heading-tag="h3"
-            content-type="paragraph" paragraph="Relax by the ocean."
+            content-type="paragraph"
+            paragraph="Relax by the ocean."
             button-text="Book Beach"
             button-href="#beach"
             button-icon='<i class="fa-utility-fill fa-semibold fa-umbrella"></i>'
@@ -962,13 +970,13 @@
             img-background-desktop-width="1200px"
             text-alignment="left"
             inner-alignment="center-left"
-            inner-class="padding-medium">
-        </custom-block>
+            inner-class="padding-medium"></custom-block>
 
-        <!-- Block 44: Primary Image on Bottom with Border -->
-        <custom-block
+          <!-- Block 44: Primary Image on Bottom with Border -->
+          <custom-block
             heading="Skyline Views"
-            content-type="paragraph" paragraph="Cityscapes from above."
+            content-type="paragraph"
+            paragraph="Cityscapes from above."
             icon='<i class="fa-utility-fill fa-semibold fa-building"></i>'
             icon-size="2rem"
             icon-style="padding-bottom: var(--space-small)"
@@ -981,14 +989,14 @@
             img-primary-desktop-width="600px"
             inner-alignment="center"
             inner-background-color="background-color-1"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 45: Video Background with Center Content -->
-        <custom-block
+          <!-- Block 45: Video Background with Center Content -->
+          <custom-block
             heading="Wilderness Call"
             heading-tag="h3"
-            content-type="paragraph" paragraph="Answer nature’s call."
+            content-type="paragraph"
+            paragraph="Answer nature’s call."
             button-text="Explore Wild"
             button-href="#wilderness"
             button-icon='<i class="fa-utility-fill fa-semibold fa-tree"></i>'
@@ -1003,14 +1011,14 @@
             video-background-loop
             text-alignment="center"
             inner-alignment="center"
-            inner-class="padding-small">
-        </custom-block>
+            inner-class="padding-small"></custom-block>
 
-        <!-- Block 46: Text with Background Color and Border -->
-        <custom-block
+          <!-- Block 46: Text with Background Color and Border -->
+          <custom-block
             heading="Travel Goals"
             heading-tag="h2"
-            content-type="paragraph" paragraph="Achieve your travel dreams."
+            content-type="paragraph"
+            paragraph="Achieve your travel dreams."
             icon='<i class="fa-utility-fill fa-semibold fa-flag"></i>'
             icon-size="2.5rem"
             icon-style="padding-bottom: var(--space-small)"
@@ -1018,28 +1026,28 @@
             inner-background-color="background-color-2"
             text-alignment="right"
             inner-alignment="center-right"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 47: Text with Background Color -->
-        <custom-block
+          <!-- Block 47: Text with Background Color -->
+          <custom-block
             heading="Wanderlust"
             heading-tag="h3"
-            content-type="paragraph" paragraph="Fuel your travel passion."
+            content-type="paragraph"
+            paragraph="Fuel your travel passion."
             icon='<i class="fa-utility-fill fa-semibold fa-globe"></i>'
             icon-size="2rem"
             icon-style="padding-bottom: var(--space-small)"
             inner-background-color="background-color-1"
             text-alignment="center"
             inner-alignment="center"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 48: Background Image with Right Content -->
-        <custom-block
+          <!-- Block 48: Background Image with Right Content -->
+          <custom-block
             heading="Sunset Journey"
             heading-tag="h2"
-            content-type="paragraph" paragraph="Chase stunning sunsets."
+            content-type="paragraph"
+            paragraph="Chase stunning sunsets."
             button-text="Chase Now"
             button-href="#sunset-journey"
             button-icon='<i class="fa-utility-fill fa-semibold fa-sun"></i>'
@@ -1054,27 +1062,27 @@
             img-background-desktop-width="1200px"
             text-alignment="right"
             inner-alignment="center-right"
-            inner-class="padding-medium">
-        </custom-block>
+            inner-class="padding-medium"></custom-block>
 
-        <!-- Block 49: Text with Background Color -->
-        <custom-block
+          <!-- Block 49: Text with Background Color -->
+          <custom-block
             heading="Explore More"
             heading-tag="h3"
-            content-type="paragraph" paragraph="Discover new horizons."
+            content-type="paragraph"
+            paragraph="Discover new horizons."
             icon='<i class="fa-utility-fill fa-semibold fa-compass"></i>'
             icon-size="2rem"
             icon-style="padding-bottom: var(--space-small)"
             inner-background-color="background-color-2"
             text-alignment="left"
             inner-alignment="center-left"
-            inner-class="padding-medium color-invert">
-        </custom-block>
+            inner-class="padding-medium color-invert"></custom-block>
 
-        <!-- Block 50: Primary Video with Left Position and Border -->
-        <custom-block
+          <!-- Block 50: Primary Video with Left Position and Border -->
+          <custom-block
             heading="Coastal Adventure"
-            content-type="paragraph" paragraph="Explore coastal trails."
+            content-type="paragraph"
+            paragraph="Explore coastal trails."
             button-text="Discover Coast"
             button-href="#coastal"
             button-icon='<i class="fa-utility-fill fa-semibold fa-water"></i>'
@@ -1088,297 +1096,293 @@
             video-primary-autoplay
             video-primary-muted
             inner-alignment="center-right"
-            inner-class="padding-medium">
-        </custom-block>
-    </div>
-</section>
-             <section>
-            <div>
-                <custom-block
-                    heading="Background Image Noise"
-                    content-type="paragraph" paragraph="Cards with background image noise applied.">
-                </custom-block>
-            </div>
-        </section>
+            inner-class="padding-medium"></custom-block>
+        </div>
+      </section>
+      <section>
+        <div>
+          <custom-block
+            heading="Background Image Noise"
+            content-type="paragraph"
+            paragraph="Cards with background image noise applied."></custom-block>
+        </div>
+      </section>
 
-        <section>
-            <div class="grid-container-1">
-                <custom-block
-                    heading="Background Image with Noise"
-                    content-type="paragraph" paragraph="Card with custom background-image, background-image-noise and padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    inner-class="padding-medium"
-                    background-overlay="background-overlay-1"
-                    background-image-noise
-                    img-background-src="./tourism-photography-light-1.jpg"
-                    img-background-mobile-width="100vw"
-                    img-background-tablet-width="50vw"
-                    img-background-desktop-width="33vw"
-                    img-background-alt="Tourism photography with noise">
-                </custom-block>
+      <section>
+        <div class="grid-container-1">
+          <custom-block
+            heading="Background Image with Noise"
+            content-type="paragraph"
+            paragraph="Card with custom background-image, background-image-noise and padding-medium."
+            button-text="Action"
+            button-href="#"
+            inner-class="padding-medium"
+            background-overlay="background-overlay-1"
+            background-image-noise
+            img-background-src="./tourism-photography-light-1.jpg"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="50vw"
+            img-background-desktop-width="33vw"
+            img-background-alt="Tourism photography with noise"></custom-block>
 
-                <custom-block
-                    heading="Background Image with Inner Noise"
-                    content-type="paragraph" paragraph="Card with custom background-image, background-image-noise and padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    inner-class="padding-medium"
-                    background-overlay="background-overlay-1"
-                    backdrop-filter="backdrop-filter-grayscale-large backdrop-filter-blur-small"
-                    img-background-src="./tourism-photography-light-2.jpg"
-                    img-background-mobile-width="100vw"
-                    img-background-tablet-width="50vw"
-                    img-background-desktop-width="33vw"
-                    inner-background-image-noise
-                    img-background-alt="Tourism photography with inner noise">
-                </custom-block>
+          <custom-block
+            heading="Background Image with Inner Noise"
+            content-type="paragraph"
+            paragraph="Card with custom background-image, background-image-noise and padding-medium."
+            button-text="Action"
+            button-href="#"
+            inner-class="padding-medium"
+            background-overlay="background-overlay-1"
+            backdrop-filter="backdrop-filter-grayscale-large backdrop-filter-blur-small"
+            img-background-src="./tourism-photography-light-2.jpg"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="50vw"
+            img-background-desktop-width="33vw"
+            inner-background-image-noise
+            img-background-alt="Tourism photography with inner noise"></custom-block>
 
-                <custom-block
-                    heading="Background Image with Noise (both)"
-                    content-type="paragraph" paragraph="Card with custom background-image, background-image-noise and padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    inner-class="padding-medium"
-                    background-overlay="background-overlay-1"
-                    inner-background-overlay="background-overlay-2"
-                    background-image-noise
-                    backdrop-filter="backdrop-filter-grayscale-large"
-                    inner-backdrop-filter="backdrop-filter-blur-large"
-                    img-background-src="./tourism-photography-light-1.jpg"
-                    img-background-mobile-width="100vw"
-                    img-background-tablet-width="50vw"
-                    img-background-desktop-width="33vw"
-                    inner-primary-image-noise
-                    inner-alignment="bottom-center"
-                    text-alignment="center"
-                    img-background-alt="Tourism photography with noise">
-                </custom-block>
-            </div>
-        </section>
+          <custom-block
+            heading="Background Image with Noise (both)"
+            content-type="paragraph"
+            paragraph="Card with custom background-image, background-image-noise and padding-medium."
+            button-text="Action"
+            button-href="#"
+            inner-class="padding-medium"
+            background-overlay="background-overlay-1"
+            inner-background-overlay="background-overlay-2"
+            background-image-noise
+            backdrop-filter="backdrop-filter-grayscale-large"
+            inner-backdrop-filter="backdrop-filter-blur-large"
+            img-background-src="./tourism-photography-light-1.jpg"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="50vw"
+            img-background-desktop-width="33vw"
+            inner-primary-image-noise
+            inner-alignment="bottom-center"
+            text-alignment="center"
+            img-background-alt="Tourism photography with noise"></custom-block>
+        </div>
+      </section>
 
-        <section>
-            <div>
-                <custom-block
-                    heading="Foreground Image - Top/Bottom"
-                    content-type="paragraph" paragraph="Cards with picture above or below">
-                </custom-block>
-            </div>
-        </section>
+      <section>
+        <div>
+          <custom-block
+            heading="Foreground Image - Top/Bottom"
+            content-type="paragraph"
+            paragraph="Cards with picture above or below"></custom-block>
+        </div>
+      </section>
 
-        <section>
-            <div class="grid-container-1">
-                <custom-block
-                    heading="Background Colour 1 and Picture"
-                    content-type="paragraph" paragraph="Card with background-color-1, picture, color-invert and padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    background-color="background-color-1"
-                    class="color-invert"
-                    inner-class="padding-medium"
-                    img-primary-src="./tourism-photography-light-2.jpg"
-                    img-primary-position="top"
-                    img-primary-alt="Tourism photography foreground">
-                </custom-block>
+      <section>
+        <div class="grid-container-1">
+          <custom-block
+            heading="Background Colour 1 and Picture"
+            content-type="paragraph"
+            paragraph="Card with background-color-1, picture, color-invert and padding-medium."
+            button-text="Action"
+            button-href="#"
+            background-color="background-color-1"
+            class="color-invert"
+            inner-class="padding-medium"
+            img-primary-src="./tourism-photography-light-2.jpg"
+            img-primary-position="top"
+            img-primary-alt="Tourism photography foreground"></custom-block>
 
-                <custom-block
-                    heading="Background Colour 1 and Picture"
-                    content-type="paragraph" paragraph="Card with background-color-1, picture, color-invert and padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    background-color="background-color-1"
-                    class=" color-invert"
-                    inner-class="padding-medium"
-                    img-primary-src="./tourism-photography-light-1.jpg"
-                    img-primary-position="below"
-                    img-primary-alt="Tourism photography foreground">
-                </custom-block>
+          <custom-block
+            heading="Background Colour 1 and Picture"
+            content-type="paragraph"
+            paragraph="Card with background-color-1, picture, color-invert and padding-medium."
+            button-text="Action"
+            button-href="#"
+            background-color="background-color-1"
+            class="color-invert"
+            inner-class="padding-medium"
+            img-primary-src="./tourism-photography-light-1.jpg"
+            img-primary-position="below"
+            img-primary-alt="Tourism photography foreground"></custom-block>
 
-                <custom-block
-                    heading="Picture and Border"
-                    content-type="paragraph" paragraph="Card with picture, border-small and padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    class="border-small"
-                    inner-class="padding-medium"
-                    img-primary-src="./tourism-photography-light-1.jpg"
-                    img-primary-position="below"
-                    img-primary-alt="Tourism photography with border">
-                </custom-block>
+          <custom-block
+            heading="Picture and Border"
+            content-type="paragraph"
+            paragraph="Card with picture, border-small and padding-medium."
+            button-text="Action"
+            button-href="#"
+            class="border-small"
+            inner-class="padding-medium"
+            img-primary-src="./tourism-photography-light-1.jpg"
+            img-primary-position="below"
+            img-primary-alt="Tourism photography with border"></custom-block>
 
-                <custom-block
-                    heading="Background Colour 1 and Picture 1/1"
-                    content-type="paragraph" paragraph="Card with background-color-1, picture, color-invert and padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    background-color="background-color-1"
-                    class="color-invert"
-                    inner-class="padding-medium"
-                    img-primary-src="./tourism-photography-light-2.jpg"
-                    img-primary-position="top"
-                    img-primary-aspect-ratio="1/1"
-                    img-primary-alt="Tourism photography foreground">
-                </custom-block>
-            </div>
-        </section>
+          <custom-block
+            heading="Background Colour 1 and Picture 1/1"
+            content-type="paragraph"
+            paragraph="Card with background-color-1, picture, color-invert and padding-medium."
+            button-text="Action"
+            button-href="#"
+            background-color="background-color-1"
+            class="color-invert"
+            inner-class="padding-medium"
+            img-primary-src="./tourism-photography-light-2.jpg"
+            img-primary-position="top"
+            img-primary-aspect-ratio="1/1"
+            img-primary-alt="Tourism photography foreground"></custom-block>
+        </div>
+      </section>
 
-        <section>
-            <div>
-                <custom-block
-                    heading="Foreground Image - Left/Right"
-                    content-type="paragraph" paragraph="Cards with picture left or right">
-                </custom-block>
-            </div>
-        </section>
+      <section>
+        <div>
+          <custom-block
+            heading="Foreground Image - Left/Right"
+            content-type="paragraph"
+            paragraph="Cards with picture left or right"></custom-block>
+        </div>
+      </section>
 
-        <section>
-            <div class="grid-container-1">
-                <custom-block
-                    heading="Background Colour 1 and Picture"
-                    content-type="paragraph" paragraph="Card with background-color-1, picture, color-invert and padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    background-color="background-color-1"
-                    class="color-invert"
-                    inner-class="padding-medium"
-                    img-primary-src="./tourism-photography-light-1.jpg"
-                    img-primary-position="left"
-                    inner-alignment="bottom"
-                    img-primary-alt="Tourism photography left">
-                </custom-block>
+      <section>
+        <div class="grid-container-1">
+          <custom-block
+            heading="Background Colour 1 and Picture"
+            content-type="paragraph"
+            paragraph="Card with background-color-1, picture, color-invert and padding-medium."
+            button-text="Action"
+            button-href="#"
+            background-color="background-color-1"
+            class="color-invert"
+            inner-class="padding-medium"
+            img-primary-src="./tourism-photography-light-1.jpg"
+            img-primary-position="left"
+            inner-alignment="bottom"
+            img-primary-alt="Tourism photography left"></custom-block>
 
-                <custom-block
-                    heading="Background Colour 2 and Picture"
-                    content-type="paragraph" paragraph="Card with background-color-2, picture, color-invert and padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    background-color="background-color-2"
-                    class="color-invert"
-                    inner-class="padding-medium"
-                    img-primary-src="./tourism-photography-light-1.jpg"
-                    img-primary-position="right"
-                    inner-alignment="center"
-                    text-alignment="right"
-                    img-primary-alt="Tourism photography right">
-                </custom-block>
-            </div>
-        </section>
+          <custom-block
+            heading="Background Colour 2 and Picture"
+            content-type="paragraph"
+            paragraph="Card with background-color-2, picture, color-invert and padding-medium."
+            button-text="Action"
+            button-href="#"
+            background-color="background-color-2"
+            class="color-invert"
+            inner-class="padding-medium"
+            img-primary-src="./tourism-photography-light-1.jpg"
+            img-primary-position="right"
+            inner-alignment="center"
+            text-alignment="right"
+            img-primary-alt="Tourism photography right"></custom-block>
+        </div>
+      </section>
 
-        <section>
-            <div>
-                <custom-block
-                    heading="Image Only"
-                    content-type="paragraph" paragraph="Cards with a background image and effects applied to the inner div.">
-                </custom-block>
-            </div>
-        </section>
+      <section>
+        <div>
+          <custom-block
+            heading="Image Only"
+            content-type="paragraph"
+            paragraph="Cards with a background image and effects applied to the inner div."></custom-block>
+        </div>
+      </section>
 
-        <section>
-            <div style="grid-template-columns: 1fr;">
-                <custom-block
-                    img-primary-light-src="./tourism-photography-light-1.jpg"
-                    img-primary-light-alt="Text"
-                    img-primary-dark-src="./tourism-photography-dark-1.jpg"
-                    img-primary-dark-alt="Text"
-                    img-primary-decorative>
-                </custom-block>
-            </div>
-        </section>
+      <section>
+        <div style="grid-template-columns: 1fr">
+          <custom-block
+            img-primary-light-src="./tourism-photography-light-1.jpg"
+            img-primary-light-alt="Text"
+            img-primary-dark-src="./tourism-photography-dark-1.jpg"
+            img-primary-dark-alt="Text"
+            img-primary-decorative></custom-block>
+        </div>
+      </section>
 
-        <section>
-            <div>
-                <custom-block
-                    heading="Image with Gradient"
-                    content-type="paragraph" paragraph="Cards with a background image and effects applied to the inner div.">
-                </custom-block>
-            </div>
-        </section>
+      <section>
+        <div>
+          <custom-block
+            heading="Image with Gradient"
+            content-type="paragraph"
+            paragraph="Cards with a background image and effects applied to the inner div."></custom-block>
+        </div>
+      </section>
 
-        <section>
-            <div class="grid-container-1">
-                <custom-block
-                    img-background-src="./tourism-photography-light-1.jpg"
-                    img-background-alt="image"
-                    background-overlay="background-overlay-1"
-                    background-gradient="background-gradient-1">
-                </custom-block>
+      <section>
+        <div class="grid-container-1">
+          <custom-block
+            img-background-src="./tourism-photography-light-1.jpg"
+            img-background-alt="image"
+            background-overlay="background-overlay-1"
+            background-gradient="background-gradient-1"></custom-block>
 
-                <custom-block
-                    img-background-src="./tourism-photography-light-2.jpg"
-                    img-background-alt="image"
-                    background-overlay="background-overlay-2"
-                    background-gradient="background-gradient-1">
-                </custom-block>
-            </div>
-        </section>
+          <custom-block
+            img-background-src="./tourism-photography-light-2.jpg"
+            img-background-alt="image"
+            background-overlay="background-overlay-2"
+            background-gradient="background-gradient-1"></custom-block>
+        </div>
+      </section>
 
-        <section>
-            <div>
-                <custom-block
-                    heading="Video"
-                    content-type="paragraph" paragraph="Cards with a background video and effects applied to the inner div.">
-                </custom-block>
-            </div>
-        </section>
+      <section>
+        <div>
+          <custom-block
+            heading="Video"
+            content-type="paragraph"
+            paragraph="Cards with a background video and effects applied to the inner div."></custom-block>
+        </div>
+      </section>
 
-        <section>
-            <div>
-                <custom-block
-                    heading="Background Colour 2 and Video"
-                    content-type="paragraph" paragraph="Card with background-color-2, video, color-invert and padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    class="color-invert"
-                    inner-class="padding-medium"
-                    inner-alignment="center"
-                    inner-background-image-noise
-                    inner-style="
+      <section>
+        <div>
+          <custom-block
+            heading="Background Colour 2 and Video"
+            content-type="paragraph"
+            paragraph="Card with background-color-2, video, color-invert and padding-medium."
+            button-text="Action"
+            button-href="#"
+            class="color-invert"
+            inner-class="padding-medium"
+            inner-alignment="center"
+            inner-background-image-noise
+            inner-style="
                         backdrop-filter: blur(var(--blur-large));
                         place-self: center;
                         width: fit-content;
                         height: min-content;
                         padding: var(--space-large);
                     "
-                    text-alignment="center"
-                    inner-backdrop-filter="backdrop-filter-blur-large"
-                    background-overlay="background-overlay-1"
-                    background-gradient="background-gradient-1"
-                    video-background-src="./video/video1.mp4"
-                    video-background-alt="Background video"
-                    video-background-autoplay
-                    video-background-muted
-                    video-background-loop>
-                </custom-block>
+            text-alignment="center"
+            inner-backdrop-filter="backdrop-filter-blur-large"
+            background-overlay="background-overlay-1"
+            background-gradient="background-gradient-1"
+            video-background-src="./video/video1.mp4"
+            video-background-alt="Background video"
+            video-background-autoplay
+            video-background-muted
+            video-background-loop></custom-block>
 
-                <custom-block
-                    heading="Background Colour 2 and Video"
-                    content-type="paragraph" paragraph="Card with background-color-2, video, color-invert and padding-medium."
-                    button-text="Action"
-                    button-href="#"
-                    class="color-invert"
-                    inner-class="padding-medium"
-                    inner-alignment="center"
-                    inner-background-image-noise
-                    inner-style="
+          <custom-block
+            heading="Background Colour 2 and Video"
+            content-type="paragraph"
+            paragraph="Card with background-color-2, video, color-invert and padding-medium."
+            button-text="Action"
+            button-href="#"
+            class="color-invert"
+            inner-class="padding-medium"
+            inner-alignment="center"
+            inner-background-image-noise
+            inner-style="
                         backdrop-filter: blur(var(--blur-large));
                         place-self: center;
                         width: fit-content;
                         height: min-content;
                         padding: var(--space-large);
-                    "                    
-                    text-alignment="center"
-                    inner-backdrop-filter="backdrop-filter-blur-large"
-                    inner-background-color="background-color-2"
-                    background-overlay="background-overlay-1"
-                    background-gradient="background-gradient-1"
-                    video-background-src="./video/video1.mp4"
-                    video-background-alt="Background video"
-                    video-background-autoplay
-                    video-background-muted
-                    video-background-loop>
-                </custom-block>
-            </div>
-        </section>
+                    "
+            text-alignment="center"
+            inner-backdrop-filter="backdrop-filter-blur-large"
+            inner-background-color="background-color-2"
+            background-overlay="background-overlay-1"
+            background-gradient="background-gradient-1"
+            video-background-src="./video/video1.mp4"
+            video-background-alt="Background video"
+            video-background-autoplay
+            video-background-muted
+            video-background-loop></custom-block>
+        </div>
+      </section>
     </main>
-</body>
+  </body>
 </html>
