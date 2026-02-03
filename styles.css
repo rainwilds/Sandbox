@@ -129,17 +129,17 @@
     --max-width-medium: 40vw;
     --max-width-large: 60vw;
 
-    /* Primary: Steel Blue / Desaturated Indigo */
-    --light-color-1: #5e81ac;
-    --dark-color-1: #81a1c1;
+/* Text Colors (Primary) -> Must be very dark (Light Mode) or very light (Dark Mode) */
+    --light-color-1: #3b4252; /* Deep Charcoal Blue */
+    --dark-color-1: #e5e9f0;  /* Off-White Blue */
 
-    /* Secondary: Sage Teal / Grey-Cyan */
-    --light-color-2: #88c0d0;
-    --dark-color-2: #8fbcbb;
+    /* Background Colors (Secondary) -> Must be very light (Light Mode) or very dark (Dark Mode) */
+    --light-color-2: #eceff4; /* Very Pale Blue-Grey (Snow) */
+    --dark-color-2: #242933;  /* Deep Gunmetal */
 
-    /* Tertiary: Gunmetal / Blue-Grey base */
-    --light-color-3: #2e3440;
-    --dark-color-3: #4c566a;
+    /* Accent/UI Colors (Tertiary) -> Mid-tones for buttons/borders */
+    --light-color-3: #88c0d0; /* Muted Frozen Blue */
+    --dark-color-3: #434c5e;  /* Slate */
 
     @function --shade(--color, --step) {
       result: oklch(from var(--color) calc(l - (var(--step) * 0.08)) c h);
@@ -1512,102 +1512,109 @@
 @layer custom {
   :root {
 
-    /* --- Cyberpunk (Muted/Pastel Neon) --- */
+    /* --- Cyberpunk (Muted Pastel Goth) --- */
     &:has([data-theme="cyberpunk"]) {
-      --light-color-1: #c678dd;
-      /* Dusty Orchid */
-      --light-color-2: #56b6c2;
-      /* Muted Cyan */
-      --light-color-3: #282c34;
-      /* Soft Black-Blue */
+      /* Text */
+      --light-color-1: #2a2135; /* Deep Purple-Grey */
+      --dark-color-1: #e0dce6;  /* Pale Lavender Grey */
 
-      --dark-color-1: #a658bd;
-      --dark-color-2: #3e8e96;
-      --dark-color-3: #1a1d23;
+      /* Background */
+      --light-color-2: #f4f0f8; /* Very Light Lavender tint */
+      --dark-color-2: #1e1b24;  /* Deepest Plum-Black */
+
+      /* Accent */
+      --light-color-3: #bfaac7; /* Dusty Orchid */
+      --dark-color-3: #4a3b52;  /* Muted Grape */
     }
 
-    /* --- Earthy (Desaturated Clay/Olive) --- */
+    /* --- Earthy (Sand & Clay) --- */
     &:has([data-theme="earthy"]) {
-      --light-color-1: #a08c75;
-      /* Sandstone */
-      --light-color-2: #7d8570;
-      /* Olive Grey */
-      --light-color-3: #453e35;
-      /* Umber */
+      /* Text */
+      --light-color-1: #3d342b; /* Dark Bark */
+      --dark-color-1: #ebe5ce;  /* Bone White */
 
-      --dark-color-1: #8f7a63;
-      --dark-color-2: #656d59;
-      --dark-color-3: #2b2620;
+      /* Background */
+      --light-color-2: #f2f0eb; /* Oatmeal */
+      --dark-color-2: #26221d;  /* Deep Loam */
+
+      /* Accent */
+      --light-color-3: #a09383; /* Taupe */
+      --dark-color-3: #5c5042;  /* Muted Bronze */
     }
 
-    /* --- Oceanic (Stormy Sea) --- */
+    /* --- Oceanic (Mist & Deep Sea) --- */
     &:has([data-theme="oceanic"]) {
-      --light-color-1: #6b9ac4;
-      /* Storm Blue */
-      --light-color-2: #7caea8;
-      /* Seafoam Grey */
-      --light-color-3: #2d3e50;
-      /* Deep Slate */
+      /* Text */
+      --light-color-1: #1f2933; /* Deep Sea Navy */
+      --dark-color-1: #cbd5e1;  /* Cloud Grey */
 
-      --dark-color-1: #547aa0;
-      --dark-color-2: #5f8a85;
-      --dark-color-3: #1b2631;
+      /* Background */
+      --light-color-2: #f0f4f8; /* Alice Blue (almost white) */
+      --dark-color-2: #0f172a;  /* Midnight */
+
+      /* Accent */
+      --light-color-3: #7caea8; /* Muted Seafoam */
+      --dark-color-3: #334e68;  /* Storm Blue */
     }
 
-    /* --- Sunset (Terra Cotta/Dusty Rose) --- */
+    /* --- Sunset (Blush & Ash) --- */
     &:has([data-theme="sunset"]) {
-      --light-color-1: #d98e73;
-      /* Terra Cotta */
-      --light-color-2: #d48c98;
-      /* Old Rose */
-      --light-color-3: #594039;
-      /* Warm Espresso */
+      /* Text */
+      --light-color-1: #4a2c2a; /* Cocoa */
+      --dark-color-1: #faddd7;  /* Pale Peach */
 
-      --dark-color-1: #b57056;
-      --dark-color-2: #b06d79;
-      --dark-color-3: #3b2a26;
+      /* Background */
+      --light-color-2: #fff5f5; /* Very Light Blush */
+      --dark-color-2: #2a1515;  /* Deep Maroon-Black */
+
+      /* Accent */
+      --light-color-3: #d99a8c; /* Dusty Coral */
+      --dark-color-3: #703e38;  /* Muted Rust */
     }
 
-    /* --- Botanical (Sage/Moss) --- */
+    /* --- Botanical (Linen & Forest) --- */
     &:has([data-theme="botanical"]) {
-      --light-color-1: #78997a;
-      /* Sage */
-      --light-color-2: #aebd8c;
-      /* Dried Grass */
-      --light-color-3: #3a4a3b;
-      /* Dark Moss */
+      /* Text */
+      --light-color-1: #1a2f1a; /* Dark Pine */
+      --dark-color-1: #e2e8e2;  /* Mist Green */
 
-      --dark-color-1: #5e7a60;
-      --dark-color-2: #8c9b6e;
-      --dark-color-3: #233024;
+      /* Background */
+      --light-color-2: #f1f7f1; /* Mint Cream */
+      --dark-color-2: #111c11;  /* Deep Forest Black */
+
+      /* Accent */
+      --light-color-3: #8da38d; /* Sage */
+      --dark-color-3: #3a523a;  /* Moss */
     }
 
-    /* --- Berry (Mauve/Wine) --- */
+    /* --- Berry (Mauve & Ink) --- */
     &:has([data-theme="berry"]) {
-      --light-color-1: #9f6ba0;
-      /* Muted Plum */
-      --light-color-2: #8c7db3;
-      /* Hazy Lavender */
-      --light-color-3: #4a3b4a;
-      /* Dark Grape */
+      /* Text */
+      --light-color-1: #3d283d; /* Dark Blackberry */
+      --dark-color-1: #eadd ea; /* Pale Thistle */
 
-      --dark-color-1: #7d527e;
-      --dark-color-2: #6b5f8a;
-      --dark-color-3: #2e242e;
+      /* Background */
+      --light-color-2: #faf5fa; /* Snow White (Mauve tint) */
+      --dark-color-2: #1f101f;  /* Deep Ink */
+
+      /* Accent */
+      --light-color-3: #9e829e; /* Muted Plum */
+      --dark-color-3: #523052;  /* Eggplant */
     }
 
-    /* --- Slate (Concrete/Ash) --- */
+    /* --- Slate (Paper & Ink) --- */
     &:has([data-theme="slate"]) {
-      --light-color-1: #7e8796;
-      /* Concrete */
-      --light-color-2: #a0aab5;
-      /* Ash */
-      --light-color-3: #272b33;
-      /* Charcoal */
+      /* Text */
+      --light-color-1: #1a202c; /* Near Black */
+      --dark-color-1: #e2e8f0;  /* High Contrast Grey */
 
-      --dark-color-1: #5f6673;
-      --dark-color-2: #7d8691;
-      --dark-color-3: #15171c;
+      /* Background */
+      --light-color-2: #f8fafc; /* Vapor White */
+      --dark-color-2: #0f1115;  /* Abyss */
+
+      /* Accent */
+      --light-color-3: #94a3b8; /* Stone */
+      --dark-color-3: #334155;  /* Asphalt */
     }
   }
 }
