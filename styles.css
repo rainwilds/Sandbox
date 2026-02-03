@@ -14,6 +14,14 @@
   font-display: swap;
 }
 
+@function --shade(--color, --step) {
+  result: oklch(from var(--color) calc(l - (var(--step) * 0.08)) c h);
+}
+
+@function --alpha(--color, --opacity) {
+  result: rgb(from var(--color) r g b / var(--opacity));
+}
+
 @layer reset, variables, defaults, components, custom;
 
 @layer reset {
@@ -129,25 +137,17 @@
     --max-width-medium: 40vw;
     --max-width-large: 60vw;
 
-/* 1. Main Brand (Dark Slate Blue) */
-    --light-color-1: #1e293b; 
-    --dark-color-1: #f1f5f9; 
+    /* 1. Main Brand (Dark Slate Blue) */
+    --light-color-1: #1e293b;
+    --dark-color-1: #f1f5f9;
 
     /* 2. Accent/CTA (Vibrant Indigo) */
-    --light-color-2: #4f46e5; 
-    --dark-color-2: #818cf8; 
+    --light-color-2: #4f46e5;
+    --dark-color-2: #818cf8;
 
     /* 3. Background (Very Light Grey/Slate) */
-    --light-color-3: #f8fafc; 
+    --light-color-3: #f8fafc;
     --dark-color-3: #0f172a;
-
-    @function --shade(--color, --step) {
-      result: oklch(from var(--color) calc(l - (var(--step) * 0.08)) c h);
-    }
-
-    @function --alpha(--color, --opacity) {
-      result: rgb(from var(--color) r g b / var(--opacity));
-    }
 
     /* MAPPING:
       Primary   = Text / Headings / Borders (Identity)
@@ -283,7 +283,7 @@
     }
 
     .background-gradient-1 {
-      background-image: linear-gradient(180deg, transparent 0%, var(--color-secondary) 100%);
+      background-image: linear-gradient(180deg, transparent 0%, var(--color-tertiary) 100%);
       transform: scale(1.003);
       /* fixes edge blending */
     }
@@ -301,23 +301,11 @@
     }
 
     .mask-image-top-bottom {
-      mask-image: linear-gradient(
-        to bottom,
-        transparent,
-        var(--color-secondary) 15%,
-        var(--color-secondary) 85%,
-        transparent
-      );
+      mask-image: linear-gradient(to bottom, transparent, var(--color-secondary) 15%, var(--color-secondary) 85%, transparent);
     }
 
     .mask-image-left-right {
-      mask-image: linear-gradient(
-        to right,
-        transparent,
-        var(--color-secondary) 15%,
-        var(--color-secondary) 85%,
-        transparent
-      );
+      mask-image: linear-gradient(to right, transparent, var(--color-secondary) 15%, var(--color-secondary) 85%, transparent);
     }
 
     .background-image-noise {
