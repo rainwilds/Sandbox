@@ -298,8 +298,8 @@
       mask-image: linear-gradient(
         to bottom,
         transparent,
-        light-dark(var(--color-secondary), var(--color-secondary)) 15%,
-        light-dark(var(--color-secondary), var(--color-secondary)) 85%,
+        var(--color-secondary) 15%,
+        var(--color-secondary) 85%,
         transparent
       );
     }
@@ -308,8 +308,8 @@
       mask-image: linear-gradient(
         to right,
         transparent,
-        light-dark(var(--color-secondary), var(--color-secondary)) 15%,
-        light-dark(var(--color-secondary), var(--color-secondary)) 85%,
+        var(--color-secondary) 15%,
+        var(--color-secondary) 85%,
         transparent
       );
     }
@@ -360,15 +360,15 @@
     /* --background-pattern-1-size: 32px 32px; PLACEHOLDER */
 
     .border-small {
-      border: solid var(--border-size-small) light-dark(var(--color-secondary), var(--color-tertiary));
+      border: solid var(--border-size-small) var(--color-secondary);
     }
 
     .border-medium {
-      border: solid var(--border-size-medium) light-dark(var(--color-secondary), var(--color-tertiary));
+      border: solid var(--border-size-medium) var(--color-secondary);
     }
 
     .border-large {
-      border: solid var(--border-size-large) light-dark(var(--color-secondary), var(--color-tertiary));
+      border: solid var(--border-size-large) var(--color-secondary);
     }
 
     .border-radius-small {
@@ -452,16 +452,15 @@
     }
 
     ::-webkit-scrollbar-track {
-      background: light-dark(var(--color-primary), var(--color-tertiary));
+      background: var(--color-primary);
     }
 
     ::-webkit-scrollbar-thumb {
-      background: light-dark(var(--color-tertiary), var(--color-primary));
+      background: var(--color-tertiary);
     }
 
     @supports selector(scrollbar-color) {
-      scrollbar-color: light-dark(var(--color-primary), var(--color-tertiary))
-        light-dark(var(--color-tertiary), var(--color-primary));
+      scrollbar-color: var(--color-primary) var(--color-secondary);
     }
 
     ::-webkit-scrollbar {
@@ -696,7 +695,7 @@
       /* font-weight: var(--font-2-weight-light); test */
 
       &:hover {
-        color: light-dark(var(--color-black-alpha-4), var(--color-white-4));
+        color: var(--color-secondary);
         text-decoration: none;
         transition: color 0.4s;
       }
@@ -706,10 +705,10 @@
     input,
     select,
     textarea {
-      background-color: light-dark(var(--color-tertiary), var(--color-tertiary));
+      background-color: var(--color-secondary);
       padding: var(--space-tiny);
       border: solid 1px;
-      border-color: light-dark(var(--color-primary), var(--color-primary));
+      border-color: var(--color-primary);
       /* border-radius: var(--border-radius-small); PLACEHOLDER */
       background-size: 32px 32px;
     }
@@ -725,9 +724,9 @@
       padding: calc(var(--space-tiny) / 2) var(--space-tiny);
 
       &:hover {
-        background-color: light-dark(var(--color-primary), var(--color-tertiary));
+        background-color: var(--color-primary);
         transition: all 0.4s;
-        color: light-dark(var(--color-white-8), var(--color-black-8));
+        color: var(--color-secondary);
       }
     }
 
@@ -746,7 +745,7 @@
     input:focus-visible,
     select:focus-visible,
     textarea:focus-visible {
-      outline-color: light-dark(var(--color-black-alpha-2), var(--color-white-2));
+      outline-color: var(--color-primary);
       outline-offset: 0.15rem;
       transition: outline 1s;
       background-image: none;
@@ -816,7 +815,7 @@
 
     blockquote {
       font-size: var(--font-2-size-large);
-      background-color: light-dark(var(--color-tertiary), var(--color-tertiary));
+      background-color: var(--color-secondary);
       padding: var(--space-medium);
 
       > p {
@@ -828,7 +827,7 @@
     i:has(+ blockquote) {
       font-size: 3rem;
       position: absolute;
-      color: light-dark(var(--color-dark-1-alpha-1), var(--color-light-1-alpha-3));
+      color: var(--color-primary);
     }
 
     img,
@@ -911,7 +910,7 @@
 
     body {
       display: grid;
-      background-color: light-dark(var(--color-secondary), var(--color-secondary));
+      background-color: var(--color-secondary);
       grid-template-areas:
         "gutter-left header header header header header header header header header header header header gutter-right"
         "gutter-left main main main main main main main main main main main main gutter-right"
@@ -994,15 +993,15 @@
   }
 
   a:has(> button.secondary) {
-    color: light-dark(var(--color-black-8), var(--color-white-8));
+    color: var(--color-primary);
 
     &:hover {
-      color: light-dark(var(--color-black-alpha-4), var(--color-white-4));
+      color: var(--color-secondary);
       transition: color 0.4s;
     }
 
     > button {
-      background-color: light-dark(var(--color-white-alpha-6), var(--color-black-6));
+      background-color: var(--color-white-alpha-6), var(--color-black-6));
       border-color: light-dark(var(--color-black-8), var(--color-white-8));
       backdrop-filter: var(--blur-medium);
 
