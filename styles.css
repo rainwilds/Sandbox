@@ -1028,7 +1028,8 @@
       background-color: transparent;
 
       &:hover {
-        color: var(--color-tertiary);
+        color: var(--color-secondary);
+        border-color: var(--color-secondary);
       }
     }
   }
