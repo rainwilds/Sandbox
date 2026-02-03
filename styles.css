@@ -705,7 +705,7 @@
       border: solid 1px;
       border-color: var(--color-primary);
       /* border-radius: var(--border-radius-small); PLACEHOLDER */
-      background-size: 32px 32px;
+      /* background-size: 32px 32px; */
     }
 
     input,
@@ -721,7 +721,7 @@
       &:hover {
         background-color: --shade(var(--color-primary), 3);
         transition: all 0.4s;
-        color: var(--color-secondary);
+        color: var(--color-primary);
       }
     }
 
@@ -1008,6 +1008,7 @@
   }
 
   a.button {
+    cursor: pointer;
     background-color: var(--color-secondary);
     border: solid 1px;
     border-color: var(--color-primary);
@@ -1015,7 +1016,7 @@
     background-image: var(--background-noise);
     padding: calc(var(--space-tiny) / 2) var(--space-tiny);
     display: inline-block;
-    backdrop-filter: var(--blur-medium);
+    /* backdrop-filter: var(--blur-medium); */
 
     &:hover {
       background-color: --shade(var(--color-secondary), 3);
