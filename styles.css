@@ -129,17 +129,17 @@
     --max-width-medium: 40vw;
     --max-width-large: 60vw;
 
-    /* Text Colors (Primary) -> Must be very dark (Light Mode) or very light (Dark Mode) */
-    --light-color-1: #3b4252; /* Deep Charcoal Blue */
-    --dark-color-1: #e5e9f0; /* Off-White Blue */
+/* 1. Main Brand (Dark Slate Blue) */
+    --light-color-1: #1e293b; 
+    --dark-color-1: #f1f5f9; 
 
-    /* Background Colors (Secondary) -> Must be very light (Light Mode) or very dark (Dark Mode) */
-    --light-color-2: #eceff4; /* Very Pale Blue-Grey (Snow) */
-    --dark-color-2: #242933; /* Deep Gunmetal */
+    /* 2. Accent/CTA (Vibrant Indigo) */
+    --light-color-2: #4f46e5; 
+    --dark-color-2: #818cf8; 
 
-    /* Accent/UI Colors (Tertiary) -> Mid-tones for buttons/borders */
-    --light-color-3: #88c0d0; /* Muted Frozen Blue */
-    --dark-color-3: #434c5e; /* Slate */
+    /* 3. Background (Very Light Grey/Slate) */
+    --light-color-3: #f8fafc; 
+    --dark-color-3: #0f172a;
 
     @function --shade(--color, --step) {
       result: oklch(from var(--color) calc(l - (var(--step) * 0.08)) c h);
@@ -148,6 +148,12 @@
     @function --alpha(--color, --opacity) {
       result: rgb(from var(--color) r g b / var(--opacity));
     }
+
+    /* MAPPING:
+      Primary   = Text / Headings / Borders (Identity)
+      Secondary = CTA / Buttons / Highlights (Accent)
+      Tertiary  = Page Backgrounds / Containers (Subtle)
+    */
 
     --color-primary: light-dark(var(--light-color-1), var(--dark-color-1));
     --color-secondary: light-dark(var(--light-color-2), var(--dark-color-2));
@@ -360,15 +366,15 @@
     /* --background-pattern-1-size: 32px 32px; PLACEHOLDER */
 
     .border-small {
-      border: solid var(--border-size-small) var(--color-secondary);
+      border: solid var(--border-size-small) var(--color-primary);
     }
 
     .border-medium {
-      border: solid var(--border-size-medium) var(--color-secondary);
+      border: solid var(--border-size-medium) var(--color-primary);
     }
 
     .border-large {
-      border: solid var(--border-size-large) var(--color-secondary);
+      border: solid var(--border-size-large) var(--color-primary);
     }
 
     .border-radius-small {
@@ -452,15 +458,15 @@
     }
 
     ::-webkit-scrollbar-track {
-      background: var(--color-primary);
-    }
-
-    ::-webkit-scrollbar-thumb {
       background: var(--color-tertiary);
     }
 
+    ::-webkit-scrollbar-thumb {
+      background: var(--color-primary);
+    }
+
     @supports selector(scrollbar-color) {
-      scrollbar-color: var(--color-primary) var(--color-secondary);
+      scrollbar-color: var(--color-primary) var(--color-tertiary);
     }
 
     ::-webkit-scrollbar {
@@ -705,7 +711,7 @@
     input,
     select,
     textarea {
-      background-color: var(--color-secondary);
+      background-color: var(--color-tertiary);
       padding: var(--space-tiny);
       border: solid 1px;
       border-color: var(--color-primary);
@@ -815,7 +821,7 @@
 
     blockquote {
       font-size: var(--font-2-size-large);
-      background-color: var(--color-secondary);
+      background-color: var(--color-tertiary);
       padding: var(--space-medium);
 
       > p {
@@ -910,7 +916,7 @@
 
     body {
       display: grid;
-      background-color: var(--color-secondary);
+      background-color: var(--color-tertiary);
       grid-template-areas:
         "gutter-left header header header header header header header header header header header header gutter-right"
         "gutter-left main main main main main main main main main main main main gutter-right"
@@ -1001,21 +1007,21 @@
     }
 
     > button {
-      background-color: var(--color-white-alpha-6), var(--color-black-6));
-      border-color: light-dark(var(--color-black-8), var(--color-white-8));
+      background-color: var(--color-secondary);
+      border-color: var(--color-primary);
       backdrop-filter: var(--blur-medium);
 
       &:hover {
-        background-color: light-dark(var(--color-tertiary), var(--color-tertiary));
+        background-color: var(--color-tertiary);
         transition: background-color 0.4s;
       }
     }
   }
 
   a.button {
-    background-color: light-dark(var(--color-tertiary), var(--color-tertiary));
+    background-color: var(--color-secondary);
     border: solid 1px;
-    border-color: light-dark(var(--color-primary), var(--color-primary));
+    border-color: var(--color-primary);
     width: max-content;
     background-image: var(--background-noise);
     padding: calc(var(--space-tiny) / 2) var(--space-tiny);
@@ -1023,16 +1029,16 @@
     backdrop-filter: var(--blur-medium);
 
     &:hover {
-      background-color: light-dark(var(--color-primary), var(--color-tertiary));
+      background-color: var(--color-tertiary);
       transition: all 0.4s;
-      color: light-dark(var(--color-white-8), var(--color-black-8));
+      color: var(--color-primary);
     }
 
     &.secondary {
       background-color: transparent;
 
       &:hover {
-        color: light-dark(var(--color-light-1-alpha-1), var(--color-dark-1-alpha-1));
+        color: var(--color-tertiary);
       }
     }
   }
