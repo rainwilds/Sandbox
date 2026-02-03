@@ -162,6 +162,10 @@
     --color-light: light-dark(#ffffff, #c3c3c3);
     --color-dark: light-dark(#2d2d2d, #000000);
 
+    --on-primary: var(--color-secondary);
+    --on-secondary: var(--color-primary);
+    --on-tertiary: var(--color-primary);
+
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
@@ -260,14 +264,17 @@
 
     .background-color-1 {
       background-color: var(--color-primary);
+      color: var(--on-primary);
     }
 
     .background-color-2 {
       background-color: var(--color-secondary);
+      color: var(--on-secondary);
     }
 
     .background-color-3 {
       background-color: var(--color-tertiary);
+      color: var(--on-tertiary);
     }
 
     .background-overlay-1 {
