@@ -126,12 +126,12 @@
     --space-large: if(media(width <=768px): 4.69rem; else: 6.7rem);
     --space-huge: if(media(width <=768px): 6.3rem; else: 9rem); */
 
-    --space-micro: 0.5cqi;
-    --space-tiny: 2cqi;
-    --space-small: 4cqi;
-    --space-medium: 6cqi;
-    --space-large: 10cqi;
-    --space-huge: 15cqi;
+    --space-micro: 0.5ch; /* ~4-5px:  Tight icon spacing */
+    --space-tiny: 1.5ch; /* ~12-14px: Button padding, small gaps */
+    --space-small: 3ch; /* ~25px:   Card padding, grid gaps */
+    --space-medium: 5ch; /* ~45px:   Section separation */
+    --space-large: 8ch; /* ~70px:   Major layout breaks */
+    --space-huge: 12ch; /* ~100px+: Hero section spacing */
 
     --side-gutter: min(5vw, var(--space-large));
 
