@@ -129,13 +129,17 @@
     --max-width-medium: 40vw;
     --max-width-large: 60vw;
 
-    --light-color-1: #45C4B0;
-    --light-color-2: #9AEBA3;
-    --light-color-3: #DAFDBA;
+    /* Primary: Royal Blue / Soft Blue */
+    --light-color-1: #2563EB;
+    --dark-color-1: #60A5FA;
 
-    --dark-color-1: #027333;
-    --dark-color-2: #025959;
-    --dark-color-3: #012340;
+    /* Secondary: Cyan / Teal */
+    --light-color-2: #0891B2;
+    --dark-color-2: #22D3EE;
+
+    /* Tertiary: Navy / Slate (Good for neutral elements) */
+    --light-color-3: #1E293B;
+    --dark-color-3: #94A3B8;
 
     @function --shade(--color, --step) {
       result: oklch(from var(--color) calc(l - (var(--step) * 0.08)) c h);
@@ -155,9 +159,13 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 
-    --font-1-family: Futura_PT_Demi, Arial, sans-serif;
+    --font-1-family: Futura_PT_Demi,
+    Arial,
+    sans-serif;
 
-    --font-2-family: futura_ptbook, Arial, sans-serif;
+    --font-2-family: futura_ptbook,
+    Arial,
+    sans-serif;
 
     --font-2-size-small: if(media(max-width: 768px): 11px; else: 16px);
 
@@ -291,23 +299,19 @@
     }
 
     .mask-image-top-bottom {
-      mask-image: linear-gradient(
-        to bottom,
-        transparent,
-        light-dark(var(--color-secondary), var(--color-secondary)) 15%,
-        light-dark(var(--color-secondary), var(--color-secondary)) 85%,
-        transparent
-      );
+      mask-image: linear-gradient(to bottom,
+          transparent,
+          light-dark(var(--color-secondary), var(--color-secondary)) 15%,
+          light-dark(var(--color-secondary), var(--color-secondary)) 85%,
+          transparent);
     }
 
     .mask-image-left-right {
-      mask-image: linear-gradient(
-        to right,
-        transparent,
-        light-dark(var(--color-secondary), var(--color-secondary)) 15%,
-        light-dark(var(--color-secondary), var(--color-secondary)) 85%,
-        transparent
-      );
+      mask-image: linear-gradient(to right,
+          transparent,
+          light-dark(var(--color-secondary), var(--color-secondary)) 15%,
+          light-dark(var(--color-secondary), var(--color-secondary)) 85%,
+          transparent);
     }
 
     .background-image-noise {
@@ -456,8 +460,7 @@
     }
 
     @supports selector(scrollbar-color) {
-      scrollbar-color: light-dark(var(--color-primary), var(--color-tertiary))
-        light-dark(var(--color-tertiary), var(--color-primary));
+      scrollbar-color: light-dark(var(--color-primary), var(--color-tertiary)) light-dark(var(--color-tertiary), var(--color-primary));
     }
 
     ::-webkit-scrollbar {
@@ -805,7 +808,7 @@
     ul {
       list-style: none;
 
-      & > li:not(:last-of-type) {
+      &>li:not(:last-of-type) {
         margin-bottom: var(--space-micro);
       }
     }
@@ -815,7 +818,7 @@
       background-color: light-dark(var(--color-tertiary), var(--color-tertiary));
       padding: var(--space-medium);
 
-      > p {
+      >p {
         font-size: var(--font-2-size-small);
         margin-top: var(--space-small);
       }
@@ -927,6 +930,7 @@
 
     @media (max-width: 768px) {
       &:root {
+
         .max-width-small,
         .max-width-medium,
         .max-width-large {
@@ -997,7 +1001,7 @@
       transition: color 0.4s;
     }
 
-    > button {
+    >button {
       background-color: light-dark(var(--color-white-alpha-6), var(--color-black-6));
       border-color: light-dark(var(--color-black-8), var(--color-white-8));
       backdrop-filter: var(--blur-medium);
@@ -1043,7 +1047,7 @@
     /* ensure content spans all vertical space of parent */
     /* max-height: 100vh; */
 
-    &:has(nav) > div {
+    &:has(nav)>div {
       z-index: 1;
     }
 
@@ -1051,17 +1055,17 @@
       grid-template-columns: 1fr 1fr;
     }
 
-    &.background-image > * {
+    &.background-image>* {
       grid-row: 1;
       grid-column: 1;
       max-height: inherit;
     }
 
-    &.background-image > *:not(picture):not(:has(nav)) {
+    &.background-image>*:not(picture):not(:has(nav)) {
       z-index: 1;
     }
 
-    &.background-video > * {
+    &.background-video>* {
       grid-column: 1;
       grid-row: 1;
       max-height: inherit;
@@ -1071,7 +1075,7 @@
       display: inline-block;
     }
 
-    & > div:not(.background-overlay):has(p) {
+    &>div:not(.background-overlay):has(p) {
       z-index: 2;
       height: 100%;
       width: 100%;
@@ -1082,7 +1086,7 @@
             z-index: 2;
         } */
 
-    & > .background-overlay {
+    &>.background-overlay {
       background-color: light-dark(var(--color-white-4), var(--color-black-alpha-2));
       margin: 0 !important;
     }
@@ -1105,7 +1109,7 @@
       gap: var(--space-small);
     }
 
-    & > ul {
+    &>ul {
       list-style: none;
       display: flex;
       gap: var(--space-small);
@@ -1120,7 +1124,7 @@
       }
     }
 
-    & > button {
+    &>button {
       @media (min-width: 769px) {
         display: none;
       }
@@ -1134,10 +1138,10 @@
     grid-auto-flow: dense;
     grid-auto-rows: 20vmax;
 
-    > picture {
+    >picture {
       overflow: hidden;
 
-      > img {
+      >img {
         transition: transform 0.6s ease;
         /* Smooth transition for scaling */
 
@@ -1180,12 +1184,12 @@
       animation: fadeIn 0.3s ease-in;
     }
 
-    > * {
+    >* {
       grid-area: content;
     }
 
     /* Rest of your styles for .close, .prev, .next, .lightbox-content remain unchanged */
-    & > .close {
+    &>.close {
       position: absolute;
       top: 0;
       right: 0;
@@ -1207,8 +1211,8 @@
       }
     }
 
-    & > .prev,
-    & > .next {
+    &>.prev,
+    &>.next {
       border: none;
       color: white;
       font-size: 2rem;
@@ -1225,19 +1229,19 @@
       }
     }
 
-    & > .prev {
+    &>.prev {
       justify-self: left;
     }
 
-    & > .next {
+    &>.next {
       justify-self: right;
     }
 
-    & > .lightbox-content {
+    &>.lightbox-content {
       max-height: 100vh;
 
-      & > picture > img,
-      & > video {
+      &>picture>img,
+      &>video {
         object-fit: contain;
       }
     }
@@ -1451,7 +1455,7 @@
     position: relative;
     height: 60vh;
 
-    & > img {
+    &>img {
       position: absolute;
 
       &:first-of-type {
@@ -1464,7 +1468,7 @@
       }
     }
 
-    & > input[type="range"] {
+    &>input[type="range"] {
       position: absolute;
       z-index: 3;
       width: 100%;
@@ -1546,14 +1550,14 @@ div.scroll {
     scrollbar-width: none;
   }
 
-  > div {
+  >div {
     display: flex;
     /* required to make it flow into a single row */
     gap: var(--space-tiny);
     min-width: max-content;
     /* renders the entire row */
 
-    > * {
+    >* {
       -ms-user-select: none;
       -webkit-user-select: none;
 
@@ -1564,7 +1568,7 @@ div.scroll {
       }
     }
 
-    > *:has(h2, h3, h4, h5) {
+    >*:has(h2, h3, h4, h5) {
       max-width: 250px;
       display: grid;
       gap: var(--space-tiny);
@@ -1585,33 +1589,33 @@ div.scroll {
   @supports (scroll-snap-align: start) {
     scroll-snap-type: x mandatory;
 
-    > div > * {
+    >div>* {
       scroll-snap-align: start;
     }
   }
 
   @media (max-width: 768px) {
-    .scroll > div > * {
+    .scroll>div>* {
       width: 65vw;
     }
   }
 }
 
-body > *:not(script) {
+body>*:not(script) {
   display: grid;
   grid-template-columns: subgrid;
   grid-column: gutter-left / gutter-right;
   /* grid-auto-rows: 1fr; */
   transition: all ease-in-out 0.25s;
 
-  > section {
+  >section {
     grid-column: 1 / -1;
     display: grid;
     grid-template-columns: subgrid;
     /* margin-bottom: var(--space-large); */
     /* min-height: 50vh; */
 
-    > div {
+    >div {
       grid-column: 2 / -2;
       display: grid;
       /* grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); */
@@ -1626,7 +1630,7 @@ body > *:not(script) {
       }
 
       /* for when custom-block is used for text headings/paragraphs */
-      > div:is([data-section-title="true"]) {
+      >div:is([data-section-title="true"]) {
         /* margin: var(--space-large) 0 var(--space-medium) 0; */
         min-height: initial;
       }
@@ -1635,12 +1639,12 @@ body > *:not(script) {
 }
 
 header {
-  > * {
+  >* {
     grid-column: gutter-left / gutter-right;
     height: auto;
   }
 
-  > div {
+  >div {
     div.block {
       min-height: initial;
       max-height: 100vh;
@@ -1651,11 +1655,11 @@ header {
     width: 100px;
   }
 
-  > section {
+  >section {
     z-index: 2;
     height: 100%;
 
-    > div {
+    >div {
       grid-column: 1/-1;
     }
   }
@@ -1666,7 +1670,7 @@ main {
   /* margin: var(--space-medium) 0 var(--space-medium) 0; */
   /* removed after moving hero to it's own main header  */
 
-  > section:has([data-section-title]):not(:has(video)) {
+  >section:has([data-section-title]):not(:has(video)) {
     margin: var(--space-large) 0 var(--space-medium) 0;
   }
 }
@@ -1679,7 +1683,7 @@ body {
   transition: filter 0.3s ease;
 
   /* Dull <main> when hovering the Portfolio <li> */
-  &:has(nav.dropdown li:hover) > * > * {
+  &:has(nav.dropdown li:hover)>*>* {
     filter: brightness(0.8) opacity(0.8) saturate(0);
   }
 
@@ -1942,17 +1946,17 @@ div#products {
   display: grid;
   place-items: center;
 
-  & > :is(i, svg) {
+  &> :is(i, svg) {
     grid-area: 1 / 1;
     cursor: pointer;
     color: light-dark(var(--color-dark-6-alpha-1), var(--color-light-6-alpha-1));
   }
 
-  & > :is(i:first-child, svg:first-child) {
+  &> :is(i:first-child, svg:first-child) {
     width: auto;
   }
 
-  & > :is(i:last-child, svg:first-child) {
+  &> :is(i:last-child, svg:first-child) {
     color: light-dark(var(--color-secondary), var(--color-secondary));
   }
 }
@@ -1989,7 +1993,7 @@ div#products {
   font-size: 0.5rem;
   z-index: 1;
 
-  & > span.icon {
+  &>span.icon {
     cursor: pointer;
   }
 }
@@ -2026,25 +2030,21 @@ div#products {
 
 /* Light theme animated gradients */
 .light-gradient-1 {
-  background: linear-gradient(
-    135deg,
-    var(--color-primary) 0%,
-    var(--color-light-2) 30%,
-    var(--color-tertiary) 60%,
-    var(--color-light-4) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--color-primary) 0%,
+      var(--color-light-2) 30%,
+      var(--color-tertiary) 60%,
+      var(--color-light-4) 100%);
   background-size: 200% 100%;
   animation: slideGradient 8s ease infinite;
 }
 
 .light-gradient-2 {
-  background: linear-gradient(
-    to bottom,
-    var(--color-tertiary) 0%,
-    var(--color-light-4) 40%,
-    var(--color-light-5) 70%,
-    var(--color-secondary) 100%
-  );
+  background: linear-gradient(to bottom,
+      var(--color-tertiary) 0%,
+      var(--color-light-4) 40%,
+      var(--color-light-5) 70%,
+      var(--color-secondary) 100%);
   background-size: 100% 200%;
   animation: slideGradientVertical 8s ease infinite;
 }
@@ -2056,36 +2056,30 @@ div#products {
 }
 
 .light-gradient-opaque-1 {
-  background: linear-gradient(
-    135deg,
-    var(--color-light-1-alpha-1) 0%,
-    var(--color-light-1-alpha-2) 25%,
-    var(--color-light-1-alpha-3) 75%,
-    var(--color-light-1-alpha-4) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--color-light-1-alpha-1) 0%,
+      var(--color-light-1-alpha-2) 25%,
+      var(--color-light-1-alpha-3) 75%,
+      var(--color-light-1-alpha-4) 100%);
   background-size: 200% 100%;
   animation: slideGradient 8s ease infinite;
 }
 
 .light-gradient-opaque-2 {
-  background: linear-gradient(
-    to bottom,
-    var(--color-light-1-alpha-3) 0%,
-    var(--color-light-1-alpha-4) 33%,
-    var(--color-light-1-alpha-5) 66%,
-    var(--color-light-6-alpha-1) 100%
-  );
+  background: linear-gradient(to bottom,
+      var(--color-light-1-alpha-3) 0%,
+      var(--color-light-1-alpha-4) 33%,
+      var(--color-light-1-alpha-5) 66%,
+      var(--color-light-6-alpha-1) 100%);
   background-size: 100% 200%;
   animation: slideGradientVertical 8s ease infinite;
 }
 
 .light-gradient-opaque-3 {
-  background: linear-gradient(
-    45deg,
-    var(--color-light-1-alpha-5) 0%,
-    var(--color-light-6-alpha-1) 50%,
-    var(--color-light-1-alpha-1) 100%
-  );
+  background: linear-gradient(45deg,
+      var(--color-light-1-alpha-5) 0%,
+      var(--color-light-6-alpha-1) 50%,
+      var(--color-light-1-alpha-1) 100%);
   background-size: 200% 100%;
   animation: slideGradient 8s ease infinite;
 }
@@ -2098,25 +2092,21 @@ div#products {
 
 /* Dark theme animated gradients */
 .dark-gradient-1 {
-  background: linear-gradient(
-    135deg,
-    var(--color-primary) 0%,
-    var(--color-dark-2) 30%,
-    var(--color-tertiary) 60%,
-    var(--color-dark-4) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--color-primary) 0%,
+      var(--color-dark-2) 30%,
+      var(--color-tertiary) 60%,
+      var(--color-dark-4) 100%);
   background-size: 200% 100%;
   animation: slideGradient 8s ease infinite;
 }
 
 .dark-gradient-2 {
-  background: linear-gradient(
-    to bottom,
-    var(--color-tertiary) 0%,
-    var(--color-dark-4) 40%,
-    var(--color-dark-5) 70%,
-    var(--color-secondary) 100%
-  );
+  background: linear-gradient(to bottom,
+      var(--color-tertiary) 0%,
+      var(--color-dark-4) 40%,
+      var(--color-dark-5) 70%,
+      var(--color-secondary) 100%);
   background-size: 100% 200%;
   animation: slideGradientVertical 8s ease infinite;
 }
@@ -2128,36 +2118,30 @@ div#products {
 }
 
 .dark-gradient-opaque-1 {
-  background: linear-gradient(
-    135deg,
-    var(--color-dark-1-alpha-1) 0%,
-    var(--color-dark-1-alpha-2) 25%,
-    var(--color-dark-1-alpha-3) 75%,
-    var(--color-accent-opaque-dark-scale-4) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--color-dark-1-alpha-1) 0%,
+      var(--color-dark-1-alpha-2) 25%,
+      var(--color-dark-1-alpha-3) 75%,
+      var(--color-accent-opaque-dark-scale-4) 100%);
   background-size: 200% 100%;
   animation: slideGradient 8s ease infinite;
 }
 
 .dark-gradient-opaque-2 {
-  background: linear-gradient(
-    to bottom,
-    var(--color-dark-1-alpha-3) 0%,
-    var(--color-dark-1-alpha-4) 33%,
-    var(--color-dark-1-alpha-5) 66%,
-    var(--color-dark-1-alpha-1) 100%
-  );
+  background: linear-gradient(to bottom,
+      var(--color-dark-1-alpha-3) 0%,
+      var(--color-dark-1-alpha-4) 33%,
+      var(--color-dark-1-alpha-5) 66%,
+      var(--color-dark-1-alpha-1) 100%);
   background-size: 100% 200%;
   animation: slideGradientVertical 8s ease infinite;
 }
 
 .dark-gradient-opaque-3 {
-  background: linear-gradient(
-    45deg,
-    var(--color-dark-1-alpha-5) 0%,
-    var(--color-dark-6-alpha-1) 50%,
-    var(--color-dark-1-alpha-1) 100%
-  );
+  background: linear-gradient(45deg,
+      var(--color-dark-1-alpha-5) 0%,
+      var(--color-dark-6-alpha-1) 50%,
+      var(--color-dark-1-alpha-1) 100%);
   background-size: 200% 100%;
   animation: slideGradient 8s ease infinite;
 }
