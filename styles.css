@@ -15,7 +15,8 @@
 }
 
 @function --shade(--color, --step) {
-  result: oklch(from var(--color) calc(l - (var(--step) * 0.1)) c h);
+  /* result: oklch(from var(--color) calc(l - (var(--step) * 0.1)) c h); */
+  result: color-mix(in oklch, var(--color), light-dark(black, white) calc(var(--step) * 10%));
 }
 
 @function --alpha(--color, --opacity) {
@@ -1017,7 +1018,7 @@
     backdrop-filter: var(--blur-medium);
 
     &:hover {
-      background-color: --shade(var(--color-tertiary), 9);
+      background-color: --shade(var(--color-tertiary), 1);
       transition: all 0.4s;
       color: var(--color-primary);
     }
