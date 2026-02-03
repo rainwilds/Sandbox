@@ -711,7 +711,7 @@
     input,
     select,
     textarea {
-      background-color: var(--color-tertiary);
+      background-color: var(--color-secondary);
       padding: var(--space-tiny);
       border: solid 1px;
       border-color: var(--color-primary);
@@ -821,7 +821,7 @@
 
     blockquote {
       font-size: var(--font-2-size-large);
-      background-color: var(--color-tertiary);
+      background-color: var(--color-secondary);
       padding: var(--space-medium);
 
       > p {
