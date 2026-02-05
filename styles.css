@@ -22,6 +22,10 @@
   result: rgb(from var(--color) r g b / var(--opacity));
 }
 
+@function --overlay(--color, --opacity) {
+  result: oklab(from var(--color) l a b / var(--opacity));
+}
+
 @layer reset, variables, defaults, components, custom;
 
 @layer reset {
@@ -278,6 +282,8 @@
       background-color: var(--color-tertiary);
       color: var(--on-tertiary);
     }
+
+
 
     .background-overlay-1 {
       background-color: --alpha(var(--color-primary), 0.4);
