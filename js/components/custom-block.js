@@ -1223,8 +1223,8 @@ class CustomBlock extends HTMLElement {
 
             const overlayDiv = document.createElement('div');
 
-            // FIX: Add 'overlay-position' to the array so it isn't overwritten
-            filteredOverlayClasses.unshift('overlay-position');
+            // REMOVED: overlayDiv.classList.add('overlay-position');
+            // We rely on your CSS grid rule (&.background-image > *) to position this div.
 
             if (filteredOverlayClasses.length) {
                 overlayDiv.className = filteredOverlayClasses.join(' ').trim();
