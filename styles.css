@@ -285,7 +285,64 @@
 
 
 
+    .background-overlay-light {
+
+    }
+
+    .background-overlay-dark {
+      
+    }   
+  
+    .background-overlay-light-dark {
+     
+    }
+
+    .background-overlay-dark-light {
+      
+    }
+
+    .background-overlay-color-primary {
+      
+    }
+
+    .background-overlay-color-secondary {
+      
+    }
+
+    .background-overlay-tertiary {
+      
+    }
+
+    [class*="background-overlay-"] {
+   
+      /* --overlay-color: black;
+      --overlay-opacity: 0.5; */
+
+      background-color: --overlay(var(--overlay-color), var(--overlay-opacity));
+    }
+
     .background-overlay-1 {
+        --overlay-color: black;
+        --overlay-opacity: 0.6;
+    }
+
+    .background-overlay-2 {
+        --overlay-color: var(--color-primary);
+        --overlay-opacity: 0.4;
+    }
+
+    .background-overlay-3 {
+        --overlay-color: var(--color-secondary);
+        --overlay-opacity: 0.4;
+    }
+
+    .background-overlay-4 {
+        --overlay-color: light-dark(black, white);
+        --overlay-opacity: 0.3;
+    }
+
+
+    /* .background-overlay-1 {
       background-color: --alpha(var(--color-primary), 0.4);
     }
 
@@ -295,7 +352,7 @@
 
     .background-overlay-3 {
       background-color: --alpha(var(--color-tertiary), 0.4);
-    }
+    } */
 
     .background-gradient-1 {
       background-image: linear-gradient(180deg, transparent 0%, var(--color-tertiary) 100%);
