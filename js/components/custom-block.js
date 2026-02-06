@@ -123,7 +123,7 @@ class CustomBlock extends HTMLElement {
             this.#warn('Invalid primary position', { value: primaryPosition, element: this.id || 'no-id', default: 'top', validValues: validPositions });
             primaryPosition = 'top';
         }
-// Define your new allowed overlay classes
+        // Define your new allowed overlay classes
         const validOverlayClasses = [
             'background-overlay-black-white',
             'background-overlay-white-black',
@@ -141,10 +141,10 @@ class CustomBlock extends HTMLElement {
             if (validOverlayClasses.includes(backgroundOverlay)) {
                 backgroundOverlayClass = backgroundOverlay;
             } else {
-                this.#warn('Invalid background overlay', { 
-                    value: backgroundOverlay, 
-                    element: this.id || 'no-id', 
-                    validValues: validOverlayClasses 
+                this.#warn('Invalid background overlay', {
+                    value: backgroundOverlay,
+                    element: this.id || 'no-id',
+                    validValues: validOverlayClasses
                 });
             }
         }
@@ -156,10 +156,10 @@ class CustomBlock extends HTMLElement {
             if (validOverlayClasses.includes(innerBackgroundOverlay)) {
                 innerBackgroundOverlayClass = innerBackgroundOverlay;
             } else {
-                this.#warn('Invalid inner background overlay', { 
-                    value: innerBackgroundOverlay, 
-                    element: this.id || 'no-id', 
-                    validValues: validOverlayClasses 
+                this.#warn('Invalid inner background overlay', {
+                    value: innerBackgroundOverlay,
+                    element: this.id || 'no-id',
+                    validValues: validOverlayClasses
                 });
             }
         }
@@ -1210,22 +1210,30 @@ class CustomBlock extends HTMLElement {
             if (attrs.backgroundImageNoise) overlayClasses.push('background-image-noise');
             if (attrs.backgroundGradientClass) overlayClasses.push(attrs.backgroundGradientClass);
             if (borderRadiusClasses) overlayClasses.push(borderRadiusClasses);
+
             const backdropFilterValues = attrs.backdropFilterClasses
                 .filter(cls => cls.startsWith('backdrop-filter'))
                 .map(cls => BACKDROP_FILTER_MAP[cls] || '')
                 .filter(val => val);
+
             const filteredOverlayClasses = attrs.backdropFilterClasses
                 .filter(cls => !cls.startsWith('backdrop-filter'))
                 .concat(overlayClasses)
                 .filter(cls => cls);
+
             const overlayDiv = document.createElement('div');
-            overlayDiv.classList.add('overlay-position');
+
+            // FIX: Add 'overlay-position' to the array so it isn't overwritten
+            filteredOverlayClasses.unshift('overlay-position');
+
             if (filteredOverlayClasses.length) {
                 overlayDiv.className = filteredOverlayClasses.join(' ').trim();
             }
+
             if (backdropFilterValues.length) {
                 overlayDiv.style.backdropFilter = backdropFilterValues.join(' ');
             }
+
             blockElement.appendChild(overlayDiv);
         }
         if (isMediaOnly && !hasPrimaryImage && !hasVideoPrimary) {
