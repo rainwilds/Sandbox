@@ -123,19 +123,45 @@ class CustomBlock extends HTMLElement {
             this.#warn('Invalid primary position', { value: primaryPosition, element: this.id || 'no-id', default: 'top', validValues: validPositions });
             primaryPosition = 'top';
         }
+// Define your new allowed overlay classes
+        const validOverlayClasses = [
+            'background-overlay-black-white',
+            'background-overlay-white-black',
+            'background-overlay-black',
+            'background-overlay-white',
+            'background-overlay-color-primary',
+            'background-overlay-color-secondary',
+            'background-overlay-color-tertiary'
+        ];
+
+        // Parse Main Background Overlay
         const backgroundOverlay = this.getAttribute('background-overlay') || '';
         let backgroundOverlayClass = '';
         if (backgroundOverlay) {
-            const match = backgroundOverlay.match(/^background-overlay-(\d+)$/);
-            if (match) backgroundOverlayClass = `background-overlay-${match[1]}`;
-            else this.#warn('Invalid background overlay', { value: backgroundOverlay, element: this.id || 'no-id', expected: 'background-overlay-N (N = number)' });
+            if (validOverlayClasses.includes(backgroundOverlay)) {
+                backgroundOverlayClass = backgroundOverlay;
+            } else {
+                this.#warn('Invalid background overlay', { 
+                    value: backgroundOverlay, 
+                    element: this.id || 'no-id', 
+                    validValues: validOverlayClasses 
+                });
+            }
         }
+
+        // Parse Inner Background Overlay
         const innerBackgroundOverlay = this.getAttribute('inner-background-overlay') || '';
         let innerBackgroundOverlayClass = '';
         if (innerBackgroundOverlay) {
-            const match = innerBackgroundOverlay.match(/^background-overlay-(\d+)$/);
-            if (match) innerBackgroundOverlayClass = `background-overlay-${match[1]}`;
-            else this.#warn('Invalid inner background overlay', { value: innerBackgroundOverlay, element: this.id || 'no-id', expected: 'background-overlay-N (N = number)' });
+            if (validOverlayClasses.includes(innerBackgroundOverlay)) {
+                innerBackgroundOverlayClass = innerBackgroundOverlay;
+            } else {
+                this.#warn('Invalid inner background overlay', { 
+                    value: innerBackgroundOverlay, 
+                    element: this.id || 'no-id', 
+                    validValues: validOverlayClasses 
+                });
+            }
         }
         const backgroundGradient = this.getAttribute('background-gradient') || '';
         let backgroundGradientClass = '';
