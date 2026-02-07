@@ -25,6 +25,89 @@
       data-title="Block"
       data-description="Custom block web component"
       data-canonical="https://rainwilds.github.io/Sandbox/block.html"></data-custom-head>
+
+<style>
+  /* 1. Styles for the Debug Overlay */
+  .debug-specs {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.85); /* Dark semi-transparent background */
+    color: #00ff9d; /* Matrix green text for high contrast */
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.4;
+    padding: 10px;
+    box-sizing: border-box;
+    z-index: 100;
+    pointer-events: none; /* Allows you to still click buttons behind it */
+    border-top: 2px solid #00ff9d;
+    text-align: left;
+  }
+
+  /* Make sure the custom block can hold the absolute overlay */
+  custom-block {
+    position: relative; 
+    display: block; /* Ensure it behaves like a block for positioning */
+  }
+
+  .debug-label {
+    color: #fff;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-right: 5px;
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // 2. The attributes you want to visualize
+    const attributesToTrack = [
+      'class',
+      'inner-class',
+      'inner-style',
+      'background-overlay',
+      'background-gradient',
+      'backdrop-filter',
+      'inner-backdrop-filter',
+      'video-background-src',
+      'img-background-src'
+    ];
+
+    // 3. Find all custom blocks
+    const blocks = document.querySelectorAll('custom-block');
+
+    blocks.forEach(block => {
+      let debugHTML = '';
+
+      attributesToTrack.forEach(attr => {
+        if (block.hasAttribute(attr)) {
+          let value = block.getAttribute(attr);
+          
+          // Truncate long inline styles for readability
+          if (attr === 'inner-style' && value.length > 50) {
+            value = value.substring(0, 50) + '...';
+          }
+
+          debugHTML += `<div><span class="debug-label">${attr}:</span> ${value}</div>`;
+        }
+      });
+
+      // 4. Only append if there is data to show
+      if (debugHTML) {
+        const debugDiv = document.createElement('div');
+        debugDiv.classList.add('debug-specs');
+        debugDiv.innerHTML = debugHTML;
+        
+        // This appends the debug info as a child of the custom-block.
+        // NOTE: This assumes your custom-block uses a <slot> that allows generic children.
+        block.appendChild(debugDiv);
+      }
+    });
+  });
+</script>
+      
   </head>
 
   <body>
