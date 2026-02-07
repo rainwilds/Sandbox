@@ -157,8 +157,9 @@
     --color-secondary: light-dark(var(--light-color-2), var(--dark-color-2));
     --color-tertiary: light-dark(var(--light-color-3), var(--dark-color-3));
 
-    --color-light: light-dark(#ffffff, #c3c3c3);
-    --color-dark: light-dark(#2d2d2d, #000000);
+    --color-light: white;
+    --color-dark: black;
+    --color-light-dark: light-dark(white, black);
 
     --on-primary: var(--color-secondary);
     --on-secondary: var(--color-primary);
