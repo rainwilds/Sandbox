@@ -72,7 +72,7 @@ class CustomBlock extends HTMLElement {
         }
     }
 
-    /**
+   /**
      * Generates and appends the visual debug overlay
      * @param {HTMLElement} blockElement - The main block element being rendered
      * @param {Object} attrs - The attributes object used for rendering
@@ -80,8 +80,6 @@ class CustomBlock extends HTMLElement {
     #appendDebugOverlay(blockElement, attrs) {
         if (!this.debug) return;
 
-        // Ensure the block handles absolute positioning of the overlay correctly
-        // We set inline style to ensure it works regardless of external CSS
         blockElement.style.position = 'relative';
 
         const debugContainer = document.createElement('div');
@@ -104,10 +102,18 @@ class CustomBlock extends HTMLElement {
             overflow: hidden;
         `;
 
+        // Calculate computed positioning class from the alignment map
+        // This ensures 'center-right' shows as 'place-content-center-right'
+        const innerPositionClass = attrs.innerAlignment && VALID_ALIGN_MAP[attrs.innerAlignment] 
+            ? VALID_ALIGN_MAP[attrs.innerAlignment] 
+            : '';
+
         // Define which attributes to display in the debug box
         const debugItems = [
             { label: 'CLASS', value: attrs.customClasses },
             { label: 'INNER-CLASS', value: attrs.innerCustomClasses },
+            { label: 'INNER-POS', value: innerPositionClass }, // Shows computed positioning class
+            { label: 'TEXT-ALIGN', value: attrs.textAlignment },
             { label: 'INNER-STYLE', value: attrs.innerStyle },
             { label: 'BACKDROP', value: attrs.backdropFilterClasses?.join(' ') },
             { label: 'INNER-BACKDROP', value: attrs.innerBackdropFilterClasses?.join(' ') },
