@@ -286,43 +286,36 @@
     .background-overlay-black-white {
       --overlay-color: light-dark(black, white);
       --overlay-opacity: 0.3;
-      color: var(--on-primary)
     }
 
     .background-overlay-white-black {
       --overlay-color: light-dark(white, black);
       --overlay-opacity: 0.3;
-      color: var(--on-secondary)
     }
 
     .background-overlay-black {
       --overlay-color: black;
       --overlay-opacity: 0.6;
-      color: var(--on-dark)
     }
 
     .background-overlay-white {
       --overlay-color: white;
       --overlay-opacity: 0.6;
-      color: var(--on-light)
     }
 
     .background-overlay-color-primary {
       --overlay-color: var(--color-primary);
       --overlay-opacity: 0.4;
-      color: var(--on-primary)
     }
 
     .background-overlay-color-secondary {
       --overlay-color: var(--color-secondary);
       --overlay-opacity: 0.4;
-      color: var(--on-secondary)
     }
 
     .background-overlay-color-tertiary {
       --overlay-color: var(--color-tertiary);
       --overlay-opacity: 0.4;
-      color: var(--on-tertiary)
     }
 
     .background-gradient-1 {
@@ -1087,6 +1080,34 @@
 
     &:has(nav) > div {
       z-index: 1;
+    }
+
+    &:has(.background-overlay-black-white) {
+      color: var(--on-dark);
+    }
+
+    &:has(.background-overlay-white-black ) {
+      color: var(--on-light);
+    }
+
+    &:has(.background-overlay-black ) {
+      color: var(--on-dark);
+    }
+
+    &:has(.background-overlay-white ) {
+      color: var(--on-light);
+    }
+
+    &:has(.background-overlay-primary ) {
+      color: var(--on-primary);
+    }
+
+    &:has(.background-overlay-secondary ) {
+      color: var(--on-secondary);
+    }
+
+    &:has(.background-overlay-tertiary ) {
+      color: var(--on-tertiary);
     }
 
     &:where([data-primary-position="left"], [data-primary-position="right"]) {
