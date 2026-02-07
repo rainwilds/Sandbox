@@ -167,9 +167,9 @@
     --on-dark: var(--color-light);
     --on-light: var(--color-dark);
 
-    --color-button-background: var(--color-secondary);
-    --color-button-text: var(--color-primary);
-    --color-button-border: var(--color-primary);
+    --button-background-color: var(--color-secondary);
+    --button-text-color: var(--color-primary);
+    --button-border-color: var(--color-primary);
 
     /* Optional: Define a specific hover logic if not using color-mix */
     /* --btn-hover-bg: color-mix(in srgb, var(--btn-bg), black 20%); */
@@ -1051,10 +1051,10 @@
 
   a.button {
     cursor: pointer;
-    background-color: var(--color-button-background);
-    color: var(--color-button-text);
+    background-color: var(--button-background-color);
+    color: var(--button-text-color);
     border: solid 1px;
-    border-color: var(--color-button-border);
+    border-color: var(--button-border-color);
     width: max-content;
     background-image: var(--background-noise);
     padding: calc(var(--space-tiny) / 2) var(--space-tiny);
@@ -1062,7 +1062,7 @@
     /* backdrop-filter: var(--blur-medium); */
 
     &:hover {
-      background-color: --shade(var(--color-button-background), 2);
+      background-color: --shade(var(--button-background-color), 2);
       transition: all 0.4s;
       color: var(--color-primary);
     }
