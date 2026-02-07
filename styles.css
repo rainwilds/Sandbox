@@ -152,7 +152,6 @@
     --light-color-3: #f8fafc;
     --dark-color-3: #0f172a;
 
-
     --color-primary: light-dark(var(--light-color-1), var(--dark-color-1));
     --color-secondary: light-dark(var(--light-color-2), var(--dark-color-2));
     --color-tertiary: light-dark(var(--light-color-3), var(--dark-color-3));
@@ -167,6 +166,13 @@
 
     --on-dark: var(--color-light);
     --on-light: var(--color-dark);
+
+    --color-button-background: var(--color-secondary);
+    --color-button-text: var(--color-primary);
+    --color-button-border: var(--color-primary);
+
+    /* Optional: Define a specific hover logic if not using color-mix */
+    /* --btn-hover-bg: color-mix(in srgb, var(--btn-bg), black 20%); */
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -1045,9 +1051,10 @@
 
   a.button {
     cursor: pointer;
-    background-color: var(--color-secondary);
+    background-color: var(--color-button-background);
+    color: var(--color-button-text);
     border: solid 1px;
-    border-color: var(--color-primary);
+    border-color: var(--color-button-border);
     width: max-content;
     background-image: var(--background-noise);
     padding: calc(var(--space-tiny) / 2) var(--space-tiny);
@@ -1055,7 +1062,7 @@
     /* backdrop-filter: var(--blur-medium); */
 
     &:hover {
-      background-color: --shade(var(--color-secondary), 2);
+      background-color: --shade(var(--color-button-background), 2);
       transition: all 0.4s;
       color: var(--color-primary);
     }
@@ -1087,27 +1094,27 @@
       color: var(--on-dark);
     }
 
-    &:has(.background-overlay-white-black ) {
+    &:has(.background-overlay-white-black) {
       color: var(--on-light);
     }
 
-    &:has(.background-overlay-black ) {
+    &:has(.background-overlay-black) {
       color: var(--on-dark);
     }
 
-    &:has(.background-overlay-white ) {
+    &:has(.background-overlay-white) {
       color: var(--on-light);
     }
 
-    &:has(.background-overlay-primary ) {
+    &:has(.background-overlay-primary) {
       color: var(--on-primary);
     }
 
-    &:has(.background-overlay-secondary ) {
+    &:has(.background-overlay-secondary) {
       color: var(--on-secondary);
     }
 
-    &:has(.background-overlay-tertiary ) {
+    &:has(.background-overlay-tertiary) {
       color: var(--on-tertiary);
     }
 
