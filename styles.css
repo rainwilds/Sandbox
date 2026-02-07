@@ -1100,14 +1100,23 @@
 
     &:has(.background-overlay-black) {
       color: var(--on-dark);
+    --button-background-color: var(--color-light);
+    --button-text-color: var(--color-dark);
+    --button-border-color: var(--color-border);      
     }
 
     &:has(.background-overlay-white) {
       color: var(--on-light);
+    --button-background-color: var(--color-dark);
+    --button-text-color: var(--color-light);
+    --button-border-color: var(--color-dark);       
     }
 
     &:has(.background-overlay-primary) {
       color: var(--on-primary);
+    --button-background-color: var(--on-primary);
+    --button-text-color: var(--color-primary);
+    --button-border-color: var(--on-primary);        
     }
 
     &:has(.background-overlay-secondary) {
