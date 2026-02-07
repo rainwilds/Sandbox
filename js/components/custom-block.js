@@ -2,6 +2,7 @@ import { generatePictureMarkup } from '../generators/image-generator.js';
 import { generateVideoMarkup } from '../generators/video-generator.js';
 import { ALLOWED_ICON_STYLES, ALLOWED_BUTTON_STYLES, ALLOWED_LIST_STYLES, VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } from '../shared.js';
 import { getConfig, getImagePrimaryPath } from '../config.js';
+
 class CustomBlock extends HTMLElement {
     #ignoredChangeCount;
     #basePath = null;
@@ -17,6 +18,7 @@ class CustomBlock extends HTMLElement {
         this.debug = new URLSearchParams(window.location.search).get('debug') === 'true';
         this.#ignoredChangeCount = 0;
     }
+
     static #renderCacheMap = new WeakMap();
     static #criticalAttributes = [
         'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
@@ -42,6 +44,7 @@ class CustomBlock extends HTMLElement {
         'paragraph', 'ul-items', 'ol-items', 'content-order', 'ul-icon', 'ol-icon', 'ul-icon-position', 'ol-icon-position',
         'ul-style', 'ol-style', 'ul-icon-offset', 'ol-icon-offset'
     ];
+
     #log(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ${message}`, 'color: #2196F3; font-weight: bold;');
@@ -50,6 +53,7 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
+
     #warn(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ⚠️ ${message}`, 'color: #FF9800; font-weight: bold;');
@@ -58,6 +62,7 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
+
     #error(message, data = null) {
         if (this.debug) {
             console.groupCollapsed(`%c[CustomBlock] ❌ ${message}`, 'color: #F44336; font-weight: bold;');
@@ -66,6 +71,72 @@ class CustomBlock extends HTMLElement {
             console.groupEnd();
         }
     }
+
+    /**
+     * Generates and appends the visual debug overlay
+     * @param {HTMLElement} blockElement - The main block element being rendered
+     * @param {Object} attrs - The attributes object used for rendering
+     */
+    #appendDebugOverlay(blockElement, attrs) {
+        if (!this.debug) return;
+
+        // Ensure the block handles absolute positioning of the overlay correctly
+        // We set inline style to ensure it works regardless of external CSS
+        blockElement.style.position = 'relative';
+
+        const debugContainer = document.createElement('div');
+        debugContainer.style.cssText = `
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            color: #00ff9d;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            line-height: 1.4;
+            padding: 10px;
+            box-sizing: border-box;
+            z-index: 100;
+            pointer-events: none;
+            border-top: 2px solid #00ff9d;
+            text-align: left;
+            overflow: hidden;
+        `;
+
+        // Define which attributes to display in the debug box
+        const debugItems = [
+            { label: 'CLASS', value: attrs.customClasses },
+            { label: 'INNER-CLASS', value: attrs.innerCustomClasses },
+            { label: 'INNER-STYLE', value: attrs.innerStyle },
+            { label: 'BACKDROP', value: attrs.backdropFilterClasses?.join(' ') },
+            { label: 'INNER-BACKDROP', value: attrs.innerBackdropFilterClasses?.join(' ') },
+            { label: 'OVERLAY', value: attrs.backgroundOverlayClass },
+            { label: 'GRADIENT', value: attrs.backgroundGradientClass },
+            { label: 'VIDEO-SRC', value: attrs.videoBackgroundSrc },
+            { label: 'IMG-SRC', value: attrs.backgroundSrc },
+            { label: 'IMG-PRIMARY', value: attrs.primarySrc }
+        ];
+
+        let hasContent = false;
+        debugItems.forEach(item => {
+            if (item.value && item.value.trim() !== '') {
+                const line = document.createElement('div');
+                let val = item.value;
+                // Truncate long strings for readability
+                if (val.length > 60) val = val.substring(0, 60) + '...';
+                
+                line.innerHTML = `<span style="color: #fff; font-weight: bold; text-transform: uppercase; margin-right: 5px;">${item.label}:</span> ${val}`;
+                debugContainer.appendChild(line);
+                hasContent = true;
+            }
+        });
+
+        if (hasContent) {
+            blockElement.appendChild(debugContainer);
+        }
+    }
+
     async #getBasePath() {
         if (!this.#basePath) {
             const config = await getConfig();
@@ -74,6 +145,7 @@ class CustomBlock extends HTMLElement {
         }
         return this.#basePath;
     }
+
     async validateSrc(url) {
         if (!url || this.debug) {
             this.#log('Skipping validation', { url, reason: this.debug ? 'Debug mode' : 'Empty URL' });
@@ -92,6 +164,7 @@ class CustomBlock extends HTMLElement {
             return false;
         }
     }
+
     async getAttributes() {
         if (this.cachedAttributes) {
             this.#log('Using cached attributes', { elementId: this.id || 'no-id' });
@@ -742,6 +815,7 @@ class CustomBlock extends HTMLElement {
         });
         return this.cachedAttributes;
     }
+
     async initialize() {
         if (this.isInitialized) {
             this.#log('Skipping initialization', {
@@ -778,10 +852,12 @@ class CustomBlock extends HTMLElement {
             this.replaceWith(fallbackElement);
         }
     }
+
     async connectedCallback() {
         this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
         await this.initialize();
     }
+
     disconnectedCallback() {
         this.#log('Disconnected from DOM', { elementId: this.id || 'no-id' });
         this.callbacks = [];
@@ -790,10 +866,12 @@ class CustomBlock extends HTMLElement {
         this.criticalAttributesHash = null;
         CustomBlock.#renderCacheMap.delete(this);
     }
+
     addCallback(callback) {
         this.#log('Callback added', { callbackName: callback.name || 'anonymous', elementId: this.id || 'no-id' });
         this.callbacks.push(callback);
     }
+
     #splitListItems(str) {
         const result = [];
         let current = '';
@@ -815,6 +893,7 @@ class CustomBlock extends HTMLElement {
         }
         return result;
     }
+
     async render(isFallback = false) {
         this.#log(`Starting render ${isFallback ? '(fallback)' : ''}`, { elementId: this.id || 'no-id' });
         let newCriticalAttrsHash;
@@ -1242,6 +1321,7 @@ class CustomBlock extends HTMLElement {
                 this.#error('Media-only block has no valid content, falling back', { outerHTML: this.outerHTML });
                 return await this.render(true);
             }
+            this.#appendDebugOverlay(blockElement, attrs); // Add debug overlay
             if (!isFallback) {
                 CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
                 this.lastAttributes = newCriticalAttrsHash;
@@ -1295,6 +1375,7 @@ class CustomBlock extends HTMLElement {
             } else {
                 blockElement.appendChild(buttonElement);
             }
+            this.#appendDebugOverlay(blockElement, attrs); // Add debug overlay
             if (!isFallback) {
                 CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
                 this.lastAttributes = newCriticalAttrsHash;
@@ -1630,6 +1711,11 @@ class CustomBlock extends HTMLElement {
             this.#error('Block has no valid content, falling back', { outerHTML: this.outerHTML });
             return await this.render(true);
         }
+        
+        // --- ADDED: DEBUG OVERLAY ---
+        this.#appendDebugOverlay(blockElement, attrs);
+        // ----------------------------
+
         if (!isFallback) {
             CustomBlock.#renderCacheMap.set(this, blockElement.cloneNode(true));
             this.lastAttributes = newCriticalAttrsHash;
@@ -1637,6 +1723,7 @@ class CustomBlock extends HTMLElement {
         this.#log('Render completed', { elementId: this.id || 'no-id', html: blockElement.outerHTML.substring(0, 200) });
         return blockElement;
     }
+
     attributeChangedCallback(name, oldValue, newValue) {
         if (oldValue === newValue) return;
         if (!this.isInitialized) {
@@ -1653,6 +1740,7 @@ class CustomBlock extends HTMLElement {
             this.initialize();
         }
     }
+
     static get observedAttributes() {
         return [
             'backdrop-filter', 'background-color', 'background-gradient', 'background-image-noise',
@@ -1685,10 +1773,12 @@ class CustomBlock extends HTMLElement {
         ];
     }
 }
+
 try {
     customElements.define('custom-block', CustomBlock);
 } catch (error) {
     console.error('Error defining CustomBlock element:', error);
 }
+
 console.log('CustomBlock version: 2025-09-27');
 export { CustomBlock };
