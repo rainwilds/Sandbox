@@ -283,78 +283,52 @@
       color: var(--on-tertiary);
     }
 
-    .background-overlay-light {
-    }
-
-    .background-overlay-dark {
-    }
-
-    .background-overlay-light-dark {
-    }
-
-    .background-overlay-dark-light {
-    }
-
-    .background-overlay-color-primary {
-    }
-
-    .background-overlay-color-secondary {
-    }
-
-    .background-overlay-tertiary {
-    }
-
     [class*="background-overlay-"] {
-      /* background-color: --overlay(var(--overlay-color), var(--overlay-opacity)); */
+      /* background-color: --overlay(var(--overlay-color), var(--overlay-opacity)); PLACEHOLDER FOR FUTURE WORKING FUNCTION*/
       background-color: oklab(from var(--overlay-color) l a b / var(--overlay-opacity));
     }
 
     .background-overlay-black-white {
       --overlay-color: light-dark(black, white);
       --overlay-opacity: 0.3;
+      color: var(--on-primary)
     }
 
     .background-overlay-white-black {
       --overlay-color: light-dark(white, black);
       --overlay-opacity: 0.3;
+      color: var(--on-secondary)
     }
 
     .background-overlay-black {
       --overlay-color: black;
       --overlay-opacity: 0.6;
+      color: var(--on-secondary)
     }
 
     .background-overlay-white {
       --overlay-color: white;
       --overlay-opacity: 0.6;
+      color: var(--on-tertiary)
     }
 
     .background-overlay-color-primary {
       --overlay-color: var(--color-primary);
       --overlay-opacity: 0.4;
+      color: var(--on-primary)
     }
 
     .background-overlay-color-secondary {
       --overlay-color: var(--color-secondary);
       --overlay-opacity: 0.4;
+      color: var(--on-secondary)
     }
 
     .background-overlay-color-tertiary {
       --overlay-color: var(--color-tertiary);
       --overlay-opacity: 0.4;
+      color: var(--on-tertiary)
     }
-
-    /* .background-overlay-1 {
-      background-color: --alpha(var(--color-primary), 0.4);
-    }
-
-    .background-overlay-2 {
-      background-color: --alpha(var(--color-secondary), 0.4);
-    }
-
-    .background-overlay-3 {
-      background-color: --alpha(var(--color-tertiary), 0.4);
-    } */
 
     .background-gradient-1 {
       background-image: linear-gradient(180deg, transparent 0%, var(--color-tertiary) 100%);
