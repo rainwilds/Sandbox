@@ -143,23 +143,15 @@
     --max-width-medium: 40vw;
     --max-width-large: 60vw;
 
-    /* 1. Main Brand (Dark Slate Blue) */
     --light-color-1: #1e293b;
     --dark-color-1: #f1f5f9;
 
-    /* 2. Accent/CTA (Vibrant Indigo) */
     --light-color-2: #4f46e5;
     --dark-color-2: #818cf8;
 
-    /* 3. Background (Very Light Grey/Slate) */
     --light-color-3: #f8fafc;
     --dark-color-3: #0f172a;
 
-    /* MAPPING:
-      Primary   = Text / Headings / Borders (Identity)
-      Secondary = CTA / Buttons / Highlights (Accent)
-      Tertiary  = Page Backgrounds / Containers (Subtle)
-    */
 
     --color-primary: light-dark(var(--light-color-1), var(--dark-color-1));
     --color-secondary: light-dark(var(--light-color-2), var(--dark-color-2));
@@ -171,6 +163,9 @@
     --on-primary: var(--color-secondary);
     --on-secondary: var(--color-primary);
     --on-tertiary: var(--color-primary);
+
+    --on-dark: var(--color-light);
+    --on-light: var(--color-dark);
 
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -303,13 +298,13 @@
     .background-overlay-black {
       --overlay-color: black;
       --overlay-opacity: 0.6;
-      color: var(--on-secondary)
+      color: var(--on-dark)
     }
 
     .background-overlay-white {
       --overlay-color: white;
       --overlay-opacity: 0.6;
-      color: var(--on-tertiary)
+      color: var(--on-light)
     }
 
     .background-overlay-color-primary {
