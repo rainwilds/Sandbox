@@ -1,140 +1,166 @@
-# Custom Block (<custom-block>)
+<!-- Add this block to the top of all Markdown documentation to ensure printing is corrrect. -->
 
-The `<custom-block>` is a highly versatile, multi-purpose Web Component designed to render content sections. It supports **rich typography**, **lists**, **buttons**, and complex **media configurations** (images and videos) for both background and primary content areas.
+<style>
+    /* 1. Force all standard body text to be pure black */
+    body, p, li, h1, h2, h3, h4, h5, h6, table, th, td {
+        color: #000000 !important;
+    }
 
-It features built-in support for **light/dark mode media switching**, **responsive image sizing**, **lazy loading**, and granular **styling controls** (gradients, glassmorphism/backdrop-filters, and borders).
+    /* 2. Force the code blocks background to be white (optional, saves ink) */
+    code, pre {
+        background-color: #ffffff !important;
+        border: 1px solid #cccccc !important; /* Adds a nice border instead of a grey box */
+    }
 
----
+    /* 3. The "Nuclear" Option: Force EVERY distinct part of the code to be black. 
+       Syntax highlighters wrap keywords in <span> tags. We must target them. */
+    code, pre, code *, pre * {
+        color: #000000 !important;
+        font-weight: 600 !important; /* Semi-bold for readability */
+        text-shadow: none !important;
+    }
 
-## 1. Attributes
+    /* 4. Keep comments distinctive but readable (Dark Grey + Italic) */
+    .hljs-comment, span.hljs-comment {
+        color: #444444 !important; 
+        font-style: italic !important;
+        font-weight: normal !important; /* Make comments thinner than code */
+    }
+</style>
 
-Due to the component's versatility, attributes are grouped by function.
+# Custom Logo (`<custom-logo>`)
 
-### Content & Typography
+The `<custom-logo>` is a highly robust Web Component designed to handle responsive, theme-aware, and accessible brand logos. Extending the base `HTMLElement`, it dynamically generates `<picture>` markup to serve different image assets based on the user's color scheme preference (light/dark mode) and viewport size, while actively lazy-loading and validating image sources to ensure layout stability.
 
-| Attribute Name | Description | Default | Expected Format |
-|----------------|-------------|---------|-----------------|
-| `heading` | Main title text. | `''` | Plain text |
-| `heading-tag` | HTML tag for the heading. | `h2` | `h1`–`h6` |
-| `sub-heading` | Subtitle text appearing above or near the heading. | `''` | Plain text |
-| `sub-heading-tag`| HTML tag for the sub-heading. | `h3` | `h1`–`h6` |
-| `paragraph` | Main body text. | `''` | Plain text |
-| `icon` | Icon displayed near the text content. | `''` | FontAwesome class string (e.g., `<i class="fa-solid fa-star"></i>`) |
-| `icon-size` | Size of the main icon. | `''` | CSS length (e.g., `2rem`) |
-| `content-order` | Determines the render order of text elements. | `paragraph,ul,ol` | Comma-separated string |
+## Features
 
-### Button Controls
-
-| Attribute Name | Description | Default | Expected Format |
-|----------------|-------------|---------|-----------------|
-| `button-text` | Text displayed on the button. | `''` | Plain text |
-| `button-href` | URL the button links to. | `#` | URL |
-| `button-type` | Type of button. | `button` | `button`, `submit`, `reset`, or `link` (implied if href exists) |
-| `button-style` | Inline styles for the button (sanitized). | `''` | CSS string |
-| `button-icon` | Icon displayed inside the button. | `''` | FontAwesome string |
-| `button-icon-position`| Position of the icon relative to text. | `''` | `left`, `right` |
-| `button-target` | Target attribute for links (e.g., `_blank`). | `''` | `_self`, `_blank`, etc. |
-
-### List Controls (`<ul>` & `<ol>`)
-
-| Attribute Name | Description | Default | Expected Format |
-|----------------|-------------|---------|-----------------|
-| `ul-items` | Content for Unordered List. Parsing handles comma separation. | `''` | String list (e.g., `Item 1, Item 2`) |
-| `ol-items` | Content for Ordered List. | `''` | String list |
-| `ul-icon` / `ol-icon` | Custom bullet icon for list items. | `''` | FontAwesome string |
-| `ul-style` / `ol-style`| Custom CSS for the list container. | `''` | CSS string |
-
-### Primary Media (Foreground)
-
-These attributes control the main image or video displayed alongside content (e.g., in a split layout).
-
-| Attribute Name | Description | Default | Notes |
-|----------------|-------------|---------|-------|
-| `img-primary-src` | Source for the primary image. | `''` | Required unless using video |
-| `img-primary-light-src` | Light mode variant. | `''` | Must pair with `*-dark-src` |
-| `img-primary-dark-src` | Dark mode variant. | `''` | Must pair with `*-light-src` |
-| `img-primary-alt` | Alt text for accessibility. | `''` | **Required** unless `img-primary-decorative` is present |
-| `img-primary-position` | Position of media relative to content. | `top` | `top`, `bottom`, `left`, `right` |
-| `video-primary-src` | Source for primary video. | `''` | URL (mp4/webm) |
-| `video-primary-autoplay`| Autoplays the video. | `false` | Boolean attribute |
-| `img-primary-mobile-width` | CSS width for mobile. | `100vw` | e.g., `100%`, `50vw` |
-
-### Background Media
-
-These attributes control media rendered behind the content.
-
-| Attribute Name | Description | Default | Notes |
-|----------------|-------------|---------|-------|
-| `img-background-src` | Source for background image. | `''` | |
-| `video-background-src` | Source for background video. | `''` | |
-| `background-overlay` | Applies an overlay class. | `''` | `background-overlay-N` |
-| `backdrop-filter` | Applies glassmorphism effects. | `''` | Space-separated classes |
-| `img-background-position`| CSS object-position. | `''` | `center`, `top-left`, `50% 50%` |
-
-### Styling & Layout (Container)
-
-| Attribute Name | Description | Values |
-|----------------|-------------|--------|
-| `text-alignment` | Aligns text content. | `left`, `center`, `right` |
-| `inner-alignment` | Aligns the inner content box. | `top-left`, `center`, `bottom-right`, etc. |
-| `background-color` | Sets background color class. | `background-color-N` |
-| `border` | Adds border class. | `border-small`, `border-medium`, etc. |
-| `shadow` | Adds shadow class. | `shadow-light`, `shadow-medium`, `shadow-heavy` |
-| `effects` | Adds animation/effect classes. | Custom strings |
+* **👁️ Lazy Loading:** Utilizes `IntersectionObserver` to defer initialization, source validation, and rendering until the element is within 50px of the viewport.
+* **🌗 Theme-Aware:** Natively supports dark and light mode asset swapping using `prefers-color-scheme` media queries.
+* **📱 Responsive Art Direction:** Seamlessly transitions between full-sized logos and simplified icons based on a defined breakpoint.
+* **🛡️ Auto-Validation & Fallbacks:** Automatically performs `HEAD` requests to validate image URLs before rendering. If a source fails, it gracefully degrades to a placeholder image.
+* **♿ Accessibility (a11y) Enforced:** Validates the presence of `alt` text alongside image sources. It also supports purely decorative logos by automatically applying `role="presentation"`.
 
 ---
 
-## 2. Key Features
+## 1. Setup & Usage
 
-### 🌓 Advanced Media Switching
-The component intelligently handles media sources:
-* **Theme Switching:** Supports distinct `*-light-src` and `*-dark-src` for both images and videos. The component internally generates `<picture>` tags or `<video>` logic to switch assets based on user system preference.
-* **Media Priority:** Validates sources via `HEAD` requests before rendering. Falls back to `placehold.co` if validation fails (in non-debug mode).
+### Requirements
+1.  Import the `custom-logo.js` component file into your bundle.
+2.  Ensure `VALID_ALIGNMENTS` and `VALID_ALIGN_MAP` are exported from your `../shared.js` utility.
+3.  Ensure your `../config.js` is set up to provide the application's `basePath`.
 
-### ⚡ Performance Optimization
-* **Lazy Loading:** Defaults to `loading="lazy"` for images and videos unless overridden.
-* **Fetch Priority:** Supports `fetchpriority="high"` for critical above-the-fold assets.
-* **Responsive Widths:** Allows defining distinct widths for mobile, tablet, and desktop (`img-primary-mobile-width`, etc.) to optimize the `sizes` attribute.
-
-### 🧩 Flexible Layouts
-* **Content Reordering:** The `content-order` attribute allows you to change the visual order of the paragraph, unordered list, and ordered list without changing the HTML structure.
-* **Inner Container:** Supports an "Inner" concept (`inner-class`, `inner-style`, `inner-background-color`) allowing for "card-inside-a-section" designs.
-
-### 🛡️ Security & Validation
-* **Sanitization:** styles passed via attributes (like `icon-style` or `button-style`) are sanitized against a whitelist of allowed CSS properties to prevent XSS/injection.
-* **Validation:** Source URLs are validated via fetch before rendering.
-
----
-
-## 3. Styling Reference (Internals)
-
-The component shadow DOM (or Light DOM content replacement) structure varies based on content, but generally follows:
-
-1.  **Wrapper (`div.block`)**: The main container. Applies `background-color`, `border`, `shadow`, and background media.
-2.  **Media Elements**:
-    * Background media is absolutely positioned behind content.
-    * Primary media is positioned via flex/grid logic based on `img-primary-position`.
-3.  **Inner Container (`div`)**: Wraps text/button content. Receives `inner-class` and `inner-padding`.
-    * **Group (`div[role="group"]`)**: Holds the Heading, Subheading, Text, Lists, and Buttons.
-
-### ⚠️ Important Styling Notes
-* **Backdrop Filters:** To use `backdrop-filter`, ensure the background allows for transparency. The component maps classes like `blur-small` to specific CSS `backdrop-filter` values internally.
-* **Padding:** Padding should generally be applied via utility classes in `customClasses` or `inner-class`, not inline styles, to ensure consistency.
-
----
-
-## 4. Example Usage
-
-### Simple Card with Image
+### Basic Example (Theme-Aware Desktop Logo)
 ```html
-<custom-block
-  heading="Feature Highlights"
-  paragraph="We offer state of the art web components."
-  img-primary-src="/assets/feature.jpg"
-  img-primary-alt="Feature illustration"
-  img-primary-position="top"
-  button-text="Learn More"
-  button-href="/features"
-  border="border-small"
-  shadow="shadow-medium">
-</custom-block>
+<custom-logo 
+    logo-full-light-src="/assets/logo-light.svg" 
+    logo-full-light-alt="Acme Corp"
+    logo-full-dark-src="/assets/logo-dark.svg" 
+    logo-full-dark-alt="Acme Corp"
+    logo-height="40px"
+    logo-full-position="left">
+</custom-logo>
+```
+
+### Advanced Example (Responsive & Theme-Aware)
+```html
+<custom-logo 
+    logo-full-primary-src="/assets/logo-full.svg" 
+    logo-full-primary-alt="Acme Corporation"
+    logo-icon-light-src="/assets/icon-light.svg"
+    logo-icon-dark-src="/assets/icon-dark.svg"
+    logo-icon-light-alt="Acme"
+    logo-icon-dark-alt="Acme"
+    logo-breakpoint="768"
+    logo-height="3rem"
+    logo-full-position="left"
+    logo-icon-position="center">
+</custom-logo>
+```
+
+---
+
+## 2. Configuration Attributes
+
+### Logo Sources & Accessibility
+
+| Attribute Name | Description | Required? |
+|----------------|-------------|-----------|
+| **logo-full-primary-src** | Default URL for the full desktop logo. | No* |
+| **logo-full-light-src** | URL for the full logo in light mode. | No* |
+| **logo-full-dark-src** | URL for the full logo in dark mode. | No* |
+| **logo-icon-primary-src** | Default URL for the mobile/icon logo. | No* |
+| **logo-icon-light-src** | URL for the icon logo in light mode. | No* |
+| **logo-icon-dark-src** | URL for the icon logo in dark mode. | No* |
+
+> **Note**: *At least one valid source (either full or icon) must be provided. If providing a light variant, the corresponding dark variant must also be provided (and vice versa).* Every provided source **must** have a corresponding `-alt` attribute (e.g., `logo-full-primary-alt`) unless **all** alt attributes are left blank, which marks the logo as decorative.
+
+### Layout & Settings
+
+| Attribute Name | Description | Default | Expected Format |
+|----------------|-------------|---------|-----------------|
+| **logo-breakpoint** | Viewport width (in pixels) below which the `icon` sources are displayed instead of `full` sources. | `''` | Positive Integer (e.g., `768`) |
+| **logo-height** | Applies inline height to the rendered `<img>` tag. | `''` | CSS Length (`px`, `rem`, `%`, `vh`, etc.) |
+| **logo-full-position** | Alignment for the full logo. Maps via `VALID_ALIGN_MAP`. | `place-self-center` | Defined in `VALID_ALIGNMENTS` |
+| **logo-icon-position** | Alignment for the icon logo (only active below `logo-breakpoint`). | `''` | Defined in `VALID_ALIGNMENTS` |
+
+---
+
+## 3. Key Features & Behavior
+
+### 🚦 Intersection Observer & Caching
+The component registers itself with a static `IntersectionObserver` upon creation. It will not fetch configuration, validate sources, or render HTML until it is `50px` away from intersecting the viewport. Once rendered, the generated HTML string is stored in a `renderCache` based on a hash of the component's critical attributes, preventing expensive re-renders on subsequent DOM changes unless the attributes themselves change.
+
+### 🖼️ The `<picture>` Generation Logic
+When resolving the attributes, the component dynamically constructs a `<picture>` element containing multiple `<source>` tags. 
+* **Media Queries:** It calculates CSS media queries based on your `logo-breakpoint`. Mobile/Icon sources are wrapped in `(max-width: {breakpoint - 1}px)`, while desktop/full sources get `(min-width: {breakpoint}px)`.
+* **Color Scheme:** It appends `and (prefers-color-scheme: dark/light)` to the media queries if light/dark specific attributes are provided.
+
+### 🔍 Strict Validation
+Before rendering the final HTML, the component executes a `HEAD` fetch request to validate every provided image URL (checking for `res.ok`). 
+* If validation fails (e.g., a 404 or CORS error), a console warning is emitted.
+* If *any* critical source is invalid, or if no sources are provided, the component falls back to rendering a safe placeholder (`https://placehold.co/300x40`).
+
+---
+
+## 4. Styling Reference (Internals)
+
+Understanding the internal structure helps when targeting the logo via external CSS.
+
+### 🏗️ Structural Hierarchy
+
+1.  **Outer Wrapper (`div.logo-container`)**
+    * **Classes:** Always includes `logo-container`. Additional alignment classes are mapped from `logo-full-position` via `VALID_ALIGN_MAP` (e.g., `place-self-center`).
+2.  **Anchor Tag (`a`)**
+    * **Attributes:** Always links to `/` (home).
+3.  **Picture Element (`picture`)**
+    * Contains the dynamically generated `<source>` tags specifying `media` and `srcset`.
+4.  **Fallback Image (`img`)**
+    * **Attributes:** Contains the `src` and `alt` for browsers that don't support `<picture>`.
+    * Includes `loading="lazy"` and `fetchpriority="high"`.
+    * Applies the inline `height` style based on the `logo-height` attribute.
+
+### 📱 Injected Styles (Breakpoint Override)
+If both `logo-breakpoint` and `logo-icon-position` are defined, the component injects a scoped `<style>` block immediately preceding the container:
+
+```css
+<style>
+    @media (max-width: {breakpoint - 1}px) {
+        .logo-container {
+            place-self: {mapped-icon-position} !important;
+        }
+    }
+</style>
+```
+
+---
+
+## 5. Troubleshooting
+
+* **Logo is displaying a `300x40` placeholder image:**
+    * Check your browser console. The component is likely failing its pre-render `HEAD` request. Ensure the image URLs are correct, exist on the server, and have proper CORS headers if loaded from a different origin.
+* **Getting Accessibility (❌) Errors in the console:**
+    * If you provide a `src` attribute (like `logo-icon-light-src`), you *must* provide the corresponding `alt` attribute (`logo-icon-light-alt`). If the logo is purely decorative, remove *all* `-alt` attributes from the element to trigger the `role="presentation"` mode.
+* **Logo isn't updating when I change attributes via JS:**
+    * The component batches and ignores attribute changes if it hasn't intersected the viewport yet. Ensure the element is visible on screen.
+* **How do I enable Debug Mode?**
+    * The component has robust internal logging. You can enable it by ensuring your URL contains `/dev/` in the path, or by appending `?debug=true` to your query string. Look for blue `[CustomLogo]` logs in your DevTools console.

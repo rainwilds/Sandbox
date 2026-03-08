@@ -1,92 +1,162 @@
-# Image Generator Documentation
+<style>
+    /* 1. Force all standard body text to be pure black */
+    body, p, li, h1, h2, h3, h4, h5, h6, table, th, td {
+        color: #000000 !important;
+    }
 
-The `image-generator.js` module provides utility functions for generating responsive and accessible image markup using the HTML `<picture>` element. It supports multiple image formats, responsive breakpoints, light/dark mode switching, and schema markup for SEO. The module exports two main functions, `generatePictureMarkup` and `generateLogoMarkup`, along with a `BACKDROP_FILTER_MAP` constant for applying backdrop filter styles. Below is a detailed explanation of the parameters for each function, grouped by function and presented in alphabetical order.
+    /* 2. Force the code blocks background to be white (optional, saves ink) */
+    code, pre {
+        background-color: #ffffff !important;
+        border: 1px solid #cccccc !important; /* Adds a nice border instead of a grey box */
+    }
 
-## `generatePictureMarkup` Parameters
+    /* 3. The "Nuclear" Option: Force EVERY distinct part of the code to be black. 
+       Syntax highlighters wrap keywords in <span> tags. We must target them. */
+    code, pre, code *, pre * {
+        color: #000000 !important;
+        font-weight: 600 !important; /* Semi-bold for readability */
+        text-shadow: none !important;
+    }
 
-The `generatePictureMarkup` function generates HTML markup for a responsive `<picture>` element with support for multiple image formats, light/dark mode sources, and responsive sizes.
+    /* 4. Keep comments distinctive but readable (Dark Grey + Italic) */
+    .hljs-comment, span.hljs-comment {
+        color: #444444 !important; 
+        font-style: italic !important;
+        font-weight: normal !important; /* Make comments thinner than code */
+    }
+</style>
 
-| Parameter Name | Description | Default Value | Expected Format |
-|----------------|-------------|---------------|-----------------|
-| alt | Provides the alt text for the default image for accessibility. | `''` (empty) | Plain text (e.g., `Background image`) |
-| aspectRatio | Sets the aspect ratio for the image. | `''` (empty) | One of: `16/9`, `9/16`, `3/2`, `2/3`, `1/1`, `21/9` |
-| customClasses | Adds custom CSS classes to the `<picture>` element. | `''` (empty) | Space-separated class names (e.g., `custom-class another-class`) |
-| darkAlt | Provides the alt text for the dark mode image. | `''` (empty) | Plain text (e.g., `Dark mode background`) |
-| darkSrc | Specifies the source URL for the dark mode image. | `''` (empty) | Valid image URL (e.g., `image-dark.jpg`) |
-| desktopWidth | Sets the width of the image on desktop screens (min-width: 1024px). | `'100vw'` | CSS width value (e.g., `1200px`, `50vw`) |
-| extraClasses | Additional CSS classes to append to the `<picture>` element. | `[]` (empty array) | Array of class names (e.g., `['extra-class', 'style-class']`) |
-| fetchPriority | Defines the fetch priority for the image. | `''` (empty) | One of: `high`, `low`, `auto` |
-| includeSchema | Includes schema.org `ImageObject` markup when true. | `false` | Boolean |
-| isDecorative | Marks the image as decorative, omitting alt text for accessibility. | `false` | Boolean |
-| lightAlt | Provides the alt text for the light mode image. | `''` (empty) | Plain text (e.g., `Light mode background`) |
-| lightSrc | Specifies the source URL for the light mode image. | `''` (empty) | Valid image URL (e.g., `image-light.jpg`) |
-| loading | Sets the loading strategy for the image. | `'lazy'` | One of: `lazy`, `eager` |
-| mobileWidth | Sets the width of the image on mobile screens (max-width: 768px). | `'100vw'` | CSS width value (e.g., `600px`, `100vw`) |
-| noResponsive | Disables responsive sources when true, using only provided sources. | `false` | Boolean |
-| src | Specifies the default source URL for the image. | None (required) | Valid image URL (e.g., `image.jpg`) |
-| tabletWidth | Sets the width of the image on tablet screens (min-width: 768px, max-width: 1023px). | `'100vw'` | CSS width value (e.g., `800px`, `100vw`) |
+# Image Generator (`image-generator.js`)
 
-### Notes for `generatePictureMarkup`
-- The `src` parameter must be a valid image URL with a supported extension (`.jpg`, `.jpeg`, `.png`, `.webp`, `.avif`, `.jxl`, `.svg`).
-- Non-decorative images require an `alt` attribute or both `lightAlt` and `darkAlt` if `lightSrc` and `darkSrc` are provided; otherwise, an error is logged, and an empty string is returned.
-- Responsive sources are generated for multiple formats (`jxl`, `avif`, `webp`, `jpeg`) and widths (`768`, `1024`, `1366`, `1920`, `2560`) unless `noResponsive` is true.
-- The `sizes` attribute is computed based on `mobileWidth`, `tabletWidth`, and `desktopWidth`, with breakpoints defined in `SIZES_BREAKPOINTS`.
-- Invalid `aspectRatio` values are ignored, and supported ratios add a class like `aspect-ratio-16-9`.
-- A fallback image (`https://placehold.co/3000x2000`) is used if the image fails to load, with a fallback alt text for non-decorative images.
-- The `animate animate-fade-in` class is added to the `<picture>` element for animation.
-- Schema markup (`ImageObject`) is included if `includeSchema` is true, with a `<figcaption>` if alt text is provided.
+The `image-generator.js` module is a powerful utility designed to programmatically generate robust, responsive `<picture>` markup. It handles format negotiation (JXL, AVIF, WebP, JPG), theme switching (light/dark mode), responsive art direction (swapping assets at specific breakpoints), and automated `srcset` calculation.
 
-## `generateLogoMarkup` Parameters
+Unlike a Web Component, this is an exported asynchronous function used internally by components like `<custom-block>` and `<custom-logo>`.
 
-The `generateLogoMarkup` function generates HTML markup for a responsive `<picture>` element specifically for logos, with support for mobile, tablet, and desktop sources, as well as light/dark mode switching.
+## Features
 
-| Parameter Name | Description | Default Value | Expected Format |
-|----------------|-------------|---------------|-----------------|
-| alt | Provides the alt text for the logo for accessibility. | `''` (empty) | Plain text (e.g., `Company logo`) |
-| customClasses | Adds custom CSS classes to the `<picture>` element. | `''` (empty) | Space-separated class names (e.g., `logo-class custom-class`) |
-| darkSrc | Specifies the source URL for the dark mode logo (desktop). | `''` (empty) | Valid image URL (e.g., `logo-dark.jpg`) |
-| desktopSrc | Specifies the source URL for the desktop logo (min-width: 1024px). | `''` (empty) | Valid image URL (e.g., `logo-desktop.jpg`) |
-| extraClasses | Additional CSS classes to append to the `<picture>` element. | `[]` (empty array) | Array of class names (e.g., `['extra-class', 'style-class']`) |
-| fetchPriority | Defines the fetch priority for the logo image. | `'high'` | One of: `high`, `low`, `auto` |
-| isDecorative | Marks the logo as decorative, omitting alt text for accessibility. | `false` | Boolean |
-| lightSrc | Specifies the source URL for the light mode logo (desktop). | `''` (empty) | Valid image URL (e.g., `logo-light.jpg`) |
-| loading | Sets the loading strategy for the logo image. | `'eager'` | One of: `lazy`, `eager` |
-| mobileDarkSrc | Specifies the source URL for the dark mode logo on mobile screens (max-width: 767px). | `''` (empty) | Valid image URL (e.g., `logo-mobile-dark.jpg`) |
-| mobileLightSrc | Specifies the source URL for the light mode logo on mobile screens (max-width: 767px). | `''` (empty) | Valid image URL (e.g., `logo-mobile-light.jpg`) |
-| mobileSrc | Specifies the source URL for the mobile logo (max-width: 767px). | `''` (empty) | Valid image URL (e.g., `logo-mobile.jpg`) |
-| src | Specifies the default source URL for the logo. | None (required if no other sources) | Valid image URL (e.g., `logo.jpg`) |
-| tabletDarkSrc | Specifies the source URL for the dark mode logo on tablet screens (min-width: 768px, max-width: 1023px). | `''` (empty) | Valid image URL (e.g., `logo-tablet-dark.jpg`) |
-| tabletLightSrc | Specifies the source URL for the light mode logo on tablet screens (min-width: 768px, max-width: 1023px). | `''` (empty) | Valid image URL (e.g., `logo-tablet-light.jpg`) |
-| tabletSrc | Specifies the source URL for the tablet logo (min-width: 768px, max-width: 1023px). | `''` (empty) | Valid image URL (e.g., `logo-tablet.jpg`) |
+* **🖼️ Advanced Format Support:** Automatically generates sources for modern image formats (JXL, AVIF, WebP) with a reliable JPG fallback.
+* **📏 Automated `srcset` Generation:** Builds complex `srcset` strings based on the system's `VIEWPORT_BREAKPOINT_WIDTHS`, ensuring browsers only download appropriately sized assets.
+* **🌓 Theme Awareness:** Natively handles `lightSrc` and `darkSrc` inputs, wrapping them in `prefers-color-scheme` media queries.
+* **📱 Art Direction:** Supports swapping entirely different image files (e.g., `iconSrc` vs `src`) at a defined `breakpoint`.
+* **⚡ Caching & Performance:** Implements an internal `markupCache` to instantly return generated HTML if called multiple times with the exact same parameters.
+* **♿ Accessibility & SEO:** Enforces strict `alt` text validation and optionally injects JSON-LD `ImageObject` schema directly into the markup.
 
-### Notes for `generateLogoMarkup`
-- At least one valid source (`src`, `mobileSrc`, `tabletSrc`, `desktopSrc`) must be provided with a supported extension (`.jpg`, `.jpeg`, `.png`, `.webp`, `.avif`, `.jxl`, `.svg`).
-- Non-decorative logos require an `alt` attribute; otherwise, an error is logged, and an empty string is returned.
-- Light and dark mode sources (`lightSrc`/`darkSrc`, `mobileLightSrc`/`mobileDarkSrc`, `tabletLightSrc`/`tabletDarkSrc`) must be provided as pairs; if only one is specified, an error is logged, and an empty string is returned.
-- The `<picture>` element includes `<source>` tags for mobile (max-width: 767px), tablet (min-width: 768px, max-width: 1023px), and desktop (min-width: 1024px) breakpoints, with light/dark mode support.
-- The fallback `<img>` uses `desktopSrc`, `tabletSrc`, `mobileSrc`, or `src` in that order, with a placeholder (`https://placehold.co/300x300`) if loading fails.
-- The `animate animate-fade-in` class is added to the `<picture>` element for animation.
-- Defaults to `loading="eager"` and `fetchpriority="high"` to prioritize logo loading.
+---
 
-## `BACKDROP_FILTER_MAP` Constant
+## 1. Setup & Usage
 
-The `BACKDROP_FILTER_MAP` constant defines a mapping of CSS class names to backdrop filter styles for use in other components.
+### Requirements
+1.  Ensure `getImageResponsivePath` and `getImagePrimaryPath` are properly exported from `../config.js`.
+2.  Ensure `VIEWPORT_BREAKPOINTS` and `VIEWPORT_BREAKPOINT_WIDTHS` are exported from `../shared.js`.
 
-| Key | Value |
-|-----|-------|
-| `backdrop-filter-blur-small` | `blur(var(--blur-small))` |
-| `backdrop-filter-blur-medium` | `blur(var(--blur-medium))` |
-| `backdrop-filter-blur-large` | `blur(var(--blur-large))` |
-| `backdrop-filter-grayscale-small` | `grayscale(var(--grayscale-small))` |
-| `backdrop-filter-grayscale-medium` | `grayscale(var(--grayscale-medium))` |
-| `backdrop-filter-grayscale-large` | `grayscale(var(--grayscale-large))` |
+### Basic Example (Inside a Component)
+```javascript
+import { generatePictureMarkup } from '../generators/image-generator.js';
 
-### Notes for `BACKDROP_FILTER_MAP`
-- Used by components like `<custom-nav>` to apply backdrop filter styles via inline CSS.
-- Assumes CSS variables (`--blur-small`, `--blur-medium`, etc.) are defined in the project's stylesheet.
+async function renderImage() {
+  const markup = await generatePictureMarkup({
+    src: 'hero-image.jpg',
+    alt: 'A beautiful landscape',
+    loading: 'eager',
+    fetchPriority: 'high'
+  });
+  
+  document.getElementById('container').innerHTML = markup;
+}
+```
 
-## General Notes
-- Both functions validate image sources and log errors for invalid URLs or missing alt text for non-decorative images.
-- Responsive sources in `generatePictureMarkup` use a base path (`./img/responsive/`) and generate `srcset` for multiple widths and formats.
-- Fallback images ensure graceful degradation if primary sources fail to load.
-- The module is designed for use in Web Components like `<custom-logo>` and `<custom-block>` to handle image rendering consistently.
+### Advanced Example (Theme & Art Direction)
+```javascript
+import { generatePictureMarkup } from '../generators/image-generator.js';
+
+async function renderLogo() {
+  const markup = await generatePictureMarkup({
+    lightSrc: 'logo-full-light.jpg',
+    darkSrc: 'logo-full-dark.jpg',
+    iconLightSrc: 'icon-light.jpg',
+    iconDarkSrc: 'icon-dark.jpg',
+    alt: 'Acme Corp',
+    breakpoint: '768', // Switches to icon sources below 768px
+    mobileWidth: '50vw',
+    desktopWidth: '25vw'
+  });
+  
+  document.getElementById('logo-container').innerHTML = markup;
+}
+```
+
+---
+
+## 2. Configuration Parameters
+
+The `generatePictureMarkup` function accepts a single options object with the following properties:
+
+### 2.1 Image Sources & Accessibility
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| **src** | `String` | `''` | The default, full-size image source. |
+| **lightSrc** / **darkSrc** | `String` | `''` | Theme-specific full-size sources. |
+| **iconSrc** | `String` | `''` | The default mobile/icon source (requires `breakpoint`). |
+| **iconLightSrc** / **iconDarkSrc**| `String` | `''` | Theme-specific mobile/icon sources. |
+| **alt** | `String` | `''` | Default alt text. |
+| **lightAlt** / **darkAlt** | `String` | `''` | Theme-specific alt text. |
+| **isDecorative** | `Boolean`| `false` | If `true`, forces `alt=""` and `role="presentation"`. |
+| **includeSchema**| `Boolean`| `false` | If `true`, appends a `<script type="application/ld+json">` block. |
+
+> **Note on Alts:** If no alt text is provided for *any* attribute, the generator automatically sets `isDecorative = true`. If an alt is required but missing, it returns a placeholder image.
+
+### 2.2 Sizing & Breakpoints
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| **mobileWidth** | `String` | `'100vw'`| The CSS viewport width calculation for mobile sizes. |
+| **tabletWidth** | `String` | `'100vw'`| The CSS viewport width calculation for tablet sizes. |
+| **desktopWidth** | `String` | `'100vw'`| The CSS viewport width calculation for desktop sizes. |
+| **breakpoint** | `String` | `''` | Pixel width at which the `src` switches to the `iconSrc`. |
+| **noResponsive** | `Boolean`| `false` | If `true`, disables `srcset` format variants (SVGs do this automatically). |
+
+### 2.3 Styling & Behavior
+
+| Parameter | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| **customClasses**| `String` | `''` | CSS classes applied to the `<picture>` element. |
+| **extraClasses** | `Array/Str`| `[]` | CSS classes applied specifically to the fallback `<img>` element. |
+| **extraStyles** | `String` | `''` | Inline styles applied to the fallback `<img>` element. |
+| **isBackground** | `Boolean`| `false` | If `true`, prevents `extraStyles` from being applied to the `<img>`. |
+| **loading** | `String` | `'lazy'` | HTML `loading` attribute (`lazy` or `eager`). |
+| **fetchPriority**| `String` | `''` | HTML `fetchpriority` attribute (`high`, `low`, `auto`). |
+| **aspectRatio** | `String` | `''` | Maps to an `aspect-ratio-*` CSS class. Must be in `VALID_ASPECT_RATIOS`. |
+
+---
+
+## 3. Key Features & Behavior
+
+### 🚦 Validation & SVG Handling
+Before processing, the module checks if the provided sources end in valid extensions. If the source is an SVG (`.svg`), the generator automatically enables `noResponsive` mode. SVGs do not need multiple sizes or modern format wrappers, so they are rendered as simple `<source>` tags.
+
+### 🧮 How `srcset` & `sizes` are Calculated
+The true power of this generator is how it builds the `<source>` tags for modern formats (JXL, AVIF, WEBP). 
+1.  **Format Iteration:** It loops through the `IMAGE_FORMATS` array.
+2.  **Srcset Generation:** It maps over the `VIEWPORT_BREAKPOINT_WIDTHS` to generate a string pointing to pre-rendered resized images in the `IMAGE_RESPONSIVE_DIRECTORY_PATH`. 
+    *(e.g., `/img/responsive/hero-640.webp 640w, /img/responsive/hero-1024.webp 1024w`)*
+3.  **Sizes Generation:** It calculates the `sizes` attribute by parsing the `mobileWidth`, `tabletWidth`, and `desktopWidth` inputs and matching them against the system breakpoints.
+
+### 🌓 Client-Side Hydration
+The module includes standalone client-side code that runs on `DOMContentLoaded`. 
+* **Theme Switching:** It listens to the `(prefers-color-scheme: dark)` media query. When the OS theme changes, it dynamically updates the `<img>.src` and `<img>.alt` to match the currently active `<source>` tag without requiring a page reload.
+* **Lazy Loading:** It instantiates an `IntersectionObserver` to handle `loading="lazy"` images, ensuring they only fetch when near the viewport.
+
+---
+
+## 4. Troubleshooting
+
+* **Images are displaying a `3000x2000` placeholder:**
+    * Ensure your image paths are correct and have valid extensions (`.jpg`, `.png`, `.webp`, `.avif`, `.jxl`, `.svg`).
+    * Ensure you have provided `alt` text for all non-decorative images.
+* **Breakpoint isn't switching to icon:**
+    * The `breakpoint` parameter must be a string containing an integer that matches one of the values in `VIEWPORT_BREAKPOINT_WIDTHS`. 
+* **SVGs are generating JXL/AVIF sources:**
+    * This shouldn't happen. The module detects `.svg` extensions and automatically forces `noResponsive = true`, bypassing the format iteration loop.
+* **Debug logging isn't appearing:**
+    * Append `?debug=true` to your URL to enable the internal logger and clear the `markupCache`.
