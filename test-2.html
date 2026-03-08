@@ -64,109 +64,116 @@
       </custom-nav>
     </custom-header>
 
-    <main>
-      <custom-block
-        style="min-height: 80vh"
-        inner-class="padding-large space-between"
-        img-background-light-src="tourism-photography-light-1.jpg"
-        img-background-dark-src="tourism-photography-dark-1.jpg"
-        img-background-alt="Breathtaking tourism photography"
-        img-background-fetchpriority="high"
-        img-background-loading="eager"
-        background-overlay="background-overlay-black"
-        inner-alignment="center-left"
-        heading="Explore the World"
-        heading-tag="h1"
-        paragraph="Discover breathtaking locations compiled seamlessly via static HTML."
-        button-text="View Gallery"
-        button-href="#gallery"
-        button-class="button-primary"
-        button-icon="<i class='fa-solid fa-compass'></i>"
-        button-icon-position="left"></custom-block>
+<main>
+        <custom-block 
+            style="min-height: 80vh; grid-column: 1 / -1;"
+            inner-class="padding-large"
+            img-background-light-src="tourism-photography-light-1.jpg"
+            img-background-dark-src="tourism-photography-dark-1.jpg"
+            img-background-alt="Breathtaking tourism photography"
+            img-background-fetchpriority="high"
+            img-background-loading="eager"
+            background-overlay="background-overlay-black"
+            inner-alignment="center-left"
+            heading="Explore the World"
+            heading-tag="h1"
+            paragraph="Discover breathtaking locations compiled seamlessly via static HTML."
+            button-text="View Gallery"
+            button-href="#gallery"
+            button-class="button-primary"
+            button-icon="<i class='fa-solid fa-compass'></i>"
+            button-icon-position="left">
+        </custom-block>
 
-      <custom-block
-        class="padding-large"
-        video-background-src="video/video1.mp4"
-        video-background-autoplay
-        video-background-loop
-        video-background-muted
-        video-background-alt="Dynamic video background loop"
-        background-overlay="background-overlay-black"
-        inner-alignment="center"
-        text-alignment="center"
-        heading="Dynamic Media"
-        heading-tag="h2"
-        paragraph="Native video tag generation. Pauses automatically when out of view."
-        button-text="Watch Full"
-        button-class="button-secondary"></custom-block>
+        <custom-block 
+            style="min-height: 50vh; grid-column: 1 / -1;"
+            inner-class="padding-large"
+            video-background-src="video/video1.mp4"
+            video-background-autoplay
+            video-background-loop
+            video-background-muted
+            video-background-alt="Dynamic video background loop"
+            background-overlay="background-overlay-black"
+            inner-alignment="center"
+            text-alignment="center"
+            heading="Dynamic Media"
+            heading-tag="h2"
+            paragraph="Native video tag generation. Pauses automatically when out of view."
+            button-text="Watch Full"
+            button-class="button-secondary">
+        </custom-block>
 
-      <section
-        id="gallery"
-        style="padding: 4rem 2rem">
-        <custom-block
-          heading="Featured Destinations"
-          heading-tag="h2"
-          text-alignment="center"
-          paragraph="Swipe to explore our curated photography."></custom-block>
+        <section id="gallery" style="padding: 4rem 0;">
+            <custom-block 
+                heading="Featured Destinations" 
+                heading-tag="h2"
+                text-alignment="center"
+                paragraph="Swipe to explore our curated photography.">
+            </custom-block>
 
-        <custom-slider
-          slides-per-view-mobile="1"
-          slides-per-view-tablet="2"
-          slides-per-view-laptop="3"
-          slides-per-view-desktop="3"
-          slides-per-view-large="4"
-          gap="1.5rem"
-          draggable
-          navigation
-          pagination
-          pause-on-hover
-          autoplay="5s"
-          navigation-icon-left="<i class='fa-solid fa-chevron-left'></i>"
-          navigation-icon-right="<i class='fa-solid fa-chevron-right'></i>"
-          pagination-position="below"
-          style="margin-top: 2rem">
-          <custom-block
-            class="block border-small border-radius-medium shadow-light"
-            img-primary-light-src="tourism-photography-light-2.jpg"
-            img-primary-dark-src="tourism-photography-dark-2.jpg"
-            img-primary-alt="Beautiful architecture"
-            img-primary-aspect-ratio="16/9"
-            heading="Historic Architecture"
-            heading-tag="h3"
-            inner-class="padding-medium"></custom-block>
+            <custom-slider 
+                slides-per-view-mobile="1"
+                slides-per-view-tablet="2"
+                slides-per-view-laptop="3"
+                slides-per-view-desktop="3"
+                slides-per-view-large="4"
+                gap="1.5rem"
+                draggable
+                navigation
+                pagination
+                pause-on-hover
+                autoplay="5s"
+                navigation-icon-left="<i class='fa-solid fa-chevron-left'></i>"
+                navigation-icon-right="<i class='fa-solid fa-chevron-right'></i>"
+                pagination-position="below"
+                style="margin-top: 2rem;">
+                
+                <custom-block 
+                    class="block border-small border-radius-medium shadow-light"
+                    img-primary-light-src="tourism-photography-light-2.jpg"
+                    img-primary-dark-src="tourism-photography-dark-2.jpg"
+                    img-primary-alt="Beautiful architecture"
+                    img-primary-aspect-ratio="16/9"
+                    heading="Historic Architecture"
+                    heading-tag="h3"
+                    inner-class="padding-medium">
+                </custom-block>
 
-          <custom-block
-            class="block border-small border-radius-medium shadow-light"
-            img-primary-light-src="tourism-photography-light-3.jpg"
-            img-primary-dark-src="tourism-photography-dark-3.jpg"
-            img-primary-alt="Scenic landscape"
-            img-primary-aspect-ratio="16/9"
-            heading="Scenic Landscapes"
-            heading-tag="h3"
-            inner-class="padding-medium"></custom-block>
+                <custom-block 
+                    class="block border-small border-radius-medium shadow-light"
+                    img-primary-light-src="tourism-photography-light-3.jpg"
+                    img-primary-dark-src="tourism-photography-dark-3.jpg"
+                    img-primary-alt="Scenic landscape"
+                    img-primary-aspect-ratio="16/9"
+                    heading="Scenic Landscapes"
+                    heading-tag="h3"
+                    inner-class="padding-medium">
+                </custom-block>
 
-          <custom-block
-            class="block border-small border-radius-medium shadow-light"
-            img-primary-light-src="tourism-photography-light-4.jpg"
-            img-primary-dark-src="tourism-photography-dark-4.jpg"
-            img-primary-alt="Local culture"
-            img-primary-aspect-ratio="16/9"
-            heading="Local Culture"
-            heading-tag="h3"
-            inner-class="padding-medium"></custom-block>
-
-          <custom-block
-            class="block border-small border-radius-medium shadow-light"
-            video-primary-src="video/video2.mp4"
-            video-primary-autoplay
-            video-primary-loop
-            video-primary-muted
-            video-primary-alt="Travel highlight reel"
-            heading="Journey Highlights"
-            heading-tag="h3"
-            inner-class="padding-medium"></custom-block>
-        </custom-slider>
-      </section>
+                <custom-block 
+                    class="block border-small border-radius-medium shadow-light"
+                    img-primary-light-src="tourism-photography-light-4.jpg"
+                    img-primary-dark-src="tourism-photography-dark-4.jpg"
+                    img-primary-alt="Local culture"
+                    img-primary-aspect-ratio="16/9"
+                    heading="Local Culture"
+                    heading-tag="h3"
+                    inner-class="padding-medium">
+                </custom-block>
+                
+                <custom-block 
+                    class="block border-small border-radius-medium shadow-light"
+                    video-primary-src="video/video2.mp4"
+                    video-primary-autoplay
+                    video-primary-loop
+                    video-primary-muted
+                    video-primary-alt="Travel highlight reel"
+                    heading="Journey Highlights"
+                    heading-tag="h3"
+                    inner-class="padding-medium">
+                </custom-block>
+            </custom-slider>
+        </section>
     </main>
   </body>
 </html>
