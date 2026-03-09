@@ -191,11 +191,13 @@ class CustomBlock extends HTMLElement {
         const basePath = await this.#getBasePath();
         const primaryPath = await getImagePrimaryPath();
         const videoPath = await getVideoPath();
-        const resolveImageSrc = (path) => {
-            if (!path) return '';
-            if (path.startsWith('http')) return path;
-            return primaryPath + path.replace(/^\/+/, ''); // Standardized!
-        };
+// Corrected code
+const resolveImageSrc = (attrName) => {
+    const path = this.getAttribute(attrName) || '';
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+    return primaryPath + path.replace(/^\/+/, ''); // Standardized!
+};
         const resolveVideoSrc = (attrName) => {
             const path = this.getAttribute(attrName) || '';
             if (!path) return '';
