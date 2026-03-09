@@ -1,5 +1,3 @@
-// shared.js
-
 // Standard viewport breakpoints for consistent responsive behavior across components
 export const VIEWPORT_BREAKPOINTS = [
     { name: 'mobile', maxWidth: 768 },
@@ -69,3 +67,11 @@ export const ALLOWED_LIST_STYLES = [
     'text-align', 'display', 'width', 'height', 'list-style', 'list-style-position', 'list-style-type',
     'grid-template-columns', 'justify-content'
 ];
+
+export const VALID_ASPECT_RATIOS = ['16/9', '9/16', '3/2', '2/3', '1/1', '21/9'];
+
+export const VALID_PADDING_CLASSES = ['padding-small', 'padding-medium', 'padding-large', 'padding-huge'];
+
+export const VALID_BORDER_CLASSES = ['border-small', 'border-medium', 'border-large', 'border-radius-small', 'border-radius-medium', 'border-radius-large'];
+
+export const VALID_HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];

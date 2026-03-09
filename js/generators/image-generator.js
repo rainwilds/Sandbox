@@ -2,12 +2,11 @@
 
 // Import config loader for responsive image path and shared breakpoints
 import { getImageResponsivePath, getImagePrimaryPath } from '../config.js';
-import { VIEWPORT_BREAKPOINTS, VIEWPORT_BREAKPOINT_WIDTHS } from '../shared.js';
+import { VIEWPORT_BREAKPOINTS, VIEWPORT_BREAKPOINT_WIDTHS, VALID_ASPECT_RATIOS } from '../shared.js';
 
 // Internal constants for image validation and responsive generation (not exported).
 const VALID_IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
 const IMAGE_FORMATS = ['jxl', 'avif', 'webp', 'jpg'];
-const VALID_ASPECT_RATIOS = new Set(['16/9', '9/16', '3/2', '2/3', '1/1', '21/9']);
 const DEFAULT_IMAGE_SIZE_VALUE = 3840;
 
 // Get responsive directory path from config (with fallback)
@@ -170,7 +169,7 @@ export async function generatePictureMarkup({
     // Build classes for picture element (excluding extraClasses).
     const pictureClasses = [...new Set([
       ...customClasses.split(/\s+/),
-      ...(aspectRatio && VALID_ASPECT_RATIOS.has(aspectRatio) ? [`aspect-ratio-${aspectRatio.replace('/', '-')}`] : []),
+      ...(aspectRatio && VALID_ASPECT_RATIOS.includes(aspectRatio) ? [`aspect-ratio-${aspectRatio.replace('/', '-')}`] : []),
       'animate', 'animate-fade-in'
     ].filter(Boolean))];
     const pictureClassAttr = pictureClasses.length ? ` class="${pictureClasses.join(' ')}"` : '';

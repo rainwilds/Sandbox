@@ -99,10 +99,10 @@ class CustomLogo extends HTMLElement {
         this.#log('Parsing new attributes', { elementId: this.id || 'no-id', outerHTML: this.outerHTML.substring(0, 200) + '...' });
         const logoPath = await getLogoPath();
 
-        const resolvePath = (path) => {
+const resolvePath = (path) => {
             if (!path) return '';
             if (path.startsWith('http')) return path;
-            return logoPath + (path.startsWith('/') ? path.slice(1) : path);
+            return logoPath + path.replace(/^\/+/, '');
         };
 
         const attrs = {

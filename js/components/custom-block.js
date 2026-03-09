@@ -1,6 +1,18 @@
 import { generatePictureMarkup } from '../generators/image-generator.js';
 import { generateVideoMarkup } from '../generators/video-generator.js';
 import { ALLOWED_ICON_STYLES, ALLOWED_BUTTON_STYLES, ALLOWED_LIST_STYLES, VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } from '../shared.js';
+import {
+    ALLOWED_ICON_STYLES,
+    ALLOWED_BUTTON_STYLES,
+    ALLOWED_LIST_STYLES,
+    BACKDROP_FILTER_MAP,
+    VALID_ALIGNMENTS,
+    VALID_ALIGN_MAP,
+    VALID_BORDER_CLASSES,
+    VALID_HEADING_TAGS,
+    VALID_PADDING_CLASSES,
+    VALID_SHADOW_CLASSES
+} from '../shared.js';
 import { getConfig, getImagePrimaryPath, getVideoPath } from '../config.js';
 
 class CustomBlock extends HTMLElement {
@@ -180,11 +192,10 @@ class CustomBlock extends HTMLElement {
         const basePath = await this.#getBasePath();
         const primaryPath = await getImagePrimaryPath();
         const videoPath = await getVideoPath();
-        const resolveImageSrc = (attrName) => {
-            const path = this.getAttribute(attrName) || '';
+        const resolveImageSrc = (path) => {
             if (!path) return '';
             if (path.startsWith('http')) return path;
-            return primaryPath + (path.startsWith('/') ? path.slice(1) : path);
+            return primaryPath + path.replace(/^\/+/, ''); // Standardized!
         };
         const resolveVideoSrc = (attrName) => {
             const path = this.getAttribute(attrName) || '';
@@ -267,12 +278,12 @@ class CustomBlock extends HTMLElement {
         const innerBackdropFilterClasses = this.getAttribute('inner-backdrop-filter')?.split(' ').filter(cls => cls) || [];
         const headingTag = this.getAttribute('heading-tag') || 'h2';
         const subHeadingTag = this.getAttribute('sub-heading-tag') || 'h3';
-        const validHeadingTags = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
-        if (!validHeadingTags.includes(headingTag.toLowerCase())) {
-            this.#warn('Invalid heading tag', { value: headingTag, element: this.id || 'no-id', default: 'h2', validValues: validHeadingTags });
+
+        if (!VALID_HEADING_TAGS.includes(headingTag.toLowerCase())) {
+            this.#warn('Invalid heading tag', { value: headingTag, element: this.id || 'no-id', default: 'h2', validValues: VALID_HEADING_TAGS });
         }
-        if (!validHeadingTags.includes(subHeadingTag.toLowerCase())) {
-            this.#warn('Invalid sub-heading tag', { value: subHeadingTag, element: this.id || 'no-id', default: 'h3', validValues: validHeadingTags });
+        if (!VALID_HEADING_TAGS.includes(subHeadingTag.toLowerCase())) {
+            this.#warn('Invalid sub-heading tag', { value: subHeadingTag, element: this.id || 'no-id', default: 'h3', validValues: VALID_HEADING_TAGS });
         }
         const innerAlignment = this.getAttribute('inner-alignment') || '';
         if (innerAlignment && !VALID_ALIGNMENTS.includes(innerAlignment)) {
@@ -292,11 +303,10 @@ class CustomBlock extends HTMLElement {
         }
         const shadow = this.getAttribute('shadow') || '';
         let shadowClass = '';
-        const validShadowClasses = ['shadow-light', 'shadow-medium', 'shadow-heavy'];
-        if (shadow && validShadowClasses.includes(shadow)) {
+        if (shadow && VALID_SHADOW_CLASSES.includes(shadow)) {
             shadowClass = shadow;
         } else if (shadow) {
-            this.#warn('Invalid shadow class', { value: shadow, element: this.id || 'no-id', validValues: validShadowClasses });
+            this.#warn('Invalid shadow class', { value: shadow, element: this.id || 'no-id', validValues: VALID_SHADOW_CLASSES });
         }
         const innerShadow = this.getAttribute('inner-shadow') || '';
         let innerShadowClass = '';
@@ -705,9 +715,9 @@ class CustomBlock extends HTMLElement {
             effects: sanitizedEffects,
             sectionTitle: this.hasAttribute('heading') && !this.hasAttribute('button-text'),
             heading: this.getAttribute('heading') || '',
-            headingTag: validHeadingTags.includes(headingTag.toLowerCase()) ? headingTag.toLowerCase() : 'h2',
+            headingTag: VALID_HEADING_TAGS.includes(headingTag.toLowerCase()) ? headingTag.toLowerCase() : 'h2',
             subHeading: this.getAttribute('sub-heading') || '',
-            subHeadingTag: validHeadingTags.includes(subHeadingTag.toLowerCase()) ? subHeadingTag.toLowerCase() : 'h3',
+            subHeadingTag: VALID_HEADING_TAGS.includes(subHeadingTag.toLowerCase()) ? subHeadingTag.toLowerCase() : 'h3',
             icon,
             iconStyle: sanitizedIconStyle,
             iconClass: sanitizedIconClass,
@@ -1097,16 +1107,14 @@ class CustomBlock extends HTMLElement {
             isButtonOnly,
             hasContent: !!(attrs.heading || attrs.subHeading || attrs.paragraph || attrs.ulItems || attrs.olItems || attrs.buttonText || attrs.icon)
         });
-        const paddingClasses = ['padding-small', 'padding-medium', 'padding-large'];
-        const borderClasses = ['border-small', 'border-medium', 'border-large', 'border-radius-small', 'border-radius-medium', 'border-radius-large'];
         const borderRadiusClasses = attrs.customClasses
             .split(' ')
-            .filter(cls => cls && borderClasses.includes(cls) && cls.startsWith('border-radius'))
+            .filter(cls => cls && VALID_BORDER_CLASSES.includes(cls) && cls.startsWith('border-radius'))
             .join(' ')
             .trim();
         const mediaClasses = attrs.customClasses
             .split(' ')
-            .filter(cls => cls && !paddingClasses.includes(cls) && !borderClasses.includes(cls))
+            .filter(cls => cls && !VALID_PADDING_CLASSES.includes(cls) && !VALID_BORDER_CLASSES.includes(cls))
             .join(' ')
             .trim();
         const fragment = document.createDocumentFragment();

@@ -3,7 +3,7 @@
 'use strict';
 
 import { getConfig } from '../config.js';
-import { VIEWPORT_BREAKPOINTS } from '../shared.js';
+import { VIEWPORT_BREAKPOINTS, VIEWPORT_BREAKPOINT_WIDTHS } from '../shared.js';
 
 const isDev = window.location.pathname.includes('/dev/') || new URLSearchParams(window.location.search).get('debug') === 'true';
 
@@ -206,11 +206,11 @@ async function updateHead(attributes, setup) {
         .map(s => s.trim())
         .filter(Boolean);
 
-      if (imageTemplates.length > 0) {
+if (imageTemplates.length > 0) {
         const actualCount = Math.min(count, imageTemplates.length);
-        const defaultWidths = VIEWPORT_BREAKPOINTS
-          .map(bp => bp.maxWidth)
-          .filter(w => Number.isFinite(w));
+        
+        const defaultWidths = VIEWPORT_BREAKPOINT_WIDTHS.filter(w => Number.isFinite(w));
+        
         const widths = attributes.heroWidths
           ? attributes.heroWidths.split(',').map(w => parseInt(w.trim())).filter(w => w > 0)
           : defaultWidths;
