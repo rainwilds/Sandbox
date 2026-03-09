@@ -1390,7 +1390,8 @@ const resolveImageSrc = (attrName) => {
             }
             if (attrs.innerCustomClasses) {
                 const innerDiv = document.createElement('div');
-                const innerDivClassList = attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-'));
+                // Corrected code
+const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-') && !VALID_PADDING_CLASSES.includes(cls))];
                 if (innerDivClassList.length) innerDiv.className = innerDivClassList.join(' ').trim();
                 innerDiv.appendChild(buttonElement);
                 blockElement.appendChild(innerDiv);
