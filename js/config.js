@@ -74,12 +74,10 @@ const defaultSetup = {
   business: {},
   font_awesome: { kitUrl: 'https://kit.fontawesome.com/85d1e578b1.js' },
   media: {
-    responsive_images: {
-      directory_path: 'img/responsive/' // Relative to basePath
-    },
-    primary_images: {
-      directory_path: 'img/primary/' // Relative to basePath
-    }
+    responsive_images: { directory_path: 'img/responsive/' },
+    primary_images: { directory_path: 'img/primary/' },
+    videos: { directory_path: 'video/' },        
+    logos: { directory_path: 'img/logos/' }       
   }
 };
 
@@ -174,6 +172,26 @@ export async function getImagePrimaryPath() {
 }
 
 /**
+ * Get the video directory path (derived from basePath)
+ * @returns {Promise<string>} The directory path
+ */
+export async function getVideoPath() {
+  const config = await getConfig();
+  const relativePath = config.media?.videos?.directory_path || 'video/';
+  return config.general?.basePath + relativePath;
+}
+
+/**
+ * Get the logos directory path (derived from basePath)
+ * @returns {Promise<string>} The directory path
+ */
+export async function getLogoPath() {
+  const config = await getConfig();
+  const relativePath = config.media?.logos?.directory_path || 'img/logos/';
+  return config.general?.basePath + relativePath;
+}
+
+/**
  * Get business information
  * @returns {Promise<Object>} Business configuration
  */
@@ -211,3 +229,4 @@ export function getSyncImagePrimaryPath() {
   const relativePath = window.__SETUP_CONFIG__?.media?.primary_images?.directory_path || 'img/primary/';
   return window.__SETUP_CONFIG__?.general?.basePath + relativePath;
 }
+

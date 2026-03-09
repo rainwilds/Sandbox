@@ -1,7 +1,7 @@
 /* global HTMLElement, IntersectionObserver, document, window, JSON, console */
 import { generatePictureMarkup } from '../generators/image-generator.js';
 import { VALID_ALIGNMENTS, VALID_ALIGN_MAP } from '../shared.js';
-import { getConfig } from '../config.js';
+import { getConfig, getLogoPath } from '../config.js';
 
 class CustomLogo extends HTMLElement {
     #ignoredChangeCount;
@@ -97,24 +97,25 @@ class CustomLogo extends HTMLElement {
             return this.cachedAttributes;
         }
         this.#log('Parsing new attributes', { elementId: this.id || 'no-id', outerHTML: this.outerHTML.substring(0, 200) + '...' });
-        const resolvePath = async (path) => {
+        const logoPath = await getLogoPath();
+
+        const resolvePath = (path) => {
             if (!path) return '';
             if (path.startsWith('http')) return path;
-            const base = await this.#getBasePath();
-            const relative = path.startsWith('/') ? path.slice(1) : path;
-            return new URL(relative, window.location.origin + base).pathname;
+            return logoPath + (path.startsWith('/') ? path.slice(1) : path);
         };
+
         const attrs = {
-            fullPrimarySrc: await resolvePath(this.getAttribute('logo-full-primary-src') || ''),
-            fullLightSrc: await resolvePath(this.getAttribute('logo-full-light-src') || ''),
-            fullDarkSrc: await resolvePath(this.getAttribute('logo-full-dark-src') || ''),
+            fullPrimarySrc: resolvePath(this.getAttribute('logo-full-primary-src') || ''),
+            fullLightSrc: resolvePath(this.getAttribute('logo-full-light-src') || ''),
+            fullDarkSrc: resolvePath(this.getAttribute('logo-full-dark-src') || ''),
             fullPrimaryAlt: this.getAttribute('logo-full-primary-alt') || '',
             fullLightAlt: this.getAttribute('logo-full-light-alt') || '',
             fullDarkAlt: this.getAttribute('logo-full-dark-alt') || '',
             fullPosition: this.getAttribute('logo-full-position') || '',
-            iconPrimarySrc: await resolvePath(this.getAttribute('logo-icon-primary-src') || ''),
-            iconLightSrc: await resolvePath(this.getAttribute('logo-icon-light-src') || ''),
-            iconDarkSrc: await resolvePath(this.getAttribute('logo-icon-dark-src') || ''),
+            iconPrimarySrc: resolvePath(this.getAttribute('logo-icon-primary-src') || ''),
+            iconLightSrc: resolvePath(this.getAttribute('logo-icon-light-src') || ''),
+            iconDarkSrc: resolvePath(this.getAttribute('logo-icon-dark-src') || ''), // Typo fixed!
             iconPrimaryAlt: this.getAttribute('logo-icon-primary-alt') || '',
             iconLightAlt: this.getAttribute('logo-icon-light-alt') || '',
             iconDarkAlt: this.getAttribute('logo-icon-dark-alt') || '',
@@ -137,7 +138,7 @@ class CustomLogo extends HTMLElement {
         validatePair(attrs.fullLightSrc, attrs.fullDarkSrc, 'logo-full');
         validatePair(attrs.iconLightSrc, attrs.iconDarkSrc, 'logo-icon');
         attrs.isDecorative = !attrs.fullPrimaryAlt && !attrs.fullLightAlt && !attrs.fullDarkAlt &&
-                             !attrs.iconPrimaryAlt && !attrs.iconLightAlt && !attrs.iconDarkAlt;
+            !attrs.iconPrimaryAlt && !attrs.iconLightAlt && !attrs.iconDarkAlt;
         if (!attrs.isDecorative) {
             if (attrs.fullPrimarySrc && !attrs.fullPrimaryAlt) this.#error('logo-full-primary-alt is required for accessibility when logo-full-primary-src is provided.');
             if (attrs.iconPrimarySrc && !attrs.iconPrimaryAlt) this.#error('logo-icon-primary-alt is required for accessibility when logo-icon-primary-src is provided.');
@@ -213,7 +214,7 @@ class CustomLogo extends HTMLElement {
         this.criticalAttributesHash = null;
         CustomLogo.#renderCacheMap.delete(this);
         if (this._prefersDarkQuery) {
-            this._prefersDarkQuery.removeEventListener('change', () => {});
+            this._prefersDarkQuery.removeEventListener('change', () => { });
             this._prefersDarkQuery = null;
         }
     }

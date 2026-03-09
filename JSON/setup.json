@@ -89,12 +89,18 @@
     ],
     "defer": true
   },
-  "media": {
+"media": {
     "responsive_images": {
       "directory_path": "img/responsive/"
     },
     "primary_images": {
       "directory_path": "img/primary/"
+    },
+    "videos": {
+      "directory_path": "video/"
+    },
+    "logos": {
+      "directory_path": "img/logos/"
     }
   },
   "headerNavigation": [

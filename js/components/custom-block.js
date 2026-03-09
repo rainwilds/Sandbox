@@ -1,7 +1,7 @@
 import { generatePictureMarkup } from '../generators/image-generator.js';
 import { generateVideoMarkup } from '../generators/video-generator.js';
 import { ALLOWED_ICON_STYLES, ALLOWED_BUTTON_STYLES, ALLOWED_LIST_STYLES, VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } from '../shared.js';
-import { getConfig, getImagePrimaryPath } from '../config.js';
+import { getConfig, getImagePrimaryPath, getVideoPath } from '../config.js';
 
 class CustomBlock extends HTMLElement {
     #ignoredChangeCount;
@@ -72,11 +72,11 @@ class CustomBlock extends HTMLElement {
         }
     }
 
-   /**
-     * Generates and appends the visual debug overlay
-     * @param {HTMLElement} blockElement - The main block element being rendered
-     * @param {Object} attrs - The attributes object used for rendering
-     */
+    /**
+      * Generates and appends the visual debug overlay
+      * @param {HTMLElement} blockElement - The main block element being rendered
+      * @param {Object} attrs - The attributes object used for rendering
+      */
     #appendDebugOverlay(blockElement, attrs) {
         if (!this.debug) return;
 
@@ -104,8 +104,8 @@ class CustomBlock extends HTMLElement {
 
         // Calculate computed positioning class from the alignment map
         // This ensures 'center-right' shows as 'place-content-center-right'
-        const innerPositionClass = attrs.innerAlignment && VALID_ALIGN_MAP[attrs.innerAlignment] 
-            ? VALID_ALIGN_MAP[attrs.innerAlignment] 
+        const innerPositionClass = attrs.innerAlignment && VALID_ALIGN_MAP[attrs.innerAlignment]
+            ? VALID_ALIGN_MAP[attrs.innerAlignment]
             : '';
 
         // Define which attributes to display in the debug box
@@ -131,7 +131,7 @@ class CustomBlock extends HTMLElement {
                 let val = item.value;
                 // Truncate long strings for readability
                 if (val.length > 60) val = val.substring(0, 60) + '...';
-                
+
                 line.innerHTML = `<span style="color: #fff; font-weight: bold; text-transform: uppercase; margin-right: 5px;">${item.label}:</span> ${val}`;
                 debugContainer.appendChild(line);
                 hasContent = true;
@@ -179,11 +179,18 @@ class CustomBlock extends HTMLElement {
         this.#log('Parsing new attributes', { elementId: this.id || 'no-id', outerHTML: this.outerHTML.substring(0, 200) + '...' });
         const basePath = await this.#getBasePath();
         const primaryPath = await getImagePrimaryPath();
+        const videoPath = await getVideoPath();
         const resolveImageSrc = (attrName) => {
             const path = this.getAttribute(attrName) || '';
             if (!path) return '';
             if (path.startsWith('http')) return path;
             return primaryPath + (path.startsWith('/') ? path.slice(1) : path);
+        };
+        const resolveVideoSrc = (attrName) => {
+            const path = this.getAttribute(attrName) || '';
+            if (!path) return '';
+            if (path.startsWith('http')) return path;
+            return videoPath + (path.startsWith('/') ? path.slice(1) : path);
         };
         const backgroundFetchPriority = this.getAttribute('img-background-fetchpriority') || '';
         const primaryFetchPriority = this.getAttribute('img-primary-fetchpriority') || '';
@@ -322,9 +329,9 @@ class CustomBlock extends HTMLElement {
             });
             throw new Error('Both img-primary-light-src and img-primary-dark-src must be present or use img-primary-src alone.');
         }
-        const videoBackgroundSrc = resolvePath(this.getAttribute('video-background-src') || '');
-        const videoBackgroundLightSrc = resolvePath(this.getAttribute('video-background-light-src') || '');
-        const videoBackgroundDarkSrc = resolvePath(this.getAttribute('video-background-dark-src') || '');
+        const videoBackgroundSrc = resolveVideoSrc('video-background-src');
+        const videoBackgroundLightSrc = resolveVideoSrc('video-background-light-src');
+        const videoBackgroundDarkSrc = resolveVideoSrc('video-background-dark-src');
         if ((videoBackgroundLightSrc || videoBackgroundDarkSrc) && !(videoBackgroundLightSrc && videoBackgroundDarkSrc) && !videoBackgroundSrc) {
             this.#error('Invalid video background source configuration', {
                 videoBackgroundSrc, videoBackgroundLightSrc, videoBackgroundDarkSrc,
@@ -333,9 +340,9 @@ class CustomBlock extends HTMLElement {
             });
             throw new Error('Both video-background-light-src and video-background-dark-src must be present or use video-background-src alone.');
         }
-        const videoPrimarySrc = resolvePath(this.getAttribute('video-primary-src') || '');
-        const videoPrimaryLightSrc = resolvePath(this.getAttribute('video-primary-light-src') || '');
-        const videoPrimaryDarkSrc = resolvePath(this.getAttribute('video-primary-dark-src') || '');
+        const videoPrimarySrc = resolveVideoSrc('video-primary-src');
+        const videoPrimaryLightSrc = resolveVideoSrc('video-primary-light-src');
+        const videoPrimaryDarkSrc = resolveVideoSrc('video-primary-dark-src');
         if ((videoPrimaryLightSrc || videoPrimaryDarkSrc) && !(videoPrimaryLightSrc && videoPrimaryDarkSrc) && !videoPrimarySrc) {
             this.#error('Invalid video primary source configuration', {
                 videoPrimarySrc, videoPrimaryLightSrc, videoPrimaryDarkSrc,
@@ -1717,7 +1724,7 @@ class CustomBlock extends HTMLElement {
             this.#error('Block has no valid content, falling back', { outerHTML: this.outerHTML });
             return await this.render(true);
         }
-        
+
         // --- ADDED: DEBUG OVERLAY ---
         this.#appendDebugOverlay(blockElement, attrs);
         // ----------------------------
