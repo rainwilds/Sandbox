@@ -75,3 +75,5 @@ export const VALID_PADDING_CLASSES = ['padding-small', 'padding-medium', 'paddin
 export const VALID_BORDER_CLASSES = ['border-small', 'border-medium', 'border-large', 'border-radius-small', 'border-radius-medium', 'border-radius-large'];
 
 export const VALID_HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
+
+export const VALID_SHADOW_CLASSES = ['shadow-light', 'shadow-medium', 'shadow-heavy'];

@@ -1,6 +1,5 @@
 import { generatePictureMarkup } from '../generators/image-generator.js';
 import { generateVideoMarkup } from '../generators/video-generator.js';
-import { ALLOWED_ICON_STYLES, ALLOWED_BUTTON_STYLES, ALLOWED_LIST_STYLES, VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } from '../shared.js';
 import {
     ALLOWED_ICON_STYLES,
     ALLOWED_BUTTON_STYLES,
@@ -310,7 +309,7 @@ class CustomBlock extends HTMLElement {
         }
         const innerShadow = this.getAttribute('inner-shadow') || '';
         let innerShadowClass = '';
-        if (innerShadow && validShadowClasses.includes(innerShadow)) {
+        if (innerShadow && VALID_SHADOW_CLASSES.includes(innerShadow)) {
             innerShadowClass = innerShadow;
         } else if (innerShadow) {
             this.#warn('Invalid inner shadow class', { value: innerShadow, element: this.id || 'no-id', validValues: validShadowClasses });
@@ -1123,7 +1122,7 @@ class CustomBlock extends HTMLElement {
         const mainDivClassList = ['block'];
         if (hasBackgroundImage) mainDivClassList.push('background-image');
         else if (hasVideoBackground || hasVideoPrimary) mainDivClassList.push('background-video');
-        const customClassList = attrs.customClasses.split(' ').filter(cls => cls && !paddingClasses.includes(cls));
+        const customClassList = attrs.customClasses.split(' ').filter(cls => cls && !VALID_PADDING_CLASSES.includes(cls));
         mainDivClassList.push(...customClassList, attrs.backgroundColorClass, attrs.borderClass, attrs.borderRadiusClass, attrs.shadowClass);
         if (attrs.effects) mainDivClassList.push(attrs.effects);
         blockElement.className = mainDivClassList.filter(cls => cls).join(' ').trim();
@@ -1404,7 +1403,7 @@ class CustomBlock extends HTMLElement {
             return blockElement;
         }
         this.#log('Rendering content block', { elementId: this.id || 'no-id', hasContent: !!(attrs.heading || attrs.paragraph || attrs.ulItems || attrs.olItems || attrs.buttonText) });
-        const innerPaddingClasses = attrs.innerCustomClasses.split(' ').filter(cls => cls && paddingClasses.includes(cls));
+        const innerPaddingClasses = attrs.innerCustomClasses.split(' ').filter(cls => cls && VALID_PADDING_CLASSES.includes(cls));
         const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-') && !paddingClasses.includes(cls))];
         if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
         if (attrs.innerBackgroundColorClass) innerDivClassList.push(attrs.innerBackgroundColorClass);
