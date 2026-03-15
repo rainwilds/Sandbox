@@ -1380,10 +1380,12 @@ const validOverlayBackdrops = attrs.backdropFilterClasses.filter(cls => VALID_BA
             } else {
                 buttonElement.textContent = attrs.buttonText;
             }
-            if (attrs.innerCustomClasses) {
+if (attrs.innerCustomClasses) {
                 const innerDiv = document.createElement('div');
-                // Corrected code
-const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-') && !VALID_PADDING_CLASSES.includes(cls))];
+                
+                const innerPaddingClasses = attrs.innerCustomClasses.split(' ').filter(cls => cls && VALID_PADDING_CLASSES.includes(cls));
+                const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-') && !VALID_PADDING_CLASSES.includes(cls))];
+                
                 if (innerDivClassList.length) innerDiv.className = innerDivClassList.join(' ').trim();
                 innerDiv.appendChild(buttonElement);
                 blockElement.appendChild(innerDiv);
@@ -1398,8 +1400,8 @@ const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.s
             return blockElement;
         }
         this.#log('Rendering content block', { elementId: this.id || 'no-id', hasContent: !!(attrs.heading || attrs.paragraph || attrs.ulItems || attrs.olItems || attrs.buttonText) });
-        const innerPaddingClasses = attrs.innerCustomClasses.split(' ').filter(cls => cls && VALID_PADDING_CLASSES.includes(cls));
-        const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-') && !paddingClasses.includes(cls))];
+const innerPaddingClasses = attrs.innerCustomClasses.split(' ').filter(cls => cls && VALID_PADDING_CLASSES.includes(cls));
+const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-') && !VALID_PADDING_CLASSES.includes(cls))];
         if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
         if (attrs.innerBackgroundColorClass) innerDivClassList.push(attrs.innerBackgroundColorClass);
         if (attrs.innerBackgroundImageNoise) innerDivClassList.push('background-image-noise');
