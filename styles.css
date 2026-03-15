@@ -425,9 +425,9 @@
     /* 1. The Base Class: Combines all possible filters */
 .has-backdrop {
     /* Initialize with empty space fallbacks */
-    --active-blur: ;
-    --active-grayscale: ;
-    --active-brightness: ;
+--active-blur: blur(0px);
+    --active-grayscale: grayscale(0);
+    --active-brightness: brightness(1);
     
     /* Apply them all at once! */
     backdrop-filter: var(--active-blur, ) var(--active-grayscale, ) var(--active-brightness, );
