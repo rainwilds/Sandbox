@@ -37,17 +37,11 @@ export const VALID_ALIGN_MAP = {
     'center-right': 'place-content-center-right'
 };
 
-// Object mapping backdrop filter class names to their CSS values.
-// Translates semantic backdrop filter classes to actual CSS filter properties.
-// Used in components for applying effects like blur or grayscale to overlays and backgrounds.
-export const BACKDROP_FILTER_MAP = {
-    'backdrop-filter-blur-small': 'blur(var(--blur-small))',
-    'backdrop-filter-blur-medium': 'blur(var(--blur-medium))',
-    'backdrop-filter-blur-large': 'blur(var(--blur-large))',
-    'backdrop-filter-grayscale-small': 'grayscale(var(--grayscale-small))',
-    'backdrop-filter-grayscale-medium': 'grayscale(var(--grayscale-medium))',
-    'backdrop-filter-grayscale-large': 'grayscale(var(--grayscale-large))'
-};
+
+export const VALID_BACKDROP_CLASSES = [
+    'backdrop-blur-small', 'backdrop-blur-medium', 'backdrop-blur-large',
+    'backdrop-grayscale-small', 'backdrop-grayscale-medium', 'backdrop-grayscale-large'
+];
 
 // Allowed styles for icons (semantic, text/layout-focused)
 export const ALLOWED_ICON_STYLES = [
@@ -66,11 +60,6 @@ export const ALLOWED_LIST_STYLES = [
     'color', 'background-color', 'border', 'border-radius', 'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left', 'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'font-size', 'font-weight',
     'text-align', 'display', 'width', 'height', 'list-style', 'list-style-position', 'list-style-type',
     'grid-template-columns', 'justify-content'
-];
-
-export const VALID_BACKDROP_CLASSES = [
-    'backdrop-blur-small', 'backdrop-blur-medium', 'backdrop-blur-large',
-    'backdrop-grayscale-small', 'backdrop-grayscale-medium', 'backdrop-grayscale-large'
 ];
 
 export const VALID_ASPECT_RATIOS = ['16/9', '9/16', '3/2', '2/3', '1/1', '21/9'];

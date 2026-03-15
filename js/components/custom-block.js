@@ -4,7 +4,7 @@ import {
     ALLOWED_ICON_STYLES,
     ALLOWED_BUTTON_STYLES,
     ALLOWED_LIST_STYLES,
-    BACKDROP_FILTER_MAP,
+    VALID_BACKDROP_CLASSES,
     VALID_ALIGNMENTS,
     VALID_ALIGN_MAP,
     VALID_BORDER_CLASSES,
@@ -1312,27 +1312,19 @@ const resolveImageSrc = (attrName) => {
             if (attrs.backgroundGradientClass) overlayClasses.push(attrs.backgroundGradientClass);
             if (borderRadiusClasses) overlayClasses.push(borderRadiusClasses);
 
-            const backdropFilterValues = attrs.backdropFilterClasses
-                .filter(cls => cls.startsWith('backdrop-filter'))
-                .map(cls => BACKDROP_FILTER_MAP[cls] || '')
-                .filter(val => val);
+const validOverlayBackdrops = attrs.backdropFilterClasses.filter(cls => VALID_BACKDROP_CLASSES.includes(cls));
+            
+            if (validOverlayBackdrops.length > 0) {
+                overlayClasses.push('has-backdrop', ...validOverlayBackdrops);
+            }
 
-            const filteredOverlayClasses = attrs.backdropFilterClasses
-                .filter(cls => !cls.startsWith('backdrop-filter'))
-                .concat(overlayClasses)
-                .filter(cls => cls);
+            const customNonFilterClasses = attrs.backdropFilterClasses.filter(cls => !VALID_BACKDROP_CLASSES.includes(cls));
+            const finalOverlayClasses = customNonFilterClasses.concat(overlayClasses).filter(Boolean);
 
             const overlayDiv = document.createElement('div');
 
-            // REMOVED: overlayDiv.classList.add('overlay-position');
-            // We rely on your CSS grid rule (&.background-image > *) to position this div.
-
-            if (filteredOverlayClasses.length) {
-                overlayDiv.className = filteredOverlayClasses.join(' ').trim();
-            }
-
-            if (backdropFilterValues.length) {
-                overlayDiv.style.backdropFilter = backdropFilterValues.join(' ');
+            if (finalOverlayClasses.length) {
+                overlayDiv.className = finalOverlayClasses.join(' ').trim();
             }
 
             blockElement.appendChild(overlayDiv);
@@ -1416,26 +1408,21 @@ const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.s
         if (attrs.innerBackgroundOverlayClass) innerDivClassList.push(attrs.innerBackgroundOverlayClass);
         if (attrs.innerBackgroundGradientClass) innerDivClassList.push(attrs.innerBackgroundGradientClass);
         if (attrs.innerShadowClass) innerDivClassList.push(attrs.innerShadowClass);
-        const innerBackdropFilterValues = attrs.innerBackdropFilterClasses
-            .filter(cls => cls.startsWith('backdrop-filter'))
-            .map(cls => BACKDROP_FILTER_MAP[cls] || '')
-            .filter(val => val);
-        const filteredInnerBackdropClasses = attrs.innerBackdropFilterClasses
-            .filter(cls => !cls.startsWith('backdrop-filter'));
+const validInnerBackdropClasses = attrs.innerBackdropFilterClasses.filter(cls => VALID_BACKDROP_CLASSES.includes(cls));
+        
+        if (validInnerBackdropClasses.length > 0) {
+            innerDivClassList.push('has-backdrop', ...validInnerBackdropClasses);
+        }
+
+        const filteredInnerBackdropClasses = attrs.innerBackdropFilterClasses.filter(cls => !VALID_BACKDROP_CLASSES.includes(cls));
         innerDivClassList.push(...filteredInnerBackdropClasses);
+        
         const innerDiv = document.createElement('div');
         if (innerDivClassList.length) innerDiv.className = innerDivClassList.join(' ').trim();
-        if (attrs.innerStyle || innerBackdropFilterValues.length) {
-            let styleContent = '';
-            if (attrs.innerStyle && attrs.innerStyle.trim()) {
-                styleContent += attrs.innerStyle.trim();
-            }
-            if (innerBackdropFilterValues.length) {
-                if (styleContent) styleContent += '; ';
-                styleContent += `backdrop-filter: ${innerBackdropFilterValues.join(' ')}`;
-            }
-            if (styleContent.trim()) {
-                innerDiv.setAttribute('style', styleContent.trim());
+        
+        if (attrs.innerStyle) {
+            if (attrs.innerStyle.trim()) {
+                innerDiv.setAttribute('style', attrs.innerStyle.trim());
             }
         }
         if (attrs.innerAlignment) {

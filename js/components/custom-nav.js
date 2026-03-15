@@ -1,5 +1,5 @@
 /* global HTMLElement, IntersectionObserver, document, window, JSON, console */
-import { BACKDROP_FILTER_MAP, VALID_ALIGNMENTS, VALID_ALIGN_MAP } from '../shared.js';
+import { VALID_BACKDROP_CLASSES, VALID_ALIGNMENTS, VALID_ALIGN_MAP } from '../shared.js';
 import { getConfig } from '../config.js';
 
 class CustomNav extends HTMLElement {
@@ -312,25 +312,23 @@ class CustomNav extends HTMLElement {
         const containerStyleAttr = attrs.navContainerStyle ? ` style="${attrs.navContainerStyle}"` : '';
         containerHTML.push(`<div class="${containerClasses}"${containerStyleAttr}>`);
 
+const validBackdropClasses = attrs.navBackdropFilterClasses.filter(cls => VALID_BACKDROP_CLASSES.includes(cls));
+        
         const navClasses = [
             attrs.navClass,
             `nav-${attrs.navOrientation}`,
             attrs.navBackgroundImageNoise ? 'background-image-noise' : '',
             attrs.navBorder,
             attrs.navBorderRadius,
-            ...attrs.navBackdropFilterClasses.filter(cls => !cls.startsWith('backdrop-filter'))
+            validBackdropClasses.length > 0 ? 'has-backdrop' : '', // Add base class if filters exist
+            ...validBackdropClasses, // Add the utility classes directly
+            ...attrs.navBackdropFilterClasses.filter(cls => !VALID_BACKDROP_CLASSES.includes(cls)) // Keep any custom classes the author added
         ].filter(cls => cls).join(' ').trim();
         const navClassAttr = navClasses ? ` class="${navClasses}"` : '';
 
-        const backdropFilterValues = attrs.navBackdropFilterClasses
-            .filter(cls => cls.startsWith('backdrop-filter'))
-            .map(cls => BACKDROP_FILTER_MAP[cls] || '')
-            .filter(val => val)
-            .join(' ');
-
+        // Now we just build the nav styles without the backdrop-filter inline property
         const navStyles = [
             attrs.navStyle,
-            backdropFilterValues ? `backdrop-filter: ${backdropFilterValues}` : '',
             attrs.navBackgroundColor ? `background-color: ${attrs.navBackgroundColor}` : ''
         ].filter(s => s).join('; ').trim();
         const navStyleAttr = navStyles ? ` style="${navStyles}"` : '';

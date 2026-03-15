@@ -431,6 +431,7 @@
     
     /* Apply them all at once! */
     backdrop-filter: var(--active-blur, ) var(--active-grayscale, ) var(--active-brightness, );
+}
   
 
 /* 2. The Utility Classes: These ONLY update the variables */
