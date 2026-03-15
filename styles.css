@@ -670,16 +670,16 @@
       min-height: 100vh;
     }
 
-    .backdrop-blur-small {
-      backdrop-filter: var(--blur-small);
+.backdrop-blur-small {
+      backdrop-filter: blur(var(--blur-small));
     }
 
     .backdrop-blur-medium {
-      backdrop-filter: var(--blur-medium);
+      backdrop-filter: blur(var(--blur-medium));
     }
 
     .backdrop-blur-large {
-      backdrop-filter: var(--blur-large);
+      backdrop-filter: blur(var(--blur-large));
     }
 
     .object-fit-contain {
