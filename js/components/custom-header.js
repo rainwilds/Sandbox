@@ -5,7 +5,7 @@
 
     try {
         const { CustomBlock } = await import('./custom-block.js');
-        const { VALID_ALIGNMENTS, VALID_ALIGN_MAP, BACKDROP_FILTER_MAP } = await import('../shared.js');
+        const { VALID_ALIGNMENTS, VALID_ALIGN_MAP, VALID_BACKDROP_CLASSES } = await import('../shared.js');
 
         // Wait for dependent custom elements
         await Promise.all([
@@ -117,9 +117,14 @@
                     this.#warn(`Invalid logo-placement "${attrs.logoPlacement}". Defaulting to 'independent'.`);
                     attrs.logoPlacement = 'independent';
                 }
-                if (attrs.backdropFilter && !Object.keys(BACKDROP_FILTER_MAP).includes(`backdrop-filter-${attrs.backdropFilter}`)) {
-                    this.#warn(`Invalid backdrop-filter "${attrs.backdropFilter}". Clearing it.`);
-                    attrs.backdropFilter = '';
+if (attrs.backdropFilter) {
+                    const filters = attrs.backdropFilter.split(' ');
+                    const validFilters = filters.filter(f => VALID_BACKDROP_CLASSES.includes(f));
+                    
+                    if (validFilters.length !== filters.length) {
+                        this.#warn(`One or more invalid backdrop filters provided. Using only valid ones.`, { provided: attrs.backdropFilter });
+                    }
+                    attrs.backdropFilter = validFilters.join(' ');
                 }
 
                 // Build hash for cache-busting
@@ -176,11 +181,16 @@
                     this.#log('Applied header classes', { classes: classesToAdd });
                 }
 
-                // Apply backdrop filter
+// Apply backdrop filter classes (CSS Variable Composition)
                 if (attrs.backdropFilter) {
-                    const filterClass = `backdrop-filter-${attrs.backdropFilter}`;
-                    blockElement.style.backdropFilter = BACKDROP_FILTER_MAP[filterClass] || '';
-                    this.#log('Applied backdrop filter', { filter: blockElement.style.backdropFilter });
+                    // 1. Add the base class required for the CSS variables to compose
+                    blockElement.classList.add('has-backdrop');
+                    
+                    // 2. Add the specific filter utility classes
+                    const filterClasses = attrs.backdropFilter.split(' ').filter(Boolean);
+                    blockElement.classList.add(...filterClasses);
+                    
+                    this.#log('Applied backdrop classes', { classes: filterClasses });
                 }
 
                 let logoHTML = '';

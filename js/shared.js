@@ -68,6 +68,11 @@ export const ALLOWED_LIST_STYLES = [
     'grid-template-columns', 'justify-content'
 ];
 
+export const VALID_BACKDROP_CLASSES = [
+    'backdrop-blur-small', 'backdrop-blur-medium', 'backdrop-blur-large',
+    'backdrop-grayscale-small', 'backdrop-grayscale-medium', 'backdrop-grayscale-large'
+];
+
 export const VALID_ASPECT_RATIOS = ['16/9', '9/16', '3/2', '2/3', '1/1', '21/9'];
 
 export const VALID_PADDING_CLASSES = ['padding-small', 'padding-medium', 'padding-large', 'padding-huge'];
