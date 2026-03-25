@@ -1,0 +1,142 @@
+{
+  "fonts": [
+    {
+      "href": "./fonts/Futura_PT_Demi.woff2",
+      "as": "font",
+      "type": "font/woff2",
+      "crossorigin": "anonymous"
+    },
+    {
+      "href": "./fonts/futura_pt_book.woff2",
+      "as": "font",
+      "type": "font/woff2",
+      "crossorigin": "anonymous"
+    }
+  ],
+  "general": {
+    "basePath": "/Sandbox/",
+    "author": "David Dufourq",
+    "robots": "index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1",
+    "og": {
+      "locale": "en_AU",
+      "site_name": "Behive",
+      "type": "website",
+      "image": "https://rainwilds.github.io/img/logo.jpg"
+    },
+    "x": {
+      "card": "summary_large_image",
+      "domain": "rainwilds.github.io",
+      "site": "@behive"
+    },
+    "include_e_commerce": true,
+    "favicons": [
+      {
+        "rel": "icon",
+        "type": "image/svg+xml",
+        "href": "./favicon.svg"
+      },
+      {
+        "rel": "icon",
+        "type": "image/png",
+        "sizes": "192x192",
+        "href": "./favicon-192x192.png"
+      },
+      {
+        "rel": "apple-touch-icon",
+        "sizes": "180x180",
+        "href": "./apple-touch-icon.png"
+      }
+    ],
+    "snipcart": {
+      "publicApiKey": "NTMzMTQxN2UtNjQ3ZS00ZWNjLWEyYmEtOTNiNGMwNzYyYWNlNjM4ODA0NjY5NzE2NjExMzg5",
+      "loadStrategy": "on-user-interaction",
+      "version": "",
+      "templatesUrl": "./plugins/snipcart.html",
+      "modalStyle": "side",
+      "currency": "aud",
+      "loadCSS": false
+    }
+  },
+  "business": {
+    "name": "Behive",
+    "url": "https://rainwilds.github.io",
+    "telephone": "+61-3-9876-5432",
+    "address": {
+      "streetAddress": "456 Creative Lane",
+      "addressLocality": "Melbourne",
+      "addressRegion": "VIC",
+      "postalCode": "3000",
+      "addressCountry": "AU"
+    },
+    "openingHours": "Mo-Fr 09:00-18:00",
+    "geo": {
+      "latitude": -37.8136,
+      "longitude": 144.9631
+    },
+    "image": "https://rainwilds.github.io/img/logo.jpg",
+    "logo": "https://rainwilds.github.io/img/logo.jpg",
+    "sameAs": [
+      "https://www.facebook.com/behive",
+      "https://www.instagram.com/behive"
+    ]
+  },
+  "font_awesome": {
+    "base_path": "img/icons/fontawesome/",
+    "core": "js/fontawesome.min.js",
+    "packages": [
+      "utility-fill-semibold.min.js",
+      "utility-semibold.min.js"
+    ],
+    "defer": true
+  },
+"media": {
+    "responsive_images": {
+      "directory_path": "img/responsive/"
+    },
+    "primary_images": {
+      "directory_path": "img/primary/"
+    },
+    "videos": {
+      "directory_path": "video/"
+    },
+    "logos": {
+      "directory_path": "img/logos/"
+    }
+  },
+  "headerNavigation": [
+    {
+      "text": "Home",
+      "href": "/"
+    },
+    {
+      "text": "About",
+      "href": "/about"
+    },
+    {
+      "text": "Services",
+      "href": "/services"
+    },
+    {
+      "text": "Blog",
+      "href": "/blog"
+    },
+    {
+      "text": "Contact",
+      "href": "/contact"
+    }
+  ],
+  "footerNavigation": [
+    {
+      "text": "Privacy Policy",
+      "href": "/privacy"
+    },
+    {
+      "text": "Terms of Service",
+      "href": "/terms"
+    },
+    {
+      "text": "Contact Us",
+      "href": "/contact"
+    }
+  ]
+}

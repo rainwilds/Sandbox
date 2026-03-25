@@ -3,66 +3,80 @@ const fs = require('fs');
 const path = require('path');
 
 async function runBuild() {
-    console.log('🚀 Starting Cross-Platform 2026 Build Engine...');
-    
-    const distPath = path.join(__dirname, 'dist');
-    const assetsToCopy = ['img', 'video', 'fonts', 'js', 'JSON', 'styles.css', 'custom.css', 'robots.txt', 'sitemap.xml', 'llms.txt'];
+    console.log('🚀 Starting Rainwilds 2026 Adaptive Build Engine...');
 
+    const distPath = path.join(__dirname, 'dist');
+    
+    // THE CARGO LIST: Folders and files to sync to /dist
+    const foldersToCopy = ['img', 'video', 'fonts', 'js', 'JSON', 'plugins', 'icons'];
+    const rootFilesToCopy = ['styles.css', 'custom.css', 'robots.txt', 'sitemap.xml', 'llms.txt'];
+
+    // 1. Determine current GitHub prefix from setup.json
+    const setup = JSON.parse(fs.readFileSync(path.join(__dirname, 'JSON', 'setup.json'), 'utf8'));
+    const repoPrefix = setup.general.basePath; 
+
+    // 2. Refresh /dist folder
     if (fs.existsSync(distPath)) fs.rmSync(distPath, { recursive: true, force: true });
     fs.mkdirSync(distPath);
+
+    // --- PHASE 1: ASSET SYNC ---
+    console.log('📁 Syncing assets...');
+
+    // Copy Folders
+    foldersToCopy.forEach(folder => {
+        const src = path.join(__dirname, folder);
+        if (fs.existsSync(src)) {
+            fs.cpSync(src, path.join(distPath, folder), { recursive: true });
+            
+            // SPECIAL FIX: If it's the icons folder, also copy contents to root
+            // This prevents 404s when the browser looks for /favicon.ico
+            if (folder === 'icons') {
+                fs.readdirSync(src).forEach(file => {
+                    const filePath = path.join(src, file);
+                    if (fs.lstatSync(filePath).isFile()) {
+                        fs.copyFileSync(filePath, path.join(distPath, file));
+                    }
+                });
+            }
+        }
+    });
+
+    // Copy Root Files
+    rootFilesToCopy.forEach(file => {
+        const src = path.join(__dirname, file);
+        if (fs.existsSync(src)) fs.copyFileSync(src, path.join(distPath, file));
+    });
+
+    // --- PHASE 2: RENDERING & FLATTENING ---
+    const browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox'] });
 
     const pagesToBuild = fs.readdirSync(__dirname).filter(file => 
         file.endsWith('.html') && !file.startsWith('_')
     );
 
-    // ASSET SYNC
-    assetsToCopy.forEach(asset => {
-        const src = path.join(__dirname, asset);
-        const dest = path.join(distPath, asset);
-        if (fs.existsSync(src)) fs.cpSync(src, dest, { recursive: true });
-    });
-
-    // --- CROSS-PLATFORM PUPPETEER LAUNCH ---
-    const browser = await puppeteer.launch({ 
-        headless: "new",
-        args: [
-            '--no-sandbox', 
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage', // Essential for Linux stability
-            '--font-render-hinting=none' // Prevents font jank on Linux
-        ]
-    });
-
     for (const file of pagesToBuild) {
         try {
             const page = await browser.newPage();
-
             await page.setRequestInterception(true);
-            page.on('request', request => {
-                let url = request.url();
-                if (url.includes('/Sandbox/')) url = url.replace('/Sandbox/', '/');
-                request.continue({ url });
+            page.on('request', r => {
+                let url = r.url();
+                if (url.includes(repoPrefix)) url = url.replace(repoPrefix, '/');
+                r.continue({ url });
             });
 
             console.log(`  -> Finalizing: ${file}`);
             await page.goto(`http://localhost:5500/${file}`, { waitUntil: 'networkidle0' });
 
-            // Selective Flattening
             await page.evaluate(() => {
-                const contentBlocks = document.querySelectorAll('custom-block, bh-img');
-                contentBlocks.forEach(el => {
-                    const content = el.innerHTML;
-                    el.insertAdjacentHTML('afterend', content);
+                document.querySelectorAll('custom-block, bh-img, bh-video').forEach(el => {
+                    el.insertAdjacentHTML('afterend', el.innerHTML);
                     el.remove(); 
                 });
             });
 
             let content = await page.content();
-            
-            // Final Path Cleaning
-            content = content.replace(/\/Sandbox\//g, '/');
-            content = content.replace(/\/img\/primary\/img\/primary\//g, '/img/primary/');
-            content = content.replace(/\/video\/video\//g, '/video/');
+            const cleanRegex = new RegExp(repoPrefix.replace(/\//g, '\\/'), 'g');
+            content = content.replace(cleanRegex, '/');
 
             fs.writeFileSync(path.join(distPath, file), content);
             await page.close();
@@ -72,7 +86,7 @@ async function runBuild() {
     }
 
     await browser.close();
-    console.log('✅ Build Complete! Preview using port 8080.');
+    console.log(`✅ Build Complete! Preview on Port 8080.`);
 }
 
 runBuild();

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <!-- Homepage -->
+  <url>
+    <loc>https://example.com/</loc>
+    <lastmod>2025-04-19</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <!-- About Page -->
+  <url>
+    <loc>https://example.com/about/</loc>
+    <lastmod>2025-04-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <!-- Video Page Example (e.g., a blog post or video landing page) -->
+  <url>
+    <loc>https://example.com/videos/sample-video/</loc>
+    <lastmod>2025-04-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+    <video:video>
+      <video:title>Sample Video Title</video:title>
+      <video:description>A description of the sample video for SEO.</video:description>
+      <video:thumbnail_loc>https://example.com/images/video-thumbnail.jpg</video:thumbnail_loc>
+      <video:content_loc>https://example.com/videos/sample-video.mp4</video:content_loc>
+      <video:publication_date>2025-04-15</video:publication_date>
+      <video:duration>120</video:duration> <!-- Duration in seconds -->
+      <video:tag>sample</video:tag>
+      <video:tag>video</video:tag>
+    </video:video>
+  </url>
+  <!-- Blog Post Example -->
+  <url>
+    <loc>https://example.com/blog/post-1/</loc>
+    <lastmod>2025-04-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+</urlset>
