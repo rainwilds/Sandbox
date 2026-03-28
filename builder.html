@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>Visual Builder Experiment</title>
+
+    <link
+      rel="stylesheet"
+      href="./styles.css" />
+
+    <script
+      type="module"
+      src="./js/components/custom-block.js"></script>
+    <script
+      type="module"
+      src="./js/components/custom-slider.js"></script>
+    <script
+      type="module"
+      src="./js/components/visual-builder.js"></script>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        background-color: #fff; /* Match your normal background */
+      }
+
+      #canvas {
+        flex-grow: 1;
+        min-height: 100vh; /* Keeps the canvas open for dropping even when empty */
+        margin: 0;
+        padding: 0;
+        margin-right: 340px; /* Exactly matches the width of the visual builder sidebar */
+        background-color: transparent;
+      }
+
+      .builder-selected {
+        outline: 3px solid #2196f3 !important;
+        outline-offset: -3px; /* Inset outline prevents layout shift */
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas"></div>
+
+    <visual-builder></visual-builder>
+  </body>
+</html>
