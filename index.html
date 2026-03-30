@@ -1,651 +1,1403 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <link rel="preload" href="./styles.css" as="style" />
-    <link rel="stylesheet" href="./styles.css" />
-    <script src="./js/head.js" defer></script>
-    <!-- <script src="./js/product.js" defer></script> -->
 
-    <!-- General/Site -->
-    <data-bh-head data-title="Photography, Videography & Websites - Behive"
-      data-description="Bespoke media assets and web design for quality brands."
-      data-keywords="photography, videography, websites, web design" data-author="David Dufourq"
-      data-canonical="https://rainwilds.github.io/Sandbox/"
-      data-robots="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
-      data-schema-site-name="Behive: Photography, Videography & Websites"
-      data-schema-site-url="https://rainwilds.github.io/Sandbox/"
-      data-preload-feature-img-mobile="img/responsive/business-service-location-1-1366.avif"
-      data-preload-feature-img-desktop="img/responsive/business-service-location-1-1920.avif"></data-bh-head>
+    ''
 
-    <!-- Open Graph -->
-    <data-bh-head
-      data-og-title="Photography, Videography & Websites - Behive"
-      data-og-description="Bespoke media assets and web design for quality brands."
-      data-og-image="https://rainwilds.github.io/Sandbox/img/preview.jpg"
-      data-og-url="https://rainwilds.github.io/Sandbox/"
-      data-og-type="website"
-      data-og-locale="en_AU"
-      data-og-site-name="Behive"
-    ></data-bh-head>
+    <data-custom-head
+      data-components="custom-block"
+      data-title="Block"
+      data-description="Custom block web component"
+      data-canonical="https://rainwilds.github.io/Sandbox/block.html"></data-custom-head>
 
-    <!-- Twitter -->
-    <data-bh-head
-      data-twitter-title="Behive: Photography, Videography & Websites"
-      data-twitter-description="Bespoke media assets and web design for quality brands."
-      data-twitter-image="https://rainwilds.github.io/Sandbox/img/preview.jpg"
-      data-twitter-url="https://rainwilds.github.io/Sandbox/"
-      data-twitter-domain="rainwilds.github.io"
-      data-twitter-card="summary_large_image"
-    ></data-bh-head>
+<style>
+  /* 1. Styles for the Debug Overlay */
+  .debug-specs {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.85); /* Dark semi-transparent background */
+    color: #00ff9d; /* Matrix green text for high contrast */
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    line-height: 1.4;
+    padding: 10px;
+    box-sizing: border-box;
+    z-index: 100;
+    pointer-events: none; /* Allows you to still click buttons behind it */
+    border-top: 2px solid #00ff9d;
+    text-align: left;
+  }
 
-    <!-- Product -->
-    <!-- <data-bh-head
-    data-product-name="Featured Product"
-    data-product-description="High-quality product from Behive."
-    data-product-image="https://rainwilds.github.io/Sandbox/img/preview.jpg"
-    data-product-url="https://rainwilds.github.io/Sandbox/products/featured"
-    data-product-price-currency="AUD"
-    data-product-price="10.00"
-    data-product-availability="https://schema.org/InStock"
-    data-product-sku="BH-PRODUCT-001"
-    data-product-brand="Behive"
-    data-product-rating-value="4.8"
-    data-product-review-count="25"
-    data-include-e-commerce
-    ></data-bh-head> -->
+  /* Make sure the custom block can hold the absolute overlay */
+  custom-block {
+    position: relative; 
+    display: block; /* Ensure it behaves like a block for positioning */
+  }
 
-    <!-- Product Collection -->
-    <!-- <data-bh-head
-      data-collection-name="Behive Shop"
-      data-collection-description="Browse our curated selection of photography and videography products."
-      data-include-e-commerce
-    ></data-bh-head> -->
+  .debug-label {
+    color: #fff;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-right: 5px;
+  }
+</style>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    // 2. The attributes you want to visualize
+    const attributesToTrack = [
+      'class',
+      'inner-class',
+      'inner-style',
+      'background-overlay',
+      'background-gradient',
+      'backdrop-filter',
+      'inner-backdrop-filter',
+      'video-background-src',
+      'img-background-src'
+    ];
+
+    // 3. Find all custom blocks
+    const blocks = document.querySelectorAll('custom-block');
+
+    blocks.forEach(block => {
+      let debugHTML = '';
+
+      attributesToTrack.forEach(attr => {
+        if (block.hasAttribute(attr)) {
+          let value = block.getAttribute(attr);
+          
+          // Truncate long inline styles for readability
+          if (attr === 'inner-style' && value.length > 50) {
+            value = value.substring(0, 50) + '...';
+          }
+
+          debugHTML += `<div><span class="debug-label">${attr}:</span> ${value}</div>`;
+        }
+      });
+
+      // 4. Only append if there is data to show
+      if (debugHTML) {
+        const debugDiv = document.createElement('div');
+        debugDiv.classList.add('debug-specs');
+        debugDiv.innerHTML = debugHTML;
+        
+        // This appends the debug info as a child of the custom-block.
+        // NOTE: This assumes your custom-block uses a <slot> that allows generic children.
+        block.appendChild(debugDiv);
+      }
+    });
+  });
+</script>
+      
   </head>
 
   <body>
-    <header>
-      <div></div>
-
-      <!-- <picture>
-
-            <img src="./img/image2.jpg" alt="">
-
-        </picture> -->
-
-      <!-- light-dark switches images  -->
-      <!-- <picture>
-
-            <source srcset="img/gallery/gallery-item-4.jpg"
-                media="(max-width: 767px) and (resolution < 1.5dppx) and (prefers-color-scheme: light)" />
-            <source srcset="img/gallery/gallery-item-4.jpg"
-                media="(max-width: 767px) and (resolution >= 1.5dppx) and (prefers-color-scheme: light)" />
-            <source srcset="img/gallery/gallery-item-4.jpg"
-                media="(min-width: 768px) and (max-width: 1366px) and (resolution < 1.5dppx) and (prefers-color-scheme: light)" />
-            <source srcset="img/gallery/gallery-item-4.jpg"
-                media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 1.5dppx) and (resolution < 2dppx) and (prefers-color-scheme: light)" />
-            <source srcset="img/gallery/gallery-item-4.jpg"
-                media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 2dppx) and (prefers-color-scheme: light)" />
-            <source srcset="img/gallery/gallery-item-4.jpg"
-                media="(min-width: 1367px) and (resolution < 1.2dppx) and (prefers-color-scheme: light)" />
-            <source srcset="img/gallery/gallery-item-4.jpg"
-                media="(min-width: 1367px) and (resolution >= 1.2dppx) and (resolution < 2dppx) and (prefers-color-scheme: light)" />
-            <source srcset="img/gallery/gallery-item-4.jpg"
-                media="(min-width: 1367px) and (resolution >= 2dppx) and (prefers-color-scheme: light)" />
-
-            <source srcset="img/gallery/gallery-item-8.jpg"
-                media="(max-width: 767px) and (resolution < 1.5dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="img/gallery/gallery-item-8.jpg"
-                media="(max-width: 767px) and (resolution >= 1.5dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="img/gallery/gallery-item-8.jpg"
-                media="(min-width: 768px) and (max-width: 1366px) and (resolution < 1.5dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="img/gallery/gallery-item-8.jpg"
-                media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 1.5dppx) and (resolution < 2dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="img/gallery/gallery-item-8.jpg"
-                media="(min-width: 768px) and (max-width: 1366px) and (resolution >= 2dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="img/gallery/gallery-item-8.jpg"
-                media="(min-width: 1367px) and (resolution < 1.2dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="img/gallery/gallery-item-8.jpg"
-                media="(min-width: 1367px) and (resolution >= 1.2dppx) and (resolution < 2dppx) and (prefers-color-scheme: dark)" />
-            <source srcset="img/gallery/gallery-item-8.jpg"
-                media="(min-width: 1367px) and (resolution >= 2dppx) and (prefers-color-scheme: dark)" />
-            <img src="img/gallery/gallery-item-4.jpg" alt="Alt title" title="Image title" loading="lazy" />
-
-        </picture> -->
-
-      <!-- <picture class="animate animate-fade-in">
-            <source srcset="
-              img/responsive/business-service-location-1-768.avif 768w,
-              img/responsive/business-service-location-1-980.avif 980w,
-              img/responsive/business-service-location-1-1366.avif 1366w,
-              img/responsive/business-service-location-1-1920.avif 1920w,
-              img/responsive/business-service-location-1-2560.avif 2560w,
-              img/responsive/business-service-location-1-3840.avif 3840w"
-              sizes="(max-width: 768px) calc(100vw * 1.5),
-                     (max-width: 980px) calc(60vw * 1.5),
-                     (max-width: 1366px) calc(75vw * 1.5),
-                     (max-width: 1920px) calc(75vw * 1.5),
-                     (max-width: 2560px) calc(75vw * 1.5),
-                     (max-width: 3840px) calc(75vw * 1.5),
-                     2880px"
-              type="image/avif">
-            <source srcset="
-              img/responsive/business-service-location-1-768.webp 768w,
-              img/responsive/business-service-location-1-980.webp 980w,
-              img/responsive/business-service-location-1-1366.webp 1366w,
-              img/responsive/business-service-location-1-1920.webp 1920w,
-              img/responsive/business-service-location-1-2560.webp 2560w,
-              img/responsive/business-service-location-1-3840.webp 3840w"
-              sizes="(max-width: 768px) calc(100vw * 1.5),
-                     (max-width: 980px) calc(60vw * 1.5),
-                     (max-width: 1366px) calc(75vw * 1.5),
-                     (max-width: 1920px) calc(75vw * 1.5),
-                     (max-width: 2560px) calc(75vw * 1.5),
-                     (max-width: 3840px) calc(75vw * 1.5),
-                     2880px"
-              type="image/webp">
-            <source srcset="
-              img/responsive/business-service-location-1-768.jpg 768w,
-              img/responsive/business-service-location-1-980.jpg 980w,
-              img/responsive/business-service-location-1-1366.jpg 1366w,
-              img/responsive/business-service-location-1-1920.jpg 1920w,
-              img/responsive/business-service-location-1-2560.jpg 2560w,
-              img/responsive/business-service-location-1-3840.jpg 3840w"
-              sizes="(max-width: 768px) calc(100vw * 1.5),
-                     (max-width: 980px) calc(60vw * 1.5),
-                     (max-width: 1366px) calc(75vw * 1.5),
-                     (max-width: 1920px) calc(75vw * 1.5),
-                     (max-width: 2560px) calc(75vw * 1.5),
-                     (max-width: 3840px) calc(75vw * 1.5),
-                     2880px"
-              type="image/jpeg">
-            <img src="img/responsive/business-service-location-1-1920.jpg"
-                 alt="Business service in Location"
-                 loading="lazy">
-          </picture> -->
-
-      <!-- <video autoplay muted loop disablepictureinpicture playsinline poster="./img/image2.jpg" preload="metadata">
-            <source src="./video/video1.mp4" type="video/webm">
-            <source src="./video/video1.mp4" type="video/mp4">
-            Your browser does not support the video tag. Please download the video <a href="./video/video1.mp4">here</a>.
-        </video> -->
-
-      <bh-video
-        src="./video/video1.mp4"
-        src-light="./video/video1-light.mp4"
-        src-dark="./video/video1-dark.mp4"
-        poster="./img/poster.jpg"
-        poster-light="./img/poster-light.jpg"
-        poster-dark="./img/poster-dark.jpg"
-        alt="Sample video"
-        loading="lazy"
-        autoplay=""
-        muted=""
-        loop=""
-        playsinline=""
-        disablepictureinpicture=""
-        class="padding-medium aspect-ratio-16-9"
-      ></bh-video>
-
-      <div>
-        <picture>
-          <img src="https://placehold.co/250x80" alt="" />
-        </picture>
-
-        <bh-nav></bh-nav>
-        <!-- <bh-nav dropdown="true"></bh-nav> -->
-
-        <!-- <nav class="dropdown">
-                <ul>
-                    <li><a href="./index.html">Home</a></li>
-                    <li>
-                        Portfolio
-                        <div class="dropdown-menu">
-                            <a href="#">Photography</a>
-                            <a href="#">Video</a>
-                        </div>
-                    </li>
-                    <li><a href="./investment.html">Investment</a></li>
-                    <li><a href="./blog.html">Blog</a></li>
-                    <li><a href="./contact.html">Contact</a></li>
-                    <li><a href="./about.html">About</a></li>
-                </ul>
-                <i class="fa-sharp fa-light fa-bars font-size-medium"></i>
-            </nav> -->
-      </div>
-
-      <section>
-        <div>
-          <hgroup>
-            <h1>Sandbox</h1>
-            <p>Lorem ipsum dolor sit am incididunt ut labore et.</p>
-          </hgroup>
-
-          <div>
-            <a class="button" href="#">Button</a>
-            <a class="button secondary" href="#">Secondary</a>
-          </div>
-        </div>
-      </section>
-    </header>
-
     <main>
-
-<section>
-
- 
-
-</section>
-
       <section>
-        <!-- Product Container -->
-        <!-- <div id="products" data-product-sku="BH-PHOTO-001"></div> -->
-        <div id="products"></div>
-      </section>
+        <div
+          class="theme-switcher"
+          style="display: flex; gap: 10px; padding: 20px; flex-wrap: wrap">
+          <button onclick="document.body.removeAttribute('data-theme')">Default Theme</button>
 
-<!-- image sections -->
+          <button onclick="document.body.setAttribute('data-theme', 'earthy')">Earthy</button>
+          <button onclick="document.body.setAttribute('data-theme', 'cyberpunk')">Cyberpunk</button>
 
-      <section>
-        <bh-img
-          src="./img/primary/image1.jpg"
-          light-src="./img/primary/image1.jpg"
-          dark-src="./img/primary/image2.jpg"
-          alt="Business service in Location"
-          width="50vw"
-          aspect-ratio="16/9"
-          class="padding-medium border-round"
-        >
-        </bh-img>
-      </section>
-
-      <section>
-        <bh-img
-          src="./img/primary/image1.jpg"
-          alt="Business service in Location"
-          width="50vw"
-        >
-        </bh-img>
-      </section>
-
-      <section>
-        <div class="scroll">
-          <div class="gallery-scroll"></div>
+          <button onclick="document.body.setAttribute('data-theme', 'oceanic')">Oceanic</button>
+          <button onclick="document.body.setAttribute('data-theme', 'sunset')">Sunset</button>
+          <button onclick="document.body.setAttribute('data-theme', 'botanical')">Botanical</button>
+          <button onclick="document.body.setAttribute('data-theme', 'berry')">Berry</button>
+          <button onclick="document.body.setAttribute('data-theme', 'slate')">Slate</button>
         </div>
       </section>
 
       <section>
         <div>
-          <p>
-            Lorem ipsum dolor sit amet. <a href="#">cumque ratione</a> vel
-            assumenda sequi ea unde animi ab delectus repellendus. Sed dolor
-            excepturi ex neque beatae et voluptatem quos sed impedit neque qui
-            galisum mollitia et voluptate quis.
-          </p>
-          <p>
-            Aut obcaecati consequatur est error temporibus 33 voluptas earum et
-            necessitatibus veritatis est consequuntur cupiditate 33 sunt
-            consequatur et nisi similique. Id sint aperiam aut facere voluptas
-            cum vitae aliquam eum distinctio voluptatum ut molestiae nisi ea
-            corporis dolorum? Et doloremque quos aut sunt fugiat qui veniam
-            distinctio. Aut nihil minima et accusantium quisquam et possimus
-            numquam ut voluptas natus et debitis voluptas.
-          </p>
+          <custom-block
+            heading="Background Colours"
+            content-type="paragraph"
+            paragraph="Cards with background colours"></custom-block>
         </div>
+      </section>
+
+      <section>
+        <div class="grid-container-1">
+          <custom-block
+            icon='<i class="fa-utility-fill fa-semibold fa-cloud"></i>'
+            icon-size="2rem"
+            icon-style="margin-bottom: var(--space-tiny)"
+            heading="Background Colour 1"
+            content-type="paragraph"
+            paragraph="Card with background-color-1, and padding-medium."
+            button-text="Action"
+            button-href="#"
+            background-color="background-color-1"
+            class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Background Colour 2"
+            content-type="paragraph"
+            paragraph="Card with background-color-2, and padding-medium."
+            button-text="Action"
+            button-href="#"
+            background-color="background-color-2"
+            class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Background Colour 3"
+            content-type="paragraph"
+            paragraph="Card with background-color-3 and padding-medium."
+            button-text="Action"
+            button-href="#"
+            background-color="background-color-3"
+            class="padding-medium"></custom-block>
+        </div>
+      </section>
+
+      <section>
+        <div class="grid-container-1">
+          <custom-block
+            heading="Borders"
+            content-type="paragraph"
+            paragraph="Cards with borders only"></custom-block>
+        </div>
+      </section>
+
+      <section>
         <div>
-          <p>
-            Lorem ipsum dolor sit amet. Eum internos quos et ipsa galisum et
-            facilis voluptates sit veritatis itaque est quod aspernatur! Ut
-            nihil impedit qui sapiente neque aut nihil ipsam quo sint dolores
-            aut enim quas et galisum assumenda qui nemo pariatur.
-          </p>
-          <p>
-            Eum quisquam nisi est aperiam quod non laboriosam magni non nihil
-            voluptatibus! Hic maiores autem ex perferendis cumque nam dolore
-            illum. Non nulla rerum ad tempore saepe qui soluta facilis et
-            reiciendis soluta et sunt maiores quo laboriosam facilis ut
-            accusamus aperiam?
-          </p>
-        </div>
-      </section>
+          <custom-block
+            heading="Border Small"
+            content-type="paragraph"
+            paragraph="Card with border-small, space-between and padding-medium."
+            button-text="Action"
+            button-href="#"
+            class="padding-medium border-small space-between"></custom-block>
 
-      <section class="min-height-half">
-        <bh-card
-          heading="Card w/ Background Image"
-          description="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-          button-href="https://example.com"
-          button-text="Learn More"
-          classes="space-between"
-          background-image
-          src="./img/primary/image1.jpg"
-          light-src="./img/primary/image1.jpg"
-          dark-src="./img/primary/image2.jpg"
-          alt="Business service in Location"
-          width="25vw"
-        >
-        </bh-card>
+          <custom-block
+            heading="Border Small with Border Radius"
+            content-type="paragraph"
+            paragraph="Card with border-small, space-between, border-radius-medium padding-medium."
+            button-text="Action"
+            button-href="#"
+            class="padding-medium border-small border-radius-medium space-between"></custom-block>
 
-        <bh-card
-          heading="Card w/ Background Image"
-          description="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-          button-href="https://example.com"
-          button-text="Learn More"
-       
-          background-image
-          src="./img/primary/image1.jpg"
-          light-src="./img/primary/image1.jpg"
-          dark-src="./img/primary/image2.jpg"
-          background-overlay="light-dark(var(--color-static-light-4), var(--color-static-dark-2))"
-          backdrop-filter="backdrop-filter-blur-small backdrop-filter-grayscale-medium"
-          border="border-small"
-          border-radius="border-radius-medium"
-          alt="Business service in Location"
-          width="25vw"
-        >
-        </bh-card>
-
-        <bh-card
-          heading="Card w/ Background Image"
-          description="Lorem ipsum dolor sit amet, consectetur adipiscing elit."
-          button-href="https://example.com"
-          button-text="Learn More"
-          classes="space-between padding-medium"
-          background-color="background-color-3"
-          alt="Business service in Location"
-          width="25vw"
-        >
-        </bh-card>
-      </section>
-
-      <section>
-        <div class="card padding-medium background-color-1 color-invert">
-          <hgroup>
-            <h2>Card w/ Background Color</h2>
-            <p>
-              Lorem ipsum dolor sit am incididunt ut labore et dolore magna
-              aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-              laboris nisi ut aliquip ex ea commodo consequat.
-            </p>
-          </hgroup>
-          <a class="button" href="#">Button</a>
-        </div>
-
-        <div class="card padding-medium space-between border-1">
-          <hgroup>
-            <h2>Card w/ Border</h2>
-            <p>
-              Lorem ipsum dolor sit am incididunt ut labore et dolore magna
-              aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-              laboris nisi ut aliquip ex ea commodo consequat.
-            </p>
-          </hgroup>
-          <a href="#"><button>Button</button></a>
-        </div>
-
-        <div class="card background-image space-between border-1">
-          <picture>
-            <img src="./img/image1.jpg" alt="" />
-          </picture>
-          <div class="background-overlay-1"></div>
-          <div class="padding-medium space-between">
-            <hgroup>
-              <h2>Card w/ Background Image</h2>
-              <p>
-                Lorem ipsum dolor sit am incididunt ut labore et dolore magna
-                aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-                ullamco laboris nisi ut aliquip ex ea commodo consequat.
-              </p>
-            </hgroup>
-            <a href="#"><button>Button</button></a>
-          </div>
+          <custom-block
+            heading="Border Medium with Border Radius"
+            content-type="paragraph"
+            paragraph="Card with border-medium, border-radius-small, and padding-medium."
+            button-text="Action"
+            button-href="#"
+            class="padding-medium border-medium border-radius-small"></custom-block>
         </div>
       </section>
 
       <section>
-        <hgroup class="max-width-medium padding-medium center text-center">
-          <h2>Quote</h2>
-          <p class="font-size-large">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore.
-          </p>
-        </hgroup>
-      </section>
-
-      <section>
-        <div class="gallery-main">
-          <!-- Dynamically populated by your JS -->
-        </div>
-      </section>
-
-      <section class="min-height-half">
-        <div class="card padding-medium space-between border-1">
-          <hgroup>
-            <h2>Card w/ Image at Bottom</h2>
-            <p>
-              Lorem ipsum dolor sit am incididunt ut labore et dolore magna
-              aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-              laboris nisi ut aliquip ex ea commodo consequat.
-            </p>
-          </hgroup>
-          <picture>
-            <img src="./img/image1.jpg" alt="" />
-          </picture>
-          <a href="#"><button>Button</button></a>
-        </div>
-        <div class="card padding-medium space-between border-1">
-          <picture>
-            <img src="./img/image1.jpg" alt="" />
-          </picture>
-          <!-- <div class="background-overlay-1"></div> -->
-          <hgroup>
-            <h2>Card w/ Image at Top</h2>
-            <p>
-              Lorem ipsum dolor sit am incididunt ut labore et dolore magna
-              aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-              laboris nisi ut aliquip ex ea commodo consequat.
-            </p>
-          </hgroup>
-          <a href="#"><button>Button</button></a>
-        </div>
-        <div class="card padding-medium space-between border-1">
-          <picture>
-            <img src="./img/image1.jpg" alt="" />
-          </picture>
-          <!-- <div class="background-overlay-1"></div> -->
-          <hgroup>
-            <h2>Heading 2</h2>
-            <p>
-              Lorem ipsum dolor sit am incididunt ut labore et dolore magna
-              aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco
-              laboris nisi ut aliquip ex ea commodo consequat.
-            </p>
-          </hgroup>
-          <a href="#"><button>Button</button></a>
+        <div>
+          <custom-block
+            heading="Plain"
+            content-type="paragraph"
+            paragraph="Cards with just text"></custom-block>
         </div>
       </section>
 
       <section>
-        <div class="scroll">
-          <div>
-            <div>
-              <picture>
-                <img src="./img/image1.jpg" alt="" />
-              </picture>
-              <div>
-                <h3>Lorem ipsum dolor sit am.</h3>
-              </div>
-            </div>
-            <div>
-              <picture>
-                <img src="./img/image1.jpg" alt="" />
-              </picture>
-              <div>
-                <h3>Lorem ipsum dolor sit am.</h3>
-              </div>
-            </div>
-            <div>
-              <picture>
-                <img src="./img/image1.jpg" alt="" />
-              </picture>
-              <div>
-                <h3>Lorem ipsum dolor sit am.</h3>
-              </div>
-            </div>
-            <div>
-              <picture>
-                <img src="./img/image1.jpg" alt="" />
-              </picture>
-              <div>
-                <h3>Lorem ipsum dolor sit am.</h3>
-              </div>
-            </div>
-            <div>
-              <picture>
-                <img src="./img/image1.jpg" alt="" />
-              </picture>
-              <div>
-                <h3>Lorem ipsum dolor sit am.</h3>
-              </div>
-            </div>
-            <div>
-              <picture>
-                <img src="./img/image1.jpg" alt="" />
-              </picture>
-              <div>
-                <h3>Lorem ipsum dolor sit am.</h3>
-              </div>
-            </div>
-            <div>
-              <picture>
-                <img src="./img/image1.jpg" alt="" />
-              </picture>
-              <div>
-                <h3>Lorem ipsum dolor sit am.</h3>
-              </div>
-            </div>
-            <div>
-              <picture>
-                <img src="./img/image1.jpg" alt="" />
-              </picture>
-              <div>
-                <h3>Lorem ipsum dolor sit am.</h3>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+        <div class="grid-container-1">
+          <custom-block
+            heading="Plain Card"
+            content-type="paragraph"
+            paragraph="Card with no additional classes."
+            button-text="Action"
+            button-href="#"></custom-block>
 
-      <section style="display: block">
-        <!-- Modal -->
-        <!-- <div>
-                <div class="modal-content">
-                    <button class="modal-close" aria-label="Close">×</button>
-                    <h2>Modal Title</h2>
-                    <p>Content here...</p>
-                </div>
-            </div>
-            <button class="modal-open">Open Modal</button> -->
+          <custom-block
+            heading="Plain Card"
+            content-type="paragraph"
+            paragraph="Card with no additional classes."
+            button-text="Action"
+            button-href="#"></custom-block>
 
-        <!-- Accordion -->
-        <div class="accordion">
-          <div class="accordion-item active">
-            <button class="accordion-trigger" aria-expanded="true">
-              Section 1
-            </button>
-            <div class="accordion-content">Content here...</div>
-          </div>
-          <div class="accordion-item">
-            <button class="accordion-trigger" aria-expanded="false">
-              Section 2
-            </button>
-            <div class="accordion-content">More content...</div>
-          </div>
-        </div>
-
-        <!-- Dropdown -->
-        <div class="dropdown">
-          <button class="dropdown-toggle">Menu</button>
-          <div class="dropdown-menu">
-            <a href="#">Option 1</a>
-            <a href="#">Option 2</a>
-          </div>
-        </div>
-
-        <!-- Alert -->
-        <!-- <div class="alert success">
-                <span>Success! Action completed.</span>
-                <button class="alert-close" aria-label="Close">×</button>
-            </div> -->
-
-        <!-- Pagination -->
-        <!-- <nav class="pagination">
-                <a href="#">Prev</a>
-                <a href="#" class="active">1</a>
-                <a href="#">2</a>
-                <a href="#">Next</a>
-            </nav> -->
-
-        <!-- Form Group -->
-        <!-- <div class="form-group">
-                <label for="name">Name</label>
-                <input type="text" id="name" name="name">
-            </div> -->
-
-        <!-- Breadcrumb -->
-        <nav class="breadcrumb">
-          <a href="/">Home</a>
-          <a href="/category">Category</a>
-          <a href="/item">Item</a>
-        </nav>
-
-        <!-- Tooltip -->
-        <span class="tooltip" data-tooltip="More info">Hover me</span>
-      </section>
-
-      <section>
-        <button id="showNumber">Show me</button>
-
-        <dialog id="favDialog">
-          <form method="dialog">
-            <p>Lucky number is: <strong id="number"></strong></p>
-            <button>Close dialog</button>
-          </form>
-        </dialog>
-      </section>
-
-      <section>
-        <div class="popover-container">
-          <button class="popover-trigger" popovertarget="my-popover">
-            Click me
-          </button>
-          <div class="popover-content" id="my-popover" popover="auto">
-            This is the popover content!
-          </div>
+          <custom-block
+            heading="Plain Card with place-self."
+            content-type="paragraph"
+            paragraph="Card with custom style place flex-end."
+            button-text="Action"
+            button-href="#"></custom-block>
         </div>
       </section>
 
       <section>
-        <div class="image-compare">
-          <img src="img/gallery/gallery-item-1-768.jpg" alt="Before" />
-          <img src="img/gallery/gallery-item-2.jpg" alt="After" />
-          <input type="range" min="0" max="100" step="0.1" value="50" />
+        <div>
+          <custom-block
+            heading="Background Image"
+            content-type="paragraph"
+            paragraph="Background image pictures"></custom-block>
         </div>
       </section>
 
       <section>
-        <div id="lightbox">
-          <span class="close">×</span>
-          <button class="prev">←</button>
-          <button class="next">→</button>
-          <div class="lightbox-content"></div>
+        <div class="grid-container-1">
+          <custom-block
+            heading="Explore Nature"
+            heading-tag="h2"
+            paragraph="Discover breathtaking landscapes."
+            ul-items="Apple, Banana, Cherry"
+            ol-items="Ten, Eleven, Twelve"
+            content-order="ul,ol,paragraph"
+            ul-icon='<i class="fa-utility-fill fa-semibold fa-compass"></i>'
+            ul-icon-position="right"
+            ul-style="padding: var(--space-tiny) 0 var(--space-tiny) 0; display: grid; grid-template-columns: max-content; justify-content: center;
+    text-align: right;"
+            ul-icon-offset="var(--space-micro)"
+            ol-icon='<i class="fa-utility-fill fa-semibold fa-building"></i>'
+            ol-icon-position="left"
+            ol-style="display: grid; grid-template-columns: max-content; justify-content: center; text-align: left;"
+            ol-icon-offset="var(--space-micro)"
+            button-text="Learn More"
+            button-href="#nature"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-leaf"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-micro)"
+            background-overlay="background-overlay-black-white"
+            img-background-src="tourism-photography-light-1.jpg"
+            img-background-alt="Nature landscape background"
+            img-background-position="center"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="80vw"
+            img-background-desktop-width="1200px"
+            text-alignment="center"
+            inner-alignment="center"></custom-block>
+
+          <custom-block
+            heading="Adventure Awaits"
+            heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Thrilling adventures with video."
+            button-text="Join Now"
+            button-href="#adventure"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-compass"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-micro)"
+            background-overlay="background-overlay-color-primary"
+            background-gradient="background-gradient-1"
+            video-background-src="video1.mp4"
+            video-background-poster="tourism-photography-dark-1.jpg"
+            video-background-alt="Adventure video background"
+            video-background-autoplay
+            video-background-muted
+            video-background-loop
+            text-alignment="right"
+            inner-alignment="center-right"
+            inner-class="padding-small"></custom-block>
+
+          <custom-block
+            heading="City Vibes"
+            content-type="paragraph"
+            paragraph="Urban exploration with an image."
+            icon='<i class="fa-utility-fill fa-semibold fa-building"></i>'
+            icon-size="2rem"
+            icon-style="padding-bottom: var(--space-small)"
+            button-text="Explore City"
+            button-href="#city"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-building"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-micro)"
+            class="space-between"
+            img-primary-src="tourism-photography-light-2.jpg"
+            img-primary-alt="Cityscape image"
+            img-primary-position="right"
+            img-primary-mobile-width="100vw"
+            img-primary-tablet-width="50vw"
+            img-primary-desktop-width="600px"
+            inner-alignment="center-left"
+            inner-background-color="background-color-1"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            background-overlay="background-overlay-color-secondary"
+            background-image-noise
+            img-background-src="tourism-photography-dark-2.jpg"
+            img-background-alt="Scenic background"
+            img-background-position="bottom-center"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="80vw"
+            img-background-desktop-width="1200px"></custom-block>
+
+          <custom-block
+            heading="Start Your Journey"
+            heading-tag="h2"
+            content-type="paragraph"
+            paragraph="Begin your adventure today."
+            button-text="Start Now"
+            button-href="#start-now"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-star"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-micro)"
+            class="border-small"
+            inner-background-color="background-color-1"
+            text-alignment="center"
+            inner-alignment="center"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Our Story"
+            heading-tag="h1"
+            sub-heading="A Journey of Passion"
+            sub-heading-tag="h4"
+            content-type="paragraph"
+            paragraph="Inspiring through storytelling."
+            icon='<i class="fa-utility-fill fa-semibold fa-book"></i>'
+            icon-size="2.5rem"
+            icon-style="padding-bottom: var(--space-small)"
+            inner-background-color="background-color-2"
+            text-alignment="left"
+            inner-alignment="center-left"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Experience the Journey"
+            content-type="paragraph"
+            paragraph="Video of incredible destinations."
+            button-text="Watch Now"
+            button-href="#video"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-video"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-micro)"
+            class="border-medium"
+            video-primary-src="video2.mp4"
+            video-primary-poster="tourism-photography-light-3.jpg"
+            video-primary-alt="Travel video"
+            video-primary-position="top"
+            video-primary-autoplay
+            video-primary-muted
+            inner-backdrop-filter="backdrop-blur-medium"
+            inner-alignment="center"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Dream Destinations"
+            content-type="paragraph"
+            paragraph="Plan your next getaway."
+            button-text="Plan Trip"
+            button-href="#plan"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-plane"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-micro)"
+            background-overlay="background-overlay-black"
+            img-background-src="tourism-photography-dark-3.jpg"
+            img-background-alt="Destination background"
+            img-background-position="top-right"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="80vw"
+            img-background-desktop-width="1200px"
+            text-alignment="right"
+            inner-alignment="center-right"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Mountain Retreat"
+            heading-tag="h2"
+            content-type="paragraph"
+            paragraph="Escape to serene landscapes."
+            button-text="Book Now"
+            button-href="#mountain"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-tree"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-micro)"
+            background-overlay="background-overlay-white-black"
+            img-background-src="tourism-photography-light-4.jpg"
+            img-background-alt="Mountain landscape background"
+            img-background-position="top-left"
+            text-alignment="left"
+            inner-alignment="center-left"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Coastal Bliss"
+            content-type="paragraph"
+            paragraph="Relax by the sea."
+            icon='<i class="fa-utility-fill fa-semibold fa-water"></i>'
+            icon-size="2rem"
+            icon-style="padding-bottom: var(--space-small)"
+            class="space-between"
+            img-primary-src="tourism-photography-dark-4.jpg"
+            img-primary-alt="Coastal view image"
+            img-primary-position="left"
+            img-primary-mobile-width="100vw"
+            img-primary-tablet-width="50vw"
+            img-primary-desktop-width="600px"
+            inner-alignment="center-right"
+            inner-background-color="background-color-1"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Wild Safari"
+            heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Thrilling safari adventure."
+            button-text="Discover More"
+            button-href="#safari"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-magnifying-glass"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-micro)"
+            background-overlay="background-overlay-color-tertiary"
+            video-background-src="video1.mp4"
+            video-background-poster="tourism-photography-dark-5.jpg"
+            video-background-alt="Safari video background"
+            video-background-autoplay
+            video-background-muted
+            video-background-loop
+            text-alignment="center"
+            inner-alignment="center"
+            inner-class="padding-small"></custom-block>
+
+          <custom-block
+            heading="Our Vision"
+            heading-tag="h2"
+            content-type="paragraph"
+            paragraph="Sustainable travel future."
+            icon='<i class="fa-utility-fill fa-semibold fa-globe"></i>'
+            icon-size="2.5rem"
+            icon-style="padding-bottom: var(--space-small)"
+            inner-background-color="background-color-2"
+            text-alignment="center"
+            inner-alignment="center"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Cultural Journey"
+            content-type="paragraph"
+            paragraph="Immerse in vibrant cultures."
+            button-text="Explore Culture"
+            button-href="#culture"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-music"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-micro)"
+            class="border-medium"
+            video-primary-src="video2.mp4"
+            video-primary-poster="tourism-photography-dark-6.jpg"
+            video-primary-alt="Cultural video"
+            video-primary-position="bottom"
+            video-primary-autoplay
+            video-primary-muted
+            inner-alignment="center"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            background-overlay="background-overlay-black-white"
+            background-image-noise
+            img-background-src="tourism-photography-light-3.jpg"
+            img-background-alt="Tropical background"
+            img-background-position="center-right"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="80vw"
+            img-background-desktop-width="1000px"></custom-block>
+
+          <custom-block
+            heading="Join the Adventure"
+            heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Start your journey today."
+            button-text="Sign Up"
+            button-href="#signup"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-user-plus"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-micro)"
+            inner-background-color="background-color-1"
+            text-alignment="center"
+            inner-alignment="center"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Urban Adventure"
+            heading-tag="h2"
+            sub-heading="Discover the City"
+            sub-heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Experience urban life."
+            button-text="Start Exploring"
+            button-href="#urban"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-building"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-micro)"
+            class="border-medium border-radius-medium"
+            background-overlay="background-overlay-color-primary"
+            background-gradient="background-gradient-2"
+            img-background-src="tourism-photography-dark-1.jpg"
+            img-background-alt="Urban landscape background"
+            img-background-position="bottom-left"
+            text-alignment="left"
+            inner-alignment="center-left"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Travel Dreams"
+            heading-tag="h2"
+            sub-heading="Plan Your Journey"
+            sub-heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Curated travel experiences."
+            icon='<i class="fa-utility-fill fa-semibold fa-map"></i>'
+            icon-size="2rem"
+            icon-style="padding-bottom: var(--space-small)"
+            inner-background-color="background-color-1"
+            text-alignment="left"
+            inner-alignment="center-left"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Forest Escape"
+            content-type="paragraph"
+            paragraph="Discover serene forests."
+            button-text="Explore Now"
+            button-href="#forest"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-tree"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-micro)"
+            img-primary-src="tourism-photography-light-2.jpg"
+            img-primary-alt="Forest image"
+            img-primary-position="top"
+            img-primary-mobile-width="100vw"
+            img-primary-tablet-width="80vw"
+            img-primary-desktop-width="1200px"
+            inner-alignment="center"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Desert Quest"
+            heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Adventure in the dunes."
+            button-text="Join Quest"
+            button-href="#desert"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-sun"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-micro)"
+            background-overlay="background-overlay-color-secondary"
+            video-background-src="video1.mp4"
+            video-background-poster="tourism-photography-dark-2.jpg"
+            video-background-alt="Desert video background"
+            video-background-autoplay
+            video-background-muted
+            video-background-loop
+            text-alignment="left"
+            inner-alignment="center-left"
+            inner-class="padding-small"></custom-block>
+
+          <custom-block
+            heading="Book Your Trip"
+            heading-tag="h2"
+            content-type="paragraph"
+            paragraph="Plan your adventure now."
+            button-text="Book Now"
+            button-href="#book"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-ticket"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-micro)"
+            class="border-small"
+            inner-background-color="background-color-1"
+            text-alignment="center"
+            inner-alignment="center"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Island Paradise"
+            content-type="paragraph"
+            paragraph="Relax in tropical bliss."
+            button-text="Visit Now"
+            button-href="#island"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-umbrella"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-micro)"
+            background-overlay="background-overlay-white"
+            img-background-src="tourism-photography-light-3.jpg"
+            img-background-alt="Island background"
+            img-background-position="center"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="80vw"
+            img-background-desktop-width="1200px"
+            text-alignment="center"
+            inner-alignment="center"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Mountain Hike"
+            content-type="paragraph"
+            paragraph="Trek through stunning peaks."
+            icon='<i class="fa-utility-fill fa-semibold fa-tree"></i>'
+            icon-size="2rem"
+            icon-style="padding-bottom: var(--space-small)"
+            img-primary-src="tourism-photography-dark-3.jpg"
+            img-primary-alt="Mountain image"
+            img-primary-position="bottom"
+            img-primary-mobile-width="100vw"
+            img-primary-tablet-width="50vw"
+            img-primary-desktop-width="600px"
+            inner-alignment="center"
+            inner-background-color="background-color-1"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Eco Travel"
+            heading-tag="h2"
+            content-type="paragraph"
+            paragraph="Sustainable adventures await."
+            icon='<i class="fa-utility-fill fa-semibold fa-leaf"></i>'
+            icon-size="2.5rem"
+            icon-style="padding-bottom: var(--space-small)"
+            inner-background-color="background-color-2"
+            text-alignment="right"
+            inner-alignment="center-right"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="City Lights"
+            content-type="paragraph"
+            paragraph="Experience urban nights."
+            button-text="Explore Nightlife"
+            button-href="#nightlife"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-lightbulb"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-micro)"
+            class="space-between border-medium"
+            video-primary-src="video2.mp4"
+            video-primary-poster="tourism-photography-light-4.jpg"
+            video-primary-alt="City video"
+            video-primary-position="left"
+            video-primary-autoplay
+            video-primary-muted
+            inner-alignment="center-right"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            background-overlay="background-overlay-color-tertiary"
+            background-image-noise
+            img-background-src="tourism-photography-dark-4.jpg"
+            img-background-alt="Desert background"
+            img-background-position="bottom-right"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="80vw"
+            img-background-desktop-width="1000px"></custom-block>
+
+          <custom-block
+            heading="Join the Journey"
+            heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Start your adventure now."
+            button-text="Join Us"
+            button-href="#join"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-heart"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-micro)"
+            inner-background-color="background-color-1"
+            text-alignment="center"
+            inner-alignment="center"
+            inner-class="padding-small"></custom-block>
+
+          <custom-block
+            heading="Sky High"
+            heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Soar above the clouds."
+            button-text="Fly Now"
+            button-href="#sky"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-plane"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-micro)"
+            background-overlay="background-overlay-color-primary"
+            img-background-src="tourism-photography-light-1.jpg"
+            img-background-alt="Sky background"
+            img-background-position="top-center"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="80vw"
+            img-background-desktop-width="1200px"
+            text-alignment="center"
+            inner-alignment="center"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Rural Charm"
+            content-type="paragraph"
+            paragraph="Discover countryside beauty."
+            icon='<i class="fa-utility-fill fa-semibold fa-truck"></i>'
+            icon-size="2rem"
+            icon-style="padding-bottom: var(--space-small)"
+            class="space-between border-small"
+            img-primary-src="tourism-photography-dark-5.jpg"
+            img-primary-alt="Rural image"
+            img-primary-position="right"
+            img-primary-mobile-width="100vw"
+            img-primary-tablet-width="50vw"
+            img-primary-desktop-width="600px"
+            inner-alignment="center-left"
+            inner-background-color="background-color-1"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Ocean Waves"
+            heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Sail the open seas."
+            button-text="Set Sail"
+            button-href="#ocean"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-ship"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-micro)"
+            background-overlay="background-overlay-black"
+            video-background-src="video1.mp4"
+            video-background-poster="tourism-photography-dark-6.jpg"
+            video-background-alt="Ocean video background"
+            video-background-autoplay
+            video-background-muted
+            video-background-loop
+            text-alignment="center"
+            inner-alignment="center"
+            inner-class="padding-small"></custom-block>
+
+          <custom-block
+            heading="Travel Smart"
+            heading-tag="h2"
+            sub-heading="Plan Efficiently"
+            sub-heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Smart travel solutions."
+            icon='<i class="fa-utility-fill fa-semibold fa-briefcase"></i>'
+            icon-size="2.5rem"
+            icon-style="padding-bottom: var(--space-small)"
+            inner-background-color="background-color-2"
+            text-alignment="left"
+            inner-alignment="center-left"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Night Sky"
+            content-type="paragraph"
+            paragraph="Stargaze in remote locations."
+            button-text="Stargaze Now"
+            button-href="#stars"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-star"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-micro)"
+            video-primary-src="video2.mp4"
+            video-primary-poster="tourism-photography-light-2.jpg"
+            video-primary-alt="Night sky video"
+            video-primary-position="top"
+            video-primary-autoplay
+            video-primary-muted
+            inner-alignment="center"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Historic Sites"
+            heading-tag="h2"
+            content-type="paragraph"
+            paragraph="Explore ancient history."
+            button-text="Visit History"
+            button-href="#history"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-landmark"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-micro)"
+            class="border-medium border-radius-medium"
+            background-overlay="background-overlay-white-black"
+            img-background-src="tourism-photography-dark-1.jpg"
+            img-background-alt="Historic site background"
+            img-background-position="bottom-left"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="80vw"
+            img-background-desktop-width="1200px"
+            text-alignment="left"
+            inner-alignment="center-left"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Adventure Hub"
+            heading-tag="h2"
+            content-type="paragraph"
+            paragraph="Your base for exploration."
+            icon='<i class="fa-utility fa-semibold fa-image"></i>'
+            icon-size="2rem"
+            icon-style="padding-bottom: var(--space-small)"
+            inner-background-color="background-color-1"
+            text-alignment="center"
+            inner-alignment="center"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Sunset Views"
+            content-type="paragraph"
+            paragraph="Breathtaking evening vistas."
+            button-text="See Now"
+            button-href="#sunset"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-sun"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-micro)"
+            class="space-between"
+            img-primary-src="tourism-photography-light-3.jpg"
+            img-primary-alt="Sunset image"
+            img-primary-position="left"
+            img-primary-mobile-width="100vw"
+            img-primary-tablet-width="50vw"
+            img-primary-desktop-width="600px"
+            inner-alignment="center-right"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Jungle Trek"
+            heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Explore lush rainforests."
+            button-text="Trek Now"
+            button-href="#jungle"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-tree"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-micro)"
+            background-overlay="background-overlay-black-white"
+            video-background-src="video1.mp4"
+            video-background-poster="tourism-photography-dark-2.jpg"
+            video-background-alt="Jungle video background"
+            video-background-autoplay
+            video-background-muted
+            video-background-loop
+            text-alignment="right"
+            inner-alignment="center-right"
+            inner-class="padding-small"></custom-block>
+
+          <custom-block
+            heading="Discover More"
+            heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Uncover new destinations."
+            button-text="Explore"
+            button-href="#discover"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-magnifying-glass"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-micro)"
+            class="border-small"
+            inner-background-color="background-color-1"
+            text-alignment="center"
+            inner-alignment="center"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Arctic Wonders"
+            content-type="paragraph"
+            paragraph="Discover icy landscapes."
+            button-text="Explore Arctic"
+            button-href="#arctic"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-snowflake"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-micro)"
+            background-overlay="background-overlay-white"
+            img-background-src="tourism-photography-light-4.jpg"
+            img-background-alt="Arctic background"
+            img-background-position="center"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="80vw"
+            img-background-desktop-width="1200px"
+            text-alignment="center"
+            inner-alignment="center"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Canyon Adventure"
+            content-type="paragraph"
+            paragraph="Explore majestic canyons."
+            icon='<i class="fa-utility-fill fa-semibold fa-tree"></i>'
+            icon-size="2rem"
+            icon-style="padding-bottom: var(--space-small)"
+            img-primary-src="tourism-photography-dark-3.jpg"
+            img-primary-alt="Canyon image"
+            img-primary-position="top"
+            img-primary-mobile-width="100vw"
+            img-primary-tablet-width="80vw"
+            img-primary-desktop-width="1200px"
+            inner-alignment="center"
+            inner-background-color="background-color-1"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Cultural Gems"
+            heading-tag="h2"
+            sub-heading="Hidden Treasures"
+            sub-heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Discover cultural wonders."
+            icon='<i class="fa-utility-fill fa-semibold fa-diamond"></i>'
+            icon-size="2.5rem"
+            icon-style="padding-bottom: var(--space-small)"
+            inner-background-color="background-color-2"
+            text-alignment="left"
+            inner-alignment="center-left"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Urban Pulse"
+            content-type="paragraph"
+            paragraph="Feel the city’s energy."
+            button-text="Explore City"
+            button-href="#urban-pulse"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-building"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-micro)"
+            class="space-between border-medium"
+            video-primary-src="video2.mp4"
+            video-primary-poster="tourism-photography-light-1.jpg"
+            video-primary-alt="Urban video"
+            video-primary-position="right"
+            video-primary-autoplay
+            video-primary-muted
+            inner-alignment="center-left"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            background-overlay="background-overlay-color-secondary"
+            background-image-noise
+            img-background-src="tourism-photography-dark-4.jpg"
+            img-background-alt="Mountain background"
+            img-background-position="top-right"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="80vw"
+            img-background-desktop-width="1000px"></custom-block>
+
+          <custom-block
+            heading="Plan Your Trip"
+            heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Start your adventure today."
+            button-text="Plan Now"
+            button-href="#plan-now"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-calendar"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-micro)"
+            inner-background-color="background-color-1"
+            text-alignment="center"
+            inner-alignment="center"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Beach Getaway"
+            heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Relax by the ocean."
+            button-text="Book Beach"
+            button-href="#beach"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-umbrella"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-micro)"
+            background-overlay="background-overlay-color-tertiary"
+            img-background-src="tourism-photography-light-2.jpg"
+            img-background-alt="Beach background"
+            img-background-position="bottom-left"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="80vw"
+            img-background-desktop-width="1200px"
+            text-alignment="left"
+            inner-alignment="center-left"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Skyline Views"
+            content-type="paragraph"
+            paragraph="Cityscapes from above."
+            icon='<i class="fa-utility-fill fa-semibold fa-building"></i>'
+            icon-size="2rem"
+            icon-style="padding-bottom: var(--space-small)"
+            class="border-small"
+            img-primary-src="tourism-photography-dark-5.jpg"
+            img-primary-alt="Skyline image"
+            img-primary-position="bottom"
+            img-primary-mobile-width="100vw"
+            img-primary-tablet-width="50vw"
+            img-primary-desktop-width="600px"
+            inner-alignment="center"
+            inner-background-color="background-color-1"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Wilderness Call"
+            heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Answer nature’s call."
+            button-text="Explore Wild"
+            button-href="#wilderness"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-tree"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-micro)"
+            background-overlay="background-overlay-black"
+            video-background-src="video1.mp4"
+            video-background-poster="tourism-photography-dark-6.jpg"
+            video-background-alt="Wilderness video background"
+            video-background-autoplay
+            video-background-muted
+            video-background-loop
+            text-alignment="center"
+            inner-alignment="center"
+            inner-class="padding-small"></custom-block>
+
+          <custom-block
+            heading="Travel Goals"
+            heading-tag="h2"
+            content-type="paragraph"
+            paragraph="Achieve your travel dreams."
+            icon='<i class="fa-utility-fill fa-semibold fa-flag"></i>'
+            icon-size="2.5rem"
+            icon-style="padding-bottom: var(--space-small)"
+            class="border-medium"
+            inner-background-color="background-color-2"
+            text-alignment="right"
+            inner-alignment="center-right"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Wanderlust"
+            heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Fuel your travel passion."
+            icon='<i class="fa-utility-fill fa-semibold fa-globe"></i>'
+            icon-size="2rem"
+            icon-style="padding-bottom: var(--space-small)"
+            inner-background-color="background-color-1"
+            text-alignment="center"
+            inner-alignment="center"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Sunset Journey"
+            heading-tag="h2"
+            content-type="paragraph"
+            paragraph="Chase stunning sunsets."
+            button-text="Chase Now"
+            button-href="#sunset-journey"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-sun"></i>'
+            button-icon-position="right"
+            button-icon-offset="var(--space-micro)"
+            background-overlay="background-overlay-color-primary"
+            img-background-src="tourism-photography-light-4.jpg"
+            img-background-alt="Sunset background"
+            img-background-position="center-right"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="80vw"
+            img-background-desktop-width="1200px"
+            text-alignment="right"
+            inner-alignment="center-right"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Explore More"
+            heading-tag="h3"
+            content-type="paragraph"
+            paragraph="Discover new horizons."
+            icon='<i class="fa-utility-fill fa-semibold fa-compass"></i>'
+            icon-size="2rem"
+            icon-style="padding-bottom: var(--space-small)"
+            inner-background-color="background-color-2"
+            text-alignment="left"
+            inner-alignment="center-left"
+            inner-class="padding-medium"></custom-block>
+
+          <custom-block
+            heading="Coastal Adventure"
+            content-type="paragraph"
+            paragraph="Explore coastal trails."
+            button-text="Discover Coast"
+            button-href="#coastal"
+            button-icon='<i class="fa-utility-fill fa-semibold fa-water"></i>'
+            button-icon-position="left"
+            button-icon-offset="var(--space-micro)"
+            class="space-between border-medium border-radius-medium"
+            video-primary-src="video2.mp4"
+            video-primary-poster="tourism-photography-dark-1.jpg"
+            video-primary-alt="Coastal video"
+            video-primary-position="left"
+            video-primary-autoplay
+            video-primary-muted
+            inner-alignment="center-right"
+            inner-class="padding-medium"></custom-block>
+        </div>
+      </section>
+      <section>
+        <div>
+          <custom-block
+            heading="Background Image Noise"
+            content-type="paragraph"
+            paragraph="Cards with background image noise applied."></custom-block>
+        </div>
+      </section>
+
+      <section>
+        <div class="grid-container-1">
+          <custom-block
+            heading="Background Image with Noise"
+            content-type="paragraph"
+            paragraph="Card with custom background-image, background-image-noise and padding-medium."
+            button-text="Action"
+            button-href="#"
+            inner-class="padding-medium"
+            background-overlay="background-overlay-black"
+            background-image-noise
+            img-background-src="tourism-photography-light-1.jpg"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="50vw"
+            img-background-desktop-width="33vw"
+            img-background-alt="Tourism photography with noise"></custom-block>
+
+          <custom-block
+            heading="Background Image with Inner Noise"
+            content-type="paragraph"
+            paragraph="Card with custom background-image, background-image-noise and padding-medium."
+            button-text="Action"
+            button-href="#"
+            inner-class="padding-medium"
+            background-overlay="background-overlay-black-white"
+            backdrop-filter="backdrop-grayscale-large backdrop-blur-small"
+            img-background-src="tourism-photography-light-2.jpg"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="50vw"
+            img-background-desktop-width="33vw"
+            inner-background-image-noise
+            img-background-alt="Tourism photography with inner noise"></custom-block>
+
+          <custom-block
+            heading="Background Image with Noise (both)"
+            content-type="paragraph"
+            paragraph="Card with custom background-image, background-image-noise and padding-medium."
+            button-text="Action"
+            button-href="#"
+            inner-class="padding-medium"
+            background-overlay="background-overlay-black"
+            inner-background-overlay="background-overlay-white"
+            background-image-noise
+            backdrop-filter="backdrop-grayscale-large"
+            inner-backdrop-filter="backdrop-blur-large"
+            img-background-src="tourism-photography-light-1.jpg"
+            img-background-mobile-width="100vw"
+            img-background-tablet-width="50vw"
+            img-background-desktop-width="33vw"
+            inner-background-image-noise
+            inner-alignment="bottom-center"
+            text-alignment="center"
+            img-background-alt="Tourism photography with noise"></custom-block>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <custom-block
+            heading="Foreground Image - Top/Bottom"
+            content-type="paragraph"
+            paragraph="Cards with picture above or below"></custom-block>
+        </div>
+      </section>
+
+      <section>
+        <div class="grid-container-1">
+          <custom-block
+            heading="Background Colour 1 and Picture"
+            content-type="paragraph"
+            paragraph="Card with background-color-1, picture, and padding-medium."
+            button-text="Action"
+            button-href="#"
+            background-color="background-color-1"
+            
+            inner-class="padding-medium"
+            img-primary-src="tourism-photography-light-2.jpg"
+            img-primary-position="top"
+            img-primary-alt="Tourism photography foreground"></custom-block>
+
+          <custom-block
+            heading="Background Colour 1 and Picture"
+            content-type="paragraph"
+            paragraph="Card with background-color-1, picture, and padding-medium."
+            button-text="Action"
+            button-href="#"
+            background-color="background-color-1"
+            
+            inner-class="padding-medium"
+            img-primary-src="tourism-photography-light-1.jpg"
+            img-primary-position="below"
+            img-primary-alt="Tourism photography foreground"></custom-block>
+
+          <custom-block
+            heading="Picture and Border"
+            content-type="paragraph"
+            paragraph="Card with picture, border-small and padding-medium."
+            button-text="Action"
+            button-href="#"
+            class="border-small"
+            inner-class="padding-medium"
+            img-primary-src="tourism-photography-light-1.jpg"
+            img-primary-position="below"
+            img-primary-alt="Tourism photography with border"></custom-block>
+
+          <custom-block
+            heading="Background Colour 1 and Picture 1/1"
+            content-type="paragraph"
+            paragraph="Card with background-color-1, picture, and padding-medium."
+            button-text="Action"
+            button-href="#"
+            background-color="background-color-1"
+            
+            inner-class="padding-medium"
+            img-primary-src="tourism-photography-light-2.jpg"
+            img-primary-position="top"
+            img-primary-aspect-ratio="1/1"
+            img-primary-alt="Tourism photography foreground"></custom-block>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <custom-block
+            heading="Foreground Image - Left/Right"
+            content-type="paragraph"
+            paragraph="Cards with picture left or right"></custom-block>
+        </div>
+      </section>
+
+      <section>
+        <div class="grid-container-1">
+          <custom-block
+            heading="Background Colour 1 and Picture"
+            content-type="paragraph"
+            paragraph="Card with background-color-1, picture, and padding-medium."
+            button-text="Action"
+            button-href="#"
+            background-color="background-color-1"
+            
+            inner-class="padding-medium"
+            img-primary-src="tourism-photography-light-1.jpg"
+            img-primary-position="left"
+            inner-alignment="bottom"
+            img-primary-alt="Tourism photography left"></custom-block>
+
+          <custom-block
+            heading="Background Colour 2 and Picture"
+            content-type="paragraph"
+            paragraph="Card with background-color-2, picture, and padding-medium."
+            button-text="Action"
+            button-href="#"
+            background-color="background-color-2"
+            
+            inner-class="padding-medium"
+            img-primary-src="tourism-photography-light-1.jpg"
+            img-primary-position="right"
+            inner-alignment="center"
+            text-alignment="right"
+            img-primary-alt="Tourism photography right"></custom-block>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <custom-block
+            heading="Image Only"
+            content-type="paragraph"
+            paragraph="Cards with a background image and effects applied to the inner div."></custom-block>
+        </div>
+      </section>
+
+      <section>
+        <div style="grid-template-columns: 1fr">
+          <custom-block
+            img-primary-light-src="tourism-photography-light-1.jpg"
+            img-primary-light-alt="Text"
+            img-primary-dark-src="tourism-photography-dark-1.jpg"
+            img-primary-dark-alt="Text"
+            img-primary-decorative></custom-block>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <custom-block
+            heading="Image with Gradient"
+            content-type="paragraph"
+            paragraph="Cards with a background image and effects applied to the inner div."></custom-block>
+        </div>
+      </section>
+
+      <section>
+        <div class="grid-container-1">
+          <custom-block
+            img-background-src="tourism-photography-light-1.jpg"
+            img-background-alt="image"
+            background-overlay="background-overlay-color-primary"
+            background-gradient="background-gradient-1"></custom-block>
+
+          <custom-block
+            img-background-src="tourism-photography-light-2.jpg"
+            img-background-alt="image"
+            background-overlay="background-overlay-color-secondary"
+            background-gradient="background-gradient-1"></custom-block>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <custom-block
+            heading="Video"
+            content-type="paragraph"
+            paragraph="Cards with a background video and effects applied to the inner div."></custom-block>
+        </div>
+      </section>
+
+      <section>
+        <div>
+          <custom-block
+            heading="Background Colour 2 and Video"
+            content-type="paragraph"
+            paragraph="Card with background-color-2, video, and padding-medium."
+            button-text="Action"
+            button-href="#"
+            
+            inner-class="padding-medium"
+            inner-alignment="center"
+            inner-background-image-noise
+            inner-style="
+                        place-self: center;
+                        width: fit-content;
+                        height: min-content;
+                        padding: var(--space-large);
+                    "
+            text-alignment="center"
+            inner-backdrop-filter="backdrop-blur-large"
+            background-overlay="background-overlay-black-white"
+            background-gradient="background-gradient-1"
+            video-background-src="video1.mp4"
+            video-background-alt="Background video"
+            video-background-autoplay
+            video-background-muted
+            video-background-loop></custom-block>
+
+          <custom-block
+            heading="Background Colour 2 and Video"
+            content-type="paragraph"
+            paragraph="Card with background-color-2, video, and padding-medium."
+            button-text="Action"
+            button-href="#"
+            
+            inner-class="padding-medium"
+            inner-alignment="center"
+            inner-background-image-noise
+            inner-style="
+                        place-self: center;
+                        width: fit-content;
+                        height: min-content;
+                        padding: var(--space-large);
+                    "
+            text-alignment="center"
+            inner-backdrop-filter="backdrop-blur-large"
+            inner-background-color="background-color-2"
+            background-overlay="background-overlay-black-white"
+            background-gradient="background-gradient-1"
+            video-background-src="video1.mp4"
+            video-background-alt="Background video"
+            video-background-autoplay
+            video-background-muted
+            video-background-loop></custom-block>
         </div>
       </section>
     </main>
-
-    <bh-footer></bh-footer>
-
-    <!-- <footer class="min-height-two-thirds">
-
-
-
-    </footer> -->
   </body>
 </html>

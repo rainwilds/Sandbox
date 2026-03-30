@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="preload" href="./JSON/setup.json" as="fetch" crossorigin="anonymous">
+    <link rel="preload" href="./styles.css" as="style">
+    <link rel="preload" href="./custom.css" as="style">
+
+    <script src="js/generators/head-generator.js" type="module"></script>
+
+    <data-custom-head
+        data-components="custom-block custom-header custom-logo custom-nav custom-slider"
+        data-title="Nexus Agency | Next-Gen Web"
+        data-description="We build blazing fast, statically compiled interfaces."
+        data-canonical="https://rainwilds.github.io/Sandbox/agency.html"
+        data-theme="cyberpunk">
+    </data-custom-head>
+</head>
+<body>
+
+    <custom-header 
+        position="sticky-top" 
+        backdrop-filter="blur-md" 
+        background-color="background-color-2" 
+        shadow="shadow-medium"
+        logo-placement="nav"
+        nav-alignment="center-right">
+        
+        <custom-logo 
+            logo-full-light-src="logo-full-light-1.svg" 
+            logo-full-dark-src="logo-full-dark-1.svg" 
+            logo-icon-light-src="logo-icon-light-1.svg"
+            logo-icon-dark-src="logo-icon-dark-1.svg"
+            logo-full-primary-alt="Nexus Logo"
+            logo-icon-primary-alt="Nexus Icon"
+            logo-breakpoint="1024"
+            logo-height="35px">
+        </custom-logo>
+        
+        <custom-nav>
+            <a href="/">Home</a>
+            <a href="#services">Services</a>
+            <a href="#portfolio">Portfolio</a>
+            <a href="/contact" class="button button-primary">Let's Talk</a>
+        </custom-nav>
+    </custom-header>
+
+    <main>
+
+<custom-layout column-span="12" subgrid="true">
+  <custom-block heading="New Block" inner-class="padding-large" column-end-mobile="13" column-start-mobile="1">
+  </custom-block>
+</custom-layout>
+
+<custom-layout column-span="12" subgrid="true">
+  <custom-block heading="New Block" class="background-color-1" inner-class="padding-large" shadow="shadow-heavy" column-start-mobile="1" column-end-mobile="13" border="border-large" border-radius="border-radius-medium">
+  </custom-block>
+</custom-layout>
+
+
+    </main>
+
+</body>
+</html>

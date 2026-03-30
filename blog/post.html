@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="preconnect" href="https://kit.fontawesome.com" crossorigin="anonymous">
+
+    <link rel="preload" href="./JSON/setup.json" as="fetch" crossorigin="anonymous">
+    <link rel="preload" href="./styles.css" as="style">    
+
+    <script src="js/head-generator.js" type="module"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+     <script src="js/blog.js" type="module"></script>
+
+    <data-custom-head
+        data-components="custom-block"
+        data-title="Blog"
+        data-description="Blog posts"
+        data-canonical="https://rainwilds.github.io/Sandbox/post.html"
+        >
+    </data-custom-head>
+
+</head>
+
+<body>
+  <main>
+    <section>
+      <div id="post-content"></div>
+    </section>
+  </main>
+</body>
+</html>

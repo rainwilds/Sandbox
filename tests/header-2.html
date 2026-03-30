@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="preconnect" href="https://kit.fontawesome.com" crossorigin="anonymous">
+
+    <link rel="preload" href="./JSON/setup.json" as="fetch" crossorigin="anonymous">
+    <link rel="preload" href="./styles.css" as="style">    
+
+    <script src="js/head-generator.js" type="module"></script>
+
+    <data-custom-head
+        data-components="custom-block"
+        data-title="Header 2"
+        data-description="Custom header web component."
+        data-canonical="https://rainwilds.github.io/Sandbox/header-1.html"
+        >
+    </data-custom-head>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+
+
+</head>
+
+<body>
+
+    <header>
+
+        <div>
+            <div class="swiper mySwiper">
+                <div class="swiper-wrapper">
+                <div class="swiper-slide">
+
+                    <custom-block
+
+                        img-background-src="tourism-photography-light-1.jpg"
+                        img-background-alt="Nature landscape background"
+
+                        heading="Explore Nature"
+                        heading-tag="h2"
+                        text="Discover breathtaking landscapes."
+                        button-text="Learn More"
+                        button-href="#nature"
+                        button-icon='<i class="fa-chisel fa-regular fa-leaf"></i>'
+                        button-icon-position="left"
+                        button-icon-offset="var(--space-tiny)"                         
+                    
+                    >
+                    </custom-block>
+
+                </div>
+                <div class="swiper-slide">
+
+                    <custom-block
+
+                        video-background-src="video/video1.mp4"
+                        video-background-poster="tourism-photography-dark-1.jpg"
+                        video-background-alt="Adventure video background"
+                        video-background-autoplay
+                        video-background-muted
+                        video-background-loop
+
+                         background-overlay="background-overlay-2"
+                         background-gradient="dark-gradient-3"
+
+                        heading="Explore Nature"
+                        heading-tag="h2"
+                        text="Discover breathtaking landscapes."
+                        button-text="Learn More"
+                        button-href="#nature"
+                        button-icon='<i class="fa-chisel fa-regular fa-leaf"></i>'
+                        button-icon-position="left"
+                        button-icon-offset="var(--space-tiny)"                         
+                    
+                    >
+                    </custom-block>
+
+                </div>
+                <div class="swiper-slide">Slide 3</div>
+                <div class="swiper-slide">Slide 4</div>
+                <div class="swiper-slide">Slide 5</div>
+                <div class="swiper-slide">Slide 6</div>
+                <div class="swiper-slide">Slide 7</div>
+                <div class="swiper-slide">Slide 8</div>
+                <div class="swiper-slide">Slide 9</div>
+                </div>
+                <div class="swiper-pagination"></div>
+            </div>            
+        </div>
+
+     
+
+    </header>
+
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+
+  <!-- Initialize Swiper -->
+  <script>
+    var swiper = new Swiper(".mySwiper", {
+      slidesPerView: 2,
+      spaceBetween: 0,
+      freeMode: true,
+      pagination: {
+        el: ".swiper-pagination",
+        clickable: true,
+      },
+    });
+  </script>
+
+</body>
+
+</html>

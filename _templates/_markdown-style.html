@@ -1,0 +1,29 @@
+<!-- Add this block to the top of all Markdown documentation to ensure printing is corrrect. -->
+
+<style>
+    /* 1. Force all standard body text to be pure black */
+    body, p, li, h1, h2, h3, h4, h5, h6, table, th, td {
+        color: #000000 !important;
+    }
+
+    /* 2. Force the code blocks background to be white (optional, saves ink) */
+    code, pre {
+        background-color: #ffffff !important;
+        border: 1px solid #cccccc !important; /* Adds a nice border instead of a grey box */
+    }
+
+    /* 3. The "Nuclear" Option: Force EVERY distinct part of the code to be black. 
+       Syntax highlighters wrap keywords in <span> tags. We must target them. */
+    code, pre, code *, pre * {
+        color: #000000 !important;
+        font-weight: 600 !important; /* Semi-bold for readability */
+        text-shadow: none !important;
+    }
+
+    /* 4. Keep comments distinctive but readable (Dark Grey + Italic) */
+    .hljs-comment, span.hljs-comment {
+        color: #444444 !important; 
+        font-style: italic !important;
+        font-weight: normal !important; /* Make comments thinner than code */
+    }
+</style>

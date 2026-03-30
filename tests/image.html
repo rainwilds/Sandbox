@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="preconnect" href="https://kit.fontawesome.com" crossorigin="anonymous">
+
+    <link rel="preload" href="./JSON/setup.json" as="fetch" crossorigin="anonymous">
+    <link rel="preload" href="./styles.css" as="style">    
+
+    <script src="js/head-generator.js" type="module"></script>
+
+    <data-bh-head
+        data-components="custom-img"
+        data-title="Photography, Videography & Websites - Behive"
+        data-description="Bespoke media assets and web design for quality brands."
+        data-keywords="photography, videography, websites, web design"
+        data-author="David Dufourq"
+        data-canonical="https://rainwilds.github.io/Sandbox/"
+        data-robots="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+        data-schema-site-name="Behive: Photography, Videography & Websites"
+        data-schema-site-url="https://rainwilds.github.io/Sandbox/">
+    </data-bh-head>
+
+    <data-bh-head
+        data-og-title="Photography, Videography & Websites - Behive"
+        data-og-description="Bespoke media assets and web design for quality brands."
+        data-og-image="https://rainwilds.github.io/Sandbox/img/preview.jpg"
+        data-og-url="https://rainwilds.github.io/Sandbox/"
+        data-og-type="website"
+        data-og-locale="en_AU"
+        data-og-site-name="Behive">
+    </data-bh-head>
+
+    <data-bh-head
+        data-x-title="Behive: Photography, Videography & Websites"
+        data-x-description="Bespoke media assets and web design for quality brands."
+        data-x-image="https://rainwilds.github.io/Sandbox/img/preview.jpg"
+        data-x-url="https://rainwilds.github.io/Sandbox/"
+        data-x-domain="rainwilds.github.io"
+        data-x-card="summary_large_image">
+    </data-bh-head>
+
+</head>
+
+<body>
+
+    <main>
+        <section>
+
+            <custom-img
+                light-src="./img/primary/landscape-photography-1.jpg"
+                dark-src="./img/primary/landscape-photography-2.jpg"
+                alt="Business service in Location"
+                class="aspect-ratio-16-9"
+                mobile-width="100vw"
+                tablet-width="50vw"
+                desktop-width="70vw"
+                include-schema
+                caption="Business service photo"
+                schema-url="https://example.com/image.jpg"
+                schema-description="A professional business service image"
+                fetchpriority="high">
+            </custom-img>
+
+            <custom-img
+                light-src="./img/primary/landscape-photography-2.jpg"
+                dark-src="./img/primary/landscape-photography-1.jpg"
+                alt="Business service in Location"
+                class="border-radius-medium object-fit-fill"
+                loading="lazy">
+            </custom-img>
+
+        </section>
+    </main>
+
+</body>
+
+</html>
