@@ -15,6 +15,10 @@ async function runBuild() {
     const setup = JSON.parse(fs.readFileSync(path.join(__dirname, 'JSON', 'setup.json'), 'utf8'));
     const repoPrefix = setup.general.basePath; 
 
+    // --- NEW: Read the shared head partial once ---
+    const sharedHeadPath = path.join(__dirname, '_shared-head.html');
+    const sharedHead = fs.existsSync(sharedHeadPath) ? fs.readFileSync(sharedHeadPath, 'utf8') : '';
+
     // 2. Refresh /dist folder
     if (fs.existsSync(distPath)) fs.rmSync(distPath, { recursive: true, force: true });
     fs.mkdirSync(distPath);
@@ -58,8 +62,24 @@ async function runBuild() {
         try {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
+            
             page.on('request', r => {
                 let url = r.url();
+                
+                // --- NEW: Intercept the specific HTML file and inject the shared head ---
+                if (url === `http://localhost:5500/${file}`) {
+                    let sourceHtml = fs.readFileSync(path.join(__dirname, file), 'utf8');
+                    if (sharedHead) {
+                        sourceHtml = sourceHtml.replace('', sharedHead);
+                    }
+                    return r.respond({
+                        status: 200,
+                        contentType: 'text/html',
+                        body: sourceHtml
+                    });
+                }
+
+                // Existing logic for adaptive paths
                 if (url.includes(repoPrefix)) url = url.replace(repoPrefix, '/');
                 r.continue({ url });
             });

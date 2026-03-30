@@ -1,8 +1,7 @@
-<!DOCTYPE html><html lang="en" data-page-ready="true"><head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="en" data-page-ready="true"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <style type="text/css">:root, :host {
+<style type="text/css">:root, :host {
   --fa-font-solid: normal 900 1em/1 "Font Awesome 7 Pro";
   --fa-font-regular: normal 400 1em/1 "Font Awesome 7 Pro";
   --fa-font-light: normal 300 1em/1 "Font Awesome 7 Pro";
@@ -553,6 +552,17 @@
   position: absolute;
   z-index: var(--fa-stack-z-index, auto);
 }</style><link rel="preload" href="./JSON/setup.json" as="fetch" crossorigin="anonymous">
+<link rel="preload" href="./styles.css" as="style">
+<link rel="preload" href="./custom.css" as="style">
+
+<script src="js/generators/head-generator.js" type="module"></script>
+<script src="js/components/interactive-controller.js" defer=""></script>
+
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="preload" href="./JSON/setup.json" as="fetch" crossorigin="anonymous">
     <link rel="preload" href="./styles.css" as="style">
     <link rel="preload" href="./custom.css" as="style">
 
@@ -590,41 +600,40 @@
 
 
 
-    <custom-header position="sticky-top" backdrop-filter="blur-md" background-color="background-color-2" shadow="shadow-medium" logo-placement="nav" nav-alignment="center-right">
-        
-        <custom-logo logo-full-light-src="logo-full-light-1.svg" logo-full-dark-src="logo-full-dark-1.svg" logo-icon-light-src="logo-icon-light-1.svg" logo-icon-dark-src="logo-icon-dark-1.svg" logo-full-primary-alt="Nexus Logo" logo-icon-primary-alt="Nexus Icon" logo-breakpoint="1024" logo-height="35px">
+    <div class="block grid-placement-item background-color-2 shadow-medium position-sticky-top" role="banner">
+                        
+                        <style>
+                            @media (max-width: 1023px) {
+                                .logo-container {
+                                    place-self: center !important;
+                                }
+                            }
+                        </style>
+                    
+                        <div style="z-index: 2">
+                            
             
             <div class="logo-container place-self-center">
-                <a href="/"><picture><source media="(max-width: 1023px) and (prefers-color-scheme: dark)" type="image/svg+xml" srcset="/img/logos/logo-icon-light-1.svg"><source media="(max-width: 1023px) and (prefers-color-scheme: light)" type="image/svg+xml" srcset="/img/logos/logo-icon-dark-1.svg"><source media="(min-width: 1024px) and (prefers-color-scheme: light)" type="image/svg+xml" srcset="/img/logos/logo-full-light-1.svg"><source media="(min-width: 1024px) and (prefers-color-scheme: dark)" type="image/svg+xml" srcset="/img/logos/logo-full-dark-1.svg"><img src="/img/logos/logo-icon-light-1.svg" alt="" style="height: 35px;" loading="lazy" fetchpriority="high" onerror="this.src='https://placehold.co/300x40'; this.alt='Fallback logo'; this.onerror=null;"></picture></a>
+                <a href="/"><picture><source media="(max-width: 1023px) and (prefers-color-scheme: dark)" type="image/svg+xml" srcset="/img/logos/logo-icon-light-1.svg"><source media="(max-width: 1023px) and (prefers-color-scheme: light)" type="image/svg+xml" srcset="/img/logos/logo-icon-dark-1.svg"><source media="(min-width: 1024px) and (prefers-color-scheme: light)" type="image/svg+xml" srcset="/img/logos/logo-full-light-1.svg"><source media="(min-width: 1024px) and (prefers-color-scheme: dark)" type="image/svg+xml" srcset="/img/logos/logo-full-dark-1.svg"><img src="/img/logos/logo-icon-dark-1.svg" alt="Nexus Icon" style="height: 35px;" loading="lazy" fetchpriority="high" onerror="this.src='https://placehold.co/300x40'; this.alt='Nexus Icon'; this.onerror=null;"></picture></a>
             </div>
-        </custom-logo>
         
-        <custom-nav><div class=""><nav aria-label="Main navigation" class="nav-horizontal"><button aria-expanded="false" aria-controls="nav-menu-3jikslp0c" aria-label="Toggle navigation"><span class="hamburger-icon"><i class="fa-solid fa-bars"></i></span></button><ul class="nav-links" id="nav-menu-3jikslp0c"><li><a href="http://localhost:5500/">Home</a></li><li><a href="http://localhost:5500/about">About</a></li><li><a href="http://localhost:5500/services">Services</a></li><li><a href="http://localhost:5500/blog">Blog</a></li><li><a href="http://localhost:5500/contact">Contact</a></li></ul></nav></div></custom-nav>
-    </custom-header>
+                            <div class="place-content-center-right">
+                                <div class=""><nav aria-label="Main navigation" class="nav-horizontal"><button aria-expanded="false" aria-controls="nav-menu-sftuodjit" aria-label="Toggle navigation"><span class="hamburger-icon"><i class="fa-solid fa-bars"></i></span></button><ul class="nav-links" id="nav-menu-sftuodjit"><li><a href="http://localhost:5500/">Home</a></li><li><a href="http://localhost:5500/about">About</a></li><li><a href="http://localhost:5500/services">Services</a></li><li><a href="http://localhost:5500/blog">Blog</a></li><li><a href="http://localhost:5500/contact">Contact</a></li></ul></nav></div>
+                            </div>
+                        </div>
+                    </div>
 
     <main>
-        
-        
 
-        
-        
+<custom-layout column-span="12" subgrid="true">
+  <div class="block grid-placement-item" style="--column-end-mobile: 13; --column-start-mobile: 1" data-section-title="true"><div class="padding-large" aria-live="polite"><div role="group"><h2>New Block</h2></div></div></div>
+</custom-layout>
 
-        <section id="portfolio" style="padding: 2rem 0 6rem 0;">
-            
-            
+<custom-layout column-span="12" subgrid="true">
+  <div class="block background-color-1 grid-placement-item border-large border-radius-medium shadow-heavy" style="--column-start-mobile: 1; --column-end-mobile: 13" data-section-title="true"><div class="padding-large" aria-live="polite"><div role="group"><h2>New Block</h2></div></div></div>
+</custom-layout>
 
-            <custom-slider slides-per-view="1" cross-fade="" autoplay="4s" pagination="" pagination-position="overlay" style="margin-top: 2rem; border-radius: var(--border-radius-large); overflow: hidden; box-shadow: var(--shadow-heavy); min-height: 60vh;">
-                
-                
-                
 
-                
-                
-
-                
-                
-            </custom-slider>
-        </section>
     </main>
 
 

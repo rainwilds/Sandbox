@@ -256,8 +256,21 @@
   }
 }
 
+/* ==========================================================================
+   CSS DEFAULTS (UTILITY CLASSES)
+   Provides global utility classes for layout, typography, colors, 
+   and effects. These establish foundational component styling.
+   ========================================================================== */
 @layer defaults {
-  :root {
+  
+  /* Sets the default document text color */
+    :root {
+      color: var(--color-primary);
+    }
+
+    /* ---------- SPACING ---------- */
+
+    /* Applies standardized fluid padding based on global space variables */
     .padding-micro {
       padding: var(--space-micro);
     }
@@ -282,15 +295,27 @@
       padding: var(--space-huge);
     }
 
+
+    /* ---------- LAYOUT & POSITIONING ---------- */
+
+    /* Distributes items evenly with space between them (requires a grid or flex container) */
     .space-between {
       place-content: space-between;
     }
 
+    /* --- ? REVIEW REQUIRED ? --------------------------------------------------
+     Verify if this utility is still needed in the codebase.
+     (Original intent: Removes element from document flow and forces it to full width)
+     -------------------------------------------------------------------------- */
     .position-absolute {
       position: absolute;
       width: 100%;
     }
 
+    /* --- ? REVIEW REQUIRED ? --------------------------------------------------
+      Verify if this utility is still needed in the codebase.
+      (Original intent: Anchors element to the top of the viewport when scrolled past)
+      -------------------------------------------------------------------------- */
     .position-sticky-top {
       position: sticky;
       width: 100%;
@@ -298,6 +323,10 @@
       z-index: 2;
     }
 
+    /* --- ? REVIEW REQUIRED ? --------------------------------------------------
+      Verify if this utility is still needed in the codebase.
+      (Original intent: Anchors element permanently to the bottom using fixed positioning)
+      -------------------------------------------------------------------------- */
     .position-sticky-bottom {
       position: fixed;
       width: 100%;
@@ -305,17 +334,27 @@
       z-index: 2;
     }
 
+    /* --- ? REVIEW REQUIRED ? --------------------------------------------------
+      Verify if this utility is still needed in the codebase.
+      (Original intent: Locks element permanently relative to the viewport at full width)
+      -------------------------------------------------------------------------- */
     .position-fixed {
       position: fixed;
       width: 100%;
     }
 
-    color: var(--color-primary);
 
+    /* ---------- COLOR & THEME UTILITIES ---------- */
+
+    /* --- ? REVIEW REQUIRED ? --------------------------------------------------
+      Verify if this utility is still needed in the codebase.
+      (Original intent: Utility to force primary text color)
+      -------------------------------------------------------------------------- */
     .color-invert {
       color: var(--color-primary);
     }
 
+    /* Base background and text color pairings for standard semantic roles */
     .background-color-1 {
       background-color: var(--color-primary);
       color: var(--on-primary);
@@ -331,11 +370,16 @@
       color: var(--on-tertiary);
     }
 
+
+    /* ---------- OVERLAYS & BLENDS ---------- */
+
+    /* Targets any class containing 'background-overlay-' and calculates transparency using OKLAB */
     [class*="background-overlay-"] {
       /* background-color: --overlay(var(--overlay-color), var(--overlay-opacity)); PLACEHOLDER FOR FUTURE WORKING FUNCTION*/
       background-color: oklab(from var(--overlay-color) l a b / var(--overlay-opacity));
     }
 
+    /* Assigns overlay colors and opacities based on semantic or literal roles */
     .background-overlay-black-white {
       --overlay-color: light-dark(black, white);
       --overlay-opacity: 0.3;
@@ -371,32 +415,41 @@
       --overlay-opacity: 0.4;
     }
 
+
+    /* ---------- EFFECTS & TEXTURES ---------- */
+
+    /* Creates a vertical fade using the tertiary color, scaled slightly to fix edge bleeding */
     .background-gradient-1 {
       background-image: linear-gradient(180deg, transparent 0%, var(--color-tertiary) 100%);
       transform: scale(1.003);
-      /* fixes edge blending */
     }
 
+    /* --- ? REVIEW REQUIRED ? --------------------------------------------------
+      1. The variable '--ff-primary-background-color-dark' is not defined in 
+          your variables layer. 
+      2. '.background-gradient-2' and '.background-gradient-3' are identical.
+      -------------------------------------------------------------------------- */
     .background-gradient-2 {
       background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--ff-primary-background-color-dark) 100%);
       transform: scale(1.003);
-      /* fixes edge blending */
     }
 
     .background-gradient-3 {
       background-image: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, var(--ff-primary-background-color-dark) 100%);
       transform: scale(1.003);
-      /* fixes edge blending */
     }
 
+    /* Uses a linear gradient to fade out content at the top and bottom edges */
     .mask-image-top-bottom {
       mask-image: linear-gradient(to bottom, transparent, var(--color-secondary) 15%, var(--color-secondary) 85%, transparent);
     }
 
+    /* Uses a linear gradient to fade out content at the left and right edges */
     .mask-image-left-right {
       mask-image: linear-gradient(to right, transparent, var(--color-secondary) 15%, var(--color-secondary) 85%, transparent);
     }
 
+    /* Applies the globally defined base64 noise texture as a background */
     .background-image-noise {
       background-image: var(--background-noise);
     }

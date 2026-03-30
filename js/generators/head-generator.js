@@ -229,7 +229,9 @@ if (imageTemplates.length > 0) {
 
         for (let i = 0; i < actualCount; i++) {
           let raw = imageTemplates[i];
-          const cleanName = raw
+
+          const filenameOnly = raw.split('/').pop();
+          const cleanName = filenameOnly
             .replace(/^\/+/, '')
             .replace(/-\d+$/, '')
             .replace(/\.[^/.]+$/, '');

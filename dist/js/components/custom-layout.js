@@ -14,14 +14,27 @@ class CustomLayout extends HTMLElement {
     section.appendChild(div);
     this.appendChild(section);
 
-    // Apply inline grid styles directly to the div
+    // Apply grid logic
     div.style.display = 'grid';
 
-    if (this.hasAttribute('subgrid')) {
+    // Safely check for subgrid (ignoring if builder sets it to "false")
+    const subgridAttr = this.getAttribute('subgrid');
+    const useSubgrid = this.hasAttribute('subgrid') && subgridAttr !== 'false';
+
+    if (useSubgrid) {
       div.style.gridTemplateColumns = 'subgrid';
-    } else if (this.hasAttribute('min-col-width')) {
-      const minWidth = this.getAttribute('min-col-width');
-      div.style.gridTemplateColumns = `repeat(auto-fit, minmax(${minWidth}, 1fr))`;
+    } 
+    // If not subgrid, use min-col-width
+    else if (this.hasAttribute('min-col-width')) {
+      let minWidth = this.getAttribute('min-col-width').trim();
+      
+      if (minWidth) {
+          // If user only types "300px", automatically add the 1fr fallback
+          if (!minWidth.includes(',')) {
+              minWidth = `${minWidth}, 1fr`;
+          }
+          div.style.gridTemplateColumns = `repeat(auto-fit, minmax(${minWidth}))`;
+      }
     }
   }
 }

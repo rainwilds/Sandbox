@@ -11,6 +11,7 @@ import {
     VALID_HEADING_TAGS,
     VALID_PADDING_CLASSES,
     VALID_SHADOW_CLASSES,
+    GridPlacementMixin
     
 } from '../shared.js';
 import { getConfig, getImagePrimaryPath, getVideoPath } from '../config.js';
@@ -192,18 +193,24 @@ class CustomBlock extends GridPlacementMixin(HTMLElement) {
         const basePath = await this.#getBasePath();
         const primaryPath = await getImagePrimaryPath();
         const videoPath = await getVideoPath();
-// Corrected code
 const resolveImageSrc = (attrName) => {
-    const path = this.getAttribute(attrName) || '';
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-    return primaryPath + path.replace(/^\/+/, ''); // Standardized!
-};
+            const path = this.getAttribute(attrName) || '';
+            if (!path) return '';
+            if (path.startsWith('http') || path.startsWith('data:')) return path;
+            
+            // Extracts ONLY 'filename.jpg', stripping any accidental folders the user typed
+            const filename = path.split('/').pop(); 
+            return primaryPath + filename; 
+        };
+
         const resolveVideoSrc = (attrName) => {
             const path = this.getAttribute(attrName) || '';
             if (!path) return '';
-            if (path.startsWith('http')) return path;
-            return videoPath + (path.startsWith('/') ? path.slice(1) : path);
+            if (path.startsWith('http') || path.startsWith('data:')) return path;
+            
+            // Extracts ONLY 'video.mp4'
+            const filename = path.split('/').pop();
+            return videoPath + filename;
         };
         const backgroundFetchPriority = this.getAttribute('img-background-fetchpriority') || '';
         const primaryFetchPriority = this.getAttribute('img-primary-fetchpriority') || '';
