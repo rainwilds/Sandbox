@@ -38,6 +38,11 @@ Prepare your machine to handle Static Site Generation (SSG) and headless browser
     ```bash
     sudo apt-get update && sudo apt-get install -y libnss3 libatk-bridge2.0-0 libxcomposite1 libxdamage1 libxrandr2 libgbm1 libasound2 libpango-1.0-0 libcups2
     ```
+3.  **Windows 11 (Fresh Environments)**
+    ```bash
+    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+    ```
+    
 
 ---
 

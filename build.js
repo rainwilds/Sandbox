@@ -5,19 +5,27 @@ const path = require('path');
 async function runBuild() {
     console.log('🚀 Starting Rainwilds 2026 Adaptive Build Engine...');
 
+    const srcPath = path.join(__dirname, 'src');
     const distPath = path.join(__dirname, 'dist');
     
-    // THE CARGO LIST: Folders and files to sync to /dist
-    const foldersToCopy = ['img', 'video', 'fonts', 'js', 'JSON', 'plugins', 'icons'];
-    const rootFilesToCopy = ['styles.css', 'custom.css', 'robots.txt', 'sitemap.xml', 'llms.txt'];
+    // THE CARGO LIST: Folders inside /src to sync to /dist
+    const foldersToCopy = ['img', 'video', 'fonts', 'js', 'JSON', 'plugins', 'icons', 'css'];
+    const rootFilesToCopy = ['robots.txt', 'sitemap.xml', 'llms.txt'];
 
     // 1. Determine current GitHub prefix from setup.json
-    const setup = JSON.parse(fs.readFileSync(path.join(__dirname, 'JSON', 'setup.json'), 'utf8'));
+    const setupPath = path.join(srcPath, 'JSON', 'setup.json');
+    const setup = JSON.parse(fs.readFileSync(setupPath, 'utf8'));
     const repoPrefix = setup.general.basePath; 
 
-    // --- NEW: Read the shared head partial once ---
-    const sharedHeadPath = path.join(__dirname, '_shared-head.html');
-    const sharedHead = fs.existsSync(sharedHeadPath) ? fs.readFileSync(sharedHeadPath, 'utf8') : '';
+    // --- Read the shared head partial once ---
+    const sharedHeadPath = path.join(srcPath, '_templates', '_shared-head.html');
+    let sharedHead = '';
+    if (fs.existsSync(sharedHeadPath)) {
+        sharedHead = fs.readFileSync(sharedHeadPath, 'utf8');
+        console.log('✅ Found _shared-head.html successfully!');
+    } else {
+        console.log('⚠️ WARNING: Could not find _templates/_shared-head.html');
+    }
 
     // 2. Refresh /dist folder
     if (fs.existsSync(distPath)) fs.rmSync(distPath, { recursive: true, force: true });
@@ -26,17 +34,14 @@ async function runBuild() {
     // --- PHASE 1: ASSET SYNC ---
     console.log('📁 Syncing assets...');
 
-    // Copy Folders
     foldersToCopy.forEach(folder => {
-        const src = path.join(__dirname, folder);
-        if (fs.existsSync(src)) {
-            fs.cpSync(src, path.join(distPath, folder), { recursive: true });
+        const srcFolder = path.join(srcPath, folder);
+        if (fs.existsSync(srcFolder)) {
+            fs.cpSync(srcFolder, path.join(distPath, folder), { recursive: true });
             
-            // SPECIAL FIX: If it's the icons folder, also copy contents to root
-            // This prevents 404s when the browser looks for /favicon.ico
             if (folder === 'icons') {
-                fs.readdirSync(src).forEach(file => {
-                    const filePath = path.join(src, file);
+                fs.readdirSync(srcFolder).forEach(file => {
+                    const filePath = path.join(srcFolder, file);
                     if (fs.lstatSync(filePath).isFile()) {
                         fs.copyFileSync(filePath, path.join(distPath, file));
                     }
@@ -45,16 +50,24 @@ async function runBuild() {
         }
     });
 
-    // Copy Root Files
     rootFilesToCopy.forEach(file => {
-        const src = path.join(__dirname, file);
-        if (fs.existsSync(src)) fs.copyFileSync(src, path.join(distPath, file));
+        const srcFile = path.join(srcPath, file);
+        if (fs.existsSync(srcFile)) fs.copyFileSync(srcFile, path.join(distPath, file));
     });
+
+    if (fs.existsSync(path.join(srcPath, 'css'))) {
+        fs.readdirSync(path.join(srcPath, 'css')).forEach(file => {
+             if (file.endsWith('.css')) {
+                 fs.copyFileSync(path.join(srcPath, 'css', file), path.join(distPath, file));
+             }
+        });
+    }
 
     // --- PHASE 2: RENDERING & FLATTENING ---
     const browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox'] });
 
-    const pagesToBuild = fs.readdirSync(__dirname).filter(file => 
+    // ONLY scan the root of /src for actual pages.
+    const pagesToBuild = fs.readdirSync(srcPath).filter(file => 
         file.endsWith('.html') && !file.startsWith('_')
     );
 
@@ -66,12 +79,19 @@ async function runBuild() {
             page.on('request', r => {
                 let url = r.url();
                 
-                // --- NEW: Intercept the specific HTML file and inject the shared head ---
                 if (url === `http://localhost:5500/${file}`) {
-                    let sourceHtml = fs.readFileSync(path.join(__dirname, file), 'utf8');
+                    let sourceHtml = fs.readFileSync(path.join(srcPath, file), 'utf8');
+                    
                     if (sharedHead) {
-                        sourceHtml = sourceHtml.replace('', sharedHead);
+                        sourceHtml = sourceHtml.replace(/<data-custom-head/i, sharedHead + '\n    <data-custom-head');
                     }
+                    
+                    // Inject Global Navigation Data
+                    const headerNavStr = JSON.stringify(setup.headerNavigation || []);
+                    const footerNavStr = JSON.stringify(setup.footerNavigation || []);
+                    sourceHtml = sourceHtml.replace(/{{HEADER_NAV}}/g, headerNavStr);
+                    sourceHtml = sourceHtml.replace(/{{FOOTER_NAV}}/g, footerNavStr);
+
                     return r.respond({
                         status: 200,
                         contentType: 'text/html',
@@ -79,7 +99,6 @@ async function runBuild() {
                     });
                 }
 
-                // Existing logic for adaptive paths
                 if (url.includes(repoPrefix)) url = url.replace(repoPrefix, '/');
                 r.continue({ url });
             });
@@ -92,7 +111,6 @@ async function runBuild() {
                     el.insertAdjacentHTML('afterend', el.innerHTML);
                     el.remove(); 
                 });
-                // Note: custom-slider, custom-nav, custom-header remain as tags for logic
             });
 
             let content = await page.content();
@@ -107,7 +125,7 @@ async function runBuild() {
     }
 
     await browser.close();
-    console.log(`✅ Build Complete! Preview on Port 8080.`);
+    console.log(`✅ Build Complete! Preview your /dist folder.`);
 }
 
 runBuild();

@@ -1,0 +1,38 @@
+[
+  {
+    "slug": "exploring-the-wonders-of-nature",
+    "title": "Exploring the Wonders of Nature",
+    "date": "2025-09-27",
+    "categories": [
+      "nature",
+      "photography",
+      "adventure"
+    ],
+    "excerpt": "A journey through stunning landscapes and wildlife encounters.",
+    "featuredImage": "/img/primary/tourism-photography-light-1.jpg",
+    "featuredImageAlt": "Featured nature scene",
+    "featuredImageMobileWidth": "100vw",
+    "featuredImageTabletWidth": "50vw",
+    "featuredImageDesktopWidth": "30vw",
+    "featuredImageAspectRatio": "16/9",
+    "featuredImageLoading": "lazy"
+  },
+  {
+    "slug": "discovering-the-mysteries-of-the-cosmos",
+    "title": "Discovering the Mysteries of the Cosmos",
+    "date": "2025-10-01",
+    "categories": [
+      "astronomy",
+      "science",
+      "exploration"
+    ],
+    "excerpt": "A journey through the stars and the wonders of the universe.",
+    "featuredImage": "/img/primary/tourism-photography-dark-3.jpg",
+    "featuredImageAlt": "Vibrant starry sky",
+    "featuredImageMobileWidth": "100vw",
+    "featuredImageTabletWidth": "50vw",
+    "featuredImageDesktopWidth": "30vw",
+    "featuredImageAspectRatio": "16/9",
+    "featuredImageLoading": "lazy"
+  }
+]
