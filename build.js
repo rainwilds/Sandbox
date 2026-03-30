@@ -64,7 +64,7 @@ async function runBuild() {
                 r.continue({ url });
             });
 
-            console.log(`  -> Finalizing: ${file}`);
+            console.log(`  -> Rendering: ${file}`);
             await page.goto(`http://localhost:5500/${file}`, { waitUntil: 'networkidle0' });
 
             await page.evaluate(() => {
@@ -72,6 +72,7 @@ async function runBuild() {
                     el.insertAdjacentHTML('afterend', el.innerHTML);
                     el.remove(); 
                 });
+                // Note: custom-slider, custom-nav, custom-header remain as tags for logic
             });
 
             let content = await page.content();

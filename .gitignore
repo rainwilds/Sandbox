@@ -1,0 +1,9 @@
+# Exclude generated site files
+dist/
+
+# Exclude local dependencies
+node_modules/
+
+# Exclude OS-specific junk
+.DS_Store
+Thumbs.db
