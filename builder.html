@@ -19,28 +19,35 @@
       src="./js/components/custom-slider.js"></script>
     <script
       type="module"
+      src="./js/components/custom-layout.js"></script>
+    <script
+      type="module"
       src="./js/components/visual-builder.js"></script>
 
     <style>
-      body {
+body {
         margin: 0;
-        padding: 0;
+        /* Padding maps to our CSS variables, with fallbacks */
+        padding: 60px var(--builder-right, 300px) 0 var(--builder-left, 260px);
         display: flex;
-        background-color: #fff; /* Match your normal background */
+        justify-content: center; /* This perfectly centers the canvas when max-width changes! */
+        background-color: #09090b;
+        box-sizing: border-box;
+        min-height: 100vh;
       }
 
       #canvas {
         flex-grow: 1;
-        min-height: 100vh; /* Keeps the canvas open for dropping even when empty */
-        margin: 0;
-        padding: 0;
-        margin-right: 340px; /* Exactly matches the width of the visual builder sidebar */
-        background-color: transparent;
+        width: 100%;
+        padding: 2rem;
+        background-color: #ffffff;
+        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        border-radius: 8px 8px 0 0;
       }
 
-      .builder-selected {
-        outline: 3px solid #2196f3 !important;
-        outline-offset: -3px; /* Inset outline prevents layout shift */
+      .builder-selected > * {
+        outline: 3px solid #3b82f6 !important;
+        outline-offset: -3px; 
       }
     </style>
   </head>

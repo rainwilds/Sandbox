@@ -1,37 +1,42 @@
 class CustomLayout extends HTMLElement {
-    static get observedAttributes() {
-        return ['column-span', 'column-start', 'column-end'];
+  connectedCallback() {
+    // Prevent double-wrapping if moved in the DOM
+    if (this.querySelector(':scope > section')) return;
+
+    const section = document.createElement('section');
+    const div = document.createElement('div');
+    
+    // Move all child components into the div
+    while (this.firstChild) {
+      div.appendChild(this.firstChild);
     }
+    
+    section.appendChild(div);
+    this.appendChild(section);
 
-    connectedCallback() {
-        if (this.dataset.initialized) return;
-        this.dataset.initialized = "true";
+    // Apply grid logic
+    div.style.display = 'grid';
 
-        // MAGIC FIX 1: The Builder Escape Hatch
-        // If we are inside the visual builder, stop! Let the builder handle it natively.
-        if (document.querySelector('visual-builder')) {
-            return;
-        }
+    // Safely check for subgrid (ignoring if builder sets it to "false")
+    const subgridAttr = this.getAttribute('subgrid');
+    const useSubgrid = this.hasAttribute('subgrid') && subgridAttr !== 'false';
 
-        const section = document.createElement('section');
-        const div = document.createElement('div');
-        
-        const colSpan = this.getAttribute('column-span');
-        const colStart = this.getAttribute('column-start');
-        const colEnd = this.getAttribute('column-end');
-
-        if (colSpan) div.setAttribute('column-span', colSpan);
-        if (colStart) div.setAttribute('column-start', colStart);
-        if (colEnd) div.setAttribute('column-end', colEnd);
-
-        while (this.firstChild) {
-            div.appendChild(this.firstChild);
-        }
-
-        section.appendChild(div);
-        this.replaceWith(section);
+    if (useSubgrid) {
+      div.style.gridTemplateColumns = 'subgrid';
+    } 
+    // If not subgrid, use min-col-width
+    else if (this.hasAttribute('min-col-width')) {
+      let minWidth = this.getAttribute('min-col-width').trim();
+      
+      if (minWidth) {
+          // If user only types "300px", automatically add the 1fr fallback
+          if (!minWidth.includes(',')) {
+              minWidth = `${minWidth}, 1fr`;
+          }
+          div.style.gridTemplateColumns = `repeat(auto-fit, minmax(${minWidth}))`;
+      }
     }
+  }
 }
 
 customElements.define('custom-layout', CustomLayout);
-export { CustomLayout };

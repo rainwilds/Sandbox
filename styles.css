@@ -1042,6 +1042,95 @@
 [column-end="13"] { grid-column-end: 13; }
 [column-end="14"] { grid-column-end: 14; }
 
+
+/* 1. Define the container on the body AND the builder canvas */
+body, #canvas {
+    container-type: inline-size;
+    container-name: layout;
+}
+
+/* 2. Base (Mobile-First) Default Cascade */
+.grid-placement-item {
+    grid-column: 
+        var(--column-start-mobile, var(--column-start, auto)) / 
+        var(--column-end-mobile, var(--column-end, auto));
+    grid-row: 
+        var(--row-start-mobile, var(--row-start, auto)) / 
+        var(--row-end-mobile, var(--row-end, auto));
+    z-index: 
+        var(--z-index-mobile, var(--z-index, auto));
+}
+
+/* 3. Tablet (Matches shared.js maxWidth: 768px) */
+@container layout (min-width: 768px) {
+    .grid-placement-item {
+        grid-column: 
+            var(--column-start-tablet, var(--column-start-mobile, var(--column-start, auto))) / 
+            var(--column-end-tablet, var(--column-end-mobile, var(--column-end, auto)));
+        grid-row: 
+            var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto))) / 
+            var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto)));
+        z-index: 
+            var(--z-index-tablet, var(--z-index-mobile, var(--z-index, auto)));
+    }
+}
+
+/* 4. Laptop (Matches shared.js maxWidth: 1024px) */
+@container layout (min-width: 1024px) {
+    .grid-placement-item {
+        grid-column: 
+            var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, auto)))) / 
+            var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, auto))));
+        grid-row: 
+            var(--row-start-laptop, var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto)))) / 
+            var(--row-end-laptop, var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto))));
+        z-index: 
+            var(--z-index-laptop, var(--z-index-tablet, var(--z-index-mobile, var(--z-index, auto))));
+    }
+}
+
+/* 5. Desktop (Matches shared.js maxWidth: 1366px) */
+@container layout (min-width: 1366px) {
+    .grid-placement-item {
+        grid-column: 
+            var(--column-start-desktop, var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, auto))))) / 
+            var(--column-end-desktop, var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, auto)))));
+        grid-row: 
+            var(--row-start-desktop, var(--row-start-laptop, var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto))))) / 
+            var(--row-end-desktop, var(--row-end-laptop, var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto)))));
+        z-index: 
+            var(--z-index-desktop, var(--z-index-laptop, var(--z-index-tablet, var(--z-index-mobile, var(--z-index, auto)))));
+    }
+}
+
+/* 6. Large (Matches shared.js maxWidth: 1920px) */
+@container layout (min-width: 1920px) {
+    .grid-placement-item {
+        grid-column: 
+            var(--column-start-large, var(--column-start-desktop, var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, auto)))))) / 
+            var(--column-end-large, var(--column-end-desktop, var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, auto))))));
+        grid-row: 
+            var(--row-start-large, var(--row-start-desktop, var(--row-start-laptop, var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto)))))) / 
+            var(--row-end-large, var(--row-end-desktop, var(--row-end-laptop, var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto))))));
+        z-index: 
+            var(--z-index-large, var(--z-index-desktop, var(--z-index-laptop, var(--z-index-tablet, var(--z-index-mobile, var(--z-index, auto))))));
+    }
+}
+
+/* 7. Ultra (Matches shared.js maxWidth: 2560px) */
+@container layout (min-width: 2560px) {
+    .grid-placement-item {
+        grid-column: 
+            var(--column-start-ultra, var(--column-start-large, var(--column-start-desktop, var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, auto))))))) / 
+            var(--column-end-ultra, var(--column-end-large, var(--column-end-desktop, var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, auto)))))));
+        grid-row: 
+            var(--row-start-ultra, var(--row-start-large, var(--row-start-desktop, var(--row-start-laptop, var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto))))))) / 
+            var(--row-end-ultra, var(--row-end-large, var(--row-end-desktop, var(--row-end-laptop, var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto)))))));
+        z-index: 
+            var(--z-index-ultra, var(--z-index-large, var(--z-index-desktop, var(--z-index-laptop, var(--z-index-tablet, var(--z-index-mobile, var(--z-index, auto)))))));
+    }
+}
+
 /* Ensure the layout container stacks its internal blocks properly */
 div[column-span] {
     display: flex;

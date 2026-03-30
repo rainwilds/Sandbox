@@ -71,3 +71,57 @@ export const VALID_BORDER_CLASSES = ['border-small', 'border-medium', 'border-la
 export const VALID_HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
 
 export const VALID_SHADOW_CLASSES = ['shadow-light', 'shadow-medium', 'shadow-heavy'];
+
+
+export const GridPlacementMixin = (BaseClass) => class extends BaseClass {
+    static get observedAttributes() {
+        const baseAttrs = BaseClass.observedAttributes || [];
+        const placementAttrs = ['column-start', 'column-end', 'row-start', 'row-end', 'z-index'];
+        
+        // Extract just the names from your existing VIEWPORT_BREAKPOINTS array of objects
+        const breakpointNames = VIEWPORT_BREAKPOINTS.map(bp => bp.name);
+
+        // Generate responsive attribute names (e.g., column-start-mobile, column-start-ultra)
+        const responsiveAttrs = placementAttrs.flatMap(attr => 
+            breakpointNames.map(bpName => `${attr}-${bpName}`)
+        );
+        
+        return [...baseAttrs, ...placementAttrs, ...responsiveAttrs];
+    }
+
+    connectedCallback() {
+        if (super.connectedCallback) super.connectedCallback();
+        this.classList.add('grid-placement-item'); // Hooks into the global CSS cascade
+        this.#updateAllGridPlacements();
+    }
+
+    attributeChangedCallback(name, oldValue, newValue) {
+        if (super.attributeChangedCallback) {
+            super.attributeChangedCallback(name, oldValue, newValue);
+        }
+        
+        const isPlacementAttr = this.constructor.observedAttributes.includes(name) && 
+            ['column-', 'row-', 'z-index'].some(prefix => name.startsWith(prefix));
+            
+        if (isPlacementAttr) {
+            this.#updateGridPlacement(name, newValue);
+        }
+    }
+
+    #updateGridPlacement(name, value) {
+        const propName = `--${name}`;
+        if (value) {
+            this.style.setProperty(propName, value);
+        } else {
+            this.style.removeProperty(propName);
+        }
+    }
+
+    #updateAllGridPlacements() {
+        this.constructor.observedAttributes.forEach(attr => {
+            if (['column-', 'row-', 'z-index'].some(prefix => attr.startsWith(prefix))) {
+                this.#updateGridPlacement(attr, this.getAttribute(attr));
+            }
+        });
+    }
+};

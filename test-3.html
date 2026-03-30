@@ -48,94 +48,18 @@
     </custom-header>
 
     <main>
-        <custom-block 
-            style="grid-column: 1 / -1; min-height: 80vh;"
-            inner-class="padding-large max-width-large"
-            video-background-src="video1.mp4"
-            video-background-autoplay
-            video-background-loop
-            video-background-muted
-            video-background-alt="Abstract digital architecture loop"
-            background-overlay="background-overlay-black"
-            inner-alignment="center-left"
-            heading="Next-Gen Experiences"
-            heading-tag="h1"
-            paragraph="We construct blazing fast, statically compiled interfaces using native Web Components. Zero framework bloat. Total performance."
-            ul-items="Static Site Generation, Advanced Theming, Core Web Vitals Optimization"
-            ul-icon="<i class='fa-solid fa-bolt'></i>"
-            button-text="Explore Capabilities"
-            button-href="#services"
-            button-class="button-primary">
-        </custom-block>
 
-        <custom-block 
-            style="grid-column: 1 / -1; min-height: 40vh; margin: 4rem 0;"
-            background-color="background-color-1"
-            inner-class="padding-huge"
-            inner-background-gradient="background-gradient-1"
-            inner-background-image-noise
-            inner-alignment="center"
-            text-alignment="center"
-            heading="Uncompromising Architecture"
-            heading-tag="h2"
-            paragraph="Experience zero layout shift and instant hydration. Our modular components are designed to execute flawlessly."
-            button-text="Read the Docs"
-            button-class="button-secondary">
-        </custom-block>
+<custom-layout column-span="12" subgrid="true">
+  <custom-block heading="New Block" inner-class="padding-large" column-end-mobile="13" column-start-mobile="1">
+  </custom-block>
+</custom-layout>
 
-        <section id="portfolio" style="padding: 2rem 0 6rem 0;">
-            <custom-block 
-                heading="Recent Works" 
-                heading-tag="h2"
-                text-alignment="center"
-                paragraph="A cinematic look at our latest deployments.">
-            </custom-block>
+<custom-layout column-span="12" subgrid="true">
+  <custom-block heading="New Block" class="background-color-1" inner-class="padding-large" shadow="shadow-heavy" column-start-mobile="1" column-end-mobile="13" border="border-large" border-radius="border-radius-medium">
+  </custom-block>
+</custom-layout>
 
-            <custom-slider 
-                slides-per-view="1"
-                cross-fade
-                autoplay="4s"
-                pagination
-                pagination-position="overlay"
-                style="margin-top: 2rem; border-radius: var(--border-radius-large); overflow: hidden; box-shadow: var(--shadow-heavy); min-height: 60vh;">
-                
-                <custom-block 
-                    img-background-light-src="tourism-photography-light-2.jpg"
-                    img-background-dark-src="tourism-photography-dark-2.jpg"
-                    img-background-alt="Project Alpha"
-                    background-overlay="background-overlay-black"
-                    inner-class="padding-huge"
-                    inner-alignment="bottom-left"
-                    heading="Project Alpha"
-                    heading-tag="h3"
-                    paragraph="A complete digital transformation for global logistics.">
-                </custom-block>
 
-                <custom-block 
-                    img-background-light-src="tourism-photography-light-1.jpg"
-                    img-background-dark-src="tourism-photography-dark-1.jpg"
-                    img-background-alt="Project Beta"
-                    background-overlay="background-overlay-black"
-                    inner-class="padding-huge"
-                    inner-alignment="bottom-left"
-                    heading="Project Beta"
-                    heading-tag="h3"
-                    paragraph="E-commerce integrated natively via Snipcart.">
-                </custom-block>
-
-                <custom-block 
-                    img-background-light-src="tourism-photography-light-4.jpg"
-                    img-background-dark-src="tourism-photography-dark-4.jpg"
-                    img-background-alt="Project Gamma"
-                    background-overlay="background-overlay-black"
-                    inner-class="padding-huge"
-                    inner-alignment="bottom-left"
-                    heading="Project Gamma"
-                    heading-tag="h3"
-                    paragraph="Dynamic media delivery with automatic pause-on-scroll.">
-                </custom-block>
-            </custom-slider>
-        </section>
     </main>
 
 </body>

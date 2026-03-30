@@ -1,0 +1,105 @@
+<!DOCTYPE html><html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Builder Experiment</title>
+
+    <link rel="stylesheet" href="./styles.css">
+
+    <script type="module" src="./js/components/custom-block.js"></script>
+    <script type="module" src="./js/components/custom-slider.js"></script>
+    <script type="module" src="./js/components/visual-builder.js"></script>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        background-color: #fff; /* Match your normal background */
+      }
+
+      #canvas {
+        flex-grow: 1;
+        min-height: 100vh; /* Keeps the canvas open for dropping even when empty */
+        margin: 0;
+        padding: 0;
+        margin-right: 340px; /* Exactly matches the width of the visual builder sidebar */
+        background-color: transparent;
+      }
+
+      .builder-selected {
+        outline: 3px solid #2196f3 !important;
+        outline-offset: -3px; /* Inset outline prevents layout shift */
+      }
+    </style>
+  <style>
+            /* Mimic the body grid on the canvas */
+            #canvas {
+                display: grid;
+                grid-template-columns: var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
+                align-content: start;
+            }
+
+            /* MAGIC FIX 2: display: contents makes wrappers invisible to CSS Grid */
+            .builder-wrapper { 
+                display: contents; 
+            }
+            
+            /* Apply outlines and pointer events to the ACTUAL component inside the wrapper */
+            .builder-wrapper > * { 
+                position: relative; cursor: pointer; transition: all 0.2s; 
+                outline: 1px dashed transparent; pointer-events: auto !important; 
+            }
+            .builder-wrapper:hover > * { outline: 2px dashed #94a3b8; outline-offset: -2px; z-index: 5; }
+            .builder-selected > * { outline: 3px solid #2196F3 !important; outline-offset: -3px; z-index: 10; }
+            .builder-wrapper * { pointer-events: none; }
+            .builder-wrapper.is-dragging > * { opacity: 0.5; }
+            .builder-wrapper.drop-target > * { outline: 4px dashed #10b981 !important; outline-offset: -4px; background: rgba(16, 185, 129, 0.1); }
+            
+            /* Give custom-layout its layout rules while inside the builder */
+custom-layout {
+                display: flex;
+                flex-direction: column; /* Stacks blocks vertically and stretches them to 100% width */
+                grid-column: 2 / -2; 
+                gap: var(--space-medium); /* Keeps your vertical spacing between multiple blocks! */
+                min-height: 100px;
+                background: rgba(0,0,0,0.02); 
+            }
+
+            /* Map spans to custom-layout for the builder canvas */
+            custom-layout[column-span="1"] { grid-column-end: span 1; }
+            custom-layout[column-span="2"] { grid-column-end: span 2; }
+            custom-layout[column-span="3"] { grid-column-end: span 3; }
+            custom-layout[column-span="4"] { grid-column-end: span 4; }
+            custom-layout[column-span="5"] { grid-column-end: span 5; }
+            custom-layout[column-span="6"] { grid-column-end: span 6; }
+            custom-layout[column-span="7"] { grid-column-end: span 7; }
+            custom-layout[column-span="8"] { grid-column-end: span 8; }
+            custom-layout[column-span="9"] { grid-column-end: span 9; }
+            custom-layout[column-span="10"] { grid-column-end: span 10; }
+            custom-layout[column-span="11"] { grid-column-end: span 11; }
+            custom-layout[column-span="12"] { grid-column-end: span 12; }
+            custom-layout[column-span="13"] { grid-column-end: span 13; }
+            custom-layout[column-span="14"] { grid-column-end: span 14; }
+
+            custom-layout[column-start="1"] { grid-column-start: 1; }
+            custom-layout[column-start="2"] { grid-column-start: 2; }
+            custom-layout[column-start="3"] { grid-column-start: 3; }
+            custom-layout[column-start="4"] { grid-column-start: 4; }
+            custom-layout[column-start="5"] { grid-column-start: 5; }
+            custom-layout[column-start="6"] { grid-column-start: 6; }
+            custom-layout[column-start="7"] { grid-column-start: 7; }
+            custom-layout[column-start="8"] { grid-column-start: 8; }
+            custom-layout[column-start="9"] { grid-column-start: 9; }
+            custom-layout[column-start="10"] { grid-column-start: 10; }
+            custom-layout[column-start="11"] { grid-column-start: 11; }
+            custom-layout[column-start="12"] { grid-column-start: 12; }
+            custom-layout[column-start="13"] { grid-column-start: 13; }
+            custom-layout[column-start="14"] { grid-column-start: 14; }
+        </style></head>
+  <body>
+    <div id="canvas"></div>
+
+    <visual-builder></visual-builder>
+  
+
+</body></html>

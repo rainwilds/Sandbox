@@ -10,11 +10,12 @@ import {
     VALID_BORDER_CLASSES,
     VALID_HEADING_TAGS,
     VALID_PADDING_CLASSES,
-    VALID_SHADOW_CLASSES
+    VALID_SHADOW_CLASSES,
+    
 } from '../shared.js';
 import { getConfig, getImagePrimaryPath, getVideoPath } from '../config.js';
 
-class CustomBlock extends HTMLElement {
+class CustomBlock extends GridPlacementMixin(HTMLElement) {
     #ignoredChangeCount;
     #basePath = null;
     constructor() {
@@ -878,6 +879,7 @@ const resolveImageSrc = (attrName) => {
     }
 
     async connectedCallback() {
+        super.connectedCallback();
         this.#log('Connected to DOM', { elementId: this.id || 'no-id' });
         await this.initialize();
     }
@@ -1737,6 +1739,9 @@ const validInnerBackdropClasses = attrs.innerBackdropFilterClasses.filter(cls =>
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
+        if (super.attributeChangedCallback) {
+            super.attributeChangedCallback(name, oldValue, newValue);
+        }
         if (oldValue === newValue) return;
         if (!this.isInitialized) {
             this.#ignoredChangeCount++;
@@ -1781,7 +1786,8 @@ const validInnerBackdropClasses = attrs.innerBackdropFilterClasses.filter(cls =>
             'video-primary-light-src', 'video-primary-loading', 'video-primary-loop',
             'video-primary-muted', 'video-primary-playsinline', 'video-primary-poster',
             'video-primary-src', 'paragraph', 'ul-items', 'ol-items', 'content-order', 'ul-icon', 'ol-icon', 'ul-icon-position', 'ol-icon-position',
-            'ul-style', 'ol-style', 'ul-icon-offset', 'ol-icon-offset'
+            'ul-style', 'ol-style', 'ul-icon-offset', 'ol-icon-offset',
+            ...(super.observedAttributes || [])
         ];
     }
 }

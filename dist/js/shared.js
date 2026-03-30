@@ -71,3 +71,41 @@ export const VALID_BORDER_CLASSES = ['border-small', 'border-medium', 'border-la
 export const VALID_HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
 
 export const VALID_SHADOW_CLASSES = ['shadow-light', 'shadow-medium', 'shadow-heavy'];
+
+
+
+export const GridPlacementMixin = (BaseClass) => class extends BaseClass {
+  static get observedAttributes() {
+    const baseAttributes = BaseClass.observedAttributes || [];
+    return [...baseAttributes, 'column-start', 'column-end'];
+  }
+
+  connectedCallback() {
+    if (super.connectedCallback) super.connectedCallback();
+    this.#updateGridPlacement();
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (super.attributeChangedCallback) {
+      super.attributeChangedCallback(name, oldValue, newValue);
+    }
+    if (name === 'column-start' || name === 'column-end') {
+      this.#updateGridPlacement();
+    }
+  }
+
+  #updateGridPlacement() {
+    // If the attribute exists, apply it inline. If omitted, remove the inline style.
+    if (this.hasAttribute('column-start')) {
+      this.style.gridColumnStart = this.getAttribute('column-start');
+    } else {
+      this.style.removeProperty('grid-column-start');
+    }
+
+    if (this.hasAttribute('column-end')) {
+      this.style.gridColumnEnd = this.getAttribute('column-end');
+    } else {
+      this.style.removeProperty('grid-column-end');
+    }
+  }
+};
