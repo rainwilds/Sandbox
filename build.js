@@ -7,7 +7,7 @@ async function runBuild() {
 
     const srcPath = path.join(__dirname, 'src');
     const distPath = path.join(__dirname, 'dist');
-    
+
     // THE CARGO LIST: Folders inside /src to sync to /dist
     const foldersToCopy = ['img', 'video', 'fonts', 'js', 'JSON', 'plugins', 'icons', 'css'];
     const rootFilesToCopy = ['robots.txt', 'sitemap.xml', 'llms.txt'];
@@ -15,7 +15,7 @@ async function runBuild() {
     // 1. Determine current GitHub prefix from setup.json
     const setupPath = path.join(srcPath, 'JSON', 'setup.json');
     const setup = JSON.parse(fs.readFileSync(setupPath, 'utf8'));
-    const repoPrefix = setup.general.basePath; 
+    const repoPrefix = setup.general.basePath;
 
     // --- Read the shared head partial once ---
     const sharedHeadPath = path.join(srcPath, '_templates', '_shared-head.html');
@@ -38,7 +38,7 @@ async function runBuild() {
         const srcFolder = path.join(srcPath, folder);
         if (fs.existsSync(srcFolder)) {
             fs.cpSync(srcFolder, path.join(distPath, folder), { recursive: true });
-            
+
             if (folder === 'icons') {
                 fs.readdirSync(srcFolder).forEach(file => {
                     const filePath = path.join(srcFolder, file);
@@ -57,9 +57,9 @@ async function runBuild() {
 
     if (fs.existsSync(path.join(srcPath, 'css'))) {
         fs.readdirSync(path.join(srcPath, 'css')).forEach(file => {
-             if (file.endsWith('.css')) {
-                 fs.copyFileSync(path.join(srcPath, 'css', file), path.join(distPath, file));
-             }
+            if (file.endsWith('.css')) {
+                fs.copyFileSync(path.join(srcPath, 'css', file), path.join(distPath, file));
+            }
         });
     }
 
@@ -67,7 +67,7 @@ async function runBuild() {
     const browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox'] });
 
     // ONLY scan the root of /src for actual pages.
-    const pagesToBuild = fs.readdirSync(srcPath).filter(file => 
+    const pagesToBuild = fs.readdirSync(srcPath).filter(file =>
         file.endsWith('.html') && !file.startsWith('_')
     );
 
@@ -75,17 +75,17 @@ async function runBuild() {
         try {
             const page = await browser.newPage();
             await page.setRequestInterception(true);
-            
+
             page.on('request', r => {
                 let url = r.url();
-                
+
                 if (url === `http://localhost:5500/${file}`) {
                     let sourceHtml = fs.readFileSync(path.join(srcPath, file), 'utf8');
-                    
+
                     if (sharedHead) {
                         sourceHtml = sourceHtml.replace(/<data-custom-head/i, sharedHead + '\n    <data-custom-head');
                     }
-                    
+
                     // Inject Global Navigation Data
                     const headerNavStr = JSON.stringify(setup.headerNavigation || []);
                     const footerNavStr = JSON.stringify(setup.footerNavigation || []);
@@ -106,11 +106,66 @@ async function runBuild() {
             console.log(`  -> Rendering: ${file}`);
             await page.goto(`http://localhost:5500/${file}`, { waitUntil: 'networkidle0' });
 
+            // WAIT FOR HEAD-GENERATOR TO FINISH LOADING ALL COMPONENTS
+            await page.waitForFunction(() => window.__PAGE_FULLY_RENDERED__ === true, { timeout: 10000 }).catch(() => console.log('     Timeout waiting for render flag, proceeding anyway...'));
+
+            // 1. THE WAKE-UP CALL: Force all components to render statically, even if off-screen
+            await page.evaluate(async () => {
+                const customTags = ['custom-slider', 'custom-header', 'custom-logo', 'custom-nav', 'custom-block', 'bh-img', 'bh-video'];
+
+                // Pass 1: Initialize parent containers (like sliders)
+                for (const tag of customTags) {
+                    const elements = document.querySelectorAll(tag);
+                    for (const el of elements) {
+                        if (typeof el.initialize === 'function' && !el.isInitialized) {
+                            el.isVisible = true; // Bypass the IntersectionObserver!
+                            await el.initialize();
+                        }
+                    }
+                }
+
+                // Pass 2: Initialize nested children (like blocks inside slides)
+                for (const tag of customTags) {
+                    const elements = document.querySelectorAll(tag);
+                    for (const el of elements) {
+                        if (typeof el.initialize === 'function' && !el.isInitialized) {
+                            el.isVisible = true;
+                            await el.initialize();
+                        }
+                    }
+                }
+            });
+
+            // 2. THE UNIVERSAL UNWRAPPER: Strip out Web Component shells
             await page.evaluate(() => {
-                document.querySelectorAll('custom-block, bh-img, bh-video').forEach(el => {
-                    el.insertAdjacentHTML('afterend', el.innerHTML);
-                    el.remove(); 
-                });
+                // Remove the Build Engine so it doesn't run on the live site
+                document.querySelectorAll('script[src*="head-generator.js"]').forEach(el => el.remove());
+                document.querySelectorAll('data-custom-head').forEach(el => el.remove());
+
+                const customTags = [
+                    'custom-header', 'custom-logo', 'custom-nav',
+                    'custom-slider', 'custom-block', 'bh-img', 'bh-video'
+                ];
+
+                // Unpack the shells
+                let elements = document.querySelectorAll(customTags.join(', '));
+                while (elements.length > 0) {
+                    elements.forEach(el => {
+                        while (el.firstChild) {
+                            el.parentNode.insertBefore(el.firstChild, el);
+                        }
+                        el.remove();
+                    });
+                    elements = document.querySelectorAll(customTags.join(', '));
+                }
+
+                // THE BRAINS: Permanently stamp the interactive controller into the live site!
+                if (!document.querySelector('script[src*="interactive-controller.js"]')) {
+                    const script = document.createElement('script');
+                    script.src = 'js/components/interactive-controller.js';
+                    script.type = 'module';
+                    document.body.appendChild(script);
+                }
             });
 
             let content = await page.content();
