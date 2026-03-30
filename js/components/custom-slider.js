@@ -1319,6 +1319,15 @@ class CustomSlider extends HTMLElement {
         const sliderWrapper = document.createElement('div');
         sliderWrapper.id = this.#uniqueId;
         sliderWrapper.className = 'custom-slider';
+
+// Pass the breakpoints as a JSON string so the client can read them
+sliderWrapper.dataset.breakpoints = JSON.stringify(attrs.slidesPerViewConfig);
+sliderWrapper.dataset.defaultSpv = attrs.defaultSlidesPerView;
+sliderWrapper.dataset.autoplay = attrs.autoplayType; // 'none', 'interval', or 'continuous'
+sliderWrapper.dataset.delay = attrs.autoplayDelay;
+sliderWrapper.dataset.speed = attrs.continuousSpeed;
+sliderWrapper.dataset.infinite = attrs.infiniteScrolling;
+sliderWrapper.dataset.originalLength = this.#originalLength; // Crucial for infinite loops
         
         // Pass the position attribute to the main DOM element for CSS targeting
         if (attrs.pagination && attrs.paginationPosition) {
