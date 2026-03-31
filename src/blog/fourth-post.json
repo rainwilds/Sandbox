@@ -1,0 +1,39 @@
+{
+  "roots": [
+    "comp-1774945374409"
+  ],
+  "items": {
+    "comp-1774945374409": {
+      "id": "comp-1774945374409",
+      "type": "custom-layout",
+      "attrs": {
+        "column-span": "12",
+        "subgrid": "true"
+      },
+      "children": [
+        "comp-1774945375778"
+      ],
+      "parentId": null
+    },
+    "comp-1774945375778": {
+      "id": "comp-1774945375778",
+      "type": "custom-block",
+      "attrs": {
+        "heading": "New Block",
+        "inner-class": "padding-medium",
+        "column-start": "1",
+        "column-end": "9",
+        "inner-alignment": "top-right",
+        "class": "background-color-2"
+      },
+      "children": [],
+      "parentId": "comp-1774945374409"
+    }
+  },
+  "headData": {
+    "slug": "fourth-post",
+    "title": "Second Post",
+    "date": "2026-04-02",
+    "description": "Test"
+  }
+}

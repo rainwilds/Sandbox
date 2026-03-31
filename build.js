@@ -5,237 +5,221 @@ const path = require('path');
 const args = process.argv.slice(2);
 const targetSlug = args.find(arg => arg.startsWith('--slug='))?.split('=')[1];
 
+// Helper to convert JSON state to raw tags
+function generateHtmlFromJson(items, nodeId) {
+    const node = items[nodeId];
+    if (!node) return '';
+    let attrString = Object.entries(node.attrs).map(([k, v]) => `${k}="${v.replace(/"/g, '&quot;')}"`).join(' ');
+    let html = `<${node.type} ${attrString}>`;
+    if (node.children) node.children.forEach(id => html += generateHtmlFromJson(items, id));
+    return html + `</${node.type}>`;
+}
+
 async function runBuild() {
     console.log('🚀 Starting Rainwilds 2026 Adaptive Build Engine...');
 
     const srcPath = path.join(__dirname, 'src');
     const distPath = path.join(__dirname, 'dist');
-
-    // THE CARGO LIST: Folders inside /src to sync to /dist
-    const foldersToCopy = ['img', 'video', 'fonts', 'js', 'JSON', 'plugins', 'icons', 'css'];
+    const folders = ['img', 'video', 'fonts', 'js', 'JSON', 'plugins', 'icons', 'css']; //
     const rootFilesToCopy = ['robots.txt', 'sitemap.xml', 'llms.txt'];
 
-    // 1. Determine current GitHub prefix from setup.json
-    const setupPath = path.join(srcPath, 'JSON', 'setup.json');
-    const setup = JSON.parse(fs.readFileSync(setupPath, 'utf8'));
-    const repoPrefix = setup.general.basePath;
+    // Detect components for the unwrapper
+    const componentsPath = path.join(srcPath, 'js', 'components');
+    const autoTags = fs.readdirSync(componentsPath)
+        .filter(file => file.endsWith('.js') && file !== 'interactive-controller.js')
+        .map(file => file.replace('.js', ''));
 
-    // --- Read the shared head partial once ---
+    console.log(`🔍 Detected ${autoTags.length} components:`, autoTags);
+
     const sharedHeadPath = path.join(srcPath, '_templates', '_shared-head.html');
-    let sharedHead = '';
-    if (fs.existsSync(sharedHeadPath)) {
-        sharedHead = fs.readFileSync(sharedHeadPath, 'utf8');
-        console.log('✅ Found _shared-head.html successfully!');
-    } else {
-        console.log('⚠️ WARNING: Could not find _templates/_shared-head.html');
-    }
+    const sharedHead = fs.existsSync(sharedHeadPath) ? fs.readFileSync(sharedHeadPath, 'utf8') : '';
 
-    // 2. Refresh /dist folder
-    if (fs.existsSync(distPath)) fs.rmSync(distPath, { recursive: true, force: true });
-    fs.mkdirSync(distPath);
-
-    // --- PHASE 1: ASSET SYNC ---
-    console.log('📁 Syncing assets...');
-
-    foldersToCopy.forEach(folder => {
-        const srcFolder = path.join(srcPath, folder);
-        if (fs.existsSync(srcFolder)) {
-            fs.cpSync(srcFolder, path.join(distPath, folder), { recursive: true });
-
-            if (folder === 'icons') {
-                fs.readdirSync(srcFolder).forEach(file => {
-                    const filePath = path.join(srcFolder, file);
-                    if (fs.lstatSync(filePath).isFile()) {
-                        fs.copyFileSync(filePath, path.join(distPath, file));
-                    }
-                });
-            }
-        }
-    });
-
-    rootFilesToCopy.forEach(file => {
-        const srcFile = path.join(srcPath, file);
-        if (fs.existsSync(srcFile)) fs.copyFileSync(srcFile, path.join(distPath, file));
-    });
-
-    if (fs.existsSync(path.join(srcPath, 'css'))) {
-        fs.readdirSync(path.join(srcPath, 'css')).forEach(file => {
-            if (file.endsWith('.css')) {
-                fs.copyFileSync(path.join(srcPath, 'css', file), path.join(distPath, file));
-            }
+    // Only wipe dist if doing a full build
+    if (!targetSlug) {
+        if (fs.existsSync(distPath)) fs.rmSync(distPath, { recursive: true, force: true });
+        fs.mkdirSync(distPath);
+        console.log('📁 Syncing all assets...');
+        folders.forEach(folder => {
+            const srcFolder = path.join(srcPath, folder);
+            if (fs.existsSync(srcFolder)) fs.cpSync(srcFolder, path.join(distPath, folder), { recursive: true });
         });
+        rootFilesToCopy.forEach(file => {
+            const srcFile = path.join(srcPath, file);
+            if (fs.existsSync(srcFile)) fs.copyFileSync(srcFile, path.join(distPath, file));
+        });
+
+        // UPDATED: Repair Font Paths with Quote Preservation
+        const distCssPath = path.join(distPath, 'css');
+        if (fs.existsSync(distCssPath)) {
+            const cssFiles = fs.readdirSync(distCssPath).filter(f => f.endsWith('.css'));
+            cssFiles.forEach(file => {
+                const filePath = path.join(distCssPath, file);
+                let cssContent = fs.readFileSync(filePath, 'utf8');
+
+                // This Regex captures the quote type ($1) and puts it back, 
+                // preventing the quote mismatch error.
+                cssContent = cssContent.replace(/url\((["']?)(\.\/)?fonts\//g, "url($1../fonts/");
+
+                fs.writeFileSync(filePath, cssContent);
+            });
+            console.log('✅ Repaired font paths (Fixed Quote Mismatch)');
+        }
     }
 
-    // --- PHASE 2: RENDERING & FLATTENING ---
     const browser = await puppeteer.launch({ headless: "new", args: ['--no-sandbox'] });
 
-    // ONLY scan the root of /src for actual pages.
-    const pagesToBuild = fs.readdirSync(srcPath).filter(file =>
-        file.endsWith('.html') && !file.startsWith('_')
-    );
-
-    for (const file of pagesToBuild) {
-        try {
+    // --- PHASE 2: ROOT PAGES ---
+    if (!targetSlug) {
+        const pagesToBuild = fs.readdirSync(srcPath).filter(f => f.endsWith('.html') && !f.startsWith('_') && f !== 'builder.html');
+        for (const file of pagesToBuild) {
+            console.log(`  -> Rendering Root Page: ${file}`);
             const page = await browser.newPage();
-            await page.setRequestInterception(true);
+            await page.goto(`http://localhost:5500/src/${file}`, { waitUntil: 'networkidle0' });
+            await page.waitForFunction(() => window.__PAGE_FULLY_RENDERED__ === true, { timeout: 5000 }).catch(() => { });
 
-            page.on('request', r => {
-                let url = r.url();
-
-                if (url === `http://localhost:5500/${file}`) {
-                    let sourceHtml = fs.readFileSync(path.join(srcPath, file), 'utf8');
-
-                    if (sharedHead) {
-                        sourceHtml = sourceHtml.replace(/<data-custom-head/i, sharedHead + '\n    <data-custom-head');
-                    }
-
-                    // Inject Global Navigation Data
-                    const headerNavStr = JSON.stringify(setup.headerNavigation || []);
-                    const footerNavStr = JSON.stringify(setup.footerNavigation || []);
-                    sourceHtml = sourceHtml.replace(/{{HEADER_NAV}}/g, headerNavStr);
-                    sourceHtml = sourceHtml.replace(/{{FOOTER_NAV}}/g, footerNavStr);
-
-                    return r.respond({
-                        status: 200,
-                        contentType: 'text/html',
-                        body: sourceHtml
-                    });
-                }
-
-                if (url.includes(repoPrefix)) url = url.replace(repoPrefix, '/');
-                r.continue({ url });
-            });
-
-            console.log(`  -> Rendering: ${file}`);
-            await page.goto(`http://localhost:5500/${file}`, { waitUntil: 'networkidle0' });
-
-            // WAIT FOR HEAD-GENERATOR TO FINISH LOADING ALL COMPONENTS
-            await page.waitForFunction(() => window.__PAGE_FULLY_RENDERED__ === true, { timeout: 10000 }).catch(() => console.log('     Timeout waiting for render flag, proceeding anyway...'));
-
-            // 1. THE WAKE-UP CALL: Force all components to render statically, even if off-screen
-            await page.evaluate(async () => {
-                const customTags = ['custom-slider', 'custom-header', 'custom-logo', 'custom-nav', 'custom-block', 'bh-img', 'bh-video'];
-
-                // Pass 1: Initialize parent containers (like sliders)
-                for (const tag of customTags) {
-                    const elements = document.querySelectorAll(tag);
-                    for (const el of elements) {
-                        if (typeof el.initialize === 'function' && !el.isInitialized) {
-                            el.isVisible = true; // Bypass the IntersectionObserver!
-                            await el.initialize();
-                        }
+            await page.evaluate(async (tags) => {
+                for (const t of tags) {
+                    for (const el of document.querySelectorAll(t)) {
+                        if (typeof el.initialize === 'function') { el.isVisible = true; await el.initialize(); }
                     }
                 }
-
-                // Pass 2: Initialize nested children (like blocks inside slides)
-                for (const tag of customTags) {
-                    const elements = document.querySelectorAll(tag);
-                    for (const el of elements) {
-                        if (typeof el.initialize === 'function' && !el.isInitialized) {
-                            el.isVisible = true;
-                            await el.initialize();
-                        }
-                    }
-                }
-            });
-
-            // 2. THE UNIVERSAL UNWRAPPER: Strip out Web Component shells
-            await page.evaluate(() => {
-                // Remove the Build Engine so it doesn't run on the live site
-                document.querySelectorAll('script[src*="head-generator.js"]').forEach(el => el.remove());
-                document.querySelectorAll('data-custom-head').forEach(el => el.remove());
-
-                const customTags = [
-                    'custom-header', 'custom-logo', 'custom-nav',
-                    'custom-slider', 'custom-block', 'bh-img', 'bh-video'
-                ];
-
-                // Unpack the shells
-                let elements = document.querySelectorAll(customTags.join(', '));
-                while (elements.length > 0) {
-                    elements.forEach(el => {
-                        while (el.firstChild) {
-                            el.parentNode.insertBefore(el.firstChild, el);
-                        }
+                document.querySelectorAll('script[src*="head-generator.js"], data-custom-head').forEach(el => el.remove());
+                let els = document.querySelectorAll(tags.join(', '));
+                while (els.length > 0) {
+                    els.forEach(el => {
+                        while (el.firstChild) el.parentNode.insertBefore(el.firstChild, el);
                         el.remove();
                     });
-                    elements = document.querySelectorAll(customTags.join(', '));
+                    els = document.querySelectorAll(tags.join(', '));
                 }
+            }, autoTags);
 
-                // THE BRAINS: Permanently stamp the interactive controller into the live site!
-                if (!document.querySelector('script[src*="interactive-controller.js"]')) {
-                    const script = document.createElement('script');
-                    script.src = 'js/components/interactive-controller.js';
-                    script.type = 'module';
-                    document.body.appendChild(script);
-                }
-            });
-
-            let content = await page.content();
-            const cleanRegex = new RegExp(repoPrefix.replace(/\//g, '\\/'), 'g');
-            content = content.replace(cleanRegex, '/');
-
-            fs.writeFileSync(path.join(distPath, file), content);
+            fs.writeFileSync(path.join(distPath, file), await page.content());
             await page.close();
-        } catch (err) {
-            console.error(`  ❌ Failed ${file}:`, err.message);
         }
     }
 
-    // --- PHASE 3: BLOG RENDERING ---
+    // --- PHASE 3: BLOG POSTS ---
     const manifestPath = path.join(srcPath, 'blog', 'manifest.json');
     if (fs.existsSync(manifestPath)) {
         const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+        const distBlogDir = path.join(distPath, 'blog');
+        if (!fs.existsSync(distBlogDir)) fs.mkdirSync(distBlogDir, { recursive: true });
 
         for (const post of manifest) {
-            // Incremental Check: If we are publishing a specific slug, skip others.
             if (targetSlug && post.slug !== targetSlug) continue;
 
             const jsonPath = path.join(srcPath, 'blog', `${post.slug}.json`);
             const distHtmlPath = path.join(distPath, 'blog', `${post.slug}.html`);
+            if (!fs.existsSync(jsonPath)) continue;
 
-            // Skip if the post hasn't changed (unless forced via targetSlug)
-            if (!targetSlug && fs.existsSync(distHtmlPath)) {
-                if (fs.statSync(jsonPath).mtimeMs <= fs.statSync(distHtmlPath).mtimeMs) continue;
-            }
-
-            console.log(`  -> Processing JSON Blog Post: ${post.slug}`);
+            console.log(`  -> Flattening Blog Post: ${post.slug}`);
             const postData = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
 
-            // 1. Construct raw <custom-block> tags from JSON items
-            let rawContent = '';
-            const generateNodeHtml = (id) => {
-                const node = postData.items[id];
-                let attrs = Object.entries(node.attrs).map(([k, v]) => `${k}="${v.replace(/"/g, '&quot;')}"`).join(' ');
-                let html = `<${node.type} ${attrs}>`;
-                if (node.children) node.children.forEach(childId => html += generateNodeHtml(childId));
-                return html + `</${node.type}>`;
-            };
-            postData.roots.forEach(rootId => rawContent += generateNodeHtml(rootId));
+            // --- UPDATED PATH FIXING ---
+            let blogSharedHead = sharedHead;
 
-            // 2. Prepare the Template with unique <data-custom-head>
+            // 1. Fix folder-prefixed paths (e.g., css/styles.css -> ../css/styles.css)
+            folders.forEach(f => {
+                const hrefRegex = new RegExp(`href="(\\./)?${f}/`, 'g');
+                const srcRegex = new RegExp(`src="(\\./)?${f}/`, 'g');
+                blogSharedHead = blogSharedHead.replace(hrefRegex, `href="../${f}/`).replace(srcRegex, `src="../${f}/`);
+            });
+
+            // 2. THE CRITICAL ADDITION: Fix root-level files specifically
+            // This catches cases where the head doesn't use the 'css/' folder prefix
+            blogSharedHead = blogSharedHead.replace(/href="(\.\/)?styles\.css"/g, 'href="../css/styles.css"');
+            blogSharedHead = blogSharedHead.replace(/href="(\.\/)?custom\.css"/g, 'href="../css/custom.css"');
+            blogSharedHead = blogSharedHead.replace(/href="(\.\/)?setup\.json"/g, 'href="../JSON/setup.json"');
+
             const h = postData.headData || {};
-            const customHead = `
-                <data-custom-head 
-                    data-components="${h.components || 'custom-block'}" 
-                    data-title="${h.title || post.title}" 
-                    data-description="${h.description || post.excerpt}"
-                    data-hero-image="${h.heroImage || ''}"
-                    data-hero-count="${h.heroCount || '0'}"
-                    data-canonical="${h.canonical || ''}">
-                </data-custom-head>`;
+            const customHead = `<data-custom-head data-components="${h.components || 'custom-block'}" data-title="${h.title || post.title}" data-description="${h.description || post.excerpt}"></data-custom-head>`;
+            let rawContent = '';
+            postData.roots.forEach(rId => rawContent += generateHtmlFromJson(postData.items, rId));
 
-            const fullPageHtml = `<!DOCTYPE html><html><head>${sharedHead}${customHead}</head><body>${rawContent}</body></html>`;
+            const fullHtml = `<!DOCTYPE html><html><head>${blogSharedHead}${customHead}</head><body><main>${rawContent}</main></body></html>`;
 
-            // 3. Render and Flatten with Puppeteer
             const page = await browser.newPage();
-            // ... Use your existing Puppeteer logic to visit, wait for render, and unwrap tags ...
-            // Be sure to use the same logic you have for other pages to remove the wrappers!
+            await page.setRequestInterception(true);
+            page.on('request', r => {
+                let url = r.url();
+                if (url.replace(/\/$/, '') === `http://localhost:5500/blog/${post.slug}`) {
+                    return r.respond({ status: 200, contentType: 'text/html', body: fullHtml });
+                }
+
+                // Redirect folder-prefixed assets to /src/
+                folders.forEach(f => {
+                    const searchStr = `http://localhost:5500/${f}/`;
+                    if (url.startsWith(searchStr)) {
+                        url = url.replace(searchStr, `http://localhost:5500/src/${f}/`);
+                    }
+                });
+
+                // NEW: Redirect specific root-level files to their /src/ subfolders
+                if (url.endsWith('styles.css')) url = 'http://localhost:5500/src/css/styles.css';
+                if (url.endsWith('custom.css')) url = 'http://localhost:5500/src/css/custom.css';
+                if (url.endsWith('setup.json')) url = 'http://localhost:5500/src/JSON/setup.json';
+
+                r.continue({ url });
+            });
+
+            await page.goto(`http://localhost:5500/blog/${post.slug}`, { waitUntil: 'networkidle0' });
+            await page.waitForFunction(() => window.__PAGE_FULLY_RENDERED__ === true, { timeout: 8000 }).catch(() => { });
+
+            await page.evaluate(async (tags, assetFolders) => {
+                for (const t of tags) {
+                    for (const el of document.querySelectorAll(t)) {
+                        if (typeof el.initialize === 'function') { el.isVisible = true; await el.initialize(); }
+                    }
+                }
+                // Fix internal content paths
+                assetFolders.forEach(f => {
+                    document.querySelectorAll(`[src^="./${f}/"], [src^="${f}/"], [href^="./${f}/"], [href^="${f}/"]`).forEach(el => {
+                        const attr = el.hasAttribute('src') ? 'src' : 'href';
+                        const old = el.getAttribute(attr);
+                        el.setAttribute(attr, old.startsWith('./') ? old.replace('./', '../') : '../' + old);
+                    });
+                });
+                document.querySelectorAll('script[src*="head-generator.js"], data-custom-head').forEach(el => el.remove());
+                let els = document.querySelectorAll(tags.join(', '));
+                while (els.length > 0) {
+                    els.forEach(el => {
+                        while (el.firstChild) el.parentNode.insertBefore(el.firstChild, el);
+                        el.remove();
+                    });
+                    els = document.querySelectorAll(tags.join(', '));
+                }
+            }, autoTags, folders);
+
+            // --- UPDATED NUCLEAR PATH FIXER ---
+            let finalHtml = await page.content();
+            const assetFolders = ['css', 'js', 'fonts', 'img', 'video', 'JSON', 'plugins', 'icons'];
+
+            assetFolders.forEach(folder => {
+                // 1. Fix relative links: href="css/" -> href="../css/"
+                const relRegex = new RegExp(`(href|src)="(\\./)?${folder}/`, 'g');
+                finalHtml = finalHtml.replace(relRegex, `$1="../${folder}/`);
+
+                // 2. Fix absolute links: src="/img/..." -> src="../img/..."
+                const absRegex = new RegExp(`(href|src)="/${folder}/`, 'g');
+                finalHtml = finalHtml.replace(absRegex, `$1="../${folder}/`);
+            });
+
+            // 3. Fix strings INSIDE script tags (e.g., Snipcart templatesUrl)
+            finalHtml = finalHtml.replace(/"\.\/plugins\//g, '"../plugins/');
+            finalHtml = finalHtml.replace(/"\.\/JSON\//g, '"../JSON/');
+
+            // 4. Naked file fixes
+            finalHtml = finalHtml.replace(/href="(\.\/)?styles\.css"/g, 'href="../css/styles.css"');
+            finalHtml = finalHtml.replace(/href="(\.\/)?custom\.css"/g, 'href="../css/custom.css"');
+
+            fs.writeFileSync(distHtmlPath, finalHtml);
+            await page.close();
         }
     }
 
-    await browser.close();
-    console.log(`✅ Build Complete! Preview your /dist folder.`);
+    await browser.close(); // Correctly placed inside the async function
+    console.log(`✅ Build Complete!`);
 }
 
 runBuild();

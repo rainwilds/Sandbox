@@ -182,7 +182,7 @@ class VisualBuilder extends HTMLElement {
     <button id="btn-toggle-guides" class="btn-secondary">Guides: Off</button>
     <button id="btn-clear" class="btn-secondary" style="color: #ef4444; border-color: #7f1d1d;">Clear</button>
     <button id="btn-view-html" class="btn-secondary">View HTML</button>
-    <button id="btn-save" class="btn-primary">Save</button>
+    <button id="btn-preview" class="btn-secondary">Live Preview</button> <button id="btn-save" class="btn-primary">Save</button>
     <button id="btn-publish" class="btn-primary" style="background: #10b981; border-color: #059669;">Publish</button>
 </div>
             </div>
@@ -378,11 +378,13 @@ class VisualBuilder extends HTMLElement {
         `;
         document.head.appendChild(style);
 
+
         this.setupDragAndDrop();
         this.setupCanvasSelection();
         this.setupResizeHandles();
         this.setupControls();
         this.loadState();
+        this.fetchComponents();
     }
 
     saveState() {
@@ -437,6 +439,46 @@ class VisualBuilder extends HTMLElement {
         this.canvas.appendChild(overlay);
 
         this.saveState();
+    }
+
+    async fetchComponents() {
+        try {
+            // Ensure the server.js is running on Port 3000
+            const response = await fetch('http://localhost:3000/api/list-components');
+            if (!response.ok) throw new Error('Server unreachable');
+
+            const tags = await response.json();
+            const container = this.shadowRoot.getElementById('tab-elements');
+
+            if (tags.length === 0) {
+                container.innerHTML = '<p style="font-size:0.7rem; padding:10px;">No .js components found in /src/js/components</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            tags.forEach(tag => {
+                const div = document.createElement('div');
+                div.className = 'component-item';
+                div.setAttribute('draggable', 'true');
+                div.dataset.type = tag;
+
+                // Formatting name: custom-block -> Content Block
+                const name = tag.replace('custom-', '').split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                const icon = tag.includes('layout') ? '⚏' : tag.includes('slider') ? '◫' : '◻';
+
+                div.innerHTML = `<span class="layer-icon">${icon}</span> ${name}`;
+
+                // Re-bind the dragstart event for new dynamic items
+                div.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', 'new:' + tag);
+                    this.draggedLibraryType = tag;
+                });
+
+                container.appendChild(div);
+            });
+        } catch (err) {
+            this.shadowRoot.getElementById('tab-elements').innerHTML = '<p style="color:#ef4444; font-size:0.7rem; padding:10px;">API Error: check server.js</p>';
+        }
     }
 
     setupResizeHandles() {
@@ -1003,7 +1045,7 @@ class VisualBuilder extends HTMLElement {
     setupControls() {
         const root = this.shadowRoot;
 
-        // --- Viewport Logic ---
+        // --- 1. Viewport Logic ---
         const vpButtons = root.querySelectorAll('.vp-btn');
         const viewportWidths = { 'base': '100%' };
         Shared.VIEWPORT_BREAKPOINTS.forEach(bp => { viewportWidths[bp.name] = `${bp.maxWidth}px`; });
@@ -1019,7 +1061,7 @@ class VisualBuilder extends HTMLElement {
             });
         });
 
-        // --- UI Toggles ---
+        // --- 2. UI Toggles ---
         root.getElementById('btn-toggle-guides').addEventListener('click', () => {
             this.canvas.classList.toggle('show-guides');
             const btn = root.getElementById('btn-toggle-guides');
@@ -1027,10 +1069,15 @@ class VisualBuilder extends HTMLElement {
         });
 
         root.getElementById('btn-clear').addEventListener('click', () => {
-            if (confirm('Clear canvas?')) { this.state = { roots: [], items: {}, headData: this.state.headData }; this.selectedId = null; this.hideInspector(); this.rebuildCanvas(); }
+            if (confirm('Clear canvas?')) {
+                this.state = { roots: [], items: {}, headData: this.state.headData };
+                this.selectedId = null;
+                this.hideInspector();
+                this.rebuildCanvas();
+            }
         });
 
-        // --- Tab Logic ---
+        // --- 3. Tab Logic ---
         const tabBtns = root.querySelectorAll('.tab-btn');
         const tabPanes = root.querySelectorAll('.tab-pane');
         tabBtns.forEach(btn => {
@@ -1042,7 +1089,7 @@ class VisualBuilder extends HTMLElement {
             });
         });
 
-        // --- Node Ordering & Deletion ---
+        // --- 4. Node Ordering & Deletion ---
         root.getElementById('btn-up').addEventListener('click', () => {
             if (!this.selectedId) return;
             const item = this.state.items[this.selectedId];
@@ -1068,8 +1115,7 @@ class VisualBuilder extends HTMLElement {
             this.selectedId = null; this.hideInspector(); this.rebuildCanvas();
         });
 
-        // --- Metadata Binding ---
-        // Includes all attributes from head-generator.js
+        // --- 5. Metadata Binding ---
         const metaFields = ['slug', 'title', 'date', 'categories', 'description', 'ogImage', 'canonical', 'theme', 'components', 'heroImage', 'heroCount', 'heroWidths', 'heroSize', 'heroFormat'];
         metaFields.forEach(field => {
             const input = root.getElementById(`meta-${field}`);
@@ -1083,7 +1129,51 @@ class VisualBuilder extends HTMLElement {
             }
         });
 
-        // --- The (Single) Helper for Viewing HTML ---
+        // --- 6. Internal Logic: Reusable Save Helper ---
+        const performSave = async (silent = false) => {
+            const slug = this.state.headData?.slug?.trim();
+            if (!slug) {
+                alert("Please enter a URL Slug in the Meta tab first!");
+                return false;
+            }
+
+            const btnSave = root.getElementById('btn-save');
+            if (!silent) btnSave.textContent = 'Saving...';
+
+            try {
+                const response = await fetch('http://localhost:3000/api/save-post', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer rainwilds-builder-2026'
+                    },
+                    body: JSON.stringify({
+                        slug,
+                        title: this.state.headData.title || 'Untitled',
+                        date: this.state.headData.date || new Date().toISOString().split('T')[0],
+                        categories: this.state.headData.categories ? this.state.headData.categories.split(',').map(c => c.trim()) : [],
+                        excerpt: this.state.headData.description || '',
+                        featuredImage: this.state.headData.ogImage || '',
+                        builderState: this.state
+                    })
+                });
+
+                if (response.ok) {
+                    if (!silent) {
+                        btnSave.textContent = '✅ Saved';
+                        btnSave.style.background = '#059669';
+                        setTimeout(() => { btnSave.textContent = 'Save'; btnSave.style.background = '#3b82f6'; }, 2000);
+                    }
+                    return true;
+                }
+            } catch (err) {
+                console.error('Save failed:', err);
+                if (!silent) alert('Save failed. Is server.js running?');
+            }
+            return false;
+        };
+
+        // --- BUTTON: VIEW HTML ---
         const generateHTMLString = (id, indentLevel = 0) => {
             const node = this.state.items[id];
             if (!node) return '';
@@ -1096,7 +1186,6 @@ class VisualBuilder extends HTMLElement {
             return html;
         };
 
-        // --- BUTTON 1: VIEW HTML ---
         root.getElementById('btn-view-html').addEventListener('click', () => {
             const textarea = root.getElementById('export-code');
             let exportHtml = '\n';
@@ -1114,48 +1203,62 @@ class VisualBuilder extends HTMLElement {
 
         root.getElementById('close-modal').addEventListener('click', () => root.getElementById('export-modal').classList.remove('active'));
 
-        // --- BUTTON 2: SAVE ---
-        const btnSave = root.getElementById('btn-save');
-        btnSave.addEventListener('click', async () => {
+        // --- BUTTON: LIVE PREVIEW ---
+        root.getElementById('btn-preview').addEventListener('click', () => {
             const slug = this.state.headData?.slug?.trim();
-            if (!slug) return alert("Enter a URL Slug first!");
-            try {
-                btnSave.textContent = 'Saving...';
-                const response = await fetch('http://localhost:3000/api/save-post', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer rainwilds-builder-2026' },
-                    body: JSON.stringify({
-                        slug,
-                        title: this.state.headData.title || 'Untitled',
-                        date: this.state.headData.date || new Date().toISOString().split('T')[0],
-                        categories: this.state.headData.categories ? this.state.headData.categories.split(',').map(c => c.trim()) : [],
-                        excerpt: this.state.headData.description || '',
-                        featuredImage: this.state.headData.ogImage || '',
-                        builderState: this.state
-                    })
-                });
-                if (response.ok) btnSave.textContent = '✅ Saved';
-                else alert('Save failed');
-            } catch (err) { alert('Check if server.js is running.'); }
-            finally { setTimeout(() => btnSave.textContent = 'Save', 2000); }
+            if (!slug) return alert("Please enter a slug and Publish the post first.");
+
+            // This assumes your server serves from project root (Sandbox)
+            const previewUrl = `/dist/blog/${slug}.html`;
+            window.open(previewUrl, '_blank');
         });
 
-        // --- BUTTON 3: PUBLISH ---
+        // --- BUTTON: SAVE ---
+        root.getElementById('btn-save').addEventListener('click', () => performSave(false));
+
+        // --- BUTTON: PUBLISH (Auto-Saves First) ---
         const btnPublish = root.getElementById('btn-publish');
         btnPublish.addEventListener('click', async () => {
-            const slug = this.state.headData?.slug?.trim();
-            if (!slug) return alert("Save with a slug first.");
+            btnPublish.disabled = true;
+            btnPublish.textContent = 'Saving & Publishing...';
+
+            // 1. Silent Save
+            const isSaved = await performSave(true);
+            if (!isSaved) {
+                btnPublish.disabled = false;
+                btnPublish.textContent = 'Publish';
+                return;
+            }
+
+            // 2. Trigger Build Logic
             try {
-                btnPublish.textContent = 'Publishing...';
+                const slug = this.state.headData.slug.trim();
                 const response = await fetch('http://localhost:3000/api/publish', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer rainwilds-builder-2026' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer rainwilds-builder-2026'
+                    },
                     body: JSON.stringify({ slug })
                 });
-                if (response.ok) btnPublish.textContent = '✅ Published!';
-                else alert('Publish failed');
-            } catch (err) { alert('Publish error.'); }
-            finally { setTimeout(() => btnPublish.textContent = 'Publish', 2000); }
+
+                if (response.ok) {
+                    btnPublish.textContent = '✅ Published!';
+                    btnPublish.style.background = '#059669';
+                } else {
+                    alert('Publishing failed.');
+                    btnPublish.textContent = '❌ Error';
+                }
+            } catch (err) {
+                alert('Build server connection error.');
+                btnPublish.textContent = '❌ Error';
+            } finally {
+                btnPublish.disabled = false;
+                setTimeout(() => {
+                    btnPublish.textContent = 'Publish';
+                    btnPublish.style.background = '#10b981';
+                }, 3000);
+            }
         });
     }
 }
