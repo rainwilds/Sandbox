@@ -39,7 +39,7 @@
   result: rgb(from var(--color) r g b / var(--opacity));
 }
 
-* Creates an overlay effect by adjusting the opacity of a color while preserving its perceived lightness in OKLAB space */
+/* Creates an overlay effect by adjusting the opacity of a color while preserving its perceived lightness in OKLAB space */
 @function --overlay(--color, --opacity) {
   result: oklab(from var(--color) l a b / var(--opacity));
 }
@@ -1035,16 +1035,16 @@
       color: var(--color-primary);
     }
 
-    img,
+    /* img,
     picture {
       object-fit: cover;
 
       @media (prefers-color-scheme: dark) {
         &:not(div[id^="gallery-item-"] picture, div[id^="gallery-item-"] img) {
-          /* filter: opacity(0.9) saturate(0.8); */
+          filter: opacity(0.9) saturate(0.8);
         }
       }
-    }
+    } */
 
     /* body {
 
@@ -1150,7 +1150,7 @@
             }
 
         } */
-  }
+  
 }
 
 @layer components {

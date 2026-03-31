@@ -109,7 +109,21 @@ class VisualBuilder extends HTMLElement {
 
                 /* Left Sidebar Tabs */
                 .tabs-header { display: flex; border-bottom: 1px solid #27272a; }
-                .tab-btn { flex: 1; background: transparent; color: #71717a; padding: 12px 0; border-radius: 0; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
+             /* Update .tab-btn to fit 4 tabs */
+.tab-btn { 
+    flex: 1; 
+    background: transparent; 
+    color: #71717a; 
+    padding: 10px 2px; /* Reduced padding to fit 4 buttons */
+    border-radius: 0; 
+    font-weight: 600; 
+    font-size: 0.65rem; /* Slightly smaller font */
+    text-transform: uppercase; 
+    letter-spacing: 0; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
                 .tab-btn.active { color: #fafafa; border-bottom: 2px solid #3b82f6; }
                 .tab-pane { display: none; padding: 15px; overflow-y: auto; flex-grow: 1; }
                 .tab-pane.active { display: block; }
@@ -164,21 +178,23 @@ class VisualBuilder extends HTMLElement {
                     <button class="vp-btn active" data-vp="base">Base</button>
                     ${dynamicViewportButtons}
                 </div>
-                <div class="top-actions">
-                    <button id="btn-toggle-guides" class="btn-secondary">Guides: Off</button>
-                    <button id="btn-clear" class="btn-secondary" style="color: #ef4444; border-color: #7f1d1d;">Clear</button>
-                    <button id="btn-export" class="btn-primary">Export HTML</button>
-                </div>
+<div class="top-actions">
+    <button id="btn-toggle-guides" class="btn-secondary">Guides: Off</button>
+    <button id="btn-clear" class="btn-secondary" style="color: #ef4444; border-color: #7f1d1d;">Clear</button>
+    <button id="btn-view-html" class="btn-secondary">View HTML</button>
+    <button id="btn-save" class="btn-primary">Save</button>
+    <button id="btn-publish" class="btn-primary" style="background: #10b981; border-color: #059669;">Publish</button>
+</div>
             </div>
 
             <div id="left-sidebar" class="panel">
                 <div id="left-resizer" class="resizer"></div>
                 
-                <div class="tabs-header">
-                    <button class="tab-btn active" data-target="tab-elements">Add</button>
-                    <button class="tab-btn" data-target="tab-layers">Layers</button>
-                    <button class="tab-btn" data-target="tab-globals">Globals</button>
-                </div>
+<div class="tabs-header">
+    <button class="tab-btn active" data-target="tab-elements">Add</button>
+    <button class="tab-btn" data-target="tab-layers">Layers</button>
+    <button class="tab-btn" data-target="tab-meta">Meta</button> <button class="tab-btn" data-target="tab-globals">Globals</button>
+</div>
                 
                 <div id="tab-elements" class="tab-pane active">
                     <div class="component-item" draggable="true" data-type="custom-layout">⚏ Layout Grid</div>
@@ -189,6 +205,27 @@ class VisualBuilder extends HTMLElement {
                 <div id="tab-layers" class="tab-pane">
                     <div id="layers-tree"></div>
                 </div>
+
+ <div id="tab-meta" class="tab-pane">
+    <p style="font-size: 0.75rem; margin-top: 0; margin-bottom: 15px; color: #818cf8;">Post & Page Metadata</p>
+    
+    <div class="form-group stacked"><label>URL Slug (Required)</label><input type="text" id="meta-slug" placeholder="my-new-post"></div>
+    <div class="form-group stacked"><label>Title</label><input type="text" id="meta-title"></div>
+    <div class="form-group stacked"><label>Date</label><input type="date" id="meta-date"></div>
+    <div class="form-group stacked"><label>Description / Excerpt</label><textarea id="meta-description" rows="3"></textarea></div>
+    <div class="form-group stacked"><label>OG/Featured Image</label><input type="text" id="meta-ogImage" placeholder="/img/primary/image.jpg"></div>
+    
+    <p style="font-size: 0.75rem; margin-top: 15px; margin-bottom: 10px; color: #818cf8; border-bottom: 1px solid #27272a; padding-bottom: 4px;">Advanced (Head Generator)</p>
+    
+    <div class="form-group stacked"><label>Canonical URL</label><input type="text" id="meta-canonical"></div>
+    <div class="form-group stacked"><label>Theme</label><input type="text" id="meta-theme" placeholder="dark or light"></div>
+    <div class="form-group stacked"><label>Components</label><input type="text" id="meta-components" placeholder="custom-block custom-slider"></div>
+    <div class="form-group stacked"><label>Hero Image Preload</label><input type="text" id="meta-heroImage"></div>
+    <div class="form-group stacked"><label>Hero Count</label><input type="number" id="meta-heroCount"></div>
+    <div class="form-group stacked"><label>Hero Widths</label><input type="text" id="meta-heroWidths"></div>
+    <div class="form-group stacked"><label>Hero Size</label><input type="text" id="meta-heroSize"></div>
+    <div class="form-group stacked"><label>Hero Format</label><input type="text" id="meta-heroFormat"></div>
+</div>               
 
                 <div id="tab-globals" class="tab-pane">
                     <p style="font-size: 0.75rem; margin-top: 0; margin-bottom: 15px;">Variables map directly to styles.css</p>
@@ -966,173 +1003,161 @@ class VisualBuilder extends HTMLElement {
     setupControls() {
         const root = this.shadowRoot;
 
+        // --- Viewport Logic ---
         const vpButtons = root.querySelectorAll('.vp-btn');
         const viewportWidths = { 'base': '100%' };
-        Shared.VIEWPORT_BREAKPOINTS.forEach(bp => {
-            viewportWidths[bp.name] = `${bp.maxWidth}px`;
-        });
+        Shared.VIEWPORT_BREAKPOINTS.forEach(bp => { viewportWidths[bp.name] = `${bp.maxWidth}px`; });
 
         vpButtons.forEach(btn => {
             btn.addEventListener('click', () => {
-                // Update active button styling
                 vpButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
-
-                // Update State
                 this.currentViewport = btn.dataset.vp;
-
-                // Resize Canvas Wrapper using our dynamically generated map
                 this.canvas.style.maxWidth = viewportWidths[this.currentViewport];
                 this.canvas.style.transition = 'max-width 0.3s ease';
-
-                // Repopulate Inspector so it dynamically updates input fields
                 if (this.selectedId) this.populateInspector();
             });
         });
 
-        const btnToggleGuides = root.getElementById('btn-toggle-guides');
-        btnToggleGuides.addEventListener('click', () => {
+        // --- UI Toggles ---
+        root.getElementById('btn-toggle-guides').addEventListener('click', () => {
             this.canvas.classList.toggle('show-guides');
-
-            // Update button UI state
-            if (this.canvas.classList.contains('show-guides')) {
-                btnToggleGuides.textContent = 'Hide Grid';
-                btnToggleGuides.style.background = '#4338ca'; // Active darker purple
-            } else {
-                btnToggleGuides.textContent = 'Show Grid';
-                btnToggleGuides.style.background = '#4f46e5'; // Default purple
-            }
-        });
-
-        root.getElementById('btn-up').addEventListener('click', () => {
-            if (!this.selectedId) return;
-            const item = this.state.items[this.selectedId];
-            const arrayToEdit = item.parentId ? this.state.items[item.parentId].children : this.state.roots;
-            const index = arrayToEdit.indexOf(this.selectedId);
-            if (index > 0) {
-                [arrayToEdit[index - 1], arrayToEdit[index]] = [arrayToEdit[index], arrayToEdit[index - 1]];
-                this.rebuildCanvas();
-            }
-        });
-
-        root.getElementById('btn-down').addEventListener('click', () => {
-            if (!this.selectedId) return;
-            const item = this.state.items[this.selectedId];
-            const arrayToEdit = item.parentId ? this.state.items[item.parentId].children : this.state.roots;
-            const index = arrayToEdit.indexOf(this.selectedId);
-            if (index > -1 && index < arrayToEdit.length - 1) {
-                [arrayToEdit[index + 1], arrayToEdit[index]] = [arrayToEdit[index], arrayToEdit[index + 1]];
-                this.rebuildCanvas();
-            }
-        });
-
-        root.getElementById('btn-delete').addEventListener('click', () => {
-            if (!this.selectedId) return;
-            const item = this.state.items[this.selectedId];
-
-            if (item.parentId) {
-                const parent = this.state.items[item.parentId];
-                parent.children = parent.children.filter(id => id !== this.selectedId);
-            } else {
-                this.state.roots = this.state.roots.filter(id => id !== this.selectedId);
-            }
-
-            delete this.state.items[this.selectedId];
-            this.selectedId = null;
-            this.hideInspector();
-            this.rebuildCanvas();
+            const btn = root.getElementById('btn-toggle-guides');
+            btn.textContent = this.canvas.classList.contains('show-guides') ? 'Hide Grid' : 'Show Grid';
         });
 
         root.getElementById('btn-clear').addEventListener('click', () => {
-            if (confirm('Are you sure you want to clear the canvas?')) {
-                this.state = { roots: [], items: {} };
-                this.selectedId = null;
-                this.hideInspector();
-                this.rebuildCanvas();
-            }
+            if (confirm('Clear canvas?')) { this.state = { roots: [], items: {}, headData: this.state.headData }; this.selectedId = null; this.hideInspector(); this.rebuildCanvas(); }
         });
 
-        // Add this inside setupControls()
-
-        // --- Left Sidebar Tabs Logic ---
+        // --- Tab Logic ---
         const tabBtns = root.querySelectorAll('.tab-btn');
         const tabPanes = root.querySelectorAll('.tab-pane');
-
         tabBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
+            btn.addEventListener('click', () => {
                 tabBtns.forEach(b => b.classList.remove('active'));
                 tabPanes.forEach(p => p.classList.remove('active'));
-
                 btn.classList.add('active');
                 root.getElementById(btn.dataset.target).classList.add('active');
             });
         });
 
-        // --- Global Settings Live Update ---
-        const primaryColorPicker = root.getElementById('global-color-primary');
-        const primaryColorText = root.getElementById('global-color-primary-text');
+        // --- Node Ordering & Deletion ---
+        root.getElementById('btn-up').addEventListener('click', () => {
+            if (!this.selectedId) return;
+            const item = this.state.items[this.selectedId];
+            const array = item.parentId ? this.state.items[item.parentId].children : this.state.roots;
+            const idx = array.indexOf(this.selectedId);
+            if (idx > 0) { [array[idx - 1], array[idx]] = [array[idx], array[idx - 1]]; this.rebuildCanvas(); }
+        });
 
-        const updatePrimaryColor = (val) => {
-            primaryColorPicker.value = val;
-            primaryColorText.value = val;
-            // Write directly to the document root to update all components live!
-            document.documentElement.style.setProperty('--color-primary', val);
-        };
+        root.getElementById('btn-down').addEventListener('click', () => {
+            if (!this.selectedId) return;
+            const item = this.state.items[this.selectedId];
+            const array = item.parentId ? this.state.items[item.parentId].children : this.state.roots;
+            const idx = array.indexOf(this.selectedId);
+            if (idx > -1 && idx < array.length - 1) { [array[idx + 1], array[idx]] = [array[idx], array[idx + 1]]; this.rebuildCanvas(); }
+        });
 
-        primaryColorPicker.addEventListener('input', (e) => updatePrimaryColor(e.target.value));
-        primaryColorText.addEventListener('input', (e) => updatePrimaryColor(e.target.value));
+        root.getElementById('btn-delete').addEventListener('click', () => {
+            if (!this.selectedId) return;
+            const item = this.state.items[this.selectedId];
+            if (item.parentId) this.state.items[item.parentId].children = this.state.items[item.parentId].children.filter(id => id !== this.selectedId);
+            else this.state.roots = this.state.roots.filter(id => id !== this.selectedId);
+            delete this.state.items[this.selectedId];
+            this.selectedId = null; this.hideInspector(); this.rebuildCanvas();
+        });
 
-        const generateHTML = (id, indentLevel = 0) => {
-            const node = this.state.items[id];
-            const indent = '  '.repeat(indentLevel);
-            let attrString = Object.entries(node.attrs).map(([k, v]) => `${k}="${v}"`).join(' ');
-            if (attrString) attrString = ' ' + attrString;
-
-            let html = `${indent}<${node.type}${attrString}>\n`;
-
-            if (node.children && node.children.length > 0) {
-                node.children.forEach(childId => {
-                    html += generateHTML(childId, indentLevel + 1);
+        // --- Metadata Binding ---
+        // Includes all attributes from head-generator.js
+        const metaFields = ['slug', 'title', 'date', 'categories', 'description', 'ogImage', 'canonical', 'theme', 'components', 'heroImage', 'heroCount', 'heroWidths', 'heroSize', 'heroFormat'];
+        metaFields.forEach(field => {
+            const input = root.getElementById(`meta-${field}`);
+            if (input) {
+                input.value = (this.state.headData && this.state.headData[field]) || '';
+                input.addEventListener('input', (e) => {
+                    if (!this.state.headData) this.state.headData = {};
+                    this.state.headData[field] = e.target.value;
+                    this.saveState();
                 });
             }
+        });
 
+        // --- The (Single) Helper for Viewing HTML ---
+        const generateHTMLString = (id, indentLevel = 0) => {
+            const node = this.state.items[id];
+            if (!node) return '';
+            const indent = '  '.repeat(indentLevel);
+            let attrString = Object.entries(node.attrs).map(([k, v]) => `${k}="${v.replace(/"/g, '&quot;')}"`).join(' ');
+            if (attrString) attrString = ' ' + attrString;
+            let html = `${indent}<${node.type}${attrString}>\n`;
+            if (node.children) node.children.forEach(childId => html += generateHTMLString(childId, indentLevel + 1));
             html += `${indent}</${node.type}>\n`;
             return html;
         };
 
-        root.getElementById('btn-export').addEventListener('click', () => {
-            const modal = root.getElementById('export-modal');
+        // --- BUTTON 1: VIEW HTML ---
+        root.getElementById('btn-view-html').addEventListener('click', () => {
             const textarea = root.getElementById('export-code');
-
             let exportHtml = '\n';
-            this.state.roots.forEach(rootId => {
-                exportHtml += generateHTML(rootId) + '\n';
-            });
-
+            this.state.roots.forEach(rootId => exportHtml += generateHTMLString(rootId) + '\n');
             textarea.value = exportHtml;
-            modal.classList.add('active');
+            root.getElementById('export-modal').classList.add('active');
         });
 
-        const copyBtn = root.getElementById('btn-copy');
-        const textarea = root.getElementById('export-code');
-        copyBtn.addEventListener('click', async () => {
+        root.getElementById('btn-copy').addEventListener('click', () => {
+            navigator.clipboard.writeText(root.getElementById('export-code').value);
+            const btn = root.getElementById('btn-copy');
+            btn.textContent = '✅ Copied!';
+            setTimeout(() => btn.textContent = '📋 Copy', 2000);
+        });
+
+        root.getElementById('close-modal').addEventListener('click', () => root.getElementById('export-modal').classList.remove('active'));
+
+        // --- BUTTON 2: SAVE ---
+        const btnSave = root.getElementById('btn-save');
+        btnSave.addEventListener('click', async () => {
+            const slug = this.state.headData?.slug?.trim();
+            if (!slug) return alert("Enter a URL Slug first!");
             try {
-                await navigator.clipboard.writeText(textarea.value);
-                copyBtn.textContent = '✅ Copied!';
-                copyBtn.style.background = '#059669';
-                setTimeout(() => {
-                    copyBtn.textContent = '📋 Copy';
-                    copyBtn.style.background = '#4f46e5';
-                }, 2000);
-            } catch (err) {
-                alert('Failed to copy text.');
-            }
+                btnSave.textContent = 'Saving...';
+                const response = await fetch('http://localhost:3000/api/save-post', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer rainwilds-builder-2026' },
+                    body: JSON.stringify({
+                        slug,
+                        title: this.state.headData.title || 'Untitled',
+                        date: this.state.headData.date || new Date().toISOString().split('T')[0],
+                        categories: this.state.headData.categories ? this.state.headData.categories.split(',').map(c => c.trim()) : [],
+                        excerpt: this.state.headData.description || '',
+                        featuredImage: this.state.headData.ogImage || '',
+                        builderState: this.state
+                    })
+                });
+                if (response.ok) btnSave.textContent = '✅ Saved';
+                else alert('Save failed');
+            } catch (err) { alert('Check if server.js is running.'); }
+            finally { setTimeout(() => btnSave.textContent = 'Save', 2000); }
         });
 
-        root.getElementById('close-modal').addEventListener('click', () => {
-            root.getElementById('export-modal').classList.remove('active');
+        // --- BUTTON 3: PUBLISH ---
+        const btnPublish = root.getElementById('btn-publish');
+        btnPublish.addEventListener('click', async () => {
+            const slug = this.state.headData?.slug?.trim();
+            if (!slug) return alert("Save with a slug first.");
+            try {
+                btnPublish.textContent = 'Publishing...';
+                const response = await fetch('http://localhost:3000/api/publish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer rainwilds-builder-2026' },
+                    body: JSON.stringify({ slug })
+                });
+                if (response.ok) btnPublish.textContent = '✅ Published!';
+                else alert('Publish failed');
+            } catch (err) { alert('Publish error.'); }
+            finally { setTimeout(() => btnPublish.textContent = 'Publish', 2000); }
         });
     }
-} // Closes VisualBuilder class
+}
 
 customElements.define('visual-builder', VisualBuilder);

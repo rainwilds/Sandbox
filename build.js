@@ -2,6 +2,9 @@ const puppeteer = require('puppeteer');
 const fs = require('fs');
 const path = require('path');
 
+const args = process.argv.slice(2);
+const targetSlug = args.find(arg => arg.startsWith('--slug='))?.split('=')[1];
+
 async function runBuild() {
     console.log('🚀 Starting Rainwilds 2026 Adaptive Build Engine...');
 
@@ -176,6 +179,58 @@ async function runBuild() {
             await page.close();
         } catch (err) {
             console.error(`  ❌ Failed ${file}:`, err.message);
+        }
+    }
+
+    // --- PHASE 3: BLOG RENDERING ---
+    const manifestPath = path.join(srcPath, 'blog', 'manifest.json');
+    if (fs.existsSync(manifestPath)) {
+        const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+
+        for (const post of manifest) {
+            // Incremental Check: If we are publishing a specific slug, skip others.
+            if (targetSlug && post.slug !== targetSlug) continue;
+
+            const jsonPath = path.join(srcPath, 'blog', `${post.slug}.json`);
+            const distHtmlPath = path.join(distPath, 'blog', `${post.slug}.html`);
+
+            // Skip if the post hasn't changed (unless forced via targetSlug)
+            if (!targetSlug && fs.existsSync(distHtmlPath)) {
+                if (fs.statSync(jsonPath).mtimeMs <= fs.statSync(distHtmlPath).mtimeMs) continue;
+            }
+
+            console.log(`  -> Processing JSON Blog Post: ${post.slug}`);
+            const postData = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+
+            // 1. Construct raw <custom-block> tags from JSON items
+            let rawContent = '';
+            const generateNodeHtml = (id) => {
+                const node = postData.items[id];
+                let attrs = Object.entries(node.attrs).map(([k, v]) => `${k}="${v.replace(/"/g, '&quot;')}"`).join(' ');
+                let html = `<${node.type} ${attrs}>`;
+                if (node.children) node.children.forEach(childId => html += generateNodeHtml(childId));
+                return html + `</${node.type}>`;
+            };
+            postData.roots.forEach(rootId => rawContent += generateNodeHtml(rootId));
+
+            // 2. Prepare the Template with unique <data-custom-head>
+            const h = postData.headData || {};
+            const customHead = `
+                <data-custom-head 
+                    data-components="${h.components || 'custom-block'}" 
+                    data-title="${h.title || post.title}" 
+                    data-description="${h.description || post.excerpt}"
+                    data-hero-image="${h.heroImage || ''}"
+                    data-hero-count="${h.heroCount || '0'}"
+                    data-canonical="${h.canonical || ''}">
+                </data-custom-head>`;
+
+            const fullPageHtml = `<!DOCTYPE html><html><head>${sharedHead}${customHead}</head><body>${rawContent}</body></html>`;
+
+            // 3. Render and Flatten with Puppeteer
+            const page = await browser.newPage();
+            // ... Use your existing Puppeteer logic to visit, wait for render, and unwrap tags ...
+            // Be sure to use the same logic you have for other pages to remove the wrappers!
         }
     }
 
