@@ -1,0 +1,45 @@
+{
+  "roots": [
+    "comp-1775005995438"
+  ],
+  "items": {
+    "comp-1775005995438": {
+      "id": "comp-1775005995438",
+      "type": "custom-layout",
+      "attrs": {
+        "column-span": "12",
+        "subgrid": "true"
+      },
+      "children": [
+        "comp-1775005998312"
+      ],
+      "parentId": null
+    },
+    "comp-1775005998312": {
+      "id": "comp-1775005998312",
+      "type": "custom-slider",
+      "attrs": {
+        "slides-per-view": "1"
+      },
+      "children": [
+        "comp-1775006005738"
+      ],
+      "parentId": "comp-1775005995438"
+    },
+    "comp-1775006005738": {
+      "id": "comp-1775006005738",
+      "type": "custom-block",
+      "attrs": {
+        "heading": "New Block",
+        "class": "background-color-1",
+        "inner-class": "padding-large",
+        "img-background-src": "tourism-photography-dark-2.jpg"
+      },
+      "children": [],
+      "parentId": "comp-1775005998312"
+    }
+  },
+  "headData": {
+    "slug": "slider-1"
+  }
+}

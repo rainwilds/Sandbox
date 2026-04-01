@@ -12,7 +12,7 @@ import {
     VALID_PADDING_CLASSES,
     VALID_SHADOW_CLASSES,
     GridPlacementMixin
-    
+
 } from '../shared.js';
 import { getConfig, getImagePrimaryPath, getVideoPath } from '../config.js';
 
@@ -184,6 +184,43 @@ class CustomBlock extends GridPlacementMixin(HTMLElement) {
         }
     }
 
+    #parseIcon(iconString, attrName) {
+        if (!iconString) return '';
+
+        // Decode HTML entities in case the builder passes escaped HTML strings
+        const decodedIcon = iconString
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'");
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(decodedIcon, 'text/html');
+
+        const svgElement = doc.body.querySelector('svg');
+        if (svgElement) {
+            // Force the SVG to inherit text color if it doesn't have a strict fill/stroke
+            if (!svgElement.hasAttribute('fill') && !svgElement.hasAttribute('stroke')) {
+                svgElement.setAttribute('fill', 'currentColor');
+            }
+            // Standardize sizing to 1em so it scales perfectly with the parent's font-size
+            svgElement.setAttribute('width', '1em');
+            svgElement.setAttribute('height', '1em');
+            svgElement.classList.add('builder-inline-svg');
+
+            return svgElement.outerHTML;
+        }
+
+        // Warn developers/users if they try to pass old <i> tags or invalid strings
+        this.#warn(`Invalid format for ${attrName}`, {
+            value: iconString,
+            element: this.id || 'no-id',
+            expected: 'Raw <svg> tag'
+        });
+
+        return '';
+    }
+
     async getAttributes() {
         if (this.cachedAttributes) {
             this.#log('Using cached attributes', { elementId: this.id || 'no-id' });
@@ -193,21 +230,21 @@ class CustomBlock extends GridPlacementMixin(HTMLElement) {
         const basePath = await this.#getBasePath();
         const primaryPath = await getImagePrimaryPath();
         const videoPath = await getVideoPath();
-const resolveImageSrc = (attrName) => {
+        const resolveImageSrc = (attrName) => {
             const path = this.getAttribute(attrName) || '';
             if (!path) return '';
             if (path.startsWith('http') || path.startsWith('data:')) return path;
-            
+
             // Extracts ONLY 'filename.jpg', stripping any accidental folders the user typed
-            const filename = path.split('/').pop(); 
-            return primaryPath + filename; 
+            const filename = path.split('/').pop();
+            return primaryPath + filename;
         };
 
         const resolveVideoSrc = (attrName) => {
             const path = this.getAttribute(attrName) || '';
             if (!path) return '';
             if (path.startsWith('http') || path.startsWith('data:')) return path;
-            
+
             // Extracts ONLY 'video.mp4'
             const filename = path.split('/').pop();
             return videoPath + filename;
@@ -393,33 +430,7 @@ const resolveImageSrc = (attrName) => {
                 });
             }
         }
-        let icon = this.getAttribute('icon') || '';
-        if (icon) {
-            icon = icon.replace(/['"]/g, '&quot;');
-            const parser = new DOMParser();
-            const decodedIcon = icon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
-            const doc = parser.parseFromString(decodedIcon, 'text/html');
-            const iElement = doc.body.querySelector('i');
-            if (!iElement || !iElement.className.includes('fa-')) {
-                this.#warn('Invalid icon format', {
-                    value: icon,
-                    element: this.id || 'no-id',
-                    expected: 'Font Awesome <i> tag with fa- classes'
-                });
-                icon = '';
-            } else {
-                const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
-                if (validClasses.length === 0) {
-                    this.#warn('No valid Font Awesome classes in icon', {
-                        classes: iElement.className,
-                        element: this.id || 'no-id'
-                    });
-                    icon = '';
-                } else {
-                    icon = `<i class="${validClasses.join(' ')}"></i>`;
-                }
-            }
-        }
+        const icon = this.#parseIcon(this.getAttribute('icon'), 'icon');
         const iconStyle = this.getAttribute('icon-style') || '';
         let sanitizedIconStyle = '';
         if (iconStyle) {
@@ -511,33 +522,7 @@ const resolveImageSrc = (attrName) => {
                 validValues: validButtonTypes
             });
         }
-        let buttonIcon = this.getAttribute('button-icon') || '';
-        if (buttonIcon) {
-            buttonIcon = buttonIcon.replace(/['"]/g, '&quot;');
-            const parser = new DOMParser();
-            const decodedIcon = buttonIcon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
-            const doc = parser.parseFromString(decodedIcon, 'text/html');
-            const iElement = doc.body.querySelector('i');
-            if (!iElement || !iElement.className.includes('fa-')) {
-                this.#warn('Invalid button icon format', {
-                    value: buttonIcon,
-                    element: this.id || 'no-id',
-                    expected: 'Font Awesome <i> tag with fa- classes'
-                });
-                buttonIcon = '';
-            } else {
-                const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
-                if (validClasses.length === 0) {
-                    this.#warn('No valid Font Awesome classes in button icon', {
-                        classes: iElement.className,
-                        element: this.id || 'no-id'
-                    });
-                    buttonIcon = '';
-                } else {
-                    buttonIcon = `<i class="${validClasses.join(' ')}"></i>`;
-                }
-            }
-        }
+        const buttonIcon = this.#parseIcon(this.getAttribute('button-icon'), 'button-icon');
         const buttonIconPosition = this.getAttribute('button-icon-position') || '';
         let sanitizedButtonIconPosition = '';
         if (buttonIconPosition) {
@@ -570,60 +555,8 @@ const resolveImageSrc = (attrName) => {
             if (remMatch) sanitizedButtonIconSize = buttonIconSize;
             else this.#warn('Invalid button icon size', { value: buttonIconSize, element: this.id || 'no-id', expected: 'Nrem format' });
         }
-        let ulIcon = this.getAttribute('ul-icon') || '';
-        if (ulIcon) {
-            ulIcon = ulIcon.replace(/['"]/g, '&quot;');
-            const parser = new DOMParser();
-            const decodedIcon = ulIcon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
-            const doc = parser.parseFromString(decodedIcon, 'text/html');
-            const iElement = doc.body.querySelector('i');
-            if (!iElement || !iElement.className.includes('fa-')) {
-                this.#warn('Invalid ul icon format', {
-                    value: ulIcon,
-                    element: this.id || 'no-id',
-                    expected: 'Font Awesome <i> tag with fa- classes'
-                });
-                ulIcon = '';
-            } else {
-                const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
-                if (validClasses.length === 0) {
-                    this.#warn('No valid Font Awesome classes in ul icon', {
-                        classes: iElement.className,
-                        element: this.id || 'no-id'
-                    });
-                    ulIcon = '';
-                } else {
-                    ulIcon = `<i class="${validClasses.join(' ')}"></i>`;
-                }
-            }
-        }
-        let olIcon = this.getAttribute('ol-icon') || '';
-        if (olIcon) {
-            olIcon = olIcon.replace(/['"]/g, '&quot;');
-            const parser = new DOMParser();
-            const decodedIcon = olIcon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
-            const doc = parser.parseFromString(decodedIcon, 'text/html');
-            const iElement = doc.body.querySelector('i');
-            if (!iElement || !iElement.className.includes('fa-')) {
-                this.#warn('Invalid ol icon format', {
-                    value: olIcon,
-                    element: this.id || 'no-id',
-                    expected: 'Font Awesome <i> tag with fa- classes'
-                });
-                olIcon = '';
-            } else {
-                const validClasses = iElement.className.split(' ').filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel');
-                if (validClasses.length === 0) {
-                    this.#warn('No valid Font Awesome classes in ol icon', {
-                        classes: iElement.className,
-                        element: this.id || 'no-id'
-                    });
-                    olIcon = '';
-                } else {
-                    olIcon = `<i class="${validClasses.join(' ')}"></i>`;
-                }
-            }
-        }
+        const ulIcon = this.#parseIcon(this.getAttribute('ul-icon'), 'ul-icon');
+        const olIcon = this.#parseIcon(this.getAttribute('ol-icon'), 'ol-icon');
         const ulIconPosition = this.getAttribute('ul-icon-position') || 'left';
         let sanitizedUlIconPosition = 'left';
         if (ulIconPosition) {
@@ -1321,8 +1254,8 @@ const resolveImageSrc = (attrName) => {
             if (attrs.backgroundGradientClass) overlayClasses.push(attrs.backgroundGradientClass);
             if (borderRadiusClasses) overlayClasses.push(borderRadiusClasses);
 
-const validOverlayBackdrops = attrs.backdropFilterClasses.filter(cls => VALID_BACKDROP_CLASSES.includes(cls));
-            
+            const validOverlayBackdrops = attrs.backdropFilterClasses.filter(cls => VALID_BACKDROP_CLASSES.includes(cls));
+
             if (validOverlayBackdrops.length > 0) {
                 overlayClasses.push('has-backdrop', ...validOverlayBackdrops);
             }
@@ -1389,12 +1322,12 @@ const validOverlayBackdrops = attrs.backdropFilterClasses.filter(cls => VALID_BA
             } else {
                 buttonElement.textContent = attrs.buttonText;
             }
-if (attrs.innerCustomClasses) {
+            if (attrs.innerCustomClasses) {
                 const innerDiv = document.createElement('div');
-                
+
                 const innerPaddingClasses = attrs.innerCustomClasses.split(' ').filter(cls => cls && VALID_PADDING_CLASSES.includes(cls));
                 const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-') && !VALID_PADDING_CLASSES.includes(cls))];
-                
+
                 if (innerDivClassList.length) innerDiv.className = innerDivClassList.join(' ').trim();
                 innerDiv.appendChild(buttonElement);
                 blockElement.appendChild(innerDiv);
@@ -1409,8 +1342,8 @@ if (attrs.innerCustomClasses) {
             return blockElement;
         }
         this.#log('Rendering content block', { elementId: this.id || 'no-id', hasContent: !!(attrs.heading || attrs.paragraph || attrs.ulItems || attrs.olItems || attrs.buttonText) });
-const innerPaddingClasses = attrs.innerCustomClasses.split(' ').filter(cls => cls && VALID_PADDING_CLASSES.includes(cls));
-const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-') && !VALID_PADDING_CLASSES.includes(cls))];
+        const innerPaddingClasses = attrs.innerCustomClasses.split(' ').filter(cls => cls && VALID_PADDING_CLASSES.includes(cls));
+        const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.split(' ').filter(cls => cls && !cls.includes('flex-') && !VALID_PADDING_CLASSES.includes(cls))];
         if (attrs.customClasses.includes('space-between')) innerDivClassList.push('space-between');
         if (attrs.innerBackgroundColorClass) innerDivClassList.push(attrs.innerBackgroundColorClass);
         if (attrs.innerBackgroundImageNoise) innerDivClassList.push('background-image-noise');
@@ -1419,18 +1352,18 @@ const innerDivClassList = [...innerPaddingClasses, ...attrs.innerCustomClasses.s
         if (attrs.innerBackgroundOverlayClass) innerDivClassList.push(attrs.innerBackgroundOverlayClass);
         if (attrs.innerBackgroundGradientClass) innerDivClassList.push(attrs.innerBackgroundGradientClass);
         if (attrs.innerShadowClass) innerDivClassList.push(attrs.innerShadowClass);
-const validInnerBackdropClasses = attrs.innerBackdropFilterClasses.filter(cls => VALID_BACKDROP_CLASSES.includes(cls));
-        
+        const validInnerBackdropClasses = attrs.innerBackdropFilterClasses.filter(cls => VALID_BACKDROP_CLASSES.includes(cls));
+
         if (validInnerBackdropClasses.length > 0) {
             innerDivClassList.push('has-backdrop', ...validInnerBackdropClasses);
         }
 
         const filteredInnerBackdropClasses = attrs.innerBackdropFilterClasses.filter(cls => !VALID_BACKDROP_CLASSES.includes(cls));
         innerDivClassList.push(...filteredInnerBackdropClasses);
-        
+
         const innerDiv = document.createElement('div');
         if (innerDivClassList.length) innerDiv.className = innerDivClassList.join(' ').trim();
-        
+
         if (attrs.innerStyle) {
             if (attrs.innerStyle.trim()) {
                 innerDiv.setAttribute('style', attrs.innerStyle.trim());

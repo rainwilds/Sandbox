@@ -1,9 +1,9 @@
 'use strict';
 import { getConfig } from '../config.js';
-import { VIEWPORT_BREAKPOINTS } from '../shared.js';
+import { VIEWPORT_BREAKPOINTS, GridPlacementMixin } from '../shared.js';
 import { CustomSliderController } from './interactive-controller.js';
 
-class CustomSlider extends HTMLElement {
+class CustomSlider extends GridPlacementMixin(HTMLElement) {
     #ignoredChangeCount = 0;
     #basePath = null;
     #currentIndex = 0;
@@ -606,6 +606,18 @@ class CustomSlider extends HTMLElement {
 
     async initialize() {
         if (this.isInitialized || !this.isVisible) return;
+
+        // VISUAL BUILDER SAFEGUARD:
+        // Prevent the slider from destroying drag-and-drop wrappers while inside the canvas.
+        if (this.closest('#canvas') || this.closest('visual-builder')) {
+            this.style.display = 'flex';
+            this.style.gap = '16px';
+            this.style.overflowX = 'auto';
+            this.style.padding = '10px';
+            this.style.border = '2px dashed #3b82f6'; // Visual drop-zone indicator
+            this.isInitialized = true;
+            return;
+        }
 
         this.#log('Initialization started', { elementId: this.#uniqueId });
 
@@ -1444,6 +1456,7 @@ class CustomSlider extends HTMLElement {
     }
 
     async connectedCallback() {
+        if (super.connectedCallback) super.connectedCallback();
         // 1. HYDRATION CHECK: Did Puppeteer already build this HTML?
         const existingSlider = this.querySelector('.custom-slider');
         if (existingSlider) {
@@ -1487,11 +1500,15 @@ class CustomSlider extends HTMLElement {
             'navigation', 'navigation-icon-left', 'navigation-icon-right',
             'navigation-icon-left-background', 'navigation-icon-right-background', 'gap', 'pagination',
             'pagination-icon-active', 'pagination-icon-inactive', 'navigation-icon-size', 'pagination-icon-size',
-            'draggable', 'cross-fade', 'infinite-scrolling', 'pause-on-hover', 'pagination-position'
+            'draggable', 'cross-fade', 'infinite-scrolling', 'pause-on-hover', 'pagination-position',
+            ...(super.observedAttributes || [])
         ];
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
+        if (super.attributeChangedCallback) {
+            super.attributeChangedCallback(name, oldValue, newValue);
+        }
         if (!this.isInitialized || !this.isVisible) {
             this.#ignoredChangeCount++;
             return;

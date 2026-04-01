@@ -891,6 +891,17 @@
       aspect-ratio: 1/1;
     }
 
+    .builder-inline-svg {
+      display: inline-block;
+      vertical-align: -0.125em; /* Drops the SVG slightly to align with the text baseline */
+      overflow: visible;
+    }
+
+    /* Optional: Ensure button icons maintain block layout if using flex/grid inside buttons */
+    .button-icon .builder-inline-svg {
+      display: block; 
+    }
+
     a:any-link {
       color: var(--color-primary);
       /* text-decoration: none; */

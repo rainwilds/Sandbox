@@ -171,30 +171,6 @@ async function updateHead(attributes, setup) {
   customStyleLink.href = './css/custom.css'; 
   criticalFrag.appendChild(customStyleLink);
 
-  // ——— FONT AWESOME (self-hosted) ———
-  const fa = setup.font_awesome;
-  if (fa && fa.core && fa.base_path) {
-    const base = (setup.general?.basePath || '') + fa.base_path.replace(/\/+$/, '') + '/';
-    const makeScript = (file) => {
-      const script = document.createElement('script');
-      script.src = base + file;
-      script.crossOrigin = 'anonymous';
-      if (fa.defer !== false) script.defer = true;
-      if (fa.async === true) script.async = true;
-      return script;
-    };
-
-    criticalFrag.appendChild(makeScript(fa.core));
-    logger.log(`Added FA core: ${base}${fa.core}`);
-
-    if (Array.isArray(fa.packages) && fa.packages.length) {
-      fa.packages.forEach(pkg => {
-        criticalFrag.appendChild(makeScript(pkg));
-        logger.log(`Added FA package: ${base}${pkg}`);
-      });
-    }
-  }
-
   // ——— HERO IMAGE PRELOAD ———
   if (attributes.heroImage && attributes.heroCount) {
     const count = Math.max(1, parseInt(attributes.heroCount) || 0);
