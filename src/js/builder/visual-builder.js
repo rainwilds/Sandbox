@@ -19,34 +19,7 @@ const ATTR_DROPDOWNS = {
     'inner-backdrop-filter': Shared.VALID_BACKDROP_CLASSES
 };
 
-// --- 2. COMPONENT SCHEMAS & CONFIG ---
-const COMPONENT_CONFIG = {
-    'custom-block': {
-        isContainer: false,
-        groups: {
-            'Placement': ['column-start', 'column-end', 'row-start', 'row-end', 'z-index'],
-            'Content': ['heading', 'sub-heading', 'paragraph', 'button-text', 'button-href', 'button-class', 'button-type', 'button-style', 'button-aria-label', 'button-rel', 'button-target', 'button-icon', 'button-icon-position', 'button-icon-offset', 'button-icon-size', 'icon', 'icon-class', 'icon-size', 'icon-style', 'text-alignment', 'section-title'],
-            'Styling': ['class', 'style', 'effects', 'shadow', 'border', 'border-radius', 'background-color', 'background-gradient', 'background-image-noise', 'background-overlay', 'backdrop-filter', 'inner-class', 'inner-style', 'inner-alignment', 'inner-background-color', 'inner-background-gradient', 'inner-background-image-noise', 'inner-background-overlay', 'inner-backdrop-filter', 'inner-border', 'inner-border-radius', 'inner-shadow'],
-            'Media (Background)': ['img-background-src', 'img-background-light-src', 'img-background-dark-src', 'img-background-alt', 'img-background-aspect-ratio', 'img-background-decorative', 'img-background-desktop-width', 'img-background-fetchpriority', 'img-background-loading', 'img-background-mobile-width', 'img-background-position', 'img-background-tablet-width', 'video-background-src', 'video-background-light-src', 'video-background-dark-src', 'video-background-poster', 'video-background-light-poster', 'video-background-dark-poster', 'video-background-alt', 'video-background-autoplay', 'video-background-loop', 'video-background-muted', 'video-background-playsinline', 'video-background-disable-pip', 'video-background-loading'],
-            'Media (Primary)': ['img-primary-src', 'img-primary-light-src', 'img-primary-dark-src', 'img-primary-alt', 'img-primary-aspect-ratio', 'img-primary-decorative', 'img-primary-desktop-width', 'img-primary-fetchpriority', 'img-primary-loading', 'img-primary-mobile-width', 'img-primary-position', 'img-primary-tablet-width', 'video-primary-src', 'video-primary-light-src', 'video-primary-dark-src', 'video-primary-poster', 'video-primary-light-poster', 'video-primary-dark-poster', 'video-primary-alt', 'video-primary-autoplay', 'video-primary-loop', 'video-primary-muted', 'video-primary-playsinline', 'video-primary-disable-pip', 'video-primary-loading'],
-            'Lists': ['ul-items', 'ol-items', 'content-order', 'ul-icon', 'ol-icon', 'ul-icon-position', 'ol-icon-position', 'ul-style', 'ol-style', 'ul-icon-offset', 'ol-icon-offset']
-        }
-    },
-    'custom-slider': {
-        isContainer: true,
-        groups: {
-            'Slider Settings': ['autoplay', 'slides-per-view', 'slides-per-view-mobile', 'slides-per-view-tablet', 'slides-per-view-laptop', 'slides-per-view-desktop', 'slides-per-view-large', 'gap', 'draggable', 'cross-fade', 'infinite-scrolling', 'pause-on-hover'],
-            'Navigation': ['navigation', 'navigation-icon-left', 'navigation-icon-right', 'navigation-icon-left-background', 'navigation-icon-right-background', 'navigation-icon-size'],
-            'Pagination': ['pagination', 'pagination-position', 'pagination-icon-active', 'pagination-icon-inactive', 'pagination-icon-size']
-        }
-    },
-    'custom-layout': {
-        isContainer: true,
-        groups: {
-            'Layout Grid': ['subgrid', 'min-col-width', 'column-span']
-        }
-    }
-};
+
 
 class VisualBuilder extends HTMLElement {
     constructor() {
@@ -139,7 +112,7 @@ class VisualBuilder extends HTMLElement {
                 .layer-icon { opacity: 0.7; font-size: 0.9em; }
 
                 /* Right: Inspector Compact Inputs */
-                h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; color: #fafafa; margin: 20px 0 10px 0; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #27272a; padding-bottom: 6px; }
+                h3 { font-size: 0.75rem; text-transform: none; letter-spacing: 0.5px; color: #fafafa; margin: 20px 0 10px 0; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #27272a; padding-bottom: 6px; }
 .form-group { display: flex; flex-direction: column; align-items: stretch; margin-bottom: 12px; gap: 6px; }
 .form-group.stacked { display: flex; flex-direction: column; align-items: stretch; margin-bottom: 12px; gap: 6px; }
 label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: break-word; line-height: 1.3; font-weight: 600; }label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: break-word; line-height: 1.3; } label { font-size: 0.75rem; color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -207,9 +180,18 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 </div>
 
  <div id="tab-meta" class="tab-pane">
-    <p style="font-size: 0.75rem; margin-top: 0; margin-bottom: 15px; color: #818cf8;">Post & Page Metadata</p>
+<p style="font-size: 0.75rem; margin-top: 0; margin-bottom: 15px; color: #818cf8;">Post & Page Metadata</p>
     
+    <div class="form-group stacked">
+        <label>Content Type</label>
+        <select id="meta-contentType">
+            <option value="post">Blog Post (/blog/)</option>
+            <option value="page">Standard Page (Root /)</option>
+        </select>
+    </div>
     <div class="form-group stacked"><label>URL Slug (Required)</label><input type="text" id="meta-slug" placeholder="my-new-post"></div>
+    
+
     <div class="form-group stacked"><label>Title</label><input type="text" id="meta-title"></div>
     <div class="form-group stacked"><label>Date</label><input type="date" id="meta-date"></div>
     <div class="form-group stacked"><label>Description / Excerpt</label><textarea id="meta-description" rows="3"></textarea></div>
@@ -355,6 +337,31 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
             custom-layout {
                 display: contents; /* Become invisible to grid */
             }
+
+/* Force custom-slider to act as a horizontal scrollable row in the builder */
+            #canvas custom-slider {
+                display: flex !important;
+                flex-direction: row !important;
+                gap: 16px !important;
+                overflow-x: auto !important;
+                padding: 1rem !important;
+                border: 2px dashed #475569 !important;
+                background: rgba(0,0,0,0.02) !important;
+                align-items: stretch !important;
+            }
+            
+            /* Prevent slides from stacking vertically */
+            #canvas custom-slider > .builder-wrapper {
+                flex: 1 0 300px !important; /* Share space, shrink if needed, never smaller than 300px */
+                max-width: 100% !important;
+            }
+            
+            /* Optional: Highlight slider when dropping new slides into it */
+            .builder-wrapper.drop-target > custom-slider {
+                outline: 4px dashed #10b981 !important; 
+                outline-offset: -4px; 
+                background: rgba(16, 185, 129, 0.1) !important; 
+            }            
             
             custom-layout > section {
                 display: grid;
@@ -382,9 +389,13 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
         this.setupDragAndDrop();
         this.setupCanvasSelection();
         this.setupResizeHandles();
+        this.setupSidebarResizing();
+
+        this.loadState()
         this.setupControls();
-        this.loadState();
         this.fetchComponents();
+       ;
+        
     }
 
     saveState() {
@@ -410,928 +421,964 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
         if (this.selectedId) {
             this.canvas.querySelectorAll(`[data-id="${this.selectedId}"]`).forEach(el => {
                 el.classList.add('builder-selected');
-
-                if (el.dataset.type === 'custom-block' || el.dataset.type === 'custom-slider') {
-                    const targetEl = el.firstElementChild;
-                    if (targetEl) {
-                        const leftH = document.createElement('div');
-                        leftH.className = 'resize-handle handle-left';
-                        leftH.dataset.dir = 'left';
-
-                        const rightH = document.createElement('div');
-                        rightH.className = 'resize-handle handle-right';
-                        rightH.dataset.dir = 'right';
-
-                        targetEl.appendChild(leftH);
-                        targetEl.appendChild(rightH);
-                    }
-                }
+                this.addResizeHandles(el); // <-- NEW CENTRALIZED CALL
             });
         }
 
 
 
-    const overlay = document.createElement('div');
+        const overlay = document.createElement('div');
         overlay.className = 'builder-grid-overlay';
-    for(let i = 0; i < 12; i++) {
-    const col = document.createElement('div');
-    col.className = 'builder-guide-col';
-    overlay.appendChild(col);
-}
-this.canvas.appendChild(overlay);
+        for (let i = 0; i < 12; i++) {
+            const col = document.createElement('div');
+            col.className = 'builder-guide-col';
+            overlay.appendChild(col);
+        }
+        this.canvas.appendChild(overlay);
 
-this.saveState();
+        this.saveState();
     }
 
     async fetchComponents() {
-    try {
-        // Ensure the server.js is running on Port 3000
-        const response = await fetch('http://localhost:3000/api/list-components');
-        if (!response.ok) throw new Error('Server unreachable');
+        try {
+            const response = await fetch('http://localhost:3000/api/list-components');
+            if (!response.ok) throw new Error('Server unreachable');
 
-        const tags = await response.json();
-        const container = this.shadowRoot.getElementById('tab-elements');
+            const tags = await response.json();
+            const container = this.shadowRoot.getElementById('tab-elements');
 
-        if (tags.length === 0) {
-            container.innerHTML = '<p style="font-size:0.7rem; padding:10px;">No .js components found in /src/js/components</p>';
+            if (tags.length === 0) {
+                container.innerHTML = '<p style="font-size:0.7rem; padding:10px;">No .js components found.</p>';
+                return;
+            }
+
+            container.innerHTML = '';
+            tags.forEach(tag => {
+                // 1. DYNAMICALLY LOAD THE SCRIPT IF IT DOESN'T EXIST
+                if (!customElements.get(tag)) {
+                    const script = document.createElement('script');
+                    script.type = 'module';
+                    script.src = `./js/components/${tag}.js`;
+                    document.head.appendChild(script);
+                }
+
+                // 2. Build the sidebar UI (Your existing code)
+                const div = document.createElement('div');
+                div.className = 'component-item';
+                div.setAttribute('draggable', 'true');
+                div.dataset.type = tag;
+
+                const name = tag.replace('custom-', '').split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                const icon = tag.includes('layout') ? '⚏' : tag.includes('slider') ? '◫' : '◻';
+
+                div.innerHTML = `<span class="layer-icon">${icon}</span> ${name}`;
+
+                div.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', 'new:' + tag);
+                    this.draggedLibraryType = tag;
+                });
+
+                container.appendChild(div);
+            });
+        } catch (err) {
+            this.shadowRoot.getElementById('tab-elements').innerHTML = '<p style="color:#ef4444; font-size:0.7rem;">API Error</p>';
+        }
+    }
+
+    setupResizeHandles() {
+        this.isResizing = false; // Make it a class property
+        let resizeDir = null;
+        let currentWrapper = null;
+        let containerRect = null;
+        let startLine = 1;
+        let endLine = 13;
+
+        const getLineFromX = (clientX) => {
+            let x = clientX - containerRect.left;
+            x = Math.max(0, Math.min(x, containerRect.width));
+            return Math.round((x / containerRect.width) * 12) + 1;
+        };
+
+        this.canvas.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('resize-handle')) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                this.isResizing = true;
+                resizeDir = e.target.dataset.dir;
+                currentWrapper = e.target.closest('.builder-wrapper');
+
+                const targetEl = currentWrapper.firstElementChild;
+                const container = currentWrapper.closest('custom-layout > section') || this.canvas;
+                containerRect = container.getBoundingClientRect();
+
+                const elRect = targetEl.getBoundingClientRect();
+
+                startLine = getLineFromX(elRect.left);
+                endLine = getLineFromX(elRect.right);
+
+                document.body.style.cursor = 'ew-resize';
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!this.isResizing || !currentWrapper) return;
+            e.preventDefault();
+
+            let newLine = getLineFromX(e.clientX);
+            const vpSuffix = this.currentViewport === 'base' ? '' : `-${this.currentViewport}`;
+            const targetEl = currentWrapper.firstElementChild;
+
+            if (resizeDir === 'left') {
+                newLine = Math.min(newLine, endLine - 1);
+                startLine = newLine;
+                targetEl.style.setProperty(`--column-start${vpSuffix}`, newLine);
+            } else {
+                newLine = Math.max(newLine, startLine + 1);
+                endLine = newLine;
+                targetEl.style.setProperty(`--column-end${vpSuffix}`, newLine);
+            }
+        });
+
+        window.addEventListener('mouseup', (e) => {
+            if (this.isResizing) {
+                this.isResizing = false;
+                document.body.style.cursor = '';
+
+                if (currentWrapper) {
+                    const vpSuffix = this.currentViewport === 'base' ? '' : `-${this.currentViewport}`;
+                    const compData = this.state.items[currentWrapper.dataset.id];
+
+                    compData.attrs[`column-start${vpSuffix}`] = startLine.toString();
+                    compData.attrs[`column-end${vpSuffix}`] = endLine.toString();
+                }
+
+                this.rebuildCanvas();
+                this.populateInspector();
+            }
+        });
+    }
+
+    addResizeHandles(wrapperElement) {
+        if (!wrapperElement || wrapperElement.dataset.type === 'custom-layout') return;
+
+        const targetEl = wrapperElement.firstElementChild;
+        if (!targetEl) return;
+
+        targetEl.querySelectorAll('.resize-handle').forEach(h => h.remove());
+
+        const leftH = document.createElement('div');
+        leftH.className = 'resize-handle handle-left';
+        leftH.dataset.dir = 'left';
+
+        const rightH = document.createElement('div');
+        rightH.className = 'resize-handle handle-right';
+        rightH.dataset.dir = 'right';
+
+        targetEl.appendChild(leftH);
+        targetEl.appendChild(rightH);
+    }
+
+    setupSidebarResizing() {
+        const leftResizer = this.shadowRoot.getElementById('left-resizer');
+        const rightResizer = this.shadowRoot.getElementById('right-resizer');
+
+        let isResizing = false;
+        let currentSide = null;
+
+        const startResize = (e, side) => {
+            isResizing = true;
+            currentSide = side;
+            e.target.classList.add('active');
+            document.body.style.cursor = 'col-resize';
+        };
+
+        leftResizer.addEventListener('mousedown', (e) => startResize(e, 'left'));
+        rightResizer.addEventListener('mousedown', (e) => startResize(e, 'right'));
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            e.preventDefault();
+
+            if (currentSide === 'left') {
+                let newWidth = e.clientX;
+                newWidth = Math.max(200, Math.min(newWidth, 600)); // Min 200px, Max 600px
+                this.style.setProperty('--left-width', `${newWidth}px`);
+                // Update global HTML variable so body padding adjusts
+                document.documentElement.style.setProperty('--builder-left', `${newWidth}px`);
+            } else if (currentSide === 'right') {
+                let newWidth = window.innerWidth - e.clientX;
+                newWidth = Math.max(200, Math.min(newWidth, 600)); // Min 200px, Max 600px
+                this.style.setProperty('--right-width', `${newWidth}px`);
+                // Update global HTML variable so body padding adjusts
+                document.documentElement.style.setProperty('--builder-right', `${newWidth}px`);
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                leftResizer.classList.remove('active');
+                rightResizer.classList.remove('active');
+                document.body.style.cursor = '';
+            }
+        });
+    }
+
+    renderLayers() {
+        const treeContainer = this.shadowRoot.getElementById('layers-tree');
+        if (!treeContainer) return;
+
+        treeContainer.innerHTML = '';
+
+        if (this.state.roots.length === 0) {
+            treeContainer.innerHTML = '<div style="font-style: italic; font-size: 0.8rem;">Canvas is empty.</div>';
             return;
         }
 
-        container.innerHTML = '';
-        tags.forEach(tag => {
-            const div = document.createElement('div');
-            div.className = 'component-item';
-            div.setAttribute('draggable', 'true');
-            div.dataset.type = tag;
+        const buildTree = (id, depth = 0) => {
+            const node = this.state.items[id];
+            if (!node) return '';
 
-            // Formatting name: custom-block -> Content Block
-            const name = tag.replace('custom-', '').split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-            const icon = tag.includes('layout') ? '⚏' : tag.includes('slider') ? '◫' : '◻';
+            const isSelected = this.selectedId === id ? 'selected' : '';
+            // Pretty names for the tree
+            const cleanName = node.type.replace('custom-', '').charAt(0).toUpperCase() + node.type.replace('custom-', '').slice(1);
+            const icon = node.type === 'custom-layout' ? '⚏' : node.type === 'custom-slider' ? '◫' : '◻';
 
-            div.innerHTML = `<span class="layer-icon">${icon}</span> ${name}`;
-
-            // Re-bind the dragstart event for new dynamic items
-            div.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('text/plain', 'new:' + tag);
-                this.draggedLibraryType = tag;
-            });
-
-            container.appendChild(div);
-        });
-    } catch (err) {
-        this.shadowRoot.getElementById('tab-elements').innerHTML = '<p style="color:#ef4444; font-size:0.7rem; padding:10px;">API Error: check server.js</p>';
-    }
-}
-
-setupResizeHandles() {
-    let isResizing = false;
-    let resizeDir = null;
-    let currentWrapper = null;
-    let containerRect = null;
-    let startLine = 1;
-    let endLine = 13;
-
-    const getLineFromX = (clientX) => {
-        let x = clientX - containerRect.left;
-        x = Math.max(0, Math.min(x, containerRect.width));
-        return Math.round((x / containerRect.width) * 12) + 1;
-    };
-
-    this.canvas.addEventListener('mousedown', (e) => {
-        if (e.target.classList.contains('resize-handle')) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            isResizing = true;
-            resizeDir = e.target.dataset.dir;
-            currentWrapper = e.target.closest('.builder-wrapper');
-
-            const targetEl = currentWrapper.firstElementChild; // <-- FIX: Get the real DOM element
-            const container = currentWrapper.closest('custom-layout > section') || this.canvas;
-            containerRect = container.getBoundingClientRect();
-
-            // FIX: Get the width and position from the actual block, NOT the display:contents wrapper
-            const elRect = targetEl.getBoundingClientRect();
-
-            startLine = getLineFromX(elRect.left);
-            endLine = getLineFromX(elRect.right);
-
-            document.body.style.cursor = 'ew-resize';
-        }
-    });
-
-    window.addEventListener('mousemove', (e) => {
-        if (!isResizing || !currentWrapper) return;
-        e.preventDefault();
-
-        let newLine = getLineFromX(e.clientX);
-        const vpSuffix = this.currentViewport === 'base' ? '' : `-${this.currentViewport}`;
-        const targetEl = currentWrapper.firstElementChild;
-
-        if (resizeDir === 'left') {
-            newLine = Math.min(newLine, endLine - 1);
-            startLine = newLine;
-            targetEl.style.setProperty(`--column-start${vpSuffix}`, newLine);
-        } else {
-            newLine = Math.max(newLine, startLine + 1);
-            endLine = newLine;
-            targetEl.style.setProperty(`--column-end${vpSuffix}`, newLine);
-        }
-    });
-
-    window.addEventListener('mouseup', (e) => {
-        if (isResizing) {
-            isResizing = false;
-            document.body.style.cursor = '';
-
-            const vpSuffix = this.currentViewport === 'base' ? '' : `-${this.currentViewport}`;
-            const compData = this.state.items[currentWrapper.dataset.id];
-
-            compData.attrs[`column-start${vpSuffix}`] = startLine.toString();
-            compData.attrs[`column-end${vpSuffix}`] = endLine.toString();
-
-            this.rebuildCanvas();
-            this.populateInspector();
-        }
-    });
-}
-
-setupSidebarResizing() {
-    const leftResizer = this.shadowRoot.getElementById('left-resizer');
-    const rightResizer = this.shadowRoot.getElementById('right-resizer');
-
-    let isResizing = false;
-    let currentSide = null;
-
-    const startResize = (e, side) => {
-        isResizing = true;
-        currentSide = side;
-        e.target.classList.add('active');
-        document.body.style.cursor = 'col-resize';
-    };
-
-    leftResizer.addEventListener('mousedown', (e) => startResize(e, 'left'));
-    rightResizer.addEventListener('mousedown', (e) => startResize(e, 'right'));
-
-    window.addEventListener('mousemove', (e) => {
-        if (!isResizing) return;
-        e.preventDefault();
-
-        if (currentSide === 'left') {
-            let newWidth = e.clientX;
-            newWidth = Math.max(200, Math.min(newWidth, 600)); // Min 200px, Max 600px
-            this.style.setProperty('--left-width', `${newWidth}px`);
-            // Update global HTML variable so body padding adjusts
-            document.documentElement.style.setProperty('--builder-left', `${newWidth}px`);
-        } else if (currentSide === 'right') {
-            let newWidth = window.innerWidth - e.clientX;
-            newWidth = Math.max(200, Math.min(newWidth, 600)); // Min 200px, Max 600px
-            this.style.setProperty('--right-width', `${newWidth}px`);
-            // Update global HTML variable so body padding adjusts
-            document.documentElement.style.setProperty('--builder-right', `${newWidth}px`);
-        }
-    });
-
-    window.addEventListener('mouseup', () => {
-        if (isResizing) {
-            isResizing = false;
-            leftResizer.classList.remove('active');
-            rightResizer.classList.remove('active');
-            document.body.style.cursor = '';
-        }
-    });
-}
-
-renderLayers() {
-    const treeContainer = this.shadowRoot.getElementById('layers-tree');
-    if (!treeContainer) return;
-
-    treeContainer.innerHTML = '';
-
-    if (this.state.roots.length === 0) {
-        treeContainer.innerHTML = '<div style="font-style: italic; font-size: 0.8rem;">Canvas is empty.</div>';
-        return;
-    }
-
-    const buildTree = (id, depth = 0) => {
-        const node = this.state.items[id];
-        if (!node) return '';
-
-        const isSelected = this.selectedId === id ? 'selected' : '';
-        // Pretty names for the tree
-        const cleanName = node.type.replace('custom-', '').charAt(0).toUpperCase() + node.type.replace('custom-', '').slice(1);
-        const icon = node.type === 'custom-layout' ? '⚏' : node.type === 'custom-slider' ? '◫' : '◻';
-
-        let html = `
+            let html = `
                 <div class="layer-item ${isSelected}" data-id="${id}" style="padding-left: ${depth * 15}px;">
                     <span class="layer-icon">${icon}</span> ${cleanName}
                 </div>
             `;
 
-        if (node.children && node.children.length > 0) {
-            node.children.forEach(childId => {
-                html += buildTree(childId, depth + 1);
+            if (node.children && node.children.length > 0) {
+                node.children.forEach(childId => {
+                    html += buildTree(childId, depth + 1);
+                });
+            }
+            return html;
+        };
+
+        let fullHtml = '';
+        this.state.roots.forEach(rootId => { fullHtml += buildTree(rootId); });
+        treeContainer.innerHTML = fullHtml;
+
+        // Wire up clicks to select elements on the canvas
+        treeContainer.querySelectorAll('.layer-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const targetId = e.currentTarget.dataset.id;
+                this.selectedId = targetId;
+
+                // Update Canvas Selection Visually
+                this.canvas.querySelectorAll('.builder-selected').forEach(el => el.classList.remove('builder-selected'));
+                this.canvas.querySelectorAll('.resize-handle').forEach(h => h.remove());
+
+                const targetEl = this.canvas.querySelector(`[data-id="${targetId}"]`);
+                if (targetEl) {
+                    targetEl.classList.add('builder-selected');
+                    this.addResizeHandles(targetEl); // <-- NEW CENTRALIZED CALL
+                }
+
+                this.populateInspector();
+                this.renderLayers(); // Re-render to highlight the active layer
+            });
+        });
+    }
+
+    renderNode(id) {
+        const nodeData = this.state.items[id];
+        if (!nodeData) return null;
+
+        const wrapper = document.createElement('div');
+        wrapper.className = 'builder-wrapper';
+        wrapper.dataset.id = id;
+        wrapper.dataset.type = nodeData.type;
+        const ElementClass = customElements.get(nodeData.type);
+        wrapper.dataset.isContainer = (ElementClass && ElementClass.builderConfig?.isContainer) ? "true" : "false";
+        wrapper.setAttribute('draggable', 'true');
+
+        if (nodeData.parentId && this.state.items[nodeData.parentId]?.type === 'custom-slider') {
+            wrapper.classList.add('block', 'is-slide');
+        }
+
+        const component = document.createElement(nodeData.type);
+        for (const [key, value] of Object.entries(nodeData.attrs)) {
+            component.setAttribute(key, value);
+        }
+
+        if (nodeData.children && nodeData.children.length > 0) {
+            nodeData.children.forEach(childId => {
+                const childEl = this.renderNode(childId);
+                if (childEl) component.appendChild(childEl);
             });
         }
-        return html;
-    };
 
-    let fullHtml = '';
-    this.state.roots.forEach(rootId => { fullHtml += buildTree(rootId); });
-    treeContainer.innerHTML = fullHtml;
+        wrapper.appendChild(component);
 
-    // Wire up clicks to select elements on the canvas
-    treeContainer.querySelectorAll('.layer-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            const targetId = e.currentTarget.dataset.id;
-            this.selectedId = targetId;
+        wrapper.addEventListener('dragstart', (e) => {
+            // THE FIX: Explicitly abort the HTML5 drag if we are resizing!
+            if (this.isResizing) {
+                e.preventDefault();
+                return;
+            }
 
-            // Update Canvas Selection Visually
-            this.canvas.querySelectorAll('.builder-selected').forEach(el => el.classList.remove('builder-selected'));
-            this.canvas.querySelectorAll('.resize-handle').forEach(h => h.remove());
+            e.stopPropagation();
+            wrapper.classList.add('is-dragging');
+            e.dataTransfer.setData('text/plain', 'move:' + wrapper.dataset.id);
+        });
 
-            const targetEl = this.canvas.querySelector(`[data-id="${targetId}"]`);
-            if (targetEl) {
-                targetEl.classList.add('builder-selected');
-                // Add handles if it's a block
-                if (targetEl.dataset.type === 'custom-block' && targetEl.firstElementChild) {
-                    const leftH = document.createElement('div'); leftH.className = 'resize-handle handle-left'; leftH.dataset.dir = 'left';
-                    const rightH = document.createElement('div'); rightH.className = 'resize-handle handle-right'; rightH.dataset.dir = 'right';
-                    targetEl.firstElementChild.appendChild(leftH);
-                    targetEl.firstElementChild.appendChild(rightH);
+        wrapper.addEventListener('dragend', () => {
+            wrapper.classList.remove('is-dragging');
+            this.canvas.querySelectorAll('.drop-target').forEach(el => el.classList.remove('drop-target'));
+        });
+
+        return wrapper;
+    }
+
+    getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll(':scope > .builder-wrapper:not(.is-dragging)')];
+        return draggableElements.reduce((closest, child) => {
+            // Measure the actual component, not the invisible wrapper!
+            const elToMeasure = child.firstElementChild || child;
+            const box = elToMeasure.getBoundingClientRect();
+
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    setupDragAndDrop() {
+        // --- 1. HANDLE DRAGGING FROM THE LIBRARY PANEL ---
+        const items = this.shadowRoot.querySelectorAll('.component-item');
+        items.forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', 'new:' + e.target.dataset.type);
+                this.draggedLibraryType = e.target.dataset.type;
+            });
+            item.addEventListener('dragend', () => {
+                this.draggedLibraryType = null;
+                if (this.placeholder) { this.placeholder.remove(); this.placeholder = null; }
+            });
+        });
+
+        // --- 2. HANDLE DRAGGING OVER THE CANVAS ---
+        this.canvas.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            this.canvas.querySelectorAll('.drop-target').forEach(el => el.classList.remove('drop-target'));
+
+            const draggingWrapper = this.canvas.querySelector('.is-dragging');
+            const draggingType = this.draggedLibraryType || (draggingWrapper ? draggingWrapper.dataset.type : null);
+            const isDraggingLayout = draggingType === 'custom-layout';
+
+            let dropContainer = this.canvas;
+            let dropTargetWrapper = null;
+
+            // Only allow targeting inner containers if we are NOT dragging a custom-layout
+            if (!isDraggingLayout) {
+                dropTargetWrapper = e.target.closest('.builder-wrapper[data-is-container="true"]');
+                if (dropTargetWrapper) {
+                    dropTargetWrapper.classList.add('drop-target');
+                    if (dropTargetWrapper.dataset.type === 'custom-layout') {
+                        const innerDiv = dropTargetWrapper.querySelector('custom-layout > section > div');
+                        if (innerDiv) dropContainer = innerDiv;
+                    } else {
+                        dropContainer = dropTargetWrapper.firstElementChild;
+                    }
                 }
             }
 
-            this.populateInspector();
-            this.renderLayers(); // Re-render to highlight the active layer
-        });
-    });
-}
-
-renderNode(id) {
-    const nodeData = this.state.items[id];
-    if (!nodeData) return null;
-
-    const wrapper = document.createElement('div');
-    wrapper.className = 'builder-wrapper';
-    wrapper.dataset.id = id;
-    wrapper.dataset.type = nodeData.type;
-    wrapper.dataset.isContainer = COMPONENT_CONFIG[nodeData.type]?.isContainer ? "true" : "false";
-    wrapper.setAttribute('draggable', 'true');
-
-    if (nodeData.parentId && this.state.items[nodeData.parentId]?.type === 'custom-slider') {
-        wrapper.classList.add('block', 'is-slide');
-    }
-
-    const component = document.createElement(nodeData.type);
-    for (const [key, value] of Object.entries(nodeData.attrs)) {
-        component.setAttribute(key, value);
-    }
-
-    if (nodeData.children && nodeData.children.length > 0) {
-        nodeData.children.forEach(childId => {
-            const childEl = this.renderNode(childId);
-            if (childEl) component.appendChild(childEl);
-        });
-    }
-
-    wrapper.appendChild(component);
-
-    wrapper.addEventListener('dragstart', (e) => {
-        e.stopPropagation();
-        wrapper.classList.add('is-dragging');
-        e.dataTransfer.setData('text/plain', 'move:' + wrapper.dataset.id);
-    });
-
-    wrapper.addEventListener('dragend', () => {
-        wrapper.classList.remove('is-dragging');
-        this.canvas.querySelectorAll('.drop-target').forEach(el => el.classList.remove('drop-target'));
-    });
-
-    return wrapper;
-}
-
-getDragAfterElement(container, y) {
-    const draggableElements = [...container.querySelectorAll(':scope > .builder-wrapper:not(.is-dragging)')];
-    return draggableElements.reduce((closest, child) => {
-        // Measure the actual component, not the invisible wrapper!
-        const elToMeasure = child.firstElementChild || child;
-        const box = elToMeasure.getBoundingClientRect();
-
-        const offset = y - box.top - box.height / 2;
-        if (offset < 0 && offset > closest.offset) {
-            return { offset: offset, element: child };
-        } else {
-            return closest;
-        }
-    }, { offset: Number.NEGATIVE_INFINITY }).element;
-}
-
-setupDragAndDrop() {
-    // --- 1. HANDLE DRAGGING FROM THE LIBRARY PANEL ---
-    const items = this.shadowRoot.querySelectorAll('.component-item');
-    items.forEach(item => {
-        item.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', 'new:' + e.target.dataset.type);
-            this.draggedLibraryType = e.target.dataset.type;
-        });
-        item.addEventListener('dragend', () => {
-            this.draggedLibraryType = null;
-            if (this.placeholder) { this.placeholder.remove(); this.placeholder = null; }
-        });
-    });
-
-    // --- 2. HANDLE DRAGGING OVER THE CANVAS ---
-    this.canvas.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        this.canvas.querySelectorAll('.drop-target').forEach(el => el.classList.remove('drop-target'));
-
-        const draggingWrapper = this.canvas.querySelector('.is-dragging');
-        const draggingType = this.draggedLibraryType || (draggingWrapper ? draggingWrapper.dataset.type : null);
-        const isDraggingLayout = draggingType === 'custom-layout';
-
-        let dropContainer = this.canvas;
-        let dropTargetWrapper = null;
-
-        // Only allow targeting inner containers if we are NOT dragging a custom-layout
-        if (!isDraggingLayout) {
-            dropTargetWrapper = e.target.closest('.builder-wrapper[data-is-container="true"]');
-            if (dropTargetWrapper) {
-                dropTargetWrapper.classList.add('drop-target');
-                if (dropTargetWrapper.dataset.type === 'custom-layout') {
-                    const innerDiv = dropTargetWrapper.querySelector('custom-layout > section > div');
-                    if (innerDiv) dropContainer = innerDiv;
-                } else {
-                    dropContainer = dropTargetWrapper.firstElementChild;
-                }
-            }
-        }
-
-        if (this.draggedLibraryType && !this.placeholder) {
-            this.placeholder = document.createElement('div');
-            this.placeholder.className = 'builder-wrapper is-dragging placeholder';
-            this.placeholder.innerText = `Drop ${this.draggedLibraryType} Here`;
-            this.canvas.appendChild(this.placeholder);
-        }
-
-        const afterElement = this.getDragAfterElement(dropContainer, e.clientY);
-
-        if (draggingWrapper || this.placeholder) {
-            const elToMove = draggingWrapper || this.placeholder;
-            if (afterElement == null) {
-                dropContainer.appendChild(elToMove);
-            } else {
-                dropContainer.insertBefore(elToMove, afterElement);
-            }
-        }
-    });
-
-    // --- 3. HANDLE DROPPING THE ITEM ---
-    this.canvas.addEventListener('drop', (e) => {
-        e.preventDefault();
-        this.canvas.querySelectorAll('.drop-target').forEach(el => el.classList.remove('drop-target'));
-        if (this.placeholder) { this.placeholder.remove(); this.placeholder = null; }
-
-        const payload = e.dataTransfer.getData('text/plain');
-        if (!payload) return;
-
-        // Determine if the item being dropped is a Layout
-        let isLayout = false;
-        const payloadType = payload.split(':')[1];
-        if (payload.startsWith('new:')) isLayout = payloadType === 'custom-layout';
-        else if (payload.startsWith('move:')) isLayout = this.state.items[payloadType]?.type === 'custom-layout';
-
-        let newParentId = null;
-        // Only find a new parent if it's NOT a layout
-        if (!isLayout) {
-            const dropTarget = e.target.closest('.builder-wrapper[data-is-container="true"]');
-            if (dropTarget) newParentId = dropTarget.dataset.id;
-        }
-
-        if (payload.startsWith('new:')) {
-            const componentType = payloadType;
-            const uniqueId = 'comp-' + Date.now();
-
-            const initialAttrs = {};
-            if (componentType === 'custom-layout') {
-                initialAttrs['column-span'] = '12';
-                initialAttrs['subgrid'] = 'true';
-            } else if (componentType === 'custom-block') {
-                initialAttrs['heading'] = 'New Block';
-                initialAttrs['class'] = 'background-color-1';
-                initialAttrs['inner-class'] = 'padding-large';
+            if (this.draggedLibraryType && !this.placeholder) {
+                this.placeholder = document.createElement('div');
+                this.placeholder.className = 'builder-wrapper is-dragging placeholder';
+                this.placeholder.innerText = `Drop ${this.draggedLibraryType} Here`;
+                this.canvas.appendChild(this.placeholder);
             }
 
-            this.state.items[uniqueId] = { id: uniqueId, type: componentType, attrs: initialAttrs, children: [], parentId: newParentId };
-
-            if (newParentId) this.state.items[newParentId].children.push(uniqueId);
-            else this.state.roots.push(uniqueId);
-
-            this.selectedId = uniqueId;
-
-        } else if (payload.startsWith('move:')) {
-            const itemId = payloadType;
-            if (itemId === newParentId) return;
-
-            const item = this.state.items[itemId];
-
-            if (item.parentId) {
-                const oldParent = this.state.items[item.parentId];
-                oldParent.children = oldParent.children.filter(id => id !== itemId);
-            } else {
-                this.state.roots = this.state.roots.filter(id => id !== itemId);
-            }
-
-            item.parentId = newParentId;
-
-            // CRITICAL: We need to figure out the exact new index based on where it was dropped in the DOM
-            const dropContainer = newParentId ? this.canvas.querySelector(`[data-id="${newParentId}"]`).firstElementChild : this.canvas;
             const afterElement = this.getDragAfterElement(dropContainer, e.clientY);
 
-            const targetArray = newParentId ? this.state.items[newParentId].children : this.state.roots;
-
-            if (afterElement == null) {
-                targetArray.push(itemId); // Append to end
-            } else {
-                const afterId = afterElement.dataset.id;
-                const insertIndex = targetArray.indexOf(afterId);
-                targetArray.splice(insertIndex, 0, itemId); // Insert before the hovered element
-            }
-        }
-
-        this.draggedLibraryType = null;
-        this.rebuildCanvas();
-        this.populateInspector();
-        if (this.renderLayers) this.renderLayers();
-    });
-}
-
-setupCanvasSelection() {
-    this.canvas.addEventListener('click', (e) => {
-        if (e.target.classList.contains('resize-handle')) return;
-
-        const clickedWrapper = e.target.closest('.builder-wrapper');
-
-        if (clickedWrapper) {
-            e.stopPropagation();
-            this.selectedId = clickedWrapper.dataset.id;
-
-            this.canvas.querySelectorAll('.builder-selected').forEach(el => el.classList.remove('builder-selected'));
-            this.canvas.querySelectorAll('.resize-handle').forEach(h => h.remove());
-
-            clickedWrapper.classList.add('builder-selected');
-
-            if (clickedWrapper.dataset.type === 'custom-block' || clickedWrapper.dataset.type === 'custom-slider') {
-                const targetEl = clickedWrapper.firstElementChild;
-                if (targetEl) {
-                    const leftH = document.createElement('div');
-                    leftH.className = 'resize-handle handle-left';
-                    leftH.dataset.dir = 'left';
-
-                    const rightH = document.createElement('div');
-                    rightH.className = 'resize-handle handle-right';
-                    rightH.dataset.dir = 'right';
-
-                    targetEl.appendChild(leftH);
-                    targetEl.appendChild(rightH);
+            if (draggingWrapper || this.placeholder) {
+                const elToMove = draggingWrapper || this.placeholder;
+                if (afterElement == null) {
+                    dropContainer.appendChild(elToMove);
+                } else {
+                    dropContainer.insertBefore(elToMove, afterElement);
                 }
             }
-
-            this.populateInspector();
-        } else {
-            this.selectedId = null;
-            this.canvas.querySelectorAll('.builder-selected').forEach(el => el.classList.remove('builder-selected'));
-            this.canvas.querySelectorAll('.resize-handle').forEach(h => h.remove());
-            this.hideInspector();
-        }
-    });
-}
-
-populateInspector() {
-    this.shadowRoot.getElementById('empty-state').style.display = 'none';
-    this.shadowRoot.getElementById('edit-form').style.display = 'block';
-
-    const compData = this.state.items[this.selectedId];
-    if (!compData) return;
-
-    // Breadcrumbs
-    const breadcrumbs = this.shadowRoot.getElementById('breadcrumbs');
-    breadcrumbs.innerHTML = '';
-    let currentId = this.selectedId;
-    const trail = [];
-    while (currentId) {
-        const node = this.state.items[currentId];
-        trail.unshift({ id: node.id, type: node.type });
-        currentId = node.parentId;
-    }
-
-    trail.forEach((step, index) => {
-        const span = document.createElement('span');
-        span.textContent = step.type;
-        span.className = 'crumb';
-        span.style.color = (index === trail.length - 1) ? '#818cf8' : '#cbd5e1';
-        span.style.cursor = 'pointer';
-
-        span.addEventListener('click', () => {
-            this.selectedId = step.id;
-            this.canvas.querySelectorAll('.builder-selected').forEach(el => el.classList.remove('builder-selected'));
-            this.canvas.querySelectorAll(`[data-id="${step.id}"]`).forEach(el => el.classList.add('builder-selected'));
-            this.populateInspector();
         });
 
-        breadcrumbs.appendChild(span);
-        if (index < trail.length - 1) {
-            const sep = document.createElement('span');
-            sep.textContent = ' > ';
-            sep.style.color = '#475569';
-            breadcrumbs.appendChild(sep);
-        }
-    });
+        // --- 3. HANDLE DROPPING THE ITEM ---
+        this.canvas.addEventListener('drop', (e) => {
+            e.preventDefault();
+            this.canvas.querySelectorAll('.drop-target').forEach(el => el.classList.remove('drop-target'));
+            if (this.placeholder) { this.placeholder.remove(); this.placeholder = null; }
 
-    // DYNAMIC INPUTS
-    const dynamicContainer = this.shadowRoot.getElementById('dynamic-inputs');
-    dynamicContainer.innerHTML = '';
+            const payload = e.dataTransfer.getData('text/plain');
+            if (!payload) return;
 
-    const config = COMPONENT_CONFIG[compData.type] || { groups: {} };
-    const ElementClass = customElements.get(compData.type);
+            // Determine if the item being dropped is a Layout
+            let isLayout = false;
+            const payloadType = payload.split(':')[1];
+            if (payload.startsWith('new:')) isLayout = payloadType === 'custom-layout';
+            else if (payload.startsWith('move:')) isLayout = this.state.items[payloadType]?.type === 'custom-layout';
 
-    // 1. Fetch live attributes directly from the registered web component
-    let liveAttrs = ElementClass && ElementClass.observedAttributes ? [...ElementClass.observedAttributes] : [];
-
-    // Fallback to static config if the element isn't fully registered yet
-    if (liveAttrs.length === 0 && config.groups) {
-        liveAttrs = Object.values(config.groups).flat();
-    }
-
-    const vpSuffix = this.currentViewport === 'base' ? '' : `-${this.currentViewport}`;
-    const placementAttrs = ['column-start', 'column-end', 'row-start', 'row-end', 'z-index'];
-
-    // Ensure placement attributes are always editable for UI dragging/layout purposes
-    placementAttrs.forEach(pa => {
-        if (!liveAttrs.includes(pa)) liveAttrs.push(pa);
-    });
-
-    // 2. Group the attributes dynamically
-    const groupedAttrs = {};
-    liveAttrs.forEach(attr => {
-        let foundGroup = 'General / New'; // Default bucket for brand new attributes
-
-        // Try to organize known attributes into their nice UI buckets
-        if (config.groups) {
-            for (const [groupName, attributes] of Object.entries(config.groups)) {
-                if (attributes.includes(attr)) {
-                    foundGroup = groupName;
-                    break;
-                }
+            let newParentId = null;
+            // Only find a new parent if it's NOT a layout
+            if (!isLayout) {
+                const dropTarget = e.target.closest('.builder-wrapper[data-is-container="true"]');
+                if (dropTarget) newParentId = dropTarget.dataset.id;
             }
-        }
 
-        if (!groupedAttrs[foundGroup]) groupedAttrs[foundGroup] = [];
-        groupedAttrs[foundGroup].push(attr);
-    });
+            if (payload.startsWith('new:')) {
+                const componentType = payloadType;
+                const uniqueId = 'comp-' + Date.now();
 
-    // 3. Sort groups to keep standard ones at the top and new ones at the bottom
-    const predefinedOrder = ['Placement', 'Layout Grid', 'Slider Settings', 'Content', 'Lists', 'Navigation', 'Pagination', 'Styling', 'Media (Background)', 'Media (Primary)'];
-    const sortedGroupNames = Object.keys(groupedAttrs).sort((a, b) => {
-        const indexA = predefinedOrder.indexOf(a);
-        const indexB = predefinedOrder.indexOf(b);
-        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-        if (indexA !== -1) return -1;
-        if (indexB !== -1) return 1;
-        return a.localeCompare(b);
-    });
-
-    // 4. Render the dynamically compiled groups
-    for (const groupName of sortedGroupNames) {
-        const attributes = groupedAttrs[groupName];
-
-        // Group Header
-        const groupHeader = document.createElement('h3');
-        groupHeader.textContent = groupName;
-        groupHeader.style.cssText = 'color: #818cf8; font-size: 0.85rem; border-bottom: 1px solid #475569; padding-bottom: 4px; margin-top: 20px; text-transform: uppercase;';
-        dynamicContainer.appendChild(groupHeader);
-
-        attributes.forEach(baseAttrName => {
-            // If it's a placement attribute, attach the viewport suffix
-            const isPlacement = placementAttrs.includes(baseAttrName);
-            const attrName = isPlacement ? `${baseAttrName}${vpSuffix}` : baseAttrName;
-
-            const formGroup = document.createElement('div');
-            formGroup.className = 'form-group';
-
-            const label = document.createElement('label');
-            label.textContent = attrName.replace(/-/g, ' ');
-            if (isPlacement && this.currentViewport !== 'base') label.style.color = '#10b981'; // Highlight responsive overrides
-
-            let input;
-
-            if (ATTR_DROPDOWNS[baseAttrName]) {
-                input = document.createElement('select');
-                const defaultOption = document.createElement('option');
-                defaultOption.value = ''; defaultOption.textContent = '-- None --';
-                input.appendChild(defaultOption);
-
-                ATTR_DROPDOWNS[baseAttrName].forEach(val => {
-                    const opt = document.createElement('option');
-                    opt.value = val; opt.textContent = val;
-                    if (compData.attrs[attrName] === val) opt.selected = true;
-                    input.appendChild(opt);
-                });
-            } else if (isPlacement || attrName === 'column-span') {
-                input = document.createElement('input');
-                input.type = 'text';
-                input.placeholder = 'e.g., 4, -1, or span 6';
-                input.value = compData.attrs[attrName] || '';
-            } else if (attrName.includes('paragraph') || attrName.includes('items') || attrName.includes('icon')) {
-                input = document.createElement('textarea');
-                input.rows = 3;
-                input.value = compData.attrs[attrName] || '';
-
-                // Smart placeholders for textareas
-                if (attrName.includes('icon')) {
-                    input.placeholder = 'e.g., <i class="fa-solid fa-star"></i>';
-                } else if (attrName.includes('items')) {
-                    input.placeholder = 'e.g., Item 1, Item 2, Item 3';
-                } else {
-                    input.placeholder = 'Enter ' + attrName.replace(/-/g, ' ') + '...';
+                const initialAttrs = {};
+                if (componentType === 'custom-layout') {
+                    initialAttrs['column-span'] = '12';
+                    initialAttrs['subgrid'] = 'true';
+                } else if (componentType === 'custom-block') {
+                    initialAttrs['heading'] = 'New Block';
+                    initialAttrs['class'] = 'background-color-1';
+                    initialAttrs['inner-class'] = 'padding-large';
                 }
-            } else {
-                input = document.createElement('input');
-                input.type = 'text';
-                input.value = compData.attrs[attrName] || '';
 
-                // Smart placeholders based on attribute naming conventions
-                if (attrName.includes('class') || attrName.includes('effects') || attrName.includes('border') || attrName.includes('shadow')) {
-                    input.placeholder = 'e.g., padding-large shadow-2';
-                } else if (attrName.includes('src') || attrName.includes('poster')) {
-                    input.placeholder = 'e.g., /img/media.jpg';
-                } else if (attrName.includes('color')) {
-                    input.placeholder = 'e.g., #ffffff or var(--primary)';
-                } else if (attrName.includes('width') || attrName.includes('size') || attrName.includes('height') || attrName.includes('gap')) {
-                    input.placeholder = 'e.g., 100% or 2rem';
-                } else if (attrName.includes('href')) {
-                    input.placeholder = 'e.g., /about-us or https://...';
-                } else if (attrName.includes('aspect-ratio')) {
-                    input.placeholder = 'e.g., 16/9 or 1/1';
+                this.state.items[uniqueId] = { id: uniqueId, type: componentType, attrs: initialAttrs, children: [], parentId: newParentId };
+
+                if (newParentId) this.state.items[newParentId].children.push(uniqueId);
+                else this.state.roots.push(uniqueId);
+
+                this.selectedId = uniqueId;
+
+            } else if (payload.startsWith('move:')) {
+                const itemId = payloadType;
+                if (itemId === newParentId) return;
+
+                const item = this.state.items[itemId];
+
+                if (item.parentId) {
+                    const oldParent = this.state.items[item.parentId];
+                    oldParent.children = oldParent.children.filter(id => id !== itemId);
                 } else {
-                    input.placeholder = 'e.g., ' + attrName.replace(/-/g, ' ') + ' value';
+                    this.state.roots = this.state.roots.filter(id => id !== itemId);
+                }
+
+                item.parentId = newParentId;
+
+                // CRITICAL: We need to figure out the exact new index based on where it was dropped in the DOM
+                const dropContainer = newParentId ? this.canvas.querySelector(`[data-id="${newParentId}"]`).firstElementChild : this.canvas;
+                const afterElement = this.getDragAfterElement(dropContainer, e.clientY);
+
+                const targetArray = newParentId ? this.state.items[newParentId].children : this.state.roots;
+
+                if (afterElement == null) {
+                    targetArray.push(itemId); // Append to end
+                } else {
+                    const afterId = afterElement.dataset.id;
+                    const insertIndex = targetArray.indexOf(afterId);
+                    targetArray.splice(insertIndex, 0, itemId); // Insert before the hovered element
                 }
             }
 
-            if (!this.debounceTimers) this.debounceTimers = {};
-
-            input.addEventListener('input', (e) => {
-                const newValue = e.target.value;
-                if (newValue.trim() === '') {
-                    delete compData.attrs[attrName];
-                } else {
-                    compData.attrs[attrName] = newValue;
-                }
-
-                // NEW: Debounce the canvas rebuild!
-                if (this.debounceTimers[attrName]) {
-                    clearTimeout(this.debounceTimers[attrName]);
-                }
-
-                // Wait 300ms after the last keystroke before rebuilding the canvas
-                this.debounceTimers[attrName] = setTimeout(() => {
-                    this.rebuildCanvas();
-                }, 300);
-            });
-
-            // THIS WAS MISSING: Actually append the elements to the sidebar!
-            formGroup.appendChild(label);
-            formGroup.appendChild(input);
-            dynamicContainer.appendChild(formGroup);
-
-        }); // THIS WAS INCORRECT: Needed to be }); to close the forEach loop properly
-    }
-}
-
-hideInspector() {
-    this.shadowRoot.getElementById('empty-state').style.display = 'block';
-    this.shadowRoot.getElementById('edit-form').style.display = 'none';
-}
-
-setupControls() {
-    const root = this.shadowRoot;
-
-    // --- 1. Viewport Logic ---
-    const vpButtons = root.querySelectorAll('.vp-btn');
-    const viewportWidths = { 'base': '100%' };
-    Shared.VIEWPORT_BREAKPOINTS.forEach(bp => { viewportWidths[bp.name] = `${bp.maxWidth}px`; });
-
-    vpButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            vpButtons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            this.currentViewport = btn.dataset.vp;
-            this.canvas.style.maxWidth = viewportWidths[this.currentViewport];
-            this.canvas.style.transition = 'max-width 0.3s ease';
-            if (this.selectedId) this.populateInspector();
-        });
-    });
-
-    // --- 2. UI Toggles ---
-    root.getElementById('btn-toggle-guides').addEventListener('click', () => {
-        this.canvas.classList.toggle('show-guides');
-        const btn = root.getElementById('btn-toggle-guides');
-        btn.textContent = this.canvas.classList.contains('show-guides') ? 'Hide Grid' : 'Show Grid';
-    });
-
-    root.getElementById('btn-clear').addEventListener('click', () => {
-        if (confirm('Clear canvas?')) {
-            this.state = { roots: [], items: {}, headData: this.state.headData };
-            this.selectedId = null;
-            this.hideInspector();
+            this.draggedLibraryType = null;
             this.rebuildCanvas();
-        }
-    });
-
-    // --- 3. Tab Logic ---
-    const tabBtns = root.querySelectorAll('.tab-btn');
-    const tabPanes = root.querySelectorAll('.tab-pane');
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            tabBtns.forEach(b => b.classList.remove('active'));
-            tabPanes.forEach(p => p.classList.remove('active'));
-            btn.classList.add('active');
-            root.getElementById(btn.dataset.target).classList.add('active');
+            this.populateInspector();
+            if (this.renderLayers) this.renderLayers();
         });
-    });
+    }
 
-    // --- 4. Node Ordering & Deletion ---
-    root.getElementById('btn-up').addEventListener('click', () => {
-        if (!this.selectedId) return;
-        const item = this.state.items[this.selectedId];
-        const array = item.parentId ? this.state.items[item.parentId].children : this.state.roots;
-        const idx = array.indexOf(this.selectedId);
-        if (idx > 0) { [array[idx - 1], array[idx]] = [array[idx], array[idx - 1]]; this.rebuildCanvas(); }
-    });
+    setupCanvasSelection() {
+        this.canvas.addEventListener('click', (e) => {
+            if (e.target.classList.contains('resize-handle')) return;
 
-    root.getElementById('btn-down').addEventListener('click', () => {
-        if (!this.selectedId) return;
-        const item = this.state.items[this.selectedId];
-        const array = item.parentId ? this.state.items[item.parentId].children : this.state.roots;
-        const idx = array.indexOf(this.selectedId);
-        if (idx > -1 && idx < array.length - 1) { [array[idx + 1], array[idx]] = [array[idx], array[idx + 1]]; this.rebuildCanvas(); }
-    });
+            const clickedWrapper = e.target.closest('.builder-wrapper');
 
-    root.getElementById('btn-delete').addEventListener('click', () => {
-        if (!this.selectedId) return;
-        const item = this.state.items[this.selectedId];
-        if (item.parentId) this.state.items[item.parentId].children = this.state.items[item.parentId].children.filter(id => id !== this.selectedId);
-        else this.state.roots = this.state.roots.filter(id => id !== this.selectedId);
-        delete this.state.items[this.selectedId];
-        this.selectedId = null; this.hideInspector(); this.rebuildCanvas();
-    });
+            if (clickedWrapper) {
+                e.stopPropagation();
+                this.selectedId = clickedWrapper.dataset.id;
 
-    // --- 5. Metadata Binding ---
-    const metaFields = ['slug', 'title', 'date', 'categories', 'description', 'ogImage', 'canonical', 'theme', 'components', 'heroImage', 'heroCount', 'heroWidths', 'heroSize', 'heroFormat'];
-    metaFields.forEach(field => {
-        const input = root.getElementById(`meta-${field}`);
-        if (input) {
-            input.value = (this.state.headData && this.state.headData[field]) || '';
-            input.addEventListener('input', (e) => {
-                if (!this.state.headData) this.state.headData = {};
-                this.state.headData[field] = e.target.value;
-                this.saveState();
-            });
-        }
-    });
+                this.canvas.querySelectorAll('.builder-selected').forEach(el => el.classList.remove('builder-selected'));
+                this.canvas.querySelectorAll('.resize-handle').forEach(h => h.remove());
 
-    // --- 6. Internal Logic: Reusable Save Helper ---
-    const performSave = async (silent = false) => {
-        const slug = this.state.headData?.slug?.trim();
-        if (!slug) {
-            alert("Please enter a URL Slug in the Meta tab first!");
-            return false;
-        }
+                clickedWrapper.classList.add('builder-selected');
+                this.addResizeHandles(clickedWrapper);
 
-        const btnSave = root.getElementById('btn-save');
-        if (!silent) btnSave.textContent = 'Saving...';
 
-        try {
-            const response = await fetch('http://localhost:3000/api/save-post', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer rainwilds-builder-2026'
-                },
-                body: JSON.stringify({
-                    slug,
-                    title: this.state.headData.title || 'Untitled',
-                    date: this.state.headData.date || new Date().toISOString().split('T')[0],
-                    categories: this.state.headData.categories ? this.state.headData.categories.split(',').map(c => c.trim()) : [],
-                    excerpt: this.state.headData.description || '',
-                    featuredImage: this.state.headData.ogImage || '',
-                    builderState: this.state
-                })
-            });
 
-            if (response.ok) {
-                if (!silent) {
-                    btnSave.textContent = '✅ Saved';
-                    btnSave.style.background = '#059669';
-                    setTimeout(() => { btnSave.textContent = 'Save'; btnSave.style.background = '#3b82f6'; }, 2000);
-                }
-                return true;
-            }
-        } catch (err) {
-            console.error('Save failed:', err);
-            if (!silent) alert('Save failed. Is server.js running?');
-        }
-        return false;
-    };
-
-    // --- BUTTON: VIEW HTML ---
-    const generateHTMLString = (id, indentLevel = 0) => {
-        const node = this.state.items[id];
-        if (!node) return '';
-        const indent = '  '.repeat(indentLevel);
-        let attrString = Object.entries(node.attrs).map(([k, v]) => `${k}="${v.replace(/"/g, '&quot;')}"`).join(' ');
-        if (attrString) attrString = ' ' + attrString;
-        let html = `${indent}<${node.type}${attrString}>\n`;
-        if (node.children) node.children.forEach(childId => html += generateHTMLString(childId, indentLevel + 1));
-        html += `${indent}</${node.type}>\n`;
-        return html;
-    };
-
-    root.getElementById('btn-view-html').addEventListener('click', () => {
-        const textarea = root.getElementById('export-code');
-        let exportHtml = '\n';
-        this.state.roots.forEach(rootId => exportHtml += generateHTMLString(rootId) + '\n');
-        textarea.value = exportHtml;
-        root.getElementById('export-modal').classList.add('active');
-    });
-
-    root.getElementById('btn-copy').addEventListener('click', () => {
-        navigator.clipboard.writeText(root.getElementById('export-code').value);
-        const btn = root.getElementById('btn-copy');
-        btn.textContent = '✅ Copied!';
-        setTimeout(() => btn.textContent = '📋 Copy', 2000);
-    });
-
-    root.getElementById('close-modal').addEventListener('click', () => root.getElementById('export-modal').classList.remove('active'));
-
-    // --- BUTTON: LIVE PREVIEW ---
-    root.getElementById('btn-preview').addEventListener('click', () => {
-        const slug = this.state.headData?.slug?.trim();
-        if (!slug) return alert("Please enter a slug and Publish the post first.");
-
-        // This assumes your server serves from project root (Sandbox)
-        const previewUrl = `/dist/blog/${slug}.html`;
-        window.open(previewUrl, '_blank');
-    });
-
-    // --- BUTTON: SAVE ---
-    root.getElementById('btn-save').addEventListener('click', () => performSave(false));
-
-    // --- BUTTON: PUBLISH (Auto-Saves First) ---
-    const btnPublish = root.getElementById('btn-publish');
-    btnPublish.addEventListener('click', async () => {
-        btnPublish.disabled = true;
-        btnPublish.textContent = 'Saving & Publishing...';
-
-        // 1. Silent Save
-        const isSaved = await performSave(true);
-        if (!isSaved) {
-            btnPublish.disabled = false;
-            btnPublish.textContent = 'Publish';
-            return;
-        }
-
-        // 2. Trigger Build Logic
-        try {
-            const slug = this.state.headData.slug.trim();
-            const response = await fetch('http://localhost:3000/api/publish', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': 'Bearer rainwilds-builder-2026'
-                },
-                body: JSON.stringify({ slug })
-            });
-
-            if (response.ok) {
-                btnPublish.textContent = '✅ Published!';
-                btnPublish.style.background = '#059669';
+                this.populateInspector();
             } else {
-                alert('Publishing failed.');
-                btnPublish.textContent = '❌ Error';
+                this.selectedId = null;
+                this.canvas.querySelectorAll('.builder-selected').forEach(el => el.classList.remove('builder-selected'));
+                this.canvas.querySelectorAll('.resize-handle').forEach(h => h.remove());
+                this.hideInspector();
             }
-        } catch (err) {
-            alert('Build server connection error.');
-            btnPublish.textContent = '❌ Error';
-        } finally {
-            btnPublish.disabled = false;
-            setTimeout(() => {
-                btnPublish.textContent = 'Publish';
-                btnPublish.style.background = '#10b981';
-            }, 3000);
+        });
+    }
+
+    populateInspector() {
+        this.shadowRoot.getElementById('empty-state').style.display = 'none';
+        this.shadowRoot.getElementById('edit-form').style.display = 'block';
+
+        const compData = this.state.items[this.selectedId];
+        if (!compData) return;
+
+        // --- 1. BREADCRUMBS ---
+        const breadcrumbs = this.shadowRoot.getElementById('breadcrumbs');
+        breadcrumbs.innerHTML = '';
+        let currentId = this.selectedId;
+        const trail = [];
+        while (currentId) {
+            const node = this.state.items[currentId];
+            trail.unshift({ id: node.id, type: node.type });
+            currentId = node.parentId;
         }
-    });
-}
+
+        trail.forEach((step, index) => {
+            const span = document.createElement('span');
+            span.textContent = step.type;
+            span.className = 'crumb';
+            span.style.color = (index === trail.length - 1) ? '#818cf8' : '#cbd5e1';
+            span.style.cursor = 'pointer';
+
+            span.addEventListener('click', () => {
+                this.selectedId = step.id;
+                this.canvas.querySelectorAll('.builder-selected').forEach(el => el.classList.remove('builder-selected'));
+                this.canvas.querySelectorAll(`[data-id="${step.id}"]`).forEach(el => el.classList.add('builder-selected'));
+                this.populateInspector();
+            });
+
+            breadcrumbs.appendChild(span);
+            if (index < trail.length - 1) {
+                const sep = document.createElement('span');
+                sep.textContent = ' > ';
+                sep.style.color = '#475569';
+                breadcrumbs.appendChild(sep);
+            }
+        });
+
+        // --- 2. FETCH DYNAMIC CONFIGURATION ---
+        const ElementClass = customElements.get(compData.type);
+
+        let config = ElementClass && ElementClass.builderConfig
+            ? JSON.parse(JSON.stringify(ElementClass.builderConfig))
+            : { groups: { 'General': [] }, booleans: [] }; // <-- Default booleans array
+
+        // Extract the component's declared booleans (fallback to empty array)
+        const componentBooleans = config.booleans || [];
+
+        const PLACEMENT_ATTRS = ['column-start', 'column-end', 'row-start', 'row-end', 'z-index'];
+
+        // Auto-inject Placement for everything EXCEPT custom-layout
+        if (compData.type !== 'custom-layout') {
+            config.groups = {
+                'Placement': PLACEMENT_ATTRS,
+                ...config.groups
+            };
+        }
+
+        let liveAttrs = ElementClass && ElementClass.observedAttributes ? [...ElementClass.observedAttributes] : [];
+
+        if (liveAttrs.length === 0 && config.groups) {
+            liveAttrs = Object.values(config.groups).flat();
+        }
+
+        if (compData.type === 'custom-layout') {
+            liveAttrs = liveAttrs.filter(attr => !PLACEMENT_ATTRS.includes(attr));
+        }
+
+        const vpSuffix = this.currentViewport === 'base' ? '' : `-${this.currentViewport}`;
+
+        // Ensure placement attributes are always editable for UI dragging purposes
+        PLACEMENT_ATTRS.forEach(pa => {
+            if (!liveAttrs.includes(pa)) liveAttrs.push(pa);
+        });
+
+        // FIX: Filter out the responsive grid variants from the liveAttrs list
+        // so they don't spill over and spawn duplicate UI inputs in the "General" tab
+        const viewports = ['mobile', 'tablet', 'laptop', 'desktop', 'large', 'ultra'];
+        liveAttrs = liveAttrs.filter(attr => {
+            const isPlacementBase = PLACEMENT_ATTRS.some(base => attr.startsWith(base));
+            const hasViewportSuffix = viewports.some(vp => attr.endsWith(`-${vp}`));
+            return !(isPlacementBase && hasViewportSuffix);
+        });
+
+        // --- 3. GROUP ATTRIBUTES ---
+        const groupedAttrs = {};
+        liveAttrs.forEach(attr => {
+            let foundGroup = 'General';
+            if (config.groups) {
+                for (const [groupName, attributes] of Object.entries(config.groups)) {
+                    if (attributes.includes(attr)) {
+                        foundGroup = groupName;
+                        break;
+                    }
+                }
+            }
+            if (!groupedAttrs[foundGroup]) groupedAttrs[foundGroup] = [];
+            groupedAttrs[foundGroup].push(attr);
+        });
+
+        const predefinedOrder = ['Placement', 'Layout Grid', 'Slider Settings', 'Content', 'Lists', 'Navigation', 'Pagination', 'Styling', 'Media (Background)', 'Media (Primary)'];
+        const sortedGroupNames = Object.keys(groupedAttrs).sort((a, b) => {
+            const indexA = predefinedOrder.indexOf(a);
+            const indexB = predefinedOrder.indexOf(b);
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA !== -1) return -1;
+            if (indexB !== -1) return 1;
+            return a.localeCompare(b);
+        });
+
+        // --- 4. RENDER UI ---
+        const dynamicContainer = this.shadowRoot.getElementById('dynamic-inputs');
+        dynamicContainer.innerHTML = '';
+
+        for (const groupName of sortedGroupNames) {
+            const attributes = groupedAttrs[groupName];
+
+            const groupHeader = document.createElement('h3');
+            groupHeader.textContent = groupName;
+            groupHeader.style.cssText = 'color: #818cf8; font-size: 0.85rem; border-bottom: 1px solid #475569; padding-bottom: 4px; margin-top: 20px; font-weight: 600;';
+            dynamicContainer.appendChild(groupHeader);
+
+            attributes.forEach(baseAttrName => {
+                const isPlacement = PLACEMENT_ATTRS.includes(baseAttrName);
+                const attrName = isPlacement ? `${baseAttrName}${vpSuffix}` : baseAttrName;
+
+                const formGroup = document.createElement('div');
+                formGroup.className = 'form-group';
+
+                const label = document.createElement('label');
+                label.textContent = attrName.replace(/-/g, ' ');
+                if (isPlacement && this.currentViewport !== 'base') label.style.color = '#10b981';
+
+                let input;
+
+                // --- 1. DYNAMIC BOOLEAN TOGGLES ---
+                if (componentBooleans.includes(baseAttrName)) {
+                    // Make the layout horizontal for toggles
+                    formGroup.classList.remove('stacked');
+                    formGroup.style.flexDirection = 'row';
+                    formGroup.style.justifyContent = 'space-between';
+                    formGroup.style.alignItems = 'center';
+
+                    input = document.createElement('label');
+                    input.className = 'toggle-switch';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    // Check if attribute exists in the JSON state
+                    checkbox.checked = compData.attrs[attrName] !== undefined;
+
+                    const slider = document.createElement('span');
+                    slider.className = 'slider';
+
+                    input.appendChild(checkbox);
+                    input.appendChild(slider);
+
+                    if (!this.debounceTimers) this.debounceTimers = {};
+
+                    checkbox.addEventListener('change', (e) => {
+                        if (e.target.checked) {
+                            compData.attrs[attrName] = ''; // Empty string satisfies HTML boolean presence
+                        } else {
+                            delete compData.attrs[attrName];
+                        }
+
+                        if (this.debounceTimers[attrName]) clearTimeout(this.debounceTimers[attrName]);
+                        this.debounceTimers[attrName] = setTimeout(() => {
+                            this.rebuildCanvas();
+                        }, 300);
+                    });
+                }
+                // --- 2. STANDARD INPUTS ---
+                else {
+                    if (ATTR_DROPDOWNS[baseAttrName]) {
+                        input = document.createElement('select');
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = ''; defaultOption.textContent = '-- None --';
+                        input.appendChild(defaultOption);
+
+                        ATTR_DROPDOWNS[baseAttrName].forEach(val => {
+                            const opt = document.createElement('option');
+                            opt.value = val; opt.textContent = val;
+                            if (compData.attrs[attrName] === val) opt.selected = true;
+                            input.appendChild(opt);
+                        });
+                    } else if (isPlacement || attrName === 'column-span') {
+                        input = document.createElement('input');
+                        input.type = 'text';
+                        input.placeholder = 'e.g., 4, -1, or span 6';
+                        input.value = compData.attrs[attrName] || '';
+                    } else if (attrName.includes('paragraph') || attrName.includes('items') || attrName.includes('icon')) {
+                        input = document.createElement('textarea');
+                        input.rows = 3;
+                        input.value = compData.attrs[attrName] || '';
+                        if (attrName.includes('icon')) input.placeholder = 'e.g., <i class="fa-solid fa-star"></i>';
+                        else if (attrName.includes('items')) input.placeholder = 'e.g., Item 1, Item 2, Item 3';
+                        else input.placeholder = 'Enter ' + attrName.replace(/-/g, ' ') + '...';
+                    } else {
+                        input = document.createElement('input');
+                        input.type = 'text';
+                        input.value = compData.attrs[attrName] || '';
+                        if (attrName.includes('class') || attrName.includes('effects') || attrName.includes('border') || attrName.includes('shadow')) input.placeholder = 'e.g., padding-large shadow-2';
+                        else if (attrName.includes('src') || attrName.includes('poster')) input.placeholder = 'e.g., /img/media.jpg';
+                        else if (attrName.includes('color')) input.placeholder = 'e.g., #ffffff or var(--primary)';
+                        else if (attrName.includes('width') || attrName.includes('size') || attrName.includes('height') || attrName.includes('gap')) input.placeholder = 'e.g., 100% or 2rem';
+                        else if (attrName.includes('href')) input.placeholder = 'e.g., /about-us or https://...';
+                        else if (attrName.includes('aspect-ratio')) input.placeholder = 'e.g., 16/9 or 1/1';
+                        else input.placeholder = 'e.g., ' + attrName.replace(/-/g, ' ') + ' value';
+                    }
+
+                    if (!this.debounceTimers) this.debounceTimers = {};
+
+                    input.addEventListener('input', (e) => {
+                        const newValue = e.target.value;
+                        if (newValue.trim() === '') delete compData.attrs[attrName];
+                        else compData.attrs[attrName] = newValue;
+
+                        if (this.debounceTimers[attrName]) clearTimeout(this.debounceTimers[attrName]);
+                        this.debounceTimers[attrName] = setTimeout(() => {
+                            this.rebuildCanvas();
+                        }, 300);
+                    });
+                }
+
+                formGroup.appendChild(label);
+                formGroup.appendChild(input);
+                dynamicContainer.appendChild(formGroup);
+            });
+        }
+    }
+
+    hideInspector() {
+        this.shadowRoot.getElementById('empty-state').style.display = 'block';
+        this.shadowRoot.getElementById('edit-form').style.display = 'none';
+    }
+
+    setupControls() {
+        const root = this.shadowRoot;
+
+        // --- 1. Viewport Logic ---
+        const vpButtons = root.querySelectorAll('.vp-btn');
+        const viewportWidths = { 'base': '100%' };
+        Shared.VIEWPORT_BREAKPOINTS.forEach(bp => { viewportWidths[bp.name] = `${bp.maxWidth}px`; });
+
+        vpButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                vpButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                this.currentViewport = btn.dataset.vp;
+                this.canvas.style.maxWidth = viewportWidths[this.currentViewport];
+                this.canvas.style.transition = 'max-width 0.3s ease';
+                if (this.selectedId) this.populateInspector();
+            });
+        });
+
+        // --- 2. UI Toggles ---
+        root.getElementById('btn-toggle-guides').addEventListener('click', () => {
+            this.canvas.classList.toggle('show-guides');
+            const btn = root.getElementById('btn-toggle-guides');
+            btn.textContent = this.canvas.classList.contains('show-guides') ? 'Hide Grid' : 'Show Grid';
+        });
+
+        root.getElementById('btn-clear').addEventListener('click', () => {
+            if (confirm('Clear canvas?')) {
+                this.state = { roots: [], items: {}, headData: this.state.headData };
+                this.selectedId = null;
+                this.hideInspector();
+                this.rebuildCanvas();
+            }
+        });
+
+        // --- 3. Tab Logic ---
+        const tabBtns = root.querySelectorAll('.tab-btn');
+        const tabPanes = root.querySelectorAll('.tab-pane');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabPanes.forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                root.getElementById(btn.dataset.target).classList.add('active');
+            });
+        });
+
+        // --- 4. Node Ordering & Deletion ---
+        root.getElementById('btn-up').addEventListener('click', () => {
+            if (!this.selectedId) return;
+            const item = this.state.items[this.selectedId];
+            const array = item.parentId ? this.state.items[item.parentId].children : this.state.roots;
+            const idx = array.indexOf(this.selectedId);
+            if (idx > 0) { [array[idx - 1], array[idx]] = [array[idx], array[idx - 1]]; this.rebuildCanvas(); }
+        });
+
+        root.getElementById('btn-down').addEventListener('click', () => {
+            if (!this.selectedId) return;
+            const item = this.state.items[this.selectedId];
+            const array = item.parentId ? this.state.items[item.parentId].children : this.state.roots;
+            const idx = array.indexOf(this.selectedId);
+            if (idx > -1 && idx < array.length - 1) { [array[idx + 1], array[idx]] = [array[idx], array[idx + 1]]; this.rebuildCanvas(); }
+        });
+
+        root.getElementById('btn-delete').addEventListener('click', () => {
+            if (!this.selectedId) return;
+            const item = this.state.items[this.selectedId];
+            if (item.parentId) this.state.items[item.parentId].children = this.state.items[item.parentId].children.filter(id => id !== this.selectedId);
+            else this.state.roots = this.state.roots.filter(id => id !== this.selectedId);
+            delete this.state.items[this.selectedId];
+            this.selectedId = null; this.hideInspector(); this.rebuildCanvas();
+        });
+
+        // --- 5. Metadata Binding ---
+        // Change this line:
+        const metaFields = ['contentType', 'slug', 'title', 'date', 'categories', 'description', 'ogImage', 'canonical', 'theme', 'components', 'heroImage', 'heroCount', 'heroWidths', 'heroSize', 'heroFormat']; metaFields.forEach(field => {
+            const input = root.getElementById(`meta-${field}`);
+            if (input) {
+                input.value = (this.state.headData && this.state.headData[field]) || '';
+                input.addEventListener('input', (e) => {
+                    if (!this.state.headData) this.state.headData = {};
+                    this.state.headData[field] = e.target.value;
+                    this.saveState();
+                });
+            }
+        });
+
+        // --- 6. Internal Logic: Reusable Save Helper ---
+        const performSave = async (silent = false) => {
+            const slug = this.state.headData?.slug?.trim();
+            if (!slug) {
+                alert("Please enter a URL Slug in the Meta tab first!");
+                return false;
+            }
+
+            const btnSave = root.getElementById('btn-save');
+            if (!silent) btnSave.textContent = 'Saving...';
+
+            try {
+                const response = await fetch('http://localhost:3000/api/save-post', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer rainwilds-builder-2026'
+                    },
+                    body: JSON.stringify({
+                        contentType: this.state.headData.contentType || 'post',
+                        slug,
+                        title: this.state.headData.title || 'Untitled',
+                        date: this.state.headData.date || new Date().toISOString().split('T')[0],
+                        categories: this.state.headData.categories ? this.state.headData.categories.split(',').map(c => c.trim()) : [],
+                        excerpt: this.state.headData.description || '',
+                        featuredImage: this.state.headData.ogImage || '',
+                        builderState: this.state
+                    })
+                });
+
+                if (response.ok) {
+                    if (!silent) {
+                        btnSave.textContent = '✅ Saved';
+                        btnSave.style.background = '#059669';
+                        setTimeout(() => { btnSave.textContent = 'Save'; btnSave.style.background = '#3b82f6'; }, 2000);
+                    }
+                    return true;
+                }
+            } catch (err) {
+                console.error('Save failed:', err);
+                if (!silent) alert('Save failed. Is server.js running?');
+            }
+            return false;
+        };
+
+        // --- BUTTON: VIEW HTML ---
+        const generateHTMLString = (id, indentLevel = 0) => {
+            const node = this.state.items[id];
+            if (!node) return '';
+            const indent = '  '.repeat(indentLevel);
+            let attrString = Object.entries(node.attrs).map(([k, v]) => `${k}="${v.replace(/"/g, '&quot;')}"`).join(' ');
+            if (attrString) attrString = ' ' + attrString;
+            let html = `${indent}<${node.type}${attrString}>\n`;
+            if (node.children) node.children.forEach(childId => html += generateHTMLString(childId, indentLevel + 1));
+            html += `${indent}</${node.type}>\n`;
+            return html;
+        };
+
+        root.getElementById('btn-view-html').addEventListener('click', () => {
+            const textarea = root.getElementById('export-code');
+            let exportHtml = '\n';
+            this.state.roots.forEach(rootId => exportHtml += generateHTMLString(rootId) + '\n');
+            textarea.value = exportHtml;
+            root.getElementById('export-modal').classList.add('active');
+        });
+
+        root.getElementById('btn-copy').addEventListener('click', () => {
+            navigator.clipboard.writeText(root.getElementById('export-code').value);
+            const btn = root.getElementById('btn-copy');
+            btn.textContent = '✅ Copied!';
+            setTimeout(() => btn.textContent = '📋 Copy', 2000);
+        });
+
+        root.getElementById('close-modal').addEventListener('click', () => root.getElementById('export-modal').classList.remove('active'));
+
+        // --- BUTTON: LIVE PREVIEW ---
+        root.getElementById('btn-preview').addEventListener('click', () => {
+            const slug = this.state.headData?.slug?.trim();
+            if (!slug) return alert("Please enter a slug and Publish the post first.");
+
+            const type = this.state.headData?.contentType || 'post';
+            // Pages preview at /dist/slug.html, Posts at /dist/blog/slug.html
+            const previewUrl = type === 'page' ? `/dist/${slug}.html` : `/dist/blog/${slug}.html`;
+            window.open(previewUrl, '_blank');
+        });
+
+        // --- BUTTON: SAVE ---
+        root.getElementById('btn-save').addEventListener('click', () => performSave(false));
+
+        // --- BUTTON: PUBLISH (Auto-Saves First) ---
+        const btnPublish = root.getElementById('btn-publish');
+        btnPublish.addEventListener('click', async () => {
+            btnPublish.disabled = true;
+            btnPublish.textContent = 'Saving & Publishing...';
+
+            // 1. Silent Save
+            const isSaved = await performSave(true);
+            if (!isSaved) {
+                btnPublish.disabled = false;
+                btnPublish.textContent = 'Publish';
+                return;
+            }
+
+            // 2. Trigger Build Logic
+            try {
+                const slug = this.state.headData.slug.trim();
+                const response = await fetch('http://localhost:3000/api/publish', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer rainwilds-builder-2026'
+                    },
+                    body: JSON.stringify({ slug, contentType: this.state.headData.contentType || 'post' })
+                });
+
+                if (response.ok) {
+                    btnPublish.textContent = '✅ Published!';
+                    btnPublish.style.background = '#059669';
+                } else {
+                    alert('Publishing failed.');
+                    btnPublish.textContent = '❌ Error';
+                }
+            } catch (err) {
+                alert('Build server connection error.');
+                btnPublish.textContent = '❌ Error';
+            } finally {
+                btnPublish.disabled = false;
+                setTimeout(() => {
+                    btnPublish.textContent = 'Publish';
+                    btnPublish.style.background = '#10b981';
+                }, 3000);
+            }
+        });
+    }
 }
 
 customElements.define('visual-builder', VisualBuilder);

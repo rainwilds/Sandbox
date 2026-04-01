@@ -1,5 +1,11 @@
 /* global document, window, console */
 
+'use strict';
+
+import { getVideoPath } from '../config.js';
+
+export const dependencies = ['config'];
+
 const VALID_VIDEO_EXTENSIONS = ['mp4', 'webm'];
 const markupCache = new Map();
 

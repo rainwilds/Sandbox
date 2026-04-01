@@ -10,13 +10,16 @@ import {
     VALID_BORDER_CLASSES,
     VALID_HEADING_TAGS,
     VALID_PADDING_CLASSES,
-    VALID_SHADOW_CLASSES,
-    GridPlacementMixin
+    VALID_SHADOW_CLASSES
 
 } from '../shared.js';
 import { getConfig, getImagePrimaryPath, getVideoPath } from '../config.js';
+import { GridPlacementMixin } from '../mixins/grid-placement.js';
 
 class CustomBlock extends GridPlacementMixin(HTMLElement) {
+
+    static dependencies = ['shared', 'image-generator', 'video-generator'];
+
     #ignoredChangeCount;
     #basePath = null;
     constructor() {
@@ -171,11 +174,17 @@ class CustomBlock extends GridPlacementMixin(HTMLElement) {
             return true;
         }
         try {
-            const basePath = await this.#getBasePath();
-            const fullSrc = url.startsWith('http') ? url : new URL(url.startsWith('/') ? url : basePath + url, window.location.origin).href;
+            // FIX: Resolve relative URLs against the CURRENT document path (window.location.href),
+            // NOT the domain root (origin) which strips directories like /src/
+            const fullSrc = url.startsWith('http') || url.startsWith('data:')
+                ? url
+                : new URL(url, window.location.href).href;
+
             this.#log(`Validating source URL: ${fullSrc}`, { originalUrl: url, elementId: this.id || 'no-id' });
+
             const res = await fetch(fullSrc, { method: 'HEAD', mode: 'cors' });
             if (!res.ok) throw new Error(`Failed to validate ${url}: ${res.status} ${res.statusText}`);
+
             this.#log(`Source validation successful: ${fullSrc}`, { status: res.status });
             return true;
         } catch (error) {
@@ -1696,6 +1705,29 @@ class CustomBlock extends GridPlacementMixin(HTMLElement) {
             this.criticalAttributesHash = null;
             this.initialize();
         }
+    }
+
+static get builderConfig() {
+        return {
+            isContainer: false,
+            // Declare pure booleans
+            booleans: [
+                'section-title', 'background-image-noise', 'inner-background-image-noise', 
+                'img-background-decorative', 'img-background-include-schema', 
+                'img-primary-decorative', 'img-primary-include-schema', 
+                'video-background-autoplay', 'video-background-loop', 'video-background-muted', 
+                'video-background-playsinline', 'video-background-disable-pip', 
+                'video-primary-autoplay', 'video-primary-loop', 'video-primary-muted', 
+                'video-primary-playsinline', 'video-primary-disable-pip'
+            ],
+            groups: {
+                'Content': ['heading', 'sub-heading', 'paragraph', 'button-text', 'button-href', 'button-class', 'button-type', 'button-style', 'button-aria-label', 'button-rel', 'button-target', 'button-icon', 'button-icon-position', 'button-icon-offset', 'button-icon-size', 'icon', 'icon-class', 'icon-size', 'icon-style', 'text-alignment', 'section-title'],
+                'Styling': ['class', 'style', 'effects', 'shadow', 'border', 'border-radius', 'background-color', 'background-gradient', 'background-image-noise', 'background-overlay', 'backdrop-filter', 'inner-class', 'inner-style', 'inner-alignment', 'inner-background-color', 'inner-background-gradient', 'inner-background-image-noise', 'inner-background-overlay', 'inner-backdrop-filter', 'inner-border', 'inner-border-radius', 'inner-shadow'],
+                'Media (Background)': ['img-background-src', 'img-background-light-src', 'img-background-dark-src', 'img-background-alt', 'img-background-aspect-ratio', 'img-background-decorative', 'img-background-desktop-width', 'img-background-fetchpriority', 'img-background-loading', 'img-background-mobile-width', 'img-background-position', 'img-background-tablet-width', 'video-background-src', 'video-background-light-src', 'video-background-dark-src', 'video-background-poster', 'video-background-light-poster', 'video-background-dark-poster', 'video-background-alt', 'video-background-autoplay', 'video-background-loop', 'video-background-muted', 'video-background-playsinline', 'video-background-disable-pip', 'video-background-loading'],
+                'Media (Primary)': ['img-primary-src', 'img-primary-light-src', 'img-primary-dark-src', 'img-primary-alt', 'img-primary-aspect-ratio', 'img-primary-decorative', 'img-primary-desktop-width', 'img-primary-fetchpriority', 'img-primary-loading', 'img-primary-mobile-width', 'img-primary-position', 'img-primary-tablet-width', 'video-primary-src', 'video-primary-light-src', 'video-primary-dark-src', 'video-primary-poster', 'video-primary-light-poster', 'video-primary-dark-poster', 'video-primary-alt', 'video-primary-autoplay', 'video-primary-loop', 'video-primary-muted', 'video-primary-playsinline', 'video-primary-disable-pip', 'video-primary-loading'],
+                'Lists': ['ul-items', 'ol-items', 'content-order', 'ul-icon', 'ol-icon', 'ul-icon-position', 'ol-icon-position', 'ul-style', 'ol-style', 'ul-icon-offset', 'ol-icon-offset']
+            }
+        };
     }
 
     static get observedAttributes() {

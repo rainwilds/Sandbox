@@ -4,24 +4,12 @@
 import { getImageResponsivePath, getImagePrimaryPath } from '../config.js';
 import { VIEWPORT_BREAKPOINTS, VIEWPORT_BREAKPOINT_WIDTHS, VALID_ASPECT_RATIOS } from '../shared.js';
 
+export const dependencies = ['shared', 'config'];
+
 // Internal constants for image validation and responsive generation (not exported).
 const VALID_IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
 const IMAGE_FORMATS = ['jxl', 'avif', 'webp', 'jpg'];
 const DEFAULT_IMAGE_SIZE_VALUE = 3840;
-
-// Get responsive directory path from config (with fallback)
-let IMAGE_RESPONSIVE_DIRECTORY_PATH = '/img/responsive/'; // Fallback
-let IMAGE_PRIMARY_DIRECTORY_PATH = '/img/primary/'; // Fallback
-(async () => {
-  try {
-    IMAGE_RESPONSIVE_DIRECTORY_PATH = await getImageResponsivePath();
-    IMAGE_PRIMARY_DIRECTORY_PATH = await getImagePrimaryPath();
-  } catch (error) {
-    if (typeof window !== 'undefined' && window.console) {
-      console.warn('Failed to load image paths from config, using fallbacks:', error);
-    }
-  }
-})();
 
 // Cache for generated markup to improve performance on repeated calls with same parameters.
 const markupCache = new Map();
@@ -55,6 +43,10 @@ export async function generatePictureMarkup({
   extraStyles = '',
   isBackground = false,
 } = {}) {
+  // GUARANTEE NO RACE CONDITION: Fetch paths dynamically inside the function call
+  const IMAGE_RESPONSIVE_DIRECTORY_PATH = await getImageResponsivePath();
+  const IMAGE_PRIMARY_DIRECTORY_PATH = await getImagePrimaryPath();
+
   // Check if debug mode is enabled via URL for logging.
   const isDev = typeof window !== 'undefined' && (
     window.location.href.includes('/dev/') ||
@@ -238,43 +230,43 @@ export async function generatePictureMarkup({
         if (hasBreakpoint && hasIcon) {
           // Add sources for small screens (icons)
           if (iconLightSrc) {
-            const srcset = generateSrcset(iconLightSrc, format, VIEWPORT_BREAKPOINT_WIDTHS);
+            const srcset = generateSrcset(iconLightSrc, format, VIEWPORT_BREAKPOINT_WIDTHS, IMAGE_RESPONSIVE_DIRECTORY_PATH, IMAGE_PRIMARY_DIRECTORY_PATH);
             addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: light)`, `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, iconLightAlt);
           }
           if (iconDarkSrc) {
-            const srcset = generateSrcset(iconDarkSrc, format, VIEWPORT_BREAKPOINT_WIDTHS);
+            const srcset = generateSrcset(iconDarkSrc, format, VIEWPORT_BREAKPOINT_WIDTHS, IMAGE_RESPONSIVE_DIRECTORY_PATH, IMAGE_PRIMARY_DIRECTORY_PATH);
             addSource(`(max-width: ${maxSmall}px) and (prefers-color-scheme: dark)`, `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, iconDarkAlt);
           }
           if (iconSrc) {
-            const srcset = generateSrcset(iconSrc, format, VIEWPORT_BREAKPOINT_WIDTHS);
+            const srcset = generateSrcset(iconSrc, format, VIEWPORT_BREAKPOINT_WIDTHS, IMAGE_RESPONSIVE_DIRECTORY_PATH, IMAGE_PRIMARY_DIRECTORY_PATH);
             addSource(`(max-width: ${maxSmall}px)`, `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, iconAlt);
           }
 
           // Add sources for large screens (full)
           if (lightSrc) {
-            const srcset = generateSrcset(lightSrc, format, VIEWPORT_BREAKPOINT_WIDTHS);
+            const srcset = generateSrcset(lightSrc, format, VIEWPORT_BREAKPOINT_WIDTHS, IMAGE_RESPONSIVE_DIRECTORY_PATH, IMAGE_PRIMARY_DIRECTORY_PATH);
             addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: light)`, `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, lightAlt);
           }
           if (darkSrc) {
-            const srcset = generateSrcset(darkSrc, format, VIEWPORT_BREAKPOINT_WIDTHS);
+            const srcset = generateSrcset(darkSrc, format, VIEWPORT_BREAKPOINT_WIDTHS, IMAGE_RESPONSIVE_DIRECTORY_PATH, IMAGE_PRIMARY_DIRECTORY_PATH);
             addSource(`(min-width: ${minLarge}px) and (prefers-color-scheme: dark)`, `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, darkAlt);
           }
           if (src) {
-            const srcset = generateSrcset(src, format, VIEWPORT_BREAKPOINT_WIDTHS);
+            const srcset = generateSrcset(src, format, VIEWPORT_BREAKPOINT_WIDTHS, IMAGE_RESPONSIVE_DIRECTORY_PATH, IMAGE_PRIMARY_DIRECTORY_PATH);
             addSource(`(min-width: ${minLarge}px)`, `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, alt);
           }
         } else {
           // No breakpoint or no icons: use full sources only
           if (lightSrc) {
-            const srcset = generateSrcset(lightSrc, format, VIEWPORT_BREAKPOINT_WIDTHS);
+            const srcset = generateSrcset(lightSrc, format, VIEWPORT_BREAKPOINT_WIDTHS, IMAGE_RESPONSIVE_DIRECTORY_PATH, IMAGE_PRIMARY_DIRECTORY_PATH);
             addSource('(prefers-color-scheme: light)', `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, lightAlt);
           }
           if (darkSrc) {
-            const srcset = generateSrcset(darkSrc, format, VIEWPORT_BREAKPOINT_WIDTHS);
+            const srcset = generateSrcset(darkSrc, format, VIEWPORT_BREAKPOINT_WIDTHS, IMAGE_RESPONSIVE_DIRECTORY_PATH, IMAGE_PRIMARY_DIRECTORY_PATH);
             addSource('(prefers-color-scheme: dark)', `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, darkAlt);
           }
           if (!lightSrc && !darkSrc && src) {
-            const srcset = generateSrcset(src, format, VIEWPORT_BREAKPOINT_WIDTHS);
+            const srcset = generateSrcset(src, format, VIEWPORT_BREAKPOINT_WIDTHS, IMAGE_RESPONSIVE_DIRECTORY_PATH, IMAGE_PRIMARY_DIRECTORY_PATH);
             addSource('', `image/${format === 'jpg' ? 'jpeg' : format}`, srcset, sizes, alt);
           }
         }
@@ -326,11 +318,9 @@ function getImageType(src) {
 }
 
 // Helper function to generate srcset string for a given source and format.
-function generateSrcset(originalSrc, format, widths) {
+function generateSrcset(originalSrc, format, widths, responsiveDir, primaryDir) {
   if (!originalSrc) return '';
 
-  const responsiveDir = IMAGE_RESPONSIVE_DIRECTORY_PATH;
-  const primaryDir = IMAGE_PRIMARY_DIRECTORY_PATH;
   const filename = originalSrc.split('/').pop().replace(/\.[^/.]+$/, "");
   const variants = widths.map(w => `${responsiveDir}${filename}-${w}.${format} ${w}w`);
   const fullSizePath = format === 'jpg' ? `${primaryDir}${filename}.${format}` : `${responsiveDir}${filename}.${format}`;

@@ -1,141 +1,73 @@
-/* global document, window, console, Promise, requestIdleCallback */
-
+/* global document, window, console, Promise */
 'use strict';
 
 import { getConfig } from '../config.js';
-import { VIEWPORT_BREAKPOINTS, VIEWPORT_BREAKPOINT_WIDTHS } from '../shared.js';
 
 const isDev = window.location.pathname.includes('/dev/') || new URLSearchParams(window.location.search).get('debug') === 'true';
 
 const createLogger = (prefix) => ({
-  log: (message, data = null) => {
-    if (isDev) {
-      console.groupCollapsed(`%c[${prefix}] ${new Date().toLocaleTimeString()} ${message}`, 'color: #2196F3; font-weight: bold;');
-      if (data) console.log('%cData:', 'color: #4CAF50;', data);
-      console.trace();
-      console.groupEnd();
-    }
-  },
-  warn: (message, data = null) => {
-    if (isDev) {
-      console.groupCollapsed(`%c[${prefix}] Warning: ${new Date().toLocaleTimeString()} ${message}`, 'color: #FF9800; font-weight: bold;');
-      if (data) console.log('%cData:', 'color: #4CAF50;', data);
-      console.trace();
-      console.groupEnd();
-    }
-  },
-  error: (message, data = null) => {
-    if (isDev) {
-      console.groupCollapsed(`%c[${prefix}] Error: ${new Date().toLocaleTimeString()} ${message}`, 'color: #F44336; font-weight: bold;');
-      if (data) console.log('%cData:', 'color: #4CAF50;', data);
-      console.trace();
-      console.groupEnd();
-    }
-    console.error(`[${prefix}] ${message}`, data);
-  }
+    log: (message, data = null) => { if (isDev) console.log(`%c[${prefix}] ${message}`, 'color: #2196F3;', data); },
+    error: (message, data = null) => console.error(`[${prefix}] ${message}`, data)
 });
 
 const logger = createLogger('HeadGenerator');
 
-const DEPENDENCIES = {
-  'shared': [],
-  'config': [],
-  'image-generator': ['shared'],
-  'video-generator': ['shared'],
-  'custom-block': ['image-generator', 'video-generator', 'shared'],
-  'custom-nav': ['shared'],
-  'custom-logo': ['image-generator', 'shared'],
-  'custom-header': ['image-generator', 'shared'],
-  'custom-slider': ['custom-block'],
-  'custom-filter': ['shared']
+/**
+ * AUTOMATED PATH RESOLVER
+ * Converts a module name into its standard file path.
+ */
+const getModulePath = (name) => {
+    const internalTools = ['config', 'shared', 'image-generator', 'video-generator'];
+    if (name === 'config') return '../config.js';
+    if (name === 'shared') return '../shared.js';
+    if (internalTools.includes(name)) return `./${name}.js`;
+    
+    // Default convention: custom-component -> ../components/custom-component.js
+    return `../components/${name}.js`;
 };
 
-const PATH_MAP = {
-  'config': '../config.js',
-  'image-generator': './image-generator.js',
-  'video-generator': './video-generator.js',
-  'shared': '../shared.js',
-  'custom-block': '../components/custom-block.js',
-  'custom-nav': '../components/custom-nav.js',
-  'custom-logo': '../components/custom-logo.js',
-  'custom-header': '../components/custom-header.js',
-  'custom-slider': '../components/custom-slider.js',
-  'custom-filter': '../components/custom-filter.js'
-};
+async function loadModuleWithDependencies(moduleName, loadedSet = new Set()) {
+    if (loadedSet.has(moduleName)) return [];
+    loadedSet.add(moduleName);
 
-async function loadModule(moduleName) {
-  const modulePath = PATH_MAP[moduleName];
-  if (!modulePath) {
-    const err = new Error(`Unknown module: ${moduleName}`);
-    logger.error(`Module not found in PATH_MAP`, { moduleName, available: Object.keys(PATH_MAP) });
-    throw err;
-  }
-  try {
-    logger.log(`Loading module: ${modulePath}`);
-    const module = await import(modulePath);
-    logger.log(`Successfully loaded: ${moduleName}`);
-    return { name: moduleName, module, path: modulePath };
-  } catch (err) {
-    logger.error(`Failed to load module ${moduleName}`, { path: modulePath, error: err.message, stack: err.stack });
-    return { name: moduleName, module: null, path: modulePath, error: err };
-  }
-}
+    const path = getModulePath(moduleName);
+    logger.log(`Fetching: ${moduleName} from ${path}`);
 
-async function loadComponentWithDependencies(componentName) {
-  logger.log(`Loading component with dependencies: ${componentName}`);
-  const allDependencies = new Set();
-  const collectDependencies = (name) => {
-    const deps = DEPENDENCIES[name] || [];
-    deps.forEach(dep => {
-      if (!allDependencies.has(dep)) {
-        allDependencies.add(dep);
-        collectDependencies(dep);
-      }
-    });
-  };
-  collectDependencies(componentName);
-  const loadOrder = [...allDependencies, componentName];
-  logger.log(`Load order for ${componentName}:`, loadOrder);
+    try {
+        const moduleNamespace = await import(path);
+        const moduleKey = Object.keys(moduleNamespace)[0];
+        const exportedClass = moduleNamespace[moduleKey];
 
-  const loadPromises = loadOrder.map(moduleName => loadModule(moduleName));
-  const results = await Promise.all(loadPromises);
-  const componentResult = results.find(r => r.name === componentName);
-  if (componentResult.error) {
-    throw componentResult.error;
-  }
-  const directDeps = DEPENDENCIES[componentName] || [];
-  const missingDeps = directDeps.filter(dep => results.find(r => r.name === dep)?.module === null);
-  if (missingDeps.length > 0) {
-    logger.warn(`Component ${componentName} loaded but missing dependencies:`, missingDeps);
-  }
-  logger.log(`Component ${componentName} loaded successfully with ${results.length} modules`);
-  return results;
+        let results = [];
+
+        // AUTOMATIC DEPENDENCY DISCOVERY
+        // Looks for 'static dependencies = [...]' inside the class
+        const deps = exportedClass?.dependencies || [];
+        if (deps.length > 0) {
+            logger.log(`${moduleName} requires:`, deps);
+            for (const dep of deps) {
+                const childResults = await loadModuleWithDependencies(dep, loadedSet);
+                results.push(...childResults);
+            }
+        }
+
+        results.push({ name: moduleName, module: moduleNamespace });
+        return results;
+    } catch (err) {
+        logger.error(`Failed to auto-load ${moduleName}`, err);
+        return [];
+    }
 }
 
 async function loadComponents(componentList) {
-  if (!componentList) {
-    logger.log('No components specified, skipping');
-    return [];
-  }
-  logger.log('Loading requested components', { components: componentList });
-  const components = componentList.split(/\s+/).map(c => c.trim()).filter(c => c);
-  const loadPromises = components.map(component =>
-    loadComponentWithDependencies(component).catch(err => {
-      logger.error(`Failed to load component ${component}`, { error: err.message, stack: err.stack });
-      return [];
-    })
-  );
-  const allResults = (await Promise.all(loadPromises)).flat();
-  const successfulComponents = allResults.filter(r => components.includes(r.name) && r.module).length;
-  const totalComponents = components.length;
-  const successfulModules = allResults.filter(r => r.module).length;
-  const totalModules = allResults.length;
-  logger.log(`Component loading summary: ${successfulComponents}/${totalComponents} components, ${successfulModules}/${totalModules} modules`, {
-    components,
-    successful: allResults.filter(r => r.module && components.includes(r.name)).map(r => r.name),
-    failed: allResults.filter(r => r.error && components.includes(r.name)).map(r => r.name)
-  });
-  return allResults;
+    if (!componentList) return;
+    const components = componentList.split(/\s+/).filter(Boolean);
+    const loadedSet = new Set();
+    
+    logger.log('Starting Auto-Discovery for:', components);
+    
+    const promises = components.map(c => loadModuleWithDependencies(c, loadedSet));
+    await Promise.all(promises);
 }
 
 async function updateHead(attributes, setup) {
@@ -413,50 +345,30 @@ async function updateHead(attributes, setup) {
 
 // ——— MAIN IIFE ———
 (async () => {
-  try {
-    logger.log('Starting HeadGenerator');
-    const setupPromise = getConfig();
-    const customHead = document.querySelector('data-custom-head');
-    if (!customHead) {
-      logger.warn('No data-custom-head element found');
-      return;
-    }
+    try {
+        const setupPromise = getConfig();
+        const customHead = document.querySelector('data-custom-head');
+        if (!customHead) return;
 
-    const attributes = {};
-    for (const [key, value] of Object.entries(customHead.dataset)) {
-      const trimmed = value?.trim();
-      if (trimmed) attributes[key] = trimmed;
-    }
-    logger.log('Merged attributes', attributes);
-
-    if (attributes.theme) {
-      document.body.setAttribute('data-theme', attributes.theme);
-      logger.log(`Applied page theme: ${attributes.theme}`);
-    }
-
-    if (attributes.components) {
-      await loadComponents(attributes.components);
-    }
-
-    const setup = await setupPromise;
-    await updateHead(attributes, setup);
-    customHead.remove();
-    logger.log('Removed data-custom-head element');
-
-    // Cleanup: move styles/links/scripts
-    ['style', 'link', 'script'].forEach(tag => {
-      document.querySelectorAll(tag).forEach(el => {
-        if (el.parentNode !== document.head && el.parentNode !== null) {
-          if (tag === 'script' && el.src && !el.defer && !el.async) el.defer = true;
-          document.head.appendChild(el);
+        const attributes = {};
+        for (const [key, value] of Object.entries(customHead.dataset)) {
+            const trimmed = value?.trim();
+            if (trimmed) attributes[key] = trimmed;
         }
-      });
-    });
 
-    logger.log('HeadGenerator completed successfully');
-    window.__PAGE_FULLY_RENDERED__ = true;
-    document.documentElement.setAttribute('data-page-ready', 'true');
-  } catch (err) {
-    logger.error('Error in HeadGenerator', { error: err.message, stack: err.stack });
-  }
+        // 1. Auto-load components and their dependencies
+        if (attributes.components) {
+            await loadComponents(attributes.components);
+        }
+
+        // 2. Process the rest of the head
+        const setup = await setupPromise;
+        await updateHead(attributes, setup);
+        
+        customHead.remove();
+        window.__PAGE_FULLY_RENDERED__ = true;
+        document.documentElement.setAttribute('data-page-ready', 'true');
+    } catch (err) {
+        logger.error('Critical Fail', err);
+    }
 })();

@@ -4,6 +4,9 @@ import { VALID_ALIGNMENTS, VALID_ALIGN_MAP } from '../shared.js';
 import { getConfig, getLogoPath } from '../config.js';
 
 class CustomLogo extends HTMLElement {
+
+    static dependencies = ['image-generator', 'shared'];
+
     #ignoredChangeCount;
     #basePath = null;
     constructor() {
@@ -400,6 +403,18 @@ class CustomLogo extends HTMLElement {
             this.render();
         }
     }
+
+    static get builderConfig() {
+        return {
+            isContainer: false,
+            groups: {
+                'Logo (Full)': ['logo-full-primary-src', 'logo-full-light-src', 'logo-full-dark-src', 'logo-full-primary-alt', 'logo-full-light-alt', 'logo-full-dark-alt', 'logo-full-position'],
+                'Logo (Mobile)': ['logo-icon-primary-src', 'logo-icon-light-src', 'logo-icon-dark-src', 'logo-icon-primary-alt', 'logo-icon-light-alt', 'logo-icon-dark-alt', 'logo-icon-position'],
+                'Sizing': ['logo-height', 'logo-breakpoint']
+            }
+        };
+    }
+
 }
 try {
     customElements.define('custom-logo', CustomLogo);

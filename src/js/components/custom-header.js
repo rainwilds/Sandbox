@@ -1,7 +1,7 @@
 (async () => {
     // Browser-compatible dev detection
     const isDev = window.location.href.includes('/dev/') ||
-      new URLSearchParams(window.location.search).get('debug') === 'true';
+        new URLSearchParams(window.location.search).get('debug') === 'true';
 
     try {
         const { CustomBlock } = await import('./custom-block.js');
@@ -14,6 +14,9 @@
         ]);
 
         class CustomHeader extends CustomBlock {
+
+            static dependencies = ['image-generator', 'shared']
+
             // Private logging helpers
             #log(message, data = null) {
                 if (this.debug) {
@@ -117,10 +120,10 @@
                     this.#warn(`Invalid logo-placement "${attrs.logoPlacement}". Defaulting to 'independent'.`);
                     attrs.logoPlacement = 'independent';
                 }
-if (attrs.backdropFilter) {
+                if (attrs.backdropFilter) {
                     const filters = attrs.backdropFilter.split(' ');
                     const validFilters = filters.filter(f => VALID_BACKDROP_CLASSES.includes(f));
-                    
+
                     if (validFilters.length !== filters.length) {
                         this.#warn(`One or more invalid backdrop filters provided. Using only valid ones.`, { provided: attrs.backdropFilter });
                     }
@@ -181,15 +184,15 @@ if (attrs.backdropFilter) {
                     this.#log('Applied header classes', { classes: classesToAdd });
                 }
 
-// Apply backdrop filter classes (CSS Variable Composition)
+                // Apply backdrop filter classes (CSS Variable Composition)
                 if (attrs.backdropFilter) {
                     // 1. Add the base class required for the CSS variables to compose
                     blockElement.classList.add('has-backdrop');
-                    
+
                     // 2. Add the specific filter utility classes
                     const filterClasses = attrs.backdropFilter.split(' ').filter(Boolean);
                     blockElement.classList.add(...filterClasses);
-                    
+
                     this.#log('Applied backdrop classes', { classes: filterClasses });
                 }
 
@@ -327,6 +330,19 @@ if (attrs.backdropFilter) {
                     }
                 }
             }
+
+            static get builderConfig() {
+                // Get the config from CustomBlock
+                const baseConfig = super.builderConfig;
+                return {
+                    isContainer: baseConfig.isContainer,
+                    groups: {
+                        'Settings': ['position', 'logo-placement', 'nav-alignment', 'nav-logo-container-class', 'nav-logo-container-style', 'backdrop-filter'],
+                        ...baseConfig.groups // Spread all the CustomBlock groups below it
+                    }
+                };
+            }
+
         }
 
         customElements.define('custom-header', CustomHeader);

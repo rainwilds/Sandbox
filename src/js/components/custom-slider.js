@@ -1,9 +1,13 @@
 'use strict';
 import { getConfig } from '../config.js';
-import { VIEWPORT_BREAKPOINTS, GridPlacementMixin } from '../shared.js';
+import { VIEWPORT_BREAKPOINTS } from '../shared.js';
 import { CustomSliderController } from './interactive-controller.js';
+import { GridPlacementMixin } from '../mixins/grid-placement.js';
 
 class CustomSlider extends GridPlacementMixin(HTMLElement) {
+
+    static dependencies = ['custom-block'];
+
     #ignoredChangeCount = 0;
     #basePath = null;
     #currentIndex = 0;
@@ -41,7 +45,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         this.#uniqueId = `slider-${Math.random().toString(36).substr(2, 9)}`;
         CustomSlider.#observer.observe(this);
         CustomSlider.#observedInstances.add(this);
-        this.#log('Constructor called', { elementId: this.#uniqueId });
     }
 
     static #observer = new IntersectionObserver((entries) => {
@@ -94,11 +97,37 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
                 const config = await getConfig();
                 this.#basePath = config.general?.basePath || '/';
             } catch (error) {
-                this.#error('Failed to fetch base path', { error: error.message });
                 this.#basePath = '/';
             }
         }
         return this.#basePath;
+    }
+
+    #parseIcon(iconString, fallbackIcon) {
+        if (!iconString) return fallbackIcon || '';
+
+        const decodedIcon = iconString
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'");
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(decodedIcon, 'text/html');
+
+        const svgElement = doc.body.querySelector('svg');
+        if (svgElement) {
+            if (!svgElement.hasAttribute('fill') && !svgElement.hasAttribute('stroke')) {
+                svgElement.setAttribute('fill', 'currentColor');
+            }
+            svgElement.setAttribute('width', '1em');
+            svgElement.setAttribute('height', '1em');
+            svgElement.classList.add('builder-inline-svg');
+
+            return svgElement.outerHTML;
+        }
+
+        return fallbackIcon || '';
     }
 
     async getAttributes() {
@@ -113,20 +142,17 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         let defaultSlidesPerView = 1;
         let useBreakpoints = false;
         const definedBreakpoints = breakpointAttrs.filter(attr => this.hasAttribute(attr));
-        this.#log('Checking breakpoint attributes', { definedBreakpoints, elementId: this.#uniqueId });
 
         if (definedBreakpoints.length > 0) {
             useBreakpoints = true;
             for (const attr of breakpointAttrs) {
                 if (!this.hasAttribute(attr)) {
-                    this.#error(`Missing required breakpoint attribute: ${attr}`, { definedBreakpoints, elementId: this.#uniqueId });
                     useBreakpoints = false;
                     break;
                 }
                 const value = this.getAttribute(attr);
                 const num = parseInt(value, 10);
                 if (isNaN(num) || num < 1) {
-                    this.#error(`Invalid ${attr} value, must be integer >= 1`, { value, elementId: this.#uniqueId });
                     useBreakpoints = false;
                     break;
                 }
@@ -138,18 +164,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         const defaultAttr = this.getAttribute('slides-per-view') || '1';
         defaultSlidesPerView = Math.max(1, parseInt(defaultAttr, 10)) || 1;
 
-        if (!useBreakpoints) {
-            this.#log('Using default slides-per-view due to invalid or missing breakpoint attributes', {
-                defaultSlidesPerView,
-                elementId: this.#uniqueId
-            });
-        } else {
-            this.#log('Breakpoint attributes validated', {
-                slidesPerViewConfig,
-                elementId: this.#uniqueId
-            });
-        }
-
         let autoplayType = 'none';
         let autoplayDelay = 0;
         let continuousSpeed = 100;
@@ -158,7 +172,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
             if (autoplayAttr === '' || autoplayAttr === null) {
                 autoplayType = 'interval';
                 autoplayDelay = 3000;
-                this.#log('Autoplay: Simple autoplay, defaulting to 3s', { elementId: this.#uniqueId });
             } else if (autoplayAttr.startsWith('continuous')) {
                 autoplayType = 'continuous';
                 const parts = autoplayAttr.split(/\s+/);
@@ -166,18 +179,9 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
                     const speedMatch = parts[1].match(/^(\d+)(?:px\/s)?$/);
                     if (speedMatch) {
                         continuousSpeed = parseInt(speedMatch[1], 10);
-                        if (continuousSpeed <= 0) {
-                            this.#warn('Invalid continuous speed, using default 100px/s', { value: parts[1] });
-                            continuousSpeed = 100;
-                        }
-                    } else {
-                        this.#warn('Invalid continuous speed format, using default 100px/s', {
-                            value: parts[1],
-                            expected: 'Npx/s or N'
-                        });
+                        if (continuousSpeed <= 0) continuousSpeed = 100;
                     }
                 }
-                this.#log(`Autoplay: Continuous scrolling, speed=${continuousSpeed}px/s`, { elementId: this.#uniqueId });
             } else {
                 const timeMatch = autoplayAttr.match(/^(\d+)(s|ms)$/);
                 if (timeMatch) {
@@ -185,22 +189,30 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
                     const value = parseInt(timeMatch[1], 10);
                     const unit = timeMatch[2];
                     autoplayDelay = unit === 's' ? value * 1000 : value;
-                    this.#log(`Autoplay: Interval-based, delay=${autoplayDelay}ms`, { elementId: this.#uniqueId });
                 } else {
-                    this.#warn('Invalid autoplay format, disabling autoplay', {
-                        value: autoplayAttr,
-                        expected: 'Ns, Nms, continuous, or continuous N'
-                    });
                     autoplayType = 'none';
                 }
             }
         }
 
+        const defaultNavLeft = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>';
+        const defaultNavRight = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>';
+        const defaultDotActive = '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"></circle></svg>';
+        const defaultDotInactive = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="6"></circle></svg>';
+
         let navigation = this.hasAttribute('navigation');
-        let navigationIconLeft = this.getAttribute('navigation-icon-left') || '<i class="fa-chisel fa-regular fa-angle-left"></i>';
-        let navigationIconRight = this.getAttribute('navigation-icon-right') || '<i class="fa-chisel fa-regular fa-angle-right"></i>';
+        let pagination = this.hasAttribute('pagination');
+
+        if (autoplayType === 'continuous') {
+            navigation = false;
+            pagination = false;
+        }
+
+        let navigationIconLeft = this.getAttribute('navigation-icon-left') || defaultNavLeft;
+        let navigationIconRight = this.getAttribute('navigation-icon-right') || defaultNavRight;
         let navigationIconLeftBackground = this.getAttribute('navigation-icon-left-background') || '';
         let navigationIconRightBackground = this.getAttribute('navigation-icon-right-background') || '';
+        
         const navigationIconSize = this.getAttribute('navigation-icon-size') || '';
         let iconSizeBackground = '';
         let iconSizeForeground = '';
@@ -213,11 +225,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
             } else if (sizes.length === 2 && sizes.every(size => validSizeRegex.test(size))) {
                 iconSizeBackground = sizes[0];
                 iconSizeForeground = sizes[1];
-            } else {
-                this.#warn('Invalid navigation-icon-size format, ignoring', {
-                    value: navigationIconSize,
-                    expected: 'One or two CSS font-size values (e.g., "1.5rem" or "2rem 1.5rem")'
-                });
             }
         }
 
@@ -233,135 +240,52 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
             } else if (sizes.length === 2 && sizes.every(size => validSizeRegex.test(size))) {
                 paginationIconSizeActive = sizes[0];
                 paginationIconSizeInactive = sizes[1];
-                this.#warn('Two pagination-icon-size values provided but pagination icons are not stacked, using first size', {
-                    paginationIconSize,
-                    paginationIconSizeActive,
-                    paginationIconSizeInactive
-                });
-            } else {
-                this.#warn('Invalid pagination-icon-size format, ignoring', {
-                    value: paginationIconSize,
-                    expected: 'One or two CSS font-size values (e.g., "1.5rem" or "1.5rem 1rem")'
-                });
             }
         }
 
         const gapAttr = this.getAttribute('gap') || '0';
         let gap = gapAttr;
-        let pagination = this.hasAttribute('pagination');
 
-        // NEW: Pagination Position Logic
         let paginationPosition = this.getAttribute('pagination-position') || 'overlay';
         if (!['overlay', 'below'].includes(paginationPosition)) {
             paginationPosition = 'overlay';
         }
 
-        let paginationIconActive = this.getAttribute('pagination-icon-active') || '<i class="fa-solid fa-circle"></i>';
-        let paginationIconInactive = this.getAttribute('pagination-icon-inactive') || '<i class="fa-regular fa-circle"></i>';
+        let paginationIconActive = this.getAttribute('pagination-icon-active') || defaultDotActive;
+        let paginationIconInactive = this.getAttribute('pagination-icon-inactive') || defaultDotInactive;
         const crossFade = this.hasAttribute('cross-fade');
 
         if (crossFade && autoplayType === 'continuous') {
-            this.#warn('Continuous autoplay is not supported with cross-fade, disabling autoplay', { elementId: this.#uniqueId });
             autoplayType = 'none';
             continuousSpeed = 0;
-        }
-
-        if (crossFade && defaultSlidesPerView !== 1) {
-            this.#warn('Cross-fade attribute is only supported for slides-per-view=1, ignoring', { defaultSlidesPerView });
         }
 
         const infiniteScrolling = this.hasAttribute('infinite-scrolling');
         const pauseOnHover = this.hasAttribute('pause-on-hover');
 
-        const validateIcon = (icon, position, isBackground = false) => {
-            if (!icon) {
-                this.#warn(`No ${position} icon provided`, { elementId: this.#uniqueId });
-                return isBackground ? '' : '<i class="fa-solid fa-circle"></i>';
-            }
-            const parser = new DOMParser();
-            const decodedIcon = icon.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"');
-            const doc = parser.parseFromString(decodedIcon, 'text/html');
-            const iElement = doc.body.querySelector('i');
-            let classes = iElement ? iElement.className.split(' ').filter(cls => cls) : icon.split(/\s+/).filter(cls => cls);
-            const validClasses = classes.filter(cls => cls.startsWith('fa-') || cls === 'fa-chisel' || cls === 'fa-utility' || cls === 'fa-utility-fill' || cls === 'fa-semibold');
-            if (validClasses.length === 0) {
-                this.#warn(`No valid Font Awesome classes in ${position} icon`, {
-                    classes,
-                    elementId: this.#uniqueId
-                });
-                return isBackground ? '' : '<i class="fa-solid fa-circle"></i>';
-            }
-            validClasses.push('icon');
-            const result = `<i class="${validClasses.join(' ')}"></i>`;
-            this.#log(`Validated ${position} icon`, { icon: result, elementId: this.#uniqueId });
-            return result;
-        };
-
-        const processIconStack = (icon, backgroundIcon, position) => {
-            const foreground = validateIcon(icon, position);
-            const background = validateIcon(backgroundIcon, position, true);
-            if (!foreground) {
-                this.#warn(`No valid foreground icon for ${position}, navigation disabled`, { icon, backgroundIcon });
-                return { valid: false, markup: '' };
-            }
-            if (iconSizeBackground && iconSizeForeground && iconSizeBackground !== iconSizeForeground && !background) {
-                this.#warn(`Two navigation-icon-size values provided but ${position} icons are not stacked, using first size`, {
-                    navigationIconSize,
-                    iconSizeBackground,
-                    iconSizeForeground
-                });
-            }
-            if (!background) {
-                return { valid: true, markup: foreground };
-            }
+        const processIconStack = (iconStr, bgIconStr, fallback) => {
+            const foreground = this.#parseIcon(iconStr, fallback);
+            const background = bgIconStr ? this.#parseIcon(bgIconStr, '') : '';
+            
+            if (!foreground) return { valid: false, markup: '' };
+            if (!background) return { valid: true, markup: foreground };
+            
             return {
                 valid: true,
-                markup: `<span class="icon-stack icon">${background}${foreground}</span>`
+                markup: `<span class="icon-stack" style="position: relative; display: inline-flex; align-items: center; justify-content: center;">
+                            <span style="position: absolute; display: flex;">${background}</span>
+                            <span style="position: relative; z-index: 1; display: flex;">${foreground}</span>
+                         </span>`
             };
         };
 
-        let leftIconResult = { valid: true, markup: navigationIconLeft };
-        let rightIconResult = { valid: true, markup: navigationIconRight };
-        if (navigationIconLeftBackground || navigationIconRightBackground) {
-            leftIconResult = processIconStack(navigationIconLeft, navigationIconLeftBackground, 'left');
-            rightIconResult = processIconStack(navigationIconRight, navigationIconRightBackground, 'right');
-        } else {
-            const parser = new DOMParser();
-            const leftDoc = parser.parseFromString(navigationIconLeft.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), 'text/html');
-            const rightDoc = parser.parseFromString(navigationIconRight.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"'), 'text/html');
-            const leftIcons = leftDoc.body.querySelectorAll('i');
-            const rightIcons = rightDoc.body.querySelectorAll('i');
-            if (leftIcons.length === 2) {
-                leftIconResult = processIconStack(leftIcons[1].outerHTML, leftIcons[0].outerHTML, 'left');
-            } else {
-                leftIconResult = { valid: true, markup: validateIcon(navigationIconLeft, 'left') };
-            }
-            if (rightIcons.length === 2) {
-                rightIconResult = processIconStack(rightIcons[1].outerHTML, rightIcons[0].outerHTML, 'right');
-            } else {
-                rightIconResult = { valid: true, markup: validateIcon(navigationIconRight, 'right') };
-            }
-        }
+        let leftIconResult = processIconStack(navigationIconLeft, navigationIconLeftBackground, defaultNavLeft);
+        let rightIconResult = processIconStack(navigationIconRight, navigationIconRightBackground, defaultNavRight);
 
-        navigation = navigation && leftIconResult.valid && rightIconResult.valid && this.hasAttribute('navigation-icon-left') && this.hasAttribute('navigation-icon-right');
-        if (!navigation && this.hasAttribute('navigation')) {
-            this.#warn('Navigation disabled due to invalid or missing icon attributes', {
-                leftIconValid: leftIconResult.valid,
-                rightIconValid: rightIconResult.valid,
-                hasLeftIcon: this.hasAttribute('navigation-icon-left'),
-                hasRightIcon: this.hasAttribute('navigation-icon-right')
-            });
-        }
-
-        paginationIconActive = validateIcon(paginationIconActive, 'active');
-        paginationIconInactive = validateIcon(paginationIconInactive, 'inactive');
-        this.#log('Pagination attributes validated', {
-            pagination,
-            paginationPosition,
-            paginationIconActive,
-            paginationIconInactive,
-            elementId: this.#uniqueId
-        });
+        navigation = navigation && leftIconResult.valid && rightIconResult.valid;
+        
+        paginationIconActive = this.#parseIcon(paginationIconActive, defaultDotActive);
+        paginationIconInactive = this.#parseIcon(paginationIconInactive, defaultDotInactive);
 
         return {
             autoplayType,
@@ -389,70 +313,32 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
     }
 
     #getCurrentBreakpoint() {
-        if (!this.#attrs || !this.#attrs.useBreakpoints) {
-            this.#log('Breakpoints ignored, using fixed slides-per-view', { elementId: this.#uniqueId });
-            return null;
-        }
+        if (!this.#attrs || !this.#attrs.useBreakpoints) return null;
+        
         const width = window.innerWidth;
         let selectedBreakpoint = 'large';
-        if (!VIEWPORT_BREAKPOINTS || !Array.isArray(VIEWPORT_BREAKPOINTS)) {
-            this.#error('VIEWPORT_BREAKPOINTS is undefined or invalid', { elementId: this.#uniqueId });
-            return selectedBreakpoint;
-        }
+        if (!VIEWPORT_BREAKPOINTS || !Array.isArray(VIEWPORT_BREAKPOINTS)) return selectedBreakpoint;
+        
         for (const bp of VIEWPORT_BREAKPOINTS) {
             if (width <= bp.maxWidth) {
                 selectedBreakpoint = bp.name;
                 break;
             }
         }
-        this.#log('Current breakpoint detected', {
-            viewportWidth: width,
-            breakpoint: selectedBreakpoint,
-            elementId: this.#uniqueId
-        });
         return selectedBreakpoint;
     }
 
     #getSlidesPerView() {
-        if (!this.#attrs) {
-            this.#error('Attributes not initialized', { elementId: this.#uniqueId });
-            return 1;
-        }
-        if (!this.#attrs.useBreakpoints) {
-            this.#log('Using fixed slides-per-view', {
-                slidesPerView: this.#attrs.defaultSlidesPerView,
-                elementId: this.#uniqueId
-            });
-            return this.#attrs.defaultSlidesPerView;
-        }
+        if (!this.#attrs) return 1;
+        if (!this.#attrs.useBreakpoints) return this.#attrs.defaultSlidesPerView;
+        
         const bp = this.#getCurrentBreakpoint();
         const spv = this.#attrs.slidesPerViewConfig[bp] ?? this.#attrs.defaultSlidesPerView;
-        this.#log('Slides per view determined', {
-            breakpoint: bp,
-            slidesPerView: spv,
-            slidesPerViewConfig: this.#attrs.slidesPerViewConfig,
-            defaultSlidesPerView: this.#attrs.defaultSlidesPerView,
-            elementId: this.#uniqueId
-        });
         return spv;
     }
 
     #applySlidesPerView() {
-        const oldSpv = this.#attrs?.slidesPerView || 0;
         const newSpv = this.#getSlidesPerView();
-        this.#log('Applying slides per view', {
-            currentSlidesPerView: oldSpv,
-            newSlidesPerView: newSpv,
-            gap: this.#attrs?.gap,
-            elementId: this.#uniqueId
-        });
-
-        if (newSpv === 1 && this.#attrs?.gap !== '0') {
-            this.#warn('Gap attribute has no visual effect when slides-per-view=1', {
-                gap: this.#attrs.gap,
-                elementId: this.#uniqueId
-            });
-        }
 
         if (this.#attrs) {
             this.#attrs.slidesPerView = newSpv;
@@ -464,7 +350,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
             this.#rebuildInfiniteBuffer();
         }
 
-        // Clamp currentIndex to prevent invalid states after slidesPerView change
         if (!this.#attrs.infiniteScrolling) {
             const maxIndex = Math.max(0, this.#originalLength - this.#attrs.slidesPerView);
             this.#currentIndex = Math.min(this.#currentIndex, maxIndex);
@@ -473,11 +358,8 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         const wrapper = document.getElementById(this.#uniqueId)?.querySelector('.slider-wrapper');
         if (wrapper) {
             wrapper.style.setProperty('--slider-columns', `repeat(${this.#slides.length}, ${100 / newSpv}%)`);
-        } else {
-            this.#warn('Slider wrapper not found during applySlidesPerView', { elementId: this.#uniqueId });
         }
 
-        // Update slider position to align with new slidesPerView
         this.#setPositionByIndex();
 
         if (this.#attrs?.pagination) {
@@ -485,19 +367,11 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         }
 
         this.#updateSlider(true);
-        this.#log('Slides per view applied', {
-            newSlidesPerView: newSpv,
-            currentIndex: this.#currentIndex,
-            elementId: this.#uniqueId
-        });
     }
 
     #updatePagination() {
         const sliderContainer = document.getElementById(this.#uniqueId);
-        if (!sliderContainer) {
-            this.#warn('Slider container not found for pagination update', { elementId: this.#uniqueId });
-            return;
-        }
+        if (!sliderContainer || !this.#attrs.pagination) return;
 
         this.#childElements = Array.from(sliderContainer.querySelectorAll('.slider-slide'))
             .map(slide => slide.cloneNode(true));
@@ -505,17 +379,7 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
 
         if (!this.#originalLength) {
             this.#originalLength = totalSlides;
-            this.#warn('originalLength was not set, defaulting to totalSlides', { totalSlides, elementId: this.#uniqueId });
         }
-
-        this.#log('Updating pagination', {
-            totalSlides,
-            originalLength: this.#originalLength,
-            slidesPerView: this.#attrs.slidesPerView,
-            infiniteScrolling: this.#attrs.infiniteScrolling,
-            currentIndex: this.#currentIndex,
-            elementId: this.#uniqueId
-        });
 
         let pagination = sliderContainer.querySelector('.slider-pagination');
         if (!pagination) {
@@ -523,7 +387,21 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
             pagination.className = 'slider-pagination';
             sliderContainer.appendChild(pagination);
         } else {
-            pagination.innerHTML = ''; // Clear existing dots
+            pagination.innerHTML = ''; 
+        }
+
+        // --- PURE CSS PAGINATION SWAPPING ---
+        if (!sliderContainer.querySelector('.pagination-styles')) {
+            const paginationStyles = document.createElement('style');
+            paginationStyles.className = 'pagination-styles';
+            paginationStyles.textContent = `
+                #${this.#uniqueId} .slider-pagination .icon-active-state { display: none; width: 100%; height: 100%; align-items: center; justify-content: center; }
+                #${this.#uniqueId} .slider-pagination .icon.is-active .icon-active-state { display: flex; }
+                #${this.#uniqueId} .slider-pagination .icon-inactive-state { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; }
+                #${this.#uniqueId} .slider-pagination .icon.is-active .icon-inactive-state { display: none; }
+                #${this.#uniqueId} .slider-pagination .icon { cursor: pointer; }
+            `;
+            sliderContainer.appendChild(paginationStyles);
         }
 
         const totalDots = this.#attrs.infiniteScrolling
@@ -533,14 +411,35 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         for (let i = 0; i < totalDots; i++) {
             const dot = document.createElement('span');
             dot.className = 'icon';
+            
             const logicalIndex = this.#attrs.infiniteScrolling
                 ? (this.#currentIndex - this.#bufferSize + this.#originalLength) % this.#originalLength
                 : Math.max(0, Math.min(this.#currentIndex, this.#originalLength - this.#attrs.slidesPerView));
-            dot.innerHTML = i === logicalIndex ? this.#attrs.paginationIconActive : this.#attrs.paginationIconInactive;
-            const icon = dot.querySelector('i');
-            if (icon && (this.#attrs.paginationIconSizeActive || this.#attrs.paginationIconSizeInactive)) {
-                icon.style.fontSize = i === logicalIndex ? this.#attrs.paginationIconSizeActive : this.#attrs.paginationIconSizeInactive;
+            
+            const isActive = i === logicalIndex;
+
+            // Notice: No inline display toggling here anymore!
+            dot.innerHTML = `
+                <span class="icon-active-state">${this.#attrs.paginationIconActive}</span>
+                <span class="icon-inactive-state">${this.#attrs.paginationIconInactive}</span>
+            `;
+
+            if (isActive) dot.classList.add('is-active');
+
+            const activeSvg = dot.querySelector('.icon-active-state .builder-inline-svg');
+            const inactiveSvg = dot.querySelector('.icon-inactive-state .builder-inline-svg');
+            
+            if (activeSvg && this.#attrs.paginationIconSizeActive) {
+                activeSvg.style.fontSize = this.#attrs.paginationIconSizeActive;
+                activeSvg.style.width = this.#attrs.paginationIconSizeActive;
+                activeSvg.style.height = this.#attrs.paginationIconSizeActive;
             }
+            if (inactiveSvg && this.#attrs.paginationIconSizeInactive) {
+                inactiveSvg.style.fontSize = this.#attrs.paginationIconSizeInactive;
+                inactiveSvg.style.width = this.#attrs.paginationIconSizeInactive;
+                inactiveSvg.style.height = this.#attrs.paginationIconSizeInactive;
+            }
+            
             dot.addEventListener('click', () => {
                 if (this.#isProcessingClick) return;
                 this.#isProcessingClick = true;
@@ -563,28 +462,16 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
                     if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
                         this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
                     }
-                    this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${i + 1}, translate=${this.#currentTranslate}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
                 }, 50);
             });
             pagination.appendChild(dot);
         }
-
-        this.#log(`[Pagination Updated] totalDots=${totalDots}, slidesPerView=${this.#attrs.slidesPerView}, originalLength=${this.#originalLength}`, { elementId: this.#uniqueId, totalSlides });
     }
 
     #rebuildInfiniteBuffer() {
-        if (!this.#attrs.infiniteScrolling || this.#originalLength <= this.#attrs.slidesPerView) {
-            this.#log('Skipping infinite buffer rebuild', {
-                infiniteScrolling: this.#attrs.infiniteScrolling,
-                originalLength: this.#originalLength,
-                slidesPerView: this.#attrs.slidesPerView,
-                elementId: this.#uniqueId
-            });
-            return;
-        }
+        if (!this.#attrs.infiniteScrolling || this.#originalLength <= this.#attrs.slidesPerView) return;
 
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
-        const currentTranslate = this.#currentTranslate;
         const originalSlides = this.#slides.slice(this.#bufferSize, this.#bufferSize + this.#originalLength);
         const leftBuffer = originalSlides.slice(-this.#bufferSize).map(slide => slide.cloneNode(true));
         const rightBuffer = originalSlides.slice(0, this.#bufferSize).map(slide => slide.cloneNode(true));
@@ -595,38 +482,25 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         this.#currentTranslate = this.#calculateTranslate();
         wrapper.style.transition = 'none';
         wrapper.style.transform = `translate3d(${this.#currentTranslate}px, 0, 0)`;
-        this.#log('Infinite buffer rebuilt', {
-            bufferSize: this.#bufferSize,
-            totalSlides: this.#slides.length,
-            currentIndex: this.#currentIndex,
-            currentTranslate: this.#currentTranslate,
-            elementId: this.#uniqueId
-        });
     }
 
     async initialize() {
         if (this.isInitialized || !this.isVisible) return;
 
-        // VISUAL BUILDER SAFEGUARD:
-        // Prevent the slider from destroying drag-and-drop wrappers while inside the canvas.
+        // VISUAL BUILDER SAFEGUARD
         if (this.closest('#canvas') || this.closest('visual-builder')) {
             this.style.display = 'flex';
             this.style.gap = '16px';
             this.style.overflowX = 'auto';
             this.style.padding = '10px';
-            this.style.border = '2px dashed #3b82f6'; // Visual drop-zone indicator
+            this.style.border = '2px dashed #3b82f6';
             this.isInitialized = true;
             return;
         }
 
-        this.#log('Initialization started', { elementId: this.#uniqueId });
-
-        // 2. SECURE THE SLIDES: Scrape them once, safely.
-        // Using querySelectorAll ensures we find them even if nested inside pre-rendered wrappers.
         if (this.#childElements.length === 0) {
             const slides = this.querySelectorAll('custom-block, .block');
             this.#childElements = Array.from(slides).map(child => child.cloneNode(true));
-            this.#log('Scraped child elements for slider', { count: this.#childElements.length });
         }
 
         this.isInitialized = true;
@@ -643,28 +517,22 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
             const sliderElement = await this.render(attrs);
 
             if (sliderElement) {
-                // APPEND, do not replace
                 this.innerHTML = '';
                 this.appendChild(sliderElement);
 
-                // Attach the interactive controller
                 if (!this.controller) {
                     this.controller = new CustomSliderController(sliderElement);
                 }
 
                 this.#setupSlider();
-                this.#log('Initialization completed', { elementId: this.#uniqueId });
             } else {
-                this.#error('Render returned null, using fallback');
                 await this.#renderFallback();
             }
         } catch (error) {
-            this.#error('Initialization failed', { error: error.message, stack: error.stack });
             await this.#renderFallback();
         }
     }
 
-    // Extracted your fallback logic into a helper method to keep initialize clean
     async #renderFallback() {
         const fallback = await this.render({
             autoplayType: 'none',
@@ -677,8 +545,8 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
             gap: '0',
             pagination: false,
             paginationPosition: 'overlay',
-            paginationIconActive: '<i class="fa-solid fa-circle"></i>',
-            paginationIconInactive: '<i class="fa-regular fa-circle"></i>',
+            paginationIconActive: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"></circle></svg>',
+            paginationIconInactive: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="6"></circle></svg>',
             iconSizeBackground: '',
             iconSizeForeground: '',
             paginationIconSizeActive: '',
@@ -694,16 +562,10 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
 
     #setupSlider() {
         const sliderContainer = document.getElementById(this.#uniqueId);
-        if (!sliderContainer) {
-            this.#error('Slider container not found', { elementId: this.#uniqueId });
-            return;
-        }
+        if (!sliderContainer) return;
 
         this.#slides = Array.from(sliderContainer.querySelectorAll('.slider-slide'));
-        if (this.#slides.length === 0) {
-            this.#warn('No slides to initialize', { elementId: this.#uniqueId });
-            return;
-        }
+        if (this.#slides.length === 0) return;
 
         const originalSlides = this.#slides;
         this.#originalLength = originalSlides.length;
@@ -721,12 +583,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
             this.#slides = Array.from(wrapper.querySelectorAll('.slider-slide'));
             this.#currentIndex = this.#bufferSize;
             this.#currentTranslate = this.#calculateTranslate();
-            this.#log('Infinite scrolling initialized', {
-                elementId: this.#uniqueId,
-                bufferSize: this.#bufferSize,
-                totalSlides: this.#slides.length,
-                initialTranslate: this.#currentTranslate
-            });
         } else {
             wrapper.innerHTML = '';
             originalSlides.forEach(slide => wrapper.appendChild(slide));
@@ -778,17 +634,13 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
             sliderContainer.addEventListener('mouseenter', () => {
                 this.#isHovering = true;
                 this.#stopAutoplay();
-                this.#log('Autoplay paused due to hover (pause-on-hover enabled)', { elementId: this.#uniqueId });
             });
             sliderContainer.addEventListener('mouseleave', () => {
                 this.#isHovering = false;
                 if (this.#attrs.autoplayType !== 'none') {
                     this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
-                    this.#log('Autoplay resumed after hover (pause-on-hover enabled)', { elementId: this.#uniqueId });
                 }
             });
-        } else {
-            this.#log('Hover-to-pause disabled (no pause-on-hover attribute)', { elementId: this.#uniqueId });
         }
 
         if (this.#attrs.navigation) {
@@ -839,7 +691,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
                             if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
                                 this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
                             }
-                            this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${index + 1}, translate=${this.#currentTranslate}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
                         }, 50);
                     });
                 });
@@ -851,7 +702,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         }
 
         this.#debouncedHandleResize = this.#debounce(() => {
-            this.#log('Resize event triggered', { viewportWidth: window.innerWidth, elementId: this.#uniqueId });
             this.#recalculateDimensions();
             this.#applySlidesPerView();
         }, 100);
@@ -878,26 +728,11 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
             this.#slideWidth = sliderContainer.clientWidth / this.#attrs.slidesPerView;
             const wrapper = sliderContainer.querySelector('.slider-wrapper');
             this.#gapPx = parseFloat(window.getComputedStyle(wrapper).columnGap) || 0;
-            this.#log('Dimensions recalculated', {
-                slideWidth: this.#slideWidth,
-                gapPx: this.#gapPx,
-                containerWidth: sliderContainer.clientWidth,
-                slidesPerView: this.#attrs.slidesPerView,
-                elementId: this.#uniqueId
-            });
-        } else {
-            this.#warn('Failed to recalculate dimensions', {
-                sliderContainerExists: !!sliderContainer,
-                slidesLength: this.#slides.length,
-                elementId: this.#uniqueId
-            });
         }
     }
 
     #pointerDown(event) {
-        if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
-            return;
-        }
+        if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) return;
         if (event.pointerType === 'touch' || event.pointerType === 'mouse') {
             this.#stopAutoplay();
             this.#isDragging = true;
@@ -907,7 +742,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
             const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
             wrapper.classList.add('dragging');
             event.target.setPointerCapture(event.pointerId);
-            this.#log('Pointer down, dragging class added', { elementId: this.#uniqueId });
         }
     }
 
@@ -932,11 +766,7 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         wrapper.classList.remove('dragging');
         if (event.target.releasePointerCapture) {
-            try {
-                event.target.releasePointerCapture(event.pointerId);
-            } catch (e) {
-                this.#warn('Failed to release pointer capture', { error: e.message });
-            }
+            try { event.target.releasePointerCapture(event.pointerId); } catch (e) {}
         }
         if (this.#attrs.autoplayType === 'continuous') {
             const slideWidthTotal = this.#slideWidth + this.#gapPx;
@@ -947,11 +777,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
                 this.#currentIndex = Math.max(0, Math.min(this.#currentIndex, this.#originalLength - this.#attrs.slidesPerView));
             }
             this.#setSliderPosition('0s');
-            this.#log('Pointer cancel in continuous mode', {
-                elementId: this.#uniqueId,
-                currentTranslate: this.#currentTranslate,
-                currentIndex: this.#currentIndex
-            });
         } else {
             this.#setPositionByIndex();
         }
@@ -959,7 +784,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
             this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
         }
-        this.#log('Pointer cancelled or left', { elementId: this.#uniqueId });
     }
 
     #pointerUp(event) {
@@ -971,7 +795,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         }
         const movedBy = this.#currentTranslate - this.#prevTranslate;
         const threshold = this.#slideWidth / 3;
-        const oldIndex = this.#currentIndex;
         if (Math.abs(movedBy) > threshold) {
             if (movedBy < -threshold && (!this.#attrs.infiniteScrolling || this.#currentIndex < this.#slides.length - this.#attrs.slidesPerView)) {
                 this.#currentIndex += 1;
@@ -999,11 +822,7 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         wrapper.classList.remove('dragging');
         if (event.target.releasePointerCapture) {
-            try {
-                event.target.releasePointerCapture(event.pointerId);
-            } catch (e) {
-                this.#warn('Failed to release pointer capture', { error: e.message });
-            }
+            try { event.target.releasePointerCapture(event.pointerId); } catch (e) {}
         }
         if (this.#attrs.autoplayType === 'continuous') {
             const slideWidthTotal = this.#slideWidth + this.#gapPx;
@@ -1014,12 +833,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
                 this.#currentIndex = Math.max(0, Math.min(this.#currentIndex, this.#originalLength - this.#attrs.slidesPerView));
             }
             this.#setSliderPosition('0s');
-            this.#log('Drag end in continuous mode', {
-                elementId: this.#uniqueId,
-                currentTranslate: this.#currentTranslate,
-                currentIndex: this.#currentIndex,
-                movedBy: movedBy
-            });
         } else {
             this.#setPositionByIndex();
         }
@@ -1027,7 +840,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
             this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
         }
-        this.#log(`[Drag End] currentIndex=${this.#currentIndex}, oldIndex=${oldIndex}, movedBy=${movedBy}px`, { elementId: this.#uniqueId });
     }
 
     #animation() {
@@ -1038,18 +850,10 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
     }
 
     #setSliderPosition(transitionDuration = '0.3s') {
-        if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) {
-            return;
-        }
+        if (this.#attrs.crossFade && this.#attrs.slidesPerView === 1) return;
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         wrapper.style.transition = this.#attrs.autoplayType === 'continuous' && !this.#isDragging && !this.#isHovering ? 'none' : `transform ${transitionDuration}`;
         wrapper.style.transform = `translate3d(${this.#currentTranslate}px, 0, 0)`;
-        this.#log('Slider position set', {
-            translate: this.#currentTranslate,
-            currentIndex: this.#currentIndex,
-            transitionDuration,
-            elementId: this.#uniqueId
-        });
     }
 
     #continuousScroll(timestamp) {
@@ -1061,19 +865,13 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         this.#lastFrameTime = timestamp;
         const pixelsPerFrame = this.#continuousSpeed * deltaTime;
         this.#currentTranslate -= pixelsPerFrame;
+        
         if (this.#attrs.infiniteScrolling) {
             const totalWidth = this.#originalLength * (this.#slideWidth + this.#gapPx);
             const minTranslate = -totalWidth + this.#slideWidth;
             if (this.#currentTranslate < minTranslate) {
                 this.#currentTranslate += totalWidth;
                 this.#currentIndex = this.#bufferSize + (this.#currentIndex - this.#bufferSize) % this.#originalLength;
-                this.#log('Continuous loop to start', {
-                    elementId: this.#uniqueId,
-                    currentTranslate: this.#currentTranslate,
-                    minTranslate: minTranslate,
-                    totalWidth: totalWidth,
-                    timestamp: timestamp
-                });
                 const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
                 wrapper.style.transition = 'none';
                 wrapper.style.transform = `translate3d(${this.#currentTranslate}px, 0, 0)`;
@@ -1087,11 +885,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
             if (this.#currentTranslate < minTranslate) {
                 this.#currentTranslate = minTranslate;
                 this.#stopAutoplay();
-                this.#log('Continuous scrolling stopped at end', {
-                    elementId: this.#uniqueId,
-                    currentTranslate: this.#currentTranslate,
-                    minTranslate: minTranslate
-                });
                 return;
             }
             const slideWidthTotal = this.#slideWidth + this.#gapPx;
@@ -1115,7 +908,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         const wrapper = document.getElementById(this.#uniqueId).querySelector('.slider-wrapper');
         wrapper.style.transition = 'transform 0.3s';
         wrapper.style.transform = `translate3d(${tempTranslate}px, 0, 0)`;
-        this.#log('Animating loop', { tempTranslate, currentIndex: this.#currentIndex, targetIndex, direction });
         setTimeout(() => {
             this.#currentIndex = targetIndex;
             this.#adjustForLoop();
@@ -1125,7 +917,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
             wrapper.style.transform = `translate3d(${this.#currentTranslate}px, 0, 0)`;
             this.#isAnimating = false;
             this.#updateSlider();
-            this.#log('Loop animation completed', { currentIndex: this.#currentIndex });
         }, 300);
     }
 
@@ -1141,28 +932,12 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
 
     #calculateTranslate() {
         const addition = (this.#attrs.slidesPerView - 1) / 2;
-        const translate = -this.#currentIndex * this.#slideWidth - (this.#currentIndex + addition) * this.#gapPx;
-        this.#log('Translate calculated', {
-            currentIndex: this.#currentIndex,
-            slideWidth: this.#slideWidth,
-            gapPx: this.#gapPx,
-            translate,
-            elementId: this.#uniqueId
-        });
-        return translate;
+        return -this.#currentIndex * this.#slideWidth - (this.#currentIndex + addition) * this.#gapPx;
     }
 
     #calculateTranslateForIndex(index) {
         const addition = (this.#attrs.slidesPerView - 1) / 2;
-        const translate = -index * this.#slideWidth - (index + addition) * this.#gapPx;
-        this.#log('Translate for index calculated', {
-            index,
-            slideWidth: this.#slideWidth,
-            gapPx: this.#gapPx,
-            translate,
-            elementId: this.#uniqueId
-        });
-        return translate;
+        return -index * this.#slideWidth - (index + addition) * this.#gapPx;
     }
 
     #adjustForLoop() {
@@ -1174,17 +949,10 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         } else if (this.#currentIndex > maxIndex) {
             this.#currentIndex -= this.#originalLength;
         }
-        this.#log('Adjusted for loop', {
-            currentIndex: this.#currentIndex,
-            minIndex,
-            maxIndex,
-            elementId: this.#uniqueId
-        });
     }
 
     #navigate(direction) {
         if (this.#isAnimating) return;
-        const oldIndex = this.#currentIndex;
         const newIndex = this.#currentIndex + direction;
         if (this.#attrs.infiniteScrolling && !this.#attrs.crossFade) {
             const minIndex = this.#bufferSize;
@@ -1213,30 +981,22 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         this.#setPositionByIndex();
         this.#lastDirection = direction;
         this.#updateSlider();
-        this.#log(`[Navigation] currentIndex=${this.#currentIndex}, direction=${direction}, oldIndex=${oldIndex}`, { elementId: this.#uniqueId });
     }
 
     #startAutoplay(autoplayType, autoplayDelay, continuousSpeed) {
         this.#stopAutoplay();
-        if (this.#isHovering) {
-            this.#log('Autoplay start skipped due to hover', { elementId: this.#uniqueId });
-            return;
-        }
+        if (this.#isHovering) return;
+        
         if (autoplayType === 'interval' && autoplayDelay > 0) {
             this.#autoplayInterval = setInterval(() => {
                 if (!this.#isHovering && !this.#isProcessingClick) {
                     this.#navigate(1);
                 }
             }, autoplayDelay);
-            this.#log(`Started interval autoplay with delay ${autoplayDelay}ms`, { elementId: this.#uniqueId });
         } else if (autoplayType === 'continuous' && continuousSpeed > 0 && !this.#attrs.crossFade) {
             this.#continuousSpeed = continuousSpeed;
             this.#lastFrameTime = performance.now();
             this.#continuousAnimationId = requestAnimationFrame(this.#continuousScroll.bind(this));
-            this.#log(`Started continuous autoplay with speed ${continuousSpeed}px/s`, {
-                elementId: this.#uniqueId,
-                currentTranslate: this.#currentTranslate
-            });
         }
     }
 
@@ -1244,13 +1004,11 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         if (this.#autoplayInterval) {
             clearInterval(this.#autoplayInterval);
             this.#autoplayInterval = null;
-            this.#log('Stopped interval autoplay', { elementId: this.#uniqueId });
         }
         if (this.#continuousAnimationId) {
             cancelAnimationFrame(this.#continuousAnimationId);
             this.#continuousAnimationId = null;
             this.#lastFrameTime = null;
-            this.#log('Stopped continuous autoplay', { elementId: this.#uniqueId });
         }
     }
 
@@ -1268,17 +1026,15 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
                 slide.classList.toggle('active', isActive);
                 slide.style.opacity = isActive ? '1' : '0';
             });
-            this.#log(`[Cross-Fade Updated] currentIndex=${this.#currentIndex}, displayIndex=${displayIndex}`, { elementId: this.#uniqueId });
         } else if (forceUpdate || this.#attrs.autoplayType !== 'continuous') {
             wrapper.style.transform = `translate3d(${this.#currentTranslate}px, 0, 0)`;
         }
 
         if (this.#attrs.pagination) {
             const now = performance.now();
-            if (!forceUpdate && now - this.#lastPaginationUpdate < 100) {
-                return;
-            }
+            if (!forceUpdate && now - this.#lastPaginationUpdate < 100) return;
             this.#lastPaginationUpdate = now;
+            
             const pagination = sliderContainer.querySelector('.slider-pagination');
             if (pagination) {
                 const dots = pagination.querySelectorAll('span.icon');
@@ -1292,36 +1048,18 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
                     ? this.#originalLength - 1
                     : this.#originalLength - this.#attrs.slidesPerView;
                 logicalIndex = Math.max(0, Math.min(logicalIndex, maxIndex));
+                
                 dots.forEach((dot, index) => {
                     const isActive = index === logicalIndex;
-                    dot.innerHTML = isActive ? this.#attrs.paginationIconActive : this.#attrs.paginationIconInactive;
-                    const icon = dot.querySelector('i');
-                    if (icon) {
-                        icon.style.fontSize = isActive ? this.#attrs.paginationIconSizeActive : this.#attrs.paginationIconSizeInactive;
+                    
+                    if (isActive) {
+                        dot.classList.add('is-active');
+                    } else {
+                        dot.classList.remove('is-active');
                     }
                 });
-                const firstVisibleSlide = this.#currentIndex - this.#bufferSize + 1;
-                const lastVisibleSlide = firstVisibleSlide + this.#attrs.slidesPerView - 1;
-                const visibleSlides = `${Math.max(1, firstVisibleSlide)}-${Math.min(this.#originalLength, lastVisibleSlide)}`;
-                if (logicalIndex > maxIndex) {
-                    this.#warn('Unexpected logicalIndex value', {
-                        logicalIndex,
-                        currentIndex: this.#currentIndex,
-                        normalizedIndex: (this.#currentIndex - this.#bufferSize + this.#originalLength) % this.#originalLength,
-                        visibleSlides,
-                        elementId: this.#uniqueId
-                    });
-                }
-                this.#log(`[Pagination Updated] currentIndex=${this.#currentIndex}, logicalIndex=${logicalIndex}, translate=${this.#currentTranslate}, forceUpdate=${forceUpdate}`, {
-                    elementId: this.#uniqueId,
-                    visibleSlides
-                });
-            } else {
-                this.#warn('Pagination element not found in updateSlider', { elementId: this.#uniqueId });
             }
         }
-
-        this.#log(`[Slider Updated] currentIndex=${this.#currentIndex}, translate=${this.#currentTranslate}, forceUpdate=${forceUpdate}`, { elementId: this.#uniqueId });
     }
 
     async render(attrs) {
@@ -1329,16 +1067,22 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         sliderWrapper.id = this.#uniqueId;
         sliderWrapper.className = 'custom-slider';
 
-        // Pass the breakpoints as a JSON string so the client can read them
+        if (this.#childElements.length === 0) {
+            this.#warn('No valid slides found', { elementId: this.#uniqueId });
+        } else {
+            this.#originalLength = this.#childElements.length;
+        }
+
         sliderWrapper.dataset.breakpoints = JSON.stringify(attrs.slidesPerViewConfig);
         sliderWrapper.dataset.defaultSpv = attrs.defaultSlidesPerView;
-        sliderWrapper.dataset.autoplay = attrs.autoplayType; // 'none', 'interval', or 'continuous'
+        sliderWrapper.dataset.autoplay = attrs.autoplayType;
         sliderWrapper.dataset.delay = attrs.autoplayDelay;
         sliderWrapper.dataset.speed = attrs.continuousSpeed;
         sliderWrapper.dataset.infinite = attrs.infiniteScrolling;
-        sliderWrapper.dataset.originalLength = this.#originalLength; // Crucial for infinite loops
+        sliderWrapper.dataset.originalLength = this.#originalLength;
+        sliderWrapper.dataset.pauseOnHover = attrs.pauseOnHover;
+        sliderWrapper.dataset.draggable = this.hasAttribute('draggable');
 
-        // Pass the position attribute to the main DOM element for CSS targeting
         if (attrs.pagination && attrs.paginationPosition) {
             sliderWrapper.setAttribute('pagination-position', attrs.paginationPosition);
         }
@@ -1356,13 +1100,11 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         }
 
         if (this.#childElements.length === 0) {
-            this.#warn('No valid slides found', { elementId: this.#uniqueId });
             const fallbackSlide = document.createElement('div');
             fallbackSlide.className = 'slider-slide';
             fallbackSlide.innerHTML = '<p>No slides available</p>';
             innerWrapper.appendChild(fallbackSlide);
         } else {
-            this.#originalLength = this.#childElements.length;
             this.#childElements.forEach((slide, index) => {
                 const slideWrapper = document.createElement('div');
                 slideWrapper.className = 'slider-slide';
@@ -1382,21 +1124,25 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
             navPrev.id = `${this.#uniqueId}-prev`;
             navPrev.className = 'slider-nav-prev';
             navPrev.innerHTML = attrs.navigationIconLeft;
+            
             const navNext = document.createElement('div');
             navNext.id = `${this.#uniqueId}-next`;
             navNext.className = 'slider-nav-next';
             navNext.innerHTML = attrs.navigationIconRight;
+            
             [navPrev, navNext].forEach((nav) => {
-                const icons = nav.querySelectorAll('i');
+                const icons = nav.querySelectorAll('.builder-inline-svg');
                 const isStacked = icons.length === 2;
                 icons.forEach((icon, index) => {
-                    if (!icon.classList.contains('icon')) {
-                        icon.classList.add('icon');
-                    }
                     if (attrs.iconSizeBackground && attrs.iconSizeForeground && isStacked) {
-                        icon.style.fontSize = index === 0 ? attrs.iconSizeBackground : attrs.iconSizeForeground;
+                        const targetSize = index === 0 ? attrs.iconSizeBackground : attrs.iconSizeForeground;
+                        icon.style.fontSize = targetSize;
+                        icon.style.width = targetSize;
+                        icon.style.height = targetSize;
                     } else if (attrs.iconSizeBackground) {
                         icon.style.fontSize = attrs.iconSizeBackground;
+                        icon.style.width = attrs.iconSizeBackground;
+                        icon.style.height = attrs.iconSizeBackground;
                     }
                 });
             });
@@ -1407,18 +1153,55 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
         if (attrs.pagination) {
             const pagination = document.createElement('div');
             pagination.className = 'slider-pagination';
+            
+            // --- PURE CSS PAGINATION SWAPPING ---
+            const paginationStyles = document.createElement('style');
+            paginationStyles.className = 'pagination-styles';
+            paginationStyles.textContent = `
+                #${this.#uniqueId} .slider-pagination .icon-active-state { display: none; width: 100%; height: 100%; align-items: center; justify-content: center; }
+                #${this.#uniqueId} .slider-pagination .icon.is-active .icon-active-state { display: flex; }
+                #${this.#uniqueId} .slider-pagination .icon-inactive-state { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; }
+                #${this.#uniqueId} .slider-pagination .icon.is-active .icon-inactive-state { display: none; }
+                #${this.#uniqueId} .slider-pagination .icon { cursor: pointer; }
+            `;
+            sliderWrapper.appendChild(paginationStyles);
+
             const totalSlides = this.#childElements.length;
             const totalDots = attrs.infiniteScrolling
                 ? this.#originalLength
                 : Math.max(1, totalSlides - attrs.slidesPerView + 1);
+            
             for (let i = 0; i < totalDots; i++) {
                 const dot = document.createElement('span');
                 dot.className = 'icon';
-                dot.innerHTML = i === 0 ? attrs.paginationIconActive : attrs.paginationIconInactive;
-                const icon = dot.querySelector('i');
-                if (icon && (attrs.paginationIconSizeActive || attrs.paginationIconSizeInactive)) {
-                    icon.style.fontSize = i === 0 ? attrs.paginationIconSizeActive : attrs.paginationIconSizeInactive;
+                
+                const logicalIndex = this.#attrs.infiniteScrolling
+                    ? (this.#currentIndex - this.#bufferSize + this.#originalLength) % this.#originalLength
+                    : Math.max(0, Math.min(this.#currentIndex, this.#originalLength - this.#attrs.slidesPerView));
+                
+                const isActive = i === logicalIndex;
+
+                dot.innerHTML = `
+                    <span class="icon-active-state">${attrs.paginationIconActive}</span>
+                    <span class="icon-inactive-state">${attrs.paginationIconInactive}</span>
+                `;
+
+                if (isActive) dot.classList.add('is-active');
+
+                const activeSvg = dot.querySelector('.icon-active-state .builder-inline-svg');
+                const inactiveSvg = dot.querySelector('.icon-inactive-state .builder-inline-svg');
+                
+                if (activeSvg && attrs.paginationIconSizeActive) {
+                    activeSvg.style.fontSize = attrs.paginationIconSizeActive;
+                    activeSvg.style.width = attrs.paginationIconSizeActive;
+                    activeSvg.style.height = attrs.paginationIconSizeActive;
                 }
+                if (inactiveSvg && attrs.paginationIconSizeInactive) {
+                    inactiveSvg.style.fontSize = attrs.paginationIconSizeInactive;
+                    inactiveSvg.style.width = attrs.paginationIconSizeInactive;
+                    inactiveSvg.style.height = attrs.paginationIconSizeInactive;
+                }
+                
                 dot.addEventListener('click', () => {
                     if (this.#isProcessingClick) return;
                     this.#isProcessingClick = true;
@@ -1441,15 +1224,11 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
                         if (this.#attrs.autoplayType !== 'none' && !this.#isHovering) {
                             this.#startAutoplay(this.#attrs.autoplayType, this.#attrs.autoplayDelay, this.#attrs.continuousSpeed);
                         }
-                        this.#log(`[Pagination Click] currentIndex=${this.#currentIndex}, clickedDot=${i + 1}, translate=${this.#currentTranslate}, isHovering=${this.#isHovering}`, { elementId: this.#uniqueId });
                     }, 50);
                 });
                 pagination.appendChild(dot);
             }
             sliderWrapper.appendChild(pagination);
-            this.#log(`[Pagination Added] totalDots=${totalDots}, originalLength=${this.#originalLength}, totalSlides=${totalSlides}`, { elementId: this.#uniqueId });
-        } else {
-            this.#log('Pagination not added', { pagination: attrs.pagination, elementId: this.#uniqueId });
         }
 
         return sliderWrapper;
@@ -1457,7 +1236,6 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
 
     async connectedCallback() {
         if (super.connectedCallback) super.connectedCallback();
-        // 1. HYDRATION CHECK: Did Puppeteer already build this HTML?
         const existingSlider = this.querySelector('.custom-slider');
         if (existingSlider) {
             this.isVisible = true;
@@ -1466,14 +1244,8 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
             if (!this.controller) {
                 this.controller = new CustomSliderController(existingSlider);
             }
-
-            this.#log('Hydrated existing slider DOM and attached controller', { elementId: this.#uniqueId });
-            return; // Stop here!
+            return; 
         }
-
-        // Let the IntersectionObserver trigger initialize() when ready.
-        // We DO NOT grab children yet to prevent early-parsing bugs.
-        this.#log('Connected to DOM, awaiting IntersectionObserver', { elementId: this.#uniqueId });
     }
 
     disconnectedCallback() {
@@ -1490,7 +1262,21 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
             CustomSlider.#observedInstances.delete(this);
         }
         this.#childElements = [];
-        this.#log('Disconnected from DOM', { elementId: this.#uniqueId });
+    }
+
+    static get builderConfig() {
+        return {
+            isContainer: true,
+            booleans: [
+                'navigation', 'pagination', 'draggable',
+                'cross-fade', 'infinite-scrolling', 'pause-on-hover'
+            ],
+            groups: {
+                'Settings': ['autoplay', 'slides-per-view', 'slides-per-view-mobile', 'slides-per-view-tablet', 'slides-per-view-laptop', 'slides-per-view-desktop', 'slides-per-view-large', 'gap', 'draggable', 'cross-fade', 'infinite-scrolling', 'pause-on-hover'],
+                'Navigation': ['navigation', 'navigation-icon-left', 'navigation-icon-right', 'navigation-icon-left-background', 'navigation-icon-right-background', 'navigation-icon-size'],
+                'Pagination': ['pagination', 'pagination-position', 'pagination-icon-active', 'pagination-icon-inactive', 'pagination-icon-size']
+            }
+        };
     }
 
     static get observedAttributes() {
@@ -1514,14 +1300,8 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
             return;
         }
         if (oldValue !== newValue) {
-            this.#log('Attribute changed, reinitializing', { name, oldValue, newValue, elementId: this.#uniqueId });
             this.isInitialized = false;
             this.#stopAutoplay();
-
-            // 🚨 CRITICAL FIX: 
-            // We removed the code that re-scrapes this.children here.
-            // this.#childElements already has the pristine slides safely locked in memory!
-
             this.initialize();
         }
     }
@@ -1529,11 +1309,8 @@ class CustomSlider extends GridPlacementMixin(HTMLElement) {
 
 try {
     customElements.define('custom-slider', CustomSlider);
-    console.log('CustomSlider defined successfully');
 } catch (error) {
     console.error('Error defining CustomSlider element:', error);
 }
-
-console.log('CustomSlider version: 2025-10-30 (responsive slides-per-view, pagination-position supported)');
 
 export { CustomSlider };

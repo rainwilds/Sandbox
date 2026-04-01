@@ -1,0 +1,61 @@
+{
+  "roots": [
+    "comp-1775016586900"
+  ],
+  "items": {
+    "comp-1775016586900": {
+      "id": "comp-1775016586900",
+      "type": "custom-layout",
+      "attrs": {
+        "column-span": "12",
+        "subgrid": "true"
+      },
+      "children": [
+        "comp-1775016587810"
+      ],
+      "parentId": null
+    },
+    "comp-1775016587810": {
+      "id": "comp-1775016587810",
+      "type": "custom-slider",
+      "attrs": {
+        "slides-per-view": "1",
+        "autoplay": "true",
+        "column-end": "-1",
+        "column-start": "1"
+      },
+      "children": [
+        "comp-1775016624393",
+        "comp-1775016651069"
+      ],
+      "parentId": "comp-1775016586900"
+    },
+    "comp-1775016624393": {
+      "id": "comp-1775016624393",
+      "type": "custom-block",
+      "attrs": {
+        "heading": "First Slide",
+        "class": "background-color-1",
+        "inner-class": "padding-large",
+        "img-background-src": "tourism-photography-light-3.jpg"
+      },
+      "children": [],
+      "parentId": "comp-1775016587810"
+    },
+    "comp-1775016651069": {
+      "id": "comp-1775016651069",
+      "type": "custom-block",
+      "attrs": {
+        "heading": "Second Slide",
+        "class": "background-color-1",
+        "inner-class": "padding-large",
+        "img-background-src": "tourism-photography-dark-5.jpg"
+      },
+      "children": [],
+      "parentId": "comp-1775016587810"
+    }
+  },
+  "headData": {
+    "slug": "slider-2"
+  }
+}

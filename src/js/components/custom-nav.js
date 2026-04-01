@@ -3,6 +3,9 @@ import { VALID_BACKDROP_CLASSES, VALID_ALIGNMENTS, VALID_ALIGN_MAP } from '../sh
 import { getConfig } from '../config.js';
 
 class CustomNav extends HTMLElement {
+
+    static dependencies = ['shared'];
+
     #renderCacheHTML = null;
     #lastCriticalHash = null;
     #cachedAttributes = null;
@@ -312,8 +315,8 @@ class CustomNav extends HTMLElement {
         const containerStyleAttr = attrs.navContainerStyle ? ` style="${attrs.navContainerStyle}"` : '';
         containerHTML.push(`<div class="${containerClasses}"${containerStyleAttr}>`);
 
-const validBackdropClasses = attrs.navBackdropFilterClasses.filter(cls => VALID_BACKDROP_CLASSES.includes(cls));
-        
+        const validBackdropClasses = attrs.navBackdropFilterClasses.filter(cls => VALID_BACKDROP_CLASSES.includes(cls));
+
         const navClasses = [
             attrs.navClass,
             `nav-${attrs.navOrientation}`,
@@ -403,6 +406,20 @@ const validBackdropClasses = attrs.navBackdropFilterClasses.filter(cls => VALID_
             this.initialize();
         }
     }
+
+static get builderConfig() {
+        return {
+            isContainer: false,
+            booleans: ['nav-background-image-noise'],
+            groups: {
+                'Settings': ['nav', 'nav-type', 'nav-orientation', 'nav-position', 'nav-aria-label'],
+                'Styling': ['nav-class', 'nav-style', 'nav-background-color', 'nav-background-image-noise', 'nav-border', 'nav-border-radius', 'nav-backdrop-filter'],
+                'Toggle': ['nav-toggle-class', 'nav-toggle-icon'],
+                'Layout': ['nav-container-class', 'nav-container-style']
+            }
+        };
+    }
+
 }
 
 try {

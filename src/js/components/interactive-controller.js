@@ -8,7 +8,6 @@ export class CustomSliderController {
         // Parse breadcrumbs
         this.breakpoints = JSON.parse(this.slider.dataset.breakpoints || '{}');
         this.defaultSpv = parseInt(this.slider.dataset.defaultSpv, 10) || 1;
-        this.isDraggable = this.slider.hasAttribute('draggable');
         
         // Autoplay & Infinite State
         this.autoplayType = this.slider.dataset.autoplay || 'none';
@@ -16,31 +15,47 @@ export class CustomSliderController {
         this.continuousSpeed = parseInt(this.slider.dataset.speed, 10) || 100;
         this.isInfinite = this.slider.dataset.infinite === 'true';
         this.originalLength = parseInt(this.slider.dataset.originalLength, 10) || this.totalSlides;
+        
+        // Read interactive toggles
+        this.isDraggable = this.slider.dataset.draggable === 'true';
+        this.pauseOnHover = this.slider.dataset.pauseOnHover === 'true';
 
         this.viewportMap = { mobile: 768, tablet: 1024, laptop: 1366, desktop: 1920, large: 2560 };
 
-        this.currentIndex = this.isInfinite ? this.defaultSpv : 0; // Offset by buffer if infinite
         this.currentSpv = this.defaultSpv;
         this.slideWidth = 0;
         this.gapPx = 0;
         
-        this.isDragging = false;
-        this.isHovering = false;
-        this.startX = 0;
+        // HYDRATION
         this.currentTranslate = 0;
         this.prevTranslate = 0;
+        this.wrapper.style.transform = `translate3d(0px, 0, 0)`;
+        
+        this.currentIndex = this.isInfinite ? this.defaultSpv : 0; 
+        
+        this.isDragging = false;
+        this.isHovering = false;
+        this.isProcessingClick = false; 
+        this.startX = 0;
         
         this.autoplayTimer = null;
         this.animationFrame = null;
         this.lastFrameTime = null;
 
-        this.init();
+        requestAnimationFrame(() => this.init());
     }
 
     init() {
         if (this.totalSlides === 0) return;
-        this.bindEvents();
         this.handleResize(); 
+        this.bindEvents();
+        
+        if (this.autoplayType === 'continuous') {
+            const slideWidthTotal = this.slideWidth + this.gapPx;
+            if (slideWidthTotal > 0) {
+                this.currentIndex = Math.round((-this.currentTranslate - (this.currentSpv - 1) / 2 * this.gapPx) / slideWidthTotal);
+            }
+        }
         
         if (this.autoplayType !== 'none') {
             this.startAutoplay();
@@ -56,14 +71,22 @@ export class CustomSliderController {
         const paginationDots = this.slider.querySelectorAll('.slider-pagination .icon');
         paginationDots.forEach((dot, index) => {
             dot.addEventListener('click', () => {
+                if (this.isProcessingClick) return;
+                this.isProcessingClick = true;
+
                 this.stopAutoplay();
                 const targetIndex = this.isInfinite ? index + this.currentSpv : index;
                 this.goToSlide(targetIndex);
-                this.resumeAutoplay();
+                
+                setTimeout(() => {
+                    this.isProcessingClick = false;
+                    this.resumeAutoplay();
+                }, 300);
             });
         });
 
-        window.addEventListener('resize', this.debounce(() => this.handleResize(), 100));
+        this.resizeObserver = new ResizeObserver(this.debounce(() => this.handleResize(), 100));
+        this.resizeObserver.observe(this.slider);
 
         if (this.isDraggable) {
             this.wrapper.addEventListener('pointerdown', (e) => this.pointerDown(e));
@@ -72,14 +95,18 @@ export class CustomSliderController {
             this.wrapper.addEventListener('pointercancel', (e) => this.pointerUp(e));
         }
 
-        // Pause on hover
+        // Hover logic strictly obeys pauseOnHover boolean
         this.slider.addEventListener('mouseenter', () => {
-            this.isHovering = true;
-            this.stopAutoplay();
+            if (this.pauseOnHover === true) {
+                this.isHovering = true;
+                this.stopAutoplay();
+            }
         });
         this.slider.addEventListener('mouseleave', () => {
-            this.isHovering = false;
-            this.resumeAutoplay();
+            if (this.pauseOnHover === true) {
+                this.isHovering = false;
+                this.resumeAutoplay();
+            }
         });
     }
 
@@ -100,14 +127,17 @@ export class CustomSliderController {
         this.gapPx = parseFloat(window.getComputedStyle(this.wrapper).columnGap) || 0;
 
         this.wrapper.style.setProperty('--slider-columns', `repeat(${this.totalSlides}, ${100 / this.currentSpv}%)`);
-        this.updateSliderPosition(false); 
+        
+        if (this.autoplayType !== 'continuous' || !this.animationFrame) {
+            this.updateSliderPosition(false); 
+        }
     }
 
-    // --- AUTOPLAY LOGIC ---
     startAutoplay() {
         if (this.autoplayType === 'interval') {
             this.autoplayTimer = setInterval(() => this.navigate(1), this.autoplayDelay);
         } else if (this.autoplayType === 'continuous') {
+            this.wrapper.style.transition = 'none';
             this.lastFrameTime = performance.now();
             this.animationFrame = requestAnimationFrame((time) => this.continuousScroll(time));
         }
@@ -118,6 +148,7 @@ export class CustomSliderController {
         if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
         this.autoplayTimer = null;
         this.animationFrame = null;
+        this.lastFrameTime = null;
     }
 
     resumeAutoplay() {
@@ -131,54 +162,79 @@ export class CustomSliderController {
         const deltaTime = (timestamp - this.lastFrameTime) / 1000;
         this.lastFrameTime = timestamp;
 
+        if (this.slideWidth <= 0) {
+            this.animationFrame = requestAnimationFrame((time) => this.continuousScroll(time));
+            return;
+        }
+
         const pixelsPerFrame = this.continuousSpeed * deltaTime;
         this.currentTranslate -= pixelsPerFrame;
 
-        // Continuous Loop Reset
         if (this.isInfinite) {
             const totalWidth = this.originalLength * (this.slideWidth + this.gapPx);
             const minTranslate = -totalWidth + this.slideWidth;
             
             if (this.currentTranslate < minTranslate) {
                 this.currentTranslate += totalWidth;
-                // Snap wrapper seamlessly
-                this.wrapper.style.transition = 'none';
+            }
+        } else {
+            const maxIndex = Math.max(0, this.totalSlides - this.currentSpv);
+            const addition = (this.currentSpv - 1) / 2;
+            const minTranslate = -maxIndex * this.slideWidth - (maxIndex + addition) * this.gapPx;
+
+            if (this.currentTranslate <= minTranslate) {
+                this.currentTranslate = minTranslate;
+                this.wrapper.style.transform = `translate3d(${this.currentTranslate}px, 0, 0)`;
+                this.stopAutoplay();
+                return; 
             }
         }
 
         this.prevTranslate = this.currentTranslate;
+        this.wrapper.style.transition = 'none';
         this.wrapper.style.transform = `translate3d(${this.currentTranslate}px, 0, 0)`;
         
+        const slideWidthTotal = this.slideWidth + this.gapPx;
+        if (slideWidthTotal > 0) {
+            this.currentIndex = Math.round((-this.currentTranslate - (this.currentSpv - 1) / 2 * this.gapPx) / slideWidthTotal);
+        }
+        this.updatePaginationUI();
+
         this.animationFrame = requestAnimationFrame((time) => this.continuousScroll(time));
     }
 
-    // --- NAVIGATION LOGIC ---
     manualNavigate(direction) {
+        if (this.isProcessingClick) return;
+        this.isProcessingClick = true;
+
         this.stopAutoplay();
         this.navigate(direction);
-        this.resumeAutoplay();
+        
+        setTimeout(() => {
+            this.isProcessingClick = false;
+            this.resumeAutoplay();
+        }, 300);
     }
 
     navigate(direction) {
         let newIndex = this.currentIndex + direction;
 
         if (this.isInfinite) {
-            const minIndex = this.currentSpv; // Buffer size
+            const minIndex = this.currentSpv; 
             const maxIndex = this.currentSpv + this.originalLength;
             
             this.currentIndex = newIndex;
             this.updateSliderPosition(true);
 
-            // Secretly snap back after transition finishes to create infinite illusion
             setTimeout(() => {
                 if (this.currentIndex >= maxIndex) {
                     this.currentIndex -= this.originalLength;
-                    this.updateSliderPosition(false); // false = no transition
+                    this.updateSliderPosition(false); 
                 } else if (this.currentIndex < minIndex) {
                     this.currentIndex += this.originalLength;
                     this.updateSliderPosition(false);
                 }
-            }, 300); // 300ms matches CSS transition duration
+            }, 300); 
             
         } else {
             const maxIndex = Math.max(0, this.totalSlides - this.currentSpv);
@@ -193,7 +249,7 @@ export class CustomSliderController {
     }
 
     updateSliderPosition(useTransition = true) {
-        if (this.autoplayType === 'continuous') return; // Handled by requestAnimationFrame
+        if (this.autoplayType === 'continuous' && this.animationFrame !== null) return; 
 
         const addition = (this.currentSpv - 1) / 2;
         this.currentTranslate = -this.currentIndex * this.slideWidth - (this.currentIndex + addition) * this.gapPx;
@@ -209,23 +265,24 @@ export class CustomSliderController {
         const dots = this.slider.querySelectorAll('.slider-pagination .icon');
         if (!dots.length) return;
 
-        // Calculate logical index regardless of clones
         let logicalIndex = this.isInfinite 
             ? (this.currentIndex - this.currentSpv + this.originalLength) % this.originalLength 
             : this.currentIndex;
 
         dots.forEach((dot, index) => {
-            if (index === logicalIndex) {
+            // Nuke legacy opacity artifacts baked into the HTML from older builds
+            dot.style.opacity = '';
+
+            const isActive = index === logicalIndex;
+            
+            if (isActive) {
                 dot.classList.add('is-active');
-                dot.style.opacity = '1';
             } else {
                 dot.classList.remove('is-active');
-                dot.style.opacity = '0.5';
             }
         });
     }
 
-    // --- DRAG LOGIC ---
     pointerDown(e) {
         this.stopAutoplay();
         this.isDragging = true;
@@ -239,6 +296,15 @@ export class CustomSliderController {
         if (!this.isDragging) return;
         const movedX = e.clientX - this.startX;
         this.currentTranslate = this.prevTranslate + movedX;
+
+        if (!this.isInfinite) {
+            const maxIndex = Math.max(0, this.totalSlides - this.currentSpv);
+            const addition = (this.currentSpv - 1) / 2;
+            const minTranslate = -maxIndex * this.slideWidth - (maxIndex + addition) * this.gapPx;
+            const maxTranslate = 0;
+            this.currentTranslate = Math.max(minTranslate, Math.min(this.currentTranslate, maxTranslate));
+        }
+
         this.wrapper.style.transform = `translate3d(${this.currentTranslate}px, 0, 0)`;
     }
 
@@ -249,7 +315,16 @@ export class CustomSliderController {
         if (e.target.releasePointerCapture) e.target.releasePointerCapture(e.pointerId);
 
         if (this.autoplayType === 'continuous') {
-            // Let it coast, then resume
+            const slideWidthTotal = this.slideWidth + this.gapPx;
+            if (slideWidthTotal > 0) {
+                this.currentIndex = Math.round((-this.currentTranslate - (this.currentSpv - 1) / 2 * this.gapPx) / slideWidthTotal);
+                
+                if (!this.isInfinite) {
+                    const maxIndex = Math.max(0, this.totalSlides - this.currentSpv);
+                    this.currentIndex = Math.max(0, Math.min(this.currentIndex, maxIndex));
+                }
+            }
+
             this.prevTranslate = this.currentTranslate;
             this.resumeAutoplay();
             return;
@@ -278,21 +353,16 @@ export class CustomSliderController {
     }
 }
 
-// --- LIVE SITE AUTO-INIT ---
-// This scans the static HTML and brings all sliders to life!
 const initSliders = () => {
     document.querySelectorAll('.custom-slider').forEach(sliderEl => {
-        // If it doesn't already have a controller, attach one!
         if (!sliderEl.controller) {
             sliderEl.controller = new CustomSliderController(sliderEl);
         }
     });
 };
 
-// Run immediately if the page is already loaded, otherwise wait for it
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initSliders);
 } else {
     initSliders();
 }
-

@@ -2,6 +2,9 @@
 import { VALID_ALIGNMENTS, VALID_ALIGN_MAP } from '../shared.js';
 
 class CustomFilter extends HTMLElement {
+
+  static dependencies = ['shared'];
+
   #isInitialized = false;
   #debug = new URLSearchParams(window.location.search).get('debug') === 'true';
   #observer = null;
@@ -129,7 +132,7 @@ class CustomFilter extends HTMLElement {
     allButton.addEventListener('click', () => {
       this.#log('All button clicked', { activeFiltersBefore: [...this.activeFilters] });
       this.activeFilters.clear();
-      Array.from(controlsContainer.querySelectorAll('button')).forEach(btn => 
+      Array.from(controlsContainer.querySelectorAll('button')).forEach(btn =>
         btn.removeAttribute('aria-pressed')
       );
       this.applyFilters();
