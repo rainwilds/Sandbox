@@ -35,6 +35,22 @@ async function runBuild() {
     const sharedHead = fs.existsSync(sharedHeadPath) ? fs.readFileSync(sharedHeadPath, 'utf8') : '';
 
     if (!targetSlug) {
+        // 🛡️ SAFETY NET: If this is a single-page build but the /dist/css folder is missing, 
+        // force an asset sync anyway to prevent unstyled pages on a fresh setup.
+        if (targetSlug && !fs.existsSync(path.join(distPath, 'css'))) {
+            console.log('⚠️  Missing global assets in /dist. Forcing asset sync...');
+            if (!fs.existsSync(distPath)) fs.mkdirSync(distPath);
+            folders.forEach(folder => {
+                const srcFolder = path.join(srcPath, folder);
+                if (fs.existsSync(srcFolder)) fs.cpSync(srcFolder, path.join(distPath, folder), { recursive: true });
+            });
+            // Copy root files too
+            rootFilesToCopy.forEach(file => {
+                const srcFile = path.join(srcPath, file);
+                if (fs.existsSync(srcFile)) fs.copyFileSync(srcFile, path.join(distPath, file));
+            });
+        }
+
         if (fs.existsSync(distPath)) fs.rmSync(distPath, { recursive: true, force: true });
         fs.mkdirSync(distPath);
         console.log('📁 Syncing all assets...');

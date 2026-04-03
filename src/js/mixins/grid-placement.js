@@ -1,17 +1,16 @@
-import { VIEWPORT_BREAKPOINTS } from '../shared.js';
+import { VIEWPORT_BREAKPOINTS, PLACEMENT_ATTRS } from '../shared.js';
 
 export const GridPlacementMixin = (BaseClass) => class extends BaseClass {
     static get observedAttributes() {
         const baseAttrs = BaseClass.observedAttributes || [];
-        const placementAttrs = ['column-start', 'column-end', 'row-start', 'row-end', 'z-index'];
-        
+
         const breakpointNames = VIEWPORT_BREAKPOINTS.map(bp => bp.name);
 
-        const responsiveAttrs = placementAttrs.flatMap(attr => 
+        const responsiveAttrs = PLACEMENT_ATTRS.flatMap(attr =>
             breakpointNames.map(bpName => `${attr}-${bpName}`)
         );
-        
-        return [...baseAttrs, ...placementAttrs, ...responsiveAttrs];
+
+        return [...baseAttrs, ...PLACEMENT_ATTRS, ...responsiveAttrs];
     }
 
     connectedCallback() {
@@ -24,10 +23,10 @@ export const GridPlacementMixin = (BaseClass) => class extends BaseClass {
         if (super.attributeChangedCallback) {
             super.attributeChangedCallback(name, oldValue, newValue);
         }
-        
-        const isPlacementAttr = this.constructor.observedAttributes.includes(name) && 
+
+        const isPlacementAttr = this.constructor.observedAttributes.includes(name) &&
             ['column-', 'row-', 'z-index'].some(prefix => name.startsWith(prefix));
-            
+
         if (isPlacementAttr) {
             this.#updateGridPlacement(name, newValue);
         }

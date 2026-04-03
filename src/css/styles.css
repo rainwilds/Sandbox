@@ -2417,6 +2417,15 @@ div#products {
   /* Center dots via flexbox */
 }
 
+.slider-nav-prev, .slider-nav-next {
+
+  & > :is(i, svg) {
+    color: light-dark(var(--color-secondary), var(--color-secondary));
+    cursor: pointer;
+  }
+
+}
+
 .slider-nav-prev {
   position: absolute;
   z-index: 10;
@@ -2424,6 +2433,7 @@ div#products {
   top: 50%;
   transform: translateY(-50%);
   margin-left: var(--space-tiny);
+
 }
 
 .slider-nav-next {

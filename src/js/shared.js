@@ -71,3 +71,7 @@ export const VALID_BORDER_CLASSES = ['border-small', 'border-medium', 'border-la
 export const VALID_HEADING_TAGS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'];
 
 export const VALID_SHADOW_CLASSES = ['shadow-light', 'shadow-medium', 'shadow-heavy'];
+
+export const PLACEMENT_ATTRS = [
+    'column-start', 'column-end', 'row-start', 'row-end', 'z-index'
+];

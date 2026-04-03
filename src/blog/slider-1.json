@@ -22,24 +22,62 @@
         "slides-per-view": "1"
       },
       "children": [
-        "comp-1775006005738"
+        "comp-1775006005738",
+        "comp-1775127682240",
+        "comp-1775127730563"
       ],
       "parentId": "comp-1775005995438"
     },
     "comp-1775006005738": {
       "id": "comp-1775006005738",
       "type": "custom-block",
-      "attrs": {
+      "children": [],
+      "parentId": "comp-1775005998312",
+      "localAttrs": {
         "heading": "New Block",
         "class": "background-color-1",
         "inner-class": "padding-large",
         "img-background-src": "tourism-photography-dark-2.jpg"
+      }
+    },
+    "comp-1775127682240": {
+      "id": "comp-1775127682240",
+      "type": "custom-block",
+      "presetId": null,
+      "localAttrs": {
+        "heading": "New Block",
+        "class": "background-color-1",
+        "inner-class": "padding-large",
+        "button-text": "Button",
+        "button-href": "#"
       },
+      "children": [],
+      "parentId": "comp-1775005998312"
+    },
+    "comp-1775127730563": {
+      "id": "comp-1775127730563",
+      "type": "custom-block",
+      "presetId": "preset-1775127672394",
+      "localAttrs": {},
       "children": [],
       "parentId": "comp-1775005998312"
     }
   },
   "headData": {
     "slug": "slider-1"
+  },
+  "presets": {
+    "preset-1775127672394": {
+      "id": "preset-1775127672394",
+      "type": "custom-block",
+      "name": "Slide 1",
+      "isStarred": false,
+      "baseAttrs": {
+        "heading": "New Block",
+        "class": "background-color-1",
+        "inner-class": "padding-large",
+        "img-background-src": "tourism-photography-dark-2.jpg"
+      }
+    }
   }
 }

@@ -1707,23 +1707,22 @@ class CustomBlock extends GridPlacementMixin(HTMLElement) {
         }
     }
 
-static get builderConfig() {
+    static get builderConfig() {
         return {
             isContainer: false,
             // Declare pure booleans
             booleans: [
-                'section-title', 'background-image-noise', 'inner-background-image-noise', 
-                'img-background-decorative', 'img-background-include-schema', 
-                'img-primary-decorative', 'img-primary-include-schema', 
-                'video-background-autoplay', 'video-background-loop', 'video-background-muted', 
-                'video-background-playsinline', 'video-background-disable-pip', 
-                'video-primary-autoplay', 'video-primary-loop', 'video-primary-muted', 
+                'section-title', 'background-image-noise', 'inner-background-image-noise',
+                'img-background-decorative', 'img-background-include-schema',
+                'img-primary-decorative', 'img-primary-include-schema',
+                'video-background-autoplay', 'video-background-loop', 'video-background-muted',
+                'video-background-playsinline', 'video-background-disable-pip',
+                'video-primary-autoplay', 'video-primary-loop', 'video-primary-muted',
                 'video-primary-playsinline', 'video-primary-disable-pip'
             ],
             groups: {
-                'Content': ['heading', 'sub-heading', 'paragraph', 'button-text', 'button-href', 'button-class', 'button-type', 'button-style', 'button-aria-label', 'button-rel', 'button-target', 'button-icon', 'button-icon-position', 'button-icon-offset', 'button-icon-size', 'icon', 'icon-class', 'icon-size', 'icon-style', 'text-alignment', 'section-title'],
-                'Styling': ['class', 'style', 'effects', 'shadow', 'border', 'border-radius', 'background-color', 'background-gradient', 'background-image-noise', 'background-overlay', 'backdrop-filter', 'inner-class', 'inner-style', 'inner-alignment', 'inner-background-color', 'inner-background-gradient', 'inner-background-image-noise', 'inner-background-overlay', 'inner-backdrop-filter', 'inner-border', 'inner-border-radius', 'inner-shadow'],
-                'Media (Background)': ['img-background-src', 'img-background-light-src', 'img-background-dark-src', 'img-background-alt', 'img-background-aspect-ratio', 'img-background-decorative', 'img-background-desktop-width', 'img-background-fetchpriority', 'img-background-loading', 'img-background-mobile-width', 'img-background-position', 'img-background-tablet-width', 'video-background-src', 'video-background-light-src', 'video-background-dark-src', 'video-background-poster', 'video-background-light-poster', 'video-background-dark-poster', 'video-background-alt', 'video-background-autoplay', 'video-background-loop', 'video-background-muted', 'video-background-playsinline', 'video-background-disable-pip', 'video-background-loading'],
+                'Content': ['heading', 'heading-tag', 'sub-heading', 'sub-heading-tag', 'paragraph', 'button-text', 'button-href', 'button-class', 'button-type', 'button-style', 'button-aria-label', 'button-rel', 'button-target', 'button-icon', 'button-icon-position', 'button-icon-offset', 'button-icon-size', 'icon', 'icon-class', 'icon-size', 'icon-style', 'text-alignment', 'section-title'],
+                'Styling': ['class', 'style', 'effects', 'shadow', 'border', 'border-radius', 'background-color', 'background-gradient', 'background-image-noise', 'background-overlay', 'backdrop-filter', 'inner-class', 'inner-style', 'inner-alignment', 'inner-background-color', 'inner-background-gradient', 'inner-background-image-noise', 'inner-background-overlay', 'inner-backdrop-filter', 'inner-border', 'inner-border-radius', 'inner-shadow'], 'Media (Background)': ['img-background-src', 'img-background-light-src', 'img-background-dark-src', 'img-background-alt', 'img-background-aspect-ratio', 'img-background-decorative', 'img-background-desktop-width', 'img-background-fetchpriority', 'img-background-loading', 'img-background-mobile-width', 'img-background-position', 'img-background-tablet-width', 'video-background-src', 'video-background-light-src', 'video-background-dark-src', 'video-background-poster', 'video-background-light-poster', 'video-background-dark-poster', 'video-background-alt', 'video-background-autoplay', 'video-background-loop', 'video-background-muted', 'video-background-playsinline', 'video-background-disable-pip', 'video-background-loading'],
                 'Media (Primary)': ['img-primary-src', 'img-primary-light-src', 'img-primary-dark-src', 'img-primary-alt', 'img-primary-aspect-ratio', 'img-primary-decorative', 'img-primary-desktop-width', 'img-primary-fetchpriority', 'img-primary-loading', 'img-primary-mobile-width', 'img-primary-position', 'img-primary-tablet-width', 'video-primary-src', 'video-primary-light-src', 'video-primary-dark-src', 'video-primary-poster', 'video-primary-light-poster', 'video-primary-dark-poster', 'video-primary-alt', 'video-primary-autoplay', 'video-primary-loop', 'video-primary-muted', 'video-primary-playsinline', 'video-primary-disable-pip', 'video-primary-loading'],
                 'Lists': ['ul-items', 'ol-items', 'content-order', 'ul-icon', 'ol-icon', 'ul-icon-position', 'ol-icon-position', 'ul-style', 'ol-style', 'ul-icon-offset', 'ol-icon-offset']
             }

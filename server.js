@@ -7,7 +7,8 @@ const PORT = process.env.PORT || 3000;
 const SECRET_TOKEN = 'rainwilds-builder-2026';
 const SRC_DIR = path.join(__dirname, 'src');
 const BLOG_DIR = path.join(SRC_DIR, 'blog');
-const PAGES_DIR = path.join(SRC_DIR, 'pages'); // 👈 FIX 1: Added missing directory definition
+const PAGES_DIR = path.join(SRC_DIR, 'pages');
+const TEMPLATES_FILE = path.join(SRC_DIR, 'JSON', 'templates.json'); // <-- ADD THIS
 
 if (!fs.existsSync(BLOG_DIR)) fs.mkdirSync(BLOG_DIR, { recursive: true });
 if (!fs.existsSync(PAGES_DIR)) fs.mkdirSync(PAGES_DIR, { recursive: true });
@@ -41,10 +42,88 @@ const server = http.createServer((req, res) => {
         }
     }
 
+    // --- NEW: CMS DASHBOARD ROUTES ---
+    // 3.5 Handle GET: Load Global Templates
+    if (req.method === 'GET' && req.url === '/api/templates') {
+        if (fs.existsSync(TEMPLATES_FILE)) {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            return res.end(fs.readFileSync(TEMPLATES_FILE, 'utf8'));
+        } else {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({})); // Return empty object if no templates exist yet
+        }
+    }
+
+    // 3.6 Handle GET: List All Content (Combines Pages and Posts manifests)
+    if (req.method === 'GET' && req.url === '/api/list-content') {
+        try {
+            let combinedManifest = [];
+
+            // Read Pages
+            const pagesManifestPath = path.join(PAGES_DIR, 'manifest.json');
+            if (fs.existsSync(pagesManifestPath)) {
+                const pages = JSON.parse(fs.readFileSync(pagesManifestPath, 'utf8'));
+                // Ensure the type is explicitly set for older entries
+                pages.forEach(p => p.type = 'page');
+                combinedManifest = combinedManifest.concat(pages);
+            }
+
+            // Read Posts
+            const blogManifestPath = path.join(BLOG_DIR, 'manifest.json');
+            if (fs.existsSync(blogManifestPath)) {
+                const posts = JSON.parse(fs.readFileSync(blogManifestPath, 'utf8'));
+                // Ensure the type is explicitly set for older entries
+                posts.forEach(p => p.type = 'post');
+                combinedManifest = combinedManifest.concat(posts);
+            }
+
+            // Sort everything by date descending (newest first)
+            combinedManifest.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify(combinedManifest));
+        } catch (err) {
+            console.error("❌ Error reading manifests:", err);
+            res.writeHead(500);
+            return res.end(JSON.stringify({ error: 'Could not load content list' }));
+        }
+    }
+
+    // 3.7 Handle GET: Load Specific Post/Page JSON
+    if (req.method === 'GET' && req.url.startsWith('/api/load-post')) {
+        try {
+            // Native Node URL parsing to grab query parameters like ?slug=foo&type=page
+            const parsedUrl = new URL(req.url, `http://${req.headers.host}`);
+            const slug = parsedUrl.searchParams.get('slug');
+            const type = parsedUrl.searchParams.get('type') || 'post';
+
+            if (!slug) {
+                res.writeHead(400);
+                return res.end(JSON.stringify({ error: 'Slug is required' }));
+            }
+
+            // Route to the correct directory based on type
+            const targetDir = type === 'page' ? PAGES_DIR : BLOG_DIR;
+            const jsonPath = path.join(targetDir, `${slug}.json`);
+
+            if (fs.existsSync(jsonPath)) {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                return res.end(fs.readFileSync(jsonPath, 'utf8'));
+            } else {
+                res.writeHead(404);
+                return res.end(JSON.stringify({ error: 'Content not found' }));
+            }
+        } catch (err) {
+            console.error("❌ Error loading post:", err);
+            res.writeHead(500);
+            return res.end(JSON.stringify({ error: 'Could not load content' }));
+        }
+    }
+
     // 4. Handle POST: Save and Publish
     if (req.method === 'POST') {
         let body = '';
-        
+
         // 👈 FIX 2: Added the data listener back so 'data' exists!
         req.on('data', chunk => {
             body += chunk.toString();
@@ -59,6 +138,13 @@ const server = http.createServer((req, res) => {
                 return res.end(JSON.stringify({ error: 'Invalid JSON payload' }));
             }
 
+            // ROUTE: SAVE TEMPLATES
+            if (req.url === '/api/templates') {
+                fs.writeFileSync(TEMPLATES_FILE, JSON.stringify(data, null, 2));
+                console.log(`✅ Global templates saved!`);
+                res.writeHead(200);
+                return res.end(JSON.stringify({ message: 'Templates saved!' }));
+            }
             // ROUTE: SAVE
             if (req.url === '/api/save-post') {
                 const { contentType, slug, title, date, categories, excerpt, featuredImage, builderState } = data;

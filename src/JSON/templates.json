@@ -1,0 +1,14 @@
+{
+  "preset-1775127672394": {
+    "id": "preset-1775127672394",
+    "type": "custom-block",
+    "name": "Slide 1",
+    "isStarred": false,
+    "baseAttrs": {
+      "heading": "New Block",
+      "class": "background-color-1",
+      "inner-class": "padding-large",
+      "img-background-src": "tourism-photography-dark-2.jpg"
+    }
+  }
+}

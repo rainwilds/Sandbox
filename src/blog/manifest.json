@@ -136,15 +136,25 @@
     "featuredImage": ""
   },
   {
-    "slug": "icon-test",
+    "slug": "slider-1",
     "title": "Untitled",
-    "date": "2026-04-01",
+    "date": "2026-04-02",
     "categories": [],
     "excerpt": "",
-    "featuredImage": ""
+    "featuredImage": "",
+    "type": "post"
   },
   {
-    "slug": "slider-1",
+    "slug": "slide-1",
+    "title": "Untitled",
+    "date": "2026-04-02",
+    "categories": [],
+    "excerpt": "",
+    "featuredImage": "",
+    "type": "post"
+  },
+  {
+    "slug": "icon-test",
     "title": "Untitled",
     "date": "2026-04-01",
     "categories": [],
@@ -409,14 +419,6 @@
   },
   {
     "slug": "node-15",
-    "title": "Untitled",
-    "date": "2026-04-01",
-    "categories": [],
-    "excerpt": "",
-    "featuredImage": ""
-  },
-  {
-    "slug": "slide-1",
     "title": "Untitled",
     "date": "2026-04-01",
     "categories": [],

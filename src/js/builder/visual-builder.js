@@ -55,9 +55,11 @@ class VisualBuilder extends HTMLElement {
                 
                 /* 2. Sidebars use variables */
 /* 2. Sidebars use variables */
-                #left-sidebar { top: 60px; left: 0; bottom: 0; width: var(--left-width); border-right-width: 1px; display: flex; flex-direction: column; }
-                #right-sidebar { top: 60px; right: 0; bottom: 0; width: var(--right-width); border-left-width: 1px; display: flex; flex-direction: column; overflow-y: auto; padding: 15px; }
-                /* 3. Resizer Styles */
+                #left-sidebar { top: 60px; left: 0; bottom: 35px; width: var(--left-width); border-right-width: 1px; display: flex; flex-direction: column; }
+                #right-sidebar { top: 60px; right: 0; bottom: 35px; width: var(--right-width); border-left-width: 1px; display: flex; flex-direction: column; overflow-y: auto; padding: 15px; }
+                
+                /* Bottom Status Bar */
+                #bottom-bar { bottom: 0; left: 0; right: 0; height: 35px; border-top-width: 1px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; font-size: 0.75rem; color: #a1a1aa; background: #09090b; } /* 3. Resizer Styles */
                 .resizer { position: absolute; top: 0; bottom: 0; width: 6px; cursor: col-resize; z-index: 100; transition: background 0.2s; }
                 .resizer:hover, .resizer.active { background: #3b82f6; }
                 #left-resizer { right: -3px; }
@@ -119,23 +121,48 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 input, select, textarea { width: 100%; background: #09090b; border: 1px solid #27272a; color: #fafafa; padding: 6px 8px; border-radius: 4px; font-size: 0.8rem; box-sizing: border-box; transition: border-color 0.2s; }
                 input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6; }
                 
-                /* Modals / Utility */
-                #breadcrumbs { font-size: 0.75rem; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid #27272a; }
+               /* Modals / Utility */
+#breadcrumbs { font-size: 0.75rem; display: flex; align-items: center; }
                 #breadcrumbs span.crumb:hover { color: #fafafa !important; }
                 #empty-state { text-align: center; margin-top: 40px; font-size: 0.85rem; }
                 .color-picker-wrap { display: flex; align-items: center; gap: 8px; }
                 .color-picker-wrap input[type="color"] { width: 30px; height: 30px; padding: 0; cursor: pointer; border: none; border-radius: 4px; }
+
+     /* CMS Dashboard Styles */
+                #cms-dashboard { 
+                    display: none; position: fixed; inset: 0; background: rgba(9, 9, 11, 0.7); 
+                    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
+                    z-index: 10000; place-content: center; padding: 2rem; pointer-events: auto; 
+                }
+                #cms-dashboard.active { display: grid; }
+                .cms-container { 
+                    background: #18181b; border: 1px solid #27272a; border-radius: 8px; 
+                    width: 90vw; max-width: 1000px; max-height: 85vh; display: flex; flex-direction: column; 
+                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
+                }
+                .cms-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid #27272a; }
+                .cms-header h2 { margin: 0; color: #fafafa; font-size: 1.25rem; border: none; padding: 0; }
+                .cms-list-header { display: grid; grid-template-columns: 3fr 2fr 1fr 1.5fr auto; padding: 1rem 1.5rem; border-bottom: 1px solid #27272a; font-size: 0.75rem; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+                #cms-content-list { overflow-y: auto; padding: 0; margin: 0; list-style: none; flex-grow: 1; }
+                .cms-list-item { display: grid; grid-template-columns: 3fr 2fr 1fr 1.5fr auto; padding: 1rem 1.5rem; border-bottom: 1px solid #27272a; align-items: center; font-size: 0.85rem; color: #e4e4e7; transition: background 0.2s; }
+                .cms-list-item:hover { background: #27272a; }
+                .cms-badge { padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+                .cms-badge.page { background: #1e3a8a; color: #93c5fd; }
+                .cms-badge.post { background: #064e3b; color: #6ee7b7; }           
             /* Export Modal Styles */
                 /* Export Modal Styles */
+           /* Export Modal Styles */
             #export-modal { 
                 display: none; 
                 position: fixed; 
                 inset: 0; 
-                background: rgba(0,0,0,0.8); 
+                background: rgba(9, 9, 11, 0.7); 
+                backdrop-filter: blur(10px); 
+                -webkit-backdrop-filter: blur(10px);
                 z-index: 10000; 
                 place-content: center; 
                 padding: 2rem; 
-                pointer-events: auto; /* <-- THIS IS THE FIX! */
+                pointer-events: auto; 
             }
                 #export-modal.active { display: grid; }
                 .modal-content { background: #18181b; padding: 2rem; border-radius: 8px; width: 80vw; max-width: 800px; display: flex; flex-direction: column; position: relative; border: 1px solid #27272a; }
@@ -145,13 +172,14 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 #btn-copy:hover { background: #2563eb; }
                 </style>
 
-            <div id="top-bar" class="panel">
-                <div class="logo"><span class="logo-icon">✦</span> NovaForge</div>
+         <div id="top-bar" class="panel">
+                <div class="logo">Fable</div>
                 <div id="viewport-bar">
                     <button class="vp-btn active" data-vp="base">Base</button>
                     ${dynamicViewportButtons}
                 </div>
 <div class="top-actions">
+<button id="btn-cms" class="btn-secondary" style="border-color: #8b5cf6; color: #a78bfa;">Dashboard</button>
     <button id="btn-toggle-guides" class="btn-secondary">Guides: Off</button>
     <button id="btn-clear" class="btn-secondary" style="color: #ef4444; border-color: #7f1d1d;">Clear</button>
     <button id="btn-view-html" class="btn-secondary">View HTML</button>
@@ -164,10 +192,10 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 <div id="left-resizer" class="resizer"></div>
                 
 <div class="tabs-header">
-    <button class="tab-btn active" data-target="tab-elements">Add</button>
-    <button class="tab-btn" data-target="tab-layers">Layers</button>
-    <button class="tab-btn" data-target="tab-meta">Meta</button> <button class="tab-btn" data-target="tab-globals">Globals</button>
-</div>
+                    <button class="tab-btn active" data-target="tab-elements">Add</button>
+                    <button class="tab-btn" data-target="tab-layers">Layers</button>
+                    <button class="tab-btn" data-target="tab-meta">Meta</button> <button class="tab-btn" data-target="tab-globals">Global</button>
+                </div>
                 
                 <div id="tab-elements" class="tab-pane active">
                     <div class="component-item" draggable="true" data-type="custom-layout">⚏ Layout Grid</div>
@@ -225,13 +253,12 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 </div>
             </div>
 
-            <div id="right-sidebar" class="panel">
+           <div id="right-sidebar" class="panel">
                 <div id="right-resizer" class="resizer"></div>
                 
                 <div id="inspector">
                     <p id="empty-state">Select an element on the canvas to edit its properties.</p>
                     <div id="edit-form" style="display: none;">
-                        <div id="breadcrumbs"></div>
                         <div style="display: flex; gap: 8px; margin-bottom: 10px;">
                             <button id="btn-up" class="btn-secondary" style="flex:1;">↑ Up</button>
                             <button id="btn-down" class="btn-secondary" style="flex:1;">↓ Down</button>
@@ -242,6 +269,25 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 </div>
             </div>
 
+            <div id="bottom-bar" class="panel">
+                <div id="breadcrumbs">Canvas</div>
+                <div id="doc-status">Unsaved Document</div>
+            </div>
+
+           <div id="cms-dashboard">
+                <div class="cms-container">
+                    <div class="cms-header">
+                        <h2>Content Dashboard</h2>
+                        <button id="close-cms" class="btn-secondary">Close</button>
+                    </div>
+                    <div class="cms-list-header">
+                        <span>Title</span><span>Slug</span><span>Type</span><span>Date</span><span>Action</span>
+                    </div>
+                    <div id="cms-content-list">
+                        </div>
+                </div>
+            </div>
+            
             <div id="export-modal">
                 <div class="modal-content">
                     <h2 style="color: #fafafa; margin-top: 0; font-size: 1.2rem;">Exported HTML</h2>
@@ -330,8 +376,29 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 pointer-events: auto !important;
                 box-shadow: 0 2px 4px rgba(0,0,0,0.3);
             }
-            .handle-left { left: -7px; }
+.handle-left { left: -7px; }
             .handle-right { right: -7px; }            
+
+            /* NEW: Canvas Override Badge */
+            .override-badge {
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                background: #f59e0b;
+                color: #fff;
+                border: 1px solid #d97706;
+                font-size: 12px;
+                width: 24px;
+                height: 24px;
+                border-radius: 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 20;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+                pointer-events: auto;
+                cursor: help;
+            }
             
             /* Give custom-layout its layout rules while inside the builder */
             custom-layout {
@@ -394,12 +461,37 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
         this.loadState()
         this.setupControls();
         this.fetchComponents();
-       ;
-        
+        ;
+
     }
 
     saveState() {
         localStorage.setItem('rainwildsBuilderTree', JSON.stringify(this.state));
+    }
+
+    async loadGlobalTemplates() {
+        try {
+            const response = await fetch('http://localhost:3000/api/templates');
+            if (response.ok) {
+                this.state.presets = await response.json();
+                this.renderPresets();
+            }
+        } catch (err) {
+            console.error("Failed to load global templates", err);
+            if (!this.state.presets) this.state.presets = {};
+        }
+    }
+
+    async saveGlobalTemplates() {
+        try {
+            await fetch('http://localhost:3000/api/templates', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(this.state.presets)
+            });
+        } catch (err) {
+            console.error("Failed to save global templates", err);
+        }
     }
 
     loadState() {
@@ -407,7 +499,11 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
         if (saved) {
             this.state = JSON.parse(saved);
         }
+
+        if (!this.state.presets) this.state.presets = {};
+
         this.rebuildCanvas();
+        this.loadGlobalTemplates();
     }
 
     rebuildCanvas() {
@@ -437,7 +533,31 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
         this.canvas.appendChild(overlay);
 
         this.saveState();
+
+        // --- FIX: ATTACH BADGES AFTER WEB COMPONENTS INITIALIZE ---
+        // A slight timeout ensures custom-block has already run replaceWith()
+        setTimeout(() => {
+            Object.values(this.state.items).forEach(node => {
+                // Filter out placement attributes before checking if overrides exist
+                const hasOverrides = node.presetId && node.localAttrs &&
+                    Object.keys(node.localAttrs).filter(key => !Shared.PLACEMENT_ATTRS.some(base => key.startsWith(base))).length > 0;
+
+                if (hasOverrides) {
+                    const wrapper = this.canvas.querySelector(`[data-id="${node.id}"]`);
+                    // wrapper.firstElementChild is the actual rendered grid element
+                    if (wrapper && wrapper.firstElementChild) {
+                        wrapper.firstElementChild.style.position = 'relative'; // Ensure absolute positioning works
+                        const badge = document.createElement('div');
+                        badge.className = 'override-badge';
+                        badge.innerHTML = '⚠️';
+                        badge.title = 'This instance has local overrides';
+                        wrapper.firstElementChild.appendChild(badge);
+                    }
+                }
+            });
+        }, 100);
     }
+
 
     async fetchComponents() {
         try {
@@ -462,24 +582,59 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                     document.head.appendChild(script);
                 }
 
-                // 2. Build the sidebar UI (Your existing code)
-                const div = document.createElement('div');
-                div.className = 'component-item';
-                div.setAttribute('draggable', 'true');
-                div.dataset.type = tag;
+                // 2. Build the sidebar UI (Grouped Component & Nested Templates)
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'component-group';
+                groupDiv.dataset.type = tag;
+                groupDiv.style.marginBottom = '8px';
+
+                const mainBtn = document.createElement('div');
+                mainBtn.className = 'component-item';
+                mainBtn.setAttribute('draggable', 'true');
+                mainBtn.dataset.type = tag;
+                mainBtn.style.position = 'relative';
+                mainBtn.style.marginBottom = '0';
+                mainBtn.title = "Double-click to view templates";
 
                 const name = tag.replace('custom-', '').split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
                 const icon = tag.includes('layout') ? '⚏' : tag.includes('slider') ? '◫' : '◻';
 
-                div.innerHTML = `<span class="layer-icon">${icon}</span> ${name}`;
+                // Add the template indicator icon (hidden by default)
+                mainBtn.innerHTML = `
+                    <span class="layer-icon">${icon}</span> ${name}
+                    <span class="template-indicator" style="display:none; position:absolute; top: 50%; right: 10px; transform: translateY(-50%); font-size: 14px; color: #fbbf24;" title="Templates Available">❖</span>
+                `;
 
-                div.addEventListener('dragstart', (e) => {
+                mainBtn.addEventListener('dragstart', (e) => {
                     e.dataTransfer.setData('text/plain', 'new:' + tag);
                     this.draggedLibraryType = tag;
                 });
 
-                container.appendChild(div);
+                // The nested container for templates
+                const templateList = document.createElement('div');
+                templateList.className = 'template-list';
+                templateList.style.display = 'none';
+                templateList.style.flexDirection = 'column';
+                templateList.style.gap = '4px';
+                templateList.style.marginTop = '4px';
+                templateList.style.paddingLeft = '12px';
+                templateList.style.borderLeft = '1px solid #3f3f46';
+                templateList.style.marginLeft = '6px';
+
+                // Double click to toggle templates
+                mainBtn.addEventListener('dblclick', () => {
+                    const isHidden = templateList.style.display === 'none';
+                    templateList.style.display = isHidden ? 'flex' : 'none';
+                });
+
+                groupDiv.appendChild(mainBtn);
+                groupDiv.appendChild(templateList);
+                container.appendChild(groupDiv);
             });
+
+            // --- FIX: RE-RENDER PRESETS AFTER WIPING THE TAB ---
+            this.renderPresets();
+
         } catch (err) {
             this.shadowRoot.getElementById('tab-elements').innerHTML = '<p style="color:#ef4444; font-size:0.7rem;">API Error</p>';
         }
@@ -701,10 +856,39 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
             wrapper.classList.add('block', 'is-slide');
         }
 
+        // --- NEW MERGING LOGIC STARTS HERE ---
+
+        // 1. Establish base attributes from the preset (if one exists)
+        let resolvedAttrs = {};
+        if (nodeData.presetId && this.state.presets && this.state.presets[nodeData.presetId]) {
+            resolvedAttrs = { ...this.state.presets[nodeData.presetId].baseAttrs };
+        }
+
+        // 2. Merge local overrides on top. 
+        // We use (nodeData.localAttrs || nodeData.attrs) to ensure backwards compatibility 
+        // with older saved layouts that haven't been migrated to the new localAttrs structure yet.
+        resolvedAttrs = { ...resolvedAttrs, ...(nodeData.localAttrs || nodeData.attrs || {}) };
+
         const component = document.createElement(nodeData.type);
-        for (const [key, value] of Object.entries(nodeData.attrs)) {
+
+        // 3. Iterate over the newly merged resolvedAttrs instead of nodeData.attrs
+        for (const [key, value] of Object.entries(resolvedAttrs)) {
             component.setAttribute(key, value);
         }
+
+        // --- NEW: ADD VISUAL ALERT BADGE TO CANVAS COMPONENT ---
+        // Filter out placement attributes before checking if overrides exist
+        const hasOverrides = nodeData.presetId && nodeData.localAttrs &&
+            Object.keys(nodeData.localAttrs).filter(key => !Shared.PLACEMENT_ATTRS.some(base => key.startsWith(base))).length > 0;
+
+        if (hasOverrides) {
+            const badge = document.createElement('div');
+            badge.className = 'override-badge';
+            badge.innerHTML = '⚠️';
+            badge.title = 'This instance has local overrides';
+            component.appendChild(badge);
+        }
+        // -------------------------------------------------------
 
         if (nodeData.children && nodeData.children.length > 0) {
             nodeData.children.forEach(childId => {
@@ -733,6 +917,105 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
         });
 
         return wrapper;
+    }
+
+    renderPresets() {
+        // Find or create a container for the starred templates
+        let starredContainer = this.shadowRoot.getElementById('starred-templates-list');
+
+        if (!starredContainer) {
+            const tabElements = this.shadowRoot.getElementById('tab-elements');
+
+            const divider = document.createElement('h4');
+            divider.textContent = 'Starred Templates';
+            divider.style.cssText = 'color: #f59e0b; font-size: 0.75rem; margin-top: 15px; margin-bottom: 8px; border-bottom: 1px solid #27272a; padding-bottom: 4px; font-weight: 600;';
+
+            starredContainer = document.createElement('div');
+            starredContainer.id = 'starred-templates-list';
+
+            tabElements.appendChild(divider);
+            tabElements.appendChild(starredContainer);
+        }
+
+        // 1. Clear existing starred items and nested template lists
+        starredContainer.innerHTML = '';
+        this.shadowRoot.querySelectorAll('.template-list').forEach(list => list.innerHTML = '');
+        this.shadowRoot.querySelectorAll('.template-indicator').forEach(ind => ind.style.display = 'none');
+
+        if (!this.state.presets || Object.keys(this.state.presets).length === 0) {
+            starredContainer.innerHTML = '<p style="font-size:0.7rem; padding:10px; color: #71717a;">No templates saved yet.</p>';
+            return;
+        }
+
+        let starredCount = 0;
+
+        // 2. Build the template items
+        Object.values(this.state.presets).forEach(preset => {
+            const isStarred = preset.isStarred === true;
+            const starColor = isStarred ? '#f59e0b' : '#71717a';
+
+            // Function to generate the preset drag item
+            const createPresetNode = () => {
+                const presetDiv = document.createElement('div');
+                presetDiv.className = 'component-item';
+                presetDiv.setAttribute('draggable', 'true');
+                presetDiv.style.padding = '8px 10px';
+                presetDiv.style.fontSize = '0.75rem';
+                presetDiv.style.marginBottom = '0';
+                presetDiv.style.display = 'flex';
+                presetDiv.style.justifyContent = 'space-between';
+                presetDiv.style.alignItems = 'center';
+
+                presetDiv.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 6px; overflow: hidden;">
+                        <span class="layer-icon" style="color: #10b981; font-size: 0.9em;">↳</span> 
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${preset.name}">${preset.name}</span>
+                    </div>
+                    <button class="star-btn" style="background: none; border: none; padding: 0; cursor: pointer; color: ${starColor}; font-size: 1rem; line-height: 1;" title="Toggle Star">★</button>
+                `;
+
+                // Star toggle event
+                presetDiv.querySelector('.star-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    preset.isStarred = !preset.isStarred;
+                    this.saveGlobalTemplates();
+                    this.saveState();
+                    this.renderPresets();
+                });
+
+                // Drag events
+                presetDiv.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', `preset:${preset.type}:${preset.id}`);
+                    this.draggedLibraryType = preset.type;
+                });
+
+                presetDiv.addEventListener('dragend', () => {
+                    this.draggedLibraryType = null;
+                    if (this.placeholder) { this.placeholder.remove(); this.placeholder = null; }
+                });
+
+                return presetDiv;
+            };
+
+            // A) Append to nested component list
+            const groupDiv = this.shadowRoot.querySelector(`.component-group[data-type="${preset.type}"]`);
+            if (groupDiv) {
+                const list = groupDiv.querySelector('.template-list');
+                list.appendChild(createPresetNode());
+                // Reveal the ❖ template indicator icon on the main button
+                groupDiv.querySelector('.template-indicator').style.display = 'block';
+            }
+
+            // B) Append to Starred list if applicable
+            if (isStarred) {
+                starredCount++;
+                starredContainer.appendChild(createPresetNode());
+            }
+        });
+
+        if (starredCount === 0) {
+            starredContainer.innerHTML = '<p style="font-size:0.7rem; padding:10px; color: #71717a;">No starred templates.</p>';
+        }
     }
 
     getDragAfterElement(container, y) {
@@ -846,12 +1129,41 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                     initialAttrs['inner-class'] = 'padding-large';
                 }
 
-                this.state.items[uniqueId] = { id: uniqueId, type: componentType, attrs: initialAttrs, children: [], parentId: newParentId };
+                // UPDATED: Shifted to the new architecture using localAttrs and presetId
+                this.state.items[uniqueId] = {
+                    id: uniqueId,
+                    type: componentType,
+                    presetId: null,
+                    localAttrs: initialAttrs,
+                    children: [],
+                    parentId: newParentId
+                };
 
                 if (newParentId) this.state.items[newParentId].children.push(uniqueId);
                 else this.state.roots.push(uniqueId);
 
                 this.selectedId = uniqueId;
+
+                // --- NEW PRESET DROP LOGIC ADDED HERE ---
+            } else if (payload.startsWith('preset:')) {
+                const [_, componentType, presetId] = payload.split(':');
+                const uniqueId = 'comp-' + Date.now();
+
+                // Instantiate with the linked ID and empty local overrides
+                this.state.items[uniqueId] = {
+                    id: uniqueId,
+                    type: componentType,
+                    presetId: presetId,
+                    localAttrs: {}, // Starts empty because it inherits from the preset
+                    children: [],
+                    parentId: newParentId
+                };
+
+                if (newParentId) this.state.items[newParentId].children.push(uniqueId);
+                else this.state.roots.push(uniqueId);
+
+                this.selectedId = uniqueId;
+                // ----------------------------------------
 
             } else if (payload.startsWith('move:')) {
                 const itemId = payloadType;
@@ -925,6 +1237,12 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
         const compData = this.state.items[this.selectedId];
         if (!compData) return;
 
+        // --- AUTO-MIGRATE OLD DATA TO NEW ARCHITECTURE ---
+        if (!compData.localAttrs) {
+            compData.localAttrs = compData.attrs || {};
+            delete compData.attrs;
+        }
+
         // --- 1. BREADCRUMBS ---
         const breadcrumbs = this.shadowRoot.getElementById('breadcrumbs');
         breadcrumbs.innerHTML = '';
@@ -959,25 +1277,110 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
             }
         });
 
+        // --- 1.5 TEMPLATE CONTROLS ---
+        // Remove old template controls if re-rendering inspector
+        const oldControls = this.shadowRoot.getElementById('template-controls');
+        if (oldControls) oldControls.remove();
+
+        const templateControls = document.createElement('div');
+        templateControls.id = 'template-controls';
+        templateControls.style.cssText = 'display: flex; gap: 8px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #27272a;';
+
+        if (compData.presetId) {
+            const updateBtn = document.createElement('button');
+            updateBtn.className = 'btn-primary';
+            updateBtn.style.flex = '1';
+            updateBtn.style.background = '#10b981';
+            updateBtn.style.borderColor = '#059669';
+            updateBtn.textContent = '⟳ Update Template';
+            updateBtn.addEventListener('click', () => {
+                // Merge current local edits into the master preset
+                this.state.presets[compData.presetId].baseAttrs = {
+                    ...this.state.presets[compData.presetId].baseAttrs,
+                    ...compData.localAttrs
+                };
+                compData.localAttrs = {}; // Clear local overrides
+                this.saveGlobalTemplates();
+                this.rebuildCanvas();
+                this.populateInspector();
+                alert('Template updated across all instances!');
+            });
+
+            // NEW: Reset Button
+            const resetBtn = document.createElement('button');
+            resetBtn.className = 'btn-secondary';
+            resetBtn.style.flex = '1';
+            resetBtn.style.color = '#ef4444'; // Red text for destructive action
+            resetBtn.style.borderColor = '#7f1d1d';
+            resetBtn.textContent = '↺ Reset';
+            resetBtn.title = 'Revert all local changes to match the template';
+            resetBtn.addEventListener('click', () => {
+                if (confirm('Revert all local overrides to match the template defaults?')) {
+                    compData.localAttrs = {}; // Wipe local overrides
+                    this.rebuildCanvas();
+                    this.populateInspector();
+                }
+            });
+
+            templateControls.appendChild(updateBtn);
+            templateControls.appendChild(resetBtn);
+
+        } else {
+            const saveTemplateBtn = document.createElement('button');
+            saveTemplateBtn.className = 'btn-secondary';
+            saveTemplateBtn.style.flex = '1';
+            saveTemplateBtn.style.borderColor = '#818cf8';
+            saveTemplateBtn.style.color = '#818cf8';
+            saveTemplateBtn.textContent = '★ Save as Template';
+            saveTemplateBtn.addEventListener('click', () => {
+                const presetName = prompt("Enter a name for this template:");
+                if (!presetName) return;
+
+                const newPresetId = 'preset-' + Date.now();
+                this.state.presets[newPresetId] = {
+                    id: newPresetId,
+                    type: compData.type,
+                    name: presetName,
+                    isStarred: false, // Default to false so it doesn't clutter the favorites
+                    baseAttrs: { ...compData.localAttrs }
+                };
+
+                compData.presetId = newPresetId;
+                compData.localAttrs = {}; // Clear local overrides
+
+                this.saveGlobalTemplates();
+
+                // Force the nested list to be open if we just saved one so the user sees it
+                const groupDiv = this.shadowRoot.querySelector(`.component-group[data-type="${compData.type}"]`);
+                if (groupDiv) {
+                    groupDiv.querySelector('.template-list').style.display = 'flex';
+                }
+
+                this.renderPresets();
+                this.populateInspector();
+            });
+            templateControls.appendChild(saveTemplateBtn);
+        }
+
+        // Insert right above the dynamic inputs
+        this.shadowRoot.getElementById('edit-form').insertBefore(templateControls, this.shadowRoot.getElementById('dynamic-inputs'));
+
+
         // --- 2. FETCH DYNAMIC CONFIGURATION ---
         const ElementClass = customElements.get(compData.type);
 
         let config = ElementClass && ElementClass.builderConfig
             ? JSON.parse(JSON.stringify(ElementClass.builderConfig))
-            : { groups: { 'General': [] }, booleans: [] }; // <-- Default booleans array
+            : { groups: { 'General': [] }, booleans: [] };
 
         // Extract the component's declared booleans (fallback to empty array)
         const componentBooleans = config.booleans || [];
 
-        const PLACEMENT_ATTRS = ['column-start', 'column-end', 'row-start', 'row-end', 'z-index'];
-
-        // Auto-inject Placement for everything EXCEPT custom-layout
-        if (compData.type !== 'custom-layout') {
-            config.groups = {
-                'Placement': PLACEMENT_ATTRS,
-                ...config.groups
-            };
-        }
+        // Auto-inject Placement for ALL components uniformly
+        config.groups = {
+            'Placement': Shared.PLACEMENT_ATTRS,
+            ...config.groups
+        };
 
         let liveAttrs = ElementClass && ElementClass.observedAttributes ? [...ElementClass.observedAttributes] : [];
 
@@ -985,22 +1388,17 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
             liveAttrs = Object.values(config.groups).flat();
         }
 
-        if (compData.type === 'custom-layout') {
-            liveAttrs = liveAttrs.filter(attr => !PLACEMENT_ATTRS.includes(attr));
-        }
-
         const vpSuffix = this.currentViewport === 'base' ? '' : `-${this.currentViewport}`;
 
         // Ensure placement attributes are always editable for UI dragging purposes
-        PLACEMENT_ATTRS.forEach(pa => {
+        Shared.PLACEMENT_ATTRS.forEach(pa => {
             if (!liveAttrs.includes(pa)) liveAttrs.push(pa);
         });
 
-        // FIX: Filter out the responsive grid variants from the liveAttrs list
-        // so they don't spill over and spawn duplicate UI inputs in the "General" tab
+        // Filter out the responsive grid variants from the liveAttrs list
         const viewports = ['mobile', 'tablet', 'laptop', 'desktop', 'large', 'ultra'];
         liveAttrs = liveAttrs.filter(attr => {
-            const isPlacementBase = PLACEMENT_ATTRS.some(base => attr.startsWith(base));
+            const isPlacementBase = Shared.PLACEMENT_ATTRS.some(base => attr.startsWith(base));
             const hasViewportSuffix = viewports.some(vp => attr.endsWith(`-${vp}`));
             return !(isPlacementBase && hasViewportSuffix);
         });
@@ -1044,21 +1442,40 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
             dynamicContainer.appendChild(groupHeader);
 
             attributes.forEach(baseAttrName => {
-                const isPlacement = PLACEMENT_ATTRS.includes(baseAttrName);
+                const isPlacement = Shared.PLACEMENT_ATTRS.includes(baseAttrName); // <--- FIXED
                 const attrName = isPlacement ? `${baseAttrName}${vpSuffix}` : baseAttrName;
+
+                // Fetch inherited preset value if it exists
+                const inheritedVal = compData.presetId && this.state.presets && this.state.presets[compData.presetId]
+                    ? this.state.presets[compData.presetId].baseAttrs[attrName]
+                    : undefined;
+
+                // Determine if this specific field has been overridden locally
+                const isOverridden = compData.presetId && compData.localAttrs[attrName] !== undefined;
 
                 const formGroup = document.createElement('div');
                 formGroup.className = 'form-group';
 
                 const label = document.createElement('label');
-                label.textContent = attrName.replace(/-/g, ' ');
-                if (isPlacement && this.currentViewport !== 'base') label.style.color = '#10b981';
+
+                // FIX: Create a reusable function to update the label icon dynamically
+                const updateLabelBadge = (hasOverride) => {
+                    // Suppress the warning icon for any Placement attributes
+                    if (hasOverride && compData.presetId && !isPlacement) {
+                        label.innerHTML = `${attrName.replace(/-/g, ' ')} <span style="margin-left: 6px; font-size: 12px; cursor: help;" title="Local override applied">⚠️</span>`;
+                    } else {
+                        label.textContent = attrName.replace(/-/g, ' ');
+                    }
+                    if (isPlacement && this.currentViewport !== 'base') label.style.color = '#10b981';
+                };
+
+                // Set initial state
+                updateLabelBadge(isOverridden);
 
                 let input;
 
                 // --- 1. DYNAMIC BOOLEAN TOGGLES ---
                 if (componentBooleans.includes(baseAttrName)) {
-                    // Make the layout horizontal for toggles
                     formGroup.classList.remove('stacked');
                     formGroup.style.flexDirection = 'row';
                     formGroup.style.justifyContent = 'space-between';
@@ -1069,8 +1486,9 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
 
                     const checkbox = document.createElement('input');
                     checkbox.type = 'checkbox';
-                    // Check if attribute exists in the JSON state
-                    checkbox.checked = compData.attrs[attrName] !== undefined;
+
+                    // Checked if local override exists, OR if preset value is present (and local hasn't explicitly disabled it)
+                    checkbox.checked = compData.localAttrs[attrName] !== undefined || (compData.localAttrs[attrName] !== 'false' && inheritedVal !== undefined);
 
                     const slider = document.createElement('span');
                     slider.className = 'slider';
@@ -1082,9 +1500,16 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
 
                     checkbox.addEventListener('change', (e) => {
                         if (e.target.checked) {
-                            compData.attrs[attrName] = ''; // Empty string satisfies HTML boolean presence
+                            compData.localAttrs[attrName] = ''; // Empty string satisfies HTML boolean presence
+                            updateLabelBadge(true); // Instantly add warning icon
                         } else {
-                            delete compData.attrs[attrName];
+                            if (inheritedVal !== undefined) {
+                                compData.localAttrs[attrName] = 'false'; // Explicitly override preset
+                                updateLabelBadge(true); // Instantly add warning icon
+                            } else {
+                                delete compData.localAttrs[attrName];
+                                updateLabelBadge(false); // Instantly remove warning icon
+                            }
                         }
 
                         if (this.debounceTimers[attrName]) clearTimeout(this.debounceTimers[attrName]);
@@ -1095,6 +1520,10 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 }
                 // --- 2. STANDARD INPUTS ---
                 else {
+                    const currentValue = compData.localAttrs[attrName] !== undefined
+                        ? compData.localAttrs[attrName]
+                        : (inheritedVal || '');
+
                     if (ATTR_DROPDOWNS[baseAttrName]) {
                         input = document.createElement('select');
                         const defaultOption = document.createElement('option');
@@ -1104,25 +1533,25 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                         ATTR_DROPDOWNS[baseAttrName].forEach(val => {
                             const opt = document.createElement('option');
                             opt.value = val; opt.textContent = val;
-                            if (compData.attrs[attrName] === val) opt.selected = true;
+                            if (currentValue === val) opt.selected = true;
                             input.appendChild(opt);
                         });
                     } else if (isPlacement || attrName === 'column-span') {
                         input = document.createElement('input');
                         input.type = 'text';
                         input.placeholder = 'e.g., 4, -1, or span 6';
-                        input.value = compData.attrs[attrName] || '';
+                        input.value = currentValue;
                     } else if (attrName.includes('paragraph') || attrName.includes('items') || attrName.includes('icon')) {
                         input = document.createElement('textarea');
                         input.rows = 3;
-                        input.value = compData.attrs[attrName] || '';
+                        input.value = currentValue;
                         if (attrName.includes('icon')) input.placeholder = 'e.g., <i class="fa-solid fa-star"></i>';
                         else if (attrName.includes('items')) input.placeholder = 'e.g., Item 1, Item 2, Item 3';
                         else input.placeholder = 'Enter ' + attrName.replace(/-/g, ' ') + '...';
                     } else {
                         input = document.createElement('input');
                         input.type = 'text';
-                        input.value = compData.attrs[attrName] || '';
+                        input.value = currentValue;
                         if (attrName.includes('class') || attrName.includes('effects') || attrName.includes('border') || attrName.includes('shadow')) input.placeholder = 'e.g., padding-large shadow-2';
                         else if (attrName.includes('src') || attrName.includes('poster')) input.placeholder = 'e.g., /img/media.jpg';
                         else if (attrName.includes('color')) input.placeholder = 'e.g., #ffffff or var(--primary)';
@@ -1136,8 +1565,13 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
 
                     input.addEventListener('input', (e) => {
                         const newValue = e.target.value;
-                        if (newValue.trim() === '') delete compData.attrs[attrName];
-                        else compData.attrs[attrName] = newValue;
+                        if (newValue.trim() === '') {
+                            delete compData.localAttrs[attrName];
+                            updateLabelBadge(false); // Instantly remove warning icon
+                        } else {
+                            compData.localAttrs[attrName] = newValue;
+                            updateLabelBadge(true); // Instantly add warning icon
+                        }
 
                         if (this.debounceTimers[attrName]) clearTimeout(this.debounceTimers[attrName]);
                         this.debounceTimers[attrName] = setTimeout(() => {
@@ -1158,6 +1592,120 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
         this.shadowRoot.getElementById('edit-form').style.display = 'none';
     }
 
+    async openCmsDashboard() {
+        const dashboard = this.shadowRoot.getElementById('cms-dashboard');
+        const listContainer = this.shadowRoot.getElementById('cms-content-list');
+        dashboard.classList.add('active');
+        listContainer.innerHTML = '<div style="padding: 2rem; text-align: center; color: #a1a1aa;">Loading content...</div>';
+
+        try {
+            const response = await fetch('http://localhost:3000/api/list-content');
+            if (!response.ok) throw new Error('Failed to fetch content');
+            const items = await response.json();
+
+            if (items.length === 0) {
+                listContainer.innerHTML = '<div style="padding: 2rem; text-align: center; color: #a1a1aa;">No pages or posts found.</div>';
+                return;
+            }
+
+            listContainer.innerHTML = '';
+            items.forEach(item => {
+                const row = document.createElement('div');
+                row.className = 'cms-list-item';
+
+                const date = new Date(item.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+
+                row.innerHTML = `
+                    <div style="font-weight: 500; color: #fafafa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 15px;" title="${item.title}">${item.title}</div>
+                    <div style="color: #a1a1aa; font-family: monospace; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 15px;" title="${item.slug}">/${item.slug}</div>
+                    <div><span class="cms-badge ${item.type}">${item.type}</span></div>
+                    <div style="color: #a1a1aa;">${date}</div>
+                    <div>
+                        <button class="btn-primary edit-btn" data-slug="${item.slug}" data-type="${item.type}">Edit</button>
+                    </div>
+                `;
+
+                // Edit button event listener (Placeholder for Step 3!)
+                row.querySelector('.edit-btn').addEventListener('click', (e) => {
+                    const slug = e.target.dataset.slug;
+                    const type = e.target.dataset.type;
+                    this.loadContentIntoBuilder(slug, type); // We will build this in Step 3
+                });
+
+                listContainer.appendChild(row);
+            });
+
+        } catch (err) {
+            console.error(err);
+            listContainer.innerHTML = `<div style="padding: 2rem; text-align: center; color: #ef4444;">Error loading content. Is server.js running?</div>`;
+        }
+    }
+
+    closeCmsDashboard() {
+        this.shadowRoot.getElementById('cms-dashboard').classList.remove('active');
+    }
+
+    async loadContentIntoBuilder(slug, type) {
+        // Give the user visual feedback that it's loading
+        const btn = this.shadowRoot.querySelector(`button[data-slug="${slug}"]`);
+        const originalText = btn ? btn.textContent : 'Edit';
+        if (btn) btn.textContent = 'Loading...';
+
+        try {
+            // 1. Fetch the raw JSON state from the server
+            const response = await fetch(`http://localhost:3000/api/load-post?slug=${slug}&type=${type}`);
+            if (!response.ok) throw new Error('Failed to load content');
+
+            const fetchedState = await response.json();
+
+            // 2. Preserve live global presets! 
+            // We don't want historical page data to overwrite our live global templates.
+            const livePresets = this.state.presets || {};
+
+            // 3. Hydrate the builder state
+            this.state = fetchedState;
+            this.state.presets = livePresets; // Re-inject the live presets
+
+            // Ensure headData exists so the Meta tab doesn't crash
+            if (!this.state.headData) this.state.headData = {};
+
+            // 4. Update the Meta Tab UI inputs to reflect the newly loaded data
+            const metaFields = [
+                'contentType', 'slug', 'title', 'date', 'categories', 'description',
+                'ogImage', 'canonical', 'theme', 'components', 'heroImage',
+                'heroCount', 'heroWidths', 'heroSize', 'heroFormat'
+            ];
+
+            metaFields.forEach(field => {
+                const input = this.shadowRoot.getElementById(`meta-${field}`);
+                if (input) {
+                    input.value = this.state.headData[field] || '';
+                }
+            });
+
+            // 5. Reset Builder UI selections
+            this.selectedId = null;
+            this.hideInspector();
+
+            // 6. Rebuild the visual canvas and the layers tree
+            this.rebuildCanvas();
+            if (this.renderLayers) this.renderLayers();
+
+            // 7. Close the dashboard to reveal the loaded page
+            this.closeCmsDashboard();
+
+            // 8. Update Status Bar
+            this.shadowRoot.getElementById('doc-status').textContent = `Editing ${type.toUpperCase()}: /${slug}`;
+
+            console.log(`✅ Successfully loaded ${type}: ${slug}`);
+
+        } catch (err) {
+            console.error("Error loading content:", err);
+            alert("Failed to load content. Check the console for details.");
+            if (btn) btn.textContent = originalText;
+        }
+    }
+
     setupControls() {
         const root = this.shadowRoot;
 
@@ -1165,6 +1713,15 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
         const vpButtons = root.querySelectorAll('.vp-btn');
         const viewportWidths = { 'base': '100%' };
         Shared.VIEWPORT_BREAKPOINTS.forEach(bp => { viewportWidths[bp.name] = `${bp.maxWidth}px`; });
+
+        // --- BUTTON: CMS DASHBOARD ---
+        this.shadowRoot.getElementById('btn-cms').addEventListener('click', () => {
+            this.openCmsDashboard();
+        });
+
+        this.shadowRoot.getElementById('close-cms').addEventListener('click', () => {
+            this.closeCmsDashboard();
+        });
 
         vpButtons.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -1295,7 +1852,15 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
             const node = this.state.items[id];
             if (!node) return '';
             const indent = '  '.repeat(indentLevel);
-            let attrString = Object.entries(node.attrs).map(([k, v]) => `${k}="${v.replace(/"/g, '&quot;')}"`).join(' ');
+
+            // Resolve attributes (Preset + Local Overrides)
+            let resolvedAttrs = {};
+            if (node.presetId && this.state.presets && this.state.presets[node.presetId]) {
+                resolvedAttrs = { ...this.state.presets[node.presetId].baseAttrs };
+            }
+            resolvedAttrs = { ...resolvedAttrs, ...(node.localAttrs || node.attrs || {}) };
+
+            let attrString = Object.entries(resolvedAttrs).map(([k, v]) => `${k}="${v.replace(/"/g, '&quot;')}"`).join(' ');
             if (attrString) attrString = ' ' + attrString;
             let html = `${indent}<${node.type}${attrString}>\n`;
             if (node.children) node.children.forEach(childId => html += generateHTMLString(childId, indentLevel + 1));
