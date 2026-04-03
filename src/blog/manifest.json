@@ -1,5 +1,23 @@
 [
   {
+    "slug": "slide-1",
+    "title": "Untitled",
+    "date": "2026-04-03",
+    "categories": [],
+    "excerpt": "",
+    "featuredImage": "",
+    "type": "post"
+  },
+  {
+    "slug": "slide-2",
+    "title": "Untitled",
+    "date": "2026-04-03",
+    "categories": [],
+    "excerpt": "",
+    "featuredImage": "",
+    "type": "post"
+  },
+  {
     "slug": "third-post",
     "title": "Second Post",
     "date": "2026-04-02",
@@ -137,15 +155,6 @@
   },
   {
     "slug": "slider-1",
-    "title": "Untitled",
-    "date": "2026-04-02",
-    "categories": [],
-    "excerpt": "",
-    "featuredImage": "",
-    "type": "post"
-  },
-  {
-    "slug": "slide-1",
     "title": "Untitled",
     "date": "2026-04-02",
     "categories": [],

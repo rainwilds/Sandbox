@@ -30,12 +30,13 @@ class VisualBuilder extends HTMLElement {
         this.selectedId = null;
         this.draggedLibraryType = null;
         this.placeholder = null;
-        this.currentViewport = 'base';
+        this.currentViewport = 'laptop'; // Default to standard desktop
 
         // 1. Text-based Viewport Buttons
         const dynamicViewportButtons = [...Shared.VIEWPORT_BREAKPOINTS].reverse().map(bp => {
             const label = bp.name.charAt(0).toUpperCase() + bp.name.slice(1);
-            return `<button class="vp-btn" data-vp="${bp.name}">${label}</button>`;
+            const isActive = bp.name === this.currentViewport ? 'active' : '';
+            return `<button class="vp-btn ${isActive}" data-vp="${bp.name}">${label}</button>`;
         }).join('');
 
         this.shadowRoot.innerHTML = `
@@ -172,10 +173,9 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 #btn-copy:hover { background: #2563eb; }
                 </style>
 
-         <div id="top-bar" class="panel">
+        <div id="top-bar" class="panel">
                 <div class="logo">Fable</div>
                 <div id="viewport-bar">
-                    <button class="vp-btn active" data-vp="base">Base</button>
                     ${dynamicViewportButtons}
                 </div>
 <div class="top-actions">
@@ -269,8 +269,9 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 </div>
             </div>
 
-            <div id="bottom-bar" class="panel">
+<div id="bottom-bar" class="panel">
                 <div id="breadcrumbs">Canvas</div>
+                <div id="zoom-indicator" style="font-weight: 600; color: #8b5cf6;">Zoom: 100%</div>
                 <div id="doc-status">Unsaved Document</div>
             </div>
 
@@ -313,141 +314,147 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
             #canvas {
                 display: grid;
                 grid-template-columns: repeat(12, 1fr);
-                gap: 16px; /* Match your site's standard gap */
-                padding: 2rem;
+                grid-auto-rows: min-content; 
+                gap: 0; 
+                padding: 0; 
                 align-content: start;
-                min-height: 100vh;
+                align-items: start; 
+                min-height: 200px; /* Hugs content tightly, but won't vanish when completely empty */
+                box-sizing: border-box;
                 position: relative;
             }
 
-
-
-.builder-grid-overlay {
+           .builder-grid-overlay {
                 position: absolute;
                 top: 0; left: 0; right: 0; bottom: 0;
-                padding: 2rem; /* Must exactly match #canvas padding */
+                padding: 0;
                 box-sizing: border-box;
-                display: none; /* Hidden by default */
+                display: none; 
                 grid-template-columns: repeat(12, 1fr);
-                gap: 16px; /* Must exactly match #canvas gap */
-                pointer-events: none; /* Lets you click completely through it */
-                z-index: 9998; /* Sits over components, under dragged items */
+                gap: 0; 
+                pointer-events: none; 
+                z-index: 9998; 
+                /* Makes the dashed lines cast a dark halo over light images */
+                filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.8)); 
             }
 
             #canvas.show-guides .builder-grid-overlay {
                 display: grid;
             }
 
+            /* Extended Horizontal Bounding Lines */
+            .builder-grid-overlay::before,
+            .builder-grid-overlay::after {
+                content: '';
+                position: absolute;
+                left: -5000px; right: -5000px; 
+                height: 1px;
+                z-index: 10;
+            }
+            .builder-grid-overlay::before { top: 0; border-top: 1px dashed rgba(129, 140, 248, 1); }
+            .builder-grid-overlay::after { bottom: 0; border-bottom: 1px dashed rgba(129, 140, 248, 1); }
+
             .builder-guide-col {
-                /* Matches the indigo builder theme (looks like DevTools) */
-                background: rgba(129, 140, 248, 0.08); 
-                border-left: 1px dashed rgba(129, 140, 248, 0.4);
-                border-right: 1px dashed rgba(129, 140, 248, 0.4);
+                background: rgba(129, 140, 248, 0.05); /* Reduced fill so it doesn't cast a heavy shadow */
                 height: 100%;
-            }            
+                border-left: 1px dashed rgba(129, 140, 248, 1); /* Max opacity for lines */
+            }
+            .builder-guide-col:last-child {
+                border-right: 1px dashed rgba(129, 140, 248, 1);
+            }
 
-            /* Make wrappers invisible to the CSS Grid */
-            .builder-wrapper { 
-                display: contents; 
+          /* Show dynamic row boundaries when guides are active */
+            #canvas.show-guides .builder-wrapper {
+                outline: 1px dashed rgba(129, 140, 248, 1);
+                outline-offset: -1px;
+                /* Inner black shadow gives contrast to the dashed outline over light backgrounds */
+                box-shadow: inset 0 0 0 1px rgba(0,0,0,0.4);
+            }
+
+            /* Draw infinite horizontal lines at the start of every top-level row */
+            #canvas.show-guides > .builder-wrapper::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -5000px;
+                right: -5000px;
+                height: 1px;
+                border-top: 1px dashed rgba(129, 140, 248, 1);
+                pointer-events: none;
+                z-index: 9998;
+                filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.8));
             }
             
-            /* Apply outlines to the ACTUAL component inside the wrapper */
-            .builder-wrapper > * { 
-                position: relative; cursor: pointer; transition: all 0.2s; 
-                outline: 1px dashed transparent; pointer-events: auto !important; 
-            }
-            .builder-wrapper:hover > * { outline: 2px dashed #94a3b8; outline-offset: -2px; z-index: 5; }
-            .builder-selected > * { outline: 3px solid #2196F3 !important; outline-offset: -3px; z-index: 10; overflow: visible !important;}
-            .builder-wrapper * { pointer-events: none; }
-            .builder-wrapper.is-dragging > * { opacity: 0.5; }
-
-/* Add this below your .builder-selected CSS rule */
-            .resize-handle {
-                position: absolute;
-                top: 50%;
-                width: 14px;
-                height: 28px;
-                background: #4f46e5;
-                border: 2px solid white;
-                border-radius: 4px;
-                transform: translateY(-50%);
-                z-index: 20;
-                cursor: ew-resize;
-                pointer-events: auto !important;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-            }
-.handle-left { left: -7px; }
-            .handle-right { right: -7px; }            
-
-            /* NEW: Canvas Override Badge */
-            .override-badge {
-                position: absolute;
-                top: 8px;
-                right: 8px;
-                background: #f59e0b;
-                color: #fff;
-                border: 1px solid #d97706;
-                font-size: 12px;
-                width: 24px;
-                height: 24px;
-                border-radius: 4px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 20;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.3);
-                pointer-events: auto;
-                cursor: help;
-            }
-            
-            /* Give custom-layout its layout rules while inside the builder */
             custom-layout {
-                display: contents; /* Become invisible to grid */
+                display: contents !important; 
             }
 
-/* Force custom-slider to act as a horizontal scrollable row in the builder */
+            /* Prevent nested flex/grid elements (like sliders) from causing horizontal blowouts */
+            .builder-wrapper {
+                min-width: 0; 
+                position: relative; /* Anchor for extended row lines */
+            }
+
+            /* THE FIX: The wrapper itself becomes the subgrid bridge! */
+            .builder-wrapper[data-type="custom-layout"] {
+                display: grid;
+                grid-column: 1 / -1; 
+                grid-template-columns: subgrid; 
+                min-height: 100px;
+                align-content: start;
+                
+                /* Diagonal Pattern for Layout boundaries */
+                background: repeating-linear-gradient(
+                    45deg,
+                    rgba(129, 140, 248, 0.05),
+                    rgba(129, 140, 248, 0.05) 10px,
+                    transparent 10px,
+                    transparent 20px
+                );
+                border: 1px dashed rgba(129, 140, 248, 0.4);
+                border-radius: 8px;
+            }
+
+           .builder-wrapper.drop-target[data-type="custom-layout"] { 
+                outline: 4px dashed #10b981 !important; 
+                outline-offset: -4px; 
+                background: rgba(16, 185, 129, 0.1); 
+            }
+
+            /* RECONNECT SECTION: The Web Component's internal section must also pass the grid down */
+            custom-layout > section {
+                display: grid;
+                grid-column: 1 / -1;
+                grid-template-columns: subgrid;
+            }
+
+            /* THE MISSING LINK: Reconnects the subgrid chain for blocks inside layouts! */
+            custom-layout > section > div {
+                display: grid;
+                grid-column: 1 / -1; 
+                grid-template-columns: subgrid;
+            }
+
             #canvas custom-slider {
                 display: flex !important;
                 flex-direction: row !important;
                 gap: 16px !important;
                 overflow-x: auto !important;
                 padding: 1rem !important;
-                border: 2px dashed #475569 !important;
-                background: rgba(0,0,0,0.02) !important;
+                border: none !important;
+                background: transparent !important;
                 align-items: stretch !important;
             }
             
-            /* Prevent slides from stacking vertically */
             #canvas custom-slider > .builder-wrapper {
-                flex: 1 0 300px !important; /* Share space, shrink if needed, never smaller than 300px */
+                flex: 1 0 300px !important; 
                 max-width: 100% !important;
             }
             
-            /* Optional: Highlight slider when dropping new slides into it */
             .builder-wrapper.drop-target > custom-slider {
                 outline: 4px dashed #10b981 !important; 
                 outline-offset: -4px; 
                 background: rgba(16, 185, 129, 0.1) !important; 
-            }            
-            
-            custom-layout > section {
-                display: grid;
-                grid-column: 1 / -1; /* Span the whole canvas grid */
-                grid-template-columns: subgrid; /* Inherit the 12 columns */
-                min-height: 100px;
-                border: 2px dashed #475569; /* Visual aid for empty drop zones */
-                background: rgba(0,0,0,0.02);
-
-                pointer-events: auto !important;
-            }
-            
-            custom-layout > section > div {
-                grid-column: 1 / -1; 
-                /* Inner div inherits grid-template-columns from the component's JS */
-            }
-            
-            .builder-wrapper.drop-target > custom-layout > section { 
-                outline: 4px dashed #10b981 !important; outline-offset: -4px; background: rgba(16, 185, 129, 0.1); 
             }
         `;
         document.head.appendChild(style);
@@ -458,15 +465,45 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
         this.setupResizeHandles();
         this.setupSidebarResizing();
 
-        this.loadState()
+        this.loadState();
         this.setupControls();
         this.fetchComponents();
-        ;
-
+        this.updateCanvasScale();
     }
 
     saveState() {
         localStorage.setItem('rainwildsBuilderTree', JSON.stringify(this.state));
+    }
+
+    updateCanvasScale() {
+        if (!this.canvas) return;
+        const workspace = document.getElementById('workspace');
+        if (!workspace) return;
+
+        const zoomIndicator = this.shadowRoot.getElementById('zoom-indicator');
+        const safeWidth = workspace.clientWidth - 64; // Available width minus 32px padding on each side
+
+        // Fetch the exact width for the active breakpoint from shared.js
+        const bp = Shared.VIEWPORT_BREAKPOINTS.find(b => b.name === this.currentViewport);
+        const targetWidthPx = bp ? bp.maxWidth : 1366; // Fallback
+        const label = bp ? bp.name.charAt(0).toUpperCase() + bp.name.slice(1) : 'Viewport';
+
+        // Lock the canvas to the physical target width
+        this.canvas.style.width = `${targetWidthPx}px`;
+
+        // Calculate if we need to scale down to fit the screen
+        let scale = 1;
+        if (targetWidthPx > safeWidth) {
+            scale = safeWidth / targetWidthPx;
+        }
+
+        // Apply the scale and update UI
+        this.canvas.style.transform = `scale(${scale})`;
+        
+        // Remove the artificial height override so the canvas tightly hugs your content
+        this.canvas.style.minHeight = '';
+        
+        if (zoomIndicator) zoomIndicator.textContent = `${label} (${targetWidthPx}px) — Zoom: ${Math.round(scale * 100)}%`;
     }
 
     async loadGlobalTemplates() {
@@ -681,17 +718,19 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
             e.preventDefault();
 
             let newLine = getLineFromX(e.clientX);
-            const vpSuffix = this.currentViewport === 'base' ? '' : `-${this.currentViewport}`;
+            const vpSuffix = this.currentViewport === 'mobile' ? '' : `-${this.currentViewport}`;
             const targetEl = currentWrapper.firstElementChild;
 
             if (resizeDir === 'left') {
                 newLine = Math.min(newLine, endLine - 1);
                 startLine = newLine;
                 targetEl.style.setProperty(`--column-start${vpSuffix}`, newLine);
+                currentWrapper.style.setProperty(`--column-start${vpSuffix}`, newLine); // Sync to wrapper
             } else {
                 newLine = Math.max(newLine, startLine + 1);
                 endLine = newLine;
                 targetEl.style.setProperty(`--column-end${vpSuffix}`, newLine);
+                currentWrapper.style.setProperty(`--column-end${vpSuffix}`, newLine); // Sync to wrapper
             }
         });
 
@@ -701,7 +740,7 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 document.body.style.cursor = '';
 
                 if (currentWrapper) {
-                    const vpSuffix = this.currentViewport === 'base' ? '' : `-${this.currentViewport}`;
+                    const vpSuffix = this.currentViewport === 'mobile' ? '' : `-${this.currentViewport}`;
                     const compData = this.state.items[currentWrapper.dataset.id];
 
                     compData.attrs[`column-start${vpSuffix}`] = startLine.toString();
@@ -768,6 +807,8 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 // Update global HTML variable so body padding adjusts
                 document.documentElement.style.setProperty('--builder-right', `${newWidth}px`);
             }
+
+            this.updateCanvasScale();
         });
 
         window.addEventListener('mouseup', () => {
@@ -871,9 +912,18 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
 
         const component = document.createElement(nodeData.type);
 
+        // Turn the wrapper into an active grid item
+        wrapper.classList.add('grid-placement-item');
+
         // 3. Iterate over the newly merged resolvedAttrs instead of nodeData.attrs
         for (const [key, value] of Object.entries(resolvedAttrs)) {
             component.setAttribute(key, value);
+            
+            // SYNCHRONIZE grid placement attributes to the wrapper so it slots into the subgrid perfectly
+            if (Shared.PLACEMENT_ATTRS.some(base => key.startsWith(base)) || key === 'column-span') {
+                wrapper.setAttribute(key, value);
+                wrapper.style.setProperty(`--${key}`, value);
+            }
         }
 
         // --- NEW: ADD VISUAL ALERT BADGE TO CANVAS COMPONENT ---
@@ -1388,7 +1438,7 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
             liveAttrs = Object.values(config.groups).flat();
         }
 
-        const vpSuffix = this.currentViewport === 'base' ? '' : `-${this.currentViewport}`;
+        const vpSuffix = this.currentViewport === 'mobile' ? '' : `-${this.currentViewport}`;
 
         // Ensure placement attributes are always editable for UI dragging purposes
         Shared.PLACEMENT_ATTRS.forEach(pa => {
@@ -1466,7 +1516,7 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                     } else {
                         label.textContent = attrName.replace(/-/g, ' ');
                     }
-                    if (isPlacement && this.currentViewport !== 'base') label.style.color = '#10b981';
+                    if (isPlacement && this.currentViewport !== 'mobile') label.style.color = '#10b981';
                 };
 
                 // Set initial state
@@ -1728,11 +1778,14 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 vpButtons.forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 this.currentViewport = btn.dataset.vp;
-                this.canvas.style.maxWidth = viewportWidths[this.currentViewport];
-                this.canvas.style.transition = 'max-width 0.3s ease';
+
+                this.updateCanvasScale();
+
                 if (this.selectedId) this.populateInspector();
             });
         });
+
+        window.addEventListener('resize', () => this.updateCanvasScale());
 
         // --- 2. UI Toggles ---
         root.getElementById('btn-toggle-guides').addEventListener('click', () => {

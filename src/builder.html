@@ -5,7 +5,7 @@
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0" />
-    <title>Visual Builder Experiment</title>
+    <title>Visual Builder</title>
 
     <link
       rel="stylesheet"
@@ -13,46 +13,53 @@
 
     <script
       type="module"
-      src="./js/components/custom-block.js"></script>
-    <script
-      type="module"
-      src="./js/components/custom-slider.js"></script>
-    <script
-      type="module"
-      src="./js/components/custom-layout.js"></script>
-    <script
-      type="module"
       src="./js/builder/visual-builder.js"></script>
 
     <style>
-body {
+      body {
         margin: 0;
         /* Padding maps to our CSS variables, with fallbacks */
-        padding: 60px var(--builder-right, 300px) 0 var(--builder-left, 260px);
-        display: flex;
-        justify-content: center; /* This perfectly centers the canvas when max-width changes! */
-        background-color: #09090b;
+        padding: 60px var(--builder-right, 300px) 35px var(--builder-left, 260px);
+        background-color: #414141;
         box-sizing: border-box;
-        min-height: 100vh;
+        height: 100vh;
+        overflow: hidden; /* Prevent the whole page from scrolling */
       }
 
-      #canvas {
-        flex-grow: 1;
+   #workspace {
         width: 100%;
-        padding: 2rem;
+        height: 100%;
+        overflow-x: hidden; 
+        overflow-y: scroll; /* ALWAYS show scrollbar to prevent layout shifting */
+        display: flex;
+        justify-content: center; 
+        align-items: start; 
+        padding: 24px; 
+        box-sizing: border-box;
+      }
+
+     #canvas {
+        flex-shrink: 0; 
+        width: 100%; 
         background-color: #ffffff;
-        box-shadow: 0 0 20px rgba(0,0,0,0.5);
-        border-radius: 8px 8px 0 0;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75); /* Deep floating shadow */
+        border-radius: 0; /* Removed rounded corners */
+        transform-origin: top center; 
+        transition: transform 0.2s ease, width 0.3s ease;
       }
 
       .builder-selected > * {
         outline: 3px solid #3b82f6 !important;
-        outline-offset: -3px; 
+        outline-offset: -3px;
       }
     </style>
   </head>
   <body>
-    <div id="canvas"></div>
+    <div
+      id="workspace"
+      class="workspace">
+      <div id="canvas"></div>
+    </div>
 
     <visual-builder></visual-builder>
   </body>

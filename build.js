@@ -6,12 +6,23 @@ const args = process.argv.slice(2);
 const targetSlug = args.find(arg => arg.startsWith('--slug='))?.split('=')[1];
 
 // Helper to convert JSON state to raw tags
-function generateHtmlFromJson(items, nodeId) {
+function generateHtmlFromJson(items, nodeId, presets = {}) {
     const node = items[nodeId];
     if (!node) return '';
-    let attrString = Object.entries(node.attrs).map(([k, v]) => `${k}="${v.replace(/"/g, '&quot;')}"`).join(' ');
+
+    // 1. Resolve base attributes from the preset (if one exists)
+    let resolvedAttrs = {};
+    if (node.presetId && presets[node.presetId]) {
+        resolvedAttrs = { ...presets[node.presetId].baseAttrs };
+    }
+
+    // 2. Merge local overrides safely (fallback to .attrs for legacy pages)
+    resolvedAttrs = { ...resolvedAttrs, ...(node.localAttrs || node.attrs || {}) };
+
+    let attrString = Object.entries(resolvedAttrs).map(([k, v]) => `${k}="${String(v).replace(/"/g, '&quot;')}"`).join(' ');
     let html = `<${node.type} ${attrString}>`;
-    if (node.children) node.children.forEach(id => html += generateHtmlFromJson(items, id));
+    
+    if (node.children) node.children.forEach(id => html += generateHtmlFromJson(items, id, presets));
     return html + `</${node.type}>`;
 }
 
@@ -136,7 +147,8 @@ async function runBuild() {
             const customHead = `<data-custom-head data-components="${usedComponents}" data-title="${h.title || item.title}" data-description="${h.description || item.excerpt}"></data-custom-head>`;
 
             let rawContent = '';
-            postData.roots.forEach(rId => rawContent += generateHtmlFromJson(postData.items, rId));
+            const presets = postData.presets || {}; // Safely grab presets from the JSON
+            postData.roots.forEach(rId => rawContent += generateHtmlFromJson(postData.items, rId, presets));
 
             const fullHtml = `<!DOCTYPE html><html><head>${activeSharedHead}${customHead}</head><body><main>${rawContent}</main></body></html>`;
 

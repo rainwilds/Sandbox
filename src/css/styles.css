@@ -1046,16 +1046,16 @@
       color: var(--color-primary);
     }
 
-    /* img,
+    img,
     picture {
       object-fit: cover;
 
-      @media (prefers-color-scheme: dark) {
+      /* @media (prefers-color-scheme: dark) {
         &:not(div[id^="gallery-item-"] picture, div[id^="gallery-item-"] img) {
           filter: opacity(0.9) saturate(0.8);
         }
-      }
-    } */
+      } */
+    } 
 
     /* body {
 
@@ -1232,8 +1232,8 @@ body, #canvas {
 /* 2. Base (Mobile-First) Default Cascade */
 .grid-placement-item {
     grid-column: 
-        var(--column-start-mobile, var(--column-start, auto)) / 
-        var(--column-end-mobile, var(--column-end, auto));
+        var(--column-start-mobile, var(--column-start, 1)) / 
+        var(--column-end-mobile, var(--column-end, -1));
     grid-row: 
         var(--row-start-mobile, var(--row-start, auto)) / 
         var(--row-end-mobile, var(--row-end, auto));
@@ -1245,8 +1245,8 @@ body, #canvas {
 @container layout (min-width: 768px) {
     .grid-placement-item {
         grid-column: 
-            var(--column-start-tablet, var(--column-start-mobile, var(--column-start, auto))) / 
-            var(--column-end-tablet, var(--column-end-mobile, var(--column-end, auto)));
+            var(--column-start-tablet, var(--column-start-mobile, var(--column-start, 1))) / 
+            var(--column-end-tablet, var(--column-end-mobile, var(--column-end, -1)));
         grid-row: 
             var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto))) / 
             var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto)));
@@ -1259,8 +1259,8 @@ body, #canvas {
 @container layout (min-width: 1024px) {
     .grid-placement-item {
         grid-column: 
-            var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, auto)))) / 
-            var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, auto))));
+            var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, 1)))) / 
+            var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, -1))));
         grid-row: 
             var(--row-start-laptop, var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto)))) / 
             var(--row-end-laptop, var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto))));
@@ -1273,8 +1273,8 @@ body, #canvas {
 @container layout (min-width: 1366px) {
     .grid-placement-item {
         grid-column: 
-            var(--column-start-desktop, var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, auto))))) / 
-            var(--column-end-desktop, var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, auto)))));
+            var(--column-start-desktop, var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, 1))))) / 
+            var(--column-end-desktop, var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, -1)))));
         grid-row: 
             var(--row-start-desktop, var(--row-start-laptop, var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto))))) / 
             var(--row-end-desktop, var(--row-end-laptop, var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto)))));
@@ -1287,8 +1287,8 @@ body, #canvas {
 @container layout (min-width: 1920px) {
     .grid-placement-item {
         grid-column: 
-            var(--column-start-large, var(--column-start-desktop, var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, auto)))))) / 
-            var(--column-end-large, var(--column-end-desktop, var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, auto))))));
+            var(--column-start-large, var(--column-start-desktop, var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, 1)))))) / 
+            var(--column-end-large, var(--column-end-desktop, var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, -1))))));
         grid-row: 
             var(--row-start-large, var(--row-start-desktop, var(--row-start-laptop, var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto)))))) / 
             var(--row-end-large, var(--row-end-desktop, var(--row-end-laptop, var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto))))));
@@ -1301,8 +1301,8 @@ body, #canvas {
 @container layout (min-width: 2560px) {
     .grid-placement-item {
         grid-column: 
-            var(--column-start-ultra, var(--column-start-large, var(--column-start-desktop, var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, auto))))))) / 
-            var(--column-end-ultra, var(--column-end-large, var(--column-end-desktop, var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, auto)))))));
+            var(--column-start-ultra, var(--column-start-large, var(--column-start-desktop, var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, 1))))))) / 
+            var(--column-end-ultra, var(--column-end-large, var(--column-end-desktop, var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, -1)))))));
         grid-row: 
             var(--row-start-ultra, var(--row-start-large, var(--row-start-desktop, var(--row-start-laptop, var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto))))))) / 
             var(--row-end-ultra, var(--row-end-large, var(--row-end-desktop, var(--row-end-laptop, var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto)))))));

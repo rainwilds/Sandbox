@@ -6,9 +6,21 @@
     "isStarred": false,
     "baseAttrs": {
       "heading": "New Block",
-      "class": "background-color-1",
-      "inner-class": "padding-large",
+      "class": "height-third",
+      "inner-class": "padding-large height-third",
       "img-background-src": "tourism-photography-dark-2.jpg"
+    }
+  },
+  "preset-1775196353749": {
+    "id": "preset-1775196353749",
+    "type": "custom-layout",
+    "name": "Slide 3x",
+    "isStarred": false,
+    "baseAttrs": {
+      "column-span": "12",
+      "subgrid": "true",
+      "column-end": "-2",
+      "column-start": "1"
     }
   }
 }
