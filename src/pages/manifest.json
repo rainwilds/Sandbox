@@ -9,9 +9,9 @@
     "type": "page"
   },
   {
-    "slug": "page-11",
+    "slug": "slide-2",
     "title": "Untitled",
-    "date": "2026-04-02",
+    "date": "2026-04-03",
     "categories": [],
     "excerpt": "",
     "featuredImage": "",
@@ -19,6 +19,15 @@
   },
   {
     "slug": "slide-1",
+    "title": "Untitled",
+    "date": "2026-04-03",
+    "categories": [],
+    "excerpt": "",
+    "featuredImage": "",
+    "type": "page"
+  },
+  {
+    "slug": "page-11",
     "title": "Untitled",
     "date": "2026-04-02",
     "categories": [],

@@ -27,6 +27,9 @@ class VisualBuilder extends HTMLElement {
         this.attachShadow({ mode: 'open' });
 
         this.state = { roots: [], items: {} };
+        this.globalParts = {}; // NEW: Holds the master global components
+        this.isolationMode = { active: false, partId: null, cachedState: null }; // NEW: Sandbox tracking
+
         this.selectedId = null;
         this.draggedLibraryType = null;
         this.placeholder = null;
@@ -40,141 +43,132 @@ class VisualBuilder extends HTMLElement {
         }).join('');
 
         this.shadowRoot.innerHTML = `
-            <style>
+          <style>
                 :host {
                     position: fixed; inset: 0; pointer-events: none;
                     font-family: 'Inter', system-ui, sans-serif; z-index: 9999;
-                    color: #a1a1aa;
-                    /* Base variables for sidebar widths */
+                    
+                    /* --- THEME ENGINE START --- */
+                    --theme-bg-panel: #232733;       /* Main panel background */
+                    --theme-bg-bar: #1c1f2b;         /* Top/Bottom bars */
+                    --theme-bg-input: #151822;       /* Input backgrounds */
+                    --theme-border: #353b4d;         /* Standard borders */
+                    --theme-border-light: #444b61;   /* Lighter borders for buttons */
+                    --theme-text: #e2e8f0;           /* Primary text */
+                    --theme-text-muted: #8b97ab;     /* Secondary text */
+                    --theme-accent: #6b8cb3;         /* Steel Blue Primary */
+                    --theme-accent-hover: #85a5cc;   /* Steel Blue Hover */
+                    --theme-item-bg: #2a2f3d;        /* List items/components */
+                    --theme-item-hover: #353b4d;     /* List item hover */
+                    /* --- THEME ENGINE END --- */
+
+                    color: var(--theme-text-muted);
                     --left-width: 260px;
                     --right-width: 300px;
                 }
 
-                .panel { pointer-events: auto; position: fixed; background: #18181b; border-color: #27272a; border-style: solid; box-sizing: border-box; }
-                
-                #top-bar { top: 0; left: 0; right: 0; height: 60px; border-bottom-width: 1px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; }
-                
-                /* 2. Sidebars use variables */
-/* 2. Sidebars use variables */
+                /* ISOLATION MODE: Shift UI to Amber/Gold */
+                :host(.isolation-mode) {
+                    --theme-accent: #f59e0b;         /* Amber 500 */
+                    --theme-accent-hover: #fbbf24;   /* Amber 400 */
+                    --theme-bg-panel: #292015;       /* Warm dark tint */
+                    --theme-bg-bar: #1c140c;         /* Warmer dark bar */
+                    --theme-border: #523719;         /* Amber tinted borders */
+                }
+
+                /* Layout & Panels */
+                .panel { pointer-events: auto; position: fixed; background: var(--theme-bg-panel); border-color: var(--theme-border); border-style: solid; box-sizing: border-box; }
+                #top-bar { top: 0; left: 0; right: 0; height: 60px; border-bottom-width: 1px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; background: var(--theme-bg-bar); }
                 #left-sidebar { top: 60px; left: 0; bottom: 35px; width: var(--left-width); border-right-width: 1px; display: flex; flex-direction: column; }
                 #right-sidebar { top: 60px; right: 0; bottom: 35px; width: var(--right-width); border-left-width: 1px; display: flex; flex-direction: column; overflow-y: auto; padding: 15px; }
+                #bottom-bar { bottom: 0; left: 0; right: 0; height: 35px; border-top-width: 1px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; font-size: 0.75rem; color: var(--theme-text-muted); background: var(--theme-bg-bar); }
                 
-                /* Bottom Status Bar */
-                #bottom-bar { bottom: 0; left: 0; right: 0; height: 35px; border-top-width: 1px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; font-size: 0.75rem; color: #a1a1aa; background: #09090b; } /* 3. Resizer Styles */
+                /* Resizers */
                 .resizer { position: absolute; top: 0; bottom: 0; width: 6px; cursor: col-resize; z-index: 100; transition: background 0.2s; }
-                .resizer:hover, .resizer.active { background: #3b82f6; }
+                .resizer:hover, .resizer.active { background: var(--theme-accent); }
                 #left-resizer { right: -3px; }
                 #right-resizer { left: -3px; }
 
                 /* Top Bar Elements */
-                .logo { font-size: 1.1rem; font-weight: 700; color: #fafafa; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px;}
-                .logo-icon { color: #3b82f6; }
-                
-                #viewport-bar { display: flex; gap: 4px; background: #09090b; padding: 4px; border-radius: 6px; border: 1px solid #27272a; }
-                .vp-btn { background: transparent; border: none; padding: 6px 10px; border-radius: 4px; color: #71717a; cursor: pointer; transition: all 0.2s; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-                .vp-btn:hover { color: #fafafa; }
-                .vp-btn.active { background: #27272a; color: #fafafa; box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+                .logo { font-size: 1.1rem; font-weight: 700; color: var(--theme-text); letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px;}
+                .logo-icon { color: var(--theme-accent); }
+                #viewport-bar { display: flex; gap: 4px; background: var(--theme-bg-input); padding: 4px; border-radius: 6px; border: 1px solid var(--theme-border); }
+                .vp-btn { background: transparent; border: none; padding: 6px 10px; border-radius: 4px; color: var(--theme-text-muted); cursor: pointer; transition: all 0.2s; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+                .vp-btn:hover { color: var(--theme-text); }
+                .vp-btn.active { background: var(--theme-border); color: var(--theme-text); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
 
                 /* Buttons */
-                button { font-family: inherit; font-size: 0.8rem; font-weight: 500; border: 1px solid transparent; cursor: pointer; transition: all 0.2s; border-radius: 6px; }
-                .btn-primary { background: #3b82f6; color: white; padding: 6px 12px; }
-                .btn-primary:hover { background: #2563eb; }
-                .btn-secondary { background: #27272a; color: #fafafa; border-color: #3f3f46; padding: 6px 12px; }
-                .btn-secondary:hover { background: #3f3f46; }
+                button { font-family: inherit; font-size: 0.8rem; font-weight: 500; border: 1px solid transparent; cursor: pointer; transition: all 0.2s; border-radius: 4px; }
+                .btn-primary { background: var(--theme-accent); color: white; padding: 6px 12px; }
+                .btn-primary:hover { background: var(--theme-accent-hover); }
+                .btn-secondary { background: var(--theme-item-bg); color: var(--theme-text); border-color: var(--theme-border-light); padding: 6px 12px; }
+                .btn-secondary:hover { background: var(--theme-item-hover); }
                 .top-actions { display: flex; gap: 8px; }
 
-                /* Left Sidebar Tabs */
-                .tabs-header { display: flex; border-bottom: 1px solid #27272a; }
-             /* Update .tab-btn to fit 4 tabs */
-.tab-btn { 
-    flex: 1; 
-    background: transparent; 
-    color: #71717a; 
-    padding: 10px 2px; /* Reduced padding to fit 4 buttons */
-    border-radius: 0; 
-    font-weight: 600; 
-    font-size: 0.65rem; /* Slightly smaller font */
-    text-transform: uppercase; 
-    letter-spacing: 0; 
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-                .tab-btn.active { color: #fafafa; border-bottom: 2px solid #3b82f6; }
+                /* Tabs */
+                .tabs-header { display: flex; border-bottom: 1px solid var(--theme-border); }
+                .tab-btn { flex: 1; background: transparent; color: var(--theme-text-muted); padding: 10px 2px; border-radius: 0; font-weight: 600; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+                .tab-btn.active { color: var(--theme-text); border-bottom: 2px solid var(--theme-accent); }
                 .tab-pane { display: none; padding: 15px; overflow-y: auto; flex-grow: 1; }
                 .tab-pane.active { display: block; }
 
-                /* Left: Components */
-                .component-item { background: #27272a; color: #fafafa; padding: 12px; border-radius: 6px; margin-bottom: 8px; cursor: grab; font-size: 0.85rem; border: 1px solid #3f3f46; display: flex; align-items: center; gap: 8px; transition: border-color 0.2s; }
-                .component-item:hover { border-color: #52525b; background: #3f3f46;}
-                
-                /* Left: Layers Tree */
-                .layer-item { padding: 6px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border-radius: 4px; margin-bottom: 2px; color: #a1a1aa; }
-                .layer-item:hover { background: #27272a; color: #fafafa; }
-                .layer-item.selected { background: #3b82f620; color: #3b82f6; font-weight: 500; }
+                /* Components & Layers */
+                .component-item { background: var(--theme-item-bg); color: var(--theme-text); padding: 10px 12px; border-radius: 4px; margin-bottom: 8px; cursor: grab; font-size: 0.85rem; border: 1px solid var(--theme-border-light); display: flex; align-items: center; gap: 8px; transition: border-color 0.2s; }
+                .component-item:hover { border-color: var(--theme-accent); background: var(--theme-item-hover); }
+                .layer-item { padding: 6px; font-size: 0.85rem; cursor: pointer; display: flex; align-items: center; gap: 8px; border-radius: 4px; margin-bottom: 2px; color: var(--theme-text-muted); }
+                .layer-item:hover { background: var(--theme-item-bg); color: var(--theme-text); }
+                .layer-item.selected { background: rgba(107, 140, 179, 0.15); color: var(--theme-accent-hover); font-weight: 500; }
                 .layer-icon { opacity: 0.7; font-size: 0.9em; }
 
-                /* Right: Inspector Compact Inputs */
-                h3 { font-size: 0.75rem; text-transform: none; letter-spacing: 0.5px; color: #fafafa; margin: 20px 0 10px 0; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #27272a; padding-bottom: 6px; }
-.form-group { display: flex; flex-direction: column; align-items: stretch; margin-bottom: 12px; gap: 6px; }
-.form-group.stacked { display: flex; flex-direction: column; align-items: stretch; margin-bottom: 12px; gap: 6px; }
-label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: break-word; line-height: 1.3; font-weight: 600; }label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: break-word; line-height: 1.3; } label { font-size: 0.75rem; color: #a1a1aa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-                input, select, textarea { width: 100%; background: #09090b; border: 1px solid #27272a; color: #fafafa; padding: 6px 8px; border-radius: 4px; font-size: 0.8rem; box-sizing: border-box; transition: border-color 0.2s; }
-                input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6; }
-                
-               /* Modals / Utility */
-#breadcrumbs { font-size: 0.75rem; display: flex; align-items: center; }
-                #breadcrumbs span.crumb:hover { color: #fafafa !important; }
-                #empty-state { text-align: center; margin-top: 40px; font-size: 0.85rem; }
+                /* Inspector Forms */
+                h3 { font-size: 0.75rem; text-transform: none; letter-spacing: 0.5px; color: var(--theme-text); margin: 20px 0 10px 0; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--theme-border); padding-bottom: 6px; }
+                .form-group, .form-group.stacked { display: flex; flex-direction: column; align-items: stretch; margin-bottom: 12px; gap: 6px; }
+                label { font-size: 0.75rem; color: var(--theme-text-muted); white-space: normal; word-break: break-word; line-height: 1.3; font-weight: 500; }
+                input, select, textarea { width: 100%; background: var(--theme-bg-input); border: 1px solid var(--theme-border); color: var(--theme-text); padding: 6px 8px; border-radius: 4px; font-size: 0.8rem; box-sizing: border-box; transition: border-color 0.2s; }
+                input:focus, select:focus, textarea:focus { outline: none; border-color: var(--theme-accent); }
                 .color-picker-wrap { display: flex; align-items: center; gap: 8px; }
                 .color-picker-wrap input[type="color"] { width: 30px; height: 30px; padding: 0; cursor: pointer; border: none; border-radius: 4px; }
+                
+                #breadcrumbs { font-size: 0.75rem; display: flex; align-items: center; }
+                #breadcrumbs span.crumb:hover { color: var(--theme-text) !important; }
+                #empty-state { text-align: center; margin-top: 40px; font-size: 0.85rem; color: var(--theme-text-muted); }
 
-     /* CMS Dashboard Styles */
-                #cms-dashboard { 
-                    display: none; position: fixed; inset: 0; background: rgba(9, 9, 11, 0.7); 
-                    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); 
-                    z-index: 10000; place-content: center; padding: 2rem; pointer-events: auto; 
-                }
-                #cms-dashboard.active { display: grid; }
-                .cms-container { 
-                    background: #18181b; border: 1px solid #27272a; border-radius: 8px; 
-                    width: 90vw; max-width: 1000px; max-height: 85vh; display: flex; flex-direction: column; 
-                    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); 
-                }
-                .cms-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid #27272a; }
-                .cms-header h2 { margin: 0; color: #fafafa; font-size: 1.25rem; border: none; padding: 0; }
-                .cms-list-header { display: grid; grid-template-columns: 3fr 2fr 1fr 1.5fr auto; padding: 1rem 1.5rem; border-bottom: 1px solid #27272a; font-size: 0.75rem; color: #a1a1aa; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+                /* Modals */
+                #cms-dashboard, #export-modal { display: none; position: fixed; inset: 0; background: rgba(28, 31, 43, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 10000; place-content: center; padding: 2rem; pointer-events: auto; }
+                #cms-dashboard.active, #export-modal.active { display: grid; }
+                .cms-container, .modal-content { background: var(--theme-bg-panel); border: 1px solid var(--theme-border); border-radius: 6px; width: 90vw; max-width: 1000px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); position: relative; }
+                .cms-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid var(--theme-border); }
+                .cms-header h2 { margin: 0; color: var(--theme-text); font-size: 1.25rem; border: none; padding: 0; }
+                .cms-list-header { display: grid; grid-template-columns: 3fr 2fr 1fr 1.5fr auto; padding: 1rem 1.5rem; border-bottom: 1px solid var(--theme-border); font-size: 0.75rem; color: var(--theme-text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
                 #cms-content-list { overflow-y: auto; padding: 0; margin: 0; list-style: none; flex-grow: 1; }
-                .cms-list-item { display: grid; grid-template-columns: 3fr 2fr 1fr 1.5fr auto; padding: 1rem 1.5rem; border-bottom: 1px solid #27272a; align-items: center; font-size: 0.85rem; color: #e4e4e7; transition: background 0.2s; }
-                .cms-list-item:hover { background: #27272a; }
+                .cms-list-item { display: grid; grid-template-columns: 3fr 2fr 1fr 1.5fr auto; padding: 1rem 1.5rem; border-bottom: 1px solid var(--theme-border); align-items: center; font-size: 0.85rem; color: var(--theme-text); transition: background 0.2s; }
+                .cms-list-item:hover { background: var(--theme-item-bg); }
                 .cms-badge { padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
-                .cms-badge.page { background: #1e3a8a; color: #93c5fd; }
-                .cms-badge.post { background: #064e3b; color: #6ee7b7; }           
-            /* Export Modal Styles */
-                /* Export Modal Styles */
-           /* Export Modal Styles */
-            #export-modal { 
-                display: none; 
-                position: fixed; 
-                inset: 0; 
-                background: rgba(9, 9, 11, 0.7); 
-                backdrop-filter: blur(10px); 
-                -webkit-backdrop-filter: blur(10px);
-                z-index: 10000; 
-                place-content: center; 
-                padding: 2rem; 
-                pointer-events: auto; 
-            }
-                #export-modal.active { display: grid; }
-                .modal-content { background: #18181b; padding: 2rem; border-radius: 8px; width: 80vw; max-width: 800px; display: flex; flex-direction: column; position: relative; border: 1px solid #27272a; }
-                .code-wrapper { position: relative; margin: 1rem 0; flex-grow: 1; }
-                textarea#export-code { width: 100%; height: 50vh; box-sizing: border-box; font-family: monospace; white-space: pre; resize: none; background: #09090b; color: #3b82f6; padding: 1rem; border-radius: 6px; border: 1px solid #27272a;}
-                #btn-copy { position: absolute; top: 15px; right: 25px; width: auto; background: #3b82f6; color: white; font-size: 0.8rem; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-                #btn-copy:hover { background: #2563eb; }
-                </style>
+                .cms-badge.page { background: rgba(107, 140, 179, 0.2); color: var(--theme-accent-hover); }
+                .cms-badge.post { background: rgba(16, 185, 129, 0.15); color: #34d399; }           
+                
+               .code-wrapper { position: relative; margin: 1rem 0; flex-grow: 1; }
+                textarea#export-code { height: 50vh; font-family: monospace; white-space: pre; resize: none; background: var(--theme-bg-input); color: var(--theme-accent-hover); }
+                #btn-copy { position: absolute; top: 15px; right: 25px; width: auto; background: var(--theme-accent); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+                #btn-copy:hover { background: var(--theme-accent-hover); }
+
+                /* Media Modal Styles */
+                #media-modal { display: none; position: fixed; inset: 0; background: rgba(28, 31, 43, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 10000; place-content: center; padding: 2rem; pointer-events: auto; } #media-modal.active { display: grid; }
+                .media-thumbnail { border: 2px solid transparent; border-radius: 4px; overflow: hidden; cursor: pointer; transition: all 0.2s; background: var(--theme-bg-input); }
+                .media-thumbnail:hover { border-color: var(--theme-accent); transform: scale(1.05); }
+                .media-thumbnail img { width: 100%; height: 100px; object-fit: cover; display: block; }
+                .media-label { font-size: 0.65rem; color: var(--theme-text-muted); padding: 4px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+               /* Cinematic Fade Transition Overlay */
+                #transition-overlay { position: fixed; inset: 0; background: #050505; z-index: 20000; opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in-out; }
+                #transition-overlay.active { opacity: 1; pointer-events: auto; }
+            </style>
 
         <div id="top-bar" class="panel">
-                <div class="logo">Fable</div>
+                <div class="logo">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" style="width:18px; height:18px; fill:var(--theme-accent);"><path d="M0 0l448 0 0 384-32 0 0 64 32 0 0 64-448 0 0-512zM64 416l0 32 288 0 0-64-256 0c-17.7 0-32 14.3-32 32zM272.8 109c5.2 8.6 8.2 18.7 8.2 29.5 0 15.1-5.9 28.8-15.5 39.1l-4.2 4.5 3.3 5.2c4.6 7.3 7.3 15.9 7.4 25.2l0 .6c-.1 21.5-14.4 39.7-34 45.6L237 234c7.1-4.4 11.8-12.2 11.8-21.1 0-9.6-5.5-18-13.5-22.1l-3.3-81.8-16 0-3.3 81.8c-8 4.1-13.5 12.4-13.5 22.1 0 8.9 4.7 16.7 11.8 21.1l-1 24.8c-19.7-6-34-24.3-34-45.9 0-9.4 2.7-18.2 7.4-25.5l3.3-5.2-4.2-4.5c-9.6-10.2-15.5-23.9-15.5-39.1 0-10.8 3-20.9 8.2-29.5L164.1 98.1c-32.1 20-53.4 55.6-53.4 96.2 0 62.6 50.7 113.3 113.3 113.3s113.3-50.7 113.3-113.3c0-40.6-21.4-76.2-53.4-96.2L272.8 109z"/></svg>
+                    Fable
+                </div>
                 <div id="viewport-bar">
                     ${dynamicViewportButtons}
                 </div>
@@ -297,11 +291,24 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                         <button id="btn-copy">📋 Copy</button>
                         <textarea id="export-code" readonly></textarea>
                     </div>
-                    <div style="display: flex; justify-content: flex-end;">
+                   <div style="display: flex; justify-content: flex-end;">
                         <button id="close-modal" class="btn-secondary">Close</button>
                     </div>
                 </div>
             </div>
+
+            <div id="media-modal">
+                <div class="modal-content" style="max-width: 800px; width: 80vw;">
+                    <div class="cms-header">
+                        <h2>Media Library</h2>
+                        <button id="close-media-modal" class="btn-secondary">Close</button>
+                    </div>
+                    <div id="media-gallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; padding: 15px; overflow-y: auto; max-height: 60vh;">
+                        </div>
+                </div>
+            </div>
+
+            <div id="transition-overlay"></div>
         `;
     }
 
@@ -395,6 +402,103 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 position: relative; /* Anchor for extended row lines */
             }
 
+          /* Image hover buttons on custom-block (Light DOM Injection) */
+            .img-hover-actions { 
+                position: absolute; 
+                top: 12px; 
+                left: 12px; 
+                display: none; 
+                gap: 6px; 
+                z-index: 9999; 
+                /* THE FIX: Apply an inverse scale to counter-act the canvas scaling */
+                transform: scale(var(--builder-inverse-scale)) !important;
+                transform-origin: top left !important;
+            }
+            .builder-wrapper[data-type="custom-block"]:hover .img-hover-actions { 
+                display: flex; 
+            }
+            .img-action-btn { 
+                background: #232733 !important; 
+                color: #8b97ab !important; 
+                border: 1px solid #353b4d !important; 
+                width: 36px !important; 
+                height: 36px !important; 
+                display: flex !important; 
+                align-items: center !important; 
+                justify-content: center !important; 
+                border-radius: 6px !important; 
+                cursor: pointer !important; 
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important; 
+                transition: all 0.2s !important; 
+                padding: 0 !important; 
+            }
+            .img-action-btn svg { 
+                width: 18px !important; 
+                height: 18px !important; 
+                fill: currentColor !important; 
+                display: block !important;
+            }
+            .img-action-btn:hover { 
+                background: #6b8cb3 !important; 
+                color: #ffffff !important; 
+                border-color: #6b8cb3 !important; 
+            }
+            .img-action-btn.danger-btn:hover {
+                background: #ef4444 !important;
+                border-color: #ef4444 !important;
+            }
+
+            /* Warning Badge for Template Overrides */
+            .override-badge {
+                position: absolute !important;
+                top: 8px !important;
+                right: 8px !important;
+                width: 18px !important;
+                height: 18px !important;
+                color: #fbbf24 !important; 
+                fill: currentColor !important;
+                z-index: 9999 !important;
+                pointer-events: none !important; 
+                background: transparent !important;
+                border: none !important;
+                filter: drop-shadow(0 2px 4px rgba(0,0,0,0.6)) !important;
+                /* THE FIX: Apply an inverse scale to counter-act the canvas scaling */
+                transform: scale(var(--builder-inverse-scale)) !important;
+                transform-origin: top right !important;
+            }
+            .override-badge svg {
+                width: 100% !important;
+                height: 100% !important;
+                display: block !important;
+            }
+
+            /* Global Part Square Badge */
+            .global-part-badge {
+                position: absolute !important;
+                bottom: 12px !important;
+                left: 12px !important;
+                width: 36px !important;
+                height: 36px !important;
+                background: #232733 !important;
+                border: 1px solid #b45309 !important; /* Amber tint */
+                border-radius: 6px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                color: #f59e0b !important;
+                fill: currentColor !important;
+                z-index: 9999 !important;
+                pointer-events: none !important;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.4) !important;
+                transform: scale(var(--builder-inverse-scale)) !important;
+                transform-origin: bottom left !important;
+            }
+            .global-part-badge svg {
+                width: 18px !important;
+                height: 18px !important;
+                display: block !important;
+            }
+
             /* THE FIX: The wrapper itself becomes the subgrid bridge! */
             .builder-wrapper[data-type="custom-layout"] {
                 display: grid;
@@ -472,7 +576,12 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
     }
 
     saveState() {
-        localStorage.setItem('rainwildsBuilderTree', JSON.stringify(this.state));
+        // Prevent the Sandbox state from overwriting the main document!
+        if (this.isolationMode && this.isolationMode.active && this.isolationMode.cachedState) {
+            localStorage.setItem('rainwildsBuilderTree', JSON.stringify(this.isolationMode.cachedState));
+        } else {
+            localStorage.setItem('rainwildsBuilderTree', JSON.stringify(this.state));
+        }
     }
 
     updateCanvasScale() {
@@ -499,10 +608,13 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
 
         // Apply the scale and update UI
         this.canvas.style.transform = `scale(${scale})`;
-        
+
+        // THE FIX: Set a CSS variable with the inverse scale so overlay elements can remain uniform
+        this.canvas.style.setProperty('--builder-inverse-scale', 1 / scale);
+
         // Remove the artificial height override so the canvas tightly hugs your content
         this.canvas.style.minHeight = '';
-        
+
         if (zoomIndicator) zoomIndicator.textContent = `${label} (${targetWidthPx}px) — Zoom: ${Math.round(scale * 100)}%`;
     }
 
@@ -531,16 +643,139 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
         }
     }
 
-    loadState() {
+    async loadGlobalParts() {
+        try {
+            const response = await fetch('http://localhost:3000/api/global-parts');
+            if (response.ok) {
+                this.globalParts = await response.json();
+            }
+        } catch (err) {
+            console.error("Failed to load global parts", err);
+            if (!this.globalParts) this.globalParts = {};
+        }
+    }
+
+    async saveGlobalParts() {
+        try {
+            await fetch('http://localhost:3000/api/global-parts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(this.globalParts)
+            });
+        } catch (err) {
+            console.error("Failed to save global parts", err);
+        }
+    }
+
+    async enterIsolationMode(partId) {
+        // 0. Trigger Fade to Black
+        const overlay = this.shadowRoot.getElementById('transition-overlay');
+        overlay.classList.add('active');
+        await new Promise(r => setTimeout(r, 500)); // Wait for screen to go black
+
+        // 1. Cache the current page state so we don't lose the user's work
+        this.isolationMode.cachedState = JSON.parse(JSON.stringify(this.state));
+        this.isolationMode.partId = partId;
+        this.isolationMode.active = true;
+
+        // 2. Load the Global Part's flat dictionary as the ONLY thing in the state
+        const masterPart = this.globalParts[partId];
+        this.state = {
+            roots: [masterPart.data.rootId],
+            items: JSON.parse(JSON.stringify(masterPart.data.items)),
+            headData: this.state.headData
+        };
+
+        // 3. Shift the UI to Amber/Gold
+        this.classList.add('isolation-mode');
+        this.shadowRoot.getElementById('doc-status').innerHTML = `<span style="color: #fbbf24;">⚡ ISOLATION MODE: Editing Global Part '${masterPart.name}'</span>`;
+
+        // 4. Update Header Buttons (Hide publish, add Exit button)
+        const topActions = this.shadowRoot.querySelector('.top-actions');
+        topActions.style.display = 'none';
+
+        if (!this.shadowRoot.getElementById('isolation-actions')) {
+            const isoActions = document.createElement('div');
+            isoActions.id = 'isolation-actions';
+            isoActions.className = 'top-actions';
+            isoActions.innerHTML = `
+                <button id="btn-exit-isolation" class="btn-primary" style="background: #ef4444; border-color: #7f1d1d;">Exit Sandbox</button>
+                <button id="btn-save-isolation" class="btn-primary" style="background: #f59e0b; border-color: #b45309; color: #fff;">Save Global Part</button>
+            `;
+            this.shadowRoot.getElementById('top-bar').appendChild(isoActions);
+
+            this.shadowRoot.getElementById('btn-exit-isolation').addEventListener('click', () => this.exitIsolationMode());
+            this.shadowRoot.getElementById('btn-save-isolation').addEventListener('click', () => {
+                // Save the ENTIRE flat dictionary state back to the master part
+                const rootId = this.state.roots[0];
+                this.globalParts[this.isolationMode.partId].data = {
+                    rootId: rootId,
+                    items: JSON.parse(JSON.stringify(this.state.items))
+                };
+                this.saveGlobalParts();
+                alert(`Global Part '${masterPart.name}' saved!`);
+            });
+        } else {
+            this.shadowRoot.getElementById('isolation-actions').style.display = 'flex';
+        }
+
+        // 5. Rebuild
+        this.selectedId = this.state.roots[0];
+        this.rebuildCanvas();
+        this.populateInspector();
+
+        // 6. Reveal new UI
+        overlay.classList.remove('active');
+    }
+
+    async exitIsolationMode() {
+        if (!this.isolationMode.active) return;
+
+        // 0. Trigger Fade to Black
+        const overlay = this.shadowRoot.getElementById('transition-overlay');
+        overlay.classList.add('active');
+        await new Promise(r => setTimeout(r, 800)); // Wait for screen to go black
+
+        // Restore the cached page state
+        this.state = this.isolationMode.cachedState;
+
+        // Reset isolation tracking
+        this.isolationMode = { active: false, partId: null, cachedState: null };
+        this.classList.remove('isolation-mode');
+
+        // Restore UI
+        this.shadowRoot.querySelector('.top-actions').style.display = 'flex';
+        this.shadowRoot.getElementById('isolation-actions').style.display = 'none';
+
+        const slug = this.state.headData?.slug || 'Unsaved Document';
+        this.shadowRoot.getElementById('doc-status').textContent = `Editing: /${slug}`;
+
+        // Rebuild the normal page
+        this.selectedId = null;
+        this.hideInspector();
+        this.rebuildCanvas();
+
+        // Reveal new UI
+        overlay.classList.remove('active');
+    }
+
+    async loadState() {
         const saved = localStorage.getItem('rainwildsBuilderTree');
         if (saved) {
             this.state = JSON.parse(saved);
         }
 
         if (!this.state.presets) this.state.presets = {};
+        if (!this.globalParts) this.globalParts = {};
+
+        // Wait for global data to load BEFORE rebuilding the canvas
+        await Promise.all([
+            this.loadGlobalTemplates(),
+            this.loadGlobalParts()
+        ]);
 
         this.rebuildCanvas();
-        this.loadGlobalTemplates();
+        this.renderGlobalPartsList(); // Render sidebar list on boot
     }
 
     rebuildCanvas() {
@@ -571,28 +806,7 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
 
         this.saveState();
 
-        // --- FIX: ATTACH BADGES AFTER WEB COMPONENTS INITIALIZE ---
-        // A slight timeout ensures custom-block has already run replaceWith()
-        setTimeout(() => {
-            Object.values(this.state.items).forEach(node => {
-                // Filter out placement attributes before checking if overrides exist
-                const hasOverrides = node.presetId && node.localAttrs &&
-                    Object.keys(node.localAttrs).filter(key => !Shared.PLACEMENT_ATTRS.some(base => key.startsWith(base))).length > 0;
 
-                if (hasOverrides) {
-                    const wrapper = this.canvas.querySelector(`[data-id="${node.id}"]`);
-                    // wrapper.firstElementChild is the actual rendered grid element
-                    if (wrapper && wrapper.firstElementChild) {
-                        wrapper.firstElementChild.style.position = 'relative'; // Ensure absolute positioning works
-                        const badge = document.createElement('div');
-                        badge.className = 'override-badge';
-                        badge.innerHTML = '⚠️';
-                        badge.title = 'This instance has local overrides';
-                        wrapper.firstElementChild.appendChild(badge);
-                    }
-                }
-            });
-        }, 100);
     }
 
 
@@ -633,13 +847,36 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 mainBtn.style.marginBottom = '0';
                 mainBtn.title = "Double-click to view templates";
 
-                const name = tag.replace('custom-', '').split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-                const icon = tag.includes('layout') ? '⚏' : tag.includes('slider') ? '◫' : '◻';
+                // Custom naming override for 'nav'
+                let name = tag.replace('custom-', '').split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+                if (tag === 'custom-nav') name = 'Navigation';
 
+                let icon = '';
+                const svgStyle = 'style="width:14px; height:14px; fill:currentColor;"';
+
+                if (tag.includes('layout')) {
+                    icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" ${svgStyle}><path d="M320 64l0 384 96 0 0-384-96 0zm-32 0l-128 0 0 384 128 0 0-384zM128 448l0-384-96 0 0 384 96 0zM0 32l448 0 0 448-448 0 0-448z"/></svg>`;
+                } else if (tag.includes('header')) {
+                    icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" ${svgStyle}><path d="M0 32l448 0 0 32-448 0 0-32zM8 168l48 0 0 48-48 0 0-48zm432 0l0 48-48 0 0-48 48 0zM8 296l48 0 0 48-48 0 0-48zm432 0l0 48-48 0 0-48 48 0zM8 424l48 0 0 48-48 0 0-48zm432 0l0 48-48 0 0-48 48 0zm-304 0l48 0 0 48-48 0 0-48zm176 0l0 48-48 0 0-48 48 0z"/></svg>`;
+                } else if (tag.includes('slider')) {
+                    icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" ${svgStyle}><path d="M240 32l0 448 208 0 0-448-208 0zM208 0l272 0 0 512-272 0 0-512zM104 48l32 0 0 416-32 0 0-416zM0 96l32 0 0 320-32 0 0-320z"/></svg>`;
+                } else if (tag.includes('logo')) {
+                    icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" ${svgStyle}><path d="M480 256a224 224 0 1 0 -448 0 224 224 0 1 0 448 0zM0 256a256 256 0 1 1 512 0 256 256 0 1 1 -512 0z"/></svg>`;
+                } else if (tag.includes('nav')) {
+                    icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" ${svgStyle}><path d="M0 64l448 0 0 32-448 0 0-32zM0 240l448 0 0 32-448 0 0-32zM448 416l0 32-448 0 0-32 448 0z"/></svg>`;
+                } else if (tag.includes('filter')) {
+                    icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" ${svgStyle}><path d="M352 272l208-208-544 0 208 208 0 128 128 128 0-256zM320 450.7l-64-64 0-128-9.4-9.4-153.4-153.4 389.5 0-153.4 153.4-9.4 9.4 0 192z"/></svg>`;
+                } else if (tag.includes('block')) {
+                    icon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" ${svgStyle}><path d="M416 64l0 384-384 0 0-384 384 0zM32 32l-32 0 0 448 448 0 0-448-416 0z"/></svg>`;
+                } else {
+                    icon = '◻';
+                }
                 // Add the template indicator icon (hidden by default)
                 mainBtn.innerHTML = `
                     <span class="layer-icon">${icon}</span> ${name}
-                    <span class="template-indicator" style="display:none; position:absolute; top: 50%; right: 10px; transform: translateY(-50%); font-size: 14px; color: #fbbf24;" title="Templates Available">❖</span>
+                    <span class="template-indicator" style="display:none; position:absolute; top: 50%; right: 10px; transform: translateY(-50%); width: 14px; height: 14px; fill: #fbbf24;" title="Templates Available">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M169 409l119-119 119 119-119 119-119-119zM135 375L16 256 135 137 254.1 256 135 375zM169 103l119-119 119 119-119 119-119-119zM441 137l119 119-119 119-119-119 119-119z"/></svg>
+                    </span>
                 `;
 
                 mainBtn.addEventListener('dragstart', (e) => {
@@ -669,8 +906,9 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 container.appendChild(groupDiv);
             });
 
-            // --- FIX: RE-RENDER PRESETS AFTER WIPING THE TAB ---
+            // --- FIX: RE-RENDER PRESETS & GLOBALS AFTER WIPING THE TAB ---
             this.renderPresets();
+            this.renderGlobalPartsList();
 
         } catch (err) {
             this.shadowRoot.getElementById('tab-elements').innerHTML = '<p style="color:#ef4444; font-size:0.7rem;">API Error</p>';
@@ -881,16 +1119,37 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
         });
     }
 
-    renderNode(id) {
-        const nodeData = this.state.items[id];
+    // Accept an optional dataSource (defaults to standard canvas state)
+    renderNode(id, dataSource = this.state.items) {
+        let nodeData = dataSource[id];
         if (!nodeData) return null;
+
+        let targetData = nodeData;
+        let targetSource = dataSource;
+        let isPointer = false;
+
+        // If this is a Global Part pointer, swap the data source to the Master component!
+        if (nodeData.globalPartId) {
+            isPointer = true;
+            const master = this.globalParts[nodeData.globalPartId];
+            if (master && master.data && master.data.items) {
+                targetSource = master.data.items;
+                targetData = targetSource[master.data.rootId];
+            } else {
+                const div = document.createElement('div');
+                div.className = 'builder-wrapper';
+                div.dataset.id = id;
+                div.innerHTML = `<div style="padding: 10px; background: #fee2e2; color: #ef4444; border: 1px dashed #ef4444;">Missing Global Part</div>`;
+                return div;
+            }
+        }
 
         const wrapper = document.createElement('div');
         wrapper.className = 'builder-wrapper';
-        wrapper.dataset.id = id;
-        wrapper.dataset.type = nodeData.type;
-        const ElementClass = customElements.get(nodeData.type);
-        wrapper.dataset.isContainer = (ElementClass && ElementClass.builderConfig?.isContainer) ? "true" : "false";
+        // CRITICAL: Always use the pointer's actual ID so selection works
+        wrapper.dataset.id = nodeData.id;
+        wrapper.dataset.type = targetData.type;
+        const ElementClass = customElements.get(targetData.type); wrapper.dataset.isContainer = (ElementClass && ElementClass.builderConfig?.isContainer) ? "true" : "false";
         wrapper.setAttribute('draggable', 'true');
 
         if (nodeData.parentId && this.state.items[nodeData.parentId]?.type === 'custom-slider') {
@@ -898,53 +1157,93 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
         }
 
         // --- NEW MERGING LOGIC STARTS HERE ---
-
-        // 1. Establish base attributes from the preset (if one exists)
         let resolvedAttrs = {};
-        if (nodeData.presetId && this.state.presets && this.state.presets[nodeData.presetId]) {
-            resolvedAttrs = { ...this.state.presets[nodeData.presetId].baseAttrs };
+        // Use targetData (the master content) for attributes
+        if (targetData.presetId && this.state.presets && this.state.presets[targetData.presetId]) {
+            resolvedAttrs = { ...this.state.presets[targetData.presetId].baseAttrs };
         }
+        resolvedAttrs = { ...resolvedAttrs, ...(targetData.localAttrs || targetData.attrs || {}) };
 
-        // 2. Merge local overrides on top. 
-        // We use (nodeData.localAttrs || nodeData.attrs) to ensure backwards compatibility 
-        // with older saved layouts that haven't been migrated to the new localAttrs structure yet.
-        resolvedAttrs = { ...resolvedAttrs, ...(nodeData.localAttrs || nodeData.attrs || {}) };
-
-        const component = document.createElement(nodeData.type);
+        const component = document.createElement(targetData.type);
 
         // Turn the wrapper into an active grid item
         wrapper.classList.add('grid-placement-item');
 
-        // 3. Iterate over the newly merged resolvedAttrs instead of nodeData.attrs
+        // Apply placement data from the pointer (nodeData), and styling data from the master (targetData)
         for (const [key, value] of Object.entries(resolvedAttrs)) {
             component.setAttribute(key, value);
-            
-            // SYNCHRONIZE grid placement attributes to the wrapper so it slots into the subgrid perfectly
+        }
+
+        // Ensure the pointer retains its placement on the layout grid!
+        for (const [key, value] of Object.entries(nodeData.localAttrs || {})) {
             if (Shared.PLACEMENT_ATTRS.some(base => key.startsWith(base)) || key === 'column-span') {
                 wrapper.setAttribute(key, value);
                 wrapper.style.setProperty(`--${key}`, value);
             }
         }
 
-        // --- NEW: ADD VISUAL ALERT BADGE TO CANVAS COMPONENT ---
-        // Filter out placement attributes before checking if overrides exist
-        const hasOverrides = nodeData.presetId && nodeData.localAttrs &&
-            Object.keys(nodeData.localAttrs).filter(key => !Shared.PLACEMENT_ATTRS.some(base => key.startsWith(base))).length > 0;
+        const hasOverrides = targetData.presetId && targetData.localAttrs &&
+            Object.keys(targetData.localAttrs).filter(key => !Shared.PLACEMENT_ATTRS.some(base => key.startsWith(base))).length > 0;
 
         if (hasOverrides) {
             const badge = document.createElement('div');
             badge.className = 'override-badge';
-            badge.innerHTML = '⚠️';
+            badge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M560 480L16 480 288-16 560 480zM260 356l0 56 56 0 0-56-56 0zm-4-196l12.8 160 38.4 0 12.8-160-64 0z"/></svg>';
             badge.title = 'This instance has local overrides';
-            component.appendChild(badge);
+            wrapper.appendChild(badge);
         }
-        // -------------------------------------------------------
 
-        if (nodeData.children && nodeData.children.length > 0) {
-            nodeData.children.forEach(childId => {
-                const childEl = this.renderNode(childId);
+        // --- NEW: VISUAL MEDIA MANAGER BUTTONS ---
+        // Hide these buttons if we are looking at a locked Global Part pointer!
+        if (targetData.type === 'custom-block' && !isPointer) {
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'img-hover-actions';
+
+            const bgBtn = document.createElement('button');
+            bgBtn.className = 'img-action-btn';
+            bgBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M416 64l0 384-384 0 0-384 384 0zM32 32l-32 0 0 448 448 0 0-448-416 0zM143.3 267.8L64 400 384 400 365.7 368 273.9 207.3 256 176c-29 45.1-54.8 85.2-60.3 93.8-15.7-13.1-32.3-26.9-35.7-29.8l-16.7 27.8zm24.9 20.7c1.2 1 12.8 10.7 34.8 29 11-17.2 28.1-43.8 51.3-79.9l74.5 130.3-208.3 0 47.7-79.5zM144 160a16 16 0 1 1 -32 0 16 16 0 1 1 32 0zm-16-48a48 48 0 1 0 0 96 48 48 0 1 0 0-96z"/></svg>';
+            bgBtn.title = "Set Background Image";
+            bgBtn.addEventListener('click', (e) => { e.stopPropagation(); this.openMediaManager(id, 'img-background-src'); });
+
+            const primaryBtn = document.createElement('button');
+            primaryBtn.className = 'img-action-btn';
+            primaryBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M448 32l-448 0 0 448 448 0 0-448zM128 112a48 48 0 1 1 0 96 48 48 0 1 1 0-96zm16 160l46.1 69.1 81.9-133.1 128 208-352 0 96-144z"/></svg>';
+            primaryBtn.title = "Set Primary Image";
+            primaryBtn.addEventListener('click', (e) => { e.stopPropagation(); this.openMediaManager(id, 'img-primary-src'); });
+
+            const removeBtn = document.createElement('button');
+            removeBtn.className = 'img-action-btn danger-btn';
+            removeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M235.6 38.6l81.4 112 7.3 10.1-8 9.6-152 182.4c58.7 80.7 89.5 123.2 92.6 127.3L0 480 0 32 230.7 32 235.6 38.6zM448 480l-131.8 0-23.3-32 123.1 0 0-384-102.6 0-23.3-32 157.9 0 0 448zM32 448l162 0-62.9-86.6-7.3-10.1 8-9.6 152-182.4-69.3-95.3-182.4 0 0 384zm352-48l-126 0-23.3-32 94.1 0-46.8-81.8 21.9-26.3 80 140.1zM128 208a48 48 0 1 1 0-96 48 48 0 1 1 0 96zm0-64a16 16 0 1 0 0 32 16 16 0 1 0 0-32z"/></svg>';
+            removeBtn.title = "Remove All Images";
+            removeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (targetData.localAttrs) {
+                    ['img-background-src', 'img-primary-src'].forEach(attr => {
+                        if (targetData.presetId) { targetData.localAttrs[attr] = ""; component.setAttribute(attr, ""); }
+                        else { delete targetData.localAttrs[attr]; component.removeAttribute(attr); }
+                    });
+                    this.saveState(); this.rebuildCanvas(); if (this.selectedId === id) this.populateInspector();
+                }
+            });
+
+            actionsDiv.appendChild(bgBtn); actionsDiv.appendChild(primaryBtn); actionsDiv.appendChild(removeBtn);
+            wrapper.appendChild(actionsDiv);
+        }
+
+        // Pass the targetSource down recursively!
+        if (targetData.children && targetData.children.length > 0) {
+            targetData.children.forEach(childId => {
+                const childEl = this.renderNode(childId, targetSource);
                 if (childEl) component.appendChild(childEl);
             });
+        }
+
+        if (isPointer) {
+            const globalBadge = document.createElement('div');
+            globalBadge.className = 'global-part-badge';
+            globalBadge.title = 'Global Part';
+            globalBadge.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M55.7 199.7l40.3 40.3 48 0 48 48 0 64 32 32 0 64 64 0 0-48 64-64 0-80-128 0-32-32 0-32 80 0 0-32-32-32 0-16 32-32 0-31.4c-5.3-.4-10.6-.6-16-.6-95.4 0-175.7 64.2-200.3 151.7zM464 256c0-36.9-9.6-71.5-26.4-101.6l-37.6 37.6 0 80 63.4 0c.4-5.3 .6-10.6 .6-16zM0 256a256 256 0 1 1 512 0 256 256 0 1 1 -512 0z"/></svg>';
+            wrapper.appendChild(globalBadge);
         }
 
         wrapper.appendChild(component);
@@ -1005,7 +1304,8 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
             const starColor = isStarred ? '#f59e0b' : '#71717a';
 
             // Function to generate the preset drag item
-            const createPresetNode = () => {
+            // NEW: Added useParentIcon parameter
+            const createPresetNode = (useParentIcon = false) => {
                 const presetDiv = document.createElement('div');
                 presetDiv.className = 'component-item';
                 presetDiv.setAttribute('draggable', 'true');
@@ -1016,12 +1316,30 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 presetDiv.style.justifyContent = 'space-between';
                 presetDiv.style.alignItems = 'center';
 
+                // Determine icon based on useParentIcon (for Starred list) vs Arrow (for Nested list)
+                let iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M32.1 80l0-16-32 0 0 208 457.4 0-116.7 116.7-11.3 11.3 22.6 22.6 11.3-11.3 144-144 11.3-11.3-11.3-11.3-144-144-11.3-11.3-22.6 22.6 11.3 11.3 116.7 116.7-425.4 0 0-160z"/></svg>`;
+
+                if (useParentIcon) {
+                    const tag = preset.type;
+                    if (tag.includes('layout')) iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M320 64l0 384 96 0 0-384-96 0zm-32 0l-128 0 0 384 128 0 0-384zM128 448l0-384-96 0 0 384 96 0zM0 32l448 0 0 448-448 0 0-448z"/></svg>`;
+                    else if (tag.includes('header')) iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M0 32l448 0 0 32-448 0 0-32zM8 168l48 0 0 48-48 0 0-48zm432 0l0 48-48 0 0-48 48 0zM8 296l48 0 0 48-48 0 0-48zm432 0l0 48-48 0 0-48 48 0zM8 424l48 0 0 48-48 0 0-48zm432 0l0 48-48 0 0-48 48 0zm-304 0l48 0 0 48-48 0 0-48zm176 0l0 48-48 0 0-48 48 0z"/></svg>`;
+                    else if (tag.includes('slider')) iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M240 32l0 448 208 0 0-448-208 0zM208 0l272 0 0 512-272 0 0-512zM104 48l32 0 0 416-32 0 0-416zM0 96l32 0 0 320-32 0 0-320z"/></svg>`;
+                    else if (tag.includes('logo')) iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M480 256a224 224 0 1 0 -448 0 224 224 0 1 0 448 0zM0 256a256 256 0 1 1 512 0 256 256 0 1 1 -512 0z"/></svg>`;
+                    else if (tag.includes('nav')) iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M0 64l448 0 0 32-448 0 0-32zM0 240l448 0 0 32-448 0 0-32zM448 416l0 32-448 0 0-32 448 0z"/></svg>`;
+                    else if (tag.includes('filter')) iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M352 272l208-208-544 0 208 208 0 128 128 128 0-256zM320 450.7l-64-64 0-128-9.4-9.4-153.4-153.4 389.5 0-153.4 153.4-9.4 9.4 0 192z"/></svg>`;
+                    else if (tag.includes('block')) iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path d="M416 64l0 384-384 0 0-384 384 0zM32 32l-32 0 0 448 448 0 0-448-416 0z"/></svg>`;
+                }
+
                 presetDiv.innerHTML = `
                     <div style="display: flex; align-items: center; gap: 6px; overflow: hidden;">
-                        <span class="layer-icon" style="color: #10b981; font-size: 0.9em;">↳</span> 
+                        <span class="layer-icon" style="width: 12px; height: 12px; fill: currentColor; display: flex;">
+                            ${iconSVG}
+                        </span> 
                         <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${preset.name}">${preset.name}</span>
                     </div>
-                    <button class="star-btn" style="background: none; border: none; padding: 0; cursor: pointer; color: ${starColor}; font-size: 1rem; line-height: 1;" title="Toggle Star">★</button>
+                    <button class="star-btn" style="background: none; border: none; padding: 0; cursor: pointer; color: ${starColor}; width: 14px; height: 14px; fill: currentColor; display: flex; align-items: center;" title="Toggle Star">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512"><path d="M311.3 32.7L288.4-39.2C277.2-3.8 254 69.2 218.8 179.9l-216.3 0c25.9 20.1 84.6 65.8 176.1 136.9-35.3 111-58.8 184.9-70.5 221.6 31-24.1 91.1-70.9 180.4-140.3 89.3 69.4 149.4 116.2 180.4 140.3-11.7-36.8-35.2-110.7-70.5-221.6 91.5-71.2 150.2-116.8 176.1-136.9l-216.3 0-46.8-147.1z"/></svg>
+                    </button>
                 `;
 
                 // Star toggle event
@@ -1051,7 +1369,7 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
             const groupDiv = this.shadowRoot.querySelector(`.component-group[data-type="${preset.type}"]`);
             if (groupDiv) {
                 const list = groupDiv.querySelector('.template-list');
-                list.appendChild(createPresetNode());
+                list.appendChild(createPresetNode(false)); // Use Arrow Icon (false)
                 // Reveal the ❖ template indicator icon on the main button
                 groupDiv.querySelector('.template-indicator').style.display = 'block';
             }
@@ -1059,7 +1377,7 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
             // B) Append to Starred list if applicable
             if (isStarred) {
                 starredCount++;
-                starredContainer.appendChild(createPresetNode());
+                starredContainer.appendChild(createPresetNode(true)); // Use Parent Icon (true)
             }
         });
 
@@ -1068,9 +1386,60 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
         }
     }
 
+    renderGlobalPartsList() {
+        let globalsContainer = this.shadowRoot.getElementById('global-parts-list');
+
+        if (!globalsContainer) {
+            const tabElements = this.shadowRoot.getElementById('tab-elements');
+            const divider = document.createElement('h4');
+            divider.textContent = 'Global Parts';
+            divider.style.cssText = 'color: #f59e0b; font-size: 0.75rem; margin-top: 15px; margin-bottom: 8px; border-bottom: 1px solid #27272a; padding-bottom: 4px; font-weight: 600;';
+
+            globalsContainer = document.createElement('div');
+            globalsContainer.id = 'global-parts-list';
+
+            tabElements.appendChild(divider);
+            tabElements.appendChild(globalsContainer);
+        }
+
+        globalsContainer.innerHTML = '';
+        const parts = Object.values(this.globalParts);
+
+        if (parts.length === 0) {
+            globalsContainer.innerHTML = '<p style="font-size:0.7rem; padding:10px; color: #71717a;">No global parts saved yet.</p>';
+            return;
+        }
+
+        parts.forEach(part => {
+            const partDiv = document.createElement('div');
+            partDiv.className = 'component-item';
+            partDiv.setAttribute('draggable', 'true');
+            // Give it an amber tint to differentiate it from regular components
+            partDiv.style.cssText = 'padding: 8px 10px; font-size: 0.75rem; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.05);';
+
+            const iconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M55.7 199.7l40.3 40.3 48 0 48 48 0 64 32 32 0 64 64 0 0-48 64-64 0-80-128 0-32-32 0-32 80 0 0-32-32-32 0-16 32-32 0-31.4c-5.3-.4-10.6-.6-16-.6-95.4 0-175.7 64.2-200.3 151.7zM464 256c0-36.9-9.6-71.5-26.4-101.6l-37.6 37.6 0 80 63.4 0c.4-5.3 .6-10.6 .6-16zM0 256a256 256 0 1 1 512 0 256 256 0 1 1 -512 0z"/></svg>`;
+
+            partDiv.innerHTML = `
+                <span class="layer-icon" style="width: 14px; height: 14px; fill: #f59e0b; display: flex;">${iconSVG}</span>
+                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex-grow: 1;" title="${part.name}">${part.name}</span>
+            `;
+
+            partDiv.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', `global:${part.id}`);
+                this.draggedLibraryType = 'global-part';
+            });
+
+            partDiv.addEventListener('dragend', () => {
+                this.draggedLibraryType = null;
+                if (this.placeholder) { this.placeholder.remove(); this.placeholder = null; }
+            });
+
+            globalsContainer.appendChild(partDiv);
+        });
+    }
+
     getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll(':scope > .builder-wrapper:not(.is-dragging)')];
-        return draggableElements.reduce((closest, child) => {
+        const draggableElements = [...container.querySelectorAll(':scope > .builder-wrapper:not(.is-dragging)')]; return draggableElements.reduce((closest, child) => {
             // Measure the actual component, not the invisible wrapper!
             const elToMeasure = child.firstElementChild || child;
             const box = elToMeasure.getBoundingClientRect();
@@ -1215,6 +1584,29 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                 this.selectedId = uniqueId;
                 // ----------------------------------------
 
+                // --- NEW GLOBAL PART DROP LOGIC ---
+            } else if (payload.startsWith('global:')) {
+                const partId = payload.split(':')[1];
+                const masterPart = this.globalParts[partId];
+                if (!masterPart) return;
+
+                const uniqueId = 'comp-' + Date.now();
+
+                this.state.items[uniqueId] = {
+                    id: uniqueId,
+                    type: masterPart.data.items[masterPart.data.rootId].type,
+                    globalPartId: partId,
+                    localAttrs: {}, // Global parts don't allow local overrides
+                    children: [],
+                    parentId: newParentId
+                };
+
+                if (newParentId) this.state.items[newParentId].children.push(uniqueId);
+                else this.state.roots.push(uniqueId);
+
+                this.selectedId = uniqueId;
+                // ----------------------------------
+
             } else if (payload.startsWith('move:')) {
                 const itemId = payloadType;
                 if (itemId === newParentId) return;
@@ -1336,6 +1728,25 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
         templateControls.id = 'template-controls';
         templateControls.style.cssText = 'display: flex; gap: 8px; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid #27272a;';
 
+        // Check if this component IS a Global Part pointer
+        if (compData.globalPartId) {
+            const editGlobalBtn = document.createElement('button');
+            editGlobalBtn.className = 'btn-primary';
+            editGlobalBtn.style.flex = '1';
+            editGlobalBtn.style.background = '#f59e0b'; // Amber
+            editGlobalBtn.style.borderColor = '#b45309';
+            editGlobalBtn.textContent = '⚡ Edit in Isolation Mode';
+            editGlobalBtn.addEventListener('click', () => {
+                this.enterIsolationMode(compData.globalPartId);
+            });
+            templateControls.appendChild(editGlobalBtn);
+
+            // Hide the standard properties! Global Parts are locked.
+            this.shadowRoot.getElementById('edit-form').insertBefore(templateControls, this.shadowRoot.getElementById('dynamic-inputs'));
+            this.shadowRoot.getElementById('dynamic-inputs').innerHTML = '<div style="padding: 15px; text-align: center; color: #fbbf24; border: 1px dashed #523719; border-radius: 6px; background: rgba(245, 158, 11, 0.1);">This is a Global Part. Enter Isolation Mode to edit its contents.</div>';
+            return; // Abort the rest of the inspector population
+        }
+
         if (compData.presetId) {
             const updateBtn = document.createElement('button');
             updateBtn.className = 'btn-primary';
@@ -1344,29 +1755,27 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
             updateBtn.style.borderColor = '#059669';
             updateBtn.textContent = '⟳ Update Template';
             updateBtn.addEventListener('click', () => {
-                // Merge current local edits into the master preset
                 this.state.presets[compData.presetId].baseAttrs = {
                     ...this.state.presets[compData.presetId].baseAttrs,
                     ...compData.localAttrs
                 };
-                compData.localAttrs = {}; // Clear local overrides
+                compData.localAttrs = {};
                 this.saveGlobalTemplates();
                 this.rebuildCanvas();
                 this.populateInspector();
                 alert('Template updated across all instances!');
             });
 
-            // NEW: Reset Button
             const resetBtn = document.createElement('button');
             resetBtn.className = 'btn-secondary';
             resetBtn.style.flex = '1';
-            resetBtn.style.color = '#ef4444'; // Red text for destructive action
+            resetBtn.style.color = '#ef4444';
             resetBtn.style.borderColor = '#7f1d1d';
             resetBtn.textContent = '↺ Reset';
             resetBtn.title = 'Revert all local changes to match the template';
             resetBtn.addEventListener('click', () => {
                 if (confirm('Revert all local overrides to match the template defaults?')) {
-                    compData.localAttrs = {}; // Wipe local overrides
+                    compData.localAttrs = {};
                     this.rebuildCanvas();
                     this.populateInspector();
                 }
@@ -1391,25 +1800,83 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
                     id: newPresetId,
                     type: compData.type,
                     name: presetName,
-                    isStarred: false, // Default to false so it doesn't clutter the favorites
+                    isStarred: false,
                     baseAttrs: { ...compData.localAttrs }
                 };
 
                 compData.presetId = newPresetId;
-                compData.localAttrs = {}; // Clear local overrides
-
+                compData.localAttrs = {};
                 this.saveGlobalTemplates();
-
-                // Force the nested list to be open if we just saved one so the user sees it
                 const groupDiv = this.shadowRoot.querySelector(`.component-group[data-type="${compData.type}"]`);
-                if (groupDiv) {
-                    groupDiv.querySelector('.template-list').style.display = 'flex';
-                }
-
+                if (groupDiv) groupDiv.querySelector('.template-list').style.display = 'flex';
                 this.renderPresets();
                 this.populateInspector();
             });
+
+            const saveGlobalBtn = document.createElement('button');
+            saveGlobalBtn.className = 'btn-secondary';
+            saveGlobalBtn.style.flex = '1';
+            saveGlobalBtn.style.borderColor = '#f59e0b';
+            saveGlobalBtn.style.color = '#f59e0b';
+            saveGlobalBtn.textContent = '⚡ Save as Global';
+            saveGlobalBtn.title = "Creates a linked master component";
+            saveGlobalBtn.addEventListener('click', () => {
+                const partName = prompt("Enter a name for this Global Part (e.g., Main Header):");
+                if (!partName) return;
+
+                const newPartId = 'global-' + Date.now();
+
+                // Build a flat dictionary of items for the master component
+                const flatItems = {};
+                const recurse = (id) => {
+                    const node = JSON.parse(JSON.stringify(this.state.items[id]));
+                    // The root element inside the sandbox shouldn't have a parent
+                    if (id === compData.id) node.parentId = null;
+                    flatItems[id] = node;
+                    if (node.children) {
+                        node.children.forEach(childId => recurse(childId));
+                    }
+                };
+                recurse(compData.id);
+
+                this.globalParts[newPartId] = {
+                    id: newPartId,
+                    name: partName,
+                    data: {
+                        rootId: compData.id,
+                        items: flatItems
+                    }
+                };
+
+                // Preserve placement attributes so it doesn't jump out of the layout!
+                const preservedPlacement = {};
+                Shared.PLACEMENT_ATTRS.forEach(attr => {
+                    ['', '-mobile', '-tablet', '-laptop', '-desktop', '-large', '-ultra'].forEach(bp => {
+                        const key = `${attr}${bp}`;
+                        if (compData.localAttrs && compData.localAttrs[key]) preservedPlacement[key] = compData.localAttrs[key];
+                    });
+                });
+                if (compData.localAttrs && compData.localAttrs['column-span']) preservedPlacement['column-span'] = compData.localAttrs['column-span'];
+
+                // Convert the current canvas item into a lightweight pointer
+                this.state.items[compData.id] = {
+                    id: compData.id,
+                    type: compData.type,
+                    globalPartId: newPartId,
+                    localAttrs: preservedPlacement,
+                    children: [],
+                    parentId: compData.parentId
+                };
+
+                this.saveGlobalParts();
+                this.saveState();
+                this.rebuildCanvas();
+                this.populateInspector();
+                this.renderGlobalPartsList(); // Update sidebar immediately
+            });
+
             templateControls.appendChild(saveTemplateBtn);
+            templateControls.appendChild(saveGlobalBtn);
         }
 
         // Insert right above the dynamic inputs
@@ -1642,6 +2109,55 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
         this.shadowRoot.getElementById('edit-form').style.display = 'none';
     }
 
+    async openMediaManager(nodeId, targetAttr) {
+        const modal = this.shadowRoot.getElementById('media-modal');
+        const gallery = this.shadowRoot.getElementById('media-gallery');
+        modal.classList.add('active');
+        gallery.innerHTML = '<div style="color: var(--theme-text-muted); grid-column: 1 / -1; text-align: center;">Loading images...</div>';
+
+        try {
+            const response = await fetch('http://localhost:3000/api/images');
+            if (!response.ok) throw new Error('Failed to load images');
+            const images = await response.json();
+
+            gallery.innerHTML = '';
+            if (images.length === 0) {
+                gallery.innerHTML = '<div style="color: var(--theme-text-muted); grid-column: 1 / -1; text-align: center;">No images found in /src/img/primary/</div>';
+                return;
+            }
+
+            images.forEach(filename => {
+                const thumb = document.createElement('div');
+                thumb.className = 'media-thumbnail';
+
+                // Uses the live server path mapping naturally available to builder.html
+                thumb.innerHTML = `
+                    <img src="./img/primary/${filename}" loading="lazy" alt="${filename}">
+                    <div class="media-label" title="${filename}">${filename}</div>
+                `;
+
+                thumb.addEventListener('click', () => {
+                    const compData = this.state.items[nodeId];
+                    if (!compData.localAttrs) compData.localAttrs = {};
+
+                    // Strip the directory path and only inject the filename
+                    compData.localAttrs[targetAttr] = filename;
+
+                    this.saveState();
+                    this.rebuildCanvas();
+                    if (this.selectedId === nodeId) this.populateInspector();
+
+                    modal.classList.remove('active');
+                });
+
+                gallery.appendChild(thumb);
+            });
+        } catch (err) {
+            console.error(err);
+            gallery.innerHTML = '<div style="color: #ef4444; grid-column: 1 / -1; text-align: center;">Failed to load images. Check server connection.</div>';
+        }
+    }
+
     async openCmsDashboard() {
         const dashboard = this.shadowRoot.getElementById('cms-dashboard');
         const listContainer = this.shadowRoot.getElementById('cms-content-list');
@@ -1771,6 +2287,11 @@ label { font-size: 0.75rem; color: #a1a1aa; white-space: normal; word-break: bre
 
         this.shadowRoot.getElementById('close-cms').addEventListener('click', () => {
             this.closeCmsDashboard();
+        });
+
+        // --- BUTTON: CLOSE MEDIA MODAL ---
+        this.shadowRoot.getElementById('close-media-modal').addEventListener('click', () => {
+            this.shadowRoot.getElementById('media-modal').classList.remove('active');
         });
 
         vpButtons.forEach(btn => {

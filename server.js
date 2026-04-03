@@ -8,10 +8,14 @@ const SECRET_TOKEN = 'rainwilds-builder-2026';
 const SRC_DIR = path.join(__dirname, 'src');
 const BLOG_DIR = path.join(SRC_DIR, 'blog');
 const PAGES_DIR = path.join(SRC_DIR, 'pages');
-const TEMPLATES_FILE = path.join(SRC_DIR, 'JSON', 'templates.json'); // <-- ADD THIS
+const JSON_DIR = path.join(SRC_DIR, 'JSON');
+const TEMPLATES_FILE = path.join(JSON_DIR, 'templates.json');
+const GLOBAL_PARTS_FILE = path.join(JSON_DIR, 'global-parts.json'); // NEW: Centralized global components
 
 if (!fs.existsSync(BLOG_DIR)) fs.mkdirSync(BLOG_DIR, { recursive: true });
 if (!fs.existsSync(PAGES_DIR)) fs.mkdirSync(PAGES_DIR, { recursive: true });
+if (!fs.existsSync(JSON_DIR)) fs.mkdirSync(JSON_DIR, { recursive: true });
+if (!fs.existsSync(GLOBAL_PARTS_FILE)) fs.writeFileSync(GLOBAL_PARTS_FILE, JSON.stringify({}));
 
 const server = http.createServer((req, res) => {
     // 1. Set CORS Headers
@@ -51,6 +55,17 @@ const server = http.createServer((req, res) => {
         } else {
             res.writeHead(200, { 'Content-Type': 'application/json' });
             return res.end(JSON.stringify({})); // Return empty object if no templates exist yet
+        }
+    }
+
+    // 3.5.5 Handle GET: Load Global Parts
+    if (req.method === 'GET' && req.url === '/api/global-parts') {
+        if (fs.existsSync(GLOBAL_PARTS_FILE)) {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            return res.end(fs.readFileSync(GLOBAL_PARTS_FILE, 'utf8'));
+        } else {
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify({}));
         }
     }
 
@@ -120,6 +135,28 @@ const server = http.createServer((req, res) => {
         }
     }
 
+    // 3.8 Handle GET: List Primary Images
+    if (req.method === 'GET' && req.url === '/api/images') {
+        const imgPath = path.join(SRC_DIR, 'img', 'primary');
+        try {
+            if (!fs.existsSync(imgPath)) {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                return res.end(JSON.stringify([]));
+            }
+
+            const files = fs.readdirSync(imgPath);
+            // Filter to ensure we only send image files
+            const images = files.filter(file => /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file));
+
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            return res.end(JSON.stringify(images));
+        } catch (err) {
+            console.error("❌ Error reading images:", err);
+            res.writeHead(500);
+            return res.end(JSON.stringify({ error: 'Could not list images' }));
+        }
+    }
+
     // 4. Handle POST: Save and Publish
     if (req.method === 'POST') {
         let body = '';
@@ -145,10 +182,18 @@ const server = http.createServer((req, res) => {
                 res.writeHead(200);
                 return res.end(JSON.stringify({ message: 'Templates saved!' }));
             }
+
+            // ROUTE: SAVE GLOBAL PARTS
+            if (req.url === '/api/global-parts') {
+                fs.writeFileSync(GLOBAL_PARTS_FILE, JSON.stringify(data, null, 2));
+                console.log(`✅ Global parts saved!`);
+                res.writeHead(200);
+                return res.end(JSON.stringify({ message: 'Global parts saved!' }));
+            }
+
             // ROUTE: SAVE
             if (req.url === '/api/save-post') {
-                const { contentType, slug, title, date, categories, excerpt, featuredImage, builderState } = data;
-                console.log(`💾 Saving ${contentType.toUpperCase()}: ${slug}...`);
+                const { contentType, slug, title, date, categories, excerpt, featuredImage, builderState } = data; console.log(`💾 Saving ${contentType.toUpperCase()}: ${slug}...`);
 
                 // Determine target directory based on content type
                 const targetDir = contentType === 'page' ? PAGES_DIR : BLOG_DIR;

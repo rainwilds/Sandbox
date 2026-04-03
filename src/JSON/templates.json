@@ -3,7 +3,7 @@
     "id": "preset-1775127672394",
     "type": "custom-block",
     "name": "Slide 1",
-    "isStarred": false,
+    "isStarred": true,
     "baseAttrs": {
       "heading": "New Block",
       "class": "height-third",

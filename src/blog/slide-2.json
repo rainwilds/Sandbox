@@ -25,7 +25,7 @@
         "heading": "New Block",
         "class": "background-color-1",
         "inner-class": "padding-large",
-        "img-background-src": "tourism-photography-dark-6.jpg"
+        "img-background-src": "tourism-photography-dark-5.jpg"
       },
       "children": [],
       "parentId": "comp-1775197568466"
@@ -63,7 +63,8 @@
       "type": "custom-block",
       "presetId": "preset-1775127672394",
       "localAttrs": {
-        "heading": "New Block 1"
+        "heading": "New Block 1",
+        "img-background-src": "./img/primary/tourism-photography-dark-1.jpg"
       },
       "children": [],
       "parentId": "comp-1775198404704"
@@ -85,6 +86,16 @@
       "localAttrs": {},
       "children": [],
       "parentId": "comp-1775198404704"
+    },
+    "comp-1775198710227": {
+      "id": "comp-1775198710227",
+      "type": "custom-nav",
+      "presetId": null,
+      "localAttrs": {
+        "nav-container-style": "header"
+      },
+      "children": [],
+      "parentId": "comp-1775198706117"
     }
   },
   "headData": {

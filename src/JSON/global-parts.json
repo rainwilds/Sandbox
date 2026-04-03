@@ -1,0 +1,187 @@
+{
+  "global-1775210700454": {
+    "id": "global-1775210700454",
+    "name": "Full Width Image",
+    "data": {
+      "id": "comp-1775197570573",
+      "type": "custom-block",
+      "presetId": null,
+      "localAttrs": {
+        "heading": "New Block",
+        "class": "background-color-1",
+        "inner-class": "padding-large",
+        "img-background-src": "tourism-photography-dark-6.jpg"
+      },
+      "children": [],
+      "parentId": "comp-1775197568466"
+    }
+  },
+  "global-1775210794661": {
+    "id": "global-1775210794661",
+    "name": "Full Image",
+    "data": {
+      "id": "comp-1775210765797",
+      "type": "custom-block",
+      "presetId": null,
+      "localAttrs": {
+        "heading": "New Block",
+        "class": "background-color-1",
+        "inner-class": "padding-large",
+        "img-background-src": "tourism-photography-dark-1.jpg"
+      },
+      "children": [],
+      "parentId": "comp-1775197568466"
+    }
+  },
+  "global-1775211933139": {
+    "id": "global-1775211933139",
+    "name": "Image1",
+    "data": {
+      "rootId": "comp-1775211902954",
+      "items": {
+        "comp-1775211902954": {
+          "id": "comp-1775211902954",
+          "type": "custom-layout",
+          "presetId": null,
+          "localAttrs": {
+            "column-span": "12",
+            "subgrid": "true"
+          },
+          "children": [
+            "comp-1775211908120",
+            "comp-1775211986273"
+          ],
+          "parentId": null
+        },
+        "comp-1775211908120": {
+          "id": "comp-1775211908120",
+          "type": "custom-block",
+          "presetId": null,
+          "localAttrs": {
+            "heading": "New Block",
+            "class": "background-color-1",
+            "inner-class": "padding-large",
+            "img-background-src": "tourism-photography-dark-2.jpg",
+            "column-end-laptop": "span 6"
+          },
+          "children": [],
+          "parentId": "comp-1775211902954"
+        },
+        "comp-1775211986273": {
+          "id": "comp-1775211986273",
+          "type": "custom-block",
+          "presetId": null,
+          "localAttrs": {
+            "heading": "New Block",
+            "class": "background-color-1",
+            "inner-class": "padding-large",
+            "column-start-laptop": "7",
+            "img-background-src": "tourism-photography-dark-5.jpg"
+          },
+          "children": [],
+          "parentId": "comp-1775211902954"
+        }
+      }
+    }
+  },
+  "global-1775212116256": {
+    "id": "global-1775212116256",
+    "name": "Block1",
+    "data": {
+      "rootId": "comp-1775212077797",
+      "items": {
+        "comp-1775212077797": {
+          "id": "comp-1775212077797",
+          "type": "custom-layout",
+          "presetId": null,
+          "localAttrs": {
+            "column-span": "12",
+            "subgrid": "true"
+          },
+          "children": [
+            "comp-1775212082540"
+          ],
+          "parentId": null
+        },
+        "comp-1775212082540": {
+          "id": "comp-1775212082540",
+          "type": "custom-block",
+          "presetId": null,
+          "localAttrs": {
+            "heading": "New Block",
+            "class": "background-color-2",
+            "inner-class": "padding-large",
+            "column-start-laptop": "span 5"
+          },
+          "children": [],
+          "parentId": "comp-1775212077797"
+        }
+      }
+    }
+  },
+  "global-1775212346131": {
+    "id": "global-1775212346131",
+    "name": "Block2",
+    "data": {
+      "rootId": "comp-1775212306960",
+      "items": {
+        "comp-1775212306960": {
+          "id": "comp-1775212306960",
+          "type": "custom-block",
+          "presetId": null,
+          "localAttrs": {
+            "heading": "New Block",
+            "class": "background-color-2",
+            "inner-class": "padding-large"
+          },
+          "children": [],
+          "parentId": null
+        }
+      }
+    }
+  },
+  "global-1775212699641": {
+    "id": "global-1775212699641",
+    "name": "Block 3",
+    "data": {
+      "rootId": "comp-1775212680582",
+      "items": {
+        "comp-1775212680582": {
+          "id": "comp-1775212680582",
+          "type": "custom-block",
+          "presetId": null,
+          "localAttrs": {
+            "heading": "New Block",
+            "class": "background-color-2",
+            "inner-class": "padding-large",
+            "img-background-src": "tourism-photography-dark-1.jpg"
+          },
+          "children": [],
+          "parentId": null
+        }
+      }
+    }
+  },
+  "global-1775214370507": {
+    "id": "global-1775214370507",
+    "name": "Block 4",
+    "data": {
+      "rootId": "comp-1775214350265",
+      "items": {
+        "comp-1775214350265": {
+          "id": "comp-1775214350265",
+          "type": "custom-block",
+          "presetId": null,
+          "localAttrs": {
+            "heading": "New Block",
+            "class": "background-color-1",
+            "inner-class": "padding-large",
+            "img-background-src": "tourism-photography-light-4.jpg"
+          },
+          "children": [],
+          "parentId": null
+        }
+      }
+    }
+  }
+}

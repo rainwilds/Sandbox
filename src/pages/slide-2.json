@@ -1,0 +1,106 @@
+{
+  "roots": [
+    "comp-1775214348730",
+    "comp-1775214352416",
+    "comp-1775214802610"
+  ],
+  "items": {
+    "comp-1775214348730": {
+      "id": "comp-1775214348730",
+      "type": "custom-layout",
+      "presetId": null,
+      "localAttrs": {
+        "column-span": "12",
+        "subgrid": "true"
+      },
+      "children": [
+        "comp-1775214350265"
+      ],
+      "parentId": null
+    },
+    "comp-1775214350265": {
+      "id": "comp-1775214350265",
+      "type": "custom-block",
+      "globalPartId": "global-1775214370507",
+      "localAttrs": {},
+      "children": [],
+      "parentId": "comp-1775214348730"
+    },
+    "comp-1775214352416": {
+      "id": "comp-1775214352416",
+      "type": "custom-layout",
+      "presetId": null,
+      "localAttrs": {
+        "column-span": "12",
+        "subgrid": "true"
+      },
+      "children": [
+        "comp-1775214354480"
+      ],
+      "parentId": null
+    },
+    "comp-1775214354480": {
+      "id": "comp-1775214354480",
+      "type": "custom-block",
+      "presetId": null,
+      "localAttrs": {
+        "heading": "New Block",
+        "class": "background-color-1",
+        "inner-class": "padding-large"
+      },
+      "children": [],
+      "parentId": "comp-1775214352416"
+    },
+    "comp-1775214802610": {
+      "id": "comp-1775214802610",
+      "type": "custom-layout",
+      "presetId": null,
+      "localAttrs": {
+        "column-span": "12",
+        "subgrid": "true"
+      },
+      "children": [
+        "comp-1775214813197"
+      ],
+      "parentId": null
+    },
+    "comp-1775214813197": {
+      "id": "comp-1775214813197",
+      "type": "custom-block",
+      "globalPartId": "global-1775212346131",
+      "localAttrs": {},
+      "children": [],
+      "parentId": "comp-1775214802610"
+    }
+  },
+  "headData": {
+    "slug": "slide-2",
+    "contentType": "page"
+  },
+  "presets": {
+    "preset-1775127672394": {
+      "id": "preset-1775127672394",
+      "type": "custom-block",
+      "name": "Slide 1",
+      "isStarred": true,
+      "baseAttrs": {
+        "heading": "New Block",
+        "class": "height-third",
+        "inner-class": "padding-large height-third",
+        "img-background-src": "tourism-photography-dark-2.jpg"
+      }
+    },
+    "preset-1775196353749": {
+      "id": "preset-1775196353749",
+      "type": "custom-layout",
+      "name": "Slide 3x",
+      "isStarred": false,
+      "baseAttrs": {
+        "column-span": "12",
+        "subgrid": "true",
+        "column-end": "-2",
+        "column-start": "1"
+      }
+    }
+  }
+}
