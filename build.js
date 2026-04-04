@@ -207,7 +207,17 @@ async function runBuild() {
             });
             const usedComponents = Array.from(componentSet).join(' ');
 
-            const customHead = `<data-custom-head data-components="${usedComponents}" data-title="${h.title || item.title}" data-description="${h.description || item.excerpt}"></data-custom-head>`;
+            // Build customHead with optional new attributes
+            let customHeadAttrs = `data-components="${usedComponents}" data-title="${h.title || item.title}" data-description="${h.description || item.excerpt}"`;
+
+            // Check the JSON state and output the valueless boolean attribute
+            if (h.hidden === 'true') customHeadAttrs += ` data-hidden-page`;
+            if (h.author) customHeadAttrs += ` data-author="${h.author}"`;
+            if (h.socialTitle) customHeadAttrs += ` data-social-title="${h.socialTitle}"`;
+            if (h.socialDescription) customHeadAttrs += ` data-social-description="${h.socialDescription}"`;
+            
+            const customHead = `<data-custom-head ${customHeadAttrs}></data-custom-head>`;
+
             let rawContent = '';
             const presets = postData.presets || {}; // Safely grab presets from the JSON
             // --- THE FIX: Pass globalParts into the recursive generator ---

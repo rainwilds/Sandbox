@@ -2,13 +2,10 @@
 
 // Import config loader for responsive image path and shared breakpoints
 import { getImageResponsivePath, getImagePrimaryPath } from '../config.js';
-import { VIEWPORT_BREAKPOINTS, VIEWPORT_BREAKPOINT_WIDTHS, VALID_ASPECT_RATIOS } from '../shared.js';
+import { VIEWPORT_BREAKPOINTS, VIEWPORT_BREAKPOINT_WIDTHS, VALID_ASPECT_RATIOS, VALID_IMAGE_EXTENSIONS, IMAGE_FORMATS } from '../shared.js';
 
 export const dependencies = ['shared', 'config'];
 
-// Internal constants for image validation and responsive generation (not exported).
-const VALID_IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
-const IMAGE_FORMATS = ['jxl', 'avif', 'webp', 'jpg'];
 const DEFAULT_IMAGE_SIZE_VALUE = 3840;
 
 // Cache for generated markup to improve performance on repeated calls with same parameters.
@@ -85,7 +82,7 @@ export async function generatePictureMarkup({
 
   // Determine if the image is SVG, which affects responsive handling.
   const isSvg = src.endsWith('.svg') || lightSrc.endsWith('.svg') || darkSrc.endsWith('.svg') ||
-                iconSrc.endsWith('.svg') || iconLightSrc.endsWith('.svg') || iconDarkSrc.endsWith('.svg');
+    iconSrc.endsWith('.svg') || iconLightSrc.endsWith('.svg') || iconDarkSrc.endsWith('.svg');
   const effectiveNoResponsive = noResponsive || isSvg;
 
   // Validate that at least one source is provided.
@@ -187,7 +184,7 @@ export async function generatePictureMarkup({
     // Map VIEWPORT_BREAKPOINTS to sizes, using mobileWidth, tabletWidth, desktopWidth
     const sizes = VIEWPORT_BREAKPOINTS.map((bp) => {
       const width = bp.name === 'mobile' ? parsedWidths.mobile :
-                    bp.name === 'tablet' ? parsedWidths.tablet : parsedWidths.desktop;
+        bp.name === 'tablet' ? parsedWidths.tablet : parsedWidths.desktop;
       return `(max-width: ${bp.maxWidth}px) ${width * 100}vw`;
     }).join(', ') + `, ${DEFAULT_IMAGE_SIZE_VALUE * parsedWidths.desktop}px`;
 

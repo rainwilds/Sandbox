@@ -6,8 +6,8 @@ import { getConfig } from '../config.js';
 const isDev = window.location.pathname.includes('/dev/') || new URLSearchParams(window.location.search).get('debug') === 'true';
 
 const createLogger = (prefix) => ({
-    log: (message, data = null) => { if (isDev) console.log(`%c[${prefix}] ${message}`, 'color: #2196F3;', data); },
-    error: (message, data = null) => console.error(`[${prefix}] ${message}`, data)
+  log: (message, data = null) => { if (isDev) console.log(`%c[${prefix}] ${message}`, 'color: #2196F3;', data); },
+  error: (message, data = null) => console.error(`[${prefix}] ${message}`, data)
 });
 
 const logger = createLogger('HeadGenerator');
@@ -17,57 +17,57 @@ const logger = createLogger('HeadGenerator');
  * Converts a module name into its standard file path.
  */
 const getModulePath = (name) => {
-    const internalTools = ['config', 'shared', 'image-generator', 'video-generator'];
-    if (name === 'config') return '../config.js';
-    if (name === 'shared') return '../shared.js';
-    if (internalTools.includes(name)) return `./${name}.js`;
-    
-    // Default convention: custom-component -> ../components/custom-component.js
-    return `../components/${name}.js`;
+  const internalTools = ['config', 'shared', 'image-generator', 'video-generator'];
+  if (name === 'config') return '../config.js';
+  if (name === 'shared') return '../shared.js';
+  if (internalTools.includes(name)) return `./${name}.js`;
+
+  // Default convention: custom-component -> ../components/custom-component.js
+  return `../components/${name}.js`;
 };
 
 async function loadModuleWithDependencies(moduleName, loadedSet = new Set()) {
-    if (loadedSet.has(moduleName)) return [];
-    loadedSet.add(moduleName);
+  if (loadedSet.has(moduleName)) return [];
+  loadedSet.add(moduleName);
 
-    const path = getModulePath(moduleName);
-    logger.log(`Fetching: ${moduleName} from ${path}`);
+  const path = getModulePath(moduleName);
+  logger.log(`Fetching: ${moduleName} from ${path}`);
 
-    try {
-        const moduleNamespace = await import(path);
-        const moduleKey = Object.keys(moduleNamespace)[0];
-        const exportedClass = moduleNamespace[moduleKey];
+  try {
+    const moduleNamespace = await import(path);
+    const moduleKey = Object.keys(moduleNamespace)[0];
+    const exportedClass = moduleNamespace[moduleKey];
 
-        let results = [];
+    let results = [];
 
-        // AUTOMATIC DEPENDENCY DISCOVERY
-        // Looks for 'static dependencies = [...]' inside the class
-        const deps = exportedClass?.dependencies || [];
-        if (deps.length > 0) {
-            logger.log(`${moduleName} requires:`, deps);
-            for (const dep of deps) {
-                const childResults = await loadModuleWithDependencies(dep, loadedSet);
-                results.push(...childResults);
-            }
-        }
-
-        results.push({ name: moduleName, module: moduleNamespace });
-        return results;
-    } catch (err) {
-        logger.error(`Failed to auto-load ${moduleName}`, err);
-        return [];
+    // AUTOMATIC DEPENDENCY DISCOVERY
+    // Looks for 'static dependencies = [...]' inside the class
+    const deps = exportedClass?.dependencies || [];
+    if (deps.length > 0) {
+      logger.log(`${moduleName} requires:`, deps);
+      for (const dep of deps) {
+        const childResults = await loadModuleWithDependencies(dep, loadedSet);
+        results.push(...childResults);
+      }
     }
+
+    results.push({ name: moduleName, module: moduleNamespace });
+    return results;
+  } catch (err) {
+    logger.error(`Failed to auto-load ${moduleName}`, err);
+    return [];
+  }
 }
 
 async function loadComponents(componentList) {
-    if (!componentList) return;
-    const components = componentList.split(/\s+/).filter(Boolean);
-    const loadedSet = new Set();
-    
-    logger.log('Starting Auto-Discovery for:', components);
-    
-    const promises = components.map(c => loadModuleWithDependencies(c, loadedSet));
-    await Promise.all(promises);
+  if (!componentList) return;
+  const components = componentList.split(/\s+/).filter(Boolean);
+  const loadedSet = new Set();
+
+  logger.log('Starting Auto-Discovery for:', components);
+
+  const promises = components.map(c => loadModuleWithDependencies(c, loadedSet));
+  await Promise.all(promises);
 }
 
 async function updateHead(attributes, setup) {
@@ -100,7 +100,7 @@ async function updateHead(attributes, setup) {
 
   const customStyleLink = document.createElement('link');
   customStyleLink.rel = 'stylesheet';
-  customStyleLink.href = './css/custom.css'; 
+  customStyleLink.href = './css/custom.css';
   criticalFrag.appendChild(customStyleLink);
 
   // ——— HERO IMAGE PRELOAD ———
@@ -187,23 +187,28 @@ async function updateHead(attributes, setup) {
 
   if (hasPageAttributes) {
     metaTags = [
-      { name: 'robots', content: setup.general?.robots },
+      // If hiddenPage is true, output noindex. Otherwise, fallback to setup.json defaults.
+      { name: 'robots', content: attributes.hiddenPage ? 'noindex, nofollow' : setup.general?.robots },
       { name: 'title', content: attributes.title ?? setup.general?.title },
-      { name: 'author', content: setup.general?.author ?? setup.business?.author },
+      { name: 'author', content: attributes.author ?? setup.general?.author ?? setup.business?.author },
       { name: 'description', content: attributes.description ?? setup.general?.description },
       { name: 'og:locale', property: true, content: setup.general?.og?.locale ?? setup.general?.ogLocale },
       { name: 'og:url', property: true, content: attributes.canonical ?? setup.general?.canonical ?? window.location.href },
       { name: 'og:type', property: true, content: setup.general?.og?.type ?? setup.general?.ogType },
-      { name: 'og:title', property: true, content: attributes.title ?? setup.general?.title },
-      { name: 'og:description', property: true, content: attributes.description ?? setup.general?.description },
+      // Prefer social override, fallback to standard title
+      { name: 'og:title', property: true, content: attributes.socialTitle ?? attributes.title ?? setup.general?.title },
+      // Prefer social override, fallback to standard description
+      { name: 'og:description', property: true, content: attributes.socialDescription ?? attributes.description ?? setup.general?.description },
       { name: 'og:image', property: true, content: attributes.ogImage ?? setup.general?.og?.image ?? setup.business?.image },
       { name: 'og:site_name', property: true, content: setup.general?.og?.site_name ?? setup.general?.siteName },
       { name: 'twitter:card', content: setup.general?.x?.card },
       { name: 'twitter:domain', content: setup.general?.x?.domain ?? window.location.hostname },
       { name: 'twitter:site', content: setup.general?.x?.site },
       { name: 'twitter:url', content: attributes.canonical ?? setup.general?.canonical ?? window.location.href },
-      { name: 'twitter:title', content: attributes.title ?? setup.general?.title },
-      { name: 'twitter:description', content: attributes.description ?? setup.general?.description },
+      // Prefer social override, fallback to standard title
+      { name: 'twitter:title', content: attributes.socialTitle ?? attributes.title ?? setup.general?.title },
+      // Prefer social override, fallback to standard description
+      { name: 'twitter:description', content: attributes.socialDescription ?? attributes.description ?? setup.general?.description },
       { name: 'twitter:image', content: setup.business?.image }
     ].filter(tag => tag.content?.trim());
   } else {
@@ -345,30 +350,33 @@ async function updateHead(attributes, setup) {
 
 // ——— MAIN IIFE ———
 (async () => {
-    try {
-        const setupPromise = getConfig();
-        const customHead = document.querySelector('data-custom-head');
-        if (!customHead) return;
+  try {
+    const setupPromise = getConfig();
+    const customHead = document.querySelector('data-custom-head');
+    if (!customHead) return;
 
-        const attributes = {};
-        for (const [key, value] of Object.entries(customHead.dataset)) {
-            const trimmed = value?.trim();
-            if (trimmed) attributes[key] = trimmed;
-        }
-
-        // 1. Auto-load components and their dependencies
-        if (attributes.components) {
-            await loadComponents(attributes.components);
-        }
-
-        // 2. Process the rest of the head
-        const setup = await setupPromise;
-        await updateHead(attributes, setup);
-        
-        customHead.remove();
-        window.__PAGE_FULLY_RENDERED__ = true;
-        document.documentElement.setAttribute('data-page-ready', 'true');
-    } catch (err) {
-        logger.error('Critical Fail', err);
+    const attributes = {};
+    for (const [key, value] of Object.entries(customHead.dataset)) {
+      const trimmed = value?.trim();
+      if (trimmed) attributes[key] = trimmed;
     }
+
+    // Explicitly check for the valueless boolean attribute
+    attributes.hiddenPage = customHead.hasAttribute('data-hidden-page');
+
+    // 1. Auto-load components and their dependencies
+    if (attributes.components) {
+      await loadComponents(attributes.components);
+    }
+
+    // 2. Process the rest of the head
+    const setup = await setupPromise;
+    await updateHead(attributes, setup);
+
+    customHead.remove();
+    window.__PAGE_FULLY_RENDERED__ = true;
+    document.documentElement.setAttribute('data-page-ready', 'true');
+  } catch (err) {
+    logger.error('Critical Fail', err);
+  }
 })();

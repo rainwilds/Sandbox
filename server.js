@@ -136,7 +136,7 @@ const server = http.createServer(async (req, res) => {
         }
     }
 
-   // 3.8 Handle GET: List Primary Images & EXIF
+    // 3.8 Handle GET: List Primary Images & EXIF
     if (req.method === 'GET' && req.url === '/api/images') {
         const imgPath = path.join(SRC_DIR, 'img', 'primary');
         const responsivePath = path.join(SRC_DIR, 'img', 'responsive'); // NEW: Path to generated thumbs
@@ -146,7 +146,12 @@ const server = http.createServer(async (req, res) => {
                 return res.end(JSON.stringify([]));
             }
 
-            const files = fs.readdirSync(imgPath).filter(file => /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file));
+            // DYNAMIC IMPORT: Load shared constants from the frontend securely
+            const shared = await import('./src/js/shared.js');
+            const smallestWidth = shared.VIEWPORT_BREAKPOINT_WIDTHS[0];
+
+            // Use shared regex for strict validation
+            const files = fs.readdirSync(imgPath).filter(file => shared.VALID_IMAGE_EXTENSIONS.test(file));
 
             // Extract Stats & EXIF asynchronously
             const imagesData = await Promise.all(files.map(async file => {
@@ -154,16 +159,15 @@ const server = http.createServer(async (req, res) => {
                 const stats = fs.statSync(filePath);
                 let exif = null;
 
-                // Only parse EXIF for standard photographic formats
-                if (/\.(jpg|jpeg|tiff|heic|avif)$/i.test(file)) {
+               // Parse EXIF for all valid raster image formats (SVG has no EXIF)
+                if (!file.toLowerCase().endsWith('.svg')) {
                     try {
                         exif = await exifr.parse(filePath, { tiff: true, exif: true });
-                    } catch (e) { /* Ignore parsing errors for stripped images */ }
+                    } catch (e) { /* Ignore parsing errors */ }
                 }
-
-               // NEW: Pre-check if the responsive thumbnail exists!
+                // DYNAMIC CHECK: Use the smallest breakpoint width from shared.js
                 const baseName = file.replace(/\.[^/.]+$/, "");
-                const hasThumb = fs.existsSync(path.join(responsivePath, `${baseName}-768.jpg`));
+                const hasThumb = fs.existsSync(path.join(responsivePath, `${baseName}-${smallestWidth}.jpg`));
 
                 return {
                     filename: file,
@@ -220,9 +224,11 @@ const server = http.createServer(async (req, res) => {
                 return res.end(JSON.stringify({ message: 'Global parts saved!' }));
             }
 
-            // ROUTE: SAVE
+           // ROUTE: SAVE
             if (req.url === '/api/save-post') {
-                const { contentType, slug, title, date, categories, excerpt, featuredImage, builderState } = data; console.log(`💾 Saving ${contentType.toUpperCase()}: ${slug}...`);
+                // Add author to destructuring
+                const { contentType, slug, title, date, categories, excerpt, featuredImage, author, builderState } = data; 
+                console.log(`💾 Saving ${contentType.toUpperCase()}: ${slug}...`);
 
                 // Determine target directory based on content type
                 const targetDir = contentType === 'page' ? PAGES_DIR : BLOG_DIR;
@@ -231,7 +237,8 @@ const server = http.createServer(async (req, res) => {
                 const manifestPath = path.join(targetDir, 'manifest.json');
                 let manifest = fs.existsSync(manifestPath) ? JSON.parse(fs.readFileSync(manifestPath, 'utf8')) : [];
                 manifest = manifest.filter(p => p.slug !== slug);
-                manifest.push({ slug, title, date, categories, excerpt, featuredImage, type: contentType });
+                // Add author to manifest push
+                manifest.push({ slug, title, date, categories, excerpt, featuredImage, author, type: contentType });
                 manifest.sort((a, b) => new Date(b.date) - new Date(a.date));
                 fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
 

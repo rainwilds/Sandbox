@@ -29,7 +29,7 @@ class VisualBuilder extends HTMLElement {
         this.state = { roots: [], items: {} };
         this.globalParts = {}; // NEW: Holds the master global components
         // Add cache slots for the history timeline
-        this.isolationMode = { active: false, partId: null, cachedState: null, cachedHistory: null, cachedHistoryIndex: -1 }; 
+        this.isolationMode = { active: false, partId: null, cachedState: null, cachedHistory: null, cachedHistoryIndex: -1 };
 
         this.history = [];
         this.historyIndex = -1;
@@ -282,34 +282,49 @@ class VisualBuilder extends HTMLElement {
                 </div>
 
  <div id="tab-meta" class="tab-pane">
-<p style="font-size: 0.75rem; margin-top: 0; margin-bottom: 15px; color: #818cf8;">Post & Page Metadata</p>
-    
-    <div class="form-group stacked">
-        <label>Content Type</label>
-        <select id="meta-contentType">
-            <option value="post">Blog Post (/blog/)</option>
-            <option value="page">Standard Page (Root /)</option>
-        </select>
-    </div>
-    <div class="form-group stacked"><label>URL Slug (Required)</label><input type="text" id="meta-slug" placeholder="my-new-post"></div>
-    
+                    <p style="font-size: 0.75rem; margin-top: 0; margin-bottom: 15px; color: #818cf8;">Document Metadata</p>
+                    
+                    <div class="form-group stacked">
+                        <label>Content Type</label>
+                        <select id="meta-contentType">
+                            <option value="post">Blog Post (/blog/)</option>
+                            <option value="page">Standard Page (Root /)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group stacked">
+                        <label>Hide from Search Engines</label>
+                        <select id="meta-hidden">
+                            <option value="">No (Index)</option>
+                            <option value="true">Yes (NoIndex)</option>
+                        </select>
+                    </div>
 
-    <div class="form-group stacked"><label>Title</label><input type="text" id="meta-title"></div>
-    <div class="form-group stacked"><label>Date</label><input type="date" id="meta-date"></div>
-    <div class="form-group stacked"><label>Description / Excerpt</label><textarea id="meta-description" rows="3"></textarea></div>
-    <div class="form-group stacked"><label>OG/Featured Image</label><input type="text" id="meta-ogImage" placeholder="/img/primary/image.jpg"></div>
-    
-    <p style="font-size: 0.75rem; margin-top: 15px; margin-bottom: 10px; color: #818cf8; border-bottom: 1px solid #27272a; padding-bottom: 4px;">Advanced (Head Generator)</p>
-    
-    <div class="form-group stacked"><label>Canonical URL</label><input type="text" id="meta-canonical"></div>
-    <div class="form-group stacked"><label>Theme</label><input type="text" id="meta-theme" placeholder="dark or light"></div>
-    <div class="form-group stacked"><label>Components</label><input type="text" id="meta-components" placeholder="custom-block custom-slider"></div>
-    <div class="form-group stacked"><label>Hero Image Preload</label><input type="text" id="meta-heroImage"></div>
-    <div class="form-group stacked"><label>Hero Count</label><input type="number" id="meta-heroCount"></div>
-    <div class="form-group stacked"><label>Hero Widths</label><input type="text" id="meta-heroWidths"></div>
-    <div class="form-group stacked"><label>Hero Size</label><input type="text" id="meta-heroSize"></div>
-    <div class="form-group stacked"><label>Hero Format</label><input type="text" id="meta-heroFormat"></div>
-</div>               
+                    <div class="form-group stacked"><label>URL Slug (Required)</label><input type="text" id="meta-slug" placeholder="my-new-post"></div>
+                    <div class="form-group stacked"><label>Title</label><input type="text" id="meta-title"></div>
+                    
+                    <div id="meta-post-fields">
+                        <div class="form-group stacked"><label>Date</label><input type="date" id="meta-date"></div>
+                        <div class="form-group stacked"><label>Author</label><input type="text" id="meta-author" placeholder="Author Name"></div>
+                        <div class="form-group stacked"><label>Categories</label><input type="text" id="meta-categories" placeholder="e.g., Tech, News"></div>
+                    </div>
+
+                    <div class="form-group stacked"><label>Description / Excerpt</label><textarea id="meta-description" rows="3"></textarea></div>
+                    <div class="form-group stacked"><label>OG/Featured Image</label><input type="text" id="meta-ogImage" placeholder="e.g., image.jpg"></div>
+                    
+                    <p style="font-size: 0.75rem; margin-top: 15px; margin-bottom: 10px; color: #818cf8; border-bottom: 1px solid #27272a; padding-bottom: 4px;">Social Media Overrides</p>
+                    <div class="form-group stacked"><label>Social Title</label><input type="text" id="meta-socialTitle" placeholder="Optional punchy title"></div>
+                    <div class="form-group stacked"><label>Social Description</label><textarea id="meta-socialDescription" rows="2" placeholder="Optional punchy description"></textarea></div>
+
+                    <p style="font-size: 0.75rem; margin-top: 15px; margin-bottom: 10px; color: #818cf8; border-bottom: 1px solid #27272a; padding-bottom: 4px;">Advanced (Head Generator)</p>
+                    <div class="form-group stacked"><label>Canonical URL</label><input type="text" id="meta-canonical"></div>
+                    <div class="form-group stacked"><label>Theme</label><input type="text" id="meta-theme" placeholder="dark or light"></div>
+                    <div class="form-group stacked"><label>Hero Image Preload</label><input type="text" id="meta-heroImage"></div>
+                    <div class="form-group stacked"><label>Hero Count</label><input type="number" id="meta-heroCount"></div>
+                    <div class="form-group stacked"><label>Hero Widths</label><input type="text" id="meta-heroWidths"></div>
+                    <div class="form-group stacked"><label>Hero Size</label><input type="text" id="meta-heroSize"></div>
+                    <div class="form-group stacked"><label>Hero Format</label><input type="text" id="meta-heroFormat"></div>
+                </div>
 
                 <div id="tab-globals" class="tab-pane">
                     <p style="font-size: 0.75rem; margin-top: 0; margin-bottom: 15px;">Variables map directly to styles.css</p>
@@ -986,7 +1001,7 @@ class VisualBuilder extends HTMLElement {
         this.isolationMode.cachedState = JSON.parse(JSON.stringify(this.state));
         this.isolationMode.cachedHistory = JSON.parse(JSON.stringify(this.history));
         this.isolationMode.cachedHistoryIndex = this.historyIndex;
-        
+
         this.isolationMode.partId = partId;
         this.isolationMode.active = true;
 
@@ -1006,7 +1021,7 @@ class VisualBuilder extends HTMLElement {
         const topActions = this.shadowRoot.querySelector('.top-actions');
         topActions.style.display = 'none';
 
-       if (!this.shadowRoot.getElementById('isolation-actions')) {
+        if (!this.shadowRoot.getElementById('isolation-actions')) {
             const isoActions = document.createElement('div');
             isoActions.id = 'isolation-actions';
             isoActions.className = 'top-actions';
@@ -1072,7 +1087,7 @@ class VisualBuilder extends HTMLElement {
             this.shadowRoot.getElementById('isolation-actions').style.display = 'flex';
         }
 
-       // 5. Rebuild
+        // 5. Rebuild
         this.selectedId = this.state.roots[0];
         this.rebuildCanvas();
         this.populateInspector();
@@ -1162,10 +1177,18 @@ class VisualBuilder extends HTMLElement {
             }
         }
 
+        // --- NEW: Ensure Meta fields match loaded state ---
+        const contentTypeSelect = this.shadowRoot.getElementById('meta-contentType');
+        if (contentTypeSelect) {
+            contentTypeSelect.dispatchEvent(new Event('change'));
+        }
+
         // --- NEW: Take initial history snapshot ---
         if (this.history.length === 0) {
             this.pushHistory('Document Opened');
         }
+
+
     }
 
     rebuildCanvas() {
@@ -2536,12 +2559,12 @@ class VisualBuilder extends HTMLElement {
         this.shadowRoot.getElementById('edit-form').style.display = 'none';
     }
 
-async openMediaManager(nodeId, targetAttr) {
+    async openMediaManager(nodeId, targetAttr) {
         const modal = this.shadowRoot.getElementById('media-modal');
         const gallery = this.shadowRoot.getElementById('media-gallery');
         const sidebar = this.shadowRoot.getElementById('media-sidebar');
         const applyBtn = this.shadowRoot.getElementById('btn-apply-media');
-        
+
         let selectedFilename = null;
 
         modal.classList.add('active');
@@ -2577,18 +2600,27 @@ async openMediaManager(nodeId, targetAttr) {
             imagesData.forEach(imgData => {
                 const thumb = document.createElement('div');
                 thumb.className = 'media-thumbnail';
-                
-               const baseName = imgData.filename.replace(/\.[^/.]+$/, "");
+
+                const baseName = imgData.filename.replace(/\.[^/.]+$/, "");
                 const isSvg = imgData.filename.endsWith('.svg');
+
+                // Dynamically fetch the lowest breakpoint and format list from shared.js
+                const smallestWidth = Shared.VIEWPORT_BREAKPOINT_WIDTHS[0];
+                let sourceTags = '';
+
+                Shared.IMAGE_FORMATS.forEach(fmt => {
+                    if (fmt !== 'jpg') {
+                        sourceTags += `<source type="image/${fmt}" srcset="./img/responsive/${baseName}-${smallestWidth}.${fmt}">\n`;
+                    }
+                });
 
                 // Advanced Fallback: Try to load tiny modern formats from /responsive, fallback to /primary
                 // FIX: Only output <picture> sources if the server confirmed the thumbnail actually exists
-                const imgHtml = (isSvg || !imgData.hasThumb) ? 
+                const imgHtml = (isSvg || !imgData.hasThumb) ?
                     `<img src="./img/primary/${imgData.filename}" loading="lazy" alt="${imgData.filename}">` :
                     `<picture>
-                        <source type="image/avif" srcset="./img/responsive/${baseName}-768.avif">
-                        <source type="image/webp" srcset="./img/responsive/${baseName}-768.webp">
-                        <img src="./img/responsive/${baseName}-768.jpg" loading="lazy" onerror="this.onerror=null; this.src='./img/primary/${imgData.filename}';" alt="${imgData.filename}">
+                        ${sourceTags}
+                        <img src="./img/responsive/${baseName}-${smallestWidth}.jpg" loading="lazy" onerror="this.onerror=null; this.src='./img/primary/${imgData.filename}';" alt="${imgData.filename}">
                     </picture>`;
 
                 thumb.innerHTML = `
@@ -2606,12 +2638,12 @@ async openMediaManager(nodeId, targetAttr) {
                     // Populate Sidebar EXIF
                     const e = imgData.exif || {};
                     const sizeMB = (imgData.size / (1024 * 1024)).toFixed(2);
-                    
+
                     const aperture = e.FNumber ? `ƒ/${e.FNumber}` : '-';
-                    const shutter = e.ExposureTime ? `1/${Math.round(1/e.ExposureTime)}` : '-';
+                    const shutter = e.ExposureTime ? `1/${Math.round(1 / e.ExposureTime)}` : '-';
                     const iso = e.ISO ? `ISO ${e.ISO}` : '-';
                     const focal = e.FocalLength ? `${e.FocalLength}mm` : '-';
-                    
+
                     // Adobe Bridge Style HUD
                     sidebar.innerHTML = `
                         <div style="margin-bottom: 10px;">
@@ -2763,7 +2795,14 @@ async openMediaManager(nodeId, targetAttr) {
             // 8. Update Status Bar
             this.shadowRoot.getElementById('doc-status').textContent = `Editing ${type.toUpperCase()}: /${slug}`;
 
-            console.log(`✅ Successfully loaded ${type}: ${slug}`);
+            // --- NEW: Ensure Meta fields match loaded state ---
+            const contentTypeSelect = this.shadowRoot.getElementById('meta-contentType');
+            if (contentTypeSelect) {
+                contentTypeSelect.dispatchEvent(new Event('change'));
+            }
+
+            console.log(`✅ Successfully loaded ${type}: ${slug}`)
+
 
         } catch (err) {
             console.error("Error loading content:", err);
@@ -2946,7 +2985,23 @@ async openMediaManager(nodeId, targetAttr) {
         });
 
         // --- 5. Metadata Binding ---
-        const metaFields = ['contentType', 'slug', 'title', 'date', 'categories', 'description', 'ogImage', 'canonical', 'theme', 'components', 'heroImage', 'heroCount', 'heroWidths', 'heroSize', 'heroFormat']; metaFields.forEach(field => {
+        // REMOVED 'components' from array
+        const metaFields = ['contentType', 'hidden', 'slug', 'title', 'date', 'author', 'categories', 'description', 'ogImage', 'socialTitle', 'socialDescription', 'canonical', 'theme', 'heroImage', 'heroCount', 'heroWidths', 'heroSize', 'heroFormat'];
+        const contentTypeSelect = root.getElementById('meta-contentType');
+        const postFieldsWrapper = root.getElementById('meta-post-fields');
+
+        const toggleMetaFields = () => {
+            if (contentTypeSelect.value === 'page') {
+                postFieldsWrapper.style.display = 'none';
+            } else {
+                postFieldsWrapper.style.display = 'block';
+            }
+        };
+
+        // Attach listener for manual UI toggling
+        contentTypeSelect.addEventListener('change', toggleMetaFields);
+
+        metaFields.forEach(field => {
             const input = root.getElementById(`meta-${field}`);
             if (input) {
                 input.value = (this.state.headData && this.state.headData[field]) || '';
@@ -2981,15 +3036,13 @@ async openMediaManager(nodeId, targetAttr) {
             try {
                 const response = await fetch('http://localhost:3000/api/save-post', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer rainwilds-builder-2026'
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer rainwilds-builder-2026' },
                     body: JSON.stringify({
                         contentType: this.state.headData.contentType || 'post',
                         slug,
                         title: this.state.headData.title || 'Untitled',
                         date: this.state.headData.date || new Date().toISOString().split('T')[0],
+                        author: this.state.headData.author || '', // <-- NEW: Send Author
                         categories: this.state.headData.categories ? this.state.headData.categories.split(',').map(c => c.trim()) : [],
                         excerpt: this.state.headData.description || '',
                         featuredImage: this.state.headData.ogImage || '',

@@ -40,8 +40,9 @@
     }
   },
   "headData": {
-    "contentType": "page",
-    "slug": "photography-1"
+    "contentType": "post",
+    "slug": "photography-1",
+    "author": ""
   },
   "presets": {
     "preset-1775127672394": {

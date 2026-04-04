@@ -75,3 +75,9 @@ export const VALID_SHADOW_CLASSES = ['shadow-light', 'shadow-medium', 'shadow-he
 export const PLACEMENT_ATTRS = [
     'column-start', 'column-end', 'row-start', 'row-end', 'z-index'
 ];
+
+// Valid image extensions for processing
+export const VALID_IMAGE_EXTENSIONS = /\.(jpg|jpeg|png|webp|avif|jxl|svg)$/i;
+
+// Image formats for responsive generation (Ordered by browser preference!)
+export const IMAGE_FORMATS = ['jxl', 'avif', 'webp', 'jpg'];
