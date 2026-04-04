@@ -3,34 +3,44 @@
     "id": "global-1775210700454",
     "name": "Full Width Image",
     "data": {
-      "id": "comp-1775197570573",
-      "type": "custom-block",
-      "presetId": null,
-      "localAttrs": {
-        "heading": "New Block",
-        "class": "background-color-1",
-        "inner-class": "padding-large",
-        "img-background-src": "tourism-photography-dark-6.jpg"
-      },
-      "children": [],
-      "parentId": "comp-1775197568466"
+      "rootId": "comp-1775197570573",
+      "items": {
+        "comp-1775197570573": {
+          "id": "comp-1775197570573",
+          "type": "custom-block",
+          "presetId": null,
+          "localAttrs": {
+            "heading": "New Block",
+            "class": "background-color-1",
+            "inner-class": "padding-large",
+            "img-background-src": "tourism-photography-dark-6.jpg"
+          },
+          "children": [],
+          "parentId": null
+        }
+      }
     }
   },
   "global-1775210794661": {
     "id": "global-1775210794661",
     "name": "Full Image",
     "data": {
-      "id": "comp-1775210765797",
-      "type": "custom-block",
-      "presetId": null,
-      "localAttrs": {
-        "heading": "New Block",
-        "class": "background-color-1",
-        "inner-class": "padding-large",
-        "img-background-src": "tourism-photography-dark-1.jpg"
-      },
-      "children": [],
-      "parentId": "comp-1775197568466"
+      "rootId": "comp-1775210765797",
+      "items": {
+        "comp-1775210765797": {
+          "id": "comp-1775210765797",
+          "type": "custom-block",
+          "presetId": null,
+          "localAttrs": {
+            "heading": "New Block",
+            "class": "background-color-1",
+            "inner-class": "padding-large",
+            "img-background-src": "tourism-photography-dark-1.jpg"
+          },
+          "children": [],
+          "parentId": null
+        }
+      }
     }
   },
   "global-1775211933139": {
@@ -212,7 +222,7 @@
             "heading": "New Block",
             "class": "background-color-1",
             "inner-class": "padding-large",
-            "img-background-src": "tourism-photography-dark-3.jpg",
+            "img-background-src": "tourism-photography-dark-5.jpg",
             "column-end-laptop": "span 5"
           },
           "children": [],

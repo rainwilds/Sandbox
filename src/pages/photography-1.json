@@ -1,52 +1,42 @@
 {
   "roots": [
-    "comp-1775178503731",
-    "comp-1775178433701"
+    "comp-1775275708289",
+    "comp-1775275727578"
   ],
   "items": {
-    "comp-1775178433701": {
-      "id": "comp-1775178433701",
+    "comp-1775275708289": {
+      "id": "comp-1775275708289",
       "type": "custom-layout",
-      "attrs": {
-        "column-span": "12",
-        "subgrid": "true"
-      },
-      "children": [
-        "comp-1775178437371"
-      ],
-      "parentId": null
-    },
-    "comp-1775178437371": {
-      "id": "comp-1775178437371",
-      "type": "custom-block",
-      "children": [],
-      "parentId": "comp-1775178433701",
-      "localAttrs": {
-        "heading": "New Block",
-        "class": "background-color-1",
-        "inner-class": "padding-large",
-        "img-background-src": "tourism-photography-dark-2.jpg"
-      }
-    },
-    "comp-1775178503731": {
-      "id": "comp-1775178503731",
-      "type": "custom-layout",
-      "attrs": {
-        "column-span": "12",
-        "subgrid": "true"
-      },
-      "children": [
-        "comp-1775178507370"
-      ],
-      "parentId": null
-    },
-    "comp-1775178507370": {
-      "id": "comp-1775178507370",
-      "type": "custom-block",
-      "globalPartId": "global-1775259969178",
+      "globalPartId": "global-1775215516374",
       "localAttrs": {},
       "children": [],
-      "parentId": "comp-1775178503731"
+      "parentId": null
+    },
+    "comp-1775275727578": {
+      "id": "comp-1775275727578",
+      "type": "custom-layout",
+      "presetId": null,
+      "localAttrs": {
+        "column-span": "12",
+        "subgrid": "true"
+      },
+      "children": [
+        "comp-1775275738341"
+      ],
+      "parentId": null
+    },
+    "comp-1775275738341": {
+      "id": "comp-1775275738341",
+      "type": "custom-block",
+      "presetId": null,
+      "localAttrs": {
+        "heading": "Tourism Photography",
+        "class": "background-color-1",
+        "inner-class": "padding-large height-half",
+        "img-background-src": "tourism-photography-dark-2.jpg"
+      },
+      "children": [],
+      "parentId": "comp-1775275727578"
     }
   },
   "headData": {

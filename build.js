@@ -38,9 +38,36 @@ function generateHtmlFromJson(items, nodeId, presets = {}, globalParts = {}) {
         }
     }
 
-    let attrString = Object.entries(resolvedAttrs).map(([k, v]) => `${k}="${String(v).replace(/"/g, '&quot;')}"`).join(' ');
+    // --- NEW: Automatically inject the grid-placement-item class and CSS variables ---
+    let inlineStyles = [];
+    let isGridItem = false;
+
+    const finalAttrs = {};
+    for (const [k, v] of Object.entries(resolvedAttrs)) {
+        // Identify grid placement attributes
+        if (k.includes('column') || k.includes('row') || k.includes('index')) {
+            inlineStyles.push(`--${k}: ${v}`);
+            isGridItem = true;
+            finalAttrs[k] = v; // Keep original attribute for standard processing
+        } else if (k === 'class') {
+            finalAttrs[k] = v;
+        } else if (k === 'style') {
+            inlineStyles.push(v);
+        } else {
+            finalAttrs[k] = v;
+        }
+    }
+
+    if (isGridItem) {
+        finalAttrs['class'] = finalAttrs['class'] ? `${finalAttrs['class']} grid-placement-item` : 'grid-placement-item';
+    }
+    if (inlineStyles.length > 0) {
+        finalAttrs['style'] = inlineStyles.join('; ');
+    }
+
+    let attrString = Object.entries(finalAttrs).map(([k, v]) => `${k}="${String(v).replace(/"/g, '&quot;')}"`).join(' ');
     let html = `<${targetNode.type} ${attrString}>`;
-    
+
     if (targetNode.children) {
         targetNode.children.forEach(id => html += generateHtmlFromJson(targetItems, id, presets, globalParts));
     }
@@ -168,9 +195,19 @@ async function runBuild() {
             });
 
             const h = postData.headData || {};
-            const usedComponents = [...new Set(Object.values(postData.items).map(i => i.type))].join(' ');
-            const customHead = `<data-custom-head data-components="${usedComponents}" data-title="${h.title || item.title}" data-description="${h.description || item.excerpt}"></data-custom-head>`;
 
+            // --- THE FIX: Deeply scan for used components, including inside Global Parts! ---
+            const componentSet = new Set();
+            Object.values(postData.items).forEach(item => {
+                componentSet.add(item.type);
+                if (item.globalPartId && globalParts[item.globalPartId]) {
+                    const masterItems = globalParts[item.globalPartId].data.items;
+                    Object.values(masterItems).forEach(mItem => componentSet.add(mItem.type));
+                }
+            });
+            const usedComponents = Array.from(componentSet).join(' ');
+
+            const customHead = `<data-custom-head data-components="${usedComponents}" data-title="${h.title || item.title}" data-description="${h.description || item.excerpt}"></data-custom-head>`;
             let rawContent = '';
             const presets = postData.presets || {}; // Safely grab presets from the JSON
             // --- THE FIX: Pass globalParts into the recursive generator ---

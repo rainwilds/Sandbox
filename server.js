@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { exec } = require('child_process');
+const exifr = require('exifr');
 
 const PORT = process.env.PORT || 3000;
 const SECRET_TOKEN = 'rainwilds-builder-2026';
@@ -17,7 +18,7 @@ if (!fs.existsSync(PAGES_DIR)) fs.mkdirSync(PAGES_DIR, { recursive: true });
 if (!fs.existsSync(JSON_DIR)) fs.mkdirSync(JSON_DIR, { recursive: true });
 if (!fs.existsSync(GLOBAL_PARTS_FILE)) fs.writeFileSync(GLOBAL_PARTS_FILE, JSON.stringify({}));
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
     // 1. Set CORS Headers
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -135,21 +136,49 @@ const server = http.createServer((req, res) => {
         }
     }
 
-    // 3.8 Handle GET: List Primary Images
+   // 3.8 Handle GET: List Primary Images & EXIF
     if (req.method === 'GET' && req.url === '/api/images') {
         const imgPath = path.join(SRC_DIR, 'img', 'primary');
+        const responsivePath = path.join(SRC_DIR, 'img', 'responsive'); // NEW: Path to generated thumbs
         try {
             if (!fs.existsSync(imgPath)) {
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 return res.end(JSON.stringify([]));
             }
 
-            const files = fs.readdirSync(imgPath);
-            // Filter to ensure we only send image files
-            const images = files.filter(file => /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file));
+            const files = fs.readdirSync(imgPath).filter(file => /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(file));
+
+            // Extract Stats & EXIF asynchronously
+            const imagesData = await Promise.all(files.map(async file => {
+                const filePath = path.join(imgPath, file);
+                const stats = fs.statSync(filePath);
+                let exif = null;
+
+                // Only parse EXIF for standard photographic formats
+                if (/\.(jpg|jpeg|tiff|heic|avif)$/i.test(file)) {
+                    try {
+                        exif = await exifr.parse(filePath, { tiff: true, exif: true });
+                    } catch (e) { /* Ignore parsing errors for stripped images */ }
+                }
+
+               // NEW: Pre-check if the responsive thumbnail exists!
+                const baseName = file.replace(/\.[^/.]+$/, "");
+                const hasThumb = fs.existsSync(path.join(responsivePath, `${baseName}-768.jpg`));
+
+                return {
+                    filename: file,
+                    size: stats.size,
+                    modified: stats.mtime,
+                    exif: exif || {},
+                    hasThumb: hasThumb // Add flag to the JSON payload
+                };
+            }));
+
+            // Sort newest first
+            imagesData.sort((a, b) => new Date(b.modified) - new Date(a.modified));
 
             res.writeHead(200, { 'Content-Type': 'application/json' });
-            return res.end(JSON.stringify(images));
+            return res.end(JSON.stringify(imagesData));
         } catch (err) {
             console.error("❌ Error reading images:", err);
             res.writeHead(500);
@@ -214,7 +243,7 @@ const server = http.createServer((req, res) => {
             // ROUTE: PUBLISH
             else if (req.url === '/api/publish') {
                 const { slug, contentType, globalSync } = data;
-                
+
                 // If globalSync is true, rebuild the ENTIRE site
                 if (globalSync) {
                     console.log(`🚀 Global Sync Triggered! Rebuilding entire site...`);
@@ -228,7 +257,7 @@ const server = http.createServer((req, res) => {
                         res.writeHead(200);
                         return res.end(JSON.stringify({ message: 'Site synced!' }));
                     });
-               } else {
+                } else {
                     console.log(`🚀 Publishing HTML: ${slug}...`);
 
                     // Pass the type flag to the build script

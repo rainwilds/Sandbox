@@ -28,7 +28,12 @@ class VisualBuilder extends HTMLElement {
 
         this.state = { roots: [], items: {} };
         this.globalParts = {}; // NEW: Holds the master global components
-        this.isolationMode = { active: false, partId: null, cachedState: null }; // NEW: Sandbox tracking
+        // Add cache slots for the history timeline
+        this.isolationMode = { active: false, partId: null, cachedState: null, cachedHistory: null, cachedHistoryIndex: -1 }; 
+
+        this.history = [];
+        this.historyIndex = -1;
+        this.isScrubbing = false;
 
         this.selectedId = null;
         this.draggedLibraryType = null;
@@ -76,13 +81,51 @@ class VisualBuilder extends HTMLElement {
                     --theme-border: #523719;         /* Amber tinted borders */
                 }
 
-                /* Layout & Panels */
+               /* Layout & Panels */
                 .panel { pointer-events: auto; position: fixed; background: var(--theme-bg-panel); border-color: var(--theme-border); border-style: solid; box-sizing: border-box; }
                 #top-bar { top: 0; left: 0; right: 0; height: 60px; border-bottom-width: 1px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; background: var(--theme-bg-bar); }
-                #left-sidebar { top: 60px; left: 0; bottom: 35px; width: var(--left-width); border-right-width: 1px; display: flex; flex-direction: column; }
-                #right-sidebar { top: 60px; right: 0; bottom: 35px; width: var(--right-width); border-left-width: 1px; display: flex; flex-direction: column; overflow-y: auto; padding: 15px; }
-                #bottom-bar { bottom: 0; left: 0; right: 0; height: 35px; border-top-width: 1px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; z-index: 100; font-size: 0.75rem; color: var(--theme-text-muted); background: var(--theme-bg-bar); }
+                #left-sidebar { top: 60px; left: 0; bottom: 60px; width: var(--left-width); border-right-width: 1px; display: flex; flex-direction: column; }
+                #right-sidebar { top: 60px; right: 0; bottom: 60px; width: var(--right-width); border-left-width: 1px; display: flex; flex-direction: column; overflow-y: auto; padding: 15px; }
                 
+                #bottom-panel { bottom: 0; left: 0; right: 0; height: 60px; border-top-width: 1px; display: flex; flex-direction: column; z-index: 100; background: var(--theme-bg-bar); }
+                #scrubber-bar { height: 25px; border-bottom: 1px solid var(--theme-border); display: flex; align-items: center; padding: 0 20px; position: relative; }
+                #bottom-bar { height: 35px; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; font-size: 0.75rem; color: var(--theme-text-muted); }
+                
+              /* Scrubber Input */
+                .timeline-scrubber { -webkit-appearance: none; width: 100%; background: transparent; cursor: pointer; outline: none; margin: 0; position: relative; z-index: 2; }
+                .timeline-scrubber:focus { outline: none !important; box-shadow: none !important; }
+                .timeline-scrubber::-webkit-slider-runnable-track { width: 100%; height: 4px; background: var(--theme-border); border-radius: 2px; }
+
+                /* Timeline Ticks */
+                #scrubber-ticks { position: absolute; left: 20px; right: 20px; top: 0; bottom: 0; pointer-events: none; z-index: 1; }
+                .scrubber-tick { position: absolute; top: 50%; transform: translateY(-50%); width: 2px; height: 10px; background: var(--theme-border-light); border-radius: 1px; }
+                .timeline-scrubber::-webkit-slider-thumb { 
+                    -webkit-appearance: none; 
+                    height: 14px; 
+                    width: 14px; 
+                    /* Tweak 1, 2, 3: SVG icon, no hover scaling, fixed cursor */
+                    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="%236b8cb3"><path d="M0 256a256 256 0 1 1 512 0 256 256 0 1 1 -512 0z"/></svg>') no-repeat center center;
+                    background-size: contain;
+                    border-radius: 0; 
+                    margin-top: -5px; 
+                    box-shadow: none; 
+                    cursor: grab;
+                }
+                .timeline-scrubber:active::-webkit-slider-thumb { cursor: grabbing; }
+                .timeline-scrubber:disabled::-webkit-slider-thumb { filter: grayscale(1) opacity(0.5); cursor: not-allowed; }
+                
+                /* Tooltip Preview */
+                /* Tweak 6: Removed border radius */
+                #scrubber-tooltip { position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--theme-bg-panel); border: 1px solid var(--theme-accent); padding: 8px 12px; border-radius: 0; font-size: 0.75rem; color: white; display: none; white-space: nowrap; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5); pointer-events: none; z-index: 1000; flex-direction: column; align-items: center; }
+                #scrubber-tooltip::after { content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%); border-width: 5px 5px 0; border-style: solid; border-color: var(--theme-accent) transparent transparent transparent; }
+                .tooltip-action { font-weight: 600; color: #fbbf24; margin-bottom: 2px; }
+                .tooltip-time { font-size: 0.65rem; color: var(--theme-text-muted); }
+
+                /* History Panel Items */
+                .history-item { padding: 8px 12px; font-size: 0.8rem; border-bottom: 1px solid var(--theme-border); cursor: pointer; display: flex; justify-content: space-between; color: var(--theme-text-muted); transition: background 0.2s; }
+                .history-item:hover { background: var(--theme-item-bg); }
+                .history-item.active { background: rgba(107, 140, 179, 0.15); color: var(--theme-text); border-left: 3px solid var(--theme-accent); }
+                .history-item.future { opacity: 0.4; } 
                 /* Resizers */
                 .resizer { position: absolute; top: 0; bottom: 0; width: 6px; cursor: col-resize; z-index: 100; transition: background 0.2s; }
                 .resizer:hover, .resizer.active { background: var(--theme-accent); }
@@ -124,19 +167,29 @@ class VisualBuilder extends HTMLElement {
                 h3 { font-size: 0.75rem; text-transform: none; letter-spacing: 0.5px; color: var(--theme-text); margin: 20px 0 10px 0; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--theme-border); padding-bottom: 6px; }
                 .form-group, .form-group.stacked { display: flex; flex-direction: column; align-items: stretch; margin-bottom: 12px; gap: 6px; }
                 label { font-size: 0.75rem; color: var(--theme-text-muted); white-space: normal; word-break: break-word; line-height: 1.3; font-weight: 500; }
-                input, select, textarea { width: 100%; background: var(--theme-bg-input); border: 1px solid var(--theme-border); color: var(--theme-text); padding: 6px 8px; border-radius: 4px; font-size: 0.8rem; box-sizing: border-box; transition: border-color 0.2s; }
-                input:focus, select:focus, textarea:focus { outline: none; border-color: var(--theme-accent); }
-                .color-picker-wrap { display: flex; align-items: center; gap: 8px; }
+                
+                /* Tweak 4: Removed default border, added box-shadow for focus state */
+                input, select, textarea { width: 100%; background: var(--theme-bg-input); border: none; color: var(--theme-text); padding: 6px 8px; border-radius: 4px; font-size: 0.8rem; box-sizing: border-box; transition: box-shadow 0.2s; }
+                input:focus, select:focus, textarea:focus { outline: none; box-shadow: 0 0 0 1px var(--theme-accent); }
+                  .color-picker-wrap { display: flex; align-items: center; gap: 8px; }
                 .color-picker-wrap input[type="color"] { width: 30px; height: 30px; padding: 0; cursor: pointer; border: none; border-radius: 4px; }
                 
                 #breadcrumbs { font-size: 0.75rem; display: flex; align-items: center; }
                 #breadcrumbs span.crumb:hover { color: var(--theme-text) !important; }
                 #empty-state { text-align: center; margin-top: 40px; font-size: 0.85rem; color: var(--theme-text-muted); }
 
-                /* Modals */
+              /* Modals */
                 #cms-dashboard, #export-modal { display: none; position: fixed; inset: 0; background: rgba(28, 31, 43, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 10000; place-content: center; padding: 2rem; pointer-events: auto; }
-                #cms-dashboard.active, #export-modal.active { display: grid; }
+                
+                /* NEW: Unified Modal Fade-In Animation (0.4s matches isolation mode) */
+                @keyframes modalFadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                
+                #cms-dashboard.active, #export-modal.active { display: grid; animation: modalFadeIn 0.4s ease-out forwards; }
                 .cms-container, .modal-content { background: var(--theme-bg-panel); border: 1px solid var(--theme-border); border-radius: 6px; width: 90vw; max-width: 1000px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); position: relative; }
+                
                 .cms-header { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid var(--theme-border); }
                 .cms-header h2 { margin: 0; color: var(--theme-text); font-size: 1.25rem; border: none; padding: 0; }
                 .cms-list-header { display: grid; grid-template-columns: 3fr 2fr 1fr 1.5fr auto; padding: 1rem 1.5rem; border-bottom: 1px solid var(--theme-border); font-size: 0.75rem; color: var(--theme-text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
@@ -152,17 +205,31 @@ class VisualBuilder extends HTMLElement {
                 #btn-copy { position: absolute; top: 15px; right: 25px; width: auto; background: var(--theme-accent); color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.5); }
                 #btn-copy:hover { background: var(--theme-accent-hover); }
 
-                /* Media Modal Styles */
-                #media-modal { display: none; position: fixed; inset: 0; background: rgba(28, 31, 43, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 10000; place-content: center; padding: 2rem; pointer-events: auto; } #media-modal.active { display: grid; }
-                .media-thumbnail { border: 2px solid transparent; border-radius: 4px; overflow: hidden; cursor: pointer; transition: all 0.2s; background: var(--theme-bg-input); }
-                .media-thumbnail:hover { border-color: var(--theme-accent); transform: scale(1.05); }
+              /* Media Modal Styles */
+                #media-modal { display: none; position: fixed; inset: 0; background: rgba(28, 31, 43, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 10000; place-content: center; padding: 2rem; pointer-events: auto; } 
+                #media-modal.active { display: grid; animation: modalFadeIn 0.4s ease-out forwards; }
+                
+                .media-layout { display: flex; height: 65vh; overflow: hidden; border-top: 1px solid var(--theme-border); }
+                .media-grid-area { flex: 1; overflow-y: auto; padding: 15px; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; align-content: start; }
+                .media-sidebar { width: 300px; background: var(--theme-bg-input); border-left: 1px solid var(--theme-border); padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+                
+                .media-thumbnail { border: 2px solid transparent; border-radius: 4px; overflow: hidden; cursor: pointer; transition: all 0.2s; background: var(--theme-bg-input); position: relative; }
+                .media-thumbnail:hover, .media-thumbnail.selected { border-color: var(--theme-accent); }
+                .media-thumbnail.selected { transform: scale(1.02); box-shadow: 0 0 15px rgba(107, 140, 179, 0.3); }
                 .media-thumbnail img { width: 100%; height: 100px; object-fit: cover; display: block; }
                 .media-label { font-size: 0.65rem; color: var(--theme-text-muted); padding: 4px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-              /* Cinematic Fade Transition Overlay */
-                #transition-overlay { position: fixed; inset: 0; background: #050505; z-index: 20000; opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in-out; }
+                
+                /* EXIF Camera HUD */
+                .exif-hud { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: var(--theme-bg-panel); padding: 15px; border-radius: 6px; border: 1px solid var(--theme-border); }
+                .exif-stat { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--theme-text); font-weight: 500; }
+                .exif-stat svg { width: 18px; height: 18px; fill: var(--theme-text-muted); }
+                .exif-list { font-size: 0.75rem; color: var(--theme-text-muted); display: flex; flex-direction: column; gap: 6px; }
+                .exif-row { display: flex; justify-content: space-between; border-bottom: 1px solid var(--theme-border); padding-bottom: 4px; }
+                .exif-row span:last-child { color: var(--theme-text); font-family: monospace; }
+             /* Cinematic Fade Transition Overlay */
+                /* UPDATED: Sped up from 0.5s to 0.4s (20% faster) */
+                #transition-overlay { position: fixed; inset: 0; background: #050505; z-index: 20000; opacity: 0; pointer-events: none; transition: opacity 0.4s ease-in-out; }
                 #transition-overlay.active { opacity: 1; pointer-events: auto; }
-
                 /* Status Indicator Light */
                 .status-light { width: 8px; height: 8px; border-radius: 50%; background: #4b5563; transition: background 0.3s; flex-shrink: 0; }
                 .status-light.working { background: #f59e0b; animation: pulse 1s infinite; }
@@ -195,7 +262,9 @@ class VisualBuilder extends HTMLElement {
 <div class="tabs-header">
                     <button class="tab-btn active" data-target="tab-elements">Add</button>
                     <button class="tab-btn" data-target="tab-layers">Layers</button>
-                    <button class="tab-btn" data-target="tab-meta">Meta</button> <button class="tab-btn" data-target="tab-globals">Global</button>
+                    <button class="tab-btn" data-target="tab-meta">Meta</button> 
+                    <button class="tab-btn" data-target="tab-globals">Global</button>
+                    <button class="tab-btn" data-target="tab-history">History</button>
                 </div>
                 
                 <div id="tab-elements" class="tab-pane active">
@@ -252,6 +321,9 @@ class VisualBuilder extends HTMLElement {
                         </div>
                     </div>
                 </div>
+                <div id="tab-history" class="tab-pane" style="padding: 0;">
+                    <div id="history-list" style="display: flex; flex-direction: column;"></div>
+                </div>
             </div>
 
            <div id="right-sidebar" class="panel">
@@ -270,15 +342,24 @@ class VisualBuilder extends HTMLElement {
                 </div>
             </div>
 
-<div id="bottom-bar" class="panel">
-                <div id="breadcrumbs">Canvas</div>
-                <div id="zoom-indicator" style="font-weight: 600; color: #8b5cf6;">Zoom: 100%</div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <div id="status-light" class="status-light idle"></div>
-                    <div id="doc-status">Unsaved Document</div>
+<div id="bottom-panel" class="panel">
+                <div id="scrubber-bar">
+                    <div id="scrubber-ticks"></div>
+                    <input type="range" id="history-scrubber" class="timeline-scrubber" min="0" max="0" value="0" disabled>
+                    <div id="scrubber-tooltip">
+                        <span class="tooltip-action">Action</span>
+                        <span class="tooltip-time">Time</span>
+                    </div>
+                </div>
+                <div id="bottom-bar">
+                    <div id="breadcrumbs">Canvas</div>
+                    <div id="zoom-indicator" style="font-weight: 600; color: #8b5cf6;">Zoom: 100%</div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div id="status-light" class="status-light idle"></div>
+                        <div id="doc-status">Unsaved Document</div>
+                    </div>
                 </div>
             </div>
-
            <div id="cms-dashboard">
                 <div class="cms-container">
                     <div class="cms-header">
@@ -307,14 +388,21 @@ class VisualBuilder extends HTMLElement {
                 </div>
             </div>
 
-            <div id="media-modal">
-                <div class="modal-content" style="max-width: 800px; width: 80vw;">
+           <div id="media-modal">
+                <div class="modal-content" style="max-width: 1000px; width: 90vw;">
                     <div class="cms-header">
                         <h2>Media Library</h2>
-                        <button id="close-media-modal" class="btn-secondary">Close</button>
-                    </div>
-                    <div id="media-gallery" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; padding: 15px; overflow-y: auto; max-height: 60vh;">
+                        <div style="display: flex; gap: 10px;">
+                            <button id="btn-apply-media" class="btn-primary" disabled>Apply Image</button>
+                            <button id="close-media-modal" class="btn-secondary">Close</button>
                         </div>
+                    </div>
+                    <div class="media-layout">
+                        <div id="media-gallery" class="media-grid-area"></div>
+                        <div id="media-sidebar" class="media-sidebar">
+                            <div style="text-align: center; color: var(--theme-text-muted); font-size: 0.8rem; margin-top: 50px;">Select an image to view details</div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -503,6 +591,8 @@ class VisualBuilder extends HTMLElement {
                 transform: scale(var(--builder-inverse-scale)) !important;
                 transform-origin: bottom left !important;
             }
+                /* Prevent selecting elements inside a Global Part on the main canvas */
+            .global-pointer-wrapper > * { pointer-events: none !important; }
             .global-part-badge svg {
                 width: 18px !important;
                 height: 18px !important;
@@ -585,13 +675,131 @@ class VisualBuilder extends HTMLElement {
         this.updateCanvasScale();
     }
 
-    saveState() {
+    saveState(actionName = null) {
         // Prevent the Sandbox state from overwriting the main document!
         if (this.isolationMode && this.isolationMode.active && this.isolationMode.cachedState) {
             localStorage.setItem('rainwildsBuilderTree', JSON.stringify(this.isolationMode.cachedState));
         } else {
             localStorage.setItem('rainwildsBuilderTree', JSON.stringify(this.state));
+
+            // Only push to history if an action name is provided AND we aren't isolated
+            if (actionName && !this.isScrubbing) {
+                this.pushHistory(actionName);
+            }
         }
+    }
+
+    pushHistory(actionName) {
+        // If we are back in time and make a change, truncate the "future"
+        if (this.historyIndex < this.history.length - 1) {
+            this.history = this.history.slice(0, this.historyIndex + 1);
+        }
+
+        // Deep clone state
+        const stateSnapshot = JSON.parse(JSON.stringify(this.state));
+
+        this.history.push({
+            action: actionName,
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+            state: stateSnapshot
+        });
+
+        // Cap history at 50 steps to prevent massive memory usage
+        if (this.history.length > 50) {
+            this.history.shift();
+        }
+
+        this.historyIndex = this.history.length - 1;
+        this.updateHistoryUI();
+    }
+
+    goToHistoryStep(index) {
+        if (index < 0 || index >= this.history.length || index === this.historyIndex) return;
+        this.historyIndex = index;
+
+        // Restore state
+        this.state = JSON.parse(JSON.stringify(this.history[index].state));
+        this.selectedId = null;
+
+        // Visual rebuild
+        this.isScrubbing = true;
+        this.hideInspector();
+        this.rebuildCanvas();
+        if (this.renderLayers) this.renderLayers();
+        this.isScrubbing = false;
+
+        this.updateHistoryUI();
+    }
+
+    updateHistoryUI() {
+        const scrubber = this.shadowRoot.getElementById('history-scrubber');
+        const list = this.shadowRoot.getElementById('history-list');
+
+        if (!scrubber || !list) return;
+
+        // Update Scrubber
+        if (this.history.length > 1) {
+            scrubber.disabled = false;
+            scrubber.max = this.history.length - 1;
+            scrubber.value = this.historyIndex;
+        } else {
+            scrubber.disabled = true;
+        }
+
+        // Update Photoshop-style Panel
+        list.innerHTML = '';
+        this.history.forEach((step, idx) => {
+            const item = document.createElement('div');
+            item.className = `history-item ${idx === this.historyIndex ? 'active' : ''} ${idx > this.historyIndex ? 'future' : ''}`;
+            item.innerHTML = `<span>${step.action}</span> <span>${step.time}</span>`;
+            item.addEventListener('click', () => this.goToHistoryStep(idx));
+            // Prepend so newest is at the top (or append for chronological)
+            list.prepend(item);
+        });
+
+        // --- NEW: Draw Scrubber Ticks ---
+        const ticksContainer = this.shadowRoot.getElementById('scrubber-ticks');
+        if (ticksContainer && scrubber.offsetWidth > 0) {
+            ticksContainer.innerHTML = '';
+            const max = this.history.length - 1;
+
+            if (max > 0) {
+                const thumbWidth = 14;
+                const trackWidth = scrubber.offsetWidth - thumbWidth;
+
+                // Density control: ensure at least 6px between ticks
+                const stepPx = trackWidth / max;
+                const stride = Math.max(1, Math.ceil(6 / stepPx));
+
+                for (let i = 0; i <= max; i += stride) {
+                    const percent = i / max;
+                    // Formula maps exactly to the thumb center
+                    const offset = (thumbWidth / 2) + (percent * trackWidth);
+
+                    const tick = document.createElement('div');
+                    tick.className = 'scrubber-tick';
+                    tick.style.left = `${offset}px`;
+
+                    // Highlight the active step
+                    if (i === this.historyIndex) {
+                        tick.style.background = 'var(--theme-accent)';
+                        tick.style.zIndex = '5';
+                    }
+
+                    ticksContainer.appendChild(tick);
+                }
+
+                // Always draw the final tick if it got skipped by the stride
+                if (max % stride !== 0) {
+                    const tick = document.createElement('div');
+                    tick.className = 'scrubber-tick';
+                    tick.style.left = `${(thumbWidth / 2) + trackWidth}px`;
+                    if (max === this.historyIndex) tick.style.background = 'var(--theme-accent)';
+                    ticksContainer.appendChild(tick);
+                }
+            }
+        }
+
     }
 
     startTerminalSequence(type) {
@@ -617,28 +825,27 @@ class VisualBuilder extends HTMLElement {
             "Parsing relative asset paths...",
             "Writing final HTML document..."
         ];
-        
+
         this.terminalActive = true;
         this.terminalIndex = 0;
 
         // --- NEW: Save state so we survive a Live Server hot-reload! ---
         sessionStorage.setItem('activeTerminal', JSON.stringify({ type: type, timestamp: Date.now() }));
-        
+
         // Set light to flashing amber
         this.shadowRoot.getElementById('status-light').className = 'status-light working';
         this.playNextTerminalMessage();
     }
 
-playNextTerminalMessage() {
+    playNextTerminalMessage() {
         if (!this.terminalActive) return;
-        
+
         const statusEl = this.shadowRoot.getElementById('doc-status');
-        
+
         if (this.terminalIndex < this.terminalQueue.length) {
             statusEl.textContent = this.terminalQueue[this.terminalIndex];
             this.terminalIndex++;
-            // 800ms delay gives just enough time to read the text
-            this.terminalTimer = setTimeout(() => this.playNextTerminalMessage(), 800); 
+            this.terminalTimer = setTimeout(() => this.playNextTerminalMessage(), 1500);
         } else {
             // Queue finished. If server is STILL working, show waiting message.
             if (this.shadowRoot.getElementById('status-light').classList.contains('working')) {
@@ -646,23 +853,39 @@ playNextTerminalMessage() {
             } else {
                 // Server finished, show the final success/fail state
                 statusEl.textContent = this.terminalFinalMessage || "Ready";
+                this.terminalActive = false; // <-- Mark animation as fully complete
             }
         }
     }
 
     finishTerminalSequence(success, finalMessage) {
         // --- NEW: Clear the tracking token ---
-        sessionStorage.removeItem('activeTerminal'); 
+        sessionStorage.removeItem('activeTerminal');
 
         // Stop the flashing, switch to solid green or red
         const light = this.shadowRoot.getElementById('status-light');
         light.className = success ? 'status-light success' : 'status-light error';
         this.terminalFinalMessage = finalMessage;
-        
-        // If the text queue has already finished playing, instantly show the final result.
-        // If it is STILL playing, we let it finish naturally so the animation isn't cut off!
+
         if (this.terminalIndex >= this.terminalQueue.length) {
             this.shadowRoot.getElementById('doc-status').textContent = finalMessage;
+            this.terminalActive = false; // <-- Mark animation as fully complete
+        }
+    }
+
+    resetStatusToIdle() {
+        // Only reset if an animation isn't currently playing
+        if (!this.terminalActive) {
+            const light = this.shadowRoot.getElementById('status-light');
+            if (light && (light.classList.contains('success') || light.classList.contains('error'))) {
+                light.className = 'status-light idle';
+                const slug = this.state.headData?.slug;
+                const type = this.state.headData?.contentType || 'post';
+                const statusEl = this.shadowRoot.getElementById('doc-status');
+                if (statusEl) {
+                    statusEl.textContent = slug ? `Editing ${type.toUpperCase()}: /${slug}` : 'Unsaved Document';
+                }
+            }
         }
     }
 
@@ -753,10 +976,13 @@ playNextTerminalMessage() {
         // 0. Trigger Fade to Black
         const overlay = this.shadowRoot.getElementById('transition-overlay');
         overlay.classList.add('active');
-        await new Promise(r => setTimeout(r, 500)); // Wait for screen to go black
+        await new Promise(r => setTimeout(r, 400)); // 20% faster (matches 0.4s CSS)
 
-        // 1. Cache the current page state so we don't lose the user's work
+        // 1. Cache the current page state AND history so we don't lose the user's work
         this.isolationMode.cachedState = JSON.parse(JSON.stringify(this.state));
+        this.isolationMode.cachedHistory = JSON.parse(JSON.stringify(this.history));
+        this.isolationMode.cachedHistoryIndex = this.historyIndex;
+        
         this.isolationMode.partId = partId;
         this.isolationMode.active = true;
 
@@ -781,14 +1007,14 @@ playNextTerminalMessage() {
             isoActions.id = 'isolation-actions';
             isoActions.className = 'top-actions';
             isoActions.innerHTML = `
-                <button id="btn-exit-isolation" class="btn-secondary" style="color: #ef4444; border-color: #7f1d1d;">Exit Sandbox</button>
+                <button id="btn-exit-isolation" class="btn-secondary" style="color: #ef4444; border-color: #7f1d1d;">Exit Isolation Mode</button>
                 <button id="btn-save-isolation" class="btn-primary" style="background: #f59e0b; border-color: #b45309; color: #fff;">Save Part</button>
                 <button id="btn-sync-isolation" class="btn-primary" style="background: #10b981; border-color: #059669; color: #fff;">Save & Sync Site</button>
             `;
             this.shadowRoot.getElementById('top-bar').appendChild(isoActions);
 
             this.shadowRoot.getElementById('btn-exit-isolation').addEventListener('click', () => this.exitIsolationMode());
-            
+
             // Standard Save (Just updates JSON, doesn't build)
             this.shadowRoot.getElementById('btn-save-isolation').addEventListener('click', () => {
                 const rootId = this.state.roots[0];
@@ -797,12 +1023,12 @@ playNextTerminalMessage() {
                 alert(`Global Part '${masterPart.name}' saved! Click 'Save & Sync Site' when ready to go live.`);
             });
 
-           // Save & Sync (Updates JSON and triggers Puppeteer to rebuild everything)
+            // Save & Sync (Updates JSON and triggers Puppeteer to rebuild everything)
             this.shadowRoot.getElementById('btn-sync-isolation').addEventListener('click', async () => {
                 const syncBtn = this.shadowRoot.getElementById('btn-sync-isolation');
                 syncBtn.textContent = 'Syncing...';
                 syncBtn.disabled = true;
-                
+
                 // Start the animated terminal log
                 this.startTerminalSequence('global');
 
@@ -818,7 +1044,7 @@ playNextTerminalMessage() {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ globalSync: true })
                     });
-                    
+
                     if (response.ok) {
                         syncBtn.textContent = '✅ Synced!';
                         this.finishTerminalSequence(true, "Global site sync complete.");
@@ -830,8 +1056,8 @@ playNextTerminalMessage() {
                     syncBtn.style.background = '#ef4444';
                     this.finishTerminalSequence(false, "Global sync failed.");
                 } finally {
-                    setTimeout(() => { 
-                        syncBtn.textContent = 'Save & Sync Site'; 
+                    setTimeout(() => {
+                        syncBtn.textContent = 'Save & Sync Site';
                         syncBtn.style.background = '#10b981';
                         syncBtn.disabled = false;
                         this.shadowRoot.getElementById('status-light').className = 'status-light idle';
@@ -842,10 +1068,15 @@ playNextTerminalMessage() {
             this.shadowRoot.getElementById('isolation-actions').style.display = 'flex';
         }
 
-        // 5. Rebuild
+       // 5. Rebuild
         this.selectedId = this.state.roots[0];
         this.rebuildCanvas();
         this.populateInspector();
+
+        // --- NEW: Start a fresh history timeline for this specific Global Part ---
+        this.history = [];
+        this.historyIndex = -1;
+        this.pushHistory(`Opened '${masterPart.name}'`);
 
         // 6. Reveal new UI
         overlay.classList.remove('active');
@@ -857,13 +1088,15 @@ playNextTerminalMessage() {
         // 0. Trigger Fade to Black
         const overlay = this.shadowRoot.getElementById('transition-overlay');
         overlay.classList.add('active');
-        await new Promise(r => setTimeout(r, 800)); // Wait for screen to go black
+        await new Promise(r => setTimeout(r, 640)); // 20% faster (matches new CSS pacing)
 
-        // Restore the cached page state
+        // Restore the cached page state AND history timeline
         this.state = this.isolationMode.cachedState;
+        this.history = this.isolationMode.cachedHistory;
+        this.historyIndex = this.isolationMode.cachedHistoryIndex;
 
         // Reset isolation tracking
-        this.isolationMode = { active: false, partId: null, cachedState: null };
+        this.isolationMode = { active: false, partId: null, cachedState: null, cachedHistory: null, cachedHistoryIndex: -1 };
         this.classList.remove('isolation-mode');
 
         // Restore UI
@@ -873,16 +1106,17 @@ playNextTerminalMessage() {
         const slug = this.state.headData?.slug || 'Unsaved Document';
         this.shadowRoot.getElementById('doc-status').textContent = `Editing: /${slug}`;
 
-        // Rebuild the normal page
+        // Rebuild the normal page & restore the history panel UI
         this.selectedId = null;
         this.hideInspector();
         this.rebuildCanvas();
+        this.updateHistoryUI(); // <-- Force the scrubber and panel to reflect the restored timeline
 
         // Reveal new UI
         overlay.classList.remove('active');
     }
 
-   async loadState() {
+    async loadState() {
         const saved = localStorage.getItem('rainwildsBuilderTree');
         if (saved) {
             this.state = JSON.parse(saved);
@@ -915,13 +1149,18 @@ playNextTerminalMessage() {
             if (Date.now() - data.timestamp < 10000) {
                 this.startTerminalSequence(data.type);
                 this.terminalIndex = 3; // Fast-forward past the initial steps
-                
+
                 // Pre-load the success state so it glows green and finishes gracefully
                 const finalMsg = data.type === 'global' ? "Global site sync complete." : `Published: /${slug}.html`;
                 this.finishTerminalSequence(true, finalMsg);
             } else {
                 sessionStorage.removeItem('activeTerminal');
             }
+        }
+
+        // --- NEW: Take initial history snapshot ---
+        if (this.history.length === 0) {
+            this.pushHistory('Document Opened');
         }
     }
 
@@ -952,8 +1191,7 @@ playNextTerminalMessage() {
         this.canvas.appendChild(overlay);
 
         this.saveState();
-
-
+        this.resetStatusToIdle(); // <-- Clear the green light if the user edits the canvas
     }
 
 
@@ -1128,10 +1366,13 @@ playNextTerminalMessage() {
                     const vpSuffix = this.currentViewport === 'mobile' ? '' : `-${this.currentViewport}`;
                     const compData = this.state.items[currentWrapper.dataset.id];
 
-                    compData.attrs[`column-start${vpSuffix}`] = startLine.toString();
-                    compData.attrs[`column-end${vpSuffix}`] = endLine.toString();
+                    // FIX: Use localAttrs instead of attrs!
+                    if (!compData.localAttrs) compData.localAttrs = {};
+                    compData.localAttrs[`column-start${vpSuffix}`] = startLine.toString();
+                    compData.localAttrs[`column-end${vpSuffix}`] = endLine.toString();
                 }
 
+                this.saveState('Resized layout grid'); // <-- Add Snapshot
                 this.rebuildCanvas();
                 this.populateInspector();
             }
@@ -1162,36 +1403,47 @@ playNextTerminalMessage() {
         const leftResizer = this.shadowRoot.getElementById('left-resizer');
         const rightResizer = this.shadowRoot.getElementById('right-resizer');
 
-        let isResizing = false;
-        let currentSide = null;
+        // Load Persistent UI Settings
+        const savedSettings = localStorage.getItem('fable_ui_settings');
+        if (savedSettings) {
+            try {
+                const settings = JSON.parse(savedSettings);
+                if (settings.sidebarWidth) {
+                    this.style.setProperty('--left-width', settings.sidebarWidth);
+                    this.style.setProperty('--right-width', settings.sidebarWidth);
+                    document.documentElement.style.setProperty('--builder-left', settings.sidebarWidth);
+                    document.documentElement.style.setProperty('--builder-right', settings.sidebarWidth);
+                }
+            } catch (e) { }
+        }
 
-        const startResize = (e, side) => {
+        let isResizing = false;
+
+        const startResize = (e) => {
             isResizing = true;
-            currentSide = side;
             e.target.classList.add('active');
             document.body.style.cursor = 'col-resize';
         };
 
-        leftResizer.addEventListener('mousedown', (e) => startResize(e, 'left'));
-        rightResizer.addEventListener('mousedown', (e) => startResize(e, 'right'));
+        leftResizer.addEventListener('mousedown', startResize);
+        rightResizer.addEventListener('mousedown', startResize);
 
         window.addEventListener('mousemove', (e) => {
             if (!isResizing) return;
             e.preventDefault();
 
-            if (currentSide === 'left') {
-                let newWidth = e.clientX;
-                newWidth = Math.max(200, Math.min(newWidth, 600)); // Min 200px, Max 600px
-                this.style.setProperty('--left-width', `${newWidth}px`);
-                // Update global HTML variable so body padding adjusts
-                document.documentElement.style.setProperty('--builder-left', `${newWidth}px`);
-            } else if (currentSide === 'right') {
-                let newWidth = window.innerWidth - e.clientX;
-                newWidth = Math.max(200, Math.min(newWidth, 600)); // Min 200px, Max 600px
-                this.style.setProperty('--right-width', `${newWidth}px`);
-                // Update global HTML variable so body padding adjusts
-                document.documentElement.style.setProperty('--builder-right', `${newWidth}px`);
-            }
+            // Calculate distance based on which half of the screen the mouse is on
+            let newWidth = e.clientX < window.innerWidth / 2 ? e.clientX : window.innerWidth - e.clientX;
+
+            // Enforce Min/Max (240px to 450px)
+            newWidth = Math.max(240, Math.min(newWidth, 450));
+
+            // Apply concurrently to BOTH sidebars
+            const widthStr = `${newWidth}px`;
+            this.style.setProperty('--left-width', widthStr);
+            this.style.setProperty('--right-width', widthStr);
+            document.documentElement.style.setProperty('--builder-left', widthStr);
+            document.documentElement.style.setProperty('--builder-right', widthStr);
 
             this.updateCanvasScale();
         });
@@ -1202,6 +1454,10 @@ playNextTerminalMessage() {
                 leftResizer.classList.remove('active');
                 rightResizer.classList.remove('active');
                 document.body.style.cursor = '';
+
+                // Save preference
+                const currentWidth = this.style.getPropertyValue('--left-width');
+                localStorage.setItem('fable_ui_settings', JSON.stringify({ sidebarWidth: currentWidth }));
             }
         });
     }
@@ -1386,6 +1642,7 @@ playNextTerminalMessage() {
         }
 
         if (isPointer) {
+            wrapper.classList.add('global-pointer-wrapper'); // <-- Blocks inner clicks!
             const globalBadge = document.createElement('div');
             globalBadge.className = 'global-part-badge';
             globalBadge.title = 'Global Part';
@@ -1573,7 +1830,8 @@ playNextTerminalMessage() {
 
             partDiv.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', `global:${part.id}`);
-                this.draggedLibraryType = 'global-part';
+                // Extract the root type so the dragover logic knows if it's a layout!
+                this.draggedLibraryType = part.data.items[part.data.rootId].type;
             });
 
             partDiv.addEventListener('dragend', () => {
@@ -1670,9 +1928,17 @@ playNextTerminalMessage() {
 
             // Determine if the item being dropped is a Layout
             let isLayout = false;
-            const payloadType = payload.split(':')[1];
-            if (payload.startsWith('new:')) isLayout = payloadType === 'custom-layout';
-            else if (payload.startsWith('move:')) isLayout = this.state.items[payloadType]?.type === 'custom-layout';
+            const parts = payload.split(':');
+            const payloadPrefix = parts[0];
+            const payloadData = parts[1];
+
+            if (payloadPrefix === 'new') isLayout = payloadData === 'custom-layout';
+            else if (payloadPrefix === 'move') isLayout = this.state.items[payloadData]?.type === 'custom-layout';
+            else if (payloadPrefix === 'preset') isLayout = payloadData === 'custom-layout';
+            else if (payloadPrefix === 'global') {
+                const masterPart = this.globalParts[payloadData];
+                if (masterPart) isLayout = masterPart.data.items[masterPart.data.rootId].type === 'custom-layout';
+            }
 
             let newParentId = null;
             // Only find a new parent if it's NOT a layout
@@ -1682,7 +1948,7 @@ playNextTerminalMessage() {
             }
 
             if (payload.startsWith('new:')) {
-                const componentType = payloadType;
+                const componentType = payloadData; // <-- THE FIX
                 const uniqueId = 'comp-' + Date.now();
 
                 const initialAttrs = {};
@@ -1755,7 +2021,7 @@ playNextTerminalMessage() {
                 // ----------------------------------
 
             } else if (payload.startsWith('move:')) {
-                const itemId = payloadType;
+                const itemId = payloadData; // <-- THE FIX
                 if (itemId === newParentId) return;
 
                 const item = this.state.items[itemId];
@@ -1785,12 +2051,12 @@ playNextTerminalMessage() {
             }
 
             this.draggedLibraryType = null;
+            this.saveState(`Dropped ${isLayout ? 'Layout' : 'Component'}`);
             this.rebuildCanvas();
             this.populateInspector();
             if (this.renderLayers) this.renderLayers();
         });
     }
-
     setupCanvasSelection() {
         this.canvas.addEventListener('click', (e) => {
             if (e.target.classList.contains('resize-handle')) return;
@@ -2178,6 +2444,7 @@ playNextTerminalMessage() {
 
                         if (this.debounceTimers[attrName]) clearTimeout(this.debounceTimers[attrName]);
                         this.debounceTimers[attrName] = setTimeout(() => {
+                            this.saveState(`Toggled ${attrName}`);
                             this.rebuildCanvas();
                         }, 300);
                     });
@@ -2237,10 +2504,19 @@ playNextTerminalMessage() {
                             updateLabelBadge(true); // Instantly add warning icon
                         }
 
+                        // 1. Fast visual update & silent local save (300ms)
                         if (this.debounceTimers[attrName]) clearTimeout(this.debounceTimers[attrName]);
                         this.debounceTimers[attrName] = setTimeout(() => {
+                            this.saveState(); // Saves locally without triggering history
                             this.rebuildCanvas();
                         }, 300);
+
+                        // 2. Slower history snapshot to prevent typing spam (1500ms)
+                        if (!this.historyDebounceTimers) this.historyDebounceTimers = {};
+                        if (this.historyDebounceTimers[attrName]) clearTimeout(this.historyDebounceTimers[attrName]);
+                        this.historyDebounceTimers[attrName] = setTimeout(() => {
+                            this.pushHistory(`Changed ${attrName}`);
+                        }, 1500);
                     });
                 }
 
@@ -2256,45 +2532,118 @@ playNextTerminalMessage() {
         this.shadowRoot.getElementById('edit-form').style.display = 'none';
     }
 
-    async openMediaManager(nodeId, targetAttr) {
+async openMediaManager(nodeId, targetAttr) {
         const modal = this.shadowRoot.getElementById('media-modal');
         const gallery = this.shadowRoot.getElementById('media-gallery');
+        const sidebar = this.shadowRoot.getElementById('media-sidebar');
+        const applyBtn = this.shadowRoot.getElementById('btn-apply-media');
+        
+        let selectedFilename = null;
+
         modal.classList.add('active');
+        applyBtn.disabled = true;
+        sidebar.innerHTML = '<div style="text-align: center; color: var(--theme-text-muted); font-size: 0.8rem; margin-top: 50px;">Select an image to view details</div>';
         gallery.innerHTML = '<div style="color: var(--theme-text-muted); grid-column: 1 / -1; text-align: center;">Loading images...</div>';
+
+        // Bind Apply button (Clear previous listeners first to avoid stacking)
+        const newApplyBtn = applyBtn.cloneNode(true);
+        applyBtn.parentNode.replaceChild(newApplyBtn, applyBtn);
+        newApplyBtn.addEventListener('click', () => {
+            if (!selectedFilename) return;
+            const compData = this.state.items[nodeId];
+            if (!compData.localAttrs) compData.localAttrs = {};
+            compData.localAttrs[targetAttr] = selectedFilename;
+            this.saveState('Changed media image');
+            this.rebuildCanvas();
+            if (this.selectedId === nodeId) this.populateInspector();
+            modal.classList.remove('active');
+        });
 
         try {
             const response = await fetch('http://localhost:3000/api/images');
             if (!response.ok) throw new Error('Failed to load images');
-            const images = await response.json();
+            const imagesData = await response.json();
 
             gallery.innerHTML = '';
-            if (images.length === 0) {
+            if (imagesData.length === 0) {
                 gallery.innerHTML = '<div style="color: var(--theme-text-muted); grid-column: 1 / -1; text-align: center;">No images found in /src/img/primary/</div>';
                 return;
             }
 
-            images.forEach(filename => {
+            imagesData.forEach(imgData => {
                 const thumb = document.createElement('div');
                 thumb.className = 'media-thumbnail';
+                
+               const baseName = imgData.filename.replace(/\.[^/.]+$/, "");
+                const isSvg = imgData.filename.endsWith('.svg');
 
-                // Uses the live server path mapping naturally available to builder.html
+                // Advanced Fallback: Try to load tiny modern formats from /responsive, fallback to /primary
+                // FIX: Only output <picture> sources if the server confirmed the thumbnail actually exists
+                const imgHtml = (isSvg || !imgData.hasThumb) ? 
+                    `<img src="./img/primary/${imgData.filename}" loading="lazy" alt="${imgData.filename}">` :
+                    `<picture>
+                        <source type="image/avif" srcset="./img/responsive/${baseName}-768.avif">
+                        <source type="image/webp" srcset="./img/responsive/${baseName}-768.webp">
+                        <img src="./img/responsive/${baseName}-768.jpg" loading="lazy" onerror="this.onerror=null; this.src='./img/primary/${imgData.filename}';" alt="${imgData.filename}">
+                    </picture>`;
+
                 thumb.innerHTML = `
-                    <img src="./img/primary/${filename}" loading="lazy" alt="${filename}">
-                    <div class="media-label" title="${filename}">${filename}</div>
+                    ${imgHtml}
+                    <div class="media-label" title="${imgData.filename}">${imgData.filename}</div>
                 `;
 
                 thumb.addEventListener('click', () => {
-                    const compData = this.state.items[nodeId];
-                    if (!compData.localAttrs) compData.localAttrs = {};
+                    // UI Selection
+                    gallery.querySelectorAll('.media-thumbnail').forEach(el => el.classList.remove('selected'));
+                    thumb.classList.add('selected');
+                    selectedFilename = imgData.filename;
+                    newApplyBtn.disabled = false;
 
-                    // Strip the directory path and only inject the filename
-                    compData.localAttrs[targetAttr] = filename;
+                    // Populate Sidebar EXIF
+                    const e = imgData.exif || {};
+                    const sizeMB = (imgData.size / (1024 * 1024)).toFixed(2);
+                    
+                    const aperture = e.FNumber ? `ƒ/${e.FNumber}` : '-';
+                    const shutter = e.ExposureTime ? `1/${Math.round(1/e.ExposureTime)}` : '-';
+                    const iso = e.ISO ? `ISO ${e.ISO}` : '-';
+                    const focal = e.FocalLength ? `${e.FocalLength}mm` : '-';
+                    
+                    // Adobe Bridge Style HUD
+                    sidebar.innerHTML = `
+                        <div style="margin-bottom: 10px;">
+                            <img src="./img/primary/${imgData.filename}" style="width:100%; border-radius:4px; max-height: 180px; object-fit: contain; background: #000;">
+                            <h3 style="margin: 10px 0 0 0; font-size: 0.9rem; color: white; border: none; padding: 0;">${imgData.filename}</h3>
+                            <div style="font-size: 0.7rem; color: var(--theme-text-muted);">${sizeMB} MB</div>
+                        </div>
 
-                    this.saveState();
-                    this.rebuildCanvas();
-                    if (this.selectedId === nodeId) this.populateInspector();
+                        <div class="exif-hud">
+                            <div class="exif-stat" title="Aperture">
+                                <svg viewBox="0 0 512 512"><path d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM216 336h24V272H216c-13.3 0-24-10.7-24-24s10.7-24 24-24h48c13.3 0 24 10.7 24 24v88h8c13.3 0 24 10.7 24 24s-10.7 24-24 24H216c-13.3 0-24-10.7-24-24s10.7-24 24-24zM256 192a32 32 0 1 1 0-64 32 32 0 1 1 0 64z"/></svg>
+                                ${aperture}
+                            </div>
+                            <div class="exif-stat" title="Shutter Speed">
+                                <svg viewBox="0 0 512 512"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120V256c0 8 4 15.5 10.7 20l96 64c11.4 7.6 26.9 4.6 34.6-6.9s4.6-26.9-6.9-34.6L288 243.9V120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"/></svg>
+                                ${shutter}
+                            </div>
+                            <div class="exif-stat" title="Focal Length">
+                                <svg viewBox="0 0 512 512"><path d="M224 96a160 160 0 1 0 0 320 160 160 0 1 0 0-320zM44.7 256a179.3 179.3 0 1 1 358.6 0 179.3 179.3 0 1 1 -358.6 0zM336 256a112 112 0 1 0 -224 0 112 112 0 1 0 224 0zM192 256a32 32 0 1 1 64 0 32 32 0 1 1 -64 0z"/></svg>
+                                ${focal}
+                            </div>
+                            <div class="exif-stat" title="ISO">
+                                <svg viewBox="0 0 512 512"><path d="M0 256a256 256 0 1 1 512 0A256 256 0 1 1 0 256zm256-96a96 96 0 1 0 0 192 96 96 0 1 0 0-192zm0 144a48 48 0 1 1 0-96 48 48 0 1 1 0 96z"/></svg>
+                                ${iso}
+                            </div>
+                        </div>
 
-                    modal.classList.remove('active');
+                        <div class="exif-list">
+                            ${e.Make ? `<div class="exif-row"><span>Make</span><span>${e.Make}</span></div>` : ''}
+                            ${e.Model ? `<div class="exif-row"><span>Model</span><span>${e.Model}</span></div>` : ''}
+                            ${e.ColorSpace ? `<div class="exif-row"><span>Color Space</span><span>${e.ColorSpace === 1 ? 'sRGB' : e.ColorSpace}</span></div>` : ''}
+                            ${e.ExposureCompensation ? `<div class="exif-row"><span>Exp Comp</span><span>${e.ExposureCompensation}</span></div>` : ''}
+                            ${e.LensModel ? `<div class="exif-row"><span>Lens</span><span>${e.LensModel}</span></div>` : ''}
+                            ${e.DateTimeOriginal ? `<div class="exif-row"><span>Date</span><span>${new Date(e.DateTimeOriginal).toLocaleDateString()}</span></div>` : ''}
+                        </div>
+                    `;
                 });
 
                 gallery.appendChild(thumb);
@@ -2422,6 +2771,89 @@ playNextTerminalMessage() {
     setupControls() {
         const root = this.shadowRoot;
 
+        // --- NEW: History Scrubber & Keyboard Shortcuts ---
+        const scrubber = root.getElementById('history-scrubber');
+        const tooltip = root.getElementById('scrubber-tooltip');
+
+        scrubber.addEventListener('input', (e) => {
+            const index = parseInt(e.target.value);
+            const step = this.history[index];
+
+            // Update tooltip text
+            tooltip.querySelector('.tooltip-action').textContent = step.action;
+            tooltip.querySelector('.tooltip-time').textContent = step.time;
+
+            // Math to prevent edge clipping AND lock perfectly to thumb
+            tooltip.style.display = 'flex'; // Display first to calculate offsetWidth
+            const tooltipWidth = tooltip.offsetWidth;
+            const panelWidth = scrubber.parentElement.offsetWidth;
+
+            // Standard WebKit Thumb-Center Formula
+            const thumbWidth = 14;
+            const trackWidth = scrubber.offsetWidth;
+            const max = parseInt(scrubber.max);
+            const percent = max > 0 ? (index / max) : 0;
+
+            // Thumb center travels from (width/2) to (trackWidth - width/2)
+            const thumbCenter = (thumbWidth / 2) + percent * (trackWidth - thumbWidth);
+
+            let offset = thumbCenter + 20; // +20 adds the parent container's padding
+
+            // Clamp to boundaries so tooltip doesn't bleed off screen
+            if (offset - (tooltipWidth / 2) < 10) offset = (tooltipWidth / 2) + 10;
+            if (offset + (tooltipWidth / 2) > panelWidth - 10) offset = panelWidth - (tooltipWidth / 2) - 10;
+
+            tooltip.style.left = `${offset}px`;
+
+            // LIVE PREVIEW: Instantly update the main canvas
+            this.isScrubbing = true;
+            this.state = JSON.parse(JSON.stringify(step.state));
+            this.selectedId = null;
+            this.hideInspector();
+            this.rebuildCanvas();
+
+            // Tweak 7: Sync History Panel with Scrubber
+            const list = this.shadowRoot.getElementById('history-list');
+            if (list) {
+                const items = list.querySelectorAll('.history-item');
+                items.forEach((item, i) => {
+                    const reverseIdx = (this.history.length - 1) - i;
+                    if (reverseIdx === index) {
+                        item.classList.add('active');
+                        item.classList.remove('future');
+                        item.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    } else if (reverseIdx > index) {
+                        item.classList.remove('active');
+                        item.classList.add('future');
+                    } else {
+                        item.classList.remove('active', 'future');
+                    }
+                });
+            }
+        });
+
+        scrubber.addEventListener('change', (e) => {
+            tooltip.style.display = 'none';
+            this.isScrubbing = false;
+            this.goToHistoryStep(parseInt(e.target.value));
+        });
+
+        // Global Keyboard Listeners for Undo/Redo
+        document.addEventListener('keydown', (e) => {
+            // Ignore if typing in an input/textarea
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'z' && !e.shiftKey) {
+                    e.preventDefault();
+                    this.goToHistoryStep(this.historyIndex - 1);
+                } else if (e.key === 'z' && e.shiftKey || e.key === 'y') {
+                    e.preventDefault();
+                    this.goToHistoryStep(this.historyIndex + 1);
+                }
+            }
+        });
+
         // --- 1. Viewport Logic ---
         const vpButtons = root.querySelectorAll('.vp-btn');
         const viewportWidths = { 'base': '100%' };
@@ -2489,7 +2921,7 @@ playNextTerminalMessage() {
             const item = this.state.items[this.selectedId];
             const array = item.parentId ? this.state.items[item.parentId].children : this.state.roots;
             const idx = array.indexOf(this.selectedId);
-            if (idx > 0) { [array[idx - 1], array[idx]] = [array[idx], array[idx - 1]]; this.rebuildCanvas(); }
+            if (idx > 0) { [array[idx - 1], array[idx]] = [array[idx], array[idx - 1]]; this.saveState('Moved item up'); this.rebuildCanvas(); }
         });
 
         root.getElementById('btn-down').addEventListener('click', () => {
@@ -2497,7 +2929,7 @@ playNextTerminalMessage() {
             const item = this.state.items[this.selectedId];
             const array = item.parentId ? this.state.items[item.parentId].children : this.state.roots;
             const idx = array.indexOf(this.selectedId);
-            if (idx > -1 && idx < array.length - 1) { [array[idx + 1], array[idx]] = [array[idx], array[idx + 1]]; this.rebuildCanvas(); }
+            if (idx > -1 && idx < array.length - 1) { [array[idx + 1], array[idx]] = [array[idx], array[idx + 1]]; this.saveState('Moved item down'); this.rebuildCanvas(); }
         });
 
         root.getElementById('btn-delete').addEventListener('click', () => {
@@ -2506,11 +2938,10 @@ playNextTerminalMessage() {
             if (item.parentId) this.state.items[item.parentId].children = this.state.items[item.parentId].children.filter(id => id !== this.selectedId);
             else this.state.roots = this.state.roots.filter(id => id !== this.selectedId);
             delete this.state.items[this.selectedId];
-            this.selectedId = null; this.hideInspector(); this.rebuildCanvas();
+            this.selectedId = null; this.hideInspector(); this.saveState('Deleted component'); this.rebuildCanvas();
         });
 
         // --- 5. Metadata Binding ---
-        // Change this line:
         const metaFields = ['contentType', 'slug', 'title', 'date', 'categories', 'description', 'ogImage', 'canonical', 'theme', 'components', 'heroImage', 'heroCount', 'heroWidths', 'heroSize', 'heroFormat']; metaFields.forEach(field => {
             const input = root.getElementById(`meta-${field}`);
             if (input) {
@@ -2518,7 +2949,16 @@ playNextTerminalMessage() {
                 input.addEventListener('input', (e) => {
                     if (!this.state.headData) this.state.headData = {};
                     this.state.headData[field] = e.target.value;
-                    this.saveState();
+
+                    this.saveState(); // Silent local save
+                    this.resetStatusToIdle();
+
+                    // Tweak 8: Slower history snapshot to prevent typing spam
+                    if (!this.metaHistoryTimers) this.metaHistoryTimers = {};
+                    if (this.metaHistoryTimers[field]) clearTimeout(this.metaHistoryTimers[field]);
+                    this.metaHistoryTimers[field] = setTimeout(() => {
+                        this.pushHistory(`Updated ${field}`);
+                    }, 1500);
                 });
             }
         });
@@ -2569,23 +3009,43 @@ playNextTerminalMessage() {
         };
 
         // --- BUTTON: VIEW HTML ---
-        const generateHTMLString = (id, indentLevel = 0) => {
-            const node = this.state.items[id];
+        const generateHTMLString = (id, indentLevel = 0, sourceItems = this.state.items) => {
+            let node = sourceItems[id];
             if (!node) return '';
             const indent = '  '.repeat(indentLevel);
 
+            let targetNode = node;
+            let targetItems = sourceItems;
+
+            // Unpack Global Parts for the HTML viewer
+            if (node.globalPartId && this.globalParts[node.globalPartId]) {
+                const master = this.globalParts[node.globalPartId];
+                targetItems = master.data.items;
+                targetNode = targetItems[master.data.rootId];
+            }
+
             // Resolve attributes (Preset + Local Overrides)
             let resolvedAttrs = {};
-            if (node.presetId && this.state.presets && this.state.presets[node.presetId]) {
-                resolvedAttrs = { ...this.state.presets[node.presetId].baseAttrs };
+            if (targetNode.presetId && this.state.presets && this.state.presets[targetNode.presetId]) {
+                resolvedAttrs = { ...this.state.presets[targetNode.presetId].baseAttrs };
             }
-            resolvedAttrs = { ...resolvedAttrs, ...(node.localAttrs || node.attrs || {}) };
+            resolvedAttrs = { ...resolvedAttrs, ...(targetNode.localAttrs || targetNode.attrs || {}) };
+
+            // Retain layout placement
+            if (node.localAttrs) {
+                for (const [key, value] of Object.entries(node.localAttrs)) {
+                    if (key.includes('column') || key.includes('row') || key.includes('index')) resolvedAttrs[key] = value;
+                }
+            }
 
             let attrString = Object.entries(resolvedAttrs).map(([k, v]) => `${k}="${v.replace(/"/g, '&quot;')}"`).join(' ');
             if (attrString) attrString = ' ' + attrString;
-            let html = `${indent}<${node.type}${attrString}>\n`;
-            if (node.children) node.children.forEach(childId => html += generateHTMLString(childId, indentLevel + 1));
-            html += `${indent}</${node.type}>\n`;
+            let html = `${indent}<${targetNode.type}${attrString}>\n`;
+
+            if (targetNode.children) {
+                targetNode.children.forEach(childId => html += generateHTMLString(childId, indentLevel + 1, targetItems));
+            }
+            html += `${indent}</${targetNode.type}>\n`;
             return html;
         };
 
@@ -2625,7 +3085,7 @@ playNextTerminalMessage() {
         btnPublish.addEventListener('click', async () => {
             btnPublish.disabled = true;
             btnPublish.textContent = 'Publishing...';
-            
+
             // Start the animated terminal log in the status bar
             this.startTerminalSequence('page');
 
@@ -2663,7 +3123,7 @@ playNextTerminalMessage() {
                 setTimeout(() => {
                     btnPublish.textContent = 'Publish';
                     btnPublish.style.background = '#10b981';
-                    this.shadowRoot.getElementById('status-light').className = 'status-light idle';
+                    // Removed hardcoded light reset!
                 }, 4000);
             }
         });
