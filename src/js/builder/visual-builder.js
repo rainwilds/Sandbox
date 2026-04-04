@@ -219,14 +219,18 @@ class VisualBuilder extends HTMLElement {
                 .media-thumbnail img { width: 100%; height: 100px; object-fit: cover; display: block; }
                 .media-label { font-size: 0.65rem; color: var(--theme-text-muted); padding: 4px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
                 
-                /* EXIF Camera HUD */
+             /* EXIF Camera HUD */
                 .exif-hud { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; background: var(--theme-bg-panel); padding: 15px; border-radius: 6px; border: 1px solid var(--theme-border); }
                 .exif-stat { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; color: var(--theme-text); font-weight: 500; }
                 .exif-stat svg { width: 18px; height: 18px; fill: var(--theme-text-muted); }
                 .exif-list { font-size: 0.75rem; color: var(--theme-text-muted); display: flex; flex-direction: column; gap: 6px; }
-                .exif-row { display: flex; justify-content: space-between; border-bottom: 1px solid var(--theme-border); padding-bottom: 4px; }
-                .exif-row span:last-child { color: var(--theme-text); font-family: monospace; }
-             /* Cinematic Fade Transition Overlay */
+                
+                /* FIX: Converted to a strict 2-column grid to force clean text wrapping */
+                .exif-row { display: grid; grid-template-columns: 90px 1fr; gap: 10px; border-bottom: 1px solid var(--theme-border); padding-bottom: 4px; align-items: start; }
+                .exif-row span:last-child { color: var(--theme-text); font-family: monospace; text-align: right; line-height: 1.4; word-break: break-word; }
+             
+             
+                /* Cinematic Fade Transition Overlay */
                 /* UPDATED: Sped up from 0.5s to 0.4s (20% faster) */
                 #transition-overlay { position: fixed; inset: 0; background: #050505; z-index: 20000; opacity: 0; pointer-events: none; transition: opacity 0.4s ease-in-out; }
                 #transition-overlay.active { opacity: 1; pointer-events: auto; }

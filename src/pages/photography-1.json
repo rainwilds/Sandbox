@@ -1,7 +1,7 @@
 {
   "roots": [
-    "comp-1775275708289",
-    "comp-1775275727578"
+    "comp-1775275727578",
+    "comp-1775275708289"
   ],
   "items": {
     "comp-1775275708289": {
@@ -30,10 +30,10 @@
       "type": "custom-block",
       "presetId": null,
       "localAttrs": {
-        "heading": "Tourism Photography",
+        "heading": "Tourism Photography & Videography",
         "class": "background-color-1",
         "inner-class": "padding-large height-half",
-        "img-background-src": "tourism-photography-dark-2.jpg"
+        "img-background-src": "img-1.jpg"
       },
       "children": [],
       "parentId": "comp-1775275727578"
