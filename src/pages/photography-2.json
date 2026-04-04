@@ -1,0 +1,53 @@
+{
+  "roots": [
+    "comp-1775261071442"
+  ],
+  "items": {
+    "comp-1775261014881": {
+      "id": "comp-1775261014881",
+      "type": "custom-nav",
+      "presetId": null,
+      "localAttrs": {},
+      "children": [],
+      "parentId": "comp-1775261005707"
+    },
+    "comp-1775261071442": {
+      "id": "comp-1775261071442",
+      "type": "custom-block",
+      "globalPartId": "global-1775259969178",
+      "localAttrs": {},
+      "children": [],
+      "parentId": null
+    }
+  },
+  "headData": {
+    "contentType": "page",
+    "slug": "photography-2"
+  },
+  "presets": {
+    "preset-1775127672394": {
+      "id": "preset-1775127672394",
+      "type": "custom-block",
+      "name": "Slide 1",
+      "isStarred": true,
+      "baseAttrs": {
+        "heading": "New Block",
+        "class": "height-third",
+        "inner-class": "padding-large height-third",
+        "img-background-src": "tourism-photography-dark-2.jpg"
+      }
+    },
+    "preset-1775196353749": {
+      "id": "preset-1775196353749",
+      "type": "custom-layout",
+      "name": "Slide 3x",
+      "isStarred": false,
+      "baseAttrs": {
+        "column-span": "12",
+        "subgrid": "true",
+        "column-end": "-2",
+        "column-start": "1"
+      }
+    }
+  }
+}

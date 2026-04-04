@@ -213,22 +213,38 @@ const server = http.createServer((req, res) => {
 
             // ROUTE: PUBLISH
             else if (req.url === '/api/publish') {
-                const { slug, contentType } = data;
-                console.log(`🚀 Publishing HTML: ${slug}...`);
+                const { slug, contentType, globalSync } = data;
+                
+                // If globalSync is true, rebuild the ENTIRE site
+                if (globalSync) {
+                    console.log(`🚀 Global Sync Triggered! Rebuilding entire site...`);
+                    exec(`node build.js`, (error, stdout, stderr) => {
+                        if (error) {
+                            console.error(`❌ Build Error: ${error.message}`);
+                            res.writeHead(500);
+                            return res.end(JSON.stringify({ error: 'Global sync failed' }));
+                        }
+                        console.log(`✅ Global Sync Complete!`);
+                        res.writeHead(200);
+                        return res.end(JSON.stringify({ message: 'Site synced!' }));
+                    });
+               } else {
+                    console.log(`🚀 Publishing HTML: ${slug}...`);
 
-                // Pass the type flag to the build script
-                const typeFlag = contentType ? `--type=${contentType}` : '--type=post';
+                    // Pass the type flag to the build script
+                    const typeFlag = contentType ? `--type=${contentType}` : '--type=post';
 
-                exec(`node build.js --slug=${slug} ${typeFlag}`, (error, stdout, stderr) => {
-                    if (error) {
-                        console.error(`❌ Build Error: ${error.message}`);
-                        res.writeHead(500);
-                        return res.end(JSON.stringify({ error: 'Build failed' }));
-                    }
-                    console.log(`✅ Build Success: ${slug}`);
-                    res.writeHead(200);
-                    return res.end(JSON.stringify({ message: 'Published!' }));
-                });
+                    exec(`node build.js --slug=${slug} ${typeFlag}`, (error, stdout, stderr) => {
+                        if (error) {
+                            console.error(`❌ Build Error: ${error.message}`);
+                            res.writeHead(500);
+                            return res.end(JSON.stringify({ error: 'Build failed' }));
+                        }
+                        console.log(`✅ Build Success: ${slug}`);
+                        res.writeHead(200);
+                        return res.end(JSON.stringify({ message: 'Published!' }));
+                    });
+                } // <--- THIS WAS THE MISSING BRACKET!
             } else {
                 res.writeHead(404);
                 return res.end(JSON.stringify({ error: 'Endpoint not found' }));

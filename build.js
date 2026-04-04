@@ -6,24 +6,45 @@ const args = process.argv.slice(2);
 const targetSlug = args.find(arg => arg.startsWith('--slug='))?.split('=')[1];
 
 // Helper to convert JSON state to raw tags
-function generateHtmlFromJson(items, nodeId, presets = {}) {
-    const node = items[nodeId];
+function generateHtmlFromJson(items, nodeId, presets = {}, globalParts = {}) {
+    let node = items[nodeId];
     if (!node) return '';
 
-    // 1. Resolve base attributes from the preset (if one exists)
-    let resolvedAttrs = {};
-    if (node.presetId && presets[node.presetId]) {
-        resolvedAttrs = { ...presets[node.presetId].baseAttrs };
+    let targetNode = node;
+    let targetItems = items;
+
+    // --- THE FIX: Unpack Global Part Pointers ---
+    if (node.globalPartId && globalParts[node.globalPartId]) {
+        const master = globalParts[node.globalPartId];
+        targetItems = master.data.items;
+        targetNode = targetItems[master.data.rootId];
     }
 
-    // 2. Merge local overrides safely (fallback to .attrs for legacy pages)
-    resolvedAttrs = { ...resolvedAttrs, ...(node.localAttrs || node.attrs || {}) };
+    // 1. Resolve base attributes from the preset using the target content
+    let resolvedAttrs = {};
+    if (targetNode.presetId && presets[targetNode.presetId]) {
+        resolvedAttrs = { ...presets[targetNode.presetId].baseAttrs };
+    }
+
+    // 2. Merge local overrides safely
+    resolvedAttrs = { ...resolvedAttrs, ...(targetNode.localAttrs || targetNode.attrs || {}) };
+
+    // 3. Retain the layout grid placement attributes from the original pointer!
+    if (node.localAttrs) {
+        for (const [key, value] of Object.entries(node.localAttrs)) {
+            if (key.includes('column') || key.includes('row') || key.includes('index')) {
+                resolvedAttrs[key] = value;
+            }
+        }
+    }
 
     let attrString = Object.entries(resolvedAttrs).map(([k, v]) => `${k}="${String(v).replace(/"/g, '&quot;')}"`).join(' ');
-    let html = `<${node.type} ${attrString}>`;
+    let html = `<${targetNode.type} ${attrString}>`;
     
-    if (node.children) node.children.forEach(id => html += generateHtmlFromJson(items, id, presets));
-    return html + `</${node.type}>`;
+    if (targetNode.children) {
+        targetNode.children.forEach(id => html += generateHtmlFromJson(targetItems, id, presets, globalParts));
+    }
+    return html + `</${targetNode.type}>`;
 }
 
 async function runBuild() {
@@ -41,6 +62,10 @@ async function runBuild() {
         .map(file => file.replace('.js', ''));
 
     console.log(`🔍 Detected ${autoTags.length} components:`, autoTags);
+
+    // --- THE FIX: Load Global Parts into memory for the build ---
+    const globalPartsPath = path.join(srcPath, 'JSON', 'global-parts.json');
+    const globalParts = fs.existsSync(globalPartsPath) ? JSON.parse(fs.readFileSync(globalPartsPath, 'utf8')) : {};
 
     const sharedHeadPath = path.join(srcPath, '_templates', '_shared-head.html');
     const sharedHead = fs.existsSync(sharedHeadPath) ? fs.readFileSync(sharedHeadPath, 'utf8') : '';
@@ -148,8 +173,8 @@ async function runBuild() {
 
             let rawContent = '';
             const presets = postData.presets || {}; // Safely grab presets from the JSON
-            postData.roots.forEach(rId => rawContent += generateHtmlFromJson(postData.items, rId, presets));
-
+            // --- THE FIX: Pass globalParts into the recursive generator ---
+            postData.roots.forEach(rId => rawContent += generateHtmlFromJson(postData.items, rId, presets, globalParts));
             const fullHtml = `<!DOCTYPE html><html><head>${activeSharedHead}${customHead}</head><body><main>${rawContent}</main></body></html>`;
 
             const page = await browser.newPage();

@@ -159,9 +159,16 @@ class VisualBuilder extends HTMLElement {
                 .media-thumbnail img { width: 100%; height: 100px; object-fit: cover; display: block; }
                 .media-label { font-size: 0.65rem; color: var(--theme-text-muted); padding: 4px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-               /* Cinematic Fade Transition Overlay */
+              /* Cinematic Fade Transition Overlay */
                 #transition-overlay { position: fixed; inset: 0; background: #050505; z-index: 20000; opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in-out; }
                 #transition-overlay.active { opacity: 1; pointer-events: auto; }
+
+                /* Status Indicator Light */
+                .status-light { width: 8px; height: 8px; border-radius: 50%; background: #4b5563; transition: background 0.3s; flex-shrink: 0; }
+                .status-light.working { background: #f59e0b; animation: pulse 1s infinite; }
+                .status-light.success { background: #10b981; }
+                .status-light.error { background: #ef4444; }
+                @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
             </style>
 
         <div id="top-bar" class="panel">
@@ -266,7 +273,10 @@ class VisualBuilder extends HTMLElement {
 <div id="bottom-bar" class="panel">
                 <div id="breadcrumbs">Canvas</div>
                 <div id="zoom-indicator" style="font-weight: 600; color: #8b5cf6;">Zoom: 100%</div>
-                <div id="doc-status">Unsaved Document</div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <div id="status-light" class="status-light idle"></div>
+                    <div id="doc-status">Unsaved Document</div>
+                </div>
             </div>
 
            <div id="cms-dashboard">
@@ -584,6 +594,78 @@ class VisualBuilder extends HTMLElement {
         }
     }
 
+    startTerminalSequence(type) {
+        // Technically accurate descriptions based on your build.js architecture
+        this.terminalQueue = type === 'global' ? [
+            "Initializing Global Sync Engine...",
+            "Mapping master component dictionary...",
+            "Scanning page manifests for dependencies...",
+            "Spawning headless browser cluster...",
+            "Unwrapping Shadow DOM components...",
+            "Flattening CSS grid boundaries...",
+            "Injecting updated Global Parts...",
+            "Writing static HTML payloads...",
+            "Optimizing asset delivery paths..."
+        ] : [
+            "Initializing Adaptive Build Engine...",
+            "Syncing workspace assets to /dist...",
+            "Compiling JSON component tree...",
+            "Spawning headless browser...",
+            "Injecting custom element definitions...",
+            "Unwrapping Shadow DOM layers...",
+            "Flattening layout grids...",
+            "Parsing relative asset paths...",
+            "Writing final HTML document..."
+        ];
+        
+        this.terminalActive = true;
+        this.terminalIndex = 0;
+
+        // --- NEW: Save state so we survive a Live Server hot-reload! ---
+        sessionStorage.setItem('activeTerminal', JSON.stringify({ type: type, timestamp: Date.now() }));
+        
+        // Set light to flashing amber
+        this.shadowRoot.getElementById('status-light').className = 'status-light working';
+        this.playNextTerminalMessage();
+    }
+
+playNextTerminalMessage() {
+        if (!this.terminalActive) return;
+        
+        const statusEl = this.shadowRoot.getElementById('doc-status');
+        
+        if (this.terminalIndex < this.terminalQueue.length) {
+            statusEl.textContent = this.terminalQueue[this.terminalIndex];
+            this.terminalIndex++;
+            // 800ms delay gives just enough time to read the text
+            this.terminalTimer = setTimeout(() => this.playNextTerminalMessage(), 800); 
+        } else {
+            // Queue finished. If server is STILL working, show waiting message.
+            if (this.shadowRoot.getElementById('status-light').classList.contains('working')) {
+                statusEl.textContent = "Finalizing server operations...";
+            } else {
+                // Server finished, show the final success/fail state
+                statusEl.textContent = this.terminalFinalMessage || "Ready";
+            }
+        }
+    }
+
+    finishTerminalSequence(success, finalMessage) {
+        // --- NEW: Clear the tracking token ---
+        sessionStorage.removeItem('activeTerminal'); 
+
+        // Stop the flashing, switch to solid green or red
+        const light = this.shadowRoot.getElementById('status-light');
+        light.className = success ? 'status-light success' : 'status-light error';
+        this.terminalFinalMessage = finalMessage;
+        
+        // If the text queue has already finished playing, instantly show the final result.
+        // If it is STILL playing, we let it finish naturally so the animation isn't cut off!
+        if (this.terminalIndex >= this.terminalQueue.length) {
+            this.shadowRoot.getElementById('doc-status').textContent = finalMessage;
+        }
+    }
+
     updateCanvasScale() {
         if (!this.canvas) return;
         const workspace = document.getElementById('workspace');
@@ -694,26 +776,67 @@ class VisualBuilder extends HTMLElement {
         const topActions = this.shadowRoot.querySelector('.top-actions');
         topActions.style.display = 'none';
 
-        if (!this.shadowRoot.getElementById('isolation-actions')) {
+       if (!this.shadowRoot.getElementById('isolation-actions')) {
             const isoActions = document.createElement('div');
             isoActions.id = 'isolation-actions';
             isoActions.className = 'top-actions';
             isoActions.innerHTML = `
-                <button id="btn-exit-isolation" class="btn-primary" style="background: #ef4444; border-color: #7f1d1d;">Exit Sandbox</button>
-                <button id="btn-save-isolation" class="btn-primary" style="background: #f59e0b; border-color: #b45309; color: #fff;">Save Global Part</button>
+                <button id="btn-exit-isolation" class="btn-secondary" style="color: #ef4444; border-color: #7f1d1d;">Exit Sandbox</button>
+                <button id="btn-save-isolation" class="btn-primary" style="background: #f59e0b; border-color: #b45309; color: #fff;">Save Part</button>
+                <button id="btn-sync-isolation" class="btn-primary" style="background: #10b981; border-color: #059669; color: #fff;">Save & Sync Site</button>
             `;
             this.shadowRoot.getElementById('top-bar').appendChild(isoActions);
 
             this.shadowRoot.getElementById('btn-exit-isolation').addEventListener('click', () => this.exitIsolationMode());
+            
+            // Standard Save (Just updates JSON, doesn't build)
             this.shadowRoot.getElementById('btn-save-isolation').addEventListener('click', () => {
-                // Save the ENTIRE flat dictionary state back to the master part
                 const rootId = this.state.roots[0];
-                this.globalParts[this.isolationMode.partId].data = {
-                    rootId: rootId,
-                    items: JSON.parse(JSON.stringify(this.state.items))
-                };
+                this.globalParts[this.isolationMode.partId].data = { rootId: rootId, items: JSON.parse(JSON.stringify(this.state.items)) };
                 this.saveGlobalParts();
-                alert(`Global Part '${masterPart.name}' saved!`);
+                alert(`Global Part '${masterPart.name}' saved! Click 'Save & Sync Site' when ready to go live.`);
+            });
+
+           // Save & Sync (Updates JSON and triggers Puppeteer to rebuild everything)
+            this.shadowRoot.getElementById('btn-sync-isolation').addEventListener('click', async () => {
+                const syncBtn = this.shadowRoot.getElementById('btn-sync-isolation');
+                syncBtn.textContent = 'Syncing...';
+                syncBtn.disabled = true;
+                
+                // Start the animated terminal log
+                this.startTerminalSequence('global');
+
+                // 1. Save data first
+                const rootId = this.state.roots[0];
+                this.globalParts[this.isolationMode.partId].data = { rootId: rootId, items: JSON.parse(JSON.stringify(this.state.items)) };
+                await this.saveGlobalParts();
+
+                // 2. Trigger Global Build
+                try {
+                    const response = await fetch('http://localhost:3000/api/publish', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ globalSync: true })
+                    });
+                    
+                    if (response.ok) {
+                        syncBtn.textContent = '✅ Synced!';
+                        this.finishTerminalSequence(true, "Global site sync complete.");
+                    } else {
+                        throw new Error('Build failed');
+                    }
+                } catch (err) {
+                    syncBtn.textContent = '❌ Error';
+                    syncBtn.style.background = '#ef4444';
+                    this.finishTerminalSequence(false, "Global sync failed.");
+                } finally {
+                    setTimeout(() => { 
+                        syncBtn.textContent = 'Save & Sync Site'; 
+                        syncBtn.style.background = '#10b981';
+                        syncBtn.disabled = false;
+                        this.shadowRoot.getElementById('status-light').className = 'status-light idle';
+                    }, 4000);
+                }
             });
         } else {
             this.shadowRoot.getElementById('isolation-actions').style.display = 'flex';
@@ -759,7 +882,7 @@ class VisualBuilder extends HTMLElement {
         overlay.classList.remove('active');
     }
 
-    async loadState() {
+   async loadState() {
         const saved = localStorage.getItem('rainwildsBuilderTree');
         if (saved) {
             this.state = JSON.parse(saved);
@@ -767,6 +890,13 @@ class VisualBuilder extends HTMLElement {
 
         if (!this.state.presets) this.state.presets = {};
         if (!this.globalParts) this.globalParts = {};
+
+        // --- NEW: Restore the doc status text so it doesn't default to "Unsaved Document" ---
+        const slug = this.state.headData?.slug;
+        const type = this.state.headData?.contentType || 'post';
+        if (slug) {
+            this.shadowRoot.getElementById('doc-status').textContent = `Editing ${type.toUpperCase()}: /${slug}`;
+        }
 
         // Wait for global data to load BEFORE rebuilding the canvas
         await Promise.all([
@@ -776,6 +906,23 @@ class VisualBuilder extends HTMLElement {
 
         this.rebuildCanvas();
         this.renderGlobalPartsList(); // Render sidebar list on boot
+
+        // --- NEW: Resume Animation if Live Server Reloaded the Page ---
+        const activeTerminal = sessionStorage.getItem('activeTerminal');
+        if (activeTerminal) {
+            const data = JSON.parse(activeTerminal);
+            // If the animation started less than 10 seconds ago, resume it!
+            if (Date.now() - data.timestamp < 10000) {
+                this.startTerminalSequence(data.type);
+                this.terminalIndex = 3; // Fast-forward past the initial steps
+                
+                // Pre-load the success state so it glows green and finishes gracefully
+                const finalMsg = data.type === 'global' ? "Global site sync complete." : `Published: /${slug}.html`;
+                this.finishTerminalSequence(true, finalMsg);
+            } else {
+                sessionStorage.removeItem('activeTerminal');
+            }
+        }
     }
 
     rebuildCanvas() {
@@ -2477,13 +2624,17 @@ class VisualBuilder extends HTMLElement {
         const btnPublish = root.getElementById('btn-publish');
         btnPublish.addEventListener('click', async () => {
             btnPublish.disabled = true;
-            btnPublish.textContent = 'Saving & Publishing...';
+            btnPublish.textContent = 'Publishing...';
+            
+            // Start the animated terminal log in the status bar
+            this.startTerminalSequence('page');
 
             // 1. Silent Save
             const isSaved = await performSave(true);
             if (!isSaved) {
                 btnPublish.disabled = false;
                 btnPublish.textContent = 'Publish';
+                this.finishTerminalSequence(false, "Save aborted.");
                 return;
             }
 
@@ -2492,29 +2643,28 @@ class VisualBuilder extends HTMLElement {
                 const slug = this.state.headData.slug.trim();
                 const response = await fetch('http://localhost:3000/api/publish', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': 'Bearer rainwilds-builder-2026'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ slug, contentType: this.state.headData.contentType || 'post' })
                 });
 
                 if (response.ok) {
                     btnPublish.textContent = '✅ Published!';
                     btnPublish.style.background = '#059669';
+                    this.finishTerminalSequence(true, `Published: /${slug}.html`);
                 } else {
-                    alert('Publishing failed.');
                     btnPublish.textContent = '❌ Error';
+                    this.finishTerminalSequence(false, "Server build failed.");
                 }
             } catch (err) {
-                alert('Build server connection error.');
                 btnPublish.textContent = '❌ Error';
+                this.finishTerminalSequence(false, "Network connection lost.");
             } finally {
                 btnPublish.disabled = false;
                 setTimeout(() => {
                     btnPublish.textContent = 'Publish';
                     btnPublish.style.background = '#10b981';
-                }, 3000);
+                    this.shadowRoot.getElementById('status-light').className = 'status-light idle';
+                }, 4000);
             }
         });
     }

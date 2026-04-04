@@ -1,0 +1,82 @@
+{
+  "roots": [
+    "comp-1775178503731",
+    "comp-1775178433701"
+  ],
+  "items": {
+    "comp-1775178433701": {
+      "id": "comp-1775178433701",
+      "type": "custom-layout",
+      "attrs": {
+        "column-span": "12",
+        "subgrid": "true"
+      },
+      "children": [
+        "comp-1775178437371"
+      ],
+      "parentId": null
+    },
+    "comp-1775178437371": {
+      "id": "comp-1775178437371",
+      "type": "custom-block",
+      "children": [],
+      "parentId": "comp-1775178433701",
+      "localAttrs": {
+        "heading": "New Block",
+        "class": "background-color-1",
+        "inner-class": "padding-large",
+        "img-background-src": "tourism-photography-dark-2.jpg"
+      }
+    },
+    "comp-1775178503731": {
+      "id": "comp-1775178503731",
+      "type": "custom-layout",
+      "attrs": {
+        "column-span": "12",
+        "subgrid": "true"
+      },
+      "children": [
+        "comp-1775178507370"
+      ],
+      "parentId": null
+    },
+    "comp-1775178507370": {
+      "id": "comp-1775178507370",
+      "type": "custom-block",
+      "globalPartId": "global-1775259969178",
+      "localAttrs": {},
+      "children": [],
+      "parentId": "comp-1775178503731"
+    }
+  },
+  "headData": {
+    "contentType": "page",
+    "slug": "photography-1"
+  },
+  "presets": {
+    "preset-1775127672394": {
+      "id": "preset-1775127672394",
+      "type": "custom-block",
+      "name": "Slide 1",
+      "isStarred": true,
+      "baseAttrs": {
+        "heading": "New Block",
+        "class": "height-third",
+        "inner-class": "padding-large height-third",
+        "img-background-src": "tourism-photography-dark-2.jpg"
+      }
+    },
+    "preset-1775196353749": {
+      "id": "preset-1775196353749",
+      "type": "custom-layout",
+      "name": "Slide 3x",
+      "isStarred": false,
+      "baseAttrs": {
+        "column-span": "12",
+        "subgrid": "true",
+        "column-end": "-2",
+        "column-start": "1"
+      }
+    }
+  }
+}
