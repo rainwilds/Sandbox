@@ -184,28 +184,53 @@
       }
     }
   },
-  "global-1775259969178": {
-    "id": "global-1775259969178",
-    "name": "Photo/Video Panel 1",
+  "global-1775215516374": {
+    "id": "global-1775215516374",
+    "name": "Photos 1",
     "data": {
-      "rootId": "comp-1775178507370",
+      "rootId": "comp-1775215388739",
       "items": {
-        "comp-1775178507370": {
-          "id": "comp-1775178507370",
-          "type": "custom-block",
-          "children": [],
-          "parentId": null,
+        "comp-1775215388739": {
+          "id": "comp-1775215388739",
+          "type": "custom-layout",
+          "presetId": null,
           "localAttrs": {
-            "heading": "Photography & Videography",
-            "class": "height-third",
+            "column-span": "12",
+            "subgrid": "true"
+          },
+          "children": [
+            "comp-1775215391266",
+            "comp-1775215446465"
+          ],
+          "parentId": null
+        },
+        "comp-1775215391266": {
+          "id": "comp-1775215391266",
+          "type": "custom-block",
+          "presetId": null,
+          "localAttrs": {
+            "heading": "New Block",
+            "class": "background-color-1",
             "inner-class": "padding-large",
-            "img-background-src": "tourism-photography-light-1.jpg",
-            "background-overlay": "background-overlay-white-black",
-            "background-image-noise": "",
-            "sub-heading-tag": "h3",
-            "sub-heading": "High-Performance Photography & Videography for Premium SEQ Stays",
-            "text-alignment": "center"
-          }
+            "img-background-src": "tourism-photography-dark-3.jpg",
+            "column-end-laptop": "span 5"
+          },
+          "children": [],
+          "parentId": "comp-1775215388739"
+        },
+        "comp-1775215446465": {
+          "id": "comp-1775215446465",
+          "type": "custom-block",
+          "presetId": null,
+          "localAttrs": {
+            "heading": "New Block",
+            "class": "background-color-1",
+            "inner-class": "padding-large",
+            "column-start-laptop": "span 7",
+            "img-background-src": "tourism-photography-dark-2.jpg"
+          },
+          "children": [],
+          "parentId": "comp-1775215388739"
         }
       }
     }

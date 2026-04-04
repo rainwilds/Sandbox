@@ -1,83 +1,79 @@
 {
   "roots": [
-    "comp-1775018840178"
+    "comp-1775215388739"
   ],
   "items": {
-    "comp-1775018840178": {
-      "id": "comp-1775018840178",
+    "comp-1775215388739": {
+      "id": "comp-1775215388739",
       "type": "custom-layout",
-      "attrs": {
+      "presetId": null,
+      "localAttrs": {
         "column-span": "12",
-        "subgrid": "true",
-        "column-end": "-2",
-        "column-start": "1"
+        "subgrid": "true"
       },
       "children": [
-        "comp-1775018841371"
+        "comp-1775215391266",
+        "comp-1775215446465"
       ],
       "parentId": null
     },
-    "comp-1775018841371": {
-      "id": "comp-1775018841371",
-      "type": "custom-slider",
-      "attrs": {
-        "column-start": "2",
-        "slides-per-view": "1",
-        "pagination": "",
-        "pagination-icon-inactive": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d=\"M464 256a208 208 0 1 0 -416 0 208 208 0 1 0 416 0zM0 256a256 256 0 1 1 512 0 256 256 0 1 1 -512 0z\"/></svg>",
-        "pagination-icon-active": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d=\"M0 256a256 256 0 1 1 512 0 256 256 0 1 1 -512 0z\"/></svg>",
-        "navigation-icon-left": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d=\"M9.4 233.4c-12.5 12.5-12.5 32.8 0 45.3l160 160c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L109.3 288 480 288c17.7 0 32-14.3 32-32s-14.3-32-32-32l-370.7 0 105.4-105.4c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0l-160 160z\"/></svg>",
-        "navigation-icon-right": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 512 512\"><!--!Font Awesome Free v7.2.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d=\"M502.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L402.7 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l370.7 0-105.4 105.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z\"/></svg>",
-        "navigation": "",
-        "column-end": "span 5",
-        "autoplay": "continuous 50"
-      },
-      "children": [
-        "comp-1775018843750",
-        "comp-1775018892402",
-        "comp-1775023280184"
-      ],
-      "parentId": "comp-1775018840178"
-    },
-    "comp-1775018843750": {
-      "id": "comp-1775018843750",
+    "comp-1775215391266": {
+      "id": "comp-1775215391266",
       "type": "custom-block",
-      "attrs": {
+      "presetId": null,
+      "localAttrs": {
         "heading": "New Block",
         "class": "background-color-1",
         "inner-class": "padding-large",
-        "img-background-src": "tourism-photography-light-3.jpg"
+        "img-background-src": "tourism-photography-dark-3.jpg",
+        "column-end-laptop": "span 5"
       },
       "children": [],
-      "parentId": "comp-1775018841371"
+      "parentId": "comp-1775215388739"
     },
-    "comp-1775018892402": {
-      "id": "comp-1775018892402",
+    "comp-1775215446465": {
+      "id": "comp-1775215446465",
       "type": "custom-block",
-      "attrs": {
+      "presetId": null,
+      "localAttrs": {
         "heading": "New Block",
         "class": "background-color-1",
         "inner-class": "padding-large",
-        "img-background-src": "tourism-photography-light-2.jpg"
+        "column-start-laptop": "span 7",
+        "img-background-src": "tourism-photography-dark-5.jpg"
       },
       "children": [],
-      "parentId": "comp-1775018841371"
-    },
-    "comp-1775023280184": {
-      "id": "comp-1775023280184",
-      "type": "custom-block",
-      "attrs": {
-        "heading": "New Block",
-        "class": "background-color-1",
-        "inner-class": "padding-large",
-        "img-background-src": "tourism-photography-dark-1.jpg"
-      },
-      "children": [],
-      "parentId": "comp-1775018841371"
+      "parentId": "comp-1775215388739"
     }
   },
   "headData": {
     "slug": "page-1",
     "contentType": "page"
+  },
+  "presets": {
+    "preset-1775127672394": {
+      "id": "preset-1775127672394",
+      "type": "custom-block",
+      "name": "Slide 1",
+      "isStarred": true,
+      "baseAttrs": {
+        "heading": "New Block",
+        "class": "height-third",
+        "inner-class": "padding-large height-third",
+        "img-background-src": "tourism-photography-dark-2.jpg"
+      }
+    },
+    "preset-1775196353749": {
+      "id": "preset-1775196353749",
+      "type": "custom-layout",
+      "name": "Slide 3x",
+      "isStarred": false,
+      "baseAttrs": {
+        "column-span": "12",
+        "subgrid": "true",
+        "column-end": "-2",
+        "column-start": "1"
+      }
+    }
   }
 }
