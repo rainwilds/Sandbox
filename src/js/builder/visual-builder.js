@@ -230,6 +230,35 @@ class VisualBuilder extends HTMLElement {
                 .exif-row span:last-child { color: var(--theme-text); font-family: monospace; text-align: right; line-height: 1.4; word-break: break-word; }
              
              
+/* --- VISUAL NODE MAPPING ENGINE --- */
+              #mapping-workspace {
+                    display: none; position: absolute; top: 60px; left: var(--left-width); right: var(--right-width); bottom: 60px;
+                    background-color: #0f111a; background-image: radial-gradient(#2a2f3d 1px, transparent 1px); background-size: 20px 20px;
+                    z-index: 50; overflow: auto; padding: 40px; box-sizing: border-box; pointer-events: auto;
+                }
+                #mapping-workspace.active { display: block; }
+                
+                .mapping-node {
+                    position: absolute; background: var(--theme-bg-panel); border: 1px solid var(--theme-border); border-radius: 8px; width: 240px;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.5); color: var(--theme-text); display: flex; flex-direction: column; z-index: 10;
+                }
+                .mapping-node-header {
+                    padding: 10px 15px; background: var(--theme-bg-bar); border-bottom: 1px solid var(--theme-border); border-top-left-radius: 8px; border-top-right-radius: 8px;
+                    font-weight: 600; font-size: 0.85rem; display: flex; align-items: center; justify-content: space-between;
+                }
+                .mapping-node-header.cms-header { background: rgba(16, 185, 129, 0.15); color: #34d399; border-bottom-color: rgba(16, 185, 129, 0.3); }
+                .mapping-node-body { padding: 10px 0; display: flex; flex-direction: column; gap: 5px; }
+                
+              .mapping-port-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 15px; font-size: 0.75rem; position: relative; cursor: grab; transition: background 0.2s; border-radius: 4px; }
+                .mapping-port-row:hover { background: rgba(255, 255, 255, 0.05); }
+                .mapping-port-row:active { cursor: grabbing; } 
+                .port-label { color: var(--theme-text-muted); font-family: monospace; }
+                
+                .mapping-port { width: 14px; height: 14px; fill: var(--theme-border-light); cursor: crosshair; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+                .mapping-port:hover { fill: var(--theme-accent); transform: scale(1.2); }
+                .mapping-port.output-port { margin-right: -22px; }
+                .mapping-port.input-port { margin-left: -22px; }
+
                 /* Cinematic Fade Transition Overlay */
                 /* UPDATED: Sped up from 0.5s to 0.4s (20% faster) */
                 #transition-overlay { position: fixed; inset: 0; background: #050505; z-index: 20000; opacity: 0; pointer-events: none; transition: opacity 0.4s ease-in-out; }
@@ -251,7 +280,8 @@ class VisualBuilder extends HTMLElement {
                     ${dynamicViewportButtons}
                 </div>
 <div class="top-actions">
-<button id="btn-cms" class="btn-secondary" style="border-color: #8b5cf6; color: #a78bfa;">Dashboard</button>
+    <button id="btn-cms" class="btn-secondary" style="border-color: #8b5cf6; color: #a78bfa;">Dashboard</button>
+    <button id="btn-mapping" class="btn-secondary" style="border-color: #3b82f6; color: #60a5fa;">Data Mapping</button>
     <button id="btn-toggle-guides" class="btn-secondary">Guides: Off</button>
     <button id="btn-clear" class="btn-secondary" style="color: #ef4444; border-color: #7f1d1d;">Clear</button>
     <button id="btn-view-html" class="btn-secondary">View HTML</button>
@@ -424,7 +454,8 @@ class VisualBuilder extends HTMLElement {
                     </div>
                 </div>
             </div>
-
+<div id="mapping-workspace"></div>
+            <div id="transition-overlay"></div>
             <div id="transition-overlay"></div>
         `;
     }
@@ -2811,6 +2842,265 @@ class VisualBuilder extends HTMLElement {
         }
     }
 
+    createPortProxy(portElement) {
+        const proxy = document.createElement('div');
+        proxy.style.cssText = 'position:fixed; width:1px; height:1px; pointer-events:none; z-index:9999;';
+        document.body.appendChild(proxy);
+
+        const update = () => {
+            const rect = portElement.getBoundingClientRect();
+            proxy.style.left = (rect.left + rect.width / 2) + 'px';
+            proxy.style.top = (rect.top + rect.height / 2) + 'px';
+        };
+
+        update();
+        return { element: proxy, update: update, original: portElement };
+    }
+
+    enterMappingMode() {
+        this.mappingMode = true;
+        const btn = this.shadowRoot.getElementById('btn-mapping');
+        btn.textContent = 'Exit Mapping';
+        btn.style.background = 'rgba(59, 130, 246, 0.15)';
+
+        this.canvas.style.opacity = '0';
+        this.canvas.style.pointerEvents = 'none';
+        this.shadowRoot.getElementById('mapping-workspace').classList.add('active');
+
+        if (!document.getElementById('leader-line-styles')) {
+            const style = document.createElement('style');
+            style.id = 'leader-line-styles';
+            style.innerHTML = '.leader-line { z-index: 20000 !important; pointer-events: none; }';
+            document.head.appendChild(style);
+        }
+
+        this.activeLines = [];
+
+        // --- NATIVE SVG DRAG CANVAS (Zero Latency) ---
+        if (!this.dragSvg) {
+            this.dragSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            this.dragSvg.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; pointer-events:none; z-index:20005;';
+            this.dragPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            this.dragPath.setAttribute('fill', 'none');
+            this.dragPath.setAttribute('stroke', '#818cf8'); // Glowing indigo
+            this.dragPath.setAttribute('stroke-width', '4');
+            this.dragPath.setAttribute('stroke-linecap', 'round');
+            this.dragPath.style.filter = 'drop-shadow(0 0 4px rgba(129, 140, 248, 0.6))';
+
+            this.dragSvg.appendChild(this.dragPath);
+            document.body.appendChild(this.dragSvg);
+        }
+
+        this.renderMappingNodes();
+        this.setupNodeWiring();
+    }
+
+    exitMappingMode() {
+        this.mappingMode = false;
+        const btn = this.shadowRoot.getElementById('btn-mapping');
+        btn.textContent = 'Data Mapping';
+        btn.style.background = 'transparent';
+
+        this.canvas.style.opacity = '1';
+        this.canvas.style.pointerEvents = 'auto';
+        this.shadowRoot.getElementById('mapping-workspace').classList.remove('active');
+        this.shadowRoot.getElementById('mapping-workspace').innerHTML = '';
+
+        if (this.activeLines) {
+            this.activeLines.forEach(item => {
+                item.line.remove();
+                item.startProxy.element.remove();
+                item.endProxy.element.remove();
+            });
+            this.activeLines = [];
+        }
+
+        // Cleanup Native SVG
+        if (this.dragSvg) {
+            this.dragSvg.remove();
+            this.dragSvg = null;
+            this.dragPath = null;
+        }
+
+        if (this._onWorkspaceMouseDown) this.shadowRoot.getElementById('mapping-workspace').removeEventListener('mousedown', this._onWorkspaceMouseDown);
+        if (this._onMouseMove) window.removeEventListener('mousemove', this._onMouseMove);
+        if (this._onMouseUp) window.removeEventListener('mouseup', this._onMouseUp);
+    }
+
+    renderMappingNodes() {
+        const workspace = this.shadowRoot.getElementById('mapping-workspace');
+        workspace.innerHTML = '';
+        const portSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M480 256a224 224 0 1 0 -448 0 224 224 0 1 0 448 0zM0 256a256 256 0 1 1 512 0 256 256 0 1 1 -512 0z"/></svg>`;
+
+        const cmsFields = ['title', 'date', 'author', 'categories', 'excerpt', 'featuredImage', 'content'];
+        const cmsNode = document.createElement('div');
+        cmsNode.className = 'mapping-node';
+        cmsNode.style.top = '40px';
+        cmsNode.style.left = '40px';
+
+        let cmsBody = '';
+        cmsFields.forEach(field => {
+            cmsBody += `
+                <div class="mapping-port-row">
+                    <span class="port-label">CMS.${field}</span>
+                    <div class="mapping-port output-port" data-node="cms" data-port="${field}">${portSvg}</div>
+                </div>`;
+        });
+        cmsNode.innerHTML = `<div class="mapping-node-header cms-header"><span>CMS Payload</span></div><div class="mapping-node-body">${cmsBody}</div>`;
+        workspace.appendChild(cmsNode);
+
+        const bindableAttrs = ['heading', 'sub-heading', 'paragraph', 'button-text', 'button-href', 'img-primary-src', 'img-background-src', 'video-primary-src'];
+        let verticalOffset = 40;
+
+        Object.values(this.state.items).forEach(item => {
+            if (item.type === 'custom-layout' || item.type === 'custom-slider') return;
+
+            const compNode = document.createElement('div');
+            compNode.className = 'mapping-node';
+            compNode.style.top = `${verticalOffset}px`;
+            compNode.style.left = '450px';
+
+            const cleanName = item.type.replace('custom-', '').charAt(0).toUpperCase() + item.type.replace('custom-', '').slice(1);
+
+            let compBody = '';
+            bindableAttrs.forEach(attr => {
+                compBody += `
+                    <div class="mapping-port-row">
+                        <div class="mapping-port input-port" data-node="${item.id}" data-port="${attr}">${portSvg}</div>
+                        <span class="port-label">${attr}</span>
+                    </div>`;
+            });
+
+            compNode.innerHTML = `<div class="mapping-node-header"><span>${cleanName}</span><span style="font-size:0.6rem; color:#64748b;">${item.id.split('-')[1]}</span></div><div class="mapping-node-body">${compBody}</div>`;
+            workspace.appendChild(compNode);
+            verticalOffset += compNode.offsetHeight + 200;
+        });
+    }
+
+    setupNodeWiring() {
+        const workspace = this.shadowRoot.getElementById('mapping-workspace');
+        let dragState = null;
+        let startX = 0, startY = 0;
+
+        if (this._onWorkspaceMouseDown) workspace.removeEventListener('mousedown', this._onWorkspaceMouseDown);
+
+        this._onWorkspaceMouseDown = (e) => {
+            let target = e.composedPath()[0];
+            if (target.nodeType === Node.TEXT_NODE) target = target.parentNode;
+
+            const row = target.closest ? target.closest('.mapping-port-row') : null;
+            if (!row) return;
+
+            const port = row.querySelector('.output-port');
+            if (!port) return;
+
+            e.preventDefault();
+            workspace.style.userSelect = 'none';
+
+            // Get exact starting position of the port
+            const rect = port.getBoundingClientRect();
+            startX = rect.left + rect.width / 2;
+            startY = rect.top + rect.height / 2;
+
+            const startProxy = this.createPortProxy(port);
+            dragState = { startProxy, portData: port.dataset };
+
+            // Start the Native SVG line
+            this.dragPath.setAttribute('d', `M ${startX} ${startY} L ${startX} ${startY}`);
+            this.dragSvg.style.display = 'block';
+        };
+
+        workspace.addEventListener('mousedown', this._onWorkspaceMouseDown);
+
+        if (this._onMouseMove) window.removeEventListener('mousemove', this._onMouseMove);
+        if (this._onMouseUp) window.removeEventListener('mouseup', this._onMouseUp);
+
+        this._onMouseMove = (e) => {
+            if (!dragState) return;
+
+            // NATIVE SVG CURVE MATH (Zero Latency!)
+            const endX = e.clientX;
+            const endY = e.clientY;
+
+            // Tension dynamically adjusts based on distance, creating a physical "cable" feel
+            const distance = Math.abs(endX - startX);
+            const cpOffset = Math.max(distance * 0.4, 40);
+
+            // Cubic Bezier formula
+            const pathData = `M ${startX} ${startY} C ${startX + cpOffset} ${startY}, ${endX - cpOffset} ${endY}, ${endX} ${endY}`;
+
+            this.dragPath.setAttribute('d', pathData);
+        };
+
+        this._onMouseUp = (e) => {
+            if (!dragState) return;
+            workspace.style.userSelect = '';
+
+            // Hide Native SVG immediately
+            this.dragSvg.style.display = 'none';
+            this.dragPath.setAttribute('d', '');
+
+            let target = e.composedPath()[0];
+            if (target && target.nodeType === Node.TEXT_NODE) target = target.parentNode;
+
+            const dropRow = target && target.closest ? target.closest('.mapping-port-row') : null;
+            const dropPort = dropRow ? dropRow.querySelector('.input-port') : null;
+
+            if (dropPort) {
+                const endProxy = this.createPortProxy(dropPort);
+
+                // Hand off to LeaderLine for the permanent, anchored connection
+                const permanentLine = new LeaderLine(dragState.startProxy.element, endProxy.element, {
+                    color: '#10b981',
+                    size: 4,
+                    path: 'fluid',
+                    startSocket: 'right',
+                    endSocket: 'left',
+                    startPlug: 'behind',
+                    endPlug: 'behind',
+                    startSocketGravity: [60, 0],
+                    endSocketGravity: [-60, 0],
+                    dropShadow: { dx: 0, dy: 4, blur: 6, color: 'rgba(0,0,0,0.5)' }
+                });
+
+                document.querySelectorAll('.leader-line').forEach(el => el.style.zIndex = '20000');
+
+                this.activeLines.push({
+                    line: permanentLine,
+                    startProxy: dragState.startProxy,
+                    endProxy: endProxy
+                });
+
+                console.log(`✅ WIRED: CMS.${dragState.portData.port} -> Node[${dropPort.dataset.node}].${dropPort.dataset.port}`);
+            } else {
+                dragState.startProxy.element.remove();
+            }
+
+            dragState = null;
+        };
+
+        window.addEventListener('mousemove', this._onMouseMove);
+        window.addEventListener('mouseup', this._onMouseUp);
+
+        let isScrolling = false;
+        workspace.addEventListener('scroll', () => {
+            if (!isScrolling) {
+                isScrolling = true;
+                requestAnimationFrame(() => {
+                    // Update the static LeaderLines when scrolling
+                    if (this.activeLines) {
+                        this.activeLines.forEach(item => {
+                            item.startProxy.update();
+                            item.endProxy.update();
+                            item.line.position();
+                        });
+                    }
+                    isScrolling = false;
+                });
+            }
+        });
+    }
+
     setupControls() {
         const root = this.shadowRoot;
 
@@ -2935,6 +3225,12 @@ class VisualBuilder extends HTMLElement {
             this.canvas.classList.toggle('show-guides');
             const btn = root.getElementById('btn-toggle-guides');
             btn.textContent = this.canvas.classList.contains('show-guides') ? 'Hide Grid' : 'Show Grid';
+        });
+
+        // --- BUTTON: DATA MAPPING ---
+        root.getElementById('btn-mapping').addEventListener('click', () => {
+            if (this.mappingMode) this.exitMappingMode();
+            else this.enterMappingMode();
         });
 
         root.getElementById('btn-clear').addEventListener('click', () => {
