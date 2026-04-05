@@ -789,57 +789,12 @@
       max-width: var(--max-width-large);
     }
 
-    /* --- ? REVIEW REQUIRED ? --------------------------------------------------
-      1. Typo Check: 'quater' is misspelled (should be 'quarter'). I left your 
-          original spelling to prevent breaking existing HTML classes.
-      2. Modern CSS Upgrade: Consider changing 'vh' to 'dvh' (dynamic viewport height) 
-          so these elements size correctly on mobile browsers when the address bar hides/shows.
-      -------------------------------------------------------------------------- */
-    /* Applies fixed viewport-based heights */
-    .height-quater {
-      height: 25vh;
-    }
-
-    .height-third {
-      height: 33vh;
-    }
-
-    .height-half {
-      height: 50vh;
-    }
-
-    .height-two-thirds {
-      height: 66vh;
-    }
-
-    .height-viewport {
-      height: 100vh;
-    }
-
-    /* Applies minimum viewport-based heights, allowing content to expand if needed */
-    .min-height-quater {
-      min-height: 25vh;
-    }
-
-    .min-height-third {
-      min-height: 33vh;
-    }
-
-    .min-height-half {
-      min-height: 50vh;
-    }
-
-    .min-height-two-thirds {
-      min-height: 66vh;
-    }
-
-    .min-height-viewport {
-      min-height: 100vh;
-    }
-
-    
-
-    .backdrop-blur-small {
+   /* --- ? REVIEW REQUIRED ? --------------------------------------------------
+     Your instinct was right. Because these apply 'backdrop-filter' directly, 
+     they will override and break the '.has-backdrop' composition system 
+     we just built. These can be safely deleted.
+     -------------------------------------------------------------------------- */
+    /* .backdrop-blur-small {
       backdrop-filter: blur(var(--blur-small));
     }
 
@@ -849,16 +804,23 @@
 
     .backdrop-blur-large {
       backdrop-filter: blur(var(--blur-large));
-    }
+    } 
+    */
 
+
+    /* ---------- MEDIA FITTING & POSITIONING ---------- */
+
+    /* Ensures media scales to fit within its container without cropping or distortion */
     .object-fit-contain {
       object-fit: contain;
     }
 
+    /* Forces media to completely fill its container, ignoring original aspect ratio (may distort) */
     .object-fit-fill {
       object-fit: fill;
     }
 
+    /* Anchors the focal point of cropped media to the top or bottom edge */
     .object-position-top {
       object-position: top;
     }
@@ -867,47 +829,56 @@
       object-position: bottom;
     }
 
+
+    /* ---------- ASPECT RATIOS ---------- */
+
+    /* Forces elements (like image wrappers or video embeds) to maintain strict proportions */
     .aspect-ratio-21-9 {
-      aspect-ratio: 21/9;
+      aspect-ratio: 21 / 9;
     }
 
     .aspect-ratio-16-9 {
-      aspect-ratio: 16/9;
+      aspect-ratio: 16 / 9;
     }
 
     .aspect-ratio-9-16 {
-      aspect-ratio: 9/16;
+      aspect-ratio: 9 / 16;
     }
 
     .aspect-ratio-3-2 {
-      aspect-ratio: 3/2;
+      aspect-ratio: 3 / 2;
     }
 
     .aspect-ratio-2-3 {
-      aspect-ratio: 2/3;
+      aspect-ratio: 2 / 3;
     }
 
     .aspect-ratio-1-1 {
-      aspect-ratio: 1/1;
+      aspect-ratio: 1 / 1;
     }
 
+   /* --- ? REVIEW REQUIRED ? --------------------------------------------------
+     Verify if these '.builder*' classes are still utilized in the codebase.
+     (Original intent: Aligns inline SVGs vertically with the text baseline)
+     -------------------------------------------------------------------------- */
     .builder-inline-svg {
       display: inline-block;
-      vertical-align: -0.125em; /* Drops the SVG slightly to align with the text baseline */
+      vertical-align: -0.125em; 
       overflow: visible;
     }
 
-    /* Optional: Ensure button icons maintain block layout if using flex/grid inside buttons */
     .button-icon .builder-inline-svg {
       display: block; 
     }
 
+
+    /* ---------- INTERACTIVE & LINKS ---------- */
+
+    /* Establishes base interactive styling for all hyperlink states */
     a:any-link {
       color: var(--color-primary);
       /* text-decoration: none; */
       /* text-underline-offset: -0.4rem; */
-
-      /* adobe font requirements */
       /* font-weight: var(--font-2-weight-light); test */
 
       &:hover {
@@ -917,24 +888,32 @@
       }
     }
 
+
+    /* ---------- FORM ELEMENTS ---------- */
+
+    /* Unifies baseline appearance for all interactive form inputs */
     button,
     input,
     select,
     textarea {
       background-color: var(--color-secondary);
       padding: var(--space-tiny);
-      border: solid 1px;
-      border-color: var(--color-primary);
-      /* border-radius: var(--border-radius-small); PLACEHOLDER */
-      /* background-size: 32px 32px; */
+      border: solid 1px var(--color-primary);
+      /* border-radius: var(--border-radius-small); */ /* PLACEHOLDER */
     }
 
+    /* Applies the globally defined repeating pattern strictly to text/selection inputs */
     input,
     select,
     textarea {
       background-image: var(--background-pattern-1);
     }
 
+    /* --- ? REVIEW REQUIRED ? --------------------------------------------------
+      The 'background-color' property inside &:hover is calling '--shade()'. 
+      Unless you have a custom CSS function defined for this, it will fail. 
+      Consider using standard color-mix() or OKLAB relative syntax here.
+      -------------------------------------------------------------------------- */
     button {
       background-image: var(--background-noise);
       padding: calc(var(--space-tiny) / 2) var(--space-tiny);
@@ -946,18 +925,24 @@
       }
     }
 
+
+    /* ---------- FORM VALIDATION STATES ---------- */
+
+    /* Provides visual feedback for validated form inputs */
     input:user-valid,
     select:user-valid,
     textarea:user-valid {
       border-color: green;
     }
 
+    /* Provides visual feedback for invalid form inputs */
     input:user-invalid,
     select:user-invalid,
     textarea:user-invalid {
       border-color: red;
     }
 
+    /* Enhances accessibility focus states while disabling background patterns */
     input:focus-visible,
     select:focus-visible,
     textarea:focus-visible {
@@ -967,10 +952,31 @@
       background-image: none;
     }
 
+    /* ---------- ELEMENT BASELINES ---------- */
+
+    /* Normalizes horizontal rules */
     hr {
       background: var(--color-white);
     }
 
+    /* Ensures all media fills its container correctly */
+    img,
+    picture {
+      object-fit: cover;
+    }
+
+    /* Accessibility: Dims and desaturates bright images when the user prefers dark mode */
+    @media (prefers-color-scheme: dark) {
+      img,
+      picture {
+        filter: opacity(0.9) saturate(0.8);
+      }
+    }
+
+
+    /* ---------- TYPOGRAPHY HIERARCHY ---------- */
+
+    /* Establishes the baseline font family, weight, and line-height for all headings */
     h1,
     h2,
     h3,
@@ -978,48 +984,38 @@
     h5,
     h6 {
       font-family: var(--font-1-family);
-      line-height: 1;
-
-      /* adobe font requirements */
       font-weight: var(--font-1-weight-medium);
-      /* font-style: normal; */
-
+      line-height: 1;
       margin-bottom: var(--space-tiny);
     }
 
-    h1 {
-      font-size: 3.5rem;
-    }
+    /* --- ? REVIEW REQUIRED ? --------------------------------------------------
+      These heading sizes use hardcoded 'rem' values. Consider creating fluid 
+      typography variables (using clamp) in your variables layer and mapping 
+      them here so your headings scale automatically on mobile.
+      -------------------------------------------------------------------------- */
+    h1 { font-size: 3.5rem; }
+    h2 { font-size: 1.76rem; }
+    h3 { font-size: 1.4rem; }
+    h4 { font-size: 1.4rem; }
+    h5 { font-size: 1.2rem; }
+    h6 { font-size: 1.2rem; }
 
-    h2 {
-      font-size: 1.76rem;
-    }
-
-    h3 {
-      font-size: 1.4rem;
-    }
-
-    h4 {
-      font-size: 1.4rem;
-    }
-
-    h5 {
-      font-size: 1.2rem;
-    }
-
-    h6 {
-      font-size: 1.2rem;
-    }
-
+    /* Automatically adds spacing below paragraphs, except the last one in a container */
     p:not(:last-of-type) {
       margin-bottom: var(--space-tiny);
     }
 
+    /* Editorial styling: Highlights the first line of the first paragraph in an article */
     article p:nth-child(1)::first-line {
       font-size: var(--font-2-size-large);
       font-weight: var(--font-2-weight-heavy);
     }
 
+
+    /* ---------- LISTS ---------- */
+
+    /* Strips default styling from lists and adds consistent vertical spacing between items */
     ol,
     ul {
       list-style: none;
@@ -1029,303 +1025,280 @@
       }
     }
 
+
+    /* ---------- QUOTES ---------- */
+
+    /* Establishes the visual style for blockquotes */
     blockquote {
       font-size: var(--font-2-size-large);
       background-color: var(--color-secondary);
       padding: var(--space-medium);
 
+      /* Targets citation or context paragraphs inside the quote */
       > p {
         font-size: var(--font-2-size-small);
         margin-top: var(--space-small);
       }
     }
 
+    /* Positions an icon relative to the blockquote if it immediately precedes it */
     i:has(+ blockquote) {
       font-size: 3rem;
       position: absolute;
       color: var(--color-primary);
     }
 
-    img,
-    picture {
-      object-fit: cover;
 
-      /* @media (prefers-color-scheme: dark) {
-        &:not(div[id^="gallery-item-"] picture, div[id^="gallery-item-"] img) {
-          filter: opacity(0.9) saturate(0.8);
-        }
-      } */
-    } 
+    /* ==========================================================================
+      LAYOUT & STRUCTURE
+      Defines the core grid systems and structural containers for the page.
+      ========================================================================== */
 
-    /* body {
+    /* --- ? REVIEW REQUIRED ? --------------------------------------------------
+      Recommendation: You can safely delete the massive commented-out legacy 
+      'body' block from your source code. Your new active 'body' block below is 
+      much cleaner and fixes the repetition/specificity issues of the old one.
+      -------------------------------------------------------------------------- */
 
-            display: grid;
-            background-color: light-dark(var(--color-primary), var(--color-secondary));
+    /* ---------- GLOBAL GRID ---------- */
 
-            @media (min-width: 550px) and (max-width: 980px) and (orientation: landscape) {
-
-                & {
-                    grid-template: min-content / var(--side-gutter) repeat(12, 1fr) var(--side-gutter) !important;
-                    grid-template-areas:
-                        "gutter-left header header header header header header header header header header header header gutter-right"
-                        "gutter-left main main main main main main main main main main main main gutter-right"
-                        "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right" !important;
-                }
-
-            }
-
-            @media (max-width: 768px) {
-
-                & {
-                    grid-template: 100svh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter) !important;
-                    grid-template-areas:
-                        "gutter-left header header header header header header header header header header header header gutter-right"
-                        "gutter-left main main main main main main main main main main main main gutter-right"
-                        "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right" !important;
-                }
-
-            }
-
-            @media (max-width: 1200px) {
-
-                & {
-                    grid-template: 100svh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
-                    grid-template-areas:
-                        "gutter-left header header header header header header header header header header header header gutter-right"
-                        "gutter-left main main main main main main main main main main main main gutter-right"
-                        "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
-                }
-
-            }
-
-            @media (min-width: 1201px) and (max-width: 1919px) {
-
-                & {
-                    grid-template: 100vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
-                    grid-template-areas:
-                        "gutter-left header header header header header header header header header header header header gutter-right"
-                        "gutter-left main main main main main main main main main main main main gutter-right"
-                        "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
-                }
-
-            }
-
-            @media (min-width: 1920px) {
-
-                & {
-                    grid-template: 50vh / var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
-                    grid-template-areas:
-                        "gutter-left header header header header header header header header header header header header gutter-right"
-                        "gutter-left main main main main main main main main main main main main gutter-right"
-                        "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
-                }
-
-            }
-
-        } */
-
+    /* Establishes the primary 14-column document grid (12 content columns + 2 fluid gutters) */
     body {
       display: grid;
       background-color: var(--color-tertiary);
+      
+      /* Defines the semantic layout areas for the page structure */
       grid-template-areas:
         "gutter-left header header header header header header header header header header header header gutter-right"
         "gutter-left main main main main main main main main main main main main gutter-right"
         "gutter-left footer footer footer footer footer footer footer footer footer footer footer footer gutter-right";
 
+      /* Distributes horizontal space: fluid outer gutters with 12 equal-fraction inner columns */
+      grid-template-columns: var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
+
+      /* --- ? REVIEW REQUIRED ? --------------------------------------------------
+        Currently, row heights are implicit (auto-sizing to fit content). 
+        If you want to restore viewport-based row heights using your inline if() syntax,
+        you can uncomment and adjust the block below. Otherwise, it is safe to delete.
+        -------------------------------------------------------------------------- */
       /* grid-template-rows: if(
         media((min-width: 550px) and (max-width: 980px) and (orientation: landscape)): 100vh;
         media(max-width: 768px): 100vh;
         media(max-width: 1200px): 100vh;
         media(min-width: 1201px) and (max-width: 1919px): 60vh; else: 60vh
       ); */
-
-      /* grid-template-rows: min-content; */
-
-      grid-template-columns: var(--side-gutter) repeat(12, 1fr) var(--side-gutter);
     }
 
+    /* ---------- RESPONSIVE OVERRIDES ---------- */
+
+    /* Removes maximum width constraints on mobile devices to allow full-bleed layouts */
     @media (max-width: 768px) {
-      &:root {
-        .max-width-small,
-        .max-width-medium,
-        .max-width-large {
-          max-width: initial;
-        }
+      .max-width-small,
+      .max-width-medium,
+      .max-width-large {
+        max-width: initial;
       }
     }
 
+    /* --- ? REVIEW REQUIRED ? --------------------------------------------------
+      This commented-out media query alters a CSS variable (--side-gutter). 
+      If you decide to use this in the future to increase gutter sizes on 
+      ultra-wide monitors, move it to your '@layer variables' section!
+      -------------------------------------------------------------------------- */
     /* @media (min-width: 2560px) {
-
-            &:root {
-                --side-gutter: 10vw
-            }
-
-        } */
+        :root {
+          --side-gutter: 10vw;
+        }
+      } */
   
 }
 
+/* ==========================================================================
+   CSS COMPONENTS
+   Defines structural layout systems, complex UI modules, and interactive 
+   builder elements built on top of defaults and variables.
+   ========================================================================== */
+
 @layer components {
 
+  /* ---------- ATTRIBUTE-BASED GRID PLACEMENT ---------- */
 
+  /* --- ? REVIEW REQUIRED ? --------------------------------------------------
+     While functional, custom attributes without a 'data-' prefix violate strict 
+     HTML5 validation. If validation is required, consider updating these to 
+     [data-column-span="1"], [data-column-start="1"], etc.
+     -------------------------------------------------------------------------- */
 
+  /* 1. Column Spans (How many columns wide the layout is) */
+  [column-span="1"] { grid-column-end: span 1; }
+  [column-span="2"] { grid-column-end: span 2; }
+  [column-span="3"] { grid-column-end: span 3; }
+  [column-span="4"] { grid-column-end: span 4; }
+  [column-span="5"] { grid-column-end: span 5; }
+  [column-span="6"] { grid-column-end: span 6; }
+  [column-span="7"] { grid-column-end: span 7; }
+  [column-span="8"] { grid-column-end: span 8; }
+  [column-span="9"] { grid-column-end: span 9; }
+  [column-span="10"] { grid-column-end: span 10; }
+  [column-span="11"] { grid-column-end: span 11; }
+  [column-span="12"] { grid-column-end: span 12; }
+  [column-span="13"] { grid-column-end: span 13; }
+  [column-span="14"] { grid-column-end: span 14; }
 
-/* 1. THE LAYOUT CONTAINER
-/* =========================================
-   GRID LAYOUT ATTRIBUTES
-   ========================================= */
+  /* 2. Column Start Positions (Useful for pushing past the left gutter) */
+  [column-start="1"] { grid-column-start: 1; }
+  [column-start="2"] { grid-column-start: 2; }
+  [column-start="3"] { grid-column-start: 3; }
+  [column-start="4"] { grid-column-start: 4; }
+  [column-start="5"] { grid-column-start: 5; }
+  [column-start="6"] { grid-column-start: 6; }
+  [column-start="7"] { grid-column-start: 7; }
+  [column-start="8"] { grid-column-start: 8; }
+  [column-start="9"] { grid-column-start: 9; }
+  [column-start="10"] { grid-column-start: 10; }
+  [column-start="11"] { grid-column-start: 11; }
+  [column-start="12"] { grid-column-start: 12; }
+  [column-start="13"] { grid-column-start: 13; }
+  [column-start="14"] { grid-column-start: 14; }
 
-/* 1. Column Spans (How many columns wide the layout is) */
-[column-span="1"] { grid-column-end: span 1; }
-[column-span="2"] { grid-column-end: span 2; }
-[column-span="3"] { grid-column-end: span 3; }
-[column-span="4"] { grid-column-end: span 4; }
-[column-span="5"] { grid-column-end: span 5; }
-[column-span="6"] { grid-column-end: span 6; }
-[column-span="7"] { grid-column-end: span 7; }
-[column-span="8"] { grid-column-end: span 8; }
-[column-span="9"] { grid-column-end: span 9; }
-[column-span="10"] { grid-column-end: span 10; }
-[column-span="11"] { grid-column-end: span 11; }
-[column-span="12"] { grid-column-end: span 12; }
-[column-span="13"] { grid-column-end: span 13; }
-[column-span="14"] { grid-column-end: span 14; }
+  /* 3. Column End Positions (For explicitly declaring endpoints) */
+  [column-end="1"] { grid-column-end: 1; }
+  [column-end="2"] { grid-column-end: 2; }
+  [column-end="3"] { grid-column-end: 3; }
+  [column-end="4"] { grid-column-end: 4; }
+  [column-end="5"] { grid-column-end: 5; }
+  [column-end="6"] { grid-column-end: 6; }
+  [column-end="7"] { grid-column-end: 7; }
+  [column-end="8"] { grid-column-end: 8; }
+  [column-end="9"] { grid-column-end: 9; }
+  [column-end="10"] { grid-column-end: 10; }
+  [column-end="11"] { grid-column-end: 11; }
+  [column-end="12"] { grid-column-end: 12; }
+  [column-end="13"] { grid-column-end: 13; }
+  [column-end="14"] { grid-column-end: 14; }
 
-/* 2. Column Start Positions (Useful for pushing past the left gutter: column-start="2") */
-[column-start="1"] { grid-column-start: 1; }
-[column-start="2"] { grid-column-start: 2; }
-[column-start="3"] { grid-column-start: 3; }
-[column-start="4"] { grid-column-start: 4; }
-[column-start="5"] { grid-column-start: 5; }
-[column-start="6"] { grid-column-start: 6; }
-[column-start="7"] { grid-column-start: 7; }
-[column-start="8"] { grid-column-start: 8; }
-[column-start="9"] { grid-column-start: 9; }
-[column-start="10"] { grid-column-start: 10; }
-[column-start="11"] { grid-column-start: 11; }
-[column-start="12"] { grid-column-start: 12; }
-[column-start="13"] { grid-column-start: 13; }
-[column-start="14"] { grid-column-start: 14; }
-
-/* 3. Column End Positions (If you prefer declaring exact endpoints) */
-[column-end="1"] { grid-column-end: 1; }
-[column-end="2"] { grid-column-end: 2; }
-[column-end="3"] { grid-column-end: 3; }
-[column-end="4"] { grid-column-end: 4; }
-[column-end="5"] { grid-column-end: 5; }
-[column-end="6"] { grid-column-end: 6; }
-[column-end="7"] { grid-column-end: 7; }
-[column-end="8"] { grid-column-end: 8; }
-[column-end="9"] { grid-column-end: 9; }
-[column-end="10"] { grid-column-end: 10; }
-[column-end="11"] { grid-column-end: 11; }
-[column-end="12"] { grid-column-end: 12; }
-[column-end="13"] { grid-column-end: 13; }
-[column-end="14"] { grid-column-end: 14; }
-
-
-/* 1. Define the container on the body AND the builder canvas */
-body, #canvas {
-    container-type: inline-size;
-    container-name: layout;
-}
-
-/* 2. Base (Mobile-First) Default Cascade */
-.grid-placement-item {
-    grid-column: 
-        var(--column-start-mobile, var(--column-start, 1)) / 
-        var(--column-end-mobile, var(--column-end, -1));
-    grid-row: 
-        var(--row-start-mobile, var(--row-start, auto)) / 
-        var(--row-end-mobile, var(--row-end, auto));
-    z-index: 
-        var(--z-index-mobile, var(--z-index, auto));
-}
-
-/* 3. Tablet (Matches shared.js maxWidth: 768px) */
-@container layout (min-width: 768px) {
-    .grid-placement-item {
-        grid-column: 
-            var(--column-start-tablet, var(--column-start-mobile, var(--column-start, 1))) / 
-            var(--column-end-tablet, var(--column-end-mobile, var(--column-end, -1)));
-        grid-row: 
-            var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto))) / 
-            var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto)));
-        z-index: 
-            var(--z-index-tablet, var(--z-index-mobile, var(--z-index, auto)));
-    }
-}
-
-/* 4. Laptop (Matches shared.js maxWidth: 1024px) */
-@container layout (min-width: 1024px) {
-    .grid-placement-item {
-        grid-column: 
-            var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, 1)))) / 
-            var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, -1))));
-        grid-row: 
-            var(--row-start-laptop, var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto)))) / 
-            var(--row-end-laptop, var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto))));
-        z-index: 
-            var(--z-index-laptop, var(--z-index-tablet, var(--z-index-mobile, var(--z-index, auto))));
-    }
-}
-
-/* 5. Desktop (Matches shared.js maxWidth: 1366px) */
-@container layout (min-width: 1366px) {
-    .grid-placement-item {
-        grid-column: 
-            var(--column-start-desktop, var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, 1))))) / 
-            var(--column-end-desktop, var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, -1)))));
-        grid-row: 
-            var(--row-start-desktop, var(--row-start-laptop, var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto))))) / 
-            var(--row-end-desktop, var(--row-end-laptop, var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto)))));
-        z-index: 
-            var(--z-index-desktop, var(--z-index-laptop, var(--z-index-tablet, var(--z-index-mobile, var(--z-index, auto)))));
-    }
-}
-
-/* 6. Large (Matches shared.js maxWidth: 1920px) */
-@container layout (min-width: 1920px) {
-    .grid-placement-item {
-        grid-column: 
-            var(--column-start-large, var(--column-start-desktop, var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, 1)))))) / 
-            var(--column-end-large, var(--column-end-desktop, var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, -1))))));
-        grid-row: 
-            var(--row-start-large, var(--row-start-desktop, var(--row-start-laptop, var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto)))))) / 
-            var(--row-end-large, var(--row-end-desktop, var(--row-end-laptop, var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto))))));
-        z-index: 
-            var(--z-index-large, var(--z-index-desktop, var(--z-index-laptop, var(--z-index-tablet, var(--z-index-mobile, var(--z-index, auto))))));
-    }
-}
-
-/* 7. Ultra (Matches shared.js maxWidth: 2560px) */
-@container layout (min-width: 2560px) {
-    .grid-placement-item {
-        grid-column: 
-            var(--column-start-ultra, var(--column-start-large, var(--column-start-desktop, var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, 1))))))) / 
-            var(--column-end-ultra, var(--column-end-large, var(--column-end-desktop, var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, -1)))))));
-        grid-row: 
-            var(--row-start-ultra, var(--row-start-large, var(--row-start-desktop, var(--row-start-laptop, var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto))))))) / 
-            var(--row-end-ultra, var(--row-end-large, var(--row-end-desktop, var(--row-end-laptop, var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto)))))));
-        z-index: 
-            var(--z-index-ultra, var(--z-index-large, var(--z-index-desktop, var(--z-index-laptop, var(--z-index-tablet, var(--z-index-mobile, var(--z-index, auto)))))));
-    }
-}
-
-/* Ensure the layout container stacks its internal blocks properly */
-div[column-span] {
+/* --- ? REVIEW REQUIRED ? --------------------------------------------------
+     Verify if this specific stacking rule is actually utilized in the codebase.
+     -------------------------------------------------------------------------- */
+  div[column-span] {
     display: flex;
     flex-direction: column;
     gap: var(--space-medium);
-}
+  }
 
 
+/* ---------- CONTAINER QUERY PLACEMENT ENGINE ---------- */
+
+  /* --- ? REVIEW REQUIRED ? --------------------------------------------------
+     The '#canvas' selector likely belongs in the visual builder's internal UI 
+     stylesheet, rather than this production-facing global components layer.
+     -------------------------------------------------------------------------- */
+  /* 1. Define the container on the body AND the builder canvas */
+  body, 
+  #canvas {
+    container-type: inline-size;
+    container-name: layout;
+  }
+
+  /* 2. Base (Mobile-First) Default Cascade */
+  .grid-placement-item {
+    grid-column: 
+      var(--column-start-mobile, var(--column-start, 1)) / 
+      var(--column-end-mobile, var(--column-end, -1));
+    grid-row: 
+      var(--row-start-mobile, var(--row-start, auto)) / 
+      var(--row-end-mobile, var(--row-end, auto));
+    z-index: 
+      var(--z-index-mobile, var(--z-index, auto));
+  }
+
+  /* 3. Tablet (Matches shared.js maxWidth: 768px) */
+  @container layout (min-width: 768px) {
+    .grid-placement-item {
+      grid-column: 
+        var(--column-start-tablet, var(--column-start-mobile, var(--column-start, 1))) / 
+        var(--column-end-tablet, var(--column-end-mobile, var(--column-end, -1)));
+      grid-row: 
+        var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto))) / 
+        var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto)));
+      z-index: 
+        var(--z-index-tablet, var(--z-index-mobile, var(--z-index, auto)));
+    }
+  }
+
+  /* 4. Laptop (Matches shared.js maxWidth: 1024px) */
+  @container layout (min-width: 1024px) {
+    .grid-placement-item {
+      grid-column: 
+        var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, 1)))) / 
+        var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, -1))));
+      grid-row: 
+        var(--row-start-laptop, var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto)))) / 
+        var(--row-end-laptop, var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto))));
+      z-index: 
+        var(--z-index-laptop, var(--z-index-tablet, var(--z-index-mobile, var(--z-index, auto))));
+    }
+  }
+
+  /* 5. Desktop (Matches shared.js maxWidth: 1366px) */
+  @container layout (min-width: 1366px) {
+    .grid-placement-item {
+      grid-column: 
+        var(--column-start-desktop, var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, 1))))) / 
+        var(--column-end-desktop, var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, -1)))));
+      grid-row: 
+        var(--row-start-desktop, var(--row-start-laptop, var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto))))) / 
+        var(--row-end-desktop, var(--row-end-laptop, var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto)))));
+      z-index: 
+        var(--z-index-desktop, var(--z-index-laptop, var(--z-index-tablet, var(--z-index-mobile, var(--z-index, auto)))));
+    }
+  }
+
+  /* 6. Large (Matches shared.js maxWidth: 1920px) */
+  @container layout (min-width: 1920px) {
+    .grid-placement-item {
+      grid-column: 
+        var(--column-start-large, var(--column-start-desktop, var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, 1)))))) / 
+        var(--column-end-large, var(--column-end-desktop, var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, -1))))));
+      grid-row: 
+        var(--row-start-large, var(--row-start-desktop, var(--row-start-laptop, var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto)))))) / 
+        var(--row-end-large, var(--row-end-desktop, var(--row-end-laptop, var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto))))));
+      z-index: 
+        var(--z-index-large, var(--z-index-desktop, var(--z-index-laptop, var(--z-index-tablet, var(--z-index-mobile, var(--z-index, auto))))));
+    }
+  }
+
+  /* 7. Ultra (Matches shared.js maxWidth: 2560px) */
+  @container layout (min-width: 2560px) {
+    .grid-placement-item {
+      grid-column: 
+        var(--column-start-ultra, var(--column-start-large, var(--column-start-desktop, var(--column-start-laptop, var(--column-start-tablet, var(--column-start-mobile, var(--column-start, 1))))))) / 
+        var(--column-end-ultra, var(--column-end-large, var(--column-end-desktop, var(--column-end-laptop, var(--column-end-tablet, var(--column-end-mobile, var(--column-end, -1)))))));
+      grid-row: 
+        var(--row-start-ultra, var(--row-start-large, var(--row-start-desktop, var(--row-start-laptop, var(--row-start-tablet, var(--row-start-mobile, var(--row-start, auto))))))) / 
+        var(--row-end-ultra, var(--row-end-large, var(--row-end-desktop, var(--row-end-laptop, var(--row-end-tablet, var(--row-end-mobile, var(--row-end, auto)))))));
+      z-index: 
+        var(--z-index-ultra, var(--z-index-large, var(--z-index-desktop, var(--z-index-laptop, var(--z-index-tablet, var(--z-index-mobile, var(--z-index, auto)))))));
+    }
+  }
+
+
+/* ---------- NAVIGATION & HEADERS ---------- */
+
+  /* Enables scroll-state container queries on the header if it contains a sticky element */
   header {
     &:has(.position-sticky-top) {
       container-type: scroll-state;
     }
   }
 
-  /* 2. THE 'STUCK' STATE LOGIC */
+  /* --- ? REVIEW REQUIRED ? --------------------------------------------------
+     1. Scroll-state queries are bleeding-edge CSS. Support in Safari/Firefox 
+        may be limited. Test thoroughly on those devices.
+     2. The '--alpha()' function does not exist in native CSS. Consider using 
+        Relative Color Syntax instead: rgb(from var(--color-light) r g b / 0.85)
+     -------------------------------------------------------------------------- */
+  /* Applies a frosted glass effect when the header becomes 'stuck' to the top of the viewport */
   @container scroll-state(stuck: top) {
     :scope {
       box-shadow: var(--shadow-medium);
@@ -1334,32 +1307,38 @@ div[column-span] {
     }
   }
 
+  /* Resets default button styling for the mobile navigation toggle */
+  button[aria-controls="nav-menu"] {
+    background: none;
+    border: none;
+    padding: 0;
+  }
+
+
+  /* ---------- COLOR PALETTE SYSTEM ---------- */
+
+  /* Creates an auto-flowing, responsive grid for color swatches */
   .palette-grid {
     display: grid;
-    grid-column: 1 / -1;
+    grid-column: 1 / -1; /* Forces the grid to span full bleed */
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: var(--space-medium);
     margin-top: var(--space-medium);
     padding: 0 var(--side-gutter);
   }
 
-  /* Optional: make swatches inside grid more compact */
+  /* Compresses individual color palettes into a 2-column internal grid */
   .palette-grid .color-palette {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 0.5rem;
   }
 
+  /* Establishes minimum sizing and typography for individual color swatches */
   .palette-grid .color-swatch {
     font-size: 0.85rem;
     padding: 0.6rem;
     min-height: 80px;
-  }
-
-  button[aria-controls="nav-menu"] {
-    background: none;
-    border: none;
-    padding: 0;
   }
 
   a:has(> button.secondary) {

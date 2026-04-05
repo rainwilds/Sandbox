@@ -1,5 +1,8 @@
 import * as Shared from '../shared.js';
 
+const EMPTY_PORT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M480 256a224 224 0 1 0 -448 0 224 224 0 1 0 448 0zM0 256a256 256 0 1 1 512 0 256 256 0 1 1 -512 0z"/></svg>`;
+const SOLID_PORT_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M0 256a256 256 0 1 1 512 0 256 256 0 1 1 -512 0z"/></svg>`;
+
 // --- 1. DROPDOWN MAPPINGS ---
 const ATTR_DROPDOWNS = {
     'subgrid': ['true', 'false'],
@@ -2842,15 +2845,18 @@ class VisualBuilder extends HTMLElement {
         }
     }
 
-    createPortProxy(portElement) {
+createPortProxy(portElement) {
         const proxy = document.createElement('div');
-        proxy.style.cssText = 'position:fixed; width:1px; height:1px; pointer-events:none; z-index:9999;';
+        proxy.style.cssText = 'position:fixed; pointer-events:none; z-index:9999;'; // Removed 0x0 constraints
         document.body.appendChild(proxy);
 
         const update = () => {
             const rect = portElement.getBoundingClientRect();
-            proxy.style.left = (rect.left + rect.width / 2) + 'px';
-            proxy.style.top = (rect.top + rect.height / 2) + 'px';
+            // Match the exact physical bounding box of the SVG!
+            proxy.style.left = rect.left + 'px';
+            proxy.style.top = rect.top + 'px';
+            proxy.style.width = rect.width + 'px';
+            proxy.style.height = rect.height + 'px';
         };
 
         update();
@@ -2893,6 +2899,7 @@ class VisualBuilder extends HTMLElement {
 
         this.renderMappingNodes();
         this.setupNodeWiring();
+        this.restoreSavedBindings();
     }
 
     exitMappingMode() {
@@ -2930,8 +2937,7 @@ class VisualBuilder extends HTMLElement {
     renderMappingNodes() {
         const workspace = this.shadowRoot.getElementById('mapping-workspace');
         workspace.innerHTML = '';
-        const portSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M480 256a224 224 0 1 0 -448 0 224 224 0 1 0 448 0zM0 256a256 256 0 1 1 512 0 256 256 0 1 1 -512 0z"/></svg>`;
-
+        const portSvg = EMPTY_PORT_SVG;
         const cmsFields = ['title', 'date', 'author', 'categories', 'excerpt', 'featuredImage', 'content'];
         const cmsNode = document.createElement('div');
         cmsNode.className = 'mapping-node';
@@ -2977,7 +2983,7 @@ class VisualBuilder extends HTMLElement {
         });
     }
 
-    setupNodeWiring() {
+setupNodeWiring() {
         const workspace = this.shadowRoot.getElementById('mapping-workspace');
         let dragState = null;
         let startX = 0, startY = 0;
@@ -2997,15 +3003,13 @@ class VisualBuilder extends HTMLElement {
             e.preventDefault();
             workspace.style.userSelect = 'none';
 
-            // Get exact starting position of the port
             const rect = port.getBoundingClientRect();
-            startX = rect.left + rect.width / 2;
+            startX = rect.left + rect.width / 2; 
             startY = rect.top + rect.height / 2;
 
             const startProxy = this.createPortProxy(port);
             dragState = { startProxy, portData: port.dataset };
 
-            // Start the Native SVG line
             this.dragPath.setAttribute('d', `M ${startX} ${startY} L ${startX} ${startY}`);
             this.dragSvg.style.display = 'block';
         };
@@ -3018,17 +3022,13 @@ class VisualBuilder extends HTMLElement {
         this._onMouseMove = (e) => {
             if (!dragState) return;
 
-            // NATIVE SVG CURVE MATH (Zero Latency!)
             const endX = e.clientX;
             const endY = e.clientY;
 
-            // Tension dynamically adjusts based on distance, creating a physical "cable" feel
             const distance = Math.abs(endX - startX);
             const cpOffset = Math.max(distance * 0.4, 40);
 
-            // Cubic Bezier formula
             const pathData = `M ${startX} ${startY} C ${startX + cpOffset} ${startY}, ${endX - cpOffset} ${endY}, ${endX} ${endY}`;
-
             this.dragPath.setAttribute('d', pathData);
         };
 
@@ -3036,7 +3036,6 @@ class VisualBuilder extends HTMLElement {
             if (!dragState) return;
             workspace.style.userSelect = '';
 
-            // Hide Native SVG immediately
             this.dragSvg.style.display = 'none';
             this.dragPath.setAttribute('d', '');
 
@@ -3049,8 +3048,7 @@ class VisualBuilder extends HTMLElement {
             if (dropPort) {
                 const endProxy = this.createPortProxy(dropPort);
 
-                // Hand off to LeaderLine for the permanent, anchored connection
-                const permanentLine = new LeaderLine(dragState.startProxy.element, endProxy.element, {
+const permanentLine = new LeaderLine(dragState.startProxy.element, endProxy.element, {
                     color: '#10b981',
                     size: 4,
                     path: 'fluid',
@@ -3058,6 +3056,7 @@ class VisualBuilder extends HTMLElement {
                     endSocket: 'left',
                     startPlug: 'behind',
                     endPlug: 'behind',
+                    // DELETED: startPlugSize and endPlugSize hacks!
                     startSocketGravity: [60, 0],
                     endSocketGravity: [-60, 0],
                     dropShadow: { dx: 0, dy: 4, blur: 6, color: 'rgba(0,0,0,0.5)' }
@@ -3065,13 +3064,28 @@ class VisualBuilder extends HTMLElement {
 
                 document.querySelectorAll('.leader-line').forEach(el => el.style.zIndex = '20000');
 
+                dragState.startProxy.original.innerHTML = SOLID_PORT_SVG;
+                dragState.startProxy.original.style.fill = '#10b981';
+                dropPort.innerHTML = SOLID_PORT_SVG;
+                dropPort.style.fill = '#10b981';
+
                 this.activeLines.push({
                     line: permanentLine,
                     startProxy: dragState.startProxy,
                     endProxy: endProxy
                 });
 
-                console.log(`✅ WIRED: CMS.${dragState.portData.port} -> Node[${dropPort.dataset.node}].${dropPort.dataset.port}`);
+                const targetNodeId = dropPort.dataset.node;
+                const targetField = dropPort.dataset.port;
+                const sourceField = dragState.portData.port;
+
+                const targetItem = this.state.items[targetNodeId];
+                if (!targetItem.dataBindings) targetItem.dataBindings = {};
+                
+                targetItem.dataBindings[targetField] = `cms.${sourceField}`;
+                this.saveState(`Mapped CMS.${sourceField} to ${targetField}`);
+
+                console.log(`✅ WIRED & SAVED: CMS.${sourceField} -> Node[${targetNodeId}].${targetField}`);
             } else {
                 dragState.startProxy.element.remove();
             }
@@ -3087,7 +3101,6 @@ class VisualBuilder extends HTMLElement {
             if (!isScrolling) {
                 isScrolling = true;
                 requestAnimationFrame(() => {
-                    // Update the static LeaderLines when scrolling
                     if (this.activeLines) {
                         this.activeLines.forEach(item => {
                             item.startProxy.update();
@@ -3099,6 +3112,53 @@ class VisualBuilder extends HTMLElement {
                 });
             }
         });
+    }
+
+restoreSavedBindings() {
+        const workspace = this.shadowRoot.getElementById('mapping-workspace');
+
+        Object.values(this.state.items).forEach(item => {
+            if (!item.dataBindings) return;
+
+            Object.entries(item.dataBindings).forEach(([targetField, sourcePath]) => {
+                const sourceField = sourcePath.split('.')[1];
+
+                const startPort = workspace.querySelector(`.output-port[data-node="cms"][data-port="${sourceField}"]`);
+                const endPort = workspace.querySelector(`.input-port[data-node="${item.id}"][data-port="${targetField}"]`);
+
+                if (startPort && endPort) {
+                    const startProxy = this.createPortProxy(startPort);
+                    const endProxy = this.createPortProxy(endPort);
+
+const permanentLine = new LeaderLine(dragState.startProxy.element, endProxy.element, {
+                    color: '#10b981',
+                    size: 4,
+                    path: 'fluid',
+                    startSocket: 'right',
+                    endSocket: 'left',
+                    startPlug: 'behind',
+                    endPlug: 'behind',
+                    // DELETED: startPlugSize and endPlugSize hacks!
+                    startSocketGravity: [60, 0],
+                    endSocketGravity: [-60, 0],
+                    dropShadow: { dx: 0, dy: 4, blur: 6, color: 'rgba(0,0,0,0.5)' }
+                });
+
+                    startPort.innerHTML = SOLID_PORT_SVG;
+                    startPort.style.fill = '#10b981';
+                    endPort.innerHTML = SOLID_PORT_SVG;
+                    endPort.style.fill = '#10b981';
+
+                    this.activeLines.push({
+                        line: permanentLine,
+                        startProxy: startProxy,
+                        endProxy: endProxy
+                    });
+                }
+            });
+        });
+        
+        document.querySelectorAll('.leader-line').forEach(el => el.style.zIndex = '20000');
     }
 
     setupControls() {
